@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Timers;
+using System.Windows;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -23,7 +24,17 @@ namespace vrcosc_magicchatbox
             this.DataContext = _VM;
             InitializeComponent();
 
-        }  
+
+            _VM.FocusedWindow = _ACTIV.GetForegroundProcessName();
+
+
+
+        }
+
+        private void GetSongTitle(object sender, RoutedEventArgs e)
+        {
+            _VM.PlayingSongTitle = _SPOT.CurrentPlayingSong();
+        }
     }
 
 }

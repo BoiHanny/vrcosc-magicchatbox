@@ -8,6 +8,39 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         #region Properties
 
+        private string _PlayingSongTitle = "";
+        private string _FocusedWindow = "";
+        private bool _SpotifyActive = false;
+
+        public string FocusedWindow
+        {
+            get { return _FocusedWindow; }
+            set
+            {
+                _FocusedWindow = value;
+                NotifyPropertyChanged(nameof(FocusedWindow));
+            }
+        }
+        public string PlayingSongTitle
+        {
+            get { return _PlayingSongTitle; }
+            set
+            {
+                _PlayingSongTitle = value;
+                NotifyPropertyChanged(nameof(PlayingSongTitle));
+            }
+        }
+        public bool SpotifyActive
+        {
+            get { return _SpotifyActive; }
+            set
+            {
+                _SpotifyActive = value;
+                NotifyPropertyChanged(nameof(SpotifyActive));
+            }
+        }
+
+
         #endregion
 
         #region PropChangedEvent

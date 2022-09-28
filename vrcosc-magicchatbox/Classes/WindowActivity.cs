@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
@@ -14,5 +16,31 @@ namespace vrcosc_magicchatbox.Classes
         {
             _VM = vm;
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern Int32 GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        public string GetForegroundProcessName()
+        {
+            IntPtr hwnd = GetForegroundWindow();
+
+            if (hwnd == null)
+                return "Unknown";
+
+            uint pid;
+            GetWindowThreadProcessId(hwnd, out pid);
+
+            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcesses())
+            {
+                if (p.Id == pid)
+                    return p.ProcessName;
+            }
+
+            return "Unknown";
+        }
+
     }
 }

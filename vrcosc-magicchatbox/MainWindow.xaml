@@ -7,6 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <StackPanel>
+            <Label Content="{Binding PlayingSongTitle}" HorizontalAlignment="Center" Width="auto"/>
+            <Button Click="GetSongTitle" Height="22" Width="80" Content="Get Song title"/>
+        </StackPanel>
+
 
     </Grid>
 </Window>

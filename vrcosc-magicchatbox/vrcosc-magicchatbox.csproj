@@ -8,4 +8,10 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="SharpOSC">
+      <HintPath>..\..\..\..\Downloads\SharpOSC.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

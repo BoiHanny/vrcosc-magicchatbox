@@ -22,9 +22,15 @@ namespace vrcosc_magicchatbox.Classes
 
                 foreach (var p in procs)
                 {
+
+                if(!p.MainWindowTitle.StartsWith("Spotify"))
                     return  p.MainWindowTitle;
+                else
+                {
+                    return "Music Paused";
                 }
-                return "";
+                }
+                return "No music";
         }
 
         public bool SpotifyIsRunning()
