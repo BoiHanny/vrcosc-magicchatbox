@@ -7,12 +7,14 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    public class WindowActivity
+    public class OscController
     {
+
         private ViewModel _VM;
-        public WindowActivity(ViewModel vm)
+        public OscController(ViewModel vm)
         {
             _VM = vm;
         }
+
     }
 }
