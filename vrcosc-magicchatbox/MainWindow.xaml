@@ -3,15 +3,119 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:vrcosc_magicchatbox"
+        xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True">
     <Grid>
-        <StackPanel>
-            <Label Content="{Binding PlayingSongTitle}" HorizontalAlignment="Center" Width="auto"/>
-            <Button Click="GetSongTitle" Height="22" Width="80" Content="Get Song title"/>
-        </StackPanel>
+        <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10">
+            <Border.Effect>
+                <DropShadowEffect RenderingBias="Quality" BlurRadius="7" ShadowDepth="0" Direction="-63" />
+            </Border.Effect>
+            <Grid Background="#FF3B3054">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="55"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
 
+        <Grid Background="#FF2D1267"
+              Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="MagicChatbox" 
+                       Foreground="White"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Padding="0,10,0,0"
+                       FontSize="16"
+                       FontFamily="Albert Sans Thin"/>
+            <TextBlock Text="VRC OSC" 
+                       Foreground="MediumPurple"
+                       Grid.Column="0"
+                       VerticalAlignment="top"
+                       HorizontalAlignment="left"
+                       Padding="16,12,0,0"
+                       FontSize="10"
+                       FontFamily="Albert Sans Thin"/>
+            <Grid Grid.Column="1" Margin="3,0,3,0" >
+                <Button Style="{DynamicResource MenuItemStyle}"  Content="Intergrations"
+                    
+                    Background="#FF240E55" 
+                    Foreground="White" 
+                    FontFamily="Comfortaa Light" 
+                    FontSize="18" 
+                    
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
+                    />
+                <Border Visibility="Visible" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+            </Grid>
+            <Grid Grid.Column="2" Margin="3,0,3,0" >
+                <Button Style="{DynamicResource MenuItemStyle}"  Content="Chatting"
+                    
+                    Background="#FF240E55" 
+                    Foreground="White" 
+                    FontFamily="Comfortaa Light" 
+                    FontSize="18" 
+                    
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
+                    />
+                <Border Visibility="Hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+            </Grid>
+                    <Grid Grid.Column="3" Margin="3,0,3,0" >
+                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Options"
+                    
+                    Background="#FF240E55" 
+                    Foreground="White" 
+                    FontFamily="Comfortaa Light" 
+                    FontSize="18" 
+                    
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
+                    />
+                        <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                    </Grid>
+                </Grid>
+                <Grid Background="#FF42385D" Grid.Row="1" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Preview" 
+                       Foreground="White"
+                       Grid.Column="0"
+                       VerticalAlignment="top"
+                       HorizontalAlignment="Center"
+                       Padding="0,8,0,0"
+                       FontSize="16"
+                       FontFamily="Albert Sans Thin"/>
+
+                    <TextBlock Background="#FF7F759A" Text="{Binding OSCtoSent}" 
+                       Foreground="White"
+                       Grid.Row="1"
+                       VerticalAlignment="Top"
+                       HorizontalAlignment="Stretch"
+                       Padding="5,5,5,5"
+                               
+                       FontSize="13"
+                       FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150"/>
+
+                </Grid>
+    </Grid>
+    </Border>
     </Grid>
 </Window>
+
+

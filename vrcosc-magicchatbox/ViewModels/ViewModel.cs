@@ -8,10 +8,31 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         #region Properties
 
+        private int _ScanInterval = 1;
         private string _PlayingSongTitle = "";
         private string _FocusedWindow = "";
         private bool _SpotifyActive = false;
+        private string _OSCtoSent = "";
 
+        public string OSCtoSent
+        {
+            get { return _OSCtoSent; }
+            set
+            {
+                _OSCtoSent = value;
+                NotifyPropertyChanged(nameof(OSCtoSent));
+            }
+        }
+
+        public int ScanInterval
+        {
+            get { return _ScanInterval; }
+            set
+            {
+                _ScanInterval = value;
+                NotifyPropertyChanged(nameof(ScanInterval));
+            }
+        }
         public string FocusedWindow
         {
             get { return _FocusedWindow; }

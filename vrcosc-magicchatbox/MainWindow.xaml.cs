@@ -1,7 +1,8 @@
-﻿using System.Timers;
-using System.Windows;
+﻿using System.Windows;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.ViewModels;
+using System.Windows.Threading;
+using System;
 
 namespace vrcosc_magicchatbox
 {
@@ -12,6 +13,7 @@ namespace vrcosc_magicchatbox
         private OscController _OSC;
         private SystemStats _STATS;
         private WindowActivity _ACTIV;
+        public float samplingTime = 1;
 
         public MainWindow()
         {
@@ -25,15 +27,16 @@ namespace vrcosc_magicchatbox
             InitializeComponent();
 
 
-            _VM.FocusedWindow = _ACTIV.GetForegroundProcessName();
-
-
+            DispatcherTimer backgroundCheck = new DispatcherTimer();
+            backgroundCheck.Tick += backgroundCheck_Tick; backgroundCheck.Interval = new TimeSpan(0, 0, _VM.ScanInterval); backgroundCheck.Start();
 
         }
 
-        private void GetSongTitle(object sender, RoutedEventArgs e)
+        private void backgroundCheck_Tick(object sender, EventArgs e)
         {
             _VM.PlayingSongTitle = _SPOT.CurrentPlayingSong();
+            _VM.FocusedWindow = _ACTIV.GetForegroundProcessName();
+            _VM.OSCtoSent = "Using '" + _VM.FocusedWindow + "' | listening to '" + _SPOT.CurrentPlayingSong() +"'";
         }
     }
 
