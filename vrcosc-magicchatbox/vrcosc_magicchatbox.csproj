@@ -3,9 +3,15 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <RootNamespace>vrcosc_magicchatbox</RootNamespace>
+    <RootNamespace>Bois MagicChatbox</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SharpOSC">
+      <HintPath>..\..\..\..\Downloads\SharpOSC.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
 </Project>
