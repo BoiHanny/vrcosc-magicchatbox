@@ -49,11 +49,11 @@ namespace vrcosc_magicchatbox
             {
                 if (_VM.IsVRRunning)
                 {
-                    msg = "Vibing in 'VRChat' using SteamVR";
+                    msg = "Vibing in 'VRChat' using SteamVR,";
                 }
                 else
                 {
-                    msg = "On desktop in '" + _VM.FocusedWindow + "'";
+                    msg = "On desktop in '" + _VM.FocusedWindow + "',";
                 }
             }
             if(_VM.IntgrScanSpotify)

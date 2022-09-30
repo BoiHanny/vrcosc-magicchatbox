@@ -6,7 +6,12 @@
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Img\MagicOSC_icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="SharpOSC">

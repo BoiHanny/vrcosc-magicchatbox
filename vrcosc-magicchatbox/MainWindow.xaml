@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True">
+        Title="MagicChatbox by BoiHanny" Height="450" Width="800"
+        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98">
     <Grid>
         <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10">
             <Border.Effect>
