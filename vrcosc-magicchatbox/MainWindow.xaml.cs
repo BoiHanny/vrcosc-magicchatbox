@@ -61,11 +61,11 @@ namespace vrcosc_magicchatbox
                 if (_VM.SpotifyActive)
                     if (_VM.SpotifyPaused)
                     {
-                        msg = msg + " | Music paused.";
+                        msg = msg + " but the Music paused";
                     }
                     else
                     {
-                        msg = msg + " | listening to '" + _VM.PlayingSongTitle + "'.";
+                        msg = msg + " listening to '" + _VM.PlayingSongTitle + "'";
                     }
                 ;
             }
