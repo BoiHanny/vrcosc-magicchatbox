@@ -1,5 +1,4 @@
-﻿
-using vrcosc_magicchatbox.ViewModels;
+﻿using vrcosc_magicchatbox.ViewModels;
 using System.Diagnostics;
 
 namespace vrcosc_magicchatbox.Classes
@@ -14,19 +13,24 @@ namespace vrcosc_magicchatbox.Classes
 
         public string CurrentPlayingSong()
         {
-                var procs = Process.GetProcessesByName("Spotify");
+            var procs = Process.GetProcessesByName("Spotify");
 
-                foreach (var p in procs)
+            foreach (var p in procs)
+            {
+
+                if (!p.MainWindowTitle.StartsWith("Spotify"))
                 {
-
-                if(!p.MainWindowTitle.StartsWith("Spotify"))
-                    return  p.MainWindowTitle;
+                    _VM.SpotifyPaused = false;
+                    return p.MainWindowTitle;
+                }
                 else
                 {
-                    return "Music Paused";
+                    _VM.SpotifyPaused = true;
+                    return "";
                 }
-                }
+            }
                 return "No music";
+            _VM.SpotifyPaused = true;
         }
 
         public bool SpotifyIsRunning()
@@ -39,7 +43,6 @@ namespace vrcosc_magicchatbox.Classes
             {
                 return false;
             }
-            
         }
 
     }

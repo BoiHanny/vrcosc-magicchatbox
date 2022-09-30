@@ -1,4 +1,5 @@
 ﻿using vrcosc_magicchatbox.ViewModels;
+using SharpOSC;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -11,11 +12,13 @@ namespace vrcosc_magicchatbox.Classes
             _VM = vm;
         }
 
-        public void SentOSCMessage(string message)
+        public UDPSender oscSender;
+
+        public void SentOSCMessage()
         {
-
-
-
+            oscSender = new(_VM.OSCIP, _VM.OSCPort);
+            oscSender.Send(new OscMessage("/chatbox/typing", false));
+            oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
         }
 
 

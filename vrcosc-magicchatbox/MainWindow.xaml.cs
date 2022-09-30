@@ -26,7 +26,6 @@ namespace vrcosc_magicchatbox
             this.DataContext = _VM;
             InitializeComponent();
 
-
             DispatcherTimer backgroundCheck = new DispatcherTimer();
             backgroundCheck.Tick += backgroundCheck_Tick; backgroundCheck.Interval = new TimeSpan(0, 0, _VM.ScanInterval); backgroundCheck.Start();
 
@@ -34,9 +33,47 @@ namespace vrcosc_magicchatbox
 
         private void backgroundCheck_Tick(object sender, EventArgs e)
         {
-            _VM.PlayingSongTitle = _SPOT.CurrentPlayingSong();
-            _VM.FocusedWindow = _ACTIV.GetForegroundProcessName();
-            _VM.OSCtoSent = "Using '" + _VM.FocusedWindow + "' | listening to '" + _SPOT.CurrentPlayingSong() +"'";
+            if (_VM.IntgrScanSpotify == true)
+            { _VM.PlayingSongTitle = _SPOT.CurrentPlayingSong(); _VM.SpotifyActive = _SPOT.SpotifyIsRunning(); }
+            if (_VM.IntgrScanWindowActivity == true)
+            { _VM.FocusedWindow = _ACTIV.GetForegroundProcessName(); _VM.IsVRRunning = _ACTIV.IsVRRunning(); }
+            BuildOSC();
+            _OSC.SentOSCMessage();
+
+        }
+
+        public void BuildOSC()
+        {
+            string msg = "";
+            if(_VM.IntgrScanWindowActivity == true)
+            {
+                if (_VM.IsVRRunning)
+                {
+                    msg = "Vibing in 'VRChat' using SteamVR";
+                }
+                else
+                {
+                    msg = "On desktop in '" + _VM.FocusedWindow + "'";
+                }
+            }
+            if(_VM.IntgrScanSpotify)
+            {
+                if (_VM.SpotifyActive)
+                    if (_VM.SpotifyPaused)
+                    {
+                        msg = msg + " | Music paused.";
+                    }
+                    else
+                    {
+                        msg = msg + " | listening to '" + _VM.PlayingSongTitle + "'.";
+                    }
+                ;
+            }
+            if(msg.Length > 0)
+            {
+                _VM.OSCtoSent = msg;
+            }
+            
         }
     }
 

@@ -1,6 +1,8 @@
 ﻿using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
+
+
 {
     public class SystemStats
     {
@@ -9,6 +11,5 @@ namespace vrcosc_magicchatbox.Classes
         {
             _VM = vm;
         }
-
     }
 }

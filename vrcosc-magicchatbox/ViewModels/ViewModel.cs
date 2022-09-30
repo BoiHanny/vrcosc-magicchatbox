@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 
 namespace vrcosc_magicchatbox.ViewModels
@@ -8,11 +7,67 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         #region Properties
 
-        private int _ScanInterval = 1;
+        private int _ScanInterval = 4;
         private string _PlayingSongTitle = "";
         private string _FocusedWindow = "";
         private bool _SpotifyActive = false;
+        private bool _SpotifyPaused = false;
+        private bool _IntgrScanWindowActivity = true;
+        private bool _IntgrScanSpotify = true;
+        private bool _IsVRRunning = false;
         private string _OSCtoSent = "";
+        private string _OSCIP = "127.0.0.1";
+        private int _OSCPort = 9000;
+
+        public bool IsVRRunning
+        {
+            get { return _IsVRRunning; }
+            set
+            {
+                _IsVRRunning = value;
+                NotifyPropertyChanged(nameof(IsVRRunning));
+            }
+        }
+
+        public string OSCIP
+        {
+            get { return _OSCIP; }
+            set
+            {
+                _OSCIP = value;
+                NotifyPropertyChanged(nameof(OSCIP));
+            }
+        }
+
+        public bool IntgrScanWindowActivity
+        {
+            get { return _IntgrScanWindowActivity; }
+            set
+            {
+                _IntgrScanWindowActivity = value;
+                NotifyPropertyChanged(nameof(IntgrScanWindowActivity));
+            }
+        }
+
+        public int OSCPort
+        {
+            get { return _OSCPort; }
+            set
+            {
+                _OSCPort = value;
+                NotifyPropertyChanged(nameof(OSCPort));
+            }
+        }
+
+        public bool IntgrScanSpotify
+        {
+            get { return _IntgrScanSpotify; }
+            set
+            {
+                _IntgrScanSpotify = value;
+                NotifyPropertyChanged(nameof(IntgrScanSpotify));
+            }
+        }
 
         public string OSCtoSent
         {
@@ -58,6 +113,15 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _SpotifyActive = value;
                 NotifyPropertyChanged(nameof(SpotifyActive));
+            }
+        }
+        public bool SpotifyPaused
+        {
+            get { return _SpotifyPaused; }
+            set
+            {
+                _SpotifyPaused = value;
+                NotifyPropertyChanged(nameof(SpotifyPaused));
             }
         }
 

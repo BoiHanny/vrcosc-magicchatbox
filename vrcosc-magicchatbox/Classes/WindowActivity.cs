@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
@@ -35,6 +36,16 @@ namespace vrcosc_magicchatbox.Classes
 
             return "Unknown";
         }
+
+        public bool IsVRRunning()
+        {
+            Process[] pname = Process.GetProcessesByName("vrmonitor");
+            if (pname.Length == 0)
+                return false;
+            else
+                return true;
+        }
+
 
     }
 }
