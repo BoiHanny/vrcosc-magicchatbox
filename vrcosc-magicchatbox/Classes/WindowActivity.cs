@@ -20,30 +20,45 @@ namespace vrcosc_magicchatbox.Classes
 
         public string GetForegroundProcessName()
         {
-            IntPtr hwnd = GetForegroundWindow();
-
-            if (hwnd == null)
-                return "Unknown";
-
-            uint pid;
-            GetWindowThreadProcessId(hwnd, out pid);
-
-            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcesses())
+            try
             {
-                if (p.Id == pid)
-                    return p.ProcessName;
-            }
+                IntPtr hwnd = GetForegroundWindow();
 
-            return "Unknown";
+                if (hwnd == null)
+                    return "Unknown";
+
+                uint pid;
+                GetWindowThreadProcessId(hwnd, out pid);
+
+                foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcesses())
+                {
+                    if (p.Id == pid)
+                        return p.ProcessName;
+                }
+
+                return "Unknown";
+            }
+            catch (Exception)
+            {
+
+                return "Unknown Error";
+            }          
         }
 
         public bool IsVRRunning()
         {
-            Process[] pname = Process.GetProcessesByName("vrmonitor");
-            if (pname.Length == 0)
+            try
+            {
+                Process[] pname = Process.GetProcessesByName("vrmonitor");
+                if (pname.Length == 0)
+                    return false;
+                else
+                    return true;
+            }
+            catch (Exception)
+            {
                 return false;
-            else
-                return true;
+            }
         }
 
 

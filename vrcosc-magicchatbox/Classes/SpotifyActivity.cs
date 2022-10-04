@@ -35,14 +35,22 @@ namespace vrcosc_magicchatbox.Classes
 
         public bool SpotifyIsRunning()
         {
-            if (Process.GetProcessesByName("Spotify").Length > 0)
+            try
             {
-                return true;
+                if (Process.GetProcessesByName("Spotify").Length > 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+            catch (System.Exception)
             {
                 return false;
             }
+
         }
 
     }
