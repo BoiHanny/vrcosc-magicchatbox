@@ -6,7 +6,20 @@
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
+    <Configurations>Debug;Release;Beta</Configurations>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Img\Icons\spotify_ico.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Img\Icons\spotify_ico.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Content Include="Img\MagicOSC_icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="SharpOSC">

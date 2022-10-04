@@ -1,4 +1,6 @@
-﻿using vrcosc_magicchatbox.ViewModels;
+﻿using System;
+using System.Globalization;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 
@@ -11,5 +13,20 @@ namespace vrcosc_magicchatbox.Classes
         {
             _VM = vm;
         }
+
+        public string GetTime()
+        {
+            try
+            {
+                return string.Format("{0:hh:mm tt}", DateTime.Now).ToUpper();
+            }
+            catch (Exception)
+            {
+
+                return "00:00 XX";
+            }
+
+        }
     }
 }
+    

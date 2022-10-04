@@ -5,36 +5,36 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True">
+        Title="MagicChatbox by BoiHanny" Height="450" Width="800"
+        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98">
     <Grid>
         <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10">
             <Border.Effect>
                 <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="15" ShadowDepth="0" Direction="-63" />
             </Border.Effect>
             <Grid Background="#FF3B3054">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="55"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="55"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
 
-        <Grid Background="#FF2D1267"
+                <Grid Background="#FF2D1267"
               Grid.ColumnSpan="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
 
-            <TextBlock Text="MagicChatbox" 
+                    <TextBlock Text="MagicChatbox" 
                        Foreground="White"
                        Grid.Column="0"
                        VerticalAlignment="Center"
@@ -42,7 +42,7 @@
                        Padding="0,10,0,0"
                        FontSize="16"
                        FontFamily="Albert Sans Thin"/>
-            <TextBlock Text="VRC OSC" 
+                    <TextBlock Text="VRC OSC" 
                        Foreground="MediumPurple"
                        Grid.Column="0"
                        VerticalAlignment="top"
@@ -50,8 +50,8 @@
                        Padding="16,12,0,0"
                        FontSize="10"
                        FontFamily="Albert Sans Thin"/>
-            <Grid Grid.Column="1" Margin="3,0,3,0" >
-                <Button Style="{DynamicResource MenuItemStyle}"  Content="Intergrations"
+                    <Grid Grid.Column="1" Margin="3,0,3,0" >
+                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Intergrations"
                     
                     Background="#FF240E55" 
                     Foreground="White" 
@@ -60,20 +60,20 @@
                     
                     FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
                     />
-                <Border Visibility="Visible" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
-            </Grid>
-            <Grid Grid.Column="2" Margin="3,0,3,0" >
-                <Button Style="{DynamicResource MenuItemStyle}"  Content="Chatting"
+                        <Border Visibility="Visible" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                    </Grid>
+                    <Grid Grid.Column="2" Margin="3,0,3,0" >
+                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Chatting"
                     
                     Background="#FF240E55" 
                     Foreground="White" 
                     FontFamily="Comfortaa Light" 
                     FontSize="18" 
                     
-                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
                     />
-                <Border Visibility="Hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
-            </Grid>
+                        <Border Visibility="Hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                    </Grid>
                     <Grid Grid.Column="3" Margin="3,0,3,0" >
                         <Button Style="{DynamicResource MenuItemStyle}"  Content="Options"
                     
@@ -82,10 +82,55 @@
                     FontFamily="Comfortaa Light" 
                     FontSize="18" 
                     
-                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
                     />
                         <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
+                </Grid>
+                <Grid Grid.Row="1" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25"/>
+                        <RowDefinition Height="85"/>
+                        <RowDefinition Height="85"/>
+                        <RowDefinition Height="85"/>
+                        <RowDefinition Height="85"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="1">
+                        <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
+                            <Border.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="345"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Spotify"                                       
+                                         Foreground="White"
+                                         FontSize="20"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBlock Grid.Row="1" Text="This intergration will show the playing song title and artist,
+                                               It will also show if the song is paused."                                       
+                                         Foreground="LightGray"
+                                         FontSize="13"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
+
+                                </Grid>
+                                <Image Grid.Column="0" Margin="15" Source="/Img/Icons/spotify_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
                 </Grid>
                 <Grid Background="#FF42385D" Grid.Row="1" Grid.Column="1">
                     <Grid.RowDefinitions>
@@ -113,8 +158,8 @@
                        FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150"/>
 
                 </Grid>
-    </Grid>
-    </Border>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
 

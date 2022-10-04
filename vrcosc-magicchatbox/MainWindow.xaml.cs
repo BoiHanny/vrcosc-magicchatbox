@@ -37,6 +37,8 @@ namespace vrcosc_magicchatbox
             { _VM.PlayingSongTitle = _SPOT.CurrentPlayingSong(); _VM.SpotifyActive = _SPOT.SpotifyIsRunning(); }
             if (_VM.IntgrScanWindowActivity == true)
             { _VM.FocusedWindow = _ACTIV.GetForegroundProcessName(); _VM.IsVRRunning = _ACTIV.IsVRRunning(); }
+            if(_VM.IntgrScanWindowTime == true)
+            { _VM.CurrentTIme = _STATS.GetTime(); }
             BuildOSC();
             _OSC.SentOSCMessage();
 
@@ -49,11 +51,13 @@ namespace vrcosc_magicchatbox
             {
                 if (_VM.IsVRRunning)
                 {
-                    msg = "Vibing in 'VRChat' using SteamVR";
+                    msg = "In VR |";
+                    if(_VM.IntgrScanWindowTime == true)
+                    msg = msg + " My time: " + _VM.CurrentTIme + " |";
                 }
                 else
                 {
-                    msg = "On desktop in '" + _VM.FocusedWindow + "'";
+                    msg = "On desktop in '" + _VM.FocusedWindow + "' |";
                 }
             }
             if(_VM.IntgrScanSpotify)
@@ -61,11 +65,19 @@ namespace vrcosc_magicchatbox
                 if (_VM.SpotifyActive)
                     if (_VM.SpotifyPaused)
                     {
-                        msg = msg + " but the Music paused";
+                        if(_VM.IsVRRunning == true)
+                        {
+                            msg = msg + "   Music is paused";
+                        }
+                        else
+                        {
+                            msg = msg + " Music is paused";
+                        }
+
                     }
                     else
                     {
-                        msg = msg + " listening to '" + _VM.PlayingSongTitle + "'";
+                        msg = msg + " Listening to '" + _VM.PlayingSongTitle + "'";
                     }
                 ;
             }
