@@ -24,7 +24,7 @@ Hi everyone, I've created this simple application to show some cool stuff in the
 - create a valuable and friendly chatting tab with an always-on-top option, ESC = clear, hotkey to switch quickly to VRChat and more;
 - privacy filter on applications when using the focused application option (desktop), should show up as "*On desktop in a private app*";
 - add options in settings like the OSC IP and port options for the sender/receiver, auto start? update check? reset to default and more;
-- look into displaying your heart rate by using a pulsoid device or other supported devices;
+- look into displaying your heart rate by using a pulsoid device or other supported devices.
 
 ### Any feedback/ideas? Discord: BoiHanny#6666
 
