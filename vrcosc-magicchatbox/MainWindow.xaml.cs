@@ -3,6 +3,7 @@ using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.ViewModels;
 using System.Windows.Threading;
 using System;
+using System.Windows.Input;
 
 namespace vrcosc_magicchatbox
 {
@@ -27,21 +28,28 @@ namespace vrcosc_magicchatbox
             InitializeComponent();
 
             DispatcherTimer backgroundCheck = new DispatcherTimer();
-            backgroundCheck.Tick += backgroundCheck_Tick; backgroundCheck.Interval = new TimeSpan(0, 0, _VM.ScanInterval); backgroundCheck.Start();
+            backgroundCheck.Tick += Timer; backgroundCheck.Interval = new TimeSpan(0, 0, _VM.ScanInterval); backgroundCheck.Start();
+            _VM.IntgrScanWindowActivity = true;
+            _VM.IntgrScanSpotify = true;
+            _VM.IntgrScanWindowTime = true;
 
         }
 
-        private void backgroundCheck_Tick(object sender, EventArgs e)
+        private void Timer(object sender, EventArgs e)
+        {
+            scantick();
+        }
+
+        public void scantick()
         {
             if (_VM.IntgrScanSpotify == true)
             { _VM.PlayingSongTitle = _SPOT.CurrentPlayingSong(); _VM.SpotifyActive = _SPOT.SpotifyIsRunning(); }
             if (_VM.IntgrScanWindowActivity == true)
             { _VM.FocusedWindow = _ACTIV.GetForegroundProcessName(); _VM.IsVRRunning = _ACTIV.IsVRRunning(); }
-            if(_VM.IntgrScanWindowTime == true)
+            if (_VM.IntgrScanWindowTime == true)
             { _VM.CurrentTIme = _STATS.GetTime(); }
             BuildOSC();
             _OSC.SentOSCMessage();
-
         }
 
         public void BuildOSC()
@@ -86,6 +94,27 @@ namespace vrcosc_magicchatbox
                 _VM.OSCtoSent = msg;
             }
             
+        }
+
+        private void Spotify_switch_Click(object sender, RoutedEventArgs e)
+        {
+            scantick();
+        }
+
+        private void WindowActivity_switch_Click(object sender, RoutedEventArgs e)
+        {
+            scantick();
+        }
+
+        private void Drag_area_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+
+        private void SystemTime_switch_Click(object sender, RoutedEventArgs e)
+        {
+            scantick();
         }
     }
 

@@ -12,9 +12,9 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _FocusedWindow = "";
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
-        private bool _IntgrScanWindowActivity = true;
-        private bool _IntgrScanWindowTime = true;
-        private bool _IntgrScanSpotify = true;
+        private bool _IntgrScanWindowActivity = false;
+        private bool _IntgrScanWindowTime = false;
+        private bool _IntgrScanSpotify = false;
         private bool _IsVRRunning = false;
         private string _OSCtoSent = "";
         private string _OSCIP = "127.0.0.1";

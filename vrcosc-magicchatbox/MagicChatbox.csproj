@@ -12,13 +12,25 @@
 
   <ItemGroup>
     <None Remove="Img\Icons\spotify_ico.png" />
+    <None Remove="Img\Icons\SystemTime_ico.png" />
+    <None Remove="Img\Icons\WindowActivity_ico.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Img\Icons\spotify_ico.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\SystemTime_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\WindowActivity_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Content Include="Img\MagicOSC_icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WPFToggleSwitch" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
