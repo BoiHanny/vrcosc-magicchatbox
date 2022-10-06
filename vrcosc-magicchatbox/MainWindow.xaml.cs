@@ -32,6 +32,7 @@ namespace vrcosc_magicchatbox
             _VM.IntgrScanWindowActivity = true;
             _VM.IntgrScanSpotify = true;
             _VM.IntgrScanWindowTime = true;
+            scantick();
 
         }
 
@@ -48,62 +49,19 @@ namespace vrcosc_magicchatbox
             { _VM.FocusedWindow = _ACTIV.GetForegroundProcessName(); _VM.IsVRRunning = _ACTIV.IsVRRunning(); }
             if (_VM.IntgrScanWindowTime == true)
             { _VM.CurrentTIme = _STATS.GetTime(); }
-            BuildOSC();
+            _OSC.BuildOSC();
             _OSC.SentOSCMessage();
         }
 
-        public void BuildOSC()
-        {
-            string msg = "";
-            if(_VM.IntgrScanWindowActivity == true)
-            {
-                if (_VM.IsVRRunning)
-                {
-                    msg = "In VR |";
-                    if(_VM.IntgrScanWindowTime == true)
-                    msg = msg + " My time: " + _VM.CurrentTIme + " |";
-                }
-                else
-                {
-                    msg = "On desktop in '" + _VM.FocusedWindow + "' |";
-                }
-            }
-            if(_VM.IntgrScanSpotify)
-            {
-                if (_VM.SpotifyActive)
-                    if (_VM.SpotifyPaused)
-                    {
-                        if(_VM.IsVRRunning == true)
-                        {
-                            msg = msg + "   Music is paused";
-                        }
-                        else
-                        {
-                            msg = msg + " Music is paused";
-                        }
-
-                    }
-                    else
-                    {
-                        msg = msg + " Listening to '" + _VM.PlayingSongTitle + "'";
-                    }
-                ;
-            }
-            if(msg.Length > 0)
-            {
-                _VM.OSCtoSent = msg;
-            }
-            
-        }
 
         private void Spotify_switch_Click(object sender, RoutedEventArgs e)
         {
-            scantick();
+            _OSC.BuildOSC();
         }
 
         private void WindowActivity_switch_Click(object sender, RoutedEventArgs e)
         {
-            scantick();
+            _OSC.BuildOSC();
         }
 
         private void Drag_area_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -114,7 +72,18 @@ namespace vrcosc_magicchatbox
 
         private void SystemTime_switch_Click(object sender, RoutedEventArgs e)
         {
-            scantick();
+            _OSC.BuildOSC();
+        }
+
+        private void Button_close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Visibility = Visibility.Hidden;
+            this.Close();
+        }
+
+        private void Button_minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
         }
     }
 
