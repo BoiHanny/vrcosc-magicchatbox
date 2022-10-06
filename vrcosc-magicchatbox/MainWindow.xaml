@@ -33,23 +33,27 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
+                    <Border>
+                        <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
+                            <TextBlock Text="MagicChatbox" 
+                                Foreground="White"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Padding="0,10,0,0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin"/>
+                            <TextBlock Text="VRC OSC" 
+                                Foreground="MediumPurple"
+                                Grid.Column="0"
+                                VerticalAlignment="top"
+                                HorizontalAlignment="left"
+                                Padding="16,12,0,0"
+                                FontSize="10"
+                                FontFamily="Albert Sans Thin"/>
+                        </Grid>
+                    </Border>
 
-                    <TextBlock Text="MagicChatbox" 
-                       Foreground="White"
-                       Grid.Column="0"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       Padding="0,10,0,0"
-                       FontSize="16"
-                       FontFamily="Albert Sans Thin"/>
-                    <TextBlock Text="VRC OSC" 
-                       Foreground="MediumPurple"
-                       Grid.Column="0"
-                       VerticalAlignment="top"
-                       HorizontalAlignment="left"
-                       Padding="16,12,0,0"
-                       FontSize="10"
-                       FontFamily="Albert Sans Thin"/>
                     <Grid Grid.Column="1" Margin="3,0,3,0" >
                         <Button Style="{DynamicResource MenuItemStyle}"  Content="Intergrations"
                     
@@ -86,6 +90,19 @@
                     />
                         <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
+                    <Grid Grid.Column="5" HorizontalAlignment="Right">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="45"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Style="{DynamicResource CloseButtonStyle}" Name="Button_close" Click="Button_close_Click" Grid.Column="1" Cursor="Hand" Height="22" Width="45" HorizontalAlignment="Center" VerticalAlignment="Top" Background="#004D0606" BorderThickness="0">
+                            <Image Margin="2" Source="img/icons/Close_ico.png"></Image>
+                        </Button>
+                        <Button Style="{DynamicResource SubtractButtonStyle}" Name="Button_minimize" Click="Button_minimize_Click" Cursor="Hand" Height="22" Width="45" HorizontalAlignment="Center" VerticalAlignment="Top" Background="#00473C89" BorderThickness="0">
+                            <Image Margin="2" Source="img/icons/subtract_ico.png"></Image>
+                        </Button>
+                    </Grid>
+
                 </Grid>
                 <Grid Grid.Row="1" Visibility="Visible">
                     <Grid.RowDefinitions>
@@ -104,8 +121,8 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="345"/>
-                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="365"/>
+                                    <ColumnDefinition Width="123"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="1">
                                     <Grid.RowDefinitions>
@@ -123,13 +140,85 @@
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
 
                                 </Grid>
-                                <Image Grid.Column="0" Margin="15" Source="/Img/Icons/spotify_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
+                                <Image Grid.Column="0" Margin="15" Source="/Img/Icons/spotify_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <CheckBox Name="Spotify_switch" Grid.Column="2" Click="Spotify_switch_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}" VerticalAlignment="Center"/>
 
                             </Grid>
                         </Border>
 
                     </Grid>
+                    <Grid Grid.Row="2">
+                        <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
+                            <Border.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="365"/>
+                                    <ColumnDefinition Width="123"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Window activity"                                       
+                                         Foreground="White"
+                                         FontSize="20"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBlock Grid.Row="1" Text="This intergration works in DESKTOP mode, it will show in which
+                                               window you are focused. (privacy options will be added later)"                                       
+                                         Foreground="LightGray"
+                                         FontSize="13"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
+
+                                </Grid>
+
+                                <Image Grid.Column="0" Margin="9" Source="/Img/Icons/WindowActivity_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <CheckBox Name="WindowActivity_switch" Grid.Column="2" Click="WindowActivity_switch_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="3">
+                        <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
+                            <Border.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="365"/>
+                                    <ColumnDefinition Width="123"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Current time"                                       
+                                         Foreground="White"
+                                         FontSize="20"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBlock Grid.Row="1" Text="This intergration works in VR mode, it will show your local 
+                                               machine time."                                       
+                                         Foreground="LightGray"
+                                         FontSize="13"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
+
+                                </Grid>
+
+                                <Image Grid.Column="0" Margin="7" Source="/Img/Icons/SystemTime_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <CheckBox Name="SystemTime_switch" Grid.Column="2" Click="SystemTime_switch_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
 
                 </Grid>
                 <Grid Background="#FF42385D" Grid.Row="1" Grid.Column="1">

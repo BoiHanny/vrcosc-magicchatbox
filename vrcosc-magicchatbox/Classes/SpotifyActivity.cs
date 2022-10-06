@@ -13,24 +13,31 @@ namespace vrcosc_magicchatbox.Classes
 
         public string CurrentPlayingSong()
         {
-            var procs = Process.GetProcessesByName("Spotify");
-
-            foreach (var p in procs)
+            try
             {
+                var procs = Process.GetProcessesByName("Spotify");
 
-                if (!p.MainWindowTitle.StartsWith("Spotify"))
+                foreach (var p in procs)
                 {
-                    _VM.SpotifyPaused = false;
-                    return p.MainWindowTitle;
+
+                    if (!p.MainWindowTitle.StartsWith("Spotify"))
+                    {
+                        _VM.SpotifyPaused = false;
+                        return p.MainWindowTitle;
+                    }
+                    else
+                    {
+                        _VM.SpotifyPaused = true;
+                        return "";
+                    }
                 }
-                else
-                {
-                    _VM.SpotifyPaused = true;
-                    return "";
-                }
-            }
                 return "No music";
-            _VM.SpotifyPaused = true;
+                _VM.SpotifyPaused = true;
+            }
+            catch (System.Exception)
+            {
+                return "Oop, an exception did happen...";
+            }
         }
 
         public bool SpotifyIsRunning()
