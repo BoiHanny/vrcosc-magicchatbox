@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ViewModel}"
         mc:Ignorable="d"
-        Title="MagicChatbox by BoiHanny" Height="450" Width="800"
+        Title="MagicChatbox by BoiHanny" Height="650" Width="800"
         WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98">
     <Grid>
         <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10">
@@ -168,8 +168,8 @@
                                          Foreground="White"
                                          FontSize="20"
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                    <TextBlock Grid.Row="1" Text="This intergration works in DESKTOP mode, it will show in which
-                                               window you are focused. (privacy options will be added later)"                                       
+                                    <TextBlock Grid.Row="1" Text="Shows if you are in VR or DESKTOP mode, in desktop it will 
+                                               show in which window you are focused."                                       
                                          Foreground="LightGray"
                                          FontSize="13"
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
