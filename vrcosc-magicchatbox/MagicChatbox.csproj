@@ -8,6 +8,9 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
     <Configurations>Debug;Release;Beta</Configurations>
+    <DebugType>none</DebugType>
+    <FileVersion>0.3.0</FileVersion>
+    <AssemblyVersion>0.3.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

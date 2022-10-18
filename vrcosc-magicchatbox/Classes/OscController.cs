@@ -1,5 +1,7 @@
 ﻿using vrcosc_magicchatbox.ViewModels;
 using SharpOSC;
+using System.Collections.Generic;
+using System;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -28,48 +30,37 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
+        
+
         public void BuildOSC()
         {
-            string msg = "";
+            var Complete_msg = "";
+            List<string> Uncomplete = new List<string>();
+
             if (_VM.IntgrScanWindowActivity == true)
             {
                 if (_VM.IsVRRunning)
-                {
-                    msg = "In VR |";
-                    if (_VM.IntgrScanWindowTime == true)
-                        msg = msg + " My time: " + _VM.CurrentTIme + " |";
-                }
+                { Uncomplete.Add("In VR"); }     
                 else
+                { Uncomplete.Add("On desktop in '" + _VM.FocusedWindow); }
+            }
+            if(_VM.IntgrScanWindowTime == true & _VM.IsVRRunning == true)
+            { Uncomplete.Add("My time: " + _VM.CurrentTIme); }
+            if (_VM.IntgrScanSpotify == true)
+            {
+                if(_VM.SpotifyActive == true)
                 {
-                    msg = "On desktop in '" + _VM.FocusedWindow + "' |";
+                    if(_VM.SpotifyPaused)
+                    { Uncomplete.Add("Music paused"); }
+                    else
+                    { Uncomplete.Add("Listening to '" + _VM.PlayingSongTitle + "'"); }
                 }
             }
-            if (_VM.IntgrScanSpotify)
+            if (Uncomplete.Count > 0)
             {
-                if (_VM.SpotifyActive)
-                    if (_VM.SpotifyPaused)
-                    {
-                        if (_VM.IsVRRunning == true)
-                        {
-                            msg = msg + "   Music is paused";
-                        }
-                        else
-                        {
-                            msg = msg + " Music is paused";
-                        }
-
-                    }
-                    else
-                    {
-                        msg = msg + " Listening to '" + _VM.PlayingSongTitle + "'";
-                    }
-                ;
+                Complete_msg = String.Join(" | ", Uncomplete);
+                _VM.OSCtoSent = Complete_msg;
             }
-            if (msg.Length > 0)
-            {
-                _VM.OSCtoSent = msg;
-            }
-
         }
     }
 }
