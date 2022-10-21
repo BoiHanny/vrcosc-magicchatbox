@@ -31,7 +31,7 @@
                         <ColumnDefinition Width="123"/>
                         <ColumnDefinition Width="123"/>
                         <ColumnDefinition Width="123"/>
-                        <ColumnDefinition Width="75"/>
+                        <ColumnDefinition Width="130"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Border>
@@ -102,6 +102,17 @@
                     FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
                     />
                         <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                    </Grid>
+                    <Grid Grid.Column="5">
+                        <StackPanel Background="#FF3B2075" Orientation="Vertical" Margin="3,0,0,0">
+                            <TextBlock Text="Sent to VRChat" 
+                                Foreground="#FFB3B0B9"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                FontSize="12"
+                                FontFamily="Albert Sans Thin" Margin="0,5,0,0"/>
+                            <CheckBox Name="MasterSwitch" Click="MasterSwitch_Click" HorizontalAlignment="Center" IsChecked="{Binding MasterSwitch, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,5,0,0" Opacity="0.75" Width="62"/>
+                        </StackPanel>
                     </Grid>
                     <Grid Grid.Column="6" HorizontalAlignment="Right">
                         <Grid.ColumnDefinitions>
@@ -245,7 +256,7 @@
                        FontSize="16"
                        FontFamily="Albert Sans Thin" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                    <TextBlock Text="{Binding OSCmsg_count}" 
+                    <TextBlock Text="{Binding OSCmsg_countUI}" 
                        Foreground="#FF8D7DB9"
                        Grid.Column="0"
                        VerticalAlignment="Center"
@@ -264,8 +275,8 @@
                        FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150" Focusable="False" AllowDrop="False" IsHitTestVisible="False" IsTabStop="False" IsReadOnly="True" BorderThickness="0"/>
 
                     <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
-                       
-                       
+
+
                         <TextBlock Text="{Binding AppVersion}" 
                        Foreground="#FF7D7397"
                        FontSize="12"

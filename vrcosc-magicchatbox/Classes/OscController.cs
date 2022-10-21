@@ -20,9 +20,17 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                oscSender = new(_VM.OSCIP, _VM.OSCPort);
-                oscSender.Send(new OscMessage("/chatbox/typing", false));
-                oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
+                if(_VM.OSCtoSent.Length > 0)
+                {
+                    oscSender = new(_VM.OSCIP, _VM.OSCPort);
+                    oscSender.Send(new OscMessage("/chatbox/typing", false));
+                    oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
+                }
+                else
+                {
+
+                }
+                
             }
             catch (System.Exception)
             {
@@ -56,8 +64,20 @@ namespace vrcosc_magicchatbox.Classes
             }
             if (Uncomplete.Count > 0)
             {
+
                 Complete_msg = String.Join(" | ", Uncomplete);
-                _VM.OSCtoSent = Complete_msg;
+                if (Complete_msg.Length > 144)
+                {
+                    _VM.OSCtoSent = "";
+                    _VM.OSCmsg_count = Complete_msg.Length;
+                    _VM.OSCmsg_countUI = "MAX/144";
+                }
+                else
+                {
+                    _VM.OSCtoSent = Complete_msg;
+                    _VM.OSCmsg_count = _VM.OSCtoSent.Length;
+                    _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
+                }
             }
             else { _VM.OSCtoSent = ""; }
 

@@ -18,9 +18,11 @@ namespace vrcosc_magicchatbox
         private WindowActivity _ACTIV;
         public float samplingTime = 1;
 
+        DispatcherTimer backgroundCheck = new DispatcherTimer();
+
         public MainWindow()
         {
-            //Closing += SaveDataToDisk;
+            Closing += SaveDataToDisk;
             _VM = new ViewModel();
             _SPOT = new SpotifyActivity(_VM);
             _DATAC = new DataController(_VM);
@@ -31,11 +33,11 @@ namespace vrcosc_magicchatbox
             this.DataContext = _VM;
             InitializeComponent();
 
-            DispatcherTimer backgroundCheck = new DispatcherTimer();
             backgroundCheck.Tick += Timer; backgroundCheck.Interval = new TimeSpan(0, 0, _VM.ScanInterval); backgroundCheck.Start();
             _VM.IntgrScanWindowActivity = true;
             _VM.IntgrScanSpotify = true;
             _VM.IntgrScanWindowTime = true;
+            _VM.MasterSwitch = true;
             _DATAC.LoadSettingsFromXML();
             scantick();
         }
@@ -100,6 +102,19 @@ namespace vrcosc_magicchatbox
         private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
             Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
+        }
+
+        private void MasterSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            if (_VM.MasterSwitch == true)
+            {
+                backgroundCheck.Start();
+            }
+            else
+            {
+                backgroundCheck.Stop();
+            }
+
         }
     }
 
