@@ -20,7 +20,7 @@ namespace vrcosc_magicchatbox
 
         public MainWindow()
         {
-            Closing += SaveDataToDisk;
+            //Closing += SaveDataToDisk;
             _VM = new ViewModel();
             _SPOT = new SpotifyActivity(_VM);
             _DATAC = new DataController(_VM);

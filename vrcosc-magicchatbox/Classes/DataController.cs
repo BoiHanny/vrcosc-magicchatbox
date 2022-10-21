@@ -92,13 +92,12 @@ namespace vrcosc_magicchatbox.Classes
             {
                 if (!Directory.Exists(path))
                 {
-                    // Try to create the directory.
                     DirectoryInfo di = Directory.CreateDirectory(path);
                     return true;
                 }
                 return true;
             }
-            catch (IOException ioex)
+            catch (IOException ex)
             {
                 return false;
             }

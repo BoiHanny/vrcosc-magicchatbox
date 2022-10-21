@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:ViewModel}"
         mc:Ignorable="d"
-        Title="MagicChatbox by BoiHanny" Height="650" Width="800"
+        Title="MagicChatbox by BoiHanny" Height="650" Width="900"
         WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98">
     <Grid>
         <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10">
@@ -26,11 +26,12 @@
                 <Grid Background="#FF2D1267"
               Grid.ColumnSpan="2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="143"/>
+                        <ColumnDefinition Width="123"/>
+                        <ColumnDefinition Width="123"/>
+                        <ColumnDefinition Width="123"/>
+                        <ColumnDefinition Width="75"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Border>
@@ -40,7 +41,7 @@
                                 Grid.Column="0"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Center"
-                                Padding="0,10,0,0"
+                                Padding="0,12,0,0"
                                 FontSize="16"
                                 FontFamily="Albert Sans Thin"/>
                             <TextBlock Text="VRC OSC" 
@@ -48,7 +49,7 @@
                                 Grid.Column="0"
                                 VerticalAlignment="top"
                                 HorizontalAlignment="left"
-                                Padding="16,12,0,0"
+                                Padding="20,12,0,0"
                                 FontSize="10"
                                 FontFamily="Albert Sans Thin"/>
                         </Grid>
@@ -74,7 +75,7 @@
                     FontFamily="Comfortaa Light" 
                     FontSize="18" 
                     
-                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="True"
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
                     />
                         <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
@@ -102,7 +103,7 @@
                     />
                         <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
-                    <Grid Grid.Column="5" HorizontalAlignment="Right">
+                    <Grid Grid.Column="6" HorizontalAlignment="Right">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="45"/>
                             <ColumnDefinition Width="45"/>
@@ -133,7 +134,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="365"/>
+                                    <ColumnDefinition Width="440"/>
                                     <ColumnDefinition Width="123"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="1">
@@ -145,8 +146,8 @@
                                          Foreground="White"
                                          FontSize="20"
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                    <TextBlock Grid.Row="1" Text="This intergration will show the playing song title and artist,
-                                               It will also show if the song is paused."                                       
+                                    <TextBlock Grid.Row="1" Text="This intergration will show the playing song title and artist, It will also show 
+                                               if the song is paused."                                       
                                          Foreground="LightGray"
                                          FontSize="13"
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
@@ -168,7 +169,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="365"/>
+                                    <ColumnDefinition Width="440"/>
                                     <ColumnDefinition Width="123"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="1">
@@ -180,8 +181,7 @@
                                          Foreground="White"
                                          FontSize="20"
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                    <TextBlock Grid.Row="1" Text="Shows if you are in VR or DESKTOP mode, in desktop it will 
-                                               show in which window you are focused."                                       
+                                    <TextBlock Grid.Row="1" Text="Shows if you are in VR or DESKTOP mode, in desktop it will show in which application you are focused."                                       
                                          Foreground="LightGray"
                                          FontSize="13"
                                          FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
@@ -203,7 +203,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="365"/>
+                                    <ColumnDefinition Width="440"/>
                                     <ColumnDefinition Width="123"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="1">
@@ -242,13 +242,18 @@
                     <TextBlock Text="Preview" 
                        Foreground="White"
                        Grid.Column="0"
-                       VerticalAlignment="top"
-                       HorizontalAlignment="Center"
-                       Padding="0,8,0,0"
                        FontSize="16"
-                       FontFamily="Albert Sans Thin"/>
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                    <TextBlock Background="#FF7F759A" Text="{Binding OSCtoSent}" 
+                    <TextBlock Text="{Binding OSCmsg_count}" 
+                       Foreground="#FF8D7DB9"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Margin="0,0,10,0"/>
+
+                    <TextBox MaxLength="144" Background="#FF7F759A" Text="{Binding OSCtoSent}" 
                        Foreground="White"
                        Grid.Row="1"
                        VerticalAlignment="Top"
@@ -256,7 +261,7 @@
                        Padding="5,5,5,5"
                                
                        FontSize="13"
-                       FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150"/>
+                       FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150" Focusable="False" AllowDrop="False" IsHitTestVisible="False" IsTabStop="False" IsReadOnly="True" BorderThickness="0"/>
 
                     <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
                        
@@ -264,7 +269,7 @@
                         <TextBlock Text="{Binding AppVersion}" 
                        Foreground="#FF7D7397"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="10,0,5,10" />
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="10,0,10,10" />
                         <TextBlock  Name="NewVersion" Text="{Binding NewVersion}" 
                        Foreground="#FF8F80B9"
                        FontSize="12"

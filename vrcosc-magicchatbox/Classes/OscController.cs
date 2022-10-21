@@ -30,8 +30,6 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
-
-
         public void BuildOSC()
         {
             var Complete_msg = "";
@@ -62,7 +60,8 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCtoSent = Complete_msg;
             }
             else { _VM.OSCtoSent = ""; }
-                    
+
+
         }
     }
 }
