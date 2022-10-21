@@ -4,6 +4,7 @@ using vrcosc_magicchatbox.ViewModels;
 using System.Windows.Threading;
 using System;
 using System.Windows.Input;
+using System.Diagnostics;
 
 namespace vrcosc_magicchatbox
 {
@@ -11,6 +12,7 @@ namespace vrcosc_magicchatbox
     {
         private ViewModel _VM;
         private SpotifyActivity _SPOT;
+        private DataController _DATAC;
         private OscController _OSC;
         private SystemStats _STATS;
         private WindowActivity _ACTIV;
@@ -18,8 +20,10 @@ namespace vrcosc_magicchatbox
 
         public MainWindow()
         {
+            Closing += SaveDataToDisk;
             _VM = new ViewModel();
             _SPOT = new SpotifyActivity(_VM);
+            _DATAC = new DataController(_VM);
             _OSC = new OscController(_VM);
             _STATS = new SystemStats(_VM);
             _ACTIV = new WindowActivity(_VM);
@@ -32,8 +36,15 @@ namespace vrcosc_magicchatbox
             _VM.IntgrScanWindowActivity = true;
             _VM.IntgrScanSpotify = true;
             _VM.IntgrScanWindowTime = true;
+            _DATAC.LoadSettingsFromXML();
             scantick();
+        }
 
+        private void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            this.Hide();
+            _DATAC.SaveSettingsToXML();
+            System.Environment.Exit(1);
         }
 
         private void Timer(object sender, EventArgs e)
@@ -84,6 +95,11 @@ namespace vrcosc_magicchatbox
         private void Button_minimize_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
+        }
+
+        private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
         }
     }
 

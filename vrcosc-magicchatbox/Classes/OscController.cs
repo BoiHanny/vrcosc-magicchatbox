@@ -30,7 +30,7 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
-        
+
 
         public void BuildOSC()
         {
@@ -40,17 +40,17 @@ namespace vrcosc_magicchatbox.Classes
             if (_VM.IntgrScanWindowActivity == true)
             {
                 if (_VM.IsVRRunning)
-                { Uncomplete.Add("In VR"); }     
+                { Uncomplete.Add("In VR"); }
                 else
                 { Uncomplete.Add("On desktop in '" + _VM.FocusedWindow); }
             }
-            if(_VM.IntgrScanWindowTime == true & _VM.IsVRRunning == true)
+            if (_VM.IntgrScanWindowTime == true & _VM.IsVRRunning == true)
             { Uncomplete.Add("My time: " + _VM.CurrentTIme); }
             if (_VM.IntgrScanSpotify == true)
             {
-                if(_VM.SpotifyActive == true)
+                if (_VM.SpotifyActive == true)
                 {
-                    if(_VM.SpotifyPaused)
+                    if (_VM.SpotifyPaused)
                     { Uncomplete.Add("Music paused"); }
                     else
                     { Uncomplete.Add("Listening to '" + _VM.PlayingSongTitle + "'"); }
@@ -61,6 +61,8 @@ namespace vrcosc_magicchatbox.Classes
                 Complete_msg = String.Join(" | ", Uncomplete);
                 _VM.OSCtoSent = Complete_msg;
             }
+            else { _VM.OSCtoSent = ""; }
+                    
         }
     }
 }

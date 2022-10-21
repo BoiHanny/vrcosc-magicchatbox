@@ -67,6 +67,18 @@
                         <Border Visibility="Visible" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
                     <Grid Grid.Column="2" Margin="3,0,3,0" >
+                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Status"
+                    
+                    Background="#FF240E55" 
+                    Foreground="White" 
+                    FontFamily="Comfortaa Light" 
+                    FontSize="18" 
+                    
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="True"
+                    />
+                        <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                    </Grid>
+                    <Grid Grid.Column="3" Margin="3,0,3,0" >
                         <Button Style="{DynamicResource MenuItemStyle}"  Content="Chatting"
                     
                     Background="#FF240E55" 
@@ -78,7 +90,7 @@
                     />
                         <Border Visibility="Hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
-                    <Grid Grid.Column="3" Margin="3,0,3,0" >
+                    <Grid Grid.Column="4" Margin="3,0,3,0" >
                         <Button Style="{DynamicResource MenuItemStyle}"  Content="Options"
                     
                     Background="#FF240E55" 
@@ -246,6 +258,18 @@
                        FontSize="13"
                        FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150"/>
 
+                    <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+                       
+                       
+                        <TextBlock Text="{Binding AppVersion}" 
+                       Foreground="#FF7D7397"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="10,0,5,10" />
+                        <TextBlock  Name="NewVersion" Text="{Binding NewVersion}" 
+                       Foreground="#FF8F80B9"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Left" VerticalAlignment="Bottom" MouseUp="NewVersion_MouseUp" Margin="0,0,10,10" TextDecorations="Underline" Cursor="Hand"/>
+                    </StackPanel>
                 </Grid>
             </Grid>
         </Border>
