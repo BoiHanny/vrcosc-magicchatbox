@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
-
+﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -7,29 +9,30 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         #region Properties
 
-        private int _ScanInterval = 4;
         private string _PlayingSongTitle = "";
         private string _FocusedWindow = "";
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
+        private bool _IsVRRunning = false;
+        private string _OSCtoSent = "";
+        private string _AppVersion = "0.4.0";
+        private string _NewVersion = "Check for updates"; //New version, go check it out!
+        private string _CurrentTIme = "";
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = false;
         private bool _IntgrScanSpotify = false;
-        private bool _IsVRRunning = false;
-        private string _OSCtoSent = "";
+        private int _ScanInterval = 4;
         private string _OSCIP = "127.0.0.1";
-        private string _CurrentTIme = "";
         private int _OSCPort = 9000;
+        private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
 
-
-
-        public string CurrentTIme
+        public string DataPath
         {
-            get { return _CurrentTIme; }
+            get { return _DataPath; }
             set
             {
-                _CurrentTIme = value;
-                NotifyPropertyChanged(nameof(CurrentTIme));
+                _DataPath = value;
+                NotifyPropertyChanged(nameof(DataPath));
             }
         }
 
@@ -40,16 +43,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrScanWindowTime = value;
                 NotifyPropertyChanged(nameof(IntgrScanWindowTime));
-            }
-        }
-
-        public bool IsVRRunning
-        {
-            get { return _IsVRRunning; }
-            set
-            {
-                _IsVRRunning = value;
-                NotifyPropertyChanged(nameof(IsVRRunning));
             }
         }
 
@@ -93,16 +86,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public string OSCtoSent
-        {
-            get { return _OSCtoSent; }
-            set
-            {
-                _OSCtoSent = value;
-                NotifyPropertyChanged(nameof(OSCtoSent));
-            }
-        }
-
         public int ScanInterval
         {
             get { return _ScanInterval; }
@@ -110,6 +93,59 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _ScanInterval = value;
                 NotifyPropertyChanged(nameof(ScanInterval));
+            }
+        }
+
+        public string CurrentTIme
+        {
+            get { return _CurrentTIme; }
+            set
+            {
+                _CurrentTIme = value;
+                NotifyPropertyChanged(nameof(CurrentTIme));
+            }
+        }
+
+
+
+        public string NewVersion
+        {
+            get { return _NewVersion; }
+            set
+            {
+                _NewVersion = value;
+                NotifyPropertyChanged(nameof(NewVersion));
+            }
+        }
+        public string AppVersion
+        {
+            get { return _AppVersion; }
+            set
+            {
+                _AppVersion = value;
+                NotifyPropertyChanged(nameof(AppVersion));
+            }
+        }
+
+
+        public bool IsVRRunning
+        {
+            get { return _IsVRRunning; }
+            set
+            {
+                _IsVRRunning = value;
+                NotifyPropertyChanged(nameof(IsVRRunning));
+            }
+        }
+
+
+        public string OSCtoSent
+        {
+            get { return _OSCtoSent; }
+            set
+            {
+                _OSCtoSent = value;
+                NotifyPropertyChanged(nameof(OSCtoSent));
             }
         }
         public string FocusedWindow
