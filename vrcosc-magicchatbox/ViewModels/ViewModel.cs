@@ -14,17 +14,30 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
+        private bool _MasterSwitch = false;
         private string _OSCtoSent = "";
-        private string _AppVersion = "0.4.0";
-        private string _NewVersion = "Check for updates"; //New version, go check it out!
+        private string _AppVersion = "0.3.2";
+        private string _NewVersion = "Check for updates";
         private string _CurrentTIme = "";
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = false;
         private bool _IntgrScanSpotify = false;
         private int _ScanInterval = 4;
+        private int _OSCmsg_count = 0;
+        private string _OSCmsg_countUI = "";
         private string _OSCIP = "127.0.0.1";
         private int _OSCPort = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        public bool MasterSwitch
+        {
+            get { return _MasterSwitch; }
+            set
+            {
+                _MasterSwitch = value;
+                NotifyPropertyChanged(nameof(MasterSwitch));
+            }
+        }
 
         public string DataPath
         {
@@ -33,6 +46,25 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _DataPath = value;
                 NotifyPropertyChanged(nameof(DataPath));
+            }
+        }
+
+        public string OSCmsg_countUI
+        {
+            get { return _OSCmsg_countUI; }
+            set
+            {
+                _OSCmsg_countUI = value;
+                NotifyPropertyChanged(nameof(OSCmsg_countUI));
+            }
+        }
+        public int OSCmsg_count
+        {
+            get { return _OSCmsg_count; }
+            set
+            {
+                _OSCmsg_count = value;
+                NotifyPropertyChanged(nameof(OSCmsg_count));
             }
         }
 
