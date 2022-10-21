@@ -48,7 +48,7 @@ namespace vrcosc_magicchatbox.Classes
                 if (_VM.IsVRRunning)
                 { Uncomplete.Add("In VR"); }
                 else
-                { Uncomplete.Add("On desktop in '" + _VM.FocusedWindow); }
+                { Uncomplete.Add("On desktop in '" + _VM.FocusedWindow + "'");}
             }
             if (_VM.IntgrScanWindowTime == true & _VM.IsVRRunning == true)
             { Uncomplete.Add("My time: " + _VM.CurrentTIme); }
