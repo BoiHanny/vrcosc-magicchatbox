@@ -18,8 +18,8 @@ Hi everyone, I've created this simple application to show some cool stuff in the
 
 ## To-do list
 - Check if Spotify free version is working correctly;
-- rewrite `BuildOSC`;
-- save settings to a local JSON file on close;
+- ~~rewrite `BuildOSC`;~~
+- ~~save settings to a local JSON file on close;~~
 - look into CPU, RAM and GPU stats;
 - create a valuable and friendly chatting tab with an always-on-top option, ESC = clear, hotkey to switch quickly to VRChat and more;
 - privacy filter on applications when using the focused application option (desktop), should show up as "*On desktop in a private app*";
