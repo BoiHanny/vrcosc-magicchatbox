@@ -1,5 +1,5 @@
 
-![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png) v0.3.0
+![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png) v0.3.2
 
 # MagicChatbox
 Hi everyone, I've created this simple application to show some cool stuff in the new "VRChat text chatbox" that's currently live.
@@ -26,7 +26,9 @@ Hi everyone, I've created this simple application to show some cool stuff in the
 - add options in settings like the OSC IP and port options for the sender/receiver, auto start? update check? reset to default and more;
 - look into displaying your heart rate by using a pulsoid device or other supported devices.
 
+![V0 3 2](https://user-images.githubusercontent.com/114599052/197355959-83441bed-2b27-469e-974f-53acbc0badf9.png)
+
 ### Any feedback/ideas? Discord: BoiHanny#6666
 
-![image](https://user-images.githubusercontent.com/114599052/194433636-04cade81-cb16-4d59-a929-070896849f7c.png)
+
 
