@@ -38,28 +38,115 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
+        public int OSCmsgLenght(List<string> content, string add)
+        {
+            List<string> list = new List<string>(content);
+            list.Add(add);
+            string x = String.Join(" | ", list);
+            return x.Length;
+        }
+
         public void BuildOSC()
         {
+            _VM.Char_Limit = "Hidden";
+            _VM.Spotify_Opacity = "1";
+            _VM.Window_Opacity = "1";
+            _VM.Time_Opacity = "1";
+
+            string x = null;
             var Complete_msg = "";
             List<string> Uncomplete = new List<string>();
 
             if (_VM.IntgrScanWindowActivity == true)
             {
                 if (_VM.IsVRRunning)
-                { Uncomplete.Add("In VR"); }
+                {
+                    x = "In VR";
+                    if(OSCmsgLenght(Uncomplete, x) < 144)
+                    {
+                        Uncomplete.Add(x);
+                    }
+                    else
+                    {
+                        _VM.Char_Limit = "Visable";
+                        _VM.Window_Opacity = "0.5";
+                    }
+
+
+                    
+                }
                 else
-                { Uncomplete.Add("On desktop in '" + _VM.FocusedWindow + "'");}
+                {
+                    x = "On desktop in '" + _VM.FocusedWindow + "'";
+                    if (OSCmsgLenght(Uncomplete, x) < 144)
+                    {
+                        Uncomplete.Add(x);
+                    }
+                    else
+                    {
+                        _VM.Char_Limit = "Visable";
+                        _VM.Window_Opacity = "0.5";
+                    }             
+                }
             }
-            if (_VM.IntgrScanWindowTime == true & _VM.IsVRRunning == true)
-            { Uncomplete.Add("My time: " + _VM.CurrentTIme); }
+            if (_VM.IntgrScanWindowTime == true)
+            {
+
+                if(_VM.PrefixTime == true)
+                {
+                    x = "My time: ";
+                }
+                else
+                {
+                    x = "";
+                }
+                x = x + _VM.CurrentTime;
+
+                if (OSCmsgLenght(Uncomplete, x) < 144)
+                {
+                    Uncomplete.Add(x);
+                }
+                else
+                {
+                    _VM.Char_Limit = "Visable";
+                    _VM.Time_Opacity = "0.5";
+                }
+
+
+            }
             if (_VM.IntgrScanSpotify == true)
             {
                 if (_VM.SpotifyActive == true)
                 {
                     if (_VM.SpotifyPaused)
-                    { Uncomplete.Add("Music paused"); }
+                    {
+                        x = "Music paused";
+                        if(OSCmsgLenght(Uncomplete, x) < 144)
+                        {
+                            Uncomplete.Add(x);
+                        }
+                        else
+                        {
+                            _VM.Char_Limit = "Visable";
+                            _VM.Spotify_Opacity = "0.5";
+                        }
+                    }
+
                     else
-                    { Uncomplete.Add("Listening to '" + _VM.PlayingSongTitle + "'"); }
+                    {
+                        x = "Listening to '" + _VM.PlayingSongTitle + "'";
+                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        {
+                            Uncomplete.Add(x);
+                        }
+                        else
+                        {
+                            _VM.Char_Limit = "Visable";
+                            _VM.Spotify_Opacity = "0.5";
+                        }
+                        
+                    
+                    }
                 }
             }
             if (Uncomplete.Count > 0)
@@ -79,7 +166,12 @@ namespace vrcosc_magicchatbox.Classes
                     _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
                 }
             }
-            else { _VM.OSCtoSent = ""; }
+            else 
+            {
+                _VM.OSCmsg_count = _VM.OSCtoSent.Length;
+                _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
+                _VM.OSCtoSent = ""; 
+            }
 
 
         }

@@ -15,10 +15,14 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
         private bool _MasterSwitch = false;
+        private bool _OnlyShowTimeVR = true;
+        private bool _PrefixTime = true;
+        private bool _Time24H = false;
         private string _OSCtoSent = "";
-        private string _AppVersion = "0.3.2";
+        private string _AppVersion = "0.4.2";
         private string _NewVersion = "Check for updates";
-        private string _CurrentTIme = "";
+        private string _CurrentTime = "";
+        private bool _IntgrStatus = false;
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = false;
         private bool _IntgrScanSpotify = false;
@@ -26,8 +30,91 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _OSCmsg_count = 0;
         private string _OSCmsg_countUI = "";
         private string _OSCIP = "127.0.0.1";
+        private string _Char_Limit = "Hidden";
+        private string _Spotify_Opacity = "1";
+        private string _Status_Opacity = "1";
+        private string _Window_Opacity = "1";
+        private string _Time_Opacity = "1";
         private int _OSCPort = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        public bool OnlyShowTimeVR
+        {
+            get { return _OnlyShowTimeVR; }
+            set
+            {
+                _OnlyShowTimeVR = value;
+                NotifyPropertyChanged(nameof(OnlyShowTimeVR));
+            }
+        }
+
+        public bool Time24H
+        {
+            get { return _Time24H; }
+            set
+            {
+                _Time24H = value;
+                NotifyPropertyChanged(nameof(Time24H));
+            }
+        }
+
+        public bool PrefixTime
+        {
+            get { return _PrefixTime; }
+            set
+            {
+                _PrefixTime = value;
+                NotifyPropertyChanged(nameof(PrefixTime));
+            }
+        }
+        public string Spotify_Opacity
+        {
+            get { return _Spotify_Opacity; }
+            set
+            {
+                _Spotify_Opacity = value;
+                NotifyPropertyChanged(nameof(Spotify_Opacity));
+            }
+        }
+
+        public string Status_Opacity
+        {
+            get { return _Status_Opacity; }
+            set
+            {
+                _Status_Opacity = value;
+                NotifyPropertyChanged(nameof(Status_Opacity));
+            }
+        }
+
+        public string Time_Opacity
+        {
+            get { return _Time_Opacity; }
+            set
+            {
+                _Time_Opacity = value;
+                NotifyPropertyChanged(nameof(Time_Opacity));
+            }
+        }
+
+        public string Window_Opacity
+        {
+            get { return _Window_Opacity; }
+            set
+            {
+                _Window_Opacity = value;
+                NotifyPropertyChanged(nameof(Window_Opacity));
+            }
+        }
+        public bool IntgrStatus
+        {
+            get { return _IntgrStatus; }
+            set
+            {
+                _IntgrStatus = value;
+                NotifyPropertyChanged(nameof(IntgrStatus));
+            }
+        }
 
         public bool MasterSwitch
         {
@@ -36,6 +123,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _MasterSwitch = value;
                 NotifyPropertyChanged(nameof(MasterSwitch));
+            }
+        }
+
+        public string Char_Limit
+        {
+            get { return _Char_Limit; }
+            set
+            {
+                _Char_Limit = value;
+                NotifyPropertyChanged(nameof(Char_Limit));
             }
         }
 
@@ -128,13 +225,13 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public string CurrentTIme
+        public string CurrentTime
         {
-            get { return _CurrentTIme; }
+            get { return _CurrentTime; }
             set
             {
-                _CurrentTIme = value;
-                NotifyPropertyChanged(nameof(CurrentTIme));
+                _CurrentTime = value;
+                NotifyPropertyChanged(nameof(CurrentTime));
             }
         }
 

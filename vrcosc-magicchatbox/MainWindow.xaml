@@ -30,7 +30,7 @@
                         <ColumnDefinition Width="143"/>
                         <ColumnDefinition Width="123"/>
                         <ColumnDefinition Width="123"/>
-                        <ColumnDefinition Width="123"/>
+                        <ColumnDefinition Width="122"/>
                         <ColumnDefinition Width="130"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
@@ -75,7 +75,7 @@
                     FontFamily="Comfortaa Light" 
                     FontSize="18" 
                     
-                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
                     />
                         <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
@@ -111,7 +111,7 @@
                                 HorizontalAlignment="Center"
                                 FontSize="12"
                                 FontFamily="Albert Sans Thin" Margin="0,5,0,0"/>
-                            <CheckBox Name="MasterSwitch" Click="MasterSwitch_Click" HorizontalAlignment="Center" IsChecked="{Binding MasterSwitch, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,5,0,0" Opacity="0.75" Width="62"/>
+                            <CheckBox Style="{DynamicResource Switch}" Name="MasterSwitch" Click="MasterSwitch_Click" HorizontalAlignment="Center" IsChecked="{Binding MasterSwitch, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,5,0,0" Opacity="0.75" Width="62"/>
                         </StackPanel>
                     </Grid>
                     <Grid Grid.Column="6" HorizontalAlignment="Right">
@@ -128,7 +128,36 @@
                     </Grid>
 
                 </Grid>
-                <Grid Grid.Row="1" Visibility="Visible">
+                <Grid Grid.Row="1" Visibility="Hidden">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="31"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="400"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
+                            <TextBlock Text="Here you can add ur personal message to the chatbox!" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                            />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Background="#FF493F65" Grid.Row="1">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                        </StackPanel>
+                    </Grid>
+
+                    
+                </Grid>
+                <Grid Grid.Row="1" Visibility="Hidden">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25"/>
                         <RowDefinition Height="85"/>
@@ -137,7 +166,51 @@
                         <RowDefinition Height="85"/>
                     </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="1">
+                    <Grid Visibility="{Binding Char_Limit}" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
+                            <TextBlock Text="Some intergrations can't be showed because a limit on characters" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                            />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Grid.Row="1" Opacity="{Binding Status_Opacity}">
+                        <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
+                            <Border.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="440"/>
+                                    <ColumnDefinition Width="123"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Personal status"                                       
+                                         Foreground="White"
+                                         FontSize="20"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBlock Grid.Row="1" Text="With this integration you can write an epic status that you want to show to everyone in game"                                       
+                                         Foreground="LightGray"
+                                         FontSize="13"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
+
+                                </Grid>
+
+                                <Image Grid.Column="0" Margin="15" Source="/Img/Icons/PersonalMsg_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <CheckBox Style="{DynamicResource Switch}" Name="Status_Switch" Grid.Column="2" Click="Update_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrStatus, Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="2" Opacity="{Binding Spotify_Opacity}">
                         <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
                             <Border.Effect>
                                 <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
@@ -166,47 +239,13 @@
                                 </Grid>
 
                                 <Image Grid.Column="0" Margin="15" Source="/Img/Icons/spotify_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <CheckBox Name="Spotify_switch" Grid.Column="2" Click="Spotify_switch_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                <CheckBox Style="{DynamicResource Switch}" Name="Spotify_switch" Grid.Column="2" Click="Update_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}" VerticalAlignment="Center"/>
 
                             </Grid>
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="2">
-                        <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
-                            <Border.Effect>
-                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
-                            </Border.Effect>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="440"/>
-                                    <ColumnDefinition Width="123"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition/>
-                                        <RowDefinition/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" Text="Window activity"                                       
-                                         Foreground="White"
-                                         FontSize="20"
-                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                    <TextBlock Grid.Row="1" Text="Shows if you are in VR or DESKTOP mode, in desktop it will show in which application you are focused."                                       
-                                         Foreground="LightGray"
-                                         FontSize="13"
-                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
-
-                                </Grid>
-
-                                <Image Grid.Column="0" Margin="9" Source="/Img/Icons/WindowActivity_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <CheckBox Name="WindowActivity_switch" Grid.Column="2" Click="WindowActivity_switch_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}" VerticalAlignment="Center"/>
-
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid Grid.Row="3">
+                    <Grid Grid.Row="3" Opacity="{Binding Time_Opacity}">
                         <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
                             <Border.Effect>
                                 <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
@@ -235,11 +274,86 @@
                                 </Grid>
 
                                 <Image Grid.Column="0" Margin="7" Source="/Img/Icons/SystemTime_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <CheckBox Name="SystemTime_switch" Grid.Column="2" Click="SystemTime_switch_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                <CheckBox Style="{DynamicResource Switch}" Name="SystemTime_switch" Grid.Column="2" Click="Update_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}" VerticalAlignment="Center"/>
 
                             </Grid>
                         </Border>
 
+                    </Grid>
+                    <Grid Grid.Row="4" Opacity="{Binding Window_Opacity}">
+                        <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
+                            <Border.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="440"/>
+                                    <ColumnDefinition Width="123"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Window activity"                                       
+                                         Foreground="White"
+                                         FontSize="20"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                    <TextBlock Grid.Row="1" Text="Shows if you are in VR or DESKTOP mode, in desktop it will show in which application you are focused."                                       
+                                         Foreground="LightGray"
+                                         FontSize="13"
+                                         FontFamily="Comfortaa Light" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,5"/>
+
+                                </Grid>
+
+                                <Image Grid.Column="0" Margin="9" Source="/Img/Icons/WindowActivity_ico.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <CheckBox Style="{DynamicResource Switch}" Name="WindowActivity_switch" Grid.Column="2" Click="Update_Click" HorizontalAlignment="Center" IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
+
+                </Grid>
+                <Grid Grid.Row="1" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="120"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                            <TextBlock Text="Intergration options" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                            <TextBlock Text="OSC options" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFAAA3B8" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFAAA3B8" BorderBrush="#FF2D1265">Show 'My time:' in front of the time intergration</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFAAA3B8" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
+                        </StackPanel>
                     </Grid>
 
 

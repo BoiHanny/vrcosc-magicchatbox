@@ -37,6 +37,7 @@ namespace vrcosc_magicchatbox
             _VM.IntgrScanWindowActivity = true;
             _VM.IntgrScanSpotify = true;
             _VM.IntgrScanWindowTime = true;
+            _VM.IntgrStatus = true;
             _VM.MasterSwitch = true;
             _DATAC.LoadSettingsFromXML();
             scantick();
@@ -61,18 +62,14 @@ namespace vrcosc_magicchatbox
             if (_VM.IntgrScanWindowActivity == true)
             { _VM.FocusedWindow = _ACTIV.GetForegroundProcessName(); _VM.IsVRRunning = _ACTIV.IsVRRunning(); }
             if (_VM.IntgrScanWindowTime == true)
-            { _VM.CurrentTIme = _STATS.GetTime(); }
+            { 
+                _VM.CurrentTime = _STATS.GetTime(); }
             _OSC.BuildOSC();
             _OSC.SentOSCMessage();
         }
 
 
-        private void Spotify_switch_Click(object sender, RoutedEventArgs e)
-        {
-            _OSC.BuildOSC();
-        }
-
-        private void WindowActivity_switch_Click(object sender, RoutedEventArgs e)
+        private void Update_Click(object sender, RoutedEventArgs e)
         {
             _OSC.BuildOSC();
         }
@@ -83,10 +80,6 @@ namespace vrcosc_magicchatbox
                 this.DragMove();
         }
 
-        private void SystemTime_switch_Click(object sender, RoutedEventArgs e)
-        {
-            _OSC.BuildOSC();
-        }
 
         private void Button_close_Click(object sender, RoutedEventArgs e)
         {
@@ -114,6 +107,11 @@ namespace vrcosc_magicchatbox
             {
                 backgroundCheck.Stop();
             }
+
+        }
+
+        private void Status_switch_Click(object sender, RoutedEventArgs e)
+        {
 
         }
     }

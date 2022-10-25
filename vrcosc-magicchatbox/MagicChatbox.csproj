@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <None Remove="Img\Icons\Close_ico.png" />
+    <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
     <None Remove="Img\Icons\SystemTime_ico.png" />
@@ -38,6 +39,9 @@
 
   <ItemGroup>
     <Resource Include="Img\Icons\Close_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\PersonalMsg_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\spotify_ico.png">

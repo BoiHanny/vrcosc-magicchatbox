@@ -26,7 +26,11 @@ namespace vrcosc_magicchatbox.Classes
                     XmlNode rootNode = xmlDoc.CreateElement("Settings");
                     xmlDoc.AppendChild(rootNode);
 
-                    XmlNode userNode = xmlDoc.CreateElement("IntgrScanWindowActivity");
+                    XmlNode userNode = xmlDoc.CreateElement("IntgrStatus");
+                    userNode.InnerText = _VM.IntgrStatus.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("IntgrScanWindowActivity");
                     userNode.InnerText = _VM.IntgrScanWindowActivity.ToString();
                     rootNode.AppendChild(userNode);
 
@@ -36,6 +40,14 @@ namespace vrcosc_magicchatbox.Classes
 
                     userNode = xmlDoc.CreateElement("IntgrScanWindowTime");
                     userNode.InnerText = _VM.IntgrScanWindowTime.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("PrefixTime");
+                    userNode.InnerText = _VM.PrefixTime.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("OnlyShowTimeVR");
+                    userNode.InnerText = _VM.OnlyShowTimeVR.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("ScanInterval");
@@ -48,6 +60,10 @@ namespace vrcosc_magicchatbox.Classes
 
                     userNode = xmlDoc.CreateElement("OSCPort");
                     userNode.InnerText = _VM.OSCPort.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("Time24H");
+                    userNode.InnerText = _VM.Time24H.ToString();
                     rootNode.AppendChild(userNode);
 
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
@@ -70,10 +86,14 @@ namespace vrcosc_magicchatbox.Classes
                 XmlDocument doc = new XmlDocument();
                 doc.Load(Path.Combine(_VM.DataPath, "settings.xml"));
 
+                _VM.IntgrStatus = bool.Parse(doc.GetElementsByTagName("IntgrStatus")[0].InnerText);
                 _VM.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
                 _VM.IntgrScanWindowActivity = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowActivity")[0].InnerText);
                 _VM.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
                 _VM.IntgrScanWindowTime = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowTime")[0].InnerText);
+                _VM.PrefixTime = bool.Parse(doc.GetElementsByTagName("PrefixTime")[0].InnerText);
+                _VM.OnlyShowTimeVR = bool.Parse(doc.GetElementsByTagName("OnlyShowTimeVR")[0].InnerText);
+                _VM.Time24H = bool.Parse(doc.GetElementsByTagName("Time24H")[0].InnerText);
                 _VM.ScanInterval = int.Parse(doc.GetElementsByTagName("ScanInterval")[0].InnerText);
                 _VM.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
                 _VM.OSCPort = int.Parse(doc.GetElementsByTagName("OSCPort")[0].InnerText);
