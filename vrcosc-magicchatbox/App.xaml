@@ -111,7 +111,7 @@
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}"/>
             <Setter Property="Background" Value="{StaticResource Button.Static.Background3}"/>
             <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border3}"/>
-            <Setter Property="Foreground" Value="#FFAAA3B8"/>
+            <Setter Property="Foreground" Value="#FFD2CDDC"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>

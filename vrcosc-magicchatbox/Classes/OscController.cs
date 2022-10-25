@@ -22,7 +22,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 if(_VM.OSCtoSent.Length > 0)
                 {
-                    oscSender = new(_VM.OSCIP, _VM.OSCPort);
+                    oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
                     oscSender.Send(new OscMessage("/chatbox/typing", false));
                     oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
                 }
@@ -56,7 +56,6 @@ namespace vrcosc_magicchatbox.Classes
             string x = null;
             var Complete_msg = "";
             List<string> Uncomplete = new List<string>();
-
             if (_VM.IntgrScanWindowActivity == true)
             {
                 if (_VM.IsVRRunning)
@@ -68,7 +67,7 @@ namespace vrcosc_magicchatbox.Classes
                     }
                     else
                     {
-                        _VM.Char_Limit = "Visable";
+                        _VM.Char_Limit = "Visible";
                         _VM.Window_Opacity = "0.5";
                     }
 
@@ -84,14 +83,13 @@ namespace vrcosc_magicchatbox.Classes
                     }
                     else
                     {
-                        _VM.Char_Limit = "Visable";
+                        _VM.Char_Limit = "Visible";
                         _VM.Window_Opacity = "0.5";
                     }             
                 }
             }
-            if (_VM.IntgrScanWindowTime == true)
+            if (_VM.IntgrScanWindowTime == true & _VM.OnlyShowTimeVR == true & _VM.IsVRRunning == true | _VM.IntgrScanWindowTime == true & _VM.OnlyShowTimeVR == false)
             {
-
                 if(_VM.PrefixTime == true)
                 {
                     x = "My time: ";
@@ -102,13 +100,14 @@ namespace vrcosc_magicchatbox.Classes
                 }
                 x = x + _VM.CurrentTime;
 
+
                 if (OSCmsgLenght(Uncomplete, x) < 144)
                 {
                     Uncomplete.Add(x);
                 }
                 else
                 {
-                    _VM.Char_Limit = "Visable";
+                    _VM.Char_Limit = "Visible";
                     _VM.Time_Opacity = "0.5";
                 }
 
@@ -127,7 +126,7 @@ namespace vrcosc_magicchatbox.Classes
                         }
                         else
                         {
-                            _VM.Char_Limit = "Visable";
+                            _VM.Char_Limit = "Visible";
                             _VM.Spotify_Opacity = "0.5";
                         }
                     }
@@ -141,7 +140,7 @@ namespace vrcosc_magicchatbox.Classes
                         }
                         else
                         {
-                            _VM.Char_Limit = "Visable";
+                            _VM.Char_Limit = "Visible";
                             _VM.Spotify_Opacity = "0.5";
                         }
                         

@@ -58,12 +58,16 @@ namespace vrcosc_magicchatbox.Classes
                     userNode.InnerText = _VM.OSCIP.ToString();
                     rootNode.AppendChild(userNode);
 
-                    userNode = xmlDoc.CreateElement("OSCPort");
-                    userNode.InnerText = _VM.OSCPort.ToString();
+                    userNode = xmlDoc.CreateElement("OSCPortOut");
+                    userNode.InnerText = _VM.OSCPortOut.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("Time24H");
                     userNode.InnerText = _VM.Time24H.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("CurrentMenuItem");
+                    userNode.InnerText = _VM.CurrentMenuItem.ToString();
                     rootNode.AppendChild(userNode);
 
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
@@ -95,8 +99,9 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OnlyShowTimeVR = bool.Parse(doc.GetElementsByTagName("OnlyShowTimeVR")[0].InnerText);
                 _VM.Time24H = bool.Parse(doc.GetElementsByTagName("Time24H")[0].InnerText);
                 _VM.ScanInterval = int.Parse(doc.GetElementsByTagName("ScanInterval")[0].InnerText);
+                _VM.CurrentMenuItem = int.Parse(doc.GetElementsByTagName("CurrentMenuItem")[0].InnerText);
                 _VM.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
-                _VM.OSCPort = int.Parse(doc.GetElementsByTagName("OSCPort")[0].InnerText);
+                _VM.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
 
 
             }

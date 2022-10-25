@@ -40,6 +40,7 @@ namespace vrcosc_magicchatbox
             _VM.IntgrStatus = true;
             _VM.MasterSwitch = true;
             _DATAC.LoadSettingsFromXML();
+            ChangeMenuItem(_VM.CurrentMenuItem);
             scantick();
         }
 
@@ -66,6 +67,36 @@ namespace vrcosc_magicchatbox
                 _VM.CurrentTime = _STATS.GetTime(); }
             _OSC.BuildOSC();
             _OSC.SentOSCMessage();
+        }
+
+        public void ChangeMenuItem(int changeINT)
+        {
+            _VM.CurrentMenuItem = changeINT;
+            _VM.MenuItem_0_Visibility = "Hidden";
+            _VM.MenuItem_1_Visibility = "Hidden";
+            _VM.MenuItem_2_Visibility = "Hidden";
+            _VM.MenuItem_3_Visibility = "Hidden";
+            if(_VM.CurrentMenuItem == 0)
+            {
+                _VM.MenuItem_0_Visibility = "Visible";
+                return;
+            }
+            else if(_VM.CurrentMenuItem == 1)
+            {
+                _VM.MenuItem_1_Visibility = "Visible";
+                return;
+            }
+            else if (_VM.CurrentMenuItem == 2)
+            {
+                _VM.MenuItem_2_Visibility = "Visible";
+                return;
+            }
+            else if (_VM.CurrentMenuItem == 3)
+            {
+                _VM.MenuItem_3_Visibility = "Visible";
+                return;
+            }
+            ChangeMenuItem(0);
         }
 
 
@@ -113,6 +144,26 @@ namespace vrcosc_magicchatbox
         private void Status_switch_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void MenuButton_0_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeMenuItem(0);
+        }
+
+        private void MenuButton_1_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeMenuItem(1);
+        }
+
+        private void MenuButton_2_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeMenuItem(2);
+        }
+
+        private void MenuButton_3_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeMenuItem(3);
         }
     }
 

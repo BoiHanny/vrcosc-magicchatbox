@@ -19,7 +19,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _PrefixTime = true;
         private bool _Time24H = false;
         private string _OSCtoSent = "";
-        private string _AppVersion = "0.4.2";
+        private string _AppVersion = "0.4.0";
         private string _NewVersion = "Check for updates";
         private string _CurrentTime = "";
         private bool _IntgrStatus = false;
@@ -27,6 +27,11 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IntgrScanWindowTime = false;
         private bool _IntgrScanSpotify = false;
         private int _ScanInterval = 4;
+        private int _CurrentMenuItem = 0;
+        private string _MenuItem_0_Visibility = "Hidden";
+        private string _MenuItem_1_Visibility = "Hidden";
+        private string _MenuItem_2_Visibility = "Hidden";
+        private string _MenuItem_3_Visibility = "Visible";
         private int _OSCmsg_count = 0;
         private string _OSCmsg_countUI = "";
         private string _OSCIP = "127.0.0.1";
@@ -35,8 +40,48 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Status_Opacity = "1";
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
-        private int _OSCPort = 9000;
+        private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        public string MenuItem_3_Visibility
+        {
+            get { return _MenuItem_3_Visibility; }
+            set
+            {
+                _MenuItem_3_Visibility = value;
+                NotifyPropertyChanged(nameof(MenuItem_3_Visibility));
+            }
+        }
+
+        public string MenuItem_2_Visibility
+        {
+            get { return _MenuItem_2_Visibility; }
+            set
+            {
+                _MenuItem_2_Visibility = value;
+                NotifyPropertyChanged(nameof(MenuItem_2_Visibility));
+            }
+        }
+
+        public string MenuItem_1_Visibility
+        {
+            get { return _MenuItem_1_Visibility; }
+            set
+            {
+                _MenuItem_1_Visibility = value;
+                NotifyPropertyChanged(nameof(MenuItem_1_Visibility));
+            }
+        }
+
+        public string MenuItem_0_Visibility
+        {
+            get { return _MenuItem_0_Visibility; }
+            set
+            {
+                _MenuItem_0_Visibility = value;
+                NotifyPropertyChanged(nameof(MenuItem_0_Visibility));
+            }
+        }
 
         public bool OnlyShowTimeVR
         {
@@ -45,6 +90,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _OnlyShowTimeVR = value;
                 NotifyPropertyChanged(nameof(OnlyShowTimeVR));
+            }
+        }
+
+        public int CurrentMenuItem
+        {
+            get { return _CurrentMenuItem; }
+            set
+            {
+                _CurrentMenuItem = value;
+                NotifyPropertyChanged(nameof(CurrentMenuItem));
             }
         }
 
@@ -177,7 +232,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public string OSCIP
         {
-            get { return _OSCIP; }
+            get  { return _OSCIP; }
             set
             {
                 _OSCIP = value;
@@ -195,13 +250,13 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public int OSCPort
+        public int OSCPortOut
         {
-            get { return _OSCPort; }
+            get { return _OSCPortOut; }
             set
             {
-                _OSCPort = value;
-                NotifyPropertyChanged(nameof(OSCPort));
+                _OSCPortOut = value;
+                NotifyPropertyChanged(nameof(OSCPortOut));
             }
         }
 

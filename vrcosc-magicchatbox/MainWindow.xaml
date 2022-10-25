@@ -56,7 +56,7 @@
                     </Border>
 
                     <Grid Grid.Column="1" Margin="3,0,3,0" >
-                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Intergrations"
+                        <Button Style="{DynamicResource MenuItemStyle}" Name="MenuButton_0" Click="MenuButton_0_Click" Content="Integrations"
                     
                     Background="#FF240E55" 
                     Foreground="White" 
@@ -65,10 +65,10 @@
                     
                     FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
                     />
-                        <Border Visibility="Visible" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                        <Border Visibility="{Binding MenuItem_0_Visibility}" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
                     <Grid Grid.Column="2" Margin="3,0,3,0" >
-                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Status"
+                        <Button Style="{DynamicResource MenuItemStyle}" Name="MenuButton_1" Click="MenuButton_1_Click" Content="Status"
                     
                     Background="#FF240E55" 
                     Foreground="White" 
@@ -77,10 +77,10 @@
                     
                     FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
                     />
-                        <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                        <Border Visibility="{Binding MenuItem_1_Visibility}" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
                     <Grid Grid.Column="3" Margin="3,0,3,0" >
-                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Chatting"
+                        <Button Style="{DynamicResource MenuItemStyle}" Name="MenuButton_2" Click="MenuButton_2_Click" Content="Chatting"
                     
                     Background="#FF240E55" 
                     Foreground="White" 
@@ -89,19 +89,19 @@
                     
                     FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
                     />
-                        <Border Visibility="Hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                        <Border Visibility="{Binding MenuItem_2_Visibility}" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
                     <Grid Grid.Column="4" Margin="3,0,3,0" >
-                        <Button Style="{DynamicResource MenuItemStyle}"  Content="Options"
+                        <Button Style="{DynamicResource MenuItemStyle}" Name="MenuButton_3" Click="MenuButton_3_Click" Content="Options"
                     
                     Background="#FF240E55" 
                     Foreground="White" 
                     FontFamily="Comfortaa Light" 
                     FontSize="18" 
                     
-                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0" IsEnabled="False"
+                    FontWeight="Normal" Cursor="Hand" BorderThickness="0" Margin="0,0,0,0"
                     />
-                        <Border Visibility="hidden" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
+                        <Border Visibility="{Binding MenuItem_3_Visibility}" Background="#FFAEA7ED" IsHitTestVisible="False" Height="4" VerticalAlignment="Top" />
                     </Grid>
                     <Grid Grid.Column="5">
                         <StackPanel Background="#FF3B2075" Orientation="Vertical" Margin="3,0,0,0">
@@ -128,36 +128,8 @@
                     </Grid>
 
                 </Grid>
-                <Grid Grid.Row="1" Visibility="Hidden">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="31"/>
-                        <RowDefinition Height="35"/>
-                        <RowDefinition Height="400"/>
-                        <RowDefinition Height="40"/>
-                        <RowDefinition Height="40"/>
-                    </Grid.RowDefinitions>
 
-                    <Grid Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
-                            <TextBlock Text="Here you can add ur personal message to the chatbox!" 
-                                Foreground="#FF7D7397"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" 
-                            />
-                        </StackPanel>
-                    </Grid>
-                    <Grid Background="#FF493F65" Grid.Row="1">
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                            <Button Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                            <Button Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                        </StackPanel>
-                    </Grid>
-
-                    
-                </Grid>
-                <Grid Grid.Row="1" Visibility="Hidden">
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_0_Visibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25"/>
                         <RowDefinition Height="85"/>
@@ -169,7 +141,7 @@
                     <Grid Visibility="{Binding Char_Limit}" Background="#FF41375C">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
                             <TextBlock Text="Some intergrations can't be showed because a limit on characters" 
-                                Foreground="#FF7D7397"
+                                Foreground="#FF9983AD"
                                 Grid.Column="0"
                                 FontSize="16"
                                 FontFamily="Albert Sans Thin" 
@@ -317,10 +289,12 @@
 
 
                 </Grid>
-                <Grid Grid.Row="1" Visibility="Visible">
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_3_Visibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
-                        <RowDefinition Height="120"/>
+                        <RowDefinition Height="122"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="122"/>
                         <RowDefinition Height="30"/>
                     </Grid.RowDefinitions>
 
@@ -350,9 +324,61 @@
 
                     <Grid Grid.Row="1">
                         <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFAAA3B8" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFAAA3B8" BorderBrush="#FF2D1265">Show 'My time:' in front of the time intergration</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFAAA3B8" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show 'My time:' in front of the time integration</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="3">
+                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
+                            <TextBlock Text="Local IP address" 
+                                Foreground="#FFB9B5C1"
+                                Grid.Column="0"
+                                FontSize="14"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,10,0,0"
+                            />
+                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCIPBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+                            <TextBlock Text="Port (outgoing)" 
+                                Foreground="#FFB9B5C1"
+                                Grid.Column="0"
+                                FontSize="14"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,10,0,0"
+                            />
+                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCPortOutBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+
+
+                        </StackPanel>
+                    </Grid>
+
+
+                </Grid>
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_1_Visibility}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="31"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="400"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
+                            <TextBlock Text="Here you can add ur personal message to the chatbox!" 
+                                Foreground="#FF9983AD"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                            />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Background="#FF493F65" Grid.Row="1">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
                         </StackPanel>
                     </Grid>
 
@@ -379,14 +405,14 @@
                        FontFamily="Albert Sans Thin" Margin="0,0,10,0"/>
 
                     <TextBox MaxLength="144" Background="#FF7F759A" Text="{Binding OSCtoSent}" 
-                       Foreground="White"
+                       Foreground="#FFDFDDE2"
                        Grid.Row="1"
                        VerticalAlignment="Top"
                        HorizontalAlignment="Stretch"
-                       Padding="5,5,5,5"
+                       Padding="8,5,8,5"
                                
                        FontSize="13"
-                       FontFamily="Albert Sans Thin" Margin="5,0,5,0" TextWrapping="Wrap" Height="150" Focusable="False" AllowDrop="False" IsHitTestVisible="False" IsTabStop="False" IsReadOnly="True" BorderThickness="0"/>
+                       FontFamily="Albert Sans Thin" TextAlignment="Center" Margin="5,0,5,0" TextWrapping="Wrap" Height="150" Focusable="False" AllowDrop="False" IsHitTestVisible="False" IsTabStop="False" IsReadOnly="True" BorderThickness="0"/>
 
                     <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
 
