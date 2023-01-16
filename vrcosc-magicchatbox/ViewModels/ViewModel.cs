@@ -2,12 +2,43 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Windows.Input;
+using vrcosc_magicchatbox.Classes;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
     public class ViewModel : INotifyPropertyChanged
     {
-        #region Properties
+        public ICommand ActivateStatusCommand { get; set; }
+
+        public ViewModel()
+        {
+            ActivateStatusCommand = new RelayCommand(ActivateStatus);
+        }
+
+        private void ActivateStatus(object parameter)
+        {
+            var item = parameter as StatusItem;
+            foreach (var i in _StatusList_filtered)
+            {
+                if (i == item)
+                {
+                    i.IsActive = true;
+                    i.LastUsed = DateTime.Now;
+                }
+                else
+                {
+                    i.IsActive = false;
+                }
+            }
+        }
+
+
+
+        #region Properties     
+
+        private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
+        private ObservableCollection<StatusItem> _StatusList_filtered = new ObservableCollection<StatusItem>();
 
         private string _PlayingSongTitle = "";
         private string _FocusedWindow = "";
@@ -42,6 +73,26 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Time_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        public ObservableCollection<StatusItem> StatusList
+        {
+            get { return _StatusList; }
+            set
+            {
+                _StatusList = value;
+                NotifyPropertyChanged(nameof(StatusList));
+            }
+        }
+
+        public ObservableCollection<StatusItem> StatusList_filtered
+        {
+            get { return _StatusList_filtered; }
+            set
+            {
+                _StatusList_filtered = value;
+                NotifyPropertyChanged(nameof(StatusList_filtered));
+            }
+        }
 
         public string MenuItem_3_Visibility
         {
