@@ -16,10 +16,10 @@ namespace vrcosc_magicchatbox.ViewModels
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
         }
 
-        private void ActivateStatus(object parameter)
+        public void ActivateStatus(object parameter)
         {
             var item = parameter as StatusItem;
-            foreach (var i in _StatusList_filtered)
+            foreach (var i in StatusList)
             {
                 if (i == item)
                 {
@@ -38,7 +38,6 @@ namespace vrcosc_magicchatbox.ViewModels
         #region Properties     
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
-        private ObservableCollection<StatusItem> _StatusList_filtered = new ObservableCollection<StatusItem>();
 
         private string _PlayingSongTitle = "";
         private string _FocusedWindow = "";
@@ -83,17 +82,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(StatusList));
             }
         }
-
-        public ObservableCollection<StatusItem> StatusList_filtered
-        {
-            get { return _StatusList_filtered; }
-            set
-            {
-                _StatusList_filtered = value;
-                NotifyPropertyChanged(nameof(StatusList_filtered));
-            }
-        }
-
         public string MenuItem_3_Visibility
         {
             get { return _MenuItem_3_Visibility; }

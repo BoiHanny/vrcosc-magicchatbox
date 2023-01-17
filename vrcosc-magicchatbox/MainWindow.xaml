@@ -388,7 +388,19 @@
                         </StackPanel>
                     </Grid>
                     <ScrollViewer Margin="10,10,0,10" Name="Statusitems" Visibility="Visible" Grid.Row="2">
-                        <ItemsControl ItemsSource="{Binding StatusList_filtered}" Width="auto" Height="auto">
+                        <ItemsControl ItemsSource="{Binding StatusList}" Width="auto" Height="auto" Margin="5">
+                            <ItemsControl.Resources>
+                                <Style x:Key="ActiveStatusText" TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                            <Setter Property="Foreground" Value="LightGreen"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                            <Setter Property="Foreground" Value="LightGray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Resources>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border CornerRadius="5" Background="DarkSlateBlue" Margin="5">
@@ -397,15 +409,14 @@
                                         </Border.Effect>
                                         <Grid>
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="25"/>
-                                                <RowDefinition Height="25"/>
+                                                <RowDefinition Height="35"/>
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="50"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding msg}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                                            <Button Content="Activate" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}" Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                            <TextBlock Text="{Binding msg}" Grid.Row="0" FontSize="15" FontFamily="Comfortaa Light" Grid.Column="0" VerticalAlignment="Center" Margin="10,0,0,0" Style="{StaticResource ActiveStatusText}"/>
+                                            <Button Content="Activate" Grid.Row="0" Grid.Column="1" Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
