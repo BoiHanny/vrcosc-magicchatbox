@@ -10,6 +10,61 @@
     <Window.Resources>
         <ResourceDictionary>
             <local1:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <Style x:Key="FocusVisual">
+                <Setter Property="Control.Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Rectangle Margin="2" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
+            <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
+            <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
+            <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
+            <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
+            <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
+            <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
+            <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+            <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
+            <Style x:Key="Activatebutton" TargetType="{x:Type Button}">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+                <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="1"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border CornerRadius="5,0,0,5" x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                                <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter Property="Background" TargetName="border" Value="#564BA0"/>
+                                    <Setter Property="BorderBrush" TargetName="border" Value="#564BA0"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter Property="Background" TargetName="border" Value="#5D559B"/>
+                                    <Setter Property="BorderBrush" TargetName="border" Value="#5D559B"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                    <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                    <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -412,11 +467,16 @@
                                                 <RowDefinition Height="35"/>
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="50"/>
+                                                <ColumnDefinition Width="35" />
+                                                <ColumnDefinition Width="300"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding msg}" Grid.Row="0" FontSize="15" FontFamily="Comfortaa Light" Grid.Column="0" VerticalAlignment="Center" Margin="10,0,0,0" Style="{StaticResource ActiveStatusText}"/>
-                                            <Button Content="Activate" Grid.Row="0" Grid.Column="1" Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <Border Background="#3A1F73" Grid.Column="0" Grid.Row="0"/>
+
+                                            <TextBlock Text="{Binding msg}" Grid.Row="0" FontSize="15" FontFamily="Comfortaa Light" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0" Style="{StaticResource ActiveStatusText}"/>
+                                            <Button Style="{DynamicResource Activatebutton}" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="0" Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}" VerticalAlignment="Center" Margin="0,0,0,0" Background="Transparent">
+                                                <Image Source="/Img/Icons/ActivateStatus_ico.png" Width="22" Height="22" Stretch="Uniform"/>
+                                            </Button>
+                                                
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -437,7 +497,6 @@
                        Grid.Column="0"
                        FontSize="16"
                        FontFamily="Albert Sans Thin" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
                     <TextBlock Text="{Binding OSCmsg_countUI}" 
                        Foreground="#FF8D7DB9"
                        Grid.Column="0"
@@ -473,5 +532,7 @@
         </Border>
     </Grid>
 </Window>
+    
+
 
 
