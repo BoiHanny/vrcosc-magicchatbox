@@ -34,6 +34,8 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+      
+
         #region Properties     
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();

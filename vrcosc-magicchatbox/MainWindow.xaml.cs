@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using System;
 using System.Windows.Input;
 using System.Diagnostics;
+using System.Windows.Controls;
 
 namespace vrcosc_magicchatbox
 {
@@ -67,8 +68,9 @@ namespace vrcosc_magicchatbox
             if (_VM.IntgrScanWindowActivity == true)
             { _VM.FocusedWindow = _ACTIV.GetForegroundProcessName(); _VM.IsVRRunning = _ACTIV.IsVRRunning(); }
             if (_VM.IntgrScanWindowTime == true)
-            { 
-                _VM.CurrentTime = _STATS.GetTime(); }
+            {
+                _VM.CurrentTime = _STATS.GetTime();
+            }
             _OSC.BuildOSC();
             _OSC.SentOSCMessage();
         }
@@ -80,12 +82,12 @@ namespace vrcosc_magicchatbox
             _VM.MenuItem_1_Visibility = "Hidden";
             _VM.MenuItem_2_Visibility = "Hidden";
             _VM.MenuItem_3_Visibility = "Hidden";
-            if(_VM.CurrentMenuItem == 0)
+            if (_VM.CurrentMenuItem == 0)
             {
                 _VM.MenuItem_0_Visibility = "Visible";
                 return;
             }
-            else if(_VM.CurrentMenuItem == 1)
+            else if (_VM.CurrentMenuItem == 1)
             {
                 _VM.MenuItem_1_Visibility = "Visible";
                 return;
@@ -169,6 +171,12 @@ namespace vrcosc_magicchatbox
         {
             ChangeMenuItem(3);
         }
-    }
 
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var item = button.Tag as StatusItem;
+            _VM.StatusList.Remove(item);
+        }
+    }
 }

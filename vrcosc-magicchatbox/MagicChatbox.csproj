@@ -32,6 +32,7 @@
     <None Remove="Img\Icons\ActivatedStatus_ico.png" />
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
     <None Remove="Img\Icons\Close_ico.png" />
+    <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
     <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\spotify_ico.png" />
@@ -49,6 +50,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Close_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\Delete_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Favorite_ico.png">
