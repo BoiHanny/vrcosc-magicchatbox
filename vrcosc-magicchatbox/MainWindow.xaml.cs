@@ -46,7 +46,6 @@ namespace vrcosc_magicchatbox
             _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = false, msg = "Yeyeye", MSGLenght = 2, MSGID = 12 });
             _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = false, msg = "No maybe tomorrow", MSGLenght = 2, MSGID = 12 });
             _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = false, msg = "Tomorrow i'll eat you hehe", MSGLenght = 3, MSGID = 11 });
-
         }
 
         private void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)

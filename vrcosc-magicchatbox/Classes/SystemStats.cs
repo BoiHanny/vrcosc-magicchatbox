@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using CSCore;
+using CSCore.CoreAudioAPI;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
-
-
 {
     public class SystemStats
     {
@@ -12,6 +13,7 @@ namespace vrcosc_magicchatbox.Classes
         public SystemStats(ViewModel vm)
         {
             _VM = vm;
+
         }
 
         public string GetTime()
@@ -35,6 +37,8 @@ namespace vrcosc_magicchatbox.Classes
             }
 
         }
+
+
     }
 }
     

@@ -11,6 +11,7 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public ICommand ActivateStatusCommand { get; set; }
 
+
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
@@ -33,12 +34,9 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-
         #region Properties     
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
-
         private string _PlayingSongTitle = "";
         private string _FocusedWindow = "";
         private bool _SpotifyActive = false;
