@@ -4,7 +4,7 @@
 # MagicChatbox
 Hi everyone, I've created this simple application to show some cool stuff in the new "VRChat text chatbox" that's currently live.
 
-# Currently working on version 4.0 (18 jan 2023)
+# Currently working on version 4.0 (22 jan 2023) see beta build code :)
 [Go to releases](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
 
 ## For now, I've implemented the following in a compact modern UI:
