@@ -1,7 +1,8 @@
 ﻿using vrcosc_magicchatbox.ViewModels;
-using SharpOSC;
+using CoreOSC;
 using System.Collections.Generic;
 using System;
+using System.Text;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -20,11 +21,11 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                if(_VM.OSCtoSent.Length > 0)
+                if(_VM.OSCtoSent.Length > 0 || _VM.OSCtoSent.Length < 144)
                 {
-                    oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
-                    oscSender.Send(new OscMessage("/chatbox/typing", false));
-                    oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
+                        oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
+                        oscSender.Send(new OscMessage("/chatbox/typing", false ));
+                        oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
                 }
                 else
                 {
@@ -42,7 +43,10 @@ namespace vrcosc_magicchatbox.Classes
         {
             List<string> list = new List<string>(content);
             list.Add(add);
-            string x = String.Join(" | ", list);
+
+            byte[] utf8Bytes = Encoding.UTF8.GetBytes(String.Join(" | ", list));
+            string x = Encoding.UTF8.GetString(utf8Bytes);
+
             return x.Length;
         }
 
@@ -132,8 +136,16 @@ namespace vrcosc_magicchatbox.Classes
                     }
 
                     else
-                    {
-                        x = "Listening to '" + _VM.PlayingSongTitle + "'";
+                    {                    
+                        if (_VM.PrefixIconMusic == true)
+                        {
+                            x = "🎵 '" + _VM.PlayingSongTitle + "'";
+                        }
+                        else
+                        {
+                            x = "Listening to '" + _VM.PlayingSongTitle + "'";
+                        }
+
                         if (OSCmsgLenght(Uncomplete, x) < 144)
                         {
                             Uncomplete.Add(x);

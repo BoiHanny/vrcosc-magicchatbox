@@ -425,72 +425,7 @@
 
 
                 </Grid>
-                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_3_Visibility}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="122"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="122"/>
-                        <RowDefinition Height="30"/>
-                    </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="0" Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
-                            <TextBlock Text="Intergration options" 
-                                Foreground="#FF7D7397"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,0,0,0"
-                            />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="2" Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
-                            <TextBlock Text="OSC options" 
-                                Foreground="#FF7D7397"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,0,0,0"
-                            />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="1">
-                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show 'My time:' in front of the time integration</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="3">
-                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
-                            <TextBlock Text="Local IP address" 
-                                Foreground="#FFB9B5C1"
-                                Grid.Column="0"
-                                FontSize="14"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,10,0,0"
-                            />
-                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCIPBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
-                            <TextBlock Text="Port (outgoing)" 
-                                Foreground="#FFB9B5C1"
-                                Grid.Column="0"
-                                FontSize="14"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,10,0,0"
-                            />
-                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCPortOutBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
-
-
-                        </StackPanel>
-                    </Grid>
-
-
-                </Grid>
                 <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_1_Visibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="31"/>
@@ -512,9 +447,9 @@
                     </Grid>
                     <Grid Background="#FF493F65" Grid.Row="1">
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                            <Button Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                            <Button Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Click="SortUsed_Click" x:Name="SortUsed" Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Click="SortFav_Click" x:Name="SortFav" Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Click="SortDate_Click" x:Name="SortDate" Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer Margin="10,10,0,10" Name="Statusitems" Visibility="Visible" Grid.Row="2">
@@ -589,6 +524,73 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+
+                </Grid>
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_3_Visibility}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="151"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="122"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                            <TextBlock Text="Intergration options" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                            <TextBlock Text="OSC options" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <StackPanel Height="150" VerticalAlignment="Top"  HorizontalAlignment="Left">
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show 'My time:' in front of the time integration</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="MusicIconPrefix_checkbox" IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Change 'listening to:' prefix to 🎵</CheckBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="3">
+                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
+                            <TextBlock Text="Local IP address" 
+                                Foreground="#FFB9B5C1"
+                                Grid.Column="0"
+                                FontSize="14"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,10,0,0"
+                            />
+                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCIPBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+                            <TextBlock Text="Port (outgoing)" 
+                                Foreground="#FFB9B5C1"
+                                Grid.Column="0"
+                                FontSize="14"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,10,0,0"
+                            />
+                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCPortOutBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+
+
+                        </StackPanel>
+                    </Grid>
+
 
                 </Grid>
                 <Grid Background="#FF42385D" Grid.Row="1" Grid.Column="1">

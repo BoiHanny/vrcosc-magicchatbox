@@ -47,6 +47,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _MasterSwitch = false;
         private bool _OnlyShowTimeVR = true;
         private bool _PrefixTime = true;
+        private bool _PrefixIconMusic = false;
         private bool _Time24H = false;
         private string _OSCtoSent = "";
         private string _AppVersion = "0.4.0";
@@ -72,6 +73,16 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Time_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        public bool PrefixIconMusic
+        {
+            get { return _PrefixIconMusic; }
+            set
+            {
+                _PrefixIconMusic = value;
+                NotifyPropertyChanged(nameof(PrefixIconMusic));
+            }
+        }
 
         public ObservableCollection<StatusItem> StatusList
         {

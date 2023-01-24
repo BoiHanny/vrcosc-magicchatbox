@@ -6,6 +6,9 @@ using System;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.Windows.Controls;
+using System.Linq;
+using System.Collections.ObjectModel;
+using WindowsMediaController;
 
 namespace vrcosc_magicchatbox
 {
@@ -47,6 +50,7 @@ namespace vrcosc_magicchatbox
             _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = false, msg = "Yeyeye", MSGLenght = 2, MSGID = 12 });
             _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = false, msg = "No maybe tomorrow", MSGLenght = 2, MSGID = 12 });
             _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = false, msg = "Tomorrow i'll eat you hehe", MSGLenght = 3, MSGID = 11 });
+
         }
 
         private void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)
@@ -147,11 +151,6 @@ namespace vrcosc_magicchatbox
 
         }
 
-        private void Status_switch_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void MenuButton_0_Click(object sender, RoutedEventArgs e)
         {
             ChangeMenuItem(0);
@@ -177,6 +176,23 @@ namespace vrcosc_magicchatbox
             var button = sender as Button;
             var item = button.Tag as StatusItem;
             _VM.StatusList.Remove(item);
+        }
+
+        private void SortUsed_Click(object sender, RoutedEventArgs e)
+        {
+            _VM.StatusList = new ObservableCollection<StatusItem>(_VM.StatusList.OrderByDescending(x => x.LastUsed));
+        }
+
+        private void SortFav_Click(object sender, RoutedEventArgs e)
+        {
+            _VM.StatusList = new ObservableCollection<StatusItem>(_VM.StatusList.OrderByDescending(x => x.IsFavorite).ThenBy(x => x.LastUsed));
+        }
+
+        private void SortDate_Click(object sender, RoutedEventArgs e)
+        {
+            {
+                _VM.StatusList = new ObservableCollection<StatusItem>(_VM.StatusList.OrderByDescending(x => x.CreationDate));
+            }
         }
     }
 }

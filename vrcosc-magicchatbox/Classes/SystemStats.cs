@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using CSCore;
-using CSCore.CoreAudioAPI;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes

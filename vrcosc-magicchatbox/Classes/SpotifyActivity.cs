@@ -1,5 +1,7 @@
 ﻿using vrcosc_magicchatbox.ViewModels;
 using System.Diagnostics;
+using System;
+using System.Text.RegularExpressions;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -19,11 +21,21 @@ namespace vrcosc_magicchatbox.Classes
 
                 foreach (var p in procs)
                 {
-
+                    string title = p.MainWindowTitle;
                     if (!p.MainWindowTitle.StartsWith("Spotify"))
                     {
                         _VM.SpotifyPaused = false;
-                        return p.MainWindowTitle;
+                        Match match = Regex.Match(title, @"(.+?) - (.+)");
+                        if (match.Success)
+                        {
+                            string artist = match.Groups[1].Value;
+                            string song = match.Groups[2].Value;
+                            return $"{song} ᵇʸ {artist}";
+                        }
+                        else
+                        {
+                            return title;
+                        }
                     }
                     else
                     {
@@ -39,6 +51,8 @@ namespace vrcosc_magicchatbox.Classes
                 return "Oop, an exception did happen...";
             }
         }
+
+
 
         public bool SpotifyIsRunning()
         {

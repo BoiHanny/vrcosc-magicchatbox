@@ -70,6 +70,10 @@ namespace vrcosc_magicchatbox.Classes
                     userNode.InnerText = _VM.CurrentMenuItem.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("PrefixIconMusic");
+                    userNode.InnerText = _VM.PrefixIconMusic.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -102,6 +106,7 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.CurrentMenuItem = int.Parse(doc.GetElementsByTagName("CurrentMenuItem")[0].InnerText);
                 _VM.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
                 _VM.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
+                _VM.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
 
 
             }

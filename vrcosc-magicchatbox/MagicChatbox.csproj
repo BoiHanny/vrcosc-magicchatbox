@@ -11,6 +11,7 @@
     <FileVersion>0.3.0</FileVersion>
     <AssemblyVersion>0.3.0</AssemblyVersion>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
+    <TargetFrameworks></TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -80,12 +81,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CSCore" Version="1.2.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="SharpOSC">
-      <HintPath>..\..\..\..\Downloads\SharpOSC.dll</HintPath>
+    <Reference Include="CoreOSC">
+      <HintPath>..\..\..\..\Downloads\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 
