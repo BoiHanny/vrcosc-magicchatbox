@@ -1,5 +1,5 @@
-
-![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png) v0.3.2p1
+![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.3.2p1
+<br><br>[![Github All Releases](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total.svg)](https://github.com/BoiHanny/vrcosc-magicchatbox/files/9873053/MagicChatbox_v0.3.2p1.zip)
 
 # MagicChatbox
 Hi everyone, I've created this simple application to show some cool stuff in the new "VRChat text chatbox" that's currently live.
