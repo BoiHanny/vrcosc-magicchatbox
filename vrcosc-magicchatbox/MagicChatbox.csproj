@@ -7,10 +7,11 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <Configurations>Debug;Release;Beta</Configurations>
-    <DebugType>embedded</DebugType>
+    <DebugType>none</DebugType>
     <FileVersion>0.3.0</FileVersion>
     <AssemblyVersion>0.3.0</AssemblyVersion>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
+    <TargetFrameworks></TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -29,15 +30,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Img\Icons\ActivatedStatus_ico.png" />
+    <None Remove="Img\Icons\ActivateStatus_ico.png" />
     <None Remove="Img\Icons\Close_ico.png" />
+    <None Remove="Img\Icons\Delete_ico.png" />
+    <None Remove="Img\Icons\Favorite_ico.png" />
+    <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
     <None Remove="Img\Icons\SystemTime_ico.png" />
+    <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Img\Icons\ActivatedStatus_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\ActivateStatus_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Img\Icons\Close_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\Delete_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\Favorite_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Img\Icons\PersonalMsg_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\spotify_ico.png">
@@ -49,6 +71,9 @@
     <Resource Include="Img\Icons\SystemTime_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Unfavorite_ico.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
@@ -56,8 +81,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SharpOSC">
-      <HintPath>..\..\..\..\Downloads\SharpOSC.dll</HintPath>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CoreOSC">
+      <HintPath>..\..\..\..\Downloads\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 

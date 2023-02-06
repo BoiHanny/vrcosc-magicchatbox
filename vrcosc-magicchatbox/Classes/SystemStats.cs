@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Globalization;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
-
-
 {
     public class SystemStats
     {
@@ -12,13 +9,22 @@ namespace vrcosc_magicchatbox.Classes
         public SystemStats(ViewModel vm)
         {
             _VM = vm;
+
         }
 
         public string GetTime()
         {
             try
             {
-                return string.Format("{0:hh:mm tt}", DateTime.Now).ToUpper();
+                if(_VM.Time24H == true)
+                {
+                    return string.Format("{0:HH:mm}", DateTime.Now).ToUpper();
+                }
+                else
+                {
+                    return string.Format("{0:hh:mm tt}", DateTime.Now).ToUpper();
+                }
+
             }
             catch (Exception)
             {
@@ -27,6 +33,8 @@ namespace vrcosc_magicchatbox.Classes
             }
 
         }
+
+
     }
 }
     
