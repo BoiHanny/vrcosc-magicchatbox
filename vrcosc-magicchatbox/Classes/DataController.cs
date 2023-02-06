@@ -167,7 +167,7 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
 
-                string token = "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";
+                string token = "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";
                 string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
 
                 using (var client = new HttpClient())
