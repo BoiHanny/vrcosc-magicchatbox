@@ -3,6 +3,7 @@ using CoreOSC;
 using System.Collections.Generic;
 using System;
 using System.Text;
+using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -60,6 +61,27 @@ namespace vrcosc_magicchatbox.Classes
             string x = null;
             var Complete_msg = "";
             List<string> Uncomplete = new List<string>();
+            if(_VM.IntgrStatus == true && _VM.StatusList.Count() != 0)
+            {
+                if (_VM.PrefixIconStatus == true)
+                {
+                    x = "💬 " + _VM.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
+                }
+                else
+                {
+                    x = _VM.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
+                }
+
+                if (OSCmsgLenght(Uncomplete, x) < 144)
+                {
+                    Uncomplete.Add(x);
+                }
+                else
+                {
+                    _VM.Char_Limit = "Visible";
+                    _VM.Window_Opacity = "0.5";
+                }
+            }
             if (_VM.IntgrScanWindowActivity == true)
             {
                 if (_VM.IsVRRunning)
@@ -163,7 +185,7 @@ namespace vrcosc_magicchatbox.Classes
             if (Uncomplete.Count > 0)
             {
 
-                Complete_msg = String.Join(" | ", Uncomplete);
+                Complete_msg = String.Join(" ┆ ", Uncomplete);
                 if (Complete_msg.Length > 144)
                 {
                     _VM.OSCtoSent = "";

@@ -1,9 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Xml;
 using vrcosc_magicchatbox.ViewModels;
-
+using Version = vrcosc_magicchatbox.ViewModels.Version;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -15,7 +19,23 @@ namespace vrcosc_magicchatbox.Classes
             _VM = vm;
         }
 
+        public static bool CreateIfMissing(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(path);
+                    return true;
+                }
+                return true;
+            }
+            catch (IOException ex)
+            {
+                return false;
+            }
 
+        }
         public void SaveSettingsToXML()
         {
             if(CreateIfMissing(_VM.DataPath) == true)
@@ -74,6 +94,10 @@ namespace vrcosc_magicchatbox.Classes
                     userNode.InnerText = _VM.PrefixIconMusic.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("PrefixIconStatus");
+                    userNode.InnerText = _VM.PrefixIconStatus.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -107,6 +131,7 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
                 _VM.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
                 _VM.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
+                _VM.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
 
 
             }
@@ -116,23 +141,87 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-        public bool CreateIfMissing(string path)
+        
+
+        
+
+        public void LoadStatusList()
+        {
+            if (File.Exists(Path.Combine(_VM.DataPath, "StatusList.xml")))
+            {
+                string json = File.ReadAllText(Path.Combine(_VM.DataPath, "StatusList.xml"));
+                _VM.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
+            }
+            else
+            {
+                Random random = new Random();
+                int randomId = random.Next(10, 99999999);
+                _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Bubs", MSGLenght = 4, MSGID = randomId });
+                _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = true, msg = "Enjoy <$", MSGLenght = 8, MSGID = randomId });
+                _VM.SaveStatusList();
+            }
+        }
+
+        public void CheckForUpdate()
         {
             try
             {
-                if (!Directory.Exists(path))
-                {
-                    DirectoryInfo di = Directory.CreateDirectory(path);
-                    return true;
-                }
-                return true;
-            }
-            catch (IOException ex)
-            {
-                return false;
-            }
 
+                string token = "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";
+                string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
+
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
+                    client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
+                    var response = client.GetAsync(url).Result;
+                    var json = response.Content.ReadAsStringAsync().Result;
+                    dynamic release = JsonConvert.DeserializeObject(json);
+                    string latestVersion = release.tag_name;
+                    _VM.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
+                    if(_VM.GitHubVersion != null)
+                    {
+                        CompareVersions();
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
+
+                _VM.VersionTxt = "Can't check updates";
+                _VM.VersionTxtColor = "#F36734";
+            }
+            
         }
 
+        public void CompareVersions()
+        {
+            try
+            {
+                var currentVersion = _VM.AppVersion.VersionNumber;
+                var githubVersion = _VM.GitHubVersion.VersionNumber;
+                int result = currentVersion.CompareTo(githubVersion);
+                if (result < 0)
+                {
+                    _VM.VersionTxt = "New version available";
+                    _VM.VersionTxtColor = "#FF8AFF04";
+                }
+                else if (result == 0)
+                {
+                    _VM.VersionTxt = "You are up-to-date";
+                    _VM.VersionTxtColor = "#FF92CC90";
+                }
+                else
+                {
+                    _VM.VersionTxt = "You running a preview, fun!";
+                    _VM.VersionTxtColor = "#FFE816EA";
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
     }
 }

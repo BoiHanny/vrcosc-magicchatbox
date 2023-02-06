@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" xmlns:local1="clr-namespace:vrcosc_magicchatbox.Classes" d:DataContext="{d:DesignInstance Type=viewmodels:ViewModel}"
+        xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" xmlns:local1="clr-namespace:vrcosc_magicchatbox.Classes"
         mc:Ignorable="d"
         Title="MagicChatbox by BoiHanny" Height="650" Width="900"
         WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98">
@@ -265,6 +265,231 @@
 
                 </Grid>
 
+
+
+
+
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_3_Visibility}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                            <TextBlock Text="Intergration options" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                            <TextBlock Text="OSC options" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show 'My time:' in front of the time integration</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="MusicIconPrefix_checkbox" IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Change 'listening to:' prefix to 🎵</CheckBox>
+                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="SatusIconPrefix_checkbox" IsChecked="{Binding PrefixIconStatus, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Add 💬 as prefix for the personal status</CheckBox>
+                            <Button Click="ResetFavorites_Click" x:Name="ResetFavorites" HorizontalAlignment="Left" Content="Reset Status" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="15,0,5,15"></Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="3">
+                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
+                            <TextBlock Text="Local IP address" 
+                                Foreground="#FFB9B5C1"
+                                Grid.Column="0"
+                                FontSize="14"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,10,0,0"
+                            />
+                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCIPBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+                            <TextBlock Text="Port (outgoing)" 
+                                Foreground="#FFB9B5C1"
+                                Grid.Column="0"
+                                FontSize="14"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,10,0,0"
+                            />
+                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCPortOutBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+
+
+                        </StackPanel>
+                    </Grid>
+
+
+                </Grid>
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_1_Visibility}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="31"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="400"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="68"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Background="#FF41375C">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
+                            <TextBlock Text="Here you can add ur personal message to the chatbox!" 
+                                Foreground="#FF9983AD"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                            />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Background="#FF493F65" Grid.Row="1">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Click="SortUsed_Click" x:Name="SortUsed" Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Click="SortFav_Click" x:Name="SortFav" Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                            <Button Click="SortDate_Click" x:Name="SortDate" Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
+                        </StackPanel>
+                    </Grid>
+                    <ScrollViewer Margin="10,10,0,10" Name="Statusitems" Visibility="Visible" Grid.Row="2">
+                        <ItemsControl ItemsSource="{Binding StatusList}" Width="auto" Height="auto" Margin="5">
+                            <ItemsControl.Resources>
+                                <Style x:Key="ActiveStatusText" TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                            <Setter Property="Foreground" Value="#FF9DDAA8"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                            <Setter Property="Foreground" Value="LightGray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Resources>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="5" Background="DarkSlateBlue" Margin="5">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                                        </Border.Effect>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="35"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="35" />
+                                                <ColumnDefinition Width="507"/>
+                                                <ColumnDefinition Width="35"/>
+                                                <ColumnDefinition Width="35"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Background="#3A1F73" Grid.Column="0" Grid.Row="0">
+                                                <Image Source="/Img/Icons/ActivatedStatus_ico.png" Width="22" Height="22" Stretch="Uniform" />
+                                            </Border>
+
+                                            <Button x:Name="Deletebutton" Click="DeleteButton_Click" Tag="{Binding}" Cursor="Hand" Style="{DynamicResource Deletebutton}" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Background="#483472">
+                                                <Grid>
+                                                    <Image Width="20" Height="20" Source="/Img/Icons/Delete_ico.png"/>
+                                                </Grid>
+                                            </Button>
+
+
+                                            <TextBlock Text="{Binding msg}" Grid.Row="0" FontSize="15" FontFamily="Comfortaa Light" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0" Style="{StaticResource ActiveStatusText}"/>
+                                            <Button Cursor="Hand" Style="{DynamicResource Activatebutton}" Name="Activatebutton" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="0" Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}" VerticalAlignment="Center" Margin="0,0,0,0" Background="#3A1F73">
+                                                <Image Source="/Img/Icons/ActivateStatus_ico.png" Width="22" Height="22" Stretch="Uniform"/>
+                                            </Button>
+
+                                            <Button Cursor="Hand" Style="{DynamicResource Favbutton}" Name="Favbutton" Click="Favbutton_Click" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Background="#3A1F73">
+                                                <Grid>
+                                                    <Image Width="22" Height="22">
+                                                        <Image.Style>
+                                                            <Style>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                                        <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="False">
+                                                                        <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Image.Style>
+                                                    </Image>
+                                                    <CheckBox Height="35" Width="35" IsChecked="{Binding IsFavorite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Opacity="0"/>
+                                                </Grid>
+                                            </Button>
+
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <Grid Height="68" Width="658" HorizontalAlignment="Left"  Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="550" />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
+                        <Button HorizontalAlignment="Left" Click="AddFav_Click" x:Name="AddFav" Content="Create" Style="{DynamicResource Status_Button_style}" Width="94" Margin="542,14,0,14" Grid.ColumnSpan="2"/>
+                        <TextBox Height="40" KeyDown="FavBox_KeyDown" TextChanged="NewFavText_TextChanged" x:Name="NewFavText" Text="{Binding NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,50,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </TextBox.Resources>
+                            <TextBox.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </TextBox.Effect>
+                        </TextBox>
+
+                        <TextBlock Text="{Binding StatusBoxCount}" 
+                       Foreground="{Binding StatusBoxColor}"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Margin="0,0,10,0"/>
+
+                        <TextBlock IsHitTestVisible="False" Text="Create here a new status" VerticalAlignment="Center" TextAlignment="Left" FontSize="15" Height="24" Padding="8, 0, 5, 0"  Foreground="#FF3D2F5F" Margin="15,0,52,0">
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=NewFavText}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ElementName=NewFavText, Path=IsFocused}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                    </Grid>
+                    <Grid Background="#FF493F65" HorizontalAlignment="Stretch" Grid.Row="3">
+                        <TextBlock Text="{Binding StatusTopBarTxt}" 
+                                Foreground="#FF9983AD"
+                                   HorizontalAlignment="Left"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="16,0,0,0" 
+                            />
+
+                    </Grid>
+                </Grid>
                 <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_0_Visibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25"/>
@@ -275,12 +500,12 @@
                     </Grid.RowDefinitions>
 
                     <Grid Visibility="{Binding Char_Limit}" Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                             <TextBlock Text="Some intergrations can't be showed because a limit on characters" 
                                 Foreground="#FF9983AD"
                                 Grid.Column="0"
                                 FontSize="16"
-                                FontFamily="Albert Sans Thin" 
+                                FontFamily="Albert Sans Thin" Margin="0,3,0,0" 
                             />
                         </StackPanel>
                     </Grid>
@@ -318,7 +543,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="2" Opacity="{Binding Spotify_Opacity}">
+                    <Grid Grid.Row="4" Opacity="{Binding Spotify_Opacity}">
                         <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
                             <Border.Effect>
                                 <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
@@ -388,7 +613,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="4" Opacity="{Binding Window_Opacity}">
+                    <Grid Grid.Row="2" Opacity="{Binding Window_Opacity}">
                         <Border Margin="6" CornerRadius="5" Background="DarkSlateBlue" >
                             <Border.Effect>
                                 <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
@@ -426,173 +651,8 @@
 
                 </Grid>
 
-                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_1_Visibility}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="31"/>
-                        <RowDefinition Height="35"/>
-                        <RowDefinition Height="400"/>
-                        <RowDefinition Height="40"/>
-                        <RowDefinition Height="40"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Center">
-                            <TextBlock Text="Here you can add ur personal message to the chatbox!" 
-                                Foreground="#FF9983AD"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" 
-                            />
-                        </StackPanel>
-                    </Grid>
-                    <Grid Background="#FF493F65" Grid.Row="1">
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Click="SortUsed_Click" x:Name="SortUsed" Content="Recent used" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                            <Button Click="SortFav_Click" x:Name="SortFav" Content="Favorites" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                            <Button Click="SortDate_Click" x:Name="SortDate" Content="Create date" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="5,0,5,0"></Button>
-                        </StackPanel>
-                    </Grid>
-                    <ScrollViewer Margin="10,10,0,10" Name="Statusitems" Visibility="Visible" Grid.Row="2">
-                        <ItemsControl ItemsSource="{Binding StatusList}" Width="auto" Height="auto" Margin="5">
-                            <ItemsControl.Resources>
-                                <Style x:Key="ActiveStatusText" TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                            <Setter Property="Foreground" Value="#FF9DDAA8"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                            <Setter Property="Foreground" Value="LightGray"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ItemsControl.Resources>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="5" Background="DarkSlateBlue" Margin="5">
-                                        <Border.Effect>
-                                            <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
-                                        </Border.Effect>
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="35"/>
-                                            </Grid.RowDefinitions>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="35" />
-                                                <ColumnDefinition Width="507"/>
-                                                <ColumnDefinition Width="35"/>
-                                                <ColumnDefinition Width="35"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Background="#3A1F73" Grid.Column="0" Grid.Row="0">
-                                                <Image Source="/Img/Icons/ActivatedStatus_ico.png" Width="22" Height="22" Stretch="Uniform" />
-                                            </Border>
-
-                                            <Button x:Name="Deletebutton" Click="DeleteButton_Click" Tag="{Binding}" Cursor="Hand" Style="{DynamicResource Deletebutton}" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Background="#483472">
-                                                <Grid>
-                                                    <Image Width="20" Height="20" Source="/Img/Icons/Delete_ico.png"/>
-                                                </Grid>
-                                            </Button>
 
 
-                                            <TextBlock Text="{Binding msg}" Grid.Row="0" FontSize="15" FontFamily="Comfortaa Light" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0" Style="{StaticResource ActiveStatusText}"/>
-                                            <Button Cursor="Hand" Style="{DynamicResource Activatebutton}" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="0" Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}" VerticalAlignment="Center" Margin="0,0,0,0" Background="#3A1F73">
-                                                <Image Source="/Img/Icons/ActivateStatus_ico.png" Width="22" Height="22" Stretch="Uniform"/>
-                                            </Button>
-
-                                            <Button Cursor="Hand" Style="{DynamicResource Favbutton}" BorderThickness="0" Height="35" Width="35" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Background="#3A1F73">
-                                                <Grid>
-                                                    <Image Width="22" Height="22">
-                                                        <Image.Style>
-                                                            <Style>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="True">
-                                                                        <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="False">
-                                                                        <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Image.Style>
-                                                    </Image>
-                                                    <CheckBox Height="35" Width="35" IsChecked="{Binding IsFavorite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Opacity="0"/>
-                                                </Grid>
-                                            </Button>
-
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-
-                </Grid>
-                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_3_Visibility}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="151"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="122"/>
-                        <RowDefinition Height="30"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
-                            <TextBlock Text="Intergration options" 
-                                Foreground="#FF7D7397"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,0,0,0"
-                            />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="2" Background="#FF41375C">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
-                            <TextBlock Text="OSC options" 
-                                Foreground="#FF7D7397"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,0,0,0"
-                            />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="1">
-                        <StackPanel Height="150" VerticalAlignment="Top"  HorizontalAlignment="Left">
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="OnlyShowTimeVR_checkbox" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Only show time in VR</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show 'My time:' in front of the time integration</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
-                            <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="MusicIconPrefix_checkbox" IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Change 'listening to:' prefix to 🎵</CheckBox>
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="3">
-                        <StackPanel Height="120" VerticalAlignment="Top"  HorizontalAlignment="Left">
-                            <TextBlock Text="Local IP address" 
-                                Foreground="#FFB9B5C1"
-                                Grid.Column="0"
-                                FontSize="14"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,10,0,0"
-                            />
-                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCIPBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
-                            <TextBlock Text="Port (outgoing)" 
-                                Foreground="#FFB9B5C1"
-                                Grid.Column="0"
-                                FontSize="14"
-                                FontFamily="Albert Sans Thin" 
-                                       Padding="15,10,0,0"
-                            />
-                            <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OSCPortOutBox" Margin="15,3,0,0" Width="100" Height="26" Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
-
-
-                        </StackPanel>
-                    </Grid>
-
-
-                </Grid>
                 <Grid Background="#FF42385D" Grid.Row="1" Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
@@ -625,14 +685,14 @@
                     <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
 
 
-                        <TextBlock Text="{Binding AppVersion}" 
+                        <TextBlock Text="{Binding AppVersion.VersionNumber}" 
                        Foreground="#FF7D7397"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="10,0,10,10" />
-                        <TextBlock  Name="NewVersion" Text="{Binding NewVersion}" 
-                       Foreground="#FF8F80B9"
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="5,0,8,5" />
+                        <TextBlock  Name="NewVersion" Text="{Binding VersionTxt}" 
+                       Foreground="{Binding VersionTxtColor}"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" HorizontalAlignment="Left" VerticalAlignment="Bottom" MouseUp="NewVersion_MouseUp" Margin="0,0,10,10" TextDecorations="Underline" Cursor="Hand"/>
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Left" VerticalAlignment="Bottom" MouseUp="NewVersion_MouseUp" Margin="0,0,1,8" TextDecorations="Underline" Cursor="Hand"/>
                     </StackPanel>
                 </Grid>
             </Grid>

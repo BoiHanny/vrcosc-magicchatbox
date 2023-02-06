@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -26,32 +27,75 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     i.IsActive = true;
                     i.LastUsed = DateTime.Now;
+                    
                 }
                 else
                 {
                     i.IsActive = false;
                 }
             }
+            SaveStatusList();
         }
 
-      
+        public void SaveStatusList()
+        {
+            try
+            {
+                if (CreateIfMissing(DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(StatusList);
+                    File.WriteAllText(Path.Combine(DataPath, "StatusList.xml"), json);
+                }
+
+            }
+            catch (Exception)
+            {
+
+            }
+
+        }
+
+        public static bool CreateIfMissing(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(path);
+                    return true;
+                }
+                return true;
+            }
+            catch (IOException ex)
+            {
+                return false;
+            }
+
+        }
 
         #region Properties     
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private string _PlayingSongTitle = "";
+        private string _NewStatusItemTxt = "";
         private string _FocusedWindow = "";
+        private string _StatusTopBarTxt = "";
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
         private bool _MasterSwitch = false;
         private bool _OnlyShowTimeVR = true;
-        private bool _PrefixTime = true;
-        private bool _PrefixIconMusic = false;
+        private bool _PrefixTime = false;
+        private bool _PrefixIconMusic = true;
+        private bool _PrefixIconStatus = true;
         private bool _Time24H = false;
         private string _OSCtoSent = "";
-        private string _AppVersion = "0.4.0";
-        private string _NewVersion = "Check for updates";
+        private Version _AppVersion = new("0.4.0");
+        private Version _GitHubVersion;
+        private string _VersionTxt = "Check for updates";
+        private string _VersionTxtColor = "#FF8F80B9";
+        private string _StatusBoxCount = "0/140";
+        private string _StatusBoxColor = "#FF504767";
         private string _CurrentTime = "";
         private bool _IntgrStatus = false;
         private bool _IntgrScanWindowActivity = false;
@@ -74,6 +118,56 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
 
+        public string StatusTopBarTxt
+        {
+            get { return _StatusTopBarTxt; }
+            set
+            {
+                _StatusTopBarTxt = value;
+                NotifyPropertyChanged(nameof(StatusTopBarTxt));
+            }
+        }
+
+        public string NewStatusItemTxt
+        {
+            get { return _NewStatusItemTxt; }
+            set
+            {
+                _NewStatusItemTxt = value;
+                NotifyPropertyChanged(nameof(NewStatusItemTxt));
+            }
+        }
+
+        public string StatusBoxCount
+        {
+            get { return _StatusBoxCount; }
+            set
+            {
+                _StatusBoxCount = value;
+                NotifyPropertyChanged(nameof(StatusBoxCount));
+            }
+        }
+
+        public string StatusBoxColor
+        {
+            get { return _StatusBoxColor; }
+            set
+            {
+                _StatusBoxColor = value;
+                NotifyPropertyChanged(nameof(StatusBoxColor));
+            }
+        }
+
+        public bool PrefixIconStatus
+        {
+            get { return _PrefixIconStatus; }
+            set
+            {
+                _PrefixIconStatus = value;
+                NotifyPropertyChanged(nameof(PrefixIconStatus));
+            }
+        }
+
         public bool PrefixIconMusic
         {
             get { return _PrefixIconMusic; }
@@ -91,6 +185,8 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _StatusList = value;
                 NotifyPropertyChanged(nameof(StatusList));
+
+
             }
         }
         public string MenuItem_3_Visibility
@@ -342,22 +438,43 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
 
-        public string NewVersion
+        public string VersionTxt
         {
-            get { return _NewVersion; }
+            get { return _VersionTxt; }
             set
             {
-                _NewVersion = value;
-                NotifyPropertyChanged(nameof(NewVersion));
+                _VersionTxt = value;
+                NotifyPropertyChanged(nameof(VersionTxt));
             }
         }
-        public string AppVersion
+
+        public string VersionTxtColor
+        {
+            get { return _VersionTxtColor; }
+            set
+            {
+                _VersionTxtColor = value;
+                NotifyPropertyChanged(nameof(VersionTxtColor));
+            }
+        }
+
+        public Version AppVersion
         {
             get { return _AppVersion; }
             set
             {
                 _AppVersion = value;
                 NotifyPropertyChanged(nameof(AppVersion));
+            }
+        }
+
+        public Version GitHubVersion
+        {
+            get { return _GitHubVersion; }
+            set
+            {
+                _GitHubVersion = value;
+                NotifyPropertyChanged(nameof(GitHubVersion));
             }
         }
 
