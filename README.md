@@ -1,7 +1,17 @@
 ![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.4.0
 <!-- BEGIN LATEST DOWNLOAD BUTTON -->
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")]([https://github.com/BoiHanny/vrcosc-magicchatbox/files/9873053/MagicChatbox_v0.3.2p1.zip](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.4.0/Version-0.4.0.zip))
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.4.0/Version-0.4.0.zip)
 <!-- END LATEST DOWNLOAD BUTTON -->
+
+1. Download the .zip file;
+2. right-click and choose the option 'extract all';
+3. by default it will create a new folder in your download folder (you can also extract the content to other locations)
+4. when extracted, the folder will open;
+5. run the file 'MagicChatbox.exe'.
+
+[**Please make sure OSC is enabled in VRChat**](https://youtu.be/OHjN_q6RqGY?t=80)
+
+[Wiki Dev version 0.4.0](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Dev-version-0.4.0)
 
 # MagicChatbox
 ### Introducing VRC Magic ChatBox version 0.4.0 - the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.
