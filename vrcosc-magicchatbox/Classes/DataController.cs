@@ -98,6 +98,14 @@ namespace vrcosc_magicchatbox.Classes
                     userNode.InnerText = _VM.PrefixIconStatus.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("ScanPauseTimeout");
+                    userNode.InnerText = _VM.ScanPauseTimeout.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("PrefixChat");
+                    userNode.InnerText = _VM.PrefixChat.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -106,8 +114,8 @@ namespace vrcosc_magicchatbox.Classes
 
                 }
             }
-  
-             
+
+            
 
         }
 
@@ -132,6 +140,8 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
                 _VM.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
                 _VM.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
+                _VM.ScanPauseCountDown = int.Parse(doc.GetElementsByTagName("ScanPauseTimeout")[0].InnerText);
+                _VM.PrefixChat = bool.Parse(doc.GetElementsByTagName("PrefixChat")[0].InnerText);
 
 
             }
@@ -140,8 +150,6 @@ namespace vrcosc_magicchatbox.Classes
 
             }
         }
-
-        
 
         
 
@@ -167,7 +175,7 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
 
-                string token = "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";
+                string token = "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";
                 string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
 
                 using (var client = new HttpClient())

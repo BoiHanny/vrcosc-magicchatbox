@@ -25,7 +25,7 @@ namespace vrcosc_magicchatbox.Classes
                 if(_VM.OSCtoSent.Length > 0 || _VM.OSCtoSent.Length < 144)
                 {
                         oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
-                        oscSender.Send(new OscMessage("/chatbox/typing", false ));
+                        oscSender.Send(new OscMessage("/chatbox/typing", false));
                         oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
                 }
                 else
@@ -206,7 +206,50 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCtoSent = ""; 
             }
 
+            
+        }
+        public void CreateChat()
+        {
+            string Complete_msg = null;
+            if (_VM.PrefixChat == true)
+            {
+                Complete_msg = "💬 " + _VM.NewChattingTxt;
+            }
+            else
+            {
+                Complete_msg = _VM.NewChattingTxt;
+            }
 
+            if(Complete_msg.Length < 4)
+            {
+
+            }
+            else if (Complete_msg.Length > 144)
+            {
+                _VM.OSCtoSent = "";
+                _VM.OSCmsg_count = 0;
+                _VM.OSCmsg_countUI = "MAX/144";
+                _VM.NewChattingTxt = "";
+            }
+            else
+            {
+                _VM.ScanPauseCountDown = _VM.ScanPauseTimeout;
+                _VM.ScanPause = true;
+                _VM.OSCtoSent = Complete_msg;
+                _VM.OSCmsg_count = _VM.OSCtoSent.Length;
+                _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
+                _VM.NewChattingTxt = "";
+                _VM.ActiveChatTxt = "Active";
+            }
+        }
+
+        internal void ClearChat()
+        {
+            _VM.ScanPause = false;
+            _VM.OSCtoSent = "";
+            _VM.OSCmsg_count = 0;
+            _VM.OSCmsg_countUI = "0/144";
+            _VM.ActiveChatTxt = "";
         }
     }
 }

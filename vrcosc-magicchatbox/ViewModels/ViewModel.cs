@@ -77,26 +77,36 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private string _PlayingSongTitle = "";
+        private bool _ScanPause = false;
+        private int _ScanPauseTimeout = 25;
+        private int _ScanPauseCountDown = 0;
         private string _NewStatusItemTxt = "";
+        private string _NewChattingTxt = "";
         private string _FocusedWindow = "";
         private string _StatusTopBarTxt = "";
+        private string _ChatTopBarTxt = "";
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
         private bool _MasterSwitch = false;
         private bool _OnlyShowTimeVR = true;
         private bool _PrefixTime = false;
+        private bool _PrefixChat = true;
         private bool _PrefixIconMusic = true;
         private bool _PrefixIconStatus = true;
+        private bool _CountDownUI = true;
         private bool _Time24H = false;
         private string _OSCtoSent = "";
-        private Version _AppVersion = new("0.4.0");
+        private Version _AppVersion = new("0.5.0");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
         private string _StatusBoxCount = "0/140";
         private string _StatusBoxColor = "#FF504767";
+        private string _ChatBoxCount = "0/140";
+        private string _ChatBoxColor = "#FF504767";
         private string _CurrentTime = "";
+        private string _ActiveChatTxt = "";
         private bool _IntgrStatus = false;
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = false;
@@ -118,6 +128,75 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
 
+        public bool CountDownUI
+        {
+            get { return _CountDownUI; }
+            set
+            {
+                _CountDownUI = value;
+                NotifyPropertyChanged(nameof(CountDownUI));
+            }
+        }
+        public bool PrefixChat
+        {
+            get { return _PrefixChat; }
+            set
+            {
+                _PrefixChat = value;
+                NotifyPropertyChanged(nameof(PrefixChat));
+            }
+        }
+
+        public bool ScanPause
+        {
+            get { return _ScanPause; }
+            set
+            {
+                _ScanPause = value;
+                NotifyPropertyChanged(nameof(ScanPause));
+            }
+        }
+
+        public int ScanPauseTimeout
+        {
+            get { return _ScanPauseTimeout; }
+            set
+            {
+                _ScanPauseTimeout = value;
+                NotifyPropertyChanged(nameof(ScanPauseTimeout));
+            }
+        }
+
+        public int ScanPauseCountDown
+        {
+            get { return _ScanPauseCountDown; }
+            set
+            {
+                _ScanPauseCountDown = value;
+                NotifyPropertyChanged(nameof(ScanPauseCountDown));
+            }
+        }
+
+        public string ChatTopBarTxt
+        {
+            get { return _ChatTopBarTxt; }
+            set
+            {
+                _ChatTopBarTxt = value;
+                NotifyPropertyChanged(nameof(ChatTopBarTxt));
+            }
+        }
+
+        public string ActiveChatTxt
+        {
+            get { return _ActiveChatTxt; }
+            set
+            {
+                _ActiveChatTxt = value;
+                NotifyPropertyChanged(nameof(ActiveChatTxt));
+            }
+        }
+
         public string StatusTopBarTxt
         {
             get { return _StatusTopBarTxt; }
@@ -125,6 +204,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _StatusTopBarTxt = value;
                 NotifyPropertyChanged(nameof(StatusTopBarTxt));
+            }
+        }
+
+        public string NewChattingTxt
+        {
+            get { return _NewChattingTxt; }
+            set
+            {
+                _NewChattingTxt = value;
+                NotifyPropertyChanged(nameof(NewChattingTxt));
             }
         }
 
@@ -138,6 +227,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public string ChatBoxCount
+        {
+            get { return _ChatBoxCount; }
+            set
+            {
+                _ChatBoxCount = value;
+                NotifyPropertyChanged(nameof(ChatBoxCount));
+            }
+        }
+
         public string StatusBoxCount
         {
             get { return _StatusBoxCount; }
@@ -145,6 +244,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _StatusBoxCount = value;
                 NotifyPropertyChanged(nameof(StatusBoxCount));
+            }
+        }
+
+        public string ChatBoxColor
+        {
+            get { return _ChatBoxColor; }
+            set
+            {
+                _ChatBoxColor = value;
+                NotifyPropertyChanged(nameof(ChatBoxColor));
             }
         }
 
