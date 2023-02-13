@@ -674,7 +674,7 @@
                             <ColumnDefinition Width="150" />
                         </Grid.ColumnDefinitions>
                         <Button HorizontalAlignment="Left" Click="ButtonChattingTxt_Click" x:Name="ButtonChattingTxt" Content="Send" Style="{DynamicResource Status_Button_style}" Width="94" Margin="542,14,0,14" Grid.ColumnSpan="2"/>
-                        <TextBox Height="40" KeyDown="NewChattingTxt_KeyDown" TextChanged="NewChattingTxt_TextChanged" x:Name="NewChattingTxt" Text="{Binding NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,50,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
+                        <TextBox Height="40" KeyDown="NewChattingTxt_KeyDown" TextChanged="NewChattingTxt_TextChanged" x:Name="NewChattingTxt" Text="{Binding NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,55,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
                             <TextBox.Resources>
                                 <Style TargetType="{x:Type Border}">
                                     <Setter Property="CornerRadius" Value="5"/>
@@ -744,10 +744,33 @@
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
                        FontSize="13"
-                       FontFamily="Albert Sans Thin" Margin="0,0,110,0"/>
-                        <Button HorizontalAlignment="Right" Click="ClearChat_Click" x:Name="ClearChat" Content="Clear Chat" Style="{DynamicResource Status_Button_style}" Width="80" Margin="0,0,20,0"/>
+                       FontFamily="Albert Sans Thin" Margin="0,0,153,0"/>
+                        <Button HorizontalAlignment="Right" Click="ClearChat_Click" x:Name="ClearChat" Content="Clear history" Style="{DynamicResource Status_Button_style}" Width="80" Margin="0,0,20,0"/>
+                        <Button HorizontalAlignment="Right" Click="StopChat_Click" x:Name="StopChat" Content="Stop" Style="{DynamicResource Status_Button_style}" Width="40" Margin="0,0,105,0"/>
                     </Grid>
 
+
+                    <Grid Grid.Row="2">
+                        <ScrollViewer Margin="10,10,10,10" Name="RecentScroll" Visibility="Visible">
+                            <ItemsControl VerticalAlignment="Bottom" HorizontalAlignment="Center" ItemsSource="{Binding LastMessages,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="5" Background="DarkSlateBlue" Width="auto" Height="auto" BorderThickness="0" Margin="8" Opacity="{Binding Opacity}">
+                                            <StackPanel Height="auto" VerticalAlignment="Center" Orientation="Horizontal">
+                                                <TextBox BorderThickness="0" Height="Auto" Width="540" IsReadOnly="True" Background="Transparent" FontFamily="Albert Sans Thin" Text="{Binding Msg}" TextWrapping="Wrap" FontSize="16" Foreground="LightGray" Padding="15,15,0,15"/>
+                                                <Button Content="Copy" HorizontalAlignment="Right" Margin="5" Style="{DynamicResource Status_Button_style}" Width="50" Command="{Binding CopyToClipboardCommand}" CommandParameter="{Binding Msg}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
                 </Grid>
 
 

@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 
@@ -11,11 +13,13 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ViewModel : INotifyPropertyChanged
     {
         public ICommand ActivateStatusCommand { get; set; }
+        public ICommand CopyToClipboardCommand { get; set; }
 
 
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
+            CopyToClipboardCommand = new CopyToClipboardCommand(CopyToClipboard);
         }
 
         public void ActivateStatus(object parameter)
@@ -35,6 +39,11 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
             }
             SaveStatusList();
+        }
+
+        public void CopyToClipboard()
+        {
+            Clipboard.SetText(NewChattingTxt);
         }
 
         public void SaveStatusList()
@@ -73,9 +82,11 @@ namespace vrcosc_magicchatbox.ViewModels
 
         }
 
+
         #region Properties     
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
+        private ObservableCollection<ChatItem> _LastMessages = new ObservableCollection<ChatItem>();
         private string _PlayingSongTitle = "";
         private bool _ScanPause = false;
         private int _ScanPauseTimeout = 25;
@@ -127,6 +138,16 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Time_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        public ObservableCollection<ChatItem> LastMessages
+        {
+            get { return _LastMessages; }
+            set
+            {
+                _LastMessages = value;
+                NotifyPropertyChanged(nameof(LastMessages));
+            }
+        }
 
         public bool CountDownUI
         {

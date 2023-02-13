@@ -370,15 +370,21 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             _OSC.CreateChat();
+            Timer(null, null);
+            RecentScroll.ScrollToEnd();
+        }
+
+        private void StopChat_Click(object sender, RoutedEventArgs e)
+        {
+            _OSC.ClearChat();
             _OSC.SentOSCMessage();
             Timer(null, null);
         }
 
         private void ClearChat_Click(object sender, RoutedEventArgs e)
         {
-            _OSC.ClearChat();
-            _OSC.SentOSCMessage();
-            Timer(null, null);
+            _VM.LastMessages.Clear();
+            StopChat_Click(null, null);
         }
     }
 }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System;
 using System.Text;
 using System.Linq;
+using System.Globalization;
+using System.Collections.ObjectModel;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -226,10 +228,7 @@ namespace vrcosc_magicchatbox.Classes
             }
             else if (Complete_msg.Length > 144)
             {
-                _VM.OSCtoSent = "";
-                _VM.OSCmsg_count = 0;
-                _VM.OSCmsg_countUI = "MAX/144";
-                _VM.NewChattingTxt = "";
+
             }
             else
             {
@@ -238,8 +237,35 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCtoSent = Complete_msg;
                 _VM.OSCmsg_count = _VM.OSCtoSent.Length;
                 _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
-                _VM.NewChattingTxt = "";
                 _VM.ActiveChatTxt = "Active";
+
+                var newChatItem = new ChatItem { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now };
+                _VM.LastMessages.Add(newChatItem);
+
+                // Remove the oldest message if the list has more than 5 items
+                if (_VM.LastMessages.Count > 5)
+                {
+                    _VM.LastMessages.RemoveAt(0);
+                }
+
+                // Update the opacities of the chat items
+                double opacity = 1;
+                foreach (var item in _VM.LastMessages.Reverse())
+                {
+                    opacity -= 0.18;
+                    item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
+                }
+
+                // Save the current list of chat items to a local observable collection and clear the original list
+                var currentList = new ObservableCollection<ChatItem>(_VM.LastMessages);
+                _VM.LastMessages.Clear();
+
+                // Replace the original list with the new list
+                foreach (var item in currentList)
+                {
+                    _VM.LastMessages.Add(item);
+                }
+                _VM.NewChattingTxt = "";
             }
         }
 
