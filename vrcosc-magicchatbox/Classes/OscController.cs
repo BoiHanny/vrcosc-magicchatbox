@@ -20,27 +20,45 @@ namespace vrcosc_magicchatbox.Classes
 
         public UDPSender oscSender;
 
-        public void SentOSCMessage()
+        public void SentOSCMessage(bool FX)
         {
-            try
+            if (_VM.MasterSwitch == true)
             {
-                if(_VM.OSCtoSent.Length > 0 || _VM.OSCtoSent.Length < 144)
+                try
                 {
+                    if (_VM.OSCtoSent.Length > 0 || _VM.OSCtoSent.Length <= 144)
+                    {
                         oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
-                        oscSender.Send(new OscMessage("/chatbox/typing", false));
-                        oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true));
+                        oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true, FX));
+                    }
+                    else
+                    {
+                    
+                    }
+
                 }
-                else
+                catch (System.Exception)
                 {
-
                 }
-                
-            }
-            catch (System.Exception)
-            {
-            }
-
+            }          
         }
+
+        public void TypingIndicator(bool Typing)
+        {
+            if (_VM.MasterSwitch == true)
+            {
+                try
+                {
+                        _VM.TypingIndicator = Typing;
+                        oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
+                        oscSender.Send(new OscMessage("/chatbox/typing", Typing));
+                }
+                catch (System.Exception)
+                {
+                }
+            }
+        }
+
 
         public int OSCmsgLenght(List<string> content, string add)
         {
@@ -238,8 +256,10 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCmsg_count = _VM.OSCtoSent.Length;
                 _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
                 _VM.ActiveChatTxt = "Active";
+                Random random = new Random();
+                int randomId = random.Next(10, 99999999);
 
-                var newChatItem = new ChatItem { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now };
+                var newChatItem = new ChatItem { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId};
                 _VM.LastMessages.Add(newChatItem);
 
                 // Remove the oldest message if the list has more than 5 items

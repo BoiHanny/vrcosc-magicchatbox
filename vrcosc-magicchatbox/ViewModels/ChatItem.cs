@@ -16,6 +16,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private DateTime _creationDate;
         private string _msg = "";
         private string _opacity;
+        private int _ID;
 
         public ChatItem()
         {
@@ -29,6 +30,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _opacity = value;
                 NotifyPropertyChanged(nameof(Opacity));
+            }
+        }
+
+        public int ID
+        {
+            get { return _ID; }
+            set
+            {
+                _ID = value;
+                NotifyPropertyChanged(nameof(ID));
             }
         }
 

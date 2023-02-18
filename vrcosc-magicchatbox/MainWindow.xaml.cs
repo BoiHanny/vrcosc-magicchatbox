@@ -24,6 +24,7 @@ namespace vrcosc_magicchatbox
 
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
+        private System.Timers.Timer typingTimer;
 
         public MainWindow()
         {
@@ -60,28 +61,29 @@ namespace vrcosc_magicchatbox
 
         private void Timer(object sender, EventArgs e)
         {
-            if (_VM.ScanPause)
-            {       
-                if (pauseTimer == null)
+                if (_VM.ScanPause)
                 {
-                    _VM.CountDownUI = false;
-                    pauseTimer = new System.Timers.Timer();
-                    pauseTimer.Interval = 1000; // check every second
-                    pauseTimer.Elapsed += PauseTimer_Tick;
-                    pauseTimer.Start();
+                    if (pauseTimer == null)
+                    {
+                        _VM.CountDownUI = false;
+                        pauseTimer = new System.Timers.Timer();
+                        pauseTimer.Interval = 1000; // check every second
+                        pauseTimer.Elapsed += PauseTimer_Tick;
+                        pauseTimer.Start();
+                    }
                 }
-            }
-            else
-            {
-                if (pauseTimer != null)
+                else
                 {
-                    pauseTimer.Stop();
-                    pauseTimer = null;
+                    if (pauseTimer != null)
+                    {
+                        pauseTimer.Stop();
+                        pauseTimer = null;
+                    }
+
+                    _VM.CountDownUI = true;
+                    scantick();
                 }
 
-                _VM.CountDownUI = true;
-                scantick();
-            }
         }
 
         private void PauseTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
@@ -102,7 +104,7 @@ namespace vrcosc_magicchatbox
                     _VM.ScanPauseCountDown = 0;
                 }
                 _OSC.ClearChat();
-                _OSC.SentOSCMessage();
+                _OSC.SentOSCMessage(false);
                 Timer(null, null);
             }
         }
@@ -119,7 +121,7 @@ namespace vrcosc_magicchatbox
                 _VM.CurrentTime = _STATS.GetTime();
             }
             _OSC.BuildOSC();
-            _OSC.SentOSCMessage();
+            _OSC.SentOSCMessage(false);
         }
 
         public void ChangeMenuItem(int changeINT)
@@ -353,6 +355,23 @@ namespace vrcosc_magicchatbox
                 _VM.ChatTopBarTxt = $"";
                 
             }
+
+            _OSC.TypingIndicator(true);
+
+
+            if (typingTimer != null)
+            {
+                typingTimer.Stop();
+                typingTimer.Start();
+            }
+            else
+            {
+                typingTimer = new System.Timers.Timer(2000);
+                typingTimer.Elapsed += (s, args) => _OSC.TypingIndicator(false);
+                typingTimer.AutoReset = false;
+                typingTimer.Enabled = true;
+            }
+
         }
 
         private void NewChattingTxt_KeyDown(object sender, KeyEventArgs e)
@@ -370,6 +389,7 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             _OSC.CreateChat();
+            _OSC.SentOSCMessage(true);
             Timer(null, null);
             RecentScroll.ScrollToEnd();
         }
@@ -377,7 +397,7 @@ namespace vrcosc_magicchatbox
         private void StopChat_Click(object sender, RoutedEventArgs e)
         {
             _OSC.ClearChat();
-            _OSC.SentOSCMessage();
+            _OSC.SentOSCMessage(false);
             Timer(null, null);
         }
 
@@ -386,5 +406,6 @@ namespace vrcosc_magicchatbox
             _VM.LastMessages.Clear();
             StopChat_Click(null, null);
         }
+
     }
 }

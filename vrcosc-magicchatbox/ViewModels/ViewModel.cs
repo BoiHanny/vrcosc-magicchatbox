@@ -14,12 +14,20 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public ICommand ActivateStatusCommand { get; set; }
         public ICommand CopyToClipboardCommand { get; set; }
+        public ICommand SendMessageAgainCommand { get; set; }
 
 
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
-            CopyToClipboardCommand = new CopyToClipboardCommand(CopyToClipboard);
+            CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
+            SendMessageAgainCommand = new RelayCommand<object>(SendMessageAgain);
+        }
+
+        private void SendMessageAgain(object param)
+        {
+            // get the message from the ChatItem and send it again
+            ChatItem item = (ChatItem)param;
         }
 
         public void ActivateStatus(object parameter)
@@ -103,6 +111,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _OnlyShowTimeVR = true;
         private bool _PrefixTime = false;
         private bool _PrefixChat = true;
+        private bool _TypingIndicator = false;
         private bool _PrefixIconMusic = true;
         private bool _PrefixIconStatus = true;
         private bool _CountDownUI = true;
@@ -146,6 +155,15 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _LastMessages = value;
                 NotifyPropertyChanged(nameof(LastMessages));
+            }
+        }
+        public bool TypingIndicator
+        {
+            get { return _TypingIndicator; }
+            set
+            {
+                _TypingIndicator = value;
+                NotifyPropertyChanged(nameof(TypingIndicator));
             }
         }
 

@@ -762,7 +762,8 @@
                                     <DataTemplate>
                                         <Border CornerRadius="5" Background="DarkSlateBlue" Width="auto" Height="auto" BorderThickness="0" Margin="8" Opacity="{Binding Opacity}">
                                             <StackPanel Height="auto" VerticalAlignment="Center" Orientation="Horizontal">
-                                                <TextBox BorderThickness="0" Height="Auto" Width="540" IsReadOnly="True" Background="Transparent" FontFamily="Albert Sans Thin" Text="{Binding Msg}" TextWrapping="Wrap" FontSize="16" Foreground="LightGray" Padding="15,15,0,15"/>
+                                                <TextBox BorderThickness="0" Height="Auto" Width="450" IsReadOnly="True" Background="Transparent" FontFamily="Albert Sans Thin" Text="{Binding Msg}" TextWrapping="Wrap" FontSize="16" Foreground="LightGray" Padding="15,15,0,15"/>
+                                                <Button Content="Send again" HorizontalAlignment="Right" Margin="5" Style="{DynamicResource Status_Button_style}" Width="75" Command="{Binding CopyToClipboardCommand}" CommandParameter="{Binding Msg}"/>
                                                 <Button Content="Copy" HorizontalAlignment="Right" Margin="5" Style="{DynamicResource Status_Button_style}" Width="50" Command="{Binding CopyToClipboardCommand}" CommandParameter="{Binding Msg}"/>
                                             </StackPanel>
                                         </Border>
