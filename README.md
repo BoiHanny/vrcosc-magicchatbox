@@ -16,7 +16,7 @@
 
 [**Please make sure OSC is enabled in VRChat**](https://youtu.be/OHjN_q6RqGY?t=80)
 
-![197355959-83441bed-2b27-469e-974f-53acbc0badf9](https://user-images.githubusercontent.com/114599052/218335607-3f1b904b-5812-41c5-84de-9d82290962c1.png)
+![197355959-83441bed-2b27-469e-974f-53acbc0badf9](https://user-images.githubusercontent.com/114599052/220212993-c8d47bc6-6646-4094-9974-0591a232093d.png)
 
 ### Features
 
