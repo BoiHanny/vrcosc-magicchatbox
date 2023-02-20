@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Http;
@@ -106,6 +105,14 @@ namespace vrcosc_magicchatbox.Classes
                     userNode.InnerText = _VM.PrefixChat.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("ChatFX");
+                    userNode.InnerText = _VM.ChatFX.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("PauseIconMusic");
+                    userNode.InnerText = _VM.PauseIconMusic.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -142,10 +149,12 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
                 _VM.ScanPauseTimeout = int.Parse(doc.GetElementsByTagName("ScanPauseTimeout")[0].InnerText);
                 _VM.PrefixChat = bool.Parse(doc.GetElementsByTagName("PrefixChat")[0].InnerText);
+                _VM.ChatFX = bool.Parse(doc.GetElementsByTagName("ChatFX")[0].InnerText);
+                _VM.PauseIconMusic = bool.Parse(doc.GetElementsByTagName("PauseIconMusic")[0].InnerText);
 
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
             }
@@ -226,7 +235,7 @@ namespace vrcosc_magicchatbox.Classes
                     _VM.VersionTxtColor = "#FFE816EA";
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
             }

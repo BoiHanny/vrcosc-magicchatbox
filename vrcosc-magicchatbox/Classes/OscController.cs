@@ -165,7 +165,15 @@ namespace vrcosc_magicchatbox.Classes
                 {
                     if (_VM.SpotifyPaused)
                     {
-                        x = "Music paused";
+                        x = "";
+                        if (_VM.PauseIconMusic == true && _VM.PrefixIconMusic == true)
+                        {
+                            x = "⏸";
+                        }
+                        else
+                        {
+                            x = "Music paused";
+                        }
                         if(OSCmsgLenght(Uncomplete, x) < 144)
                         {
                             Uncomplete.Add(x);
@@ -228,7 +236,7 @@ namespace vrcosc_magicchatbox.Classes
 
             
         }
-        public void CreateChat()
+        public void CreateChat(bool createItem)
         {
             string Complete_msg = null;
             if (_VM.PrefixChat == true)
@@ -256,36 +264,36 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCmsg_count = _VM.OSCtoSent.Length;
                 _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
                 _VM.ActiveChatTxt = "Active";
-                Random random = new Random();
-                int randomId = random.Next(10, 99999999);
+                
+                if(createItem == true)
+                { 
+                  Random random = new Random();
+                  int randomId = random.Next(10, 99999999);
 
-                var newChatItem = new ChatItem { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId};
-                _VM.LastMessages.Add(newChatItem);
+                  var newChatItem = new ChatItem(_VM) { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId};
+                  _VM.LastMessages.Add(newChatItem);
 
-                // Remove the oldest message if the list has more than 5 items
-                if (_VM.LastMessages.Count > 5)
-                {
-                    _VM.LastMessages.RemoveAt(0);
+                  if (_VM.LastMessages.Count > 5)
+                  {
+                      _VM.LastMessages.RemoveAt(0);
+                  }
+
+                  double opacity = 1;
+                  foreach (var item in _VM.LastMessages.Reverse())
+                  {
+                      opacity -= 0.18;
+                      item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
+                  }
+
+                  var currentList = new ObservableCollection<ChatItem>(_VM.LastMessages);
+                  _VM.LastMessages.Clear();
+
+                  foreach (var item in currentList)
+                  {
+                      _VM.LastMessages.Add(item);
+                  }
+                  _VM.NewChattingTxt = "";
                 }
-
-                // Update the opacities of the chat items
-                double opacity = 1;
-                foreach (var item in _VM.LastMessages.Reverse())
-                {
-                    opacity -= 0.18;
-                    item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
-                }
-
-                // Save the current list of chat items to a local observable collection and clear the original list
-                var currentList = new ObservableCollection<ChatItem>(_VM.LastMessages);
-                _VM.LastMessages.Clear();
-
-                // Replace the original list with the new list
-                foreach (var item in currentList)
-                {
-                    _VM.LastMessages.Add(item);
-                }
-                _VM.NewChattingTxt = "";
             }
         }
 

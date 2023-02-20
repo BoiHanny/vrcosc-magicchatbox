@@ -13,21 +13,10 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ViewModel : INotifyPropertyChanged
     {
         public ICommand ActivateStatusCommand { get; set; }
-        public ICommand CopyToClipboardCommand { get; set; }
-        public ICommand SendMessageAgainCommand { get; set; }
-
 
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
-            CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
-            SendMessageAgainCommand = new RelayCommand<object>(SendMessageAgain);
-        }
-
-        private void SendMessageAgain(object param)
-        {
-            // get the message from the ChatItem and send it again
-            ChatItem item = (ChatItem)param;
         }
 
         public void ActivateStatus(object parameter)
@@ -49,10 +38,7 @@ namespace vrcosc_magicchatbox.ViewModels
             SaveStatusList();
         }
 
-        public void CopyToClipboard()
-        {
-            Clipboard.SetText(NewChattingTxt);
-        }
+
 
         public void SaveStatusList()
         {
@@ -101,6 +87,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _ScanPauseCountDown = 0;
         private string _NewStatusItemTxt = "";
         private string _NewChattingTxt = "";
+        private string _ChatFeedbackTxt = "";
         private string _FocusedWindow = "";
         private string _StatusTopBarTxt = "";
         private string _ChatTopBarTxt = "";
@@ -111,8 +98,10 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _OnlyShowTimeVR = true;
         private bool _PrefixTime = false;
         private bool _PrefixChat = true;
+        private bool _ChatFX = true;
         private bool _TypingIndicator = false;
         private bool _PrefixIconMusic = true;
+        private bool _PauseIconMusic = true;
         private bool _PrefixIconStatus = true;
         private bool _CountDownUI = true;
         private bool _Time24H = false;
@@ -164,6 +153,24 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _TypingIndicator = value;
                 NotifyPropertyChanged(nameof(TypingIndicator));
+            }
+        }
+        public bool PauseIconMusic
+        {
+            get { return _PauseIconMusic; }
+            set
+            {
+                _PauseIconMusic = value;
+                NotifyPropertyChanged(nameof(PauseIconMusic));
+            }
+        }
+        public bool ChatFX
+        {
+            get { return _ChatFX; }
+            set
+            {
+                _ChatFX = value;
+                NotifyPropertyChanged(nameof(ChatFX));
             }
         }
 
@@ -223,6 +230,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _ChatTopBarTxt = value;
                 NotifyPropertyChanged(nameof(ChatTopBarTxt));
+            }
+        }
+
+        public string ChatFeedbackTxt
+        {
+            get { return _ChatFeedbackTxt; }
+            set
+            {
+                _ChatFeedbackTxt = value;
+                NotifyPropertyChanged(nameof(ChatFeedbackTxt));
             }
         }
 

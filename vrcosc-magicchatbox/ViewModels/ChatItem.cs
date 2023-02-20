@@ -1,26 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Security.Permissions;
-using System.Text;
-using System.Threading.Tasks;
+using vrcosc_magicchatbox.ViewModels;
 using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
+
+
     public class ChatItem : INotifyPropertyChanged
     {
+        private ViewModel _VM;
+        private OscController _OSC;
         private DateTime _creationDate;
         private string _msg = "";
         private string _opacity;
         private int _ID;
 
-        public ChatItem()
+        public ChatItem(ViewModel vm)
         {
+            _VM = vm;
+            _OSC = new OscController(_VM);
             CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
+            SendAgainCommand = new RelayCommand(OnSendAgain);
         }
 
         public string Opacity
@@ -64,12 +67,27 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         public ICommand CopyToClipboardCommand { get; }
+        public ICommand SendAgainCommand { get; }
 
         public void CopyToClipboard(object parameter)
         {
             if (parameter is string text)
             {
                 Clipboard.SetDataObject(text);
+                _VM.ChatFeedbackTxt = "Message copied";
+            }
+        }
+
+        public void OnSendAgain(object parameter)
+        {
+            if (parameter is string text)
+            {
+                string savedtxt = _VM.NewChattingTxt;
+                _VM.NewChattingTxt = text;
+                _OSC.CreateChat(false);
+                _OSC.SentOSCMessage(true);
+                _VM.NewChattingTxt = savedtxt;
+                _VM.ChatFeedbackTxt = "Message sent again";
             }
         }
 

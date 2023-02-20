@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.IO;
 
+
 namespace vrcosc_magicchatbox
 {
     public partial class MainWindow : Window
@@ -120,6 +121,7 @@ namespace vrcosc_magicchatbox
             {
                 _VM.CurrentTime = _STATS.GetTime();
             }
+            _VM.ChatFeedbackTxt = "";
             _OSC.BuildOSC();
             _OSC.SentOSCMessage(false);
         }
@@ -388,8 +390,8 @@ namespace vrcosc_magicchatbox
 
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
-            _OSC.CreateChat();
-            _OSC.SentOSCMessage(true);
+            _OSC.CreateChat(true);
+            _OSC.SentOSCMessage(_VM.ChatFX);
             Timer(null, null);
             RecentScroll.ScrollToEnd();
         }

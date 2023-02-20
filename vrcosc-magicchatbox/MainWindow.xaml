@@ -6,11 +6,12 @@
         xmlns:local="clr-namespace:vrcosc_magicchatbox" xmlns:viewmodels="clr-namespace:vrcosc_magicchatbox.ViewModels" xmlns:local1="clr-namespace:vrcosc_magicchatbox.Classes"
         mc:Ignorable="d"
         Title="MagicChatbox by BoiHanny" Height="650" Width="900"
-        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98">
-
+        WindowStyle="None" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98" VerticalAlignment="Bottom">
+    
     <Window.Resources>
         <ResourceDictionary>
             <local1:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <local1:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -143,8 +144,8 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid>
-        <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10">
+    <Grid VerticalAlignment="Stretch">
+        <Border Background="Transparent" BorderBrush="#FF240E55" BorderThickness="1" Margin="10,10,10,10" VerticalAlignment="Bottom">
             <Border.Effect>
                 <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="15" ShadowDepth="0" Direction="-63" />
             </Border.Effect>
@@ -374,7 +375,7 @@
                             <ColumnDefinition Width="150" />
                         </Grid.ColumnDefinitions>
                         <Button HorizontalAlignment="Left" Click="AddFav_Click" x:Name="AddFav" Content="Create" Style="{DynamicResource Status_Button_style}" Width="94" Margin="542,14,0,14" Grid.ColumnSpan="2"/>
-                        <TextBox Height="40" KeyDown="FavBox_KeyDown" TextChanged="NewFavText_TextChanged" x:Name="NewFavText" Text="{Binding NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,50,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
+                        <TextBox Height="40" KeyDown="FavBox_KeyDown" TextChanged="NewFavText_TextChanged" x:Name="NewFavText" Text="{Binding NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,58,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
                             <TextBox.Resources>
                                 <Style TargetType="{x:Type Border}">
                                     <Setter Property="CornerRadius" Value="5"/>
@@ -391,7 +392,7 @@
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" Margin="0,0,10,0"/>
+                       FontFamily="Albert Sans Thin" Padding="0,3,0,0" Margin="0,0,7,0"/>
 
                         <TextBlock IsHitTestVisible="False" Text="Create here a new status" VerticalAlignment="Center" TextAlignment="Left" FontSize="15" Height="40" Padding="8, 9, 5, 0"  Foreground="#FF3D2F5F" Margin="15,0,55,0">
                             <TextBlock.Style>
@@ -582,6 +583,135 @@
 
 
                 </Grid>
+
+                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_2_Visibility}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="31"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="400"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="68"/>
+                    </Grid.RowDefinitions>
+                    <Grid Height="68" Width="658" HorizontalAlignment="Left"  Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="550" />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
+                        <Button HorizontalAlignment="Left" Click="ButtonChattingTxt_Click" x:Name="ButtonChattingTxt" Content="Send" Style="{DynamicResource Status_Button_style}" Width="94" Margin="542,14,0,14" Grid.ColumnSpan="2"/>
+                        <TextBox Height="40" KeyDown="NewChattingTxt_KeyDown" TextChanged="NewChattingTxt_TextChanged" x:Name="NewChattingTxt" Text="{Binding NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,55,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </TextBox.Resources>
+                            <TextBox.Effect>
+                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
+                            </TextBox.Effect>
+                        </TextBox>
+
+                        <TextBlock Text="{Binding ChatBoxCount}" 
+                       Foreground="{Binding ChatBoxColor}"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Padding="0,3,0,0" Margin="0,0,7,0"/>
+
+                        <TextBlock IsHitTestVisible="False" Text="Send a chat message" VerticalAlignment="Center" TextAlignment="Left" FontSize="15" Height="40" Padding="8, 9, 5, 0"  Foreground="#FF3D2F5F" Margin="15,0,55,0">
+                            <TextBlock.Style>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ElementName=NewChattingTxt, Path=IsFocused}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <Grid Background="#FF493F65" HorizontalAlignment="Stretch" Grid.Row="3">
+                        <TextBlock Text="{Binding ChatTopBarTxt}" 
+                                Foreground="#FF9983AD"
+                                   HorizontalAlignment="Left"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="16,0,0,0" Padding="0,0,50,0" 
+                            />
+                        <TextBlock Text="{Binding ChatFeedbackTxt}" 
+                                Foreground="#FF9983AD"
+                                   HorizontalAlignment="Right"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,16,0" 
+                            />
+
+                    </Grid>
+                    <Grid Background="#FF493F65" Grid.Row="1">
+                        <StackPanel Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Orientation="Horizontal" HorizontalAlignment="Stretch" >
+                            <TextBlock Text="Visible for " 
+                                Foreground="#FF9983AD"
+                                   HorizontalAlignment="Left"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="16,0,0,0" 
+                            />
+                            <TextBlock Text="{Binding ScanPauseCountDown,UpdateSourceTrigger=PropertyChanged}" 
+                                Foreground="#FF9983AD"
+                                   HorizontalAlignment="Left"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,0,0" 
+                            />
+                            <TextBlock Text=" seconds" 
+                                Foreground="#FF9983AD"
+                                   HorizontalAlignment="Left"
+                                Grid.Column="0"
+                                Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,0,0" 
+                            />
+
+                        </StackPanel>
+                        <TextBlock Text="{Binding ActiveChatTxt,UpdateSourceTrigger=PropertyChanged}" 
+                       Foreground="#FF6FD013"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       FontSize="13"
+                       FontFamily="Albert Sans Thin" Margin="0,0,153,0"/>
+                        <Button HorizontalAlignment="Right" Click="ClearChat_Click" x:Name="ClearChat" Content="Clear history" Style="{DynamicResource Status_Button_style}" Width="80" Margin="0,5,20,5"/>
+                        <Button HorizontalAlignment="Right" Click="StopChat_Click" x:Name="StopChat" Content="Stop" Style="{DynamicResource Status_Button_style}" Width="40" Margin="0,5,105,5"/>
+                    </Grid>
+
+
+                    <Grid Grid.Row="2">
+                        <ScrollViewer Margin="10,10,10,10" Name="RecentScroll" Visibility="Visible">
+                            <ItemsControl VerticalAlignment="Bottom" HorizontalAlignment="Center" ItemsSource="{Binding LastMessages,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="5" Background="DarkSlateBlue" Width="auto" Height="auto" BorderThickness="0" Margin="8" Opacity="{Binding Opacity}">
+                                            <StackPanel Height="auto" VerticalAlignment="Center" Orientation="Horizontal">
+                                                <TextBox BorderThickness="0" Height="Auto" Width="450" IsReadOnly="True" Background="Transparent" FontFamily="Albert Sans Thin" Text="{Binding Msg}" TextWrapping="Wrap" FontSize="16" Foreground="LightGray" Padding="15,15,0,15"/>
+                                                <Button Content="Send again" HorizontalAlignment="Right" Margin="0,5,0,5" Style="{DynamicResource Status_Button_style}" Width="75" Command="{Binding SendAgainCommand}" CommandParameter="{Binding Msg}"/>
+                                                <Button Content="Copy" HorizontalAlignment="Right" Margin="5" Style="{DynamicResource Status_Button_style}" Width="50" Command="{Binding CopyToClipboardCommand}" CommandParameter="{Binding Msg}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
                 <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_3_Visibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
@@ -621,8 +751,10 @@
                             <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="PrefixTime_checkbox" IsChecked="{Binding PrefixTime, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show 'My time:' in front of the time integration</CheckBox>
                             <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="Time24H_checkbox" IsChecked="{Binding Time24H, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">24-Hour Time Format</CheckBox>
                             <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="MusicIconPrefix_checkbox" IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Change 'listening to:' prefix to 🎵</CheckBox>
+                            <CheckBox Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Checked="Update_Click" Unchecked="Update_Click" x:Name="PauseIconPrefix_checkbox" IsChecked="{Binding PauseIconMusic, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show ⏸ when  music is paused</CheckBox>
                             <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="StatusIconPrefix_checkbox" IsChecked="{Binding PrefixIconStatus, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Add 💬 as prefix for the personal status</CheckBox>
                             <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="ChatIconPrefix_checkbox" IsChecked="{Binding PrefixChat, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Add 💬 as prefix for chat messages</CheckBox>
+                            <CheckBox x:Name="ChatFX_checkbox" IsChecked="{Binding ChatFX, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Play FX sound for VRChat users when sending message</CheckBox>
                             <Button Click="ResetFavorites_Click" x:Name="ResetFavorites" HorizontalAlignment="Left" Content="Reset Status" Style="{DynamicResource Status_Button_style}" Height="25" Width="100" Margin="15,0,5,15"></Button>
                         </StackPanel>
                     </Grid>
@@ -660,120 +792,6 @@
 
 
                 </Grid>
-                <Grid Grid.Row="1" Background="#FF3B3054" Visibility="{Binding MenuItem_2_Visibility}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="31"/>
-                        <RowDefinition Height="35"/>
-                        <RowDefinition Height="400"/>
-                        <RowDefinition Height="40"/>
-                        <RowDefinition Height="68"/>
-                    </Grid.RowDefinitions>
-                    <Grid Height="68" Width="658" HorizontalAlignment="Left"  Grid.Row="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="550" />
-                            <ColumnDefinition Width="150" />
-                        </Grid.ColumnDefinitions>
-                        <Button HorizontalAlignment="Left" Click="ButtonChattingTxt_Click" x:Name="ButtonChattingTxt" Content="Send" Style="{DynamicResource Status_Button_style}" Width="94" Margin="542,14,0,14" Grid.ColumnSpan="2"/>
-                        <TextBox Height="40" KeyDown="NewChattingTxt_KeyDown" TextChanged="NewChattingTxt_TextChanged" x:Name="NewChattingTxt" Text="{Binding NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,0,55,0" Background="#FF7B7195" TextAlignment="Left" BorderThickness="0" FontSize="15" Foreground="#FF240E54" Margin="15,0,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
-                            <TextBox.Resources>
-                                <Style TargetType="{x:Type Border}">
-                                    <Setter Property="CornerRadius" Value="5"/>
-                                </Style>
-                            </TextBox.Resources>
-                            <TextBox.Effect>
-                                <DropShadowEffect Color="DarkBlue" RenderingBias="Quality" BlurRadius="5" ShadowDepth="0" Direction="-23" />
-                            </TextBox.Effect>
-                        </TextBox>
-
-                        <TextBlock Text="{Binding ChatBoxCount}" 
-                       Foreground="{Binding ChatBoxColor}"
-                       Grid.Column="0"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Right"
-                       FontSize="12"
-                       FontFamily="Albert Sans Thin" Margin="0,0,10,0"/>
-
-                        <TextBlock IsHitTestVisible="False" Text="Send a chat message" VerticalAlignment="Center" TextAlignment="Left" FontSize="15" Height="40" Padding="8, 9, 5, 0"  Foreground="#FF3D2F5F" Margin="15,0,55,0">
-                            <TextBlock.Style>
-                                <Style TargetType="{x:Type TextBlock}">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding ElementName=NewChattingTxt, Path=IsFocused}" Value="True">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Grid>
-                    <Grid Background="#FF493F65" HorizontalAlignment="Stretch" Grid.Row="3">
-                        <TextBlock Text="{Binding ChatTopBarTxt}" 
-                                Foreground="#FF9983AD"
-                                   HorizontalAlignment="Left"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="16,0,0,0" 
-                            />
-
-                    </Grid>
-                    <Grid Background="#FF493F65" Grid.Row="1">
-                        <StackPanel Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Orientation="Horizontal" HorizontalAlignment="Stretch" >
-                            <TextBlock Text="Visibility timeout: " 
-                                Foreground="#FF9983AD"
-                                   HorizontalAlignment="Left"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="16,0,0,0" 
-                            />
-                            <TextBlock Text="{Binding ScanPauseCountDown,UpdateSourceTrigger=PropertyChanged}" 
-                                Foreground="#FF9983AD"
-                                   HorizontalAlignment="Left"
-                                Grid.Column="0"
-                                FontSize="16"
-                                FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,0,0" 
-                            />
-
-                        </StackPanel>
-                        <TextBlock Text="{Binding ActiveChatTxt,UpdateSourceTrigger=PropertyChanged}" 
-                       Foreground="#FF6FD013"
-                       Grid.Column="0"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Right"
-                       FontSize="13"
-                       FontFamily="Albert Sans Thin" Margin="0,0,153,0"/>
-                        <Button HorizontalAlignment="Right" Click="ClearChat_Click" x:Name="ClearChat" Content="Clear history" Style="{DynamicResource Status_Button_style}" Width="80" Margin="0,0,20,0"/>
-                        <Button HorizontalAlignment="Right" Click="StopChat_Click" x:Name="StopChat" Content="Stop" Style="{DynamicResource Status_Button_style}" Width="40" Margin="0,0,105,0"/>
-                    </Grid>
-
-
-                    <Grid Grid.Row="2">
-                        <ScrollViewer Margin="10,10,10,10" Name="RecentScroll" Visibility="Visible">
-                            <ItemsControl VerticalAlignment="Bottom" HorizontalAlignment="Center" ItemsSource="{Binding LastMessages,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border CornerRadius="5" Background="DarkSlateBlue" Width="auto" Height="auto" BorderThickness="0" Margin="8" Opacity="{Binding Opacity}">
-                                            <StackPanel Height="auto" VerticalAlignment="Center" Orientation="Horizontal">
-                                                <TextBox BorderThickness="0" Height="Auto" Width="450" IsReadOnly="True" Background="Transparent" FontFamily="Albert Sans Thin" Text="{Binding Msg}" TextWrapping="Wrap" FontSize="16" Foreground="LightGray" Padding="15,15,0,15"/>
-                                                <Button Content="Send again" HorizontalAlignment="Right" Margin="5" Style="{DynamicResource Status_Button_style}" Width="75" Command="{Binding CopyToClipboardCommand}" CommandParameter="{Binding Msg}"/>
-                                                <Button Content="Copy" HorizontalAlignment="Right" Margin="5" Style="{DynamicResource Status_Button_style}" Width="50" Command="{Binding CopyToClipboardCommand}" CommandParameter="{Binding Msg}"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-                </Grid>
-
 
                 <Grid Background="#FF42385D" Grid.Row="1" Grid.Column="1">
                     <Grid.RowDefinitions>
@@ -803,6 +821,51 @@
                                
                        FontSize="13"
                        FontFamily="Albert Sans Thin" TextAlignment="Center" Margin="5,0,5,0" TextWrapping="Wrap" Height="150" Focusable="False" AllowDrop="False" IsHitTestVisible="False" IsTabStop="False" IsReadOnly="True" BorderThickness="0"/>
+
+                    <Grid Visibility="Collapsed" Grid.Row="1"
+      HorizontalAlignment="Left"
+      VerticalAlignment="Top"
+      Margin="8,164,0,0" Width="206" Height="134">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="🛈" 
+               TextWrapping="Wrap"
+               Foreground="#FF9983AD"
+               FontSize="16"
+               FontFamily="Albert Sans Thin"
+               VerticalAlignment="Top"
+               Margin="0,4,0,0"/>
+                        <TextBlock Text=": Switch VRChat"
+               TextWrapping="Wrap"
+               Foreground="#FF9983AD"
+               FontSize="13"
+               FontFamily="Albert Sans Thin"
+               VerticalAlignment="Top"
+               Margin="5,49,-64,0" Grid.Column="1"/>
+                        <TextBlock Text="ESC"
+               TextWrapping="Wrap"
+               Foreground="#FF9983AD"
+               FontSize="13"
+               FontFamily="Albert Sans Thin"
+               VerticalAlignment="Top"
+               Margin="0,28,0,0"/>
+                        <TextBlock Text="ALT + V"
+               TextWrapping="Wrap"
+               Foreground="#FF9983AD"
+               FontSize="13"
+               FontFamily="Albert Sans Thin"
+               VerticalAlignment="Top"
+               Margin="0,49,0,0"/>
+                        <TextBlock Text=": Clear message box"
+               TextWrapping="Wrap"
+               Foreground="#FF9983AD"
+               FontSize="13"
+               FontFamily="Albert Sans Thin"
+               VerticalAlignment="Top"
+               Margin="5,28,-84,0" Grid.Column="1"/>
+                    </Grid>
 
                     <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
 
