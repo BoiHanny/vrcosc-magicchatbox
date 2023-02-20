@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using vrcosc_magicchatbox.ViewModels;
 using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;

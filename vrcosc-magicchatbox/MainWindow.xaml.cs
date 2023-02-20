@@ -1,15 +1,15 @@
-﻿using System.Windows;
-using vrcosc_magicchatbox.Classes;
-using vrcosc_magicchatbox.ViewModels;
-using System.Windows.Threading;
-using System;
-using System.Windows.Input;
-using System.Diagnostics;
-using System.Windows.Controls;
-using System.Linq;
+﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
-
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
+using vrcosc_magicchatbox.Classes;
+using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox
 {
@@ -62,28 +62,28 @@ namespace vrcosc_magicchatbox
 
         private void Timer(object sender, EventArgs e)
         {
-                if (_VM.ScanPause)
+            if (_VM.ScanPause)
+            {
+                if (pauseTimer == null)
                 {
-                    if (pauseTimer == null)
-                    {
-                        _VM.CountDownUI = false;
-                        pauseTimer = new System.Timers.Timer();
-                        pauseTimer.Interval = 1000; // check every second
-                        pauseTimer.Elapsed += PauseTimer_Tick;
-                        pauseTimer.Start();
-                    }
+                    _VM.CountDownUI = false;
+                    pauseTimer = new System.Timers.Timer();
+                    pauseTimer.Interval = 1000; // check every second
+                    pauseTimer.Elapsed += PauseTimer_Tick;
+                    pauseTimer.Start();
                 }
-                else
+            }
+            else
+            {
+                if (pauseTimer != null)
                 {
-                    if (pauseTimer != null)
-                    {
-                        pauseTimer.Stop();
-                        pauseTimer = null;
-                    }
+                    pauseTimer.Stop();
+                    pauseTimer = null;
+                }
 
-                    _VM.CountDownUI = true;
-                    scantick();
-                }
+                _VM.CountDownUI = true;
+                scantick();
+            }
 
         }
 
@@ -100,7 +100,7 @@ namespace vrcosc_magicchatbox
                 _VM.ScanPause = false;
                 pauseTimer.Stop();
                 pauseTimer = null;
-                if (_VM.ScanPauseCountDown != 0 )
+                if (_VM.ScanPauseCountDown != 0)
                 {
                     _VM.ScanPauseCountDown = 0;
                 }
@@ -264,8 +264,8 @@ namespace vrcosc_magicchatbox
             {
                 _VM.NewStatusItemTxt = "";
             }
-           
-            
+
+
         }
 
         private void NewFavText_TextChanged(object sender, TextChangedEventArgs e)
@@ -287,7 +287,7 @@ namespace vrcosc_magicchatbox
             else
             {
                 _VM.StatusBoxColor = "#FF2C2148";
-                if(count > 22)
+                if (count > 22)
                 {
                     _VM.StatusTopBarTxt = $"Buckle up! Keep it tight to 20-25 or integrations may suffer.";
                 }
@@ -355,7 +355,7 @@ namespace vrcosc_magicchatbox
             {
                 _VM.ChatBoxColor = "#FF2C2148";
                 _VM.ChatTopBarTxt = $"";
-                
+
             }
 
             _OSC.TypingIndicator(true);

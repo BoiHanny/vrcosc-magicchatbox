@@ -33,14 +33,14 @@ namespace vrcosc_magicchatbox.Classes
                     }
                     else
                     {
-                    
+
                     }
 
                 }
                 catch (System.Exception)
                 {
                 }
-            }          
+            }
         }
 
         public void TypingIndicator(bool Typing)
@@ -49,9 +49,9 @@ namespace vrcosc_magicchatbox.Classes
             {
                 try
                 {
-                        _VM.TypingIndicator = Typing;
-                        oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
-                        oscSender.Send(new OscMessage("/chatbox/typing", Typing));
+                    _VM.TypingIndicator = Typing;
+                    oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
+                    oscSender.Send(new OscMessage("/chatbox/typing", Typing));
                 }
                 catch (System.Exception)
                 {
@@ -81,7 +81,7 @@ namespace vrcosc_magicchatbox.Classes
             string x = null;
             var Complete_msg = "";
             List<string> Uncomplete = new List<string>();
-            if(_VM.IntgrStatus == true && _VM.StatusList.Count() != 0)
+            if (_VM.IntgrStatus == true && _VM.StatusList.Count() != 0)
             {
                 if (_VM.PrefixIconStatus == true)
                 {
@@ -107,7 +107,7 @@ namespace vrcosc_magicchatbox.Classes
                 if (_VM.IsVRRunning)
                 {
                     x = "In VR";
-                    if(OSCmsgLenght(Uncomplete, x) < 144)
+                    if (OSCmsgLenght(Uncomplete, x) < 144)
                     {
                         Uncomplete.Add(x);
                     }
@@ -118,7 +118,7 @@ namespace vrcosc_magicchatbox.Classes
                     }
 
 
-                    
+
                 }
                 else
                 {
@@ -131,12 +131,12 @@ namespace vrcosc_magicchatbox.Classes
                     {
                         _VM.Char_Limit = "Visible";
                         _VM.Window_Opacity = "0.5";
-                    }             
+                    }
                 }
             }
             if (_VM.IntgrScanWindowTime == true & _VM.OnlyShowTimeVR == true & _VM.IsVRRunning == true | _VM.IntgrScanWindowTime == true & _VM.OnlyShowTimeVR == false)
             {
-                if(_VM.PrefixTime == true)
+                if (_VM.PrefixTime == true)
                 {
                     x = "My time: ";
                 }
@@ -174,7 +174,7 @@ namespace vrcosc_magicchatbox.Classes
                         {
                             x = "Music paused";
                         }
-                        if(OSCmsgLenght(Uncomplete, x) < 144)
+                        if (OSCmsgLenght(Uncomplete, x) < 144)
                         {
                             Uncomplete.Add(x);
                         }
@@ -186,7 +186,7 @@ namespace vrcosc_magicchatbox.Classes
                     }
 
                     else
-                    {                    
+                    {
                         if (_VM.PrefixIconMusic == true)
                         {
                             x = "🎵 '" + _VM.PlayingSongTitle + "'";
@@ -205,8 +205,8 @@ namespace vrcosc_magicchatbox.Classes
                             _VM.Char_Limit = "Visible";
                             _VM.Spotify_Opacity = "0.5";
                         }
-                        
-                    
+
+
                     }
                 }
             }
@@ -227,14 +227,14 @@ namespace vrcosc_magicchatbox.Classes
                     _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
                 }
             }
-            else 
+            else
             {
                 _VM.OSCmsg_count = _VM.OSCtoSent.Length;
                 _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
-                _VM.OSCtoSent = ""; 
+                _VM.OSCtoSent = "";
             }
 
-            
+
         }
         public void CreateChat(bool createItem)
         {
@@ -248,7 +248,7 @@ namespace vrcosc_magicchatbox.Classes
                 Complete_msg = _VM.NewChattingTxt;
             }
 
-            if(Complete_msg.Length < 4)
+            if (Complete_msg.Length < 4)
             {
 
             }
@@ -264,35 +264,35 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCmsg_count = _VM.OSCtoSent.Length;
                 _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
                 _VM.ActiveChatTxt = "Active";
-                
-                if(createItem == true)
-                { 
-                  Random random = new Random();
-                  int randomId = random.Next(10, 99999999);
 
-                  var newChatItem = new ChatItem(_VM) { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId};
-                  _VM.LastMessages.Add(newChatItem);
+                if (createItem == true)
+                {
+                    Random random = new Random();
+                    int randomId = random.Next(10, 99999999);
 
-                  if (_VM.LastMessages.Count > 5)
-                  {
-                      _VM.LastMessages.RemoveAt(0);
-                  }
+                    var newChatItem = new ChatItem(_VM) { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId };
+                    _VM.LastMessages.Add(newChatItem);
 
-                  double opacity = 1;
-                  foreach (var item in _VM.LastMessages.Reverse())
-                  {
-                      opacity -= 0.18;
-                      item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
-                  }
+                    if (_VM.LastMessages.Count > 5)
+                    {
+                        _VM.LastMessages.RemoveAt(0);
+                    }
 
-                  var currentList = new ObservableCollection<ChatItem>(_VM.LastMessages);
-                  _VM.LastMessages.Clear();
+                    double opacity = 1;
+                    foreach (var item in _VM.LastMessages.Reverse())
+                    {
+                        opacity -= 0.18;
+                        item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
+                    }
 
-                  foreach (var item in currentList)
-                  {
-                      _VM.LastMessages.Add(item);
-                  }
-                  _VM.NewChattingTxt = "";
+                    var currentList = new ObservableCollection<ChatItem>(_VM.LastMessages);
+                    _VM.LastMessages.Clear();
+
+                    foreach (var item in currentList)
+                    {
+                        _VM.LastMessages.Add(item);
+                    }
+                    _VM.NewChattingTxt = "";
                 }
             }
         }

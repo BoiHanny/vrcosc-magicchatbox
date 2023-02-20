@@ -16,7 +16,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                if(_VM.Time24H == true)
+                if (_VM.Time24H == true)
                 {
                     return string.Format("{0:HH:mm}", DateTime.Now).ToUpper();
                 }
@@ -37,4 +37,3 @@ namespace vrcosc_magicchatbox.Classes
 
     }
 }
-    

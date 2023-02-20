@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 
@@ -28,7 +26,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     i.IsActive = true;
                     i.LastUsed = DateTime.Now;
-                    
+
                 }
                 else
                 {
@@ -81,8 +79,10 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private ObservableCollection<ChatItem> _LastMessages = new ObservableCollection<ChatItem>();
+        private string _aesKey = "g5X5pFei6G8W6UwK6UaA6YhC6U8W6ZbP";
         private string _PlayingSongTitle = "";
         private bool _ScanPause = false;
+        private bool _Topmost = false;
         private int _ScanPauseTimeout = 25;
         private int _ScanPauseCountDown = 0;
         private string _NewStatusItemTxt = "";
@@ -106,6 +106,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _CountDownUI = true;
         private bool _Time24H = false;
         private string _OSCtoSent = "";
+        private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
         private Version _AppVersion = new("0.5.0");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
@@ -137,6 +138,16 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
 
+        public string ApiStream
+        {
+            get { return _ApiStream; }
+            set
+            {
+                _ApiStream = value;
+                NotifyPropertyChanged(nameof(ApiStream));
+            }
+        }
+
         public ObservableCollection<ChatItem> LastMessages
         {
             get { return _LastMessages; }
@@ -153,6 +164,15 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _TypingIndicator = value;
                 NotifyPropertyChanged(nameof(TypingIndicator));
+            }
+        }
+        public bool Topmost
+        {
+            get { return _Topmost; }
+            set
+            {
+                _Topmost = value;
+                NotifyPropertyChanged(nameof(Topmost));
             }
         }
         public bool PauseIconMusic
@@ -220,6 +240,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _ScanPauseCountDown = value;
                 NotifyPropertyChanged(nameof(ScanPauseCountDown));
+            }
+        }
+
+        public string aesKey
+        {
+            get { return _aesKey; }
+            set
+            {
+                _aesKey = value;
+                NotifyPropertyChanged(nameof(aesKey));
             }
         }
 
@@ -543,7 +573,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public string OSCIP
         {
-            get  { return _OSCIP; }
+            get { return _OSCIP; }
             set
             {
                 _OSCIP = value;
