@@ -1,6 +1,6 @@
 ![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.5.0
 <!-- BEGIN LATEST DOWNLOAD BUTTON -->
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.4.0/Version-0.4.0.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.5.0/Version-0.5.0.zip)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
 
@@ -8,7 +8,7 @@
 
 ### Download and Installation
 
-1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.4.0/Version-0.4.0.zip).
+1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.5.0/Version-0.5.0.zip).
 2. Right-click and choose the option 'extract all'.
 3. By default it will create a new folder in your download folder (you can also extract the content to other locations).
 4. When extracted, the folder will open.
