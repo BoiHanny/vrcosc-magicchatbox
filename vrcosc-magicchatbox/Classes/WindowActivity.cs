@@ -42,7 +42,7 @@ namespace vrcosc_magicchatbox.Classes
             {
 
                 return "Unknown Error";
-            }          
+            }
         }
 
         public bool IsVRRunning()

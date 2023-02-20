@@ -1,15 +1,15 @@
-﻿using System.Windows;
-using vrcosc_magicchatbox.Classes;
-using vrcosc_magicchatbox.ViewModels;
-using System.Windows.Threading;
-using System;
-using System.Windows.Input;
-using System.Diagnostics;
-using System.Windows.Controls;
-using System.Linq;
+﻿using System;
 using System.Collections.ObjectModel;
-using Version = vrcosc_magicchatbox.ViewModels.Version;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
+using vrcosc_magicchatbox.Classes;
+using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox
 {
@@ -24,6 +24,8 @@ namespace vrcosc_magicchatbox
         public float samplingTime = 1;
 
         DispatcherTimer backgroundCheck = new DispatcherTimer();
+        private System.Timers.Timer pauseTimer;
+        private System.Timers.Timer typingTimer;
 
         public MainWindow()
         {
@@ -60,7 +62,52 @@ namespace vrcosc_magicchatbox
 
         private void Timer(object sender, EventArgs e)
         {
-            scantick();
+            if (_VM.ScanPause)
+            {
+                if (pauseTimer == null)
+                {
+                    _VM.CountDownUI = false;
+                    pauseTimer = new System.Timers.Timer();
+                    pauseTimer.Interval = 1000; // check every second
+                    pauseTimer.Elapsed += PauseTimer_Tick;
+                    pauseTimer.Start();
+                }
+            }
+            else
+            {
+                if (pauseTimer != null)
+                {
+                    pauseTimer.Stop();
+                    pauseTimer = null;
+                }
+
+                _VM.CountDownUI = true;
+                scantick();
+            }
+
+        }
+
+        private void PauseTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            _VM.ScanPauseCountDown--;
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _VM.ScanPauseCountDown = _VM.ScanPauseCountDown;
+            });
+
+            if (_VM.ScanPauseCountDown <= 0 || !_VM.ScanPause)
+            {
+                _VM.ScanPause = false;
+                pauseTimer.Stop();
+                pauseTimer = null;
+                if (_VM.ScanPauseCountDown != 0)
+                {
+                    _VM.ScanPauseCountDown = 0;
+                }
+                _OSC.ClearChat();
+                _OSC.SentOSCMessage(false);
+                Timer(null, null);
+            }
         }
 
         public void scantick()
@@ -74,8 +121,9 @@ namespace vrcosc_magicchatbox
             {
                 _VM.CurrentTime = _STATS.GetTime();
             }
+            _VM.ChatFeedbackTxt = "";
             _OSC.BuildOSC();
-            _OSC.SentOSCMessage();
+            _OSC.SentOSCMessage(false);
         }
 
         public void ChangeMenuItem(int changeINT)
@@ -111,7 +159,10 @@ namespace vrcosc_magicchatbox
 
         private void Update_Click(object sender, RoutedEventArgs e)
         {
-            _OSC.BuildOSC();
+            if (_VM.ScanPause != true)
+            {
+                _OSC.BuildOSC();
+            }
         }
 
         private void Drag_area_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -213,8 +264,8 @@ namespace vrcosc_magicchatbox
             {
                 _VM.NewStatusItemTxt = "";
             }
-           
-            
+
+
         }
 
         private void NewFavText_TextChanged(object sender, TextChangedEventArgs e)
@@ -236,7 +287,7 @@ namespace vrcosc_magicchatbox
             else
             {
                 _VM.StatusBoxColor = "#FF2C2148";
-                if(count > 22)
+                if (count > 22)
                 {
                     _VM.StatusTopBarTxt = $"Buckle up! Keep it tight to 20-25 or integrations may suffer.";
                 }
@@ -283,5 +334,80 @@ namespace vrcosc_magicchatbox
             _VM.SaveStatusList();
             ChangeMenuItem(1);
         }
+
+        private void NewChattingTxt_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            int count = textBox.Text.Count();
+            _VM.ChatBoxCount = $"{count.ToString()}/140";
+            if (count > 140)
+            {
+                int overmax = count - 140;
+                _VM.ChatBoxColor = "#FFFF9393";
+                _VM.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}. Reign in that message!";
+            }
+            else if (count == 0)
+            {
+                _VM.ChatBoxColor = "#FF504767";
+                _VM.ChatTopBarTxt = $"";
+            }
+            else
+            {
+                _VM.ChatBoxColor = "#FF2C2148";
+                _VM.ChatTopBarTxt = $"";
+
+            }
+
+            _OSC.TypingIndicator(true);
+
+
+            if (typingTimer != null)
+            {
+                typingTimer.Stop();
+                typingTimer.Start();
+            }
+            else
+            {
+                typingTimer = new System.Timers.Timer(2000);
+                typingTimer.Elapsed += (s, args) => _OSC.TypingIndicator(false);
+                typingTimer.AutoReset = false;
+                typingTimer.Enabled = true;
+            }
+
+        }
+
+        private void NewChattingTxt_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ButtonChattingTxt_Click(sender, e);
+            }
+            if (e.Key == Key.Escape)
+            {
+                _VM.NewChattingTxt = "";
+            }
+        }
+
+        private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
+        {
+            _OSC.CreateChat(true);
+            _OSC.SentOSCMessage(_VM.ChatFX);
+            Timer(null, null);
+            RecentScroll.ScrollToEnd();
+        }
+
+        private void StopChat_Click(object sender, RoutedEventArgs e)
+        {
+            _OSC.ClearChat();
+            _OSC.SentOSCMessage(false);
+            Timer(null, null);
+        }
+
+        private void ClearChat_Click(object sender, RoutedEventArgs e)
+        {
+            _VM.LastMessages.Clear();
+            StopChat_Click(null, null);
+        }
+
     }
 }

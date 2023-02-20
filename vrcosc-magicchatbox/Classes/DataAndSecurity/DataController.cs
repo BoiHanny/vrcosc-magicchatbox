@@ -1,22 +1,24 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Xml;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using Version = vrcosc_magicchatbox.ViewModels.Version;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.DataAndSecurity
 {
     internal class DataController
     {
         private ViewModel _VM;
+        private EncryptionMethods _ENCRY;
         public DataController(ViewModel vm)
         {
             _VM = vm;
+            _ENCRY = new EncryptionMethods(_VM);
         }
 
         public static bool CreateIfMissing(string path)
@@ -38,7 +40,7 @@ namespace vrcosc_magicchatbox.Classes
         }
         public void SaveSettingsToXML()
         {
-            if(CreateIfMissing(_VM.DataPath) == true)
+            if (CreateIfMissing(_VM.DataPath) == true)
             {
                 try
                 {
@@ -98,6 +100,26 @@ namespace vrcosc_magicchatbox.Classes
                     userNode.InnerText = _VM.PrefixIconStatus.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("ScanPauseTimeout");
+                    userNode.InnerText = _VM.ScanPauseTimeout.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("PrefixChat");
+                    userNode.InnerText = _VM.PrefixChat.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("ChatFX");
+                    userNode.InnerText = _VM.ChatFX.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("PauseIconMusic");
+                    userNode.InnerText = _VM.PauseIconMusic.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("Topmost");
+                    userNode.InnerText = _VM.Topmost.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -106,8 +128,8 @@ namespace vrcosc_magicchatbox.Classes
 
                 }
             }
-  
-             
+
+
 
         }
 
@@ -132,18 +154,21 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
                 _VM.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
                 _VM.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
+                _VM.ScanPauseTimeout = int.Parse(doc.GetElementsByTagName("ScanPauseTimeout")[0].InnerText);
+                _VM.PrefixChat = bool.Parse(doc.GetElementsByTagName("PrefixChat")[0].InnerText);
+                _VM.ChatFX = bool.Parse(doc.GetElementsByTagName("ChatFX")[0].InnerText);
+                _VM.PauseIconMusic = bool.Parse(doc.GetElementsByTagName("PauseIconMusic")[0].InnerText);
+                _VM.Topmost = bool.Parse(doc.GetElementsByTagName("Topmost")[0].InnerText);
 
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
             }
         }
 
-        
 
-        
 
         public void LoadStatusList()
         {
@@ -166,8 +191,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-
-                string token = "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";
+                string token = _ENCRY.DecryptString(_VM.ApiStream);
                 string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
 
                 using (var client = new HttpClient())
@@ -179,7 +203,7 @@ namespace vrcosc_magicchatbox.Classes
                     dynamic release = JsonConvert.DeserializeObject(json);
                     string latestVersion = release.tag_name;
                     _VM.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
-                    if(_VM.GitHubVersion != null)
+                    if (_VM.GitHubVersion != null)
                     {
                         CompareVersions();
                     }
@@ -192,11 +216,12 @@ namespace vrcosc_magicchatbox.Classes
                 _VM.VersionTxt = "Can't check updates";
                 _VM.VersionTxtColor = "#F36734";
             }
-            
+
         }
 
         public void CompareVersions()
         {
+
             try
             {
                 var currentVersion = _VM.AppVersion.VersionNumber;
@@ -218,7 +243,7 @@ namespace vrcosc_magicchatbox.Classes
                     _VM.VersionTxtColor = "#FFE816EA";
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
             }
