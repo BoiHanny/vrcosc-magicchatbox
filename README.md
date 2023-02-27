@@ -3,6 +3,8 @@
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.5.0/Version-0.5.0.zip)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
+[![discord](https://custom-icon-badges.demolab.com/discord/819650821314052106?color=7289DA&logo=comments&label=discord&logoColor=white)](https://discord.gg/ZaSFwBfhvG "Dev Pro Tips Discussion & Support Server")
+
 
 **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
 
