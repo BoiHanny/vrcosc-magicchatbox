@@ -86,7 +86,7 @@
 
   <ItemGroup>
     <Reference Include="CoreOSC">
-      <HintPath>..\..\..\..\Downloads\CoreOSC.dll</HintPath>
+      <HintPath>..\..\..\..\..\Downloads\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 
