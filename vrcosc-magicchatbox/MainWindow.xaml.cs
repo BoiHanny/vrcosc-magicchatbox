@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,6 +22,7 @@ namespace vrcosc_magicchatbox
         private OscController _OSC;
         private SystemStats _STATS;
         private WindowActivity _ACTIV;
+        private TTSController _TTS;
         public float samplingTime = 1;
 
         DispatcherTimer backgroundCheck = new DispatcherTimer();
@@ -36,6 +38,7 @@ namespace vrcosc_magicchatbox
             _OSC = new OscController(_VM);
             _STATS = new SystemStats(_VM);
             _ACTIV = new WindowActivity(_VM);
+            _TTS = new TTSController(_VM);
 
             this.DataContext = _VM;
             InitializeComponent();
@@ -391,9 +394,19 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             _OSC.CreateChat(true);
+            TTSGOAsync();
             _OSC.SentOSCMessage(_VM.ChatFX);
             Timer(null, null);
             RecentScroll.ScrollToEnd();
+        }
+
+        public async Task TTSGOAsync()
+        {
+            string text = _VM.ActiveChatTxt;
+            string voice = "en_us_001";
+
+            // call the PlayTikTokTextAsSpeech method asynchronously
+            await _TTS.PlayTikTokTextAsSpeech(text, voice);
         }
 
         private void StopChat_Click(object sender, RoutedEventArgs e)
