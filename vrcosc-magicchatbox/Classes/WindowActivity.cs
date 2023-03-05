@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
@@ -17,6 +18,8 @@ namespace vrcosc_magicchatbox.Classes
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern Int32 GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+
 
         public string GetForegroundProcessName()
         {

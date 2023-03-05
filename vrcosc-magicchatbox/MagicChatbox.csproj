@@ -41,6 +41,7 @@
     <None Remove="Img\Icons\SystemTime_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
+    <None Remove="Json\voices.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -77,6 +78,9 @@
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Json\voices.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Img\MagicOSC_icon.ico" />
   </ItemGroup>
 

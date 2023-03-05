@@ -858,12 +858,25 @@
                        FontFamily="Albert Sans Thin" TextAlignment="Center" Margin="5,0,5,0" TextWrapping="Wrap" Height="150" Focusable="False" AllowDrop="False" IsHitTestVisible="False" IsTabStop="False" IsReadOnly="True" BorderThickness="0"/>
 
 
+                    <StackPanel Grid.Row="1" Margin="0,155,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
 
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,155,0,0" Width="80" Height="20">
-                        <TextBlock FontSize="13" Text="TopMost" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
-                        <CheckBox IsChecked="{Binding Topmost, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}" FontSize="12" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265" Width="20"/>
+
+
+                        <StackPanel  Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5"  Width="80" Height="20">
+                            <TextBlock FontSize="13" Text="TopMost" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
+                            <CheckBox IsChecked="{Binding Topmost, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}" FontSize="12" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265" Width="20"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5"  Width="112" Height="20">
+                            <TextBlock FontSize="13" Text="Text to speech" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
+                            <CheckBox IsChecked="{Binding TTSTikTokEnabled, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}" FontSize="12" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265" Width="20"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5" Width="176" Height="20">
+                            <TextBlock FontSize="13" Text="Voice" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
+                            <ComboBox x:Name="TikTokTTSVoices_combo" SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="DisplayName" SelectedValuePath="ApiName" Width="135"/>
+                        </StackPanel>
                     </StackPanel>
-
 
                     <StackPanel  Grid.Row="3" VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
 

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +29,7 @@ namespace vrcosc_magicchatbox
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
         private System.Timers.Timer typingTimer;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public MainWindow()
         {
@@ -51,10 +53,27 @@ namespace vrcosc_magicchatbox
             _VM.MasterSwitch = true;
             _DATAC.LoadSettingsFromXML();
             _DATAC.LoadStatusList();
+            _VM.TikTokTTSVoices = _DATAC.ReadTkTkTTSVoices();
+            SelectTTS();
+            _cancellationTokenSource = new CancellationTokenSource();
             ChangeMenuItem(_VM.CurrentMenuItem);
             scantick();
             _DATAC.CheckForUpdate();
         }
+
+        public void SelectTTS()
+        {
+            foreach (var voice in TikTokTTSVoices_combo.Items)
+            {
+                if (voice is Voice && (voice as Voice).ApiName == _VM.SelectedTikTokTTSVoice?.ApiName)
+                {
+                    TikTokTTSVoices_combo.SelectedItem = voice;
+                    break;
+                }
+            }
+        }
+
+
 
         private void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -393,26 +412,48 @@ namespace vrcosc_magicchatbox
 
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
+            string chat = _VM.NewChattingTxt;
             _OSC.CreateChat(true);
-            TTSGOAsync();
             _OSC.SentOSCMessage(_VM.ChatFX);
+            if (_VM.TTSTikTokEnabled == true)
+            {
+                _cancellationTokenSource?.Cancel();
+                TTSGOAsync(chat);
+            }
+
             Timer(null, null);
             RecentScroll.ScrollToEnd();
         }
 
-        public async Task TTSGOAsync()
+        public async Task TTSGOAsync(string chat)
         {
-            string text = _VM.ActiveChatTxt;
-            string voice = "en_us_001";
-
-            // call the PlayTikTokTextAsSpeech method asynchronously
-            await _TTS.PlayTikTokTextAsSpeech(text, voice);
+            try
+            {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
+                // call the PlayTikTokTextAsSpeech method asynchronously
+                await _TTS.PlayTikTokTextAsSpeech(chat, _cancellationTokenSource.Token);
+                _VM.ChatFeedbackTxt = "Message sent with TTS";
+            }
+            catch (OperationCanceledException)
+            {
+                // TTS was cancelled
+                _VM.ChatFeedbackTxt = "TTS cancelled";
+            }
+            catch (Exception ex)
+            {
+                // handle the exception here
+                _VM.ChatFeedbackTxt = "Error sending message with TTS";
+            }
         }
+
+
 
         private void StopChat_Click(object sender, RoutedEventArgs e)
         {
             _OSC.ClearChat();
             _OSC.SentOSCMessage(false);
+            _cancellationTokenSource.Cancel();
             Timer(null, null);
         }
 
@@ -422,5 +463,18 @@ namespace vrcosc_magicchatbox
             StopChat_Click(null, null);
         }
 
+        private void TikTokTTSVoices_combo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox)
+            {
+                var selectedVoice = comboBox.SelectedItem as Voice;
+                if (selectedVoice != null)
+                {
+                    _VM.SelectedTikTokTTSVoice = selectedVoice;
+                    _VM.RecentTikTokTTSVoice = selectedVoice.ApiName;
+                }
+            }
+
+        }
     }
 }

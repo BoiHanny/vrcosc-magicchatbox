@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -35,9 +36,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
             SaveStatusList();
         }
-
-
-
         public void SaveStatusList()
         {
             try
@@ -55,7 +53,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
 
         }
-
         public static bool CreateIfMissing(string path)
         {
             try
@@ -107,7 +104,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = "";
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.5.0");
+        private Version _AppVersion = new("0.6.0");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -137,6 +134,50 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Time_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+        private List<Voice> _TikTokTTSVoices;
+        private Voice _SelectedTikTokTTSVoice;
+
+
+        private bool _TTSTikTokEnabled = false;
+        public bool TTSTikTokEnabled
+        {
+            get { return _TTSTikTokEnabled; }
+            set
+            {
+                _TTSTikTokEnabled = value;
+                NotifyPropertyChanged(nameof(TTSTikTokEnabled));
+            }
+        }
+
+        private string _RecentTikTokTTSVoice;
+        public string RecentTikTokTTSVoice
+        {
+            get { return _RecentTikTokTTSVoice; }
+            set
+            {
+                _RecentTikTokTTSVoice = value;
+                NotifyPropertyChanged(nameof(RecentTikTokTTSVoice));
+            }
+        }
+
+        public Voice SelectedTikTokTTSVoice
+        {
+            get { return _SelectedTikTokTTSVoice; }
+            set
+            {
+                _SelectedTikTokTTSVoice = value;
+                NotifyPropertyChanged(nameof(SelectedTikTokTTSVoice));
+            }
+        }
+        public List<Voice> TikTokTTSVoices
+        {
+            get { return _TikTokTTSVoices; }
+            set
+            {
+                _TikTokTTSVoices = value;
+                NotifyPropertyChanged(nameof(TikTokTTSVoices));
+            }
+        }
 
         public string ApiStream
         {

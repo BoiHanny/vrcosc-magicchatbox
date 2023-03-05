@@ -1,11 +1,11 @@
 ﻿using NAudio.Wave;
-using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -17,7 +17,7 @@ namespace vrcosc_magicchatbox.Classes
             _VM = vm;
         }
 
-        public async Task PlayTikTokTextAsSpeech(string text, string voice)
+        public async Task PlayTikTokTextAsSpeech(string text, CancellationToken cancellationToken)
         {
             try
             {
@@ -25,7 +25,7 @@ namespace vrcosc_magicchatbox.Classes
                 var httpRequest = (HttpWebRequest)WebRequest.Create(url);
                 httpRequest.Method = "POST";
                 httpRequest.ContentType = "application/json";
-                var data = "{\"text\":\"" + text + "\",\"voice\":\"" + voice + "\"}";
+                var data = "{\"text\":\"" + text + "\",\"voice\":\"" + _VM.SelectedTikTokTTSVoice.ApiName + "\"}";
 
                 using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
                 {
@@ -53,6 +53,11 @@ namespace vrcosc_magicchatbox.Classes
                         output.Play();
                         while (output.PlaybackState == PlaybackState.Playing)
                         {
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                output.Stop();
+                                break;
+                            }
                             await Task.Delay(100);
                         }
                     }
@@ -60,10 +65,15 @@ namespace vrcosc_magicchatbox.Classes
             }
             catch (Exception ex)
             {
-
+                // handle the exception here
             }
-            
         }
+
+
+
+
+
+
 
 
     }

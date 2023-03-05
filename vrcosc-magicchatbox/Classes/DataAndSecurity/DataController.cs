@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -20,6 +22,40 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             _VM = vm;
             _ENCRY = new EncryptionMethods(_VM);
         }
+
+        public List<Voice> ReadTkTkTTSVoices()
+        {
+            try
+            {
+                string json = File.ReadAllText(@"Json\voices.json");
+                List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
+
+                if (string.IsNullOrEmpty(_VM.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                {
+                    _VM.RecentTikTokTTSVoice = "en_us_001";
+                }
+                if (!string.IsNullOrEmpty(_VM.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                {
+                    Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == _VM.RecentTikTokTTSVoice);
+                    if (selectedVoice == null)
+                    {
+                    }
+                    else
+                    {
+                        _VM.SelectedTikTokTTSVoice = selectedVoice;
+                    }
+                }
+
+                return ConfirmList;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+        }
+
+
 
         public static bool CreateIfMissing(string path)
         {
@@ -120,6 +156,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = _VM.Topmost.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("RecentTikTokTTSVoice");
+                    userNode.InnerText = _VM.RecentTikTokTTSVoice.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("TTSTikTokEnabled");
+                    userNode.InnerText = _VM.TTSTikTokEnabled.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -159,7 +203,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 _VM.ChatFX = bool.Parse(doc.GetElementsByTagName("ChatFX")[0].InnerText);
                 _VM.PauseIconMusic = bool.Parse(doc.GetElementsByTagName("PauseIconMusic")[0].InnerText);
                 _VM.Topmost = bool.Parse(doc.GetElementsByTagName("Topmost")[0].InnerText);
-
+                _VM.RecentTikTokTTSVoice = doc.GetElementsByTagName("RecentTikTokTTSVoice")[0].InnerText;
+                _VM.TTSTikTokEnabled = bool.Parse(doc.GetElementsByTagName("TTSTikTokEnabled")[0].InnerText);
 
             }
             catch (Exception ex)

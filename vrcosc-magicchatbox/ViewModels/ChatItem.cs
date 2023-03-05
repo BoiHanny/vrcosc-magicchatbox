@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
@@ -12,6 +13,7 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         private ViewModel _VM;
         private OscController _OSC;
+        private TTSController _TTS;
         private DateTime _creationDate;
         private string _msg = "";
         private string _opacity;
@@ -21,8 +23,9 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             _VM = vm;
             _OSC = new OscController(_VM);
+            _TTS = new TTSController(_VM);
             CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
-            SendAgainCommand = new RelayCommand(OnSendAgain);
+            SendAgainCommand = new RelayCommand(OnSendAgainAsync);
         }
 
         public string Opacity
@@ -77,7 +80,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public void OnSendAgain(object parameter)
+        public void OnSendAgainAsync(object parameter)
         {
             if (parameter is string text)
             {

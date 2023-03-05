@@ -1,0 +1,162 @@
+﻿[
+  {
+    "DisplayName": "English US Female",
+    "ApiName": "en_us_001"
+  },
+  {
+    "DisplayName": "English US Male 1",
+    "ApiName": "en_us_006"
+  },
+  {
+    "DisplayName": "English US Male 2",
+    "ApiName": "en_us_007"
+  },
+  {
+    "DisplayName": "English US Male 3",
+    "ApiName": "en_us_009"
+  },
+  {
+    "DisplayName": "English US Male 4",
+    "ApiName": "en_us_010"
+  },
+  {
+    "DisplayName": "English UK Male 1",
+    "ApiName": "en_uk_001"
+  },
+  {
+    "DisplayName": "English UK Male 2",
+    "ApiName": "en_uk_003"
+  },
+  {
+    "DisplayName": "English AU Female",
+    "ApiName": "en_au_001"
+  },
+  {
+    "DisplayName": "English AU Male",
+    "ApiName": "en_au_002"
+  },
+  {
+    "DisplayName": "French Male 1",
+    "ApiName": "fr_001"
+  },
+  {
+    "DisplayName": "French Male 2",
+    "ApiName": "fr_002"
+  },
+  {
+    "DisplayName": "German Female",
+    "ApiName": "de_001"
+  },
+  {
+    "DisplayName": "German Male",
+    "ApiName": "de_002"
+  },
+  {
+    "DisplayName": "Spanish Male",
+    "ApiName": "es_002"
+  },
+  {
+    "DisplayName": "Spanish MX Male",
+    "ApiName": "es_mx_002"
+  },
+  {
+    "DisplayName": "Portuguese BR Female 2",
+    "ApiName": "br_003"
+  },
+  {
+    "DisplayName": "Portuguese BR Female 3",
+    "ApiName": "br_004"
+  },
+  {
+    "DisplayName": "Portuguese BR Male",
+    "ApiName": "br_005"
+  },
+  {
+    "DisplayName": "Indonesian Female",
+    "ApiName": "id_001"
+  },
+  {
+    "DisplayName": "Japanese Female 1",
+    "ApiName": "jp_001"
+  },
+  {
+    "DisplayName": "Japanese Female 2",
+    "ApiName": "jp_003"
+  },
+  {
+    "DisplayName": "Japanese Female 3",
+    "ApiName": "jp_005"
+  },
+  {
+    "DisplayName": "Japanese Male",
+    "ApiName": "jp_006"
+  },
+  {
+    "DisplayName": "Korean Male 1",
+    "ApiName": "kr_002"
+  },
+  {
+    "DisplayName": "Korean Male 2",
+    "ApiName": "kr_004"
+  },
+  {
+    "DisplayName": "Korean Female",
+    "ApiName": "kr_003"
+  },
+  {
+    "DisplayName": "Ghostface (Scream)",
+    "ApiName": "en_us_ghostface"
+  },
+  {
+    "DisplayName": "Chewbacca (Star Wars)",
+    "ApiName": "en_us_chewbacca"
+  },
+  {
+    "DisplayName": "C3PO (Star Wars)",
+    "ApiName": "en_us_c3po"
+  },
+  {
+    "DisplayName": "Stitch (Lilo & Stitch)",
+    "ApiName": "en_us_stitch"
+  },
+  {
+    "DisplayName": "Stormtrooper (Star Wars)",
+    "ApiName": "en_us_stormtrooper"
+  },
+  {
+    "DisplayName": "Rocket (Guardians of the Galaxy)",
+    "ApiName": "en_us_rocket"
+  },
+  {
+    "DisplayName": "Alto",
+    "ApiName": "en_female_f08_salut_damour"
+  },
+  {
+    "DisplayName": "Tenor",
+    "ApiName": "en_male_m03_lobby"
+  },
+  {
+    "DisplayName": "Sunshine Soon",
+    "ApiName": "en_male_m03_sunshine_soon"
+  },
+  {
+    "DisplayName": "Warmy Breeze",
+    "ApiName": "en_female_f08_warmy_breeze"
+  },
+  {
+    "DisplayName": "Glorious",
+    "ApiName": "en_female_ht_f08_glorious"
+  },
+  {
+    "DisplayName": "It Goes Up",
+    "ApiName": "en_male_sing_funny_it_goes_up"
+  },
+  {
+    "DisplayName": "Chipmunk",
+    "ApiName": "en_male_m2_xhxs_m03_silly"
+  },
+  {
+    "DisplayName": "Dramatic",
+    "ApiName": "en_female_ht_f08_wonderful_world"
+  }
+]
