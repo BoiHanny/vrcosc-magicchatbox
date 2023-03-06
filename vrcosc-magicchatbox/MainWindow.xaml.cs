@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -29,7 +30,7 @@ namespace vrcosc_magicchatbox
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
         private System.Timers.Timer typingTimer;
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
 
         public MainWindow()
         {
@@ -55,7 +56,7 @@ namespace vrcosc_magicchatbox
             _DATAC.LoadStatusList();
             _VM.TikTokTTSVoices = _DATAC.ReadTkTkTTSVoices();
             SelectTTS();
-            _cancellationTokenSource = new CancellationTokenSource();
+            _DATAC.PopulateOutputDevices();
             ChangeMenuItem(_VM.CurrentMenuItem);
             scantick();
             _DATAC.CheckForUpdate();
@@ -90,7 +91,7 @@ namespace vrcosc_magicchatbox
                 {
                     _VM.CountDownUI = false;
                     pauseTimer = new System.Timers.Timer();
-                    pauseTimer.Interval = 1000; // check every second
+                    pauseTimer.Interval = 1000;
                     pauseTimer.Elapsed += PauseTimer_Tick;
                     pauseTimer.Start();
                 }
@@ -417,7 +418,6 @@ namespace vrcosc_magicchatbox
             _OSC.SentOSCMessage(_VM.ChatFX);
             if (_VM.TTSTikTokEnabled == true)
             {
-                _cancellationTokenSource?.Cancel();
                 TTSGOAsync(chat);
             }
 
@@ -429,23 +429,33 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
-                // call the PlayTikTokTextAsSpeech method asynchronously
-                await _TTS.PlayTikTokTextAsSpeech(chat, _cancellationTokenSource.Token);
-                _VM.ChatFeedbackTxt = "Message sent with TTS";
+                if (_VM.TTSCutOff)
+                {
+                    foreach (var tokenSource in _activeCancellationTokens)
+                    {
+                        tokenSource.Cancel();
+                    }
+                    _activeCancellationTokens.Clear();
+                }
+
+                var cancellationTokenSource = new CancellationTokenSource();
+                _activeCancellationTokens.Add(cancellationTokenSource);
+
+                _VM.ChatFeedbackTxt = "Chat sent with TTS";
+                await _TTS.PlayTikTokTextAsSpeech(chat, cancellationTokenSource.Token);
+                _VM.ChatFeedbackTxt = "Chat was sent with TTS";
+                _activeCancellationTokens.Remove(cancellationTokenSource);
             }
             catch (OperationCanceledException)
             {
-                // TTS was cancelled
                 _VM.ChatFeedbackTxt = "TTS cancelled";
             }
             catch (Exception ex)
             {
-                // handle the exception here
-                _VM.ChatFeedbackTxt = "Error sending message with TTS";
+                _VM.ChatFeedbackTxt = "Error sending a chat with TTS";
             }
         }
+
 
 
 
@@ -453,8 +463,11 @@ namespace vrcosc_magicchatbox
         {
             _OSC.ClearChat();
             _OSC.SentOSCMessage(false);
-            _cancellationTokenSource.Cancel();
             Timer(null, null);
+            foreach (var token in _activeCancellationTokens)
+            {
+                token.Cancel();
+            }
         }
 
         private void ClearChat_Click(object sender, RoutedEventArgs e)

@@ -136,9 +136,47 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
         private Voice _SelectedTikTokTTSVoice;
-
-
         private bool _TTSTikTokEnabled = false;
+        private AudioDevice _selectedAuxOutputDevice;
+        private AudioDevice _selectedPlaybackOutputDevice;
+        private List<AudioDevice> _playbackOutputDevices = new List<AudioDevice>();
+        private List<AudioDevice> _auxOutputDevices = new List<AudioDevice>();
+        private bool _TTSCutOff;
+
+
+        public bool TTSCutOff
+        {
+            get { return _TTSCutOff; }
+            set
+            {
+                _TTSCutOff = value;
+                NotifyPropertyChanged(nameof(TTSCutOff));
+            }
+        }
+        public List<AudioDevice> AuxOutputDevices
+        {
+            get { return _auxOutputDevices; }
+            set { _auxOutputDevices = value; NotifyPropertyChanged(nameof(AuxOutputDevices)); }
+        }
+
+        public List<AudioDevice> PlaybackOutputDevices
+        {
+            get { return _playbackOutputDevices; }
+            set { _playbackOutputDevices = value; NotifyPropertyChanged(nameof(PlaybackOutputDevices)); }
+        }
+
+        public AudioDevice SelectedAuxOutputDevice
+        {
+            get { return _selectedAuxOutputDevice; }
+            set { _selectedAuxOutputDevice = value; NotifyPropertyChanged(nameof(SelectedAuxOutputDevice)); }
+        }
+
+        public AudioDevice SelectedPlaybackOutputDevice
+        {
+            get { return _selectedPlaybackOutputDevice; }
+            set { _selectedPlaybackOutputDevice = value; NotifyPropertyChanged(nameof(SelectedPlaybackOutputDevice)); }
+        }
+
         public bool TTSTikTokEnabled
         {
             get { return _TTSTikTokEnabled; }
@@ -776,7 +814,7 @@ namespace vrcosc_magicchatbox.ViewModels
         #endregion
 
         #region PropChangedEvent
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         public void NotifyPropertyChanged(string name)
         {
             if (PropertyChanged != null)

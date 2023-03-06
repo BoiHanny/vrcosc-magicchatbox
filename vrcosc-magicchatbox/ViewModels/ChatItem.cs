@@ -96,7 +96,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         #region PropChangedEvent
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public void NotifyPropertyChanged(string name)
         {
@@ -104,6 +104,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         #endregion
+
     }
 
 }

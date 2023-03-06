@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using NAudio.CoreAudioApi;
+using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -46,16 +48,40 @@ namespace vrcosc_magicchatbox.Classes
                 {
                     audioStream.Position = 0;
                     var audioReader = new Mp3FileReader(audioStream);
-                    using (var output = new WaveOutEvent())
+
+                    var enumerator = new MMDeviceEnumerator();
+
+                    // Initialize Playback output device
+                    var playbackOutputDevice = enumerator.GetDevice(_VM.SelectedPlaybackOutputDevice.Id);
+                    using (var playbackOutput = new WasapiOut(playbackOutputDevice, AudioClientShareMode.Shared, false, 50))
                     {
-                        output.DeviceNumber = -1; // set to default audio device
-                        output.Init(audioReader);
-                        output.Play();
-                        while (output.PlaybackState == PlaybackState.Playing)
+                        playbackOutput.Init(audioReader);
+                        playbackOutput.Play();
+                        while (playbackOutput.PlaybackState == PlaybackState.Playing)
                         {
                             if (cancellationToken.IsCancellationRequested)
                             {
-                                output.Stop();
+                                playbackOutput.Stop();
+                                break;
+                            }
+                            await Task.Delay(100);
+                        }
+                    }
+
+                    audioStream.Position = 0;
+                    audioReader = new Mp3FileReader(audioStream);
+
+                    // Initialize Aux output device
+                    var auxOutputDevice = enumerator.GetDevice(_VM.SelectedAuxOutputDevice.Id);
+                    using (var auxOutput = new WasapiOut(auxOutputDevice, AudioClientShareMode.Shared, false, 50))
+                    {
+                        auxOutput.Init(audioReader);
+                        auxOutput.Play();
+                        while (auxOutput.PlaybackState == PlaybackState.Playing)
+                        {
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                auxOutput.Stop();
                                 break;
                             }
                             await Task.Delay(100);
@@ -68,11 +94,6 @@ namespace vrcosc_magicchatbox.Classes
                 // handle the exception here
             }
         }
-
-
-
-
-
 
 
 
