@@ -791,15 +791,11 @@
                         </Grid>
                         <Grid Grid.Row="5">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
-                                <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TTSCutOff, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Stop current playing TTS on new </CheckBox>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="15,0,0,15" Width="auto" Height="22">
-                                    <ComboBox x:Name="AuxOutputDeviceComboBox" ItemsSource="{Binding AuxOutputDevices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="Name" Opacity="0.4" SelectedItem="{Binding SelectedAuxOutputDevice, Mode=TwoWay}" Width="150" Height="25" Margin="0"/>
-                                    <TextBlock FontSize="13" Text="VoiceOutput 1" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="10,0,5,0" Foreground="#FF7D7397"/>
-                                </StackPanel>
+                                <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TTSCutOff, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Stop current playing TTS on new chat</CheckBox>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="15,0,0,15" Width="auto" Height="22">
-                                    <ComboBox x:Name="PlaybackOutputDeviceComboBox" ItemsSource="{Binding PlaybackOutputDevices,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="Name" Opacity="0.4" SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}" Width="150" Height="25" Margin="0"/>
-                                    <TextBlock FontSize="13" Text="VoiceOutput 2" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="10,0,5,0" Foreground="#FF7D7397"/>
+                                    <ComboBox SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" x:Name="PlaybackOutputDeviceComboBox" ItemsSource="{Binding PlaybackOutputDevices,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="FriendlyName" Opacity="0.4" SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}" Width="186" Height="25" Margin="0"/>
+                                    <TextBlock FontSize="16" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" Text="TTS Output"  VerticalAlignment="Center" Margin="10,0,5,0" />
                                 </StackPanel>
 
                             </StackPanel>

@@ -56,6 +56,39 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         }
 
+        public void PopulateOutputDevices()
+        {
+            var devicesRen_enumerator = new MMDeviceEnumerator();
+            var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+            var deviceNumber = 0;
+            foreach (var device in devicesRen)
+            {
+                _VM.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
+            }
+
+            var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            if (_VM.RecentPlayBackOutput == null)
+            {
+                _VM.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                _VM.RecentPlayBackOutput = _VM.SelectedPlaybackOutputDevice.FriendlyName;
+            }
+            else
+            {
+                AudioDevice ADevice = _VM.PlaybackOutputDevices.FirstOrDefault(v => v.FriendlyName == _VM.RecentPlayBackOutput);
+                if (ADevice == null)
+                {
+                    _VM.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                    _VM.RecentPlayBackOutput = _VM.SelectedPlaybackOutputDevice.FriendlyName;
+                }
+                else
+                {
+                    _VM.SelectedPlaybackOutputDevice = ADevice;
+                }
+            }
+
+        }
+
 
 
         public static bool CreateIfMissing(string path)
@@ -169,6 +202,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = _VM.TTSCutOff.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("RecentPlayBackOutput");
+                    userNode.InnerText = _VM.RecentPlayBackOutput.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
                 }
                 catch (Exception)
@@ -211,6 +248,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 _VM.RecentTikTokTTSVoice = doc.GetElementsByTagName("RecentTikTokTTSVoice")[0].InnerText;
                 _VM.TTSTikTokEnabled = bool.Parse(doc.GetElementsByTagName("TTSTikTokEnabled")[0].InnerText);
                 _VM.TTSCutOff = bool.Parse(doc.GetElementsByTagName("TTSCutOff")[0].InnerText);
+                _VM.RecentPlayBackOutput = doc.GetElementsByTagName("RecentPlayBackOutput")[0].InnerText;
 
             }
             catch (Exception ex)
@@ -219,29 +257,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
         }
 
-        public void PopulateOutputDevices()
-        {
-            var devicesRen_enumerator = new MMDeviceEnumerator();
-            var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            var devicesCap_enumerator = new MMDeviceEnumerator();
-            var devicesCap = devicesCap_enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
 
-            foreach (var device in devicesCap)
-            {
-                    _VM.AuxOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, 1));
-            }
-            foreach (var device in devicesRen)
-            {
-                _VM.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, 0));
-            }
-
-            // Set default output device for each category
-            var defaultAuxOutputDevice = devicesCap_enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Multimedia);
-            _VM.SelectedAuxOutputDevice = new AudioDevice(defaultAuxOutputDevice.ID, defaultAuxOutputDevice.FriendlyName, 1);
-
-            var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            _VM.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.ID, defaultPlaybackOutputDevice.FriendlyName, 0);
-        }
 
 
 

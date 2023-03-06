@@ -104,7 +104,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = "";
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.6.0");
+        private Version _AppVersion = new("0.5.1");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -141,8 +141,19 @@ namespace vrcosc_magicchatbox.ViewModels
         private AudioDevice _selectedPlaybackOutputDevice;
         private List<AudioDevice> _playbackOutputDevices = new List<AudioDevice>();
         private List<AudioDevice> _auxOutputDevices = new List<AudioDevice>();
-        private bool _TTSCutOff;
+        private bool _TTSCutOff = true;
 
+
+        private string _RecentPlayBackOutput;
+        public string RecentPlayBackOutput
+        {
+            get { return _RecentPlayBackOutput; }
+            set
+            {
+                _RecentPlayBackOutput = value;
+                NotifyPropertyChanged(nameof(RecentPlayBackOutput));
+            }
+        }
 
         public bool TTSCutOff
         {

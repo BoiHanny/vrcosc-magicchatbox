@@ -57,6 +57,7 @@ namespace vrcosc_magicchatbox
             _VM.TikTokTTSVoices = _DATAC.ReadTkTkTTSVoices();
             SelectTTS();
             _DATAC.PopulateOutputDevices();
+            SelectTTSOutput();
             ChangeMenuItem(_VM.CurrentMenuItem);
             scantick();
             _DATAC.CheckForUpdate();
@@ -69,6 +70,18 @@ namespace vrcosc_magicchatbox
                 if (voice is Voice && (voice as Voice).ApiName == _VM.SelectedTikTokTTSVoice?.ApiName)
                 {
                     TikTokTTSVoices_combo.SelectedItem = voice;
+                    break;
+                }
+            }
+        }
+
+        public void SelectTTSOutput()
+        {
+            foreach (var AudioDevice in PlaybackOutputDeviceComboBox.Items)
+            {
+                if (AudioDevice is AudioDevice && (AudioDevice as AudioDevice).FriendlyName == _VM.SelectedPlaybackOutputDevice?.FriendlyName)
+                {
+                    PlaybackOutputDeviceComboBox.SelectedItem = AudioDevice;
                     break;
                 }
             }
@@ -414,15 +427,18 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             string chat = _VM.NewChattingTxt;
-            _OSC.CreateChat(true);
-            _OSC.SentOSCMessage(_VM.ChatFX);
-            if (_VM.TTSTikTokEnabled == true)
+            if (chat.Length > 0 && chat.Length <= 141)
             {
-                TTSGOAsync(chat);
-            }
+                _OSC.CreateChat(true);
+                _OSC.SentOSCMessage(_VM.ChatFX);
+                if (_VM.TTSTikTokEnabled == true)
+                {
+                    TTSGOAsync(chat);
+                }
 
-            Timer(null, null);
-            RecentScroll.ScrollToEnd();
+                Timer(null, null);
+                RecentScroll.ScrollToEnd();
+            }   
         }
 
         public async Task TTSGOAsync(string chat)
@@ -438,12 +454,17 @@ namespace vrcosc_magicchatbox
                     _activeCancellationTokens.Clear();
                 }
 
+
+                byte[] audioFromApi = await _TTS.GetAudioBytesFromTikTokAPI(chat);
+                
                 var cancellationTokenSource = new CancellationTokenSource();
                 _activeCancellationTokens.Add(cancellationTokenSource);
+                    _VM.ChatFeedbackTxt = "Chat sent with TTS";
 
-                _VM.ChatFeedbackTxt = "Chat sent with TTS";
-                await _TTS.PlayTikTokTextAsSpeech(chat, cancellationTokenSource.Token);
-                _VM.ChatFeedbackTxt = "Chat was sent with TTS";
+                await _TTS.PlayTikTokAudioAsSpeech(cancellationTokenSource.Token, audioFromApi, _VM.SelectedPlaybackOutputDevice.DeviceNumber);
+
+                    _VM.ChatFeedbackTxt = "Chat was sent with TTS";
+
                 _activeCancellationTokens.Remove(cancellationTokenSource);
             }
             catch (OperationCanceledException)
@@ -488,6 +509,11 @@ namespace vrcosc_magicchatbox
                 }
             }
 
+        }
+
+        private void PlaybackOutputDeviceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _VM.RecentPlayBackOutput = _VM.SelectedPlaybackOutputDevice.FriendlyName;
         }
     }
 }
