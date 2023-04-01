@@ -45,7 +45,7 @@
 ### Contact
 Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love to hear from you! Feel free to reach out to us through one of the following channels:
 
-- **Discord:**  [BoiHanny#6666](https://discordapp.com/users/270646719086198803)
+- **Discord:**  [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 - **Github Issues:**  [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)
 
 We're committed to providing the best possible experience for our users, and your feedback helps us make MagicChatbox even better.
