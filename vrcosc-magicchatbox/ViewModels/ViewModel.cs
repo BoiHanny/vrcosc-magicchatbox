@@ -155,6 +155,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
         public bool TTSCutOff
         {
             get { return _TTSCutOff; }

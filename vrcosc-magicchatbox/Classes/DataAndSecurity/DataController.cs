@@ -56,37 +56,52 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         }
 
-        public void PopulateOutputDevices()
+        public bool PopulateOutputDevices(bool beforeTTS= false)
         {
-            var devicesRen_enumerator = new MMDeviceEnumerator();
-            var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            try
+            {
+                var devicesRen_enumerator = new MMDeviceEnumerator();
+                var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
 
-            var deviceNumber = 0;
-            foreach (var device in devicesRen)
-            {
-                _VM.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
-            }
+                var deviceNumber = 0;
 
-            var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            if (_VM.RecentPlayBackOutput == null)
-            {
-                _VM.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
-                _VM.RecentPlayBackOutput = _VM.SelectedPlaybackOutputDevice.FriendlyName;
-            }
-            else
-            {
-                AudioDevice ADevice = _VM.PlaybackOutputDevices.FirstOrDefault(v => v.FriendlyName == _VM.RecentPlayBackOutput);
-                if (ADevice == null)
+                if (beforeTTS == true)
+                {
+                    _VM.PlaybackOutputDevices.Clear();
+                }
+
+                foreach (var device in devicesRen)
+                {
+                    _VM.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
+                }
+
+                var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                if (_VM.RecentPlayBackOutput == null)
                 {
                     _VM.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
                     _VM.RecentPlayBackOutput = _VM.SelectedPlaybackOutputDevice.FriendlyName;
                 }
                 else
                 {
-                    _VM.SelectedPlaybackOutputDevice = ADevice;
+                    AudioDevice ADevice = _VM.PlaybackOutputDevices.FirstOrDefault(v => v.FriendlyName == _VM.RecentPlayBackOutput);
+                    if (ADevice == null)
+                    {
+                        _VM.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                        _VM.RecentPlayBackOutput = _VM.SelectedPlaybackOutputDevice.FriendlyName;
+                    }
+                    else
+                    {
+                        _VM.SelectedPlaybackOutputDevice = ADevice;
+                        
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                return false;
 
+            }
+            return true;
         }
 
 

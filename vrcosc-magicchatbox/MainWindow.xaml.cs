@@ -433,7 +433,16 @@ namespace vrcosc_magicchatbox
                 _OSC.SentOSCMessage(_VM.ChatFX);
                 if (_VM.TTSTikTokEnabled == true)
                 {
-                    TTSGOAsync(chat);
+                    if (_DATAC.PopulateOutputDevices(true))
+                    {
+                        _VM.ChatFeedbackTxt = "Requesting TTS...";
+                        TTSGOAsync(chat);
+                    }
+                    else
+                    {
+                        _VM.ChatFeedbackTxt = "Error setting output device.";
+                    }
+
                 }
 
                 Timer(null, null);

@@ -180,7 +180,11 @@
                                 HorizontalAlignment="Center"
                                 Padding="0,12,0,0"
                                 FontSize="16"
-                                FontFamily="Albert Sans Thin"/>
+                                FontFamily="Albert Sans Thin">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" Direction="315" ShadowDepth="0" Opacity="1" BlurRadius="15" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                             <TextBlock Text="VRC OSC" 
                                 Foreground="MediumPurple"
                                 Grid.Column="0"
@@ -188,7 +192,11 @@
                                 HorizontalAlignment="left"
                                 Padding="20,12,0,0"
                                 FontSize="10"
-                                FontFamily="Albert Sans Thin"/>
+                                FontFamily="Albert Sans Thin">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" Direction="315" ShadowDepth="0" Opacity="1" BlurRadius="15" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                         </Grid>
                     </Border>
 
@@ -901,7 +909,7 @@
 
                         <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5" Width="176" Height="22">
                             <TextBlock FontSize="13" Text="Voice" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
-                            <ComboBox x:Name="TikTokTTSVoices_combo" SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="DisplayName" SelectedValuePath="ApiName" Width="135" BorderBrush="#FF020000" Opacity="0.4" FontSize="11.5" Height="21"/>
+                            <ComboBox x:Name="TikTokTTSVoices_combo" SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="DisplayName"  SelectedValuePath="ApiName" Width="135" BorderBrush="#FF020000" Opacity="0.4" FontSize="11.5" Height="21"/>
                         </StackPanel>
                     </StackPanel>
 
