@@ -8,8 +8,8 @@
     <UseWPF>true</UseWPF>
     <Configurations>Debug;Release;Beta</Configurations>
     <DebugType>portable</DebugType>
-    <FileVersion>0.3.0</FileVersion>
-    <AssemblyVersion>0.3.0</AssemblyVersion>
+    <FileVersion>0.6.0</FileVersion>
+    <AssemblyVersion>0.6.0</AssemblyVersion>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
     <TargetFrameworks></TargetFrameworks>
   </PropertyGroup>
@@ -42,6 +42,7 @@
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
     <None Remove="Json\voices.json" />
+    <None Remove="NLog.config" />
   </ItemGroup>
 
   <ItemGroup>
@@ -78,6 +79,9 @@
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Json\voices.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -85,6 +89,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoClosingMessageBox" Version="1.0.0.5" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.1.3" />

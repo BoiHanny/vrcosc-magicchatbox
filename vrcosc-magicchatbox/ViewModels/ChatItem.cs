@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -11,19 +12,13 @@ namespace vrcosc_magicchatbox.ViewModels
 
     public class ChatItem : INotifyPropertyChanged
     {
-        private ViewModel _VM;
-        private OscController _OSC;
-        private TTSController _TTS;
         private DateTime _creationDate;
         private string _msg = "";
         private string _opacity;
         private int _ID;
 
-        public ChatItem(ViewModel vm)
+        public ChatItem()
         {
-            _VM = vm;
-            _OSC = new OscController(_VM);
-            _TTS = new TTSController(_VM);
             CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
             SendAgainCommand = new RelayCommand(OnSendAgainAsync);
         }
@@ -73,24 +68,41 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void CopyToClipboard(object parameter)
         {
-            if (parameter is string text)
+            try
             {
-                Clipboard.SetDataObject(text);
-                _VM.ChatFeedbackTxt = "Message copied";
+                if (parameter is string text)
+                {
+                    Clipboard.SetDataObject(text);
+                    ViewModel.Instance.ChatFeedbackTxt = "Message copied";
+                }
             }
+            catch (Exception ex)
+            {
+
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+            }
+
         }
 
         public void OnSendAgainAsync(object parameter)
         {
-            if (parameter is string text)
+            try
             {
-                string savedtxt = _VM.NewChattingTxt;
-                _VM.NewChattingTxt = text;
-                _OSC.CreateChat(false);
-                _OSC.SentOSCMessage(true);
-                _VM.NewChattingTxt = savedtxt;
-                _VM.ChatFeedbackTxt = "Message sent again";
+                if (parameter is string text)
+                {
+                    string savedtxt = ViewModel.Instance.NewChattingTxt;
+                    ViewModel.Instance.NewChattingTxt = text;
+                    OscController.CreateChat(false);
+                    OscController.SentOSCMessage(true);
+                    ViewModel.Instance.NewChattingTxt = savedtxt;
+                    ViewModel.Instance.ChatFeedbackTxt = "Message sent again";
+                }
             }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+            }
+            
         }
 
 

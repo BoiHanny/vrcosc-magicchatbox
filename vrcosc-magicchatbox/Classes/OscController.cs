@@ -6,30 +6,25 @@ using System.Text;
 using System.Linq;
 using System.Globalization;
 using System.Collections.ObjectModel;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    public class OscController
+    public static class OscController
     {
 
-        private ViewModel _VM;
-        public OscController(ViewModel vm)
-        {
-            _VM = vm;
-        }
+        public static UDPSender oscSender;
 
-        public UDPSender oscSender;
-
-        public void SentOSCMessage(bool FX)
+        public static void SentOSCMessage(bool FX)
         {
-            if (_VM.MasterSwitch == true)
+            if (ViewModel.Instance.MasterSwitch == true)
             {
                 try
                 {
-                    if (_VM.OSCtoSent.Length > 0 || _VM.OSCtoSent.Length <= 144)
+                    if (ViewModel.Instance.OSCtoSent.Length > 0 || ViewModel.Instance.OSCtoSent.Length <= 144)
                     {
-                        oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
-                        oscSender.Send(new OscMessage("/chatbox/input", _VM.OSCtoSent, true, FX));
+                        oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+                        oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
                     }
                     else
                     {
@@ -37,30 +32,32 @@ namespace vrcosc_magicchatbox.Classes
                     }
 
                 }
-                catch (System.Exception)
+                catch (Exception ex)
                 {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
             }
         }
 
-        public void TypingIndicator(bool Typing)
+        public static void TypingIndicator(bool Typing)
         {
-            if (_VM.MasterSwitch == true)
+            if (ViewModel.Instance.MasterSwitch == true)
             {
                 try
                 {
-                    _VM.TypingIndicator = Typing;
-                    oscSender = new(_VM.OSCIP, _VM.OSCPortOut);
+                    ViewModel.Instance.TypingIndicator = Typing;
+                    oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                     oscSender.Send(new OscMessage("/chatbox/typing", Typing));
                 }
-                catch (System.Exception)
+                catch (Exception ex)
                 {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
             }
         }
 
 
-        public int OSCmsgLenght(List<string> content, string add)
+        public static int OSCmsgLenght(List<string> content, string add)
         {
             List<string> list = new List<string>(content);
             list.Add(add);
@@ -71,239 +68,256 @@ namespace vrcosc_magicchatbox.Classes
             return x.Length;
         }
 
-        public void BuildOSC()
+        public static void BuildOSC()
         {
-            _VM.Char_Limit = "Hidden";
-            _VM.Spotify_Opacity = "1";
-            _VM.Window_Opacity = "1";
-            _VM.Time_Opacity = "1";
-
-            string x = null;
-            var Complete_msg = "";
-            List<string> Uncomplete = new List<string>();
-            if (_VM.IntgrStatus == true && _VM.StatusList.Count() != 0)
+            try
             {
-                if (_VM.PrefixIconStatus == true)
-                {
-                    x = "💬 " + _VM.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
-                }
-                else
-                {
-                    x = _VM.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
-                }
+                ViewModel.Instance.Char_Limit = "Hidden";
+                ViewModel.Instance.Spotify_Opacity = "1";
+                ViewModel.Instance.Window_Opacity = "1";
+                ViewModel.Instance.Time_Opacity = "1";
 
-                if (OSCmsgLenght(Uncomplete, x) < 144)
+                string x = null;
+                var Complete_msg = "";
+                List<string> Uncomplete = new List<string>();
+                if (ViewModel.Instance.IntgrStatus == true && ViewModel.Instance.StatusList.Count() != 0)
                 {
-                    Uncomplete.Add(x);
-                }
-                else
-                {
-                    _VM.Char_Limit = "Visible";
-                    _VM.Window_Opacity = "0.5";
-                }
-            }
-            if (_VM.IntgrScanWindowActivity == true)
-            {
-                if (_VM.IsVRRunning)
-                {
-                    x = "In VR";
+                    if (ViewModel.Instance.PrefixIconStatus == true)
+                    {
+                        x = "💬 " + ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
+                    }
+                    else
+                    {
+                        x = ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
+                    }
+
                     if (OSCmsgLenght(Uncomplete, x) < 144)
                     {
                         Uncomplete.Add(x);
                     }
                     else
                     {
-                        _VM.Char_Limit = "Visible";
-                        _VM.Window_Opacity = "0.5";
+                        ViewModel.Instance.Char_Limit = "Visible";
+                        ViewModel.Instance.Window_Opacity = "0.5";
                     }
-
-
-
                 }
-                else
+                if (ViewModel.Instance.IntgrScanWindowActivity == true)
                 {
-                    x = "On desktop in '" + _VM.FocusedWindow + "'";
-                    if (OSCmsgLenght(Uncomplete, x) < 144)
+                    if (ViewModel.Instance.IsVRRunning)
                     {
-                        Uncomplete.Add(x);
+                        x = "In VR";
+                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        {
+                            Uncomplete.Add(x);
+                        }
+                        else
+                        {
+                            ViewModel.Instance.Char_Limit = "Visible";
+                            ViewModel.Instance.Window_Opacity = "0.5";
+                        }
+
+
+
                     }
                     else
                     {
-                        _VM.Char_Limit = "Visible";
-                        _VM.Window_Opacity = "0.5";
+                        x = "On desktop in '" + ViewModel.Instance.FocusedWindow + "'";
+                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        {
+                            Uncomplete.Add(x);
+                        }
+                        else
+                        {
+                            ViewModel.Instance.Char_Limit = "Visible";
+                            ViewModel.Instance.Window_Opacity = "0.5";
+                        }
                     }
                 }
-            }
-            if (_VM.IntgrScanWindowTime == true & _VM.OnlyShowTimeVR == true & _VM.IsVRRunning == true | _VM.IntgrScanWindowTime == true & _VM.OnlyShowTimeVR == false)
-            {
-                if (_VM.PrefixTime == true)
+                if (ViewModel.Instance.IntgrScanWindowTime == true & ViewModel.Instance.OnlyShowTimeVR == true & ViewModel.Instance.IsVRRunning == true | ViewModel.Instance.IntgrScanWindowTime == true & ViewModel.Instance.OnlyShowTimeVR == false)
                 {
-                    x = "My time: ";
-                }
-                else
-                {
-                    x = "";
-                }
-                x = x + _VM.CurrentTime;
-
-
-                if (OSCmsgLenght(Uncomplete, x) < 144)
-                {
-                    Uncomplete.Add(x);
-                }
-                else
-                {
-                    _VM.Char_Limit = "Visible";
-                    _VM.Time_Opacity = "0.5";
-                }
-
-
-            }
-            if (_VM.IntgrScanSpotify == true)
-            {
-                if (_VM.SpotifyActive == true)
-                {
-                    if (_VM.SpotifyPaused)
+                    if (ViewModel.Instance.PrefixTime == true)
+                    {
+                        x = "My time: ";
+                    }
+                    else
                     {
                         x = "";
-                        if (_VM.PauseIconMusic == true && _VM.PrefixIconMusic == true)
-                        {
-                            x = "⏸";
-                        }
-                        else
-                        {
-                            x = "Music paused";
-                        }
-                        if (OSCmsgLenght(Uncomplete, x) < 144)
-                        {
-                            Uncomplete.Add(x);
-                        }
-                        else
-                        {
-                            _VM.Char_Limit = "Visible";
-                            _VM.Spotify_Opacity = "0.5";
-                        }
                     }
+                    x = x + ViewModel.Instance.CurrentTime;
 
+
+                    if (OSCmsgLenght(Uncomplete, x) < 144)
+                    {
+                        Uncomplete.Add(x);
+                    }
                     else
                     {
-                        if (_VM.PrefixIconMusic == true)
+                        ViewModel.Instance.Char_Limit = "Visible";
+                        ViewModel.Instance.Time_Opacity = "0.5";
+                    }
+
+
+                }
+                if (ViewModel.Instance.IntgrScanSpotify == true)
+                {
+                    if (ViewModel.Instance.SpotifyActive == true)
+                    {
+                        if (ViewModel.Instance.SpotifyPaused)
                         {
-                            x = "🎵 '" + _VM.PlayingSongTitle + "'";
+                            x = "";
+                            if (ViewModel.Instance.PauseIconMusic == true && ViewModel.Instance.PrefixIconMusic == true)
+                            {
+                                x = "⏸";
+                            }
+                            else
+                            {
+                                x = "Music paused";
+                            }
+                            if (OSCmsgLenght(Uncomplete, x) < 144)
+                            {
+                                Uncomplete.Add(x);
+                            }
+                            else
+                            {
+                                ViewModel.Instance.Char_Limit = "Visible";
+                                ViewModel.Instance.Spotify_Opacity = "0.5";
+                            }
                         }
+
                         else
                         {
-                            x = "Listening to '" + _VM.PlayingSongTitle + "'";
-                        }
+                            if (ViewModel.Instance.PrefixIconMusic == true)
+                            {
+                                x = "🎵 '" + ViewModel.Instance.PlayingSongTitle + "'";
+                            }
+                            else
+                            {
+                                x = "Listening to '" + ViewModel.Instance.PlayingSongTitle + "'";
+                            }
 
-                        if (OSCmsgLenght(Uncomplete, x) < 144)
-                        {
-                            Uncomplete.Add(x);
-                        }
-                        else
-                        {
-                            _VM.Char_Limit = "Visible";
-                            _VM.Spotify_Opacity = "0.5";
-                        }
+                            if (OSCmsgLenght(Uncomplete, x) < 144)
+                            {
+                                Uncomplete.Add(x);
+                            }
+                            else
+                            {
+                                ViewModel.Instance.Char_Limit = "Visible";
+                                ViewModel.Instance.Spotify_Opacity = "0.5";
+                            }
 
 
+                        }
                     }
                 }
-            }
-            if (Uncomplete.Count > 0)
-            {
-
-                Complete_msg = String.Join(" ┆ ", Uncomplete);
-                if (Complete_msg.Length > 144)
+                if (Uncomplete.Count > 0)
                 {
-                    _VM.OSCtoSent = "";
-                    _VM.OSCmsg_count = Complete_msg.Length;
-                    _VM.OSCmsg_countUI = "MAX/144";
+
+                    Complete_msg = String.Join(" ┆ ", Uncomplete);
+                    if (Complete_msg.Length > 144)
+                    {
+                        ViewModel.Instance.OSCtoSent = "";
+                        ViewModel.Instance.OSCmsg_count = Complete_msg.Length;
+                        ViewModel.Instance.OSCmsg_countUI = "MAX/144";
+                    }
+                    else
+                    {
+                        ViewModel.Instance.OSCtoSent = Complete_msg;
+                        ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
+                        ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
+                    }
                 }
                 else
                 {
-                    _VM.OSCtoSent = Complete_msg;
-                    _VM.OSCmsg_count = _VM.OSCtoSent.Length;
-                    _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
+                    ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
+                    ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
+                    ViewModel.Instance.OSCtoSent = "";
                 }
             }
-            else
+            catch (Exception ex)
             {
-                _VM.OSCmsg_count = _VM.OSCtoSent.Length;
-                _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
-                _VM.OSCtoSent = "";
+
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+            
 
 
         }
-        public void CreateChat(bool createItem)
+        public static void CreateChat(bool createItem)
         {
-            string Complete_msg = null;
-            if (_VM.PrefixChat == true)
+            try
             {
-                Complete_msg = "💬 " + _VM.NewChattingTxt;
-            }
-            else
-            {
-                Complete_msg = _VM.NewChattingTxt;
-            }
-
-            if (Complete_msg.Length < 4)
-            {
-
-            }
-            else if (Complete_msg.Length > 144)
-            {
-
-            }
-            else
-            {
-                _VM.ScanPauseCountDown = _VM.ScanPauseTimeout;
-                _VM.ScanPause = true;
-                _VM.OSCtoSent = Complete_msg;
-                _VM.OSCmsg_count = _VM.OSCtoSent.Length;
-                _VM.OSCmsg_countUI = _VM.OSCtoSent.Length + "/144";
-                _VM.ActiveChatTxt = "Active";
-
-                if (createItem == true)
+                string Complete_msg = null;
+                if (ViewModel.Instance.PrefixChat == true)
                 {
-                    Random random = new Random();
-                    int randomId = random.Next(10, 99999999);
+                    Complete_msg = "💬 " + ViewModel.Instance.NewChattingTxt;
+                }
+                else
+                {
+                    Complete_msg = ViewModel.Instance.NewChattingTxt;
+                }
 
-                    var newChatItem = new ChatItem(_VM) { Msg = _VM.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId };
-                    _VM.LastMessages.Add(newChatItem);
+                if (Complete_msg.Length < 4)
+                {
 
-                    if (_VM.LastMessages.Count > 5)
+                }
+                else if (Complete_msg.Length > 144)
+                {
+
+                }
+                else
+                {
+                    ViewModel.Instance.ScanPauseCountDown = ViewModel.Instance.ScanPauseTimeout;
+                    ViewModel.Instance.ScanPause = true;
+                    ViewModel.Instance.OSCtoSent = Complete_msg;
+                    ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
+                    ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
+                    ViewModel.Instance.ActiveChatTxt = "Active";
+
+                    if (createItem == true)
                     {
-                        _VM.LastMessages.RemoveAt(0);
-                    }
+                        Random random = new Random();
+                        int randomId = random.Next(10, 99999999);
 
-                    double opacity = 1;
-                    foreach (var item in _VM.LastMessages.Reverse())
-                    {
-                        opacity -= 0.18;
-                        item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
-                    }
+                        var newChatItem = new ChatItem() { Msg = ViewModel.Instance.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId };
+                        ViewModel.Instance.LastMessages.Add(newChatItem);
 
-                    var currentList = new ObservableCollection<ChatItem>(_VM.LastMessages);
-                    _VM.LastMessages.Clear();
+                        if (ViewModel.Instance.LastMessages.Count > 5)
+                        {
+                            ViewModel.Instance.LastMessages.RemoveAt(0);
+                        }
 
-                    foreach (var item in currentList)
-                    {
-                        _VM.LastMessages.Add(item);
+                        double opacity = 1;
+                        foreach (var item in ViewModel.Instance.LastMessages.Reverse())
+                        {
+                            opacity -= 0.18;
+                            item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
+                        }
+
+                        var currentList = new ObservableCollection<ChatItem>(ViewModel.Instance.LastMessages);
+                        ViewModel.Instance.LastMessages.Clear();
+
+                        foreach (var item in currentList)
+                        {
+                            ViewModel.Instance.LastMessages.Add(item);
+                        }
+                        ViewModel.Instance.NewChattingTxt = "";
                     }
-                    _VM.NewChattingTxt = "";
                 }
             }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+            
         }
 
-        internal void ClearChat()
+        internal static void ClearChat()
         {
-            _VM.ScanPause = false;
-            _VM.OSCtoSent = "";
-            _VM.OSCmsg_count = 0;
-            _VM.OSCmsg_countUI = "0/144";
-            _VM.ActiveChatTxt = "";
+            ViewModel.Instance.ScanPause = false;
+            ViewModel.Instance.OSCtoSent = "";
+            ViewModel.Instance.OSCmsg_count = 0;
+            ViewModel.Instance.OSCmsg_countUI = "0/144";
+            ViewModel.Instance.ActiveChatTxt = "";
         }
     }
 }

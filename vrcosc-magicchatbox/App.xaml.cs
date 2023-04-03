@@ -4,5 +4,6 @@ namespace vrcosc_magicchatbox
 {
     public partial class App : Application
     {
+
     }
 }

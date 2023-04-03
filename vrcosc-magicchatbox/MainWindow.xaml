@@ -777,7 +777,13 @@
                         <Grid Grid.Row="3">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="WindowOnTop_checkbox" IsChecked="{Binding Topmost, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Always on top</CheckBox>
-                                <Button Click="ResetFavorites_Click" x:Name="ResetFavorites" HorizontalAlignment="Left" Content="Reset Status" Style="{DynamicResource Status_Button_style}" Height="25" Width="85" Margin="15,0,5,15"></Button>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Click="ResetFavorites_Click" x:Name="ResetFavorites" HorizontalAlignment="Left" Content="Reset Status" Style="{DynamicResource Status_Button_style}" Height="25" Width="85" Margin="15,0,5,15"></Button>
+                                    <Button Click="MakeDataDump_Click" x:Name="MakeDataDump" Content="Make data dump" Style="{DynamicResource Status_Button_style}" Height="25" Width="99" Margin="5,0,5,15"/>
+                                    <Button Click="OpenConfigFolder_Click" x:Name="OpenConfigFolder" Content="Open config folder" Style="{DynamicResource Status_Button_style}" Height="25" Width="111" Margin="5,0,5,15"/>
+                                    <Button Click="OpenLogFolder_Click" x:Name="OpenLogFolder" Content="Open log folder" Style="{DynamicResource Status_Button_style}" Height="25" Width="101" Margin="5,0,5,15"/>
+                                </StackPanel>
+
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="4">

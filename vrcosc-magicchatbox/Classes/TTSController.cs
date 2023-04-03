@@ -1,5 +1,4 @@
 ﻿using NAudio.Wave;
-using NAudio.CoreAudioApi;
 using System;
 using System.IO;
 using System.Net;
@@ -7,44 +6,49 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    public class TTSController
+    public static class TTSController
     {
-        private ViewModel _VM;
-        public TTSController(ViewModel vm)
+        public static async Task<byte[]> GetAudioBytesFromTikTokAPI(string text)
         {
-            _VM = vm;
-        }
-
-        public async Task<byte[]> GetAudioBytesFromTikTokAPI(string text)
-        {
-            var url = "https://tiktok-tts.weilnet.workers.dev/api/generation";
-            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-            httpRequest.Method = "POST";
-            httpRequest.ContentType = "application/json";
-            var data = "{\"text\":\"" + text + "\",\"voice\":\"" + _VM.SelectedTikTokTTSVoice.ApiName + "\"}";
-
-            using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
+            byte[] audioBytes = null;
+            try
             {
-                streamWriter.Write(data);
-            }
+                var url = "https://tiktok-tts.weilnet.workers.dev/api/generation";
+                var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+                httpRequest.Method = "POST";
+                httpRequest.ContentType = "application/json";
+                var data = "{\"text\":\"" + text + "\",\"voice\":\"" + ViewModel.Instance.SelectedTikTokTTSVoice.ApiName + "\"}";
 
-            var httpResponse = (HttpWebResponse)await httpRequest.GetResponseAsync();
-            string audioInBase64 = "";
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
+                {
+                    streamWriter.Write(data);
+                }
+
+                var httpResponse = (HttpWebResponse)await httpRequest.GetResponseAsync();
+                string audioInBase64 = "";
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    var result = await streamReader.ReadToEndAsync();
+                    var dataHere = JObject.Parse(result.ToString()).SelectToken("data").ToString();
+                    audioInBase64 = dataHere.ToString();
+                }
+
+                audioBytes = Convert.FromBase64String(audioInBase64);
+    
+            }
+            catch (Exception ex)
             {
-                var result = await streamReader.ReadToEndAsync();
-                var dataHere = JObject.Parse(result.ToString()).SelectToken("data").ToString();
-                audioInBase64 = dataHere.ToString();
+                return audioBytes;
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
             }
-
-            var audioBytes = Convert.FromBase64String(audioInBase64);
             return audioBytes;
         }
 
-        public async Task PlayTikTokAudioAsSpeech(CancellationToken cancellationToken, byte[] audio, int outputDeviceNumber)
+        public static async Task PlayTikTokAudioAsSpeech(CancellationToken cancellationToken, byte[] audio, int outputDeviceNumber)
         {
             try
             {
@@ -75,7 +79,7 @@ namespace vrcosc_magicchatbox.Classes
             }
             catch (Exception ex)
             {
-                // handle the exception here
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
 

@@ -5,16 +5,10 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
-    internal class EncryptionMethods
+    internal static class EncryptionMethods
     {
-        private ViewModel _VM;
 
-        public EncryptionMethods(ViewModel vm)
-        {
-            _VM = vm;
-        }
-
-        //public string EncryptString(string plainText)
+        //public static string EncryptString(string plainText)
         //{
         //    byte[] iv = new byte[16];
         //    byte[] array;
@@ -43,29 +37,39 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         //    return Convert.ToBase64String(array);
         //}
 
-        public string DecryptString(string cipherText)
+        public static string DecryptString(string cipherText)
         {
-            byte[] iv = new byte[16];
-            byte[] buffer = Convert.FromBase64String(cipherText);
-
-            using (Aes aes = Aes.Create())
+            try
             {
-                aes.Key = Encoding.UTF8.GetBytes(_VM.aesKey);
-                aes.IV = iv;
+                byte[] iv = new byte[16];
+                byte[] buffer = Convert.FromBase64String(cipherText);
 
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream(buffer))
+                using (Aes aes = Aes.Create())
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream((System.IO.Stream)memoryStream, decryptor, CryptoStreamMode.Read))
+                    aes.Key = Encoding.UTF8.GetBytes(ViewModel.Instance.aesKey);
+                    aes.IV = iv;
+
+                    ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                    using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream(buffer))
                     {
-                        using (System.IO.StreamReader streamReader = new System.IO.StreamReader((System.IO.Stream)cryptoStream))
+                        using (CryptoStream cryptoStream = new CryptoStream((System.IO.Stream)memoryStream, decryptor, CryptoStreamMode.Read))
                         {
-                            return streamReader.ReadToEnd();
+                            using (System.IO.StreamReader streamReader = new System.IO.StreamReader((System.IO.Stream)cryptoStream))
+                            {
+                                return streamReader.ReadToEnd();
+                            }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                return null;
+            }
+           
         }
     }
 }
