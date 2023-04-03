@@ -220,7 +220,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
                 catch (Exception ex)
                 {
-                    Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
 
                 }
             }
@@ -263,7 +263,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
 

@@ -486,17 +486,17 @@ namespace vrcosc_magicchatbox
                 {
                     var cancellationTokenSource = new CancellationTokenSource();
                     _activeCancellationTokens.Add(cancellationTokenSource);
-                    ViewModel.Instance.ChatFeedbackTxt = "Chat sent with TTS";
+                    ViewModel.Instance.ChatFeedbackTxt = "TTS is playing...";
 
                     await TTSController.PlayTikTokAudioAsSpeech(cancellationTokenSource.Token, audioFromApi, ViewModel.Instance.SelectedPlaybackOutputDevice.DeviceNumber);
 
-                    ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS";
+                    ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS.";
 
                     _activeCancellationTokens.Remove(cancellationTokenSource);
                 }
                 else
                 {
-                    ViewModel.Instance.ChatFeedbackTxt = "Error getting TTS from online servers";
+                    ViewModel.Instance.ChatFeedbackTxt = "Error getting TTS from online servers.";
                 }
 
             }
