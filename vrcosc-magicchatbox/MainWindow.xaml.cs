@@ -52,6 +52,7 @@ namespace vrcosc_magicchatbox
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
             DataController.CheckForUpdate();
+
         }
 
         public void SelectTTS()
@@ -142,8 +143,8 @@ namespace vrcosc_magicchatbox
                     {
                         ViewModel.Instance.ScanPauseCountDown = 0;
                     }
-                    OscController.ClearChat();
-                    OscController.SentOSCMessage(false);
+                    OscSender.ClearChat();
+                    OscSender.SendOSCMessage(false);
                     Timer(null, null);
                 }
             }
@@ -158,21 +159,21 @@ namespace vrcosc_magicchatbox
                 if (ViewModel.Instance.IntgrScanSpotify == true)
                 { ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong(); ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning(); }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)
-                { ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName(); }
+                    ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();
                 if (ViewModel.Instance.IntgrScanWindowTime == true)
-                {
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
-                }
+                //if (ViewModel.Instance.CheckOSCConnection == true)
+                //    Task.Run(() => OscReceiver.CheckOSCConnection());
                 ViewModel.Instance.ChatFeedbackTxt = "";
-                OscController.BuildOSC();
-                OscController.SentOSCMessage(false);
+                OscSender.BuildOSC();
+                OscSender.SendOSCMessage(false);
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
-            
+
         }
 
         public void ChangeMenuItem(int changeINT)
@@ -210,7 +211,7 @@ namespace vrcosc_magicchatbox
         {
             if (ViewModel.Instance.ScanPause != true)
             {
-                OscController.BuildOSC();
+                OscSender.BuildOSC();
             }
         }
 
@@ -234,7 +235,15 @@ namespace vrcosc_magicchatbox
 
         private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
+            if(ViewModel.Instance.CanUpdate)
+            {
+                UpdateApp.PrepareUpdate();
+            }
+            else
+            {
+                Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
+            }
+
         }
 
         private void MasterSwitch_Click(object sender, RoutedEventArgs e)
@@ -411,7 +420,7 @@ namespace vrcosc_magicchatbox
 
             }
 
-            OscController.TypingIndicator(true);
+            OscSender.TypingIndicator(true);
 
 
             if (typingTimer != null)
@@ -422,7 +431,7 @@ namespace vrcosc_magicchatbox
             else
             {
                 typingTimer = new System.Timers.Timer(2000);
-                typingTimer.Elapsed += (s, args) => OscController.TypingIndicator(false);
+                typingTimer.Elapsed += (s, args) => OscSender.TypingIndicator(false);
                 typingTimer.AutoReset = false;
                 typingTimer.Enabled = true;
             }
@@ -446,8 +455,8 @@ namespace vrcosc_magicchatbox
             string chat = ViewModel.Instance.NewChattingTxt;
             if (chat.Length > 0 && chat.Length <= 141)
             {
-                OscController.CreateChat(true);
-                OscController.SentOSCMessage(ViewModel.Instance.ChatFX);
+                OscSender.CreateChat(true);
+                OscSender.SendOSCMessage(ViewModel.Instance.ChatFX);
                 if (ViewModel.Instance.TTSTikTokEnabled == true)
                 {
                     if (DataAndSecurity.DataController.PopulateOutputDevices(true))
@@ -487,9 +496,11 @@ namespace vrcosc_magicchatbox
                     var cancellationTokenSource = new CancellationTokenSource();
                     _activeCancellationTokens.Add(cancellationTokenSource);
                     ViewModel.Instance.ChatFeedbackTxt = "TTS is playing...";
+                    //OscController.Unmute(true);
 
                     await TTSController.PlayTikTokAudioAsSpeech(cancellationTokenSource.Token, audioFromApi, ViewModel.Instance.SelectedPlaybackOutputDevice.DeviceNumber);
 
+                    //OscController.Unmute(true);
                     ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS.";
 
                     _activeCancellationTokens.Remove(cancellationTokenSource);
@@ -516,8 +527,8 @@ namespace vrcosc_magicchatbox
 
         private void StopChat_Click(object sender, RoutedEventArgs e)
         {
-            OscController.ClearChat();
-            OscController.SentOSCMessage(false);
+            OscSender.ClearChat();
+            OscSender.SendOSCMessage(false);
             Timer(null, null);
             foreach (var token in _activeCancellationTokens)
             {

@@ -92,8 +92,8 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     string savedtxt = ViewModel.Instance.NewChattingTxt;
                     ViewModel.Instance.NewChattingTxt = text;
-                    OscController.CreateChat(false);
-                    OscController.SentOSCMessage(true);
+                    OscSender.CreateChat(false);
+                    OscSender.SendOSCMessage(true);
                     ViewModel.Instance.NewChattingTxt = savedtxt;
                     ViewModel.Instance.ChatFeedbackTxt = "Message sent again";
                 }

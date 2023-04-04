@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Update": {
+      "commandName": "Project",
+      "commandLineArgs": "-update"
+    },
+    "Normal": {
+      "commandName": "Project"
+    }
+  }
+}

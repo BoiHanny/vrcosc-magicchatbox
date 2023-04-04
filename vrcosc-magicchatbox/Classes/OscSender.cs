@@ -8,36 +8,53 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
+
 namespace vrcosc_magicchatbox.Classes
 {
-    public static class OscController
+    public static class OscSender
     {
 
         public static UDPSender oscSender;
 
-        public static void SentOSCMessage(bool FX)
+        public static void SendOSCMessage(bool FX)
         {
+
             if (ViewModel.Instance.MasterSwitch == true)
             {
                 try
                 {
-                    if (ViewModel.Instance.OSCtoSent.Length > 0 || ViewModel.Instance.OSCtoSent.Length <= 144)
+                    if (ViewModel.Instance.OSCtoSent.Length > 0 && ViewModel.Instance.OSCtoSent.Length <= 144)
                     {
                         oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                         oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
                     }
-                    else
-                    {
-
-                    }
-
                 }
                 catch (Exception ex)
                 {
                     Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
             }
+
         }
+
+
+        //public static void Unmute(bool IsMuted)
+        //{
+        //    if (ViewModel.Instance.MasterSwitch == true)
+        //    {
+        //        try
+        //        {
+        //            int muteValue = IsMuted ? 0 : 1;
+        //            oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+        //            oscSender.Send(new OscMessage("/input/Voice", muteValue));
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+        //        }
+        //    }
+        //}
+
 
         public static void TypingIndicator(bool Typing)
         {

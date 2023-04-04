@@ -292,14 +292,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                 string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
-
-                if(token != null || url != null)
+                if (url != null)
                 {
                     using (var client = new HttpClient())
                     {
-                        client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
                         client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
                         var response = client.GetAsync(url).Result;
                         var json = response.Content.ReadAsStringAsync().Result;
@@ -309,6 +306,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         if (ViewModel.Instance.GitHubVersion != null)
                         {
                             CompareVersions();
+                            ViewModel.Instance.NewVersionURL = release.assets[0].browser_download_url; // Store the download URL
                         }
                         else
                         {
@@ -318,7 +316,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         }
                     }
 
-                }            
+                }
 
             }
             catch (Exception ex)
@@ -329,6 +327,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
 
         }
+
 
         public static void CompareVersions()
         {
@@ -341,18 +340,21 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     int result = currentVersion.CompareTo(githubVersion);
                     if (result < 0)
                     {
-                        ViewModel.Instance.VersionTxt = "New version available";
+                        ViewModel.Instance.VersionTxt = "New update ready to install";
                         ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
+                        ViewModel.Instance.CanUpdate = true;
                     }
                     else if (result == 0)
                     {
                         ViewModel.Instance.VersionTxt = "You are up-to-date";
                         ViewModel.Instance.VersionTxtColor = "#FF92CC90";
+                        ViewModel.Instance.CanUpdate = false;
                     }
                     else
                     {
                         ViewModel.Instance.VersionTxt = "You running a preview, fun!";
                         ViewModel.Instance.VersionTxtColor = "#FFE816EA";
+                        ViewModel.Instance.CanUpdate = false;
                     }
 
             }
