@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using static System.Net.WebRequestMethods;
 using Version = vrcosc_magicchatbox.ViewModels.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
@@ -20,7 +21,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                string json = File.ReadAllText(@"Json\voices.json");
+                string json = System.IO.File.ReadAllText(@"Json\voices.json");
                 List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
 
                 if (string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
@@ -273,9 +274,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static void LoadStatusList()
         {
-            if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml")))
+            if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml")))
             {
-                string json = File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"));
+                string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"));
                 ViewModel.Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
             }
             else
@@ -292,27 +293,32 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
+                string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                 string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
                 if (url != null)
                 {
                     using (var client = new HttpClient())
                     {
+                        client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
                         client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
                         var response = client.GetAsync(url).Result;
                         var json = response.Content.ReadAsStringAsync().Result;
                         dynamic release = JsonConvert.DeserializeObject(json);
                         string latestVersion = release.tag_name;
+                        string tagURL = "https://github.com/BoiHanny/vrcosc-magicchatbox/releases/tag/" + latestVersion; 
                         ViewModel.Instance.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
                         if (ViewModel.Instance.GitHubVersion != null)
                         {
                             CompareVersions();
                             ViewModel.Instance.NewVersionURL = release.assets[0].browser_download_url; // Store the download URL
+                            ViewModel.Instance.tagURL = tagURL;
                         }
                         else
                         {
                             ViewModel.Instance.VersionTxt = "Internal update server error";
                             ViewModel.Instance.VersionTxtColor = "#F65F69";
                             Logging.WriteInfo("Internal update server error", makeVMDump: true, MSGBox: false);
+                            ViewModel.Instance.CanUpdate = false;
                         }
                     }
 
@@ -340,7 +346,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     int result = currentVersion.CompareTo(githubVersion);
                     if (result < 0)
                     {
-                        ViewModel.Instance.VersionTxt = "New update ready to install";
+                        ViewModel.Instance.VersionTxt = "Update now!";
                         ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
                         ViewModel.Instance.CanUpdate = true;
                     }

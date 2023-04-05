@@ -237,7 +237,8 @@ namespace vrcosc_magicchatbox
         {
             if(ViewModel.Instance.CanUpdate)
             {
-                UpdateApp.PrepareUpdate();
+                ViewModel.Instance.CanUpdate = false;
+                Task.Run(() => UpdateApp.PrepareUpdate());
             }
             else
             {
@@ -600,6 +601,19 @@ namespace vrcosc_magicchatbox
 
                 Logging.WriteException(ex);
             }
+        }
+
+        private void GitHubChanges_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if(ViewModel.Instance.tagURL == null)
+            {
+                Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
+            }
+            else
+            {
+                Process.Start("explorer", ViewModel.Instance.tagURL);
+            }
+            
         }
     }
 }

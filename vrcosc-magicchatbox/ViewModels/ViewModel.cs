@@ -161,6 +161,28 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _CanUpdate;
 
 
+        private string _tagURL;
+        public string tagURL
+        {
+            get { return _tagURL; }
+            set
+            {
+                _tagURL = value;
+                NotifyPropertyChanged(nameof(tagURL));
+            }
+        }
+
+
+        private string _UpdateStatustxt;
+        public string UpdateStatustxt
+        {
+            get { return _UpdateStatustxt; }
+            set
+            {
+                _UpdateStatustxt = value;
+                NotifyPropertyChanged(nameof(UpdateStatustxt));
+            }
+        }
 
         private string _AppLocation;
         public string AppLocation

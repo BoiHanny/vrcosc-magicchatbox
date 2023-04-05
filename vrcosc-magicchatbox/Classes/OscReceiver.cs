@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using Rug.Osc;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 

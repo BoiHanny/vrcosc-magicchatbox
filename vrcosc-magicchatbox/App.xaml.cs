@@ -18,6 +18,13 @@ namespace vrcosc_magicchatbox
                     Shutdown();
                     return;
                 }
+                if (e.Args[0] == "-updateadmin")
+                {
+                    UpdateApp updater = new UpdateApp();
+                    updater.UpdateApplication(true);
+                    Shutdown();
+                    return;
+                }
             }
         }
     }
