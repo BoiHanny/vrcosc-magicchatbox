@@ -157,7 +157,10 @@ namespace vrcosc_magicchatbox
             try
             {
                 if (ViewModel.Instance.IntgrScanSpotify == true)
-                { ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong(); ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning(); }
+                { 
+                    ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong(); 
+                    ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning(); 
+                }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();

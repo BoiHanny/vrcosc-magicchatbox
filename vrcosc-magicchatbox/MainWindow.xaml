@@ -807,7 +807,7 @@
                         <Grid Grid.Row="5">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TTSCutOff, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Stop current playing TTS on new chat</CheckBox>
-                                <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice on TTS (make sure it's off)</CheckBox>
+                                <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice on TTS</CheckBox>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="15,0,0,15" Width="auto" Height="22">
                                     <ComboBox SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" x:Name="PlaybackOutputDeviceComboBox" ItemsSource="{Binding PlaybackOutputDevices,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="FriendlyName" Opacity="0.4" SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}" Width="186" Height="25" Margin="0"/>
@@ -918,15 +918,18 @@
                             <CheckBox IsChecked="{Binding TTSTikTokEnabled, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}" FontSize="12" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265" Width="20"/>
                         </StackPanel>
 
-                        <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5" Width="176" Height="22">
-                            <TextBlock FontSize="13" Text="Voice" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
-                            <ComboBox x:Name="TikTokTTSVoices_combo" SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="DisplayName"  SelectedValuePath="ApiName" Width="135" BorderBrush="#FF020000" Opacity="0.4" FontSize="11.5" Height="21"/>
-                        </StackPanel>
+                        <StackPanel Visibility="{Binding TTSTikTokEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5" Width="176" Height="22">
+                                <TextBlock FontSize="13" Text="Voice" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
+                                <ComboBox x:Name="TikTokTTSVoices_combo" SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="DisplayName"  SelectedValuePath="ApiName" Width="135" BorderBrush="#FF020000" Opacity="0.4" FontSize="11.5" Height="21"/>
+                            </StackPanel>
 
-                        <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0" Width="211" Height="22">
-                            <TextBlock FontSize="13" Text="TTS volume" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,0,3" Foreground="#FF7D7397" Width="69"/>
-                            <Slider x:Name="VolumeSlider" Style="{StaticResource CustomSlider}" Margin="2.2,0,4.5,0" Width="135" Minimum="0" Maximum="1" Value="{Binding Path=TTSVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="12" />
+                            <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0" Width="211" Height="22">
+                                <TextBlock FontSize="13" Text="TTS volume" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,0,3" Foreground="#FF7D7397" Width="69"/>
+                                <Slider x:Name="VolumeSlider" Style="{StaticResource CustomSlider}" Margin="2.2,0,4.5,0" Width="134.5" Minimum="0" Maximum="1" Value="{Binding Path=TTSVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="12" />
+                            </StackPanel>
                         </StackPanel>
+                        
                     </StackPanel>
                     <Grid Grid.Row="3" Height="45" VerticalAlignment="Bottom">
                         <TextBlock Text="{Binding UpdateStatustxt}" 
@@ -942,7 +945,7 @@
                             <TextBlock Text="{Binding AppVersion.VersionNumber}" 
                        Foreground="#FF7D7397"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="5,0,5,5" />
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="5,0.5,5,5" />
                             <TextBlock  Name="NewVersion" Text="{Binding VersionTxt}" 
                        Foreground="{Binding VersionTxtColor}"
                        FontSize="12"

@@ -203,26 +203,31 @@ namespace vrcosc_magicchatbox.Classes
 
                         else
                         {
-                            if (ViewModel.Instance.PrefixIconMusic == true)
+                            if (ViewModel.Instance.PlayingSongTitle.Length > 0)
                             {
-                                x = "🎵 '" + ViewModel.Instance.PlayingSongTitle + "'";
+                                if (ViewModel.Instance.PrefixIconMusic == true)
+                                {
+                                    x = "🎵 '" + ViewModel.Instance.PlayingSongTitle + "'";
+                                }
+                                else
+                                {
+                                    x = "Listening to '" + ViewModel.Instance.PlayingSongTitle + "'";
+                                }
+
+                                if (OSCmsgLenght(Uncomplete, x) < 144)
+                                {
+                                    Uncomplete.Add(x);
+                                }
+                                else
+                                {
+                                    ViewModel.Instance.Char_Limit = "Visible";
+                                    ViewModel.Instance.Spotify_Opacity = "0.5";
+                                }
                             }
                             else
                             {
-                                x = "Listening to '" + ViewModel.Instance.PlayingSongTitle + "'";
+                                ViewModel.Instance.IntgrScanSpotify = false;
                             }
-
-                            if (OSCmsgLenght(Uncomplete, x) < 144)
-                            {
-                                Uncomplete.Add(x);
-                            }
-                            else
-                            {
-                                ViewModel.Instance.Char_Limit = "Visible";
-                                ViewModel.Instance.Spotify_Opacity = "0.5";
-                            }
-
-
                         }
                     }
                 }
