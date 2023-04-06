@@ -48,6 +48,12 @@ namespace vrcosc_magicchatbox.Classes
             return audioBytes;
         }
 
+        private static void UpdateVolume(WaveOutEvent waveOut)
+        {
+            waveOut.Volume = ViewModel.Instance.TTSVolume;
+        }
+
+
         public static async Task PlayTikTokAudioAsSpeech(CancellationToken cancellationToken, byte[] audio, int outputDeviceNumber)
         {
             try
@@ -64,17 +70,23 @@ namespace vrcosc_magicchatbox.Classes
                     }
 
                     waveOut.Init(audioReader);
+
+                    OscSender.ToggleVoice();
                     waveOut.Play();
 
                     while (waveOut.PlaybackState == PlaybackState.Playing)
                     {
+                        UpdateVolume(waveOut); // Add this line to update the volume
+
                         if (cancellationToken.IsCancellationRequested)
                         {
                             waveOut.Stop();
+                            OscSender.ToggleVoice();
                             break;
                         }
                         await Task.Delay(100);
                     }
+                    OscSender.ToggleVoice();
                 }
             }
             catch (Exception ex)
@@ -82,6 +94,7 @@ namespace vrcosc_magicchatbox.Classes
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
 
 
     }

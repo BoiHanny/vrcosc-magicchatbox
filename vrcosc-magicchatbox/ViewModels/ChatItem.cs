@@ -95,7 +95,24 @@ namespace vrcosc_magicchatbox.ViewModels
                     OscSender.CreateChat(false);
                     OscSender.SendOSCMessage(true);
                     ViewModel.Instance.NewChattingTxt = savedtxt;
-                    ViewModel.Instance.ChatFeedbackTxt = "Message sent again";
+
+                    if (ViewModel.Instance.TTSTikTokEnabled == true)
+                    {
+                        if (DataAndSecurity.DataController.PopulateOutputDevices(true))
+                        {
+                            ViewModel.Instance.ChatFeedbackTxt = "Requesting TTS...";
+                            MainWindow.TTSGOAsync(text, true);
+                        }
+                        else
+                        {
+                            ViewModel.Instance.ChatFeedbackTxt = "Error setting output device.";
+                        }
+                    }
+                    else
+                    {
+                        ViewModel.Instance.ChatFeedbackTxt = "Message sent again";
+                    }
+
                 }
             }
             catch (Exception ex)

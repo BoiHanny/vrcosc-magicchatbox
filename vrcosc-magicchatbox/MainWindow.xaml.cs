@@ -27,7 +27,7 @@ namespace vrcosc_magicchatbox
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
         private System.Timers.Timer typingTimer;
-        private List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
+        private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
 
         public MainWindow()
         {
@@ -477,7 +477,7 @@ namespace vrcosc_magicchatbox
             }   
         }
 
-        public async Task TTSGOAsync(string chat)
+        public static async Task TTSGOAsync(string chat, bool resent = false)
         {
             try
             {
@@ -497,12 +497,16 @@ namespace vrcosc_magicchatbox
                     var cancellationTokenSource = new CancellationTokenSource();
                     _activeCancellationTokens.Add(cancellationTokenSource);
                     ViewModel.Instance.ChatFeedbackTxt = "TTS is playing...";
-                    //OscController.Unmute(true);
-
                     await TTSController.PlayTikTokAudioAsSpeech(cancellationTokenSource.Token, audioFromApi, ViewModel.Instance.SelectedPlaybackOutputDevice.DeviceNumber);
+                    if (resent)
+                    {
+                        ViewModel.Instance.ChatFeedbackTxt = "Chat was sent again with TTS.";
+                    }
+                    else
+                    {
+                        ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS.";
+                    }
 
-                    //OscController.Unmute(true);
-                    ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS.";
 
                     _activeCancellationTokens.Remove(cancellationTokenSource);
                 }
@@ -614,6 +618,11 @@ namespace vrcosc_magicchatbox
                 Process.Start("explorer", ViewModel.Instance.tagURL);
             }
             
+        }
+
+        private void ToggleVoicebtn_Click(object sender, RoutedEventArgs e)
+        {
+            OscSender.ToggleVoice(true);
         }
     }
 }

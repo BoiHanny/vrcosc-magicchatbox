@@ -217,6 +217,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = ViewModel.Instance.RecentPlayBackOutput.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("AutoUnmuteTTS");
+                    userNode.InnerText = ViewModel.Instance.AutoUnmuteTTS.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("TTSVolume");
+                    userNode.InnerText = ViewModel.Instance.TTSVolume.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
                 }
                 catch (Exception ex)
@@ -260,6 +268,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.TTSTikTokEnabled = bool.Parse(doc.GetElementsByTagName("TTSTikTokEnabled")[0].InnerText);
                 ViewModel.Instance.TTSCutOff = bool.Parse(doc.GetElementsByTagName("TTSCutOff")[0].InnerText);
                 ViewModel.Instance.RecentPlayBackOutput = doc.GetElementsByTagName("RecentPlayBackOutput")[0].InnerText;
+                ViewModel.Instance.AutoUnmuteTTS = bool.Parse(doc.GetElementsByTagName("AutoUnmuteTTS")[0].InnerText);
+                ViewModel.Instance.TTSVolume = float.Parse(doc.GetElementsByTagName("TTSVolume")[0].InnerText);
 
             }
             catch (Exception ex)
@@ -346,7 +356,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     int result = currentVersion.CompareTo(githubVersion);
                     if (result < 0)
                     {
-                        ViewModel.Instance.VersionTxt = "Update now!";
+                        ViewModel.Instance.VersionTxt = "Update now";
                         ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
                         ViewModel.Instance.CanUpdate = true;
                     }

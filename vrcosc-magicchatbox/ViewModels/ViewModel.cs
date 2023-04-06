@@ -160,6 +160,28 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _NewVersionURL;
         private bool _CanUpdate;
 
+        private bool _AutoUnmuteTTS = true;
+        public bool AutoUnmuteTTS
+        {
+            get { return _AutoUnmuteTTS; }
+            set
+            {
+                _AutoUnmuteTTS = value;
+                NotifyPropertyChanged(nameof(AutoUnmuteTTS));
+            }
+        }
+
+
+        private float _TTSVolume = 0.2f;
+        public float TTSVolume
+        {
+            get { return _TTSVolume; }
+            set
+            {
+                _TTSVolume = value;
+                NotifyPropertyChanged(nameof(TTSVolume));
+            }
+        }
 
         private string _tagURL;
         public string tagURL

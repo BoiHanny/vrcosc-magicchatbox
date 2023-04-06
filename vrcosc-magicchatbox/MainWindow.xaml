@@ -754,7 +754,7 @@
                                 <CheckBox Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Checked="Update_Click" Unchecked="Update_Click" x:Name="PauseIconPrefix_checkbox" IsChecked="{Binding PauseIconMusic, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Show ⏸ when  music is paused</CheckBox>
                                 <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="StatusIconPrefix_checkbox" IsChecked="{Binding PrefixIconStatus, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Add 💬 as prefix for the personal status</CheckBox>
                                 <CheckBox Checked="Update_Click" Unchecked="Update_Click" x:Name="ChatIconPrefix_checkbox" IsChecked="{Binding PrefixChat, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Add 💬 as prefix for chat messages</CheckBox>
-                                <CheckBox x:Name="ChatFX_checkbox" IsChecked="{Binding ChatFX, Mode=TwoWay}" Margin="15,0,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Play FX sound for VRChat users when sending message</CheckBox>
+                                <CheckBox x:Name="ChatFX_checkbox" IsChecked="{Binding ChatFX, Mode=TwoWay}" Margin="15,0,0,15" Height="22" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Play FX sound for VRChat users when sending message</CheckBox>
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="2">
@@ -782,6 +782,7 @@
                                     <Button Click="MakeDataDump_Click" x:Name="MakeDataDump" Content="Make data dump" Style="{DynamicResource Status_Button_style}" Height="25" Width="99" Margin="5,0,5,15"/>
                                     <Button Click="OpenConfigFolder_Click" x:Name="OpenConfigFolder" Content="Open config folder" Style="{DynamicResource Status_Button_style}" Height="25" Width="111" Margin="5,0,5,15"/>
                                     <Button Click="OpenLogFolder_Click" x:Name="OpenLogFolder" Content="Open log folder" Style="{DynamicResource Status_Button_style}" Height="25" Width="101" Margin="5,0,5,15"/>
+
                                 </StackPanel>
 
                             </StackPanel>
@@ -806,6 +807,7 @@
                         <Grid Grid.Row="5">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TTSCutOff, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Stop current playing TTS on new chat</CheckBox>
+                                <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}" Margin="15,15,0,15" Height="20" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice on TTS (make sure it's off)</CheckBox>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="15,0,0,15" Width="auto" Height="22">
                                     <ComboBox SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" x:Name="PlaybackOutputDeviceComboBox" ItemsSource="{Binding PlaybackOutputDevices,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="FriendlyName" Opacity="0.4" SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}" Width="186" Height="25" Margin="0"/>
@@ -900,7 +902,10 @@
 
 
                     <StackPanel Grid.Row="1" Margin="0,155,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
-
+                        
+                        <StackPanel  Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5,5"  Width="auto" Height="auto">
+                            <Button Click="ToggleVoicebtn_Click" x:Name="ToggleVoicebtn" Content="Toggle voice" Style="{DynamicResource Status_Button_style}" Height="27" Width="101"/>
+                        </StackPanel>
 
 
                         <StackPanel  Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5"  Width="80" Height="20">
@@ -917,6 +922,11 @@
                             <TextBlock FontSize="13" Text="Voice" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="#FF7D7397"/>
                             <ComboBox x:Name="TikTokTTSVoices_combo" SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="DisplayName"  SelectedValuePath="ApiName" Width="135" BorderBrush="#FF020000" Opacity="0.4" FontSize="11.5" Height="21"/>
                         </StackPanel>
+
+                        <StackPanel Visibility="{Binding MenuItem_2_Visibility}" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0" Width="211" Height="22">
+                            <TextBlock FontSize="13" Text="TTS volume" FontFamily="Albert Sans Thin" VerticalAlignment="Center" Margin="0,0,0,3" Foreground="#FF7D7397" Width="69"/>
+                            <Slider x:Name="VolumeSlider" Style="{StaticResource CustomSlider}" Margin="2.2,0,4.5,0" Width="135" Minimum="0" Maximum="1" Value="{Binding Path=TTSVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="12" />
+                        </StackPanel>
                     </StackPanel>
                     <Grid Grid.Row="3" Height="45" VerticalAlignment="Bottom">
                         <TextBlock Text="{Binding UpdateStatustxt}" 
@@ -932,11 +942,11 @@
                             <TextBlock Text="{Binding AppVersion.VersionNumber}" 
                        Foreground="#FF7D7397"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="5,0,8,5" />
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="5,0,5,5" />
                             <TextBlock  Name="NewVersion" Text="{Binding VersionTxt}" 
                        Foreground="{Binding VersionTxtColor}"
                        FontSize="12"
-                       FontFamily="Albert Sans Thin" HorizontalAlignment="Left" VerticalAlignment="Bottom" MouseUp="NewVersion_MouseUp" Margin="0,0,1,8" TextDecorations="Underline" Cursor="Hand"/>
+                       FontFamily="Albert Sans Thin" HorizontalAlignment="Left" VerticalAlignment="Bottom" MouseUp="NewVersion_MouseUp" Margin="0,0,5,8" TextDecorations="Underline" Cursor="Hand"/>
                         </StackPanel>
                     </Grid>
 

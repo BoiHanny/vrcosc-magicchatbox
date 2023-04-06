@@ -5,7 +5,6 @@
              StartupUri="MainWindow.xaml"
     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Application.Resources>
-         
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -357,6 +356,54 @@
                                 <Setter TargetName="CheckMark" Property="Stroke" Value="Gray" />
                             </Trigger>
                         </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Slider.Track.Color" Color="#827D92" />
+        <SolidColorBrush x:Key="Slider.Track.FilledColor" Color="#7C7295" />
+        <SolidColorBrush x:Key="Slider.Static.Thumb" Color="#ABA3B7" />
+        <SolidColorBrush x:Key="Slider.MouseOver.Thumb" Color="#1A1650" />
+        <SolidColorBrush x:Key="Slider.Disabled.Thumb" Color="gray" />
+        <SolidColorBrush x:Key="Slider.Pressed.Thumb" Color="#14113D" />
+        <Style x:Key="CustomSlider" TargetType="{x:Type Slider}">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Slider}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto" MinHeight="{TemplateBinding Slider.MinHeight}"/>
+                            </Grid.RowDefinitions>
+                            <Rectangle Grid.Row="1" Fill="{StaticResource Slider.Track.Color}" Height="4" VerticalAlignment="Center" Margin="0,0"/>
+                            <Rectangle x:Name="FilledTrack" Grid.Row="1" Fill="{StaticResource Slider.Track.FilledColor}" Height="4" VerticalAlignment="Center" Margin="0,0" HorizontalAlignment="Left"/>
+                            <Track x:Name="PART_Track" Grid.Row="1">
+                                <Track.Thumb>
+                                    <Thumb x:Name="Thumb" Background="{StaticResource Slider.Static.Thumb}" BorderBrush="{StaticResource Slider.Static.Thumb}" BorderThickness="1">
+                                        <Thumb.Template>
+                                            <ControlTemplate>
+                                                <Rectangle x:Name="square" Width="8" Height="12" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="{TemplateBinding BorderThickness}" />
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="true">
+                                                        <Setter TargetName="square" Property="Fill" Value="{StaticResource Slider.MouseOver.Thumb}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="false">
+                                                        <Setter TargetName="square" Property="Fill" Value="{StaticResource Slider.Disabled.Thumb}" />
+                                                        <Setter TargetName="square" Property="Stroke" Value="{StaticResource Slider.Disabled.Track}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseCaptureWithin" Value="true">
+                                                        <Setter TargetName="square" Property="Fill" Value="{StaticResource Slider.Pressed.Thumb}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
