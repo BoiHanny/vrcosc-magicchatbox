@@ -5,6 +5,7 @@ namespace vrcosc_magicchatbox.ViewModels
 {
     public class StatusItem : INotifyPropertyChanged
     {
+
         private DateTime _CreationDate;
         private DateTime _LastUsed;
         private int _MSGLenght;
@@ -87,7 +88,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         #region PropChangedEvent
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         public void NotifyPropertyChanged(string name)
         {
             if (PropertyChanged != null)

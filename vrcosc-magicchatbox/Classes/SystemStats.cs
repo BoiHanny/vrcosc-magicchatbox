@@ -1,22 +1,16 @@
 ﻿using System;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    public class SystemStats
+    public static class SystemStats
     {
-        private ViewModel _VM;
-        public SystemStats(ViewModel vm)
-        {
-            _VM = vm;
-
-        }
-
-        public string GetTime()
+         public static string GetTime()
         {
             try
             {
-                if (_VM.Time24H == true)
+                if (ViewModel.Instance.Time24H == true)
                 {
                     return string.Format("{0:HH:mm}", DateTime.Now).ToUpper();
                 }
@@ -26,9 +20,9 @@ namespace vrcosc_magicchatbox.Classes
                 }
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "00:00 XX";
             }
 

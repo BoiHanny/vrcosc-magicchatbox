@@ -1,25 +1,105 @@
-﻿using Newtonsoft.Json;
+﻿using NAudio.CoreAudioApi;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using static System.Net.WebRequestMethods;
 using Version = vrcosc_magicchatbox.ViewModels.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
 {
-    internal class DataController
+    internal static class DataController
     {
-        private ViewModel _VM;
-        private EncryptionMethods _ENCRY;
-        public DataController(ViewModel vm)
+        public static List<Voice> ReadTkTkTTSVoices()
         {
-            _VM = vm;
-            _ENCRY = new EncryptionMethods(_VM);
+            try
+            {
+                string json = System.IO.File.ReadAllText(@"Json\voices.json");
+                List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
+
+                if (string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                {
+                    ViewModel.Instance.RecentTikTokTTSVoice = "en_us_001";
+                }
+                if (!string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                {
+                    Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == ViewModel.Instance.RecentTikTokTTSVoice);
+                    if (selectedVoice == null)
+                    {
+                    }
+                    else
+                    {
+                        ViewModel.Instance.SelectedTikTokTTSVoice = selectedVoice;
+                    }
+                }
+
+                return ConfirmList;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return null;
+            }
+
         }
+
+        public static bool PopulateOutputDevices(bool beforeTTS= false)
+        {
+            try
+            {
+                var devicesRen_enumerator = new MMDeviceEnumerator();
+                var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+                var deviceNumber = 0;
+
+                if (beforeTTS == true)
+                {
+                    ViewModel.Instance.PlaybackOutputDevices.Clear();
+                }
+
+                foreach (var device in devicesRen)
+                {
+                    ViewModel.Instance.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
+                }
+
+                var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                if (ViewModel.Instance.RecentPlayBackOutput == null)
+                {
+                    ViewModel.Instance.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                    ViewModel.Instance.RecentPlayBackOutput = ViewModel.Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                }
+                else
+                {
+                    AudioDevice ADevice = ViewModel.Instance.PlaybackOutputDevices.FirstOrDefault(v => v.FriendlyName == ViewModel.Instance.RecentPlayBackOutput);
+                    if (ADevice == null)
+                    {
+                        ViewModel.Instance.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                        ViewModel.Instance.RecentPlayBackOutput = ViewModel.Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                    }
+                    else
+                    {
+                        ViewModel.Instance.SelectedPlaybackOutputDevice = ADevice;
+                        
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                return false;
+
+            }
+            return true;
+        }
+
+
 
         public static bool CreateIfMissing(string path)
         {
@@ -34,13 +114,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (IOException ex)
             {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return false;
             }
 
         }
-        public void SaveSettingsToXML()
+        public static void SaveSettingsToXML()
         {
-            if (CreateIfMissing(_VM.DataPath) == true)
+            if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
             {
                 try
                 {
@@ -49,82 +130,106 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     xmlDoc.AppendChild(rootNode);
 
                     XmlNode userNode = xmlDoc.CreateElement("IntgrStatus");
-                    userNode.InnerText = _VM.IntgrStatus.ToString();
+                    userNode.InnerText = ViewModel.Instance.IntgrStatus.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("IntgrScanWindowActivity");
-                    userNode.InnerText = _VM.IntgrScanWindowActivity.ToString();
+                    userNode.InnerText = ViewModel.Instance.IntgrScanWindowActivity.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("IntgrScanSpotify");
-                    userNode.InnerText = _VM.IntgrScanSpotify.ToString();
+                    userNode.InnerText = ViewModel.Instance.IntgrScanSpotify.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("IntgrScanWindowTime");
-                    userNode.InnerText = _VM.IntgrScanWindowTime.ToString();
+                    userNode.InnerText = ViewModel.Instance.IntgrScanWindowTime.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("PrefixTime");
-                    userNode.InnerText = _VM.PrefixTime.ToString();
+                    userNode.InnerText = ViewModel.Instance.PrefixTime.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("OnlyShowTimeVR");
-                    userNode.InnerText = _VM.OnlyShowTimeVR.ToString();
+                    userNode.InnerText = ViewModel.Instance.OnlyShowTimeVR.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("ScanInterval");
-                    userNode.InnerText = _VM.ScanInterval.ToString();
+                    userNode.InnerText = ViewModel.Instance.ScanInterval.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("OSCIP");
-                    userNode.InnerText = _VM.OSCIP.ToString();
+                    userNode.InnerText = ViewModel.Instance.OSCIP.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("OSCPortOut");
-                    userNode.InnerText = _VM.OSCPortOut.ToString();
+                    userNode.InnerText = ViewModel.Instance.OSCPortOut.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("Time24H");
-                    userNode.InnerText = _VM.Time24H.ToString();
+                    userNode.InnerText = ViewModel.Instance.Time24H.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("CurrentMenuItem");
-                    userNode.InnerText = _VM.CurrentMenuItem.ToString();
+                    userNode.InnerText = ViewModel.Instance.CurrentMenuItem.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("PrefixIconMusic");
-                    userNode.InnerText = _VM.PrefixIconMusic.ToString();
+                    userNode.InnerText = ViewModel.Instance.PrefixIconMusic.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("PrefixIconStatus");
-                    userNode.InnerText = _VM.PrefixIconStatus.ToString();
+                    userNode.InnerText = ViewModel.Instance.PrefixIconStatus.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("ScanPauseTimeout");
-                    userNode.InnerText = _VM.ScanPauseTimeout.ToString();
+                    userNode.InnerText = ViewModel.Instance.ScanPauseTimeout.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("PrefixChat");
-                    userNode.InnerText = _VM.PrefixChat.ToString();
+                    userNode.InnerText = ViewModel.Instance.PrefixChat.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("ChatFX");
-                    userNode.InnerText = _VM.ChatFX.ToString();
+                    userNode.InnerText = ViewModel.Instance.ChatFX.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("PauseIconMusic");
-                    userNode.InnerText = _VM.PauseIconMusic.ToString();
+                    userNode.InnerText = ViewModel.Instance.PauseIconMusic.ToString();
                     rootNode.AppendChild(userNode);
 
                     userNode = xmlDoc.CreateElement("Topmost");
-                    userNode.InnerText = _VM.Topmost.ToString();
+                    userNode.InnerText = ViewModel.Instance.Topmost.ToString();
                     rootNode.AppendChild(userNode);
 
-                    xmlDoc.Save(Path.Combine(_VM.DataPath, "settings.xml"));
-                }
-                catch (Exception)
-                {
+                    userNode = xmlDoc.CreateElement("RecentTikTokTTSVoice");
+                    userNode.InnerText = ViewModel.Instance.RecentTikTokTTSVoice.ToString();
+                    rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("TTSTikTokEnabled");
+                    userNode.InnerText = ViewModel.Instance.TTSTikTokEnabled.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("TTSCutOff");
+                    userNode.InnerText = ViewModel.Instance.TTSCutOff.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("RecentPlayBackOutput");
+                    userNode.InnerText = ViewModel.Instance.RecentPlayBackOutput.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("AutoUnmuteTTS");
+                    userNode.InnerText = ViewModel.Instance.AutoUnmuteTTS.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("TTSVolume");
+                    userNode.InnerText = ViewModel.Instance.TTSVolume.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
 
                 }
             }
@@ -133,119 +238,145 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         }
 
-        public void LoadSettingsFromXML()
+        public static void LoadSettingsFromXML()
         {
             try
             {
                 XmlDocument doc = new XmlDocument();
-                doc.Load(Path.Combine(_VM.DataPath, "settings.xml"));
+                doc.Load(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
 
-                _VM.IntgrStatus = bool.Parse(doc.GetElementsByTagName("IntgrStatus")[0].InnerText);
-                _VM.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
-                _VM.IntgrScanWindowActivity = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowActivity")[0].InnerText);
-                _VM.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
-                _VM.IntgrScanWindowTime = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowTime")[0].InnerText);
-                _VM.PrefixTime = bool.Parse(doc.GetElementsByTagName("PrefixTime")[0].InnerText);
-                _VM.OnlyShowTimeVR = bool.Parse(doc.GetElementsByTagName("OnlyShowTimeVR")[0].InnerText);
-                _VM.Time24H = bool.Parse(doc.GetElementsByTagName("Time24H")[0].InnerText);
-                _VM.ScanInterval = int.Parse(doc.GetElementsByTagName("ScanInterval")[0].InnerText);
-                _VM.CurrentMenuItem = int.Parse(doc.GetElementsByTagName("CurrentMenuItem")[0].InnerText);
-                _VM.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
-                _VM.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
-                _VM.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
-                _VM.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
-                _VM.ScanPauseTimeout = int.Parse(doc.GetElementsByTagName("ScanPauseTimeout")[0].InnerText);
-                _VM.PrefixChat = bool.Parse(doc.GetElementsByTagName("PrefixChat")[0].InnerText);
-                _VM.ChatFX = bool.Parse(doc.GetElementsByTagName("ChatFX")[0].InnerText);
-                _VM.PauseIconMusic = bool.Parse(doc.GetElementsByTagName("PauseIconMusic")[0].InnerText);
-                _VM.Topmost = bool.Parse(doc.GetElementsByTagName("Topmost")[0].InnerText);
-
+                ViewModel.Instance.IntgrStatus = bool.Parse(doc.GetElementsByTagName("IntgrStatus")[0].InnerText);
+                ViewModel.Instance.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
+                ViewModel.Instance.IntgrScanWindowActivity = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowActivity")[0].InnerText);
+                ViewModel.Instance.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
+                ViewModel.Instance.IntgrScanWindowTime = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowTime")[0].InnerText);
+                ViewModel.Instance.PrefixTime = bool.Parse(doc.GetElementsByTagName("PrefixTime")[0].InnerText);
+                ViewModel.Instance.OnlyShowTimeVR = bool.Parse(doc.GetElementsByTagName("OnlyShowTimeVR")[0].InnerText);
+                ViewModel.Instance.Time24H = bool.Parse(doc.GetElementsByTagName("Time24H")[0].InnerText);
+                ViewModel.Instance.ScanInterval = int.Parse(doc.GetElementsByTagName("ScanInterval")[0].InnerText);
+                ViewModel.Instance.CurrentMenuItem = int.Parse(doc.GetElementsByTagName("CurrentMenuItem")[0].InnerText);
+                ViewModel.Instance.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
+                ViewModel.Instance.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
+                ViewModel.Instance.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
+                ViewModel.Instance.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
+                ViewModel.Instance.ScanPauseTimeout = int.Parse(doc.GetElementsByTagName("ScanPauseTimeout")[0].InnerText);
+                ViewModel.Instance.PrefixChat = bool.Parse(doc.GetElementsByTagName("PrefixChat")[0].InnerText);
+                ViewModel.Instance.ChatFX = bool.Parse(doc.GetElementsByTagName("ChatFX")[0].InnerText);
+                ViewModel.Instance.PauseIconMusic = bool.Parse(doc.GetElementsByTagName("PauseIconMusic")[0].InnerText);
+                ViewModel.Instance.Topmost = bool.Parse(doc.GetElementsByTagName("Topmost")[0].InnerText);
+                ViewModel.Instance.RecentTikTokTTSVoice = doc.GetElementsByTagName("RecentTikTokTTSVoice")[0].InnerText;
+                ViewModel.Instance.TTSTikTokEnabled = bool.Parse(doc.GetElementsByTagName("TTSTikTokEnabled")[0].InnerText);
+                ViewModel.Instance.TTSCutOff = bool.Parse(doc.GetElementsByTagName("TTSCutOff")[0].InnerText);
+                ViewModel.Instance.RecentPlayBackOutput = doc.GetElementsByTagName("RecentPlayBackOutput")[0].InnerText;
+                ViewModel.Instance.AutoUnmuteTTS = bool.Parse(doc.GetElementsByTagName("AutoUnmuteTTS")[0].InnerText);
+                ViewModel.Instance.TTSVolume = float.Parse(doc.GetElementsByTagName("TTSVolume")[0].InnerText);
 
             }
             catch (Exception ex)
             {
-
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
 
 
 
-        public void LoadStatusList()
+
+
+        public static void LoadStatusList()
         {
-            if (File.Exists(Path.Combine(_VM.DataPath, "StatusList.xml")))
+            if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml")))
             {
-                string json = File.ReadAllText(Path.Combine(_VM.DataPath, "StatusList.xml"));
-                _VM.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
+                string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"));
+                ViewModel.Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
             }
             else
             {
                 Random random = new Random();
                 int randomId = random.Next(10, 99999999);
-                _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Bubs", MSGLenght = 4, MSGID = randomId });
-                _VM.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = true, msg = "Enjoy <$", MSGLenght = 8, MSGID = randomId });
-                _VM.SaveStatusList();
+                ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Bubs", MSGLenght = 4, MSGID = randomId });
+                ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = true, msg = "Enjoy <$", MSGLenght = 8, MSGID = randomId });
+                ViewModel.SaveStatusList();
             }
         }
 
-        public void CheckForUpdate()
+        public static void CheckForUpdate()
         {
             try
             {
-                string token = _ENCRY.DecryptString(_VM.ApiStream);
+                string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                 string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
-
-                using (var client = new HttpClient())
+                if (url != null)
                 {
-                    client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
-                    client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
-                    var response = client.GetAsync(url).Result;
-                    var json = response.Content.ReadAsStringAsync().Result;
-                    dynamic release = JsonConvert.DeserializeObject(json);
-                    string latestVersion = release.tag_name;
-                    _VM.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
-                    if (_VM.GitHubVersion != null)
+                    using (var client = new HttpClient())
                     {
-                        CompareVersions();
+                        client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
+                        client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
+                        var response = client.GetAsync(url).Result;
+                        var json = response.Content.ReadAsStringAsync().Result;
+                        dynamic release = JsonConvert.DeserializeObject(json);
+                        string latestVersion = release.tag_name;
+                        string tagURL = "https://github.com/BoiHanny/vrcosc-magicchatbox/releases/tag/" + latestVersion; 
+                        ViewModel.Instance.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
+                        if (ViewModel.Instance.GitHubVersion != null)
+                        {
+                            CompareVersions();
+                            ViewModel.Instance.NewVersionURL = release.assets[0].browser_download_url; // Store the download URL
+                            ViewModel.Instance.tagURL = tagURL;
+                        }
+                        else
+                        {
+                            ViewModel.Instance.VersionTxt = "Internal update server error";
+                            ViewModel.Instance.VersionTxtColor = "#F65F69";
+                            Logging.WriteInfo("Internal update server error", makeVMDump: true, MSGBox: false);
+                            ViewModel.Instance.CanUpdate = false;
+                        }
                     }
+
                 }
 
-            }
-            catch (Exception)
-            {
-
-                _VM.VersionTxt = "Can't check updates";
-                _VM.VersionTxtColor = "#F36734";
-            }
-
-        }
-
-        public void CompareVersions()
-        {
-
-            try
-            {
-                var currentVersion = _VM.AppVersion.VersionNumber;
-                var githubVersion = _VM.GitHubVersion.VersionNumber;
-                int result = currentVersion.CompareTo(githubVersion);
-                if (result < 0)
-                {
-                    _VM.VersionTxt = "New version available";
-                    _VM.VersionTxtColor = "#FF8AFF04";
-                }
-                else if (result == 0)
-                {
-                    _VM.VersionTxt = "You are up-to-date";
-                    _VM.VersionTxtColor = "#FF92CC90";
-                }
-                else
-                {
-                    _VM.VersionTxt = "You running a preview, fun!";
-                    _VM.VersionTxtColor = "#FFE816EA";
-                }
             }
             catch (Exception ex)
             {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                ViewModel.Instance.VersionTxt = "Can't check updates";
+                ViewModel.Instance.VersionTxtColor = "#F36734";
+            }
 
+        }
+
+
+        public static void CompareVersions()
+        {
+
+            try
+            {
+                var currentVersion = ViewModel.Instance.AppVersion.VersionNumber; ;
+                var githubVersion = ViewModel.Instance.GitHubVersion.VersionNumber;
+
+                    int result = currentVersion.CompareTo(githubVersion);
+                    if (result < 0)
+                    {
+                        ViewModel.Instance.VersionTxt = "Update now";
+                        ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
+                        ViewModel.Instance.CanUpdate = true;
+                    }
+                    else if (result == 0)
+                    {
+                        ViewModel.Instance.VersionTxt = "You are up-to-date";
+                        ViewModel.Instance.VersionTxtColor = "#FF92CC90";
+                        ViewModel.Instance.CanUpdate = false;
+                    }
+                    else
+                    {
+                        ViewModel.Instance.VersionTxt = "You running a preview, fun!";
+                        ViewModel.Instance.VersionTxtColor = "#FFE816EA";
+                        ViewModel.Instance.CanUpdate = false;
+                    }
+
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
     }
