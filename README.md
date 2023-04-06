@@ -26,7 +26,7 @@
 
 - **Desktop mode:** MagicChatbox shows "On desktop" on the UI, and displays which application you are currently focused on. It's a great way to keep track of your messages while multitasking. The Spotify integration also shows the currently playing song, making it easier to keep up with your favorite tunes.
 
-- **Status tab:** One of the most exciting changes we made in version 0.4.0 is the addition of the Status tab, which provides an easy way to manage your status items. You can sort your status items based on creation date, recent usage, and if they are a favorite. Each status item has three types of interactions - activate, delete, and favorite - and you can quickly add new items using the input box.
+- **Status tab:** One of the most exciting changes we made back in version 0.4.0 is the addition of the Status tab, which provides an easy way to manage your status items. You can sort your status items based on creation date, recent usage, and if they are a favorite. Each status item has three types of interactions - activate, delete, and favorite - and you can quickly add new items using the input box.
 
 - **Personal Message integration:** In addition to the Status tab, we have also added a new Personal Message integration, allowing you to easily share messages with others.
 
@@ -40,12 +40,16 @@
 
 - **Overload feature:** Finally, MagicChatbox features a unique overload feature that disables some integrations automatically if the number of characters in your message exceeds 140. The order of disabled integrations will be as follows: Personal Message, Windows Activity, Current Time, and finally Spotify. MagicChatbox will try to fill the 144 character cap, but when above it, it will disable the integration.
 
+- **Text to Speech:** allows you to communicate better with users in VRChat, you have a wide range of voices/languages. In settings, you can "Toggle VRChat voice on TTS", "Stop current playing TTS on new chat" and select the output device. We recommend using VoiceMeter or just a virtual audio cable.
+
 - **Options** tab allows you to customize your experience by enabling/disabling options such as showing only the time in VR, using 24-hour time format, adding "My time:" prefix, changing the OSC IP and port, and playing FX sounds for VRChat users when sending messages. Additionally, you can choose to add "💬" as a prefix for personal status messages and chat messages, and have the app always on top.
+
+- **In-app updates** will make it easier to keep it up-to-date, it will communicate with the GitHub API and pull the .ZIP file from the latest branch.
 
 ### Contact
 Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love to hear from you! Feel free to reach out to us through one of the following channels:
 
-- **Discord:**  [BoiHanny#6666](https://discordapp.com/users/270646719086198803)
+- **Discord:**  [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 - **Github Issues:**  [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)
 
 We're committed to providing the best possible experience for our users, and your feedback helps us make MagicChatbox even better.
