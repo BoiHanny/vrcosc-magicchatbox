@@ -1,4 +1,4 @@
-![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.6.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/11)
+![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.6.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/12)
 <!-- BEGIN LATEST DOWNLOAD BUTTON -->
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.5.0/Version-0.5.0.zip)
 <!-- END LATEST DOWNLOAD BUTTON -->
@@ -18,7 +18,8 @@
 
 [**Please make sure OSC is enabled in VRChat**](https://youtu.be/OHjN_q6RqGY?t=80)
 
-![197355959-83441bed-2b27-469e-974f-53acbc0badf9](https://user-images.githubusercontent.com/114599052/220212993-c8d47bc6-6646-4094-9974-0591a232093d.png)
+![197355959-83441bed-2b27-469e-974f-53acbc0badf9](https://user-images.githubusercontent.com/114599052/230503179-78b66c4c-cbd1-4a53-ad29-558d44432d5a.png)
+
 
 ### Features
 
