@@ -1,6 +1,6 @@
 ![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.6.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/12)
 <!-- BEGIN LATEST DOWNLOAD BUTTON -->
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.5.0/Version-0.5.0.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.6.0/Version-0.6.0.zip)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
 [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
