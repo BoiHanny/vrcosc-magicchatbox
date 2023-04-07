@@ -805,14 +805,17 @@
                                 Grid.Column="0"
                                 FontSize="16"
                                 FontFamily="Albert Sans Thin" 
-                                       Padding="15,0,0,0"
-                            />
+                                       Padding="15,0,0,0"/>
+                                <TextBlock x:Name="LearnMoreAboutTTSbtn" MouseUp="LearnMoreAboutTTSbtn_MouseUp" Cursor="Hand" Text="Learn more" 
+                       Foreground="#FF31B7B4"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Padding="10,0,0,0" HorizontalAlignment="Center"  Width="auto" VerticalAlignment="Center" TextDecorations="Underline" />
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="5">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TTSCutOff, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Stop current playing TTS on new chat</CheckBox>
-                                <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice on TTS</CheckBox>
+                                <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}" Margin="15,0,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice on TTS</CheckBox>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="15,0,0,15" Width="auto" Height="22">
                                     <ComboBox SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" x:Name="PlaybackOutputDeviceComboBox" ItemsSource="{Binding PlaybackOutputDevices,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="FriendlyName" Opacity="0.4" SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}" Width="186" Height="25" Margin="0"/>

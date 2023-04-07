@@ -645,5 +645,10 @@ namespace vrcosc_magicchatbox
         {
             OscSender.ToggleVoice(true);
         }
+
+        private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Play-TTS-Output-of-MagicChatbox-to-Main-Audio-Device-and-Microphone-in-VRChat-Using-VB-Audio-Cable-(Simple-Setup)");
+        }
     }
 }
