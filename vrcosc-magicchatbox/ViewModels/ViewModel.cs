@@ -15,10 +15,18 @@ namespace vrcosc_magicchatbox.ViewModels
         public static readonly ViewModel Instance = new ViewModel();
 
         public ICommand ActivateStatusCommand { get; set; }
+        public ICommand ToggleVoiceCommand { get; }
 
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
+            ToggleVoiceCommand = new RelayCommand(ToggleVoice);
+        }
+
+        private void ToggleVoice()
+        {
+            if(Instance.ToggleVoiceWithV)
+            OscSender.ToggleVoice(true);
         }
 
         public static void ActivateStatus(object parameter)
@@ -82,7 +90,10 @@ namespace vrcosc_magicchatbox.ViewModels
             }
 
         }
-
+        private void UpdateToggleVoiceText()
+        {
+            ToggleVoiceText = ToggleVoiceWithV ? "Toggle voice (V)" : "Toggle voice";
+        }
 
         #region Properties     
 
@@ -160,7 +171,43 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _NewVersionURL;
         private bool _CanUpdate;
 
+        private string _toggleVoiceText = "Toggle voice (V)";
+        public string ToggleVoiceText
+        {
+            get { return _toggleVoiceText; }
+            set
+            {
+                _toggleVoiceText = value;
+                NotifyPropertyChanged(nameof(ToggleVoiceText));
+            }
+        }
+
         private bool _AutoUnmuteTTS = true;
+
+
+        private bool _ToggleVoiceWithV = true;
+        public bool ToggleVoiceWithV
+        {
+            get { return _ToggleVoiceWithV; }
+            set
+            {
+                _ToggleVoiceWithV = value;
+                NotifyPropertyChanged(nameof(ToggleVoiceWithV));
+                UpdateToggleVoiceText();
+            }
+        }
+
+        private bool _TTSBtnShadow = false;
+        public bool TTSBtnShadow
+        {
+            get { return _TTSBtnShadow; }
+            set
+            {
+                _TTSBtnShadow = value;
+                NotifyPropertyChanged(nameof(TTSBtnShadow));
+                MainWindow.ShadowOpacity = value ? 1 : 0;
+            }
+        }
         public bool AutoUnmuteTTS
         {
             get { return _AutoUnmuteTTS; }
@@ -302,7 +349,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(TTSTikTokEnabled));
             }
         }
-        private string _RecentTikTokTTSVoice;
+        private string _RecentTikTokTTSVoice = "en_au_001";
         public string RecentTikTokTTSVoice
         {
             get { return _RecentTikTokTTSVoice; }

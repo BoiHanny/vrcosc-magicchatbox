@@ -3,15 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local1="clr-namespace:vrcosc_magicchatbox.Classes"
+        xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="MagicChatbox by BoiHanny" Height="650" Width="900"
         WindowStyle="None" Topmost="{Binding Topmost, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98" VerticalAlignment="Bottom">
-
+    <i:Interaction.Behaviors>
+        <local:CustomKeyBinding Key="V" Command="{Binding ToggleVoiceCommand}"/>
+    </i:Interaction.Behaviors>
     <Window.Resources>
         <ResourceDictionary>
-            <local1:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
-            <local1:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+            <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+            <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -777,6 +781,7 @@
                         <Grid Grid.Row="3">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="WindowOnTop_checkbox" IsChecked="{Binding Topmost, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Always on top</CheckBox>
+                                <CheckBox x:Name="ToggleVoiceWithV" IsChecked="{Binding ToggleVoiceWithV, Mode=TwoWay}" Margin="15,0,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice with 'V'</CheckBox>
                                 <StackPanel Orientation="Horizontal">
                                     <Button Click="ResetFavorites_Click" x:Name="ResetFavorites" HorizontalAlignment="Left" Content="Reset Status" Style="{DynamicResource Status_Button_style}" Height="25" Width="85" Margin="15,0,5,15"></Button>
                                     <Button Click="MakeDataDump_Click" x:Name="MakeDataDump" Content="Make data dump" Style="{DynamicResource Status_Button_style}" Height="25" Width="99" Margin="5,0,5,15"/>
@@ -904,7 +909,7 @@
                     <StackPanel Grid.Row="1" Margin="0,155,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
                         
                         <StackPanel  Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5,5"  Width="auto" Height="auto">
-                            <Button Click="ToggleVoicebtn_Click" x:Name="ToggleVoicebtn" Content="Toggle voice" Style="{DynamicResource Status_Button_style}" Height="27" Width="101"/>
+                            <Button local:ButtonProperties.ShadowTrigger="{Binding TTSBtnShadow}" Click="ToggleVoicebtn_Click" x:Name="ToggleVoicebtn" Content="{Binding ToggleVoiceText}" Style="{DynamicResource Status_Button_style_Shadow}" Height="27" Width="101"/>
                         </StackPanel>
 
 

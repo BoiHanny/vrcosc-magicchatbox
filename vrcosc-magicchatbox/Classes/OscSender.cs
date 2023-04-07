@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -38,7 +39,7 @@ namespace vrcosc_magicchatbox.Classes
         }
 
 
-        public static void ToggleVoice(bool force = false)
+        public static async Task ToggleVoice(bool force = false)
         {
             if (ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS || force && ViewModel.Instance.MasterSwitch)
             {
@@ -46,8 +47,10 @@ namespace vrcosc_magicchatbox.Classes
                 {
                     oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                     oscSender.Send(new OscMessage("/input/Voice", 1));
-                    Thread.Sleep(600);
+                    ViewModel.Instance.TTSBtnShadow = true;
+                    Thread.Sleep(100);
                     oscSender.Send(new OscMessage("/input/Voice", 0));
+                    ViewModel.Instance.TTSBtnShadow = false;
                 }
                 catch (Exception ex)
                 {

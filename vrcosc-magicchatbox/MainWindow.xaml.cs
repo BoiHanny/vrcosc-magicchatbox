@@ -23,11 +23,29 @@ namespace vrcosc_magicchatbox
     public partial class MainWindow : Window
     {
         public float samplingTime = 1;
+        public static readonly DependencyProperty ShadowOpacityProperty = DependencyProperty.Register("ShadowOpacity", typeof(double), typeof(MainWindow), new PropertyMetadata(0.0));
 
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
         private System.Timers.Timer typingTimer;
         private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
+        private static double _shadowOpacity;
+        public static double ShadowOpacity
+        {
+            get => _shadowOpacity;
+            set
+            {
+                if (_shadowOpacity != value)
+                {
+                    _shadowOpacity = value;
+                    ShadowOpacityChanged?.Invoke(null, EventArgs.Empty);
+                }
+            }
+        }
+
+        public static event EventHandler ShadowOpacityChanged;
+
+
 
         public MainWindow()
         {
