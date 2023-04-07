@@ -40,7 +40,7 @@ namespace vrcosc_magicchatbox.Classes
 
         public static void ToggleVoice(bool force = false)
         {
-            if (ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS || force)
+            if (ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS || force && ViewModel.Instance.MasterSwitch)
             {
                 try
                 {

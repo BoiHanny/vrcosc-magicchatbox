@@ -457,7 +457,7 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             string chat = ViewModel.Instance.NewChattingTxt;
-            if (chat.Length > 0 && chat.Length <= 141)
+            if (chat.Length > 0 && chat.Length <= 141 && ViewModel.Instance.MasterSwitch)
             {
                 OscSender.CreateChat(true);
                 OscSender.SendOSCMessage(ViewModel.Instance.ChatFX);

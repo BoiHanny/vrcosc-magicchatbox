@@ -42,8 +42,8 @@ namespace vrcosc_magicchatbox.Classes
             }
             catch (Exception ex)
             {
-                return audioBytes;
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                return audioBytes;
             }
             return audioBytes;
         }
