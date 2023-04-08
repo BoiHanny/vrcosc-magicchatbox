@@ -279,12 +279,49 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                
             }
         }
 
 
+        public static void LoadChatList()
+        {
+            try
+            {
+                if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml")))
+                {
+                    string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"));
+                    ViewModel.Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                }
+                else
+                {
 
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            
+        }
+
+        public static void SaveChatList()
+        {
+            try
+            {
+                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
+                    System.IO.File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"), json);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+
+        }
 
 
         public static void LoadStatusList()

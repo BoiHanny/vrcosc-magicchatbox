@@ -63,6 +63,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.MasterSwitch = true;
             DataController.LoadSettingsFromXML();
             DataController.LoadStatusList();
+            DataController.LoadChatList();
             ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
             SelectTTS();
             DataController.PopulateOutputDevices();
@@ -479,6 +480,7 @@ namespace vrcosc_magicchatbox
             {
                 OscSender.CreateChat(true);
                 OscSender.SendOSCMessage(ViewModel.Instance.ChatFX);
+                DataController.SaveChatList();
                 if (ViewModel.Instance.TTSTikTokEnabled == true)
                 {
                     if (DataAndSecurity.DataController.PopulateOutputDevices(true))
@@ -565,6 +567,7 @@ namespace vrcosc_magicchatbox
         private void ClearChat_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.LastMessages.Clear();
+            DataController.SaveChatList();
             StopChat_Click(null, null);
         }
 

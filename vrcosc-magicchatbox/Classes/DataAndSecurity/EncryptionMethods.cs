@@ -15,7 +15,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         //    using (Aes aes = Aes.Create())
         //    {
-        //        aes.Key = Encoding.UTF8.GetBytes(_VM.aesKey);
+        //        aes.Key = Encoding.UTF8.GetBytes(ViewModel.Instance.aesKey);
         //        aes.IV = iv;
 
         //        ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
