@@ -23,11 +23,29 @@ namespace vrcosc_magicchatbox
     public partial class MainWindow : Window
     {
         public float samplingTime = 1;
+        public static readonly DependencyProperty ShadowOpacityProperty = DependencyProperty.Register("ShadowOpacity", typeof(double), typeof(MainWindow), new PropertyMetadata(0.0));
 
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
         private System.Timers.Timer typingTimer;
         private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
+        private static double _shadowOpacity;
+        public static double ShadowOpacity
+        {
+            get => _shadowOpacity;
+            set
+            {
+                if (_shadowOpacity != value)
+                {
+                    _shadowOpacity = value;
+                    ShadowOpacityChanged?.Invoke(null, EventArgs.Empty);
+                }
+            }
+        }
+
+        public static event EventHandler ShadowOpacityChanged;
+
+
 
         public MainWindow()
         {
@@ -45,6 +63,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.MasterSwitch = true;
             DataController.LoadSettingsFromXML();
             DataController.LoadStatusList();
+            DataController.LoadChatList();
             ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
             SelectTTS();
             DataController.PopulateOutputDevices();
@@ -457,10 +476,11 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             string chat = ViewModel.Instance.NewChattingTxt;
-            if (chat.Length > 0 && chat.Length <= 141)
+            if (chat.Length > 0 && chat.Length <= 141 && ViewModel.Instance.MasterSwitch)
             {
                 OscSender.CreateChat(true);
                 OscSender.SendOSCMessage(ViewModel.Instance.ChatFX);
+                DataController.SaveChatList();
                 if (ViewModel.Instance.TTSTikTokEnabled == true)
                 {
                     if (DataAndSecurity.DataController.PopulateOutputDevices(true))
@@ -547,6 +567,7 @@ namespace vrcosc_magicchatbox
         private void ClearChat_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.LastMessages.Clear();
+            DataController.SaveChatList();
             StopChat_Click(null, null);
         }
 
@@ -626,6 +647,11 @@ namespace vrcosc_magicchatbox
         private void ToggleVoicebtn_Click(object sender, RoutedEventArgs e)
         {
             OscSender.ToggleVoice(true);
+        }
+
+        private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Play-TTS-Output-of-MagicChatbox-to-Main-Audio-Device-and-Microphone-in-VRChat-Using-VB-Audio-Cable-(Simple-Setup)");
         }
     }
 }

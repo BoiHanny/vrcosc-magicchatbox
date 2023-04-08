@@ -42,8 +42,8 @@ namespace vrcosc_magicchatbox.Classes
             }
             catch (Exception ex)
             {
-                return audioBytes;
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                return audioBytes;
             }
             return audioBytes;
         }
@@ -72,6 +72,8 @@ namespace vrcosc_magicchatbox.Classes
                     waveOut.Init(audioReader);
 
                     OscSender.ToggleVoice();
+                    Thread.Sleep(300);
+
                     waveOut.Play();
 
                     while (waveOut.PlaybackState == PlaybackState.Playing)

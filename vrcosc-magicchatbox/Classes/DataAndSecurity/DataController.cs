@@ -225,6 +225,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = ViewModel.Instance.TTSVolume.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("ToggleVoiceWithV");
+                    userNode.InnerText = ViewModel.Instance.ToggleVoiceWithV.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
                 }
                 catch (Exception ex)
@@ -270,16 +274,54 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.RecentPlayBackOutput = doc.GetElementsByTagName("RecentPlayBackOutput")[0].InnerText;
                 ViewModel.Instance.AutoUnmuteTTS = bool.Parse(doc.GetElementsByTagName("AutoUnmuteTTS")[0].InnerText);
                 ViewModel.Instance.TTSVolume = float.Parse(doc.GetElementsByTagName("TTSVolume")[0].InnerText);
+                ViewModel.Instance.ToggleVoiceWithV = bool.Parse(doc.GetElementsByTagName("ToggleVoiceWithV")[0].InnerText);
+
+            }
+            catch (Exception ex)
+            {
+                
+            }
+        }
+
+
+        public static void LoadChatList()
+        {
+            try
+            {
+                if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml")))
+                {
+                    string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"));
+                    ViewModel.Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                }
+                else
+                {
+
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            
+        }
+
+        public static void SaveChatList()
+        {
+            try
+            {
+                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
+                    System.IO.File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"), json);
+                }
 
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+
         }
-
-
-
 
 
         public static void LoadStatusList()

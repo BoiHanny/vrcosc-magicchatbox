@@ -88,6 +88,11 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             try
             {
+                if(ViewModel.Instance.MasterSwitch == false)
+                {
+                    ViewModel.Instance.ChatFeedbackTxt = "Sent to VRChat is off";
+                    return;
+                }
                 if (parameter is string text)
                 {
                     string savedtxt = ViewModel.Instance.NewChattingTxt;
