@@ -10,7 +10,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using static System.Net.WebRequestMethods;
 using Version = vrcosc_magicchatbox.ViewModels.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
