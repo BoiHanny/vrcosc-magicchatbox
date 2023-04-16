@@ -25,8 +25,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private void ToggleVoice()
         {
-            if(Instance.ToggleVoiceWithV)
-            OscSender.ToggleVoice(true);
+            if (Instance.ToggleVoiceWithV)
+                OscSender.ToggleVoice(true);
         }
 
         public static void ActivateStatus(object parameter)
@@ -53,7 +53,7 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
             }
-            
+
         }
         public static void SaveStatusList()
         {
@@ -170,8 +170,146 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _VrcConnected;
         private string _NewVersionURL;
         private bool _CanUpdate;
-
         private string _toggleVoiceText = "Toggle voice (V)";
+        private bool _AutoUnmuteTTS = true;
+        private bool _ToggleVoiceWithV = true;
+        private bool _TTSBtnShadow = false;
+        private float _TTSVolume = 0.2f;
+
+
+        private bool _AppIsEnabled = true;
+        public bool AppIsEnabled
+        {
+            get { return _AppIsEnabled; }
+            set
+            {
+                _AppIsEnabled = value;
+                NotifyPropertyChanged(nameof(AppIsEnabled));
+            }
+        }
+
+        private double _AppOpacity = 0.98;
+        public double AppOpacity
+        {
+            get { return _AppOpacity; }
+            set
+            {
+                _AppOpacity = value;
+                NotifyPropertyChanged(nameof(AppOpacity));
+            }
+        }
+
+
+        private ObservableCollection<ChatModelMsg> _OpenAIAPIBuiltInActions;
+        public ObservableCollection<ChatModelMsg> OpenAIAPIBuiltInActions
+        {
+            get { return _OpenAIAPIBuiltInActions; }
+            set
+            {
+                _OpenAIAPIBuiltInActions = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIBuiltInActions));
+            }
+        }
+
+        private string _OpenAIAPITestResponse;
+        public string OpenAIAPITestResponse
+        {
+            get { return _OpenAIAPITestResponse; }
+            set
+            {
+                _OpenAIAPITestResponse = value;
+                NotifyPropertyChanged(nameof(OpenAIAPITestResponse));
+            }
+        }
+        private int _OpenAIUsedTokens;
+        public int OpenAIUsedTokens
+        {
+            get { return _OpenAIUsedTokens; }
+            set
+            {
+                _OpenAIUsedTokens = value;
+                NotifyPropertyChanged(nameof(OpenAIUsedTokens));
+            }
+        }
+
+
+        private bool _IntelliChatModeration = true;
+        public bool IntelliChatModeration
+        {
+            get { return _IntelliChatModeration; }
+            set
+            {
+                _IntelliChatModeration = value;
+                NotifyPropertyChanged(nameof(IntelliChatModeration));
+            }
+        }
+
+        private string _OpenAIModerationUrl;
+        public string OpenAIModerationUrl
+        {
+            get { return _OpenAIModerationUrl; }
+            set
+            {
+                _OpenAIModerationUrl = value;
+                NotifyPropertyChanged(nameof(OpenAIModerationUrl));
+            }
+        }
+
+        private bool _IntgrIntelliChat = true;
+        public bool IntgrIntelliChat
+        {
+            get { return _IntgrIntelliChat; }
+            set
+            {
+                _IntgrIntelliChat = value;
+                NotifyPropertyChanged(nameof(IntgrIntelliChat));
+            }
+        }
+
+        private string _OpenAIAPISelectedModel;
+        public string OpenAIAPISelectedModel
+        {
+            get { return _OpenAIAPISelectedModel; }
+            set
+            {
+                _OpenAIAPISelectedModel = value;
+                NotifyPropertyChanged(nameof(OpenAIAPISelectedModel));
+            }
+        }
+
+        private ObservableCollection<string> _OpenAIAPIModels;
+        public ObservableCollection<string> OpenAIAPIModels
+        {
+            get { return _OpenAIAPIModels; }
+            set
+            {
+                _OpenAIAPIModels = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIModels));
+            }
+        }
+
+        private string _OpenAIAPIUrl;
+        public string OpenAIAPIUrl
+        {
+            get { return _OpenAIAPIUrl; }
+            set
+            {
+                _OpenAIAPIUrl = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIUrl));
+            }
+        }
+
+        private string _OpenAIAPIKey;
+        public string OpenAIAPIKey
+        {
+            get { return _OpenAIAPIKey; }
+            set
+            {
+                _OpenAIAPIKey = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIKey));
+            }
+        }
+
         public string ToggleVoiceText
         {
             get { return _toggleVoiceText; }
@@ -181,11 +319,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ToggleVoiceText));
             }
         }
-
-        private bool _AutoUnmuteTTS = true;
-
-
-        private bool _ToggleVoiceWithV = true;
         public bool ToggleVoiceWithV
         {
             get { return _ToggleVoiceWithV; }
@@ -196,8 +329,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 UpdateToggleVoiceText();
             }
         }
-
-        private bool _TTSBtnShadow = false;
         public bool TTSBtnShadow
         {
             get { return _TTSBtnShadow; }
@@ -219,7 +350,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private float _TTSVolume = 0.2f;
+
         public float TTSVolume
         {
             get { return _TTSVolume; }

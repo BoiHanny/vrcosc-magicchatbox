@@ -16,6 +16,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 {
     internal static class DataController
     {
+
         public static List<Voice> ReadTkTkTTSVoices()
         {
             try
@@ -47,6 +48,27 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 return null;
             }
 
+        }
+
+        public static void LoadIntelliChatBuiltInActions()
+        {
+            try
+            {
+                if (File.Exists(@"Json\\OpenAIAPIBuiltInActions.json"))
+                {
+                    string json = File.ReadAllText(@"Json\\OpenAIAPIBuiltInActions.json");
+                    ViewModel.Instance.OpenAIAPIBuiltInActions = JsonConvert.DeserializeObject<ObservableCollection<ChatModelMsg>>(json);
+                }
+                else
+                {
+                    // Initialize PreCreatedActions with default actions or an empty list
+                    ViewModel.Instance.OpenAIAPIBuiltInActions = new ObservableCollection<ChatModelMsg>();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception, e.g., by logging it
+            }
         }
 
         public static bool PopulateOutputDevices(bool beforeTTS= false)
@@ -228,6 +250,18 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = ViewModel.Instance.ToggleVoiceWithV.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("OpenAIAPIKey");
+                    userNode.InnerText = ViewModel.Instance.OpenAIAPIKey.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("OpenAIAPISelectedModel");
+                    userNode.InnerText = ViewModel.Instance.OpenAIAPISelectedModel.ToString();
+                    rootNode.AppendChild(userNode);
+
+                    userNode = xmlDoc.CreateElement("OpenAIUsedTokens");
+                    userNode.InnerText = ViewModel.Instance.OpenAIUsedTokens.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
                 }
                 catch (Exception ex)
@@ -274,7 +308,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.AutoUnmuteTTS = bool.Parse(doc.GetElementsByTagName("AutoUnmuteTTS")[0].InnerText);
                 ViewModel.Instance.TTSVolume = float.Parse(doc.GetElementsByTagName("TTSVolume")[0].InnerText);
                 ViewModel.Instance.ToggleVoiceWithV = bool.Parse(doc.GetElementsByTagName("ToggleVoiceWithV")[0].InnerText);
-
+                ViewModel.Instance.OpenAIAPIKey = doc.GetElementsByTagName("OpenAIAPIKey")[0].InnerText;
+                ViewModel.Instance.OpenAIAPISelectedModel = doc.GetElementsByTagName("OpenAIAPISelectedModel")[0].InnerText;
+                ViewModel.Instance.OpenAIUsedTokens = int.Parse(doc.GetElementsByTagName("OpenAIUsedTokens")[0].InnerText);
             }
             catch (Exception ex)
             {

@@ -66,6 +66,8 @@ namespace vrcosc_magicchatbox
             DataController.LoadChatList();
             ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
             SelectTTS();
+            OpenAIClient.LoadOpenAIClient();
+            DataController.LoadIntelliChatBuiltInActions();
             DataController.PopulateOutputDevices();
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
@@ -652,6 +654,30 @@ namespace vrcosc_magicchatbox
         private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)
         {
             Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Play-TTS-Output-of-MagicChatbox-to-Main-Audio-Device-and-Microphone-in-VRChat-Using-VB-Audio-Cable-(Simple-Setup)");
+        }
+
+        private void LearnMoreAboutIntelliChatAI_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://openai.com/product");
+        }
+
+        private void IntelliChatAIapiPage_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://platform.openai.com/account/api-keys");
+        }
+
+        private async void OpenAIAPITestConnection_ClickAsync(object sender, RoutedEventArgs e)
+        {
+            //ChatModelMsg action = ViewModel.Instance.OpenAIAPIBuiltInActions.FirstOrDefault(a => a.FriendlyName == "Add Emojis");
+            //ChatModelMsg response = await OpenAIClient.ExecuteActionAsync(action, ViewModel.Instance.NewChattingTxt);
+            //ViewModel.Instance.NewChattingTxt = response.Content;
+            ViewModel.Instance.OpenAIAPITestResponse = await OpenAIClient.TestAPIConnection();
+        }
+
+
+        private void OpenAITerms_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://openai.com/policies/plugin-terms");
         }
     }
 }

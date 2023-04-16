@@ -7,7 +7,7 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="MagicChatbox by BoiHanny" Height="650" Width="900"
-        WindowStyle="None" Topmost="{Binding Topmost, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" Opacity="0.98" VerticalAlignment="Bottom">
+        WindowStyle="None" Topmost="{Binding Topmost, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" ResizeMode="NoResize" AllowsTransparency="True" WindowStartupLocation="CenterScreen" IsEnabled="{Binding AppIsEnabled, UpdateSourceTrigger=PropertyChanged}" Opacity="{Binding AppOpacity, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom">
     <i:Interaction.Behaviors>
         <local:CustomKeyBinding Key="V" Command="{Binding ToggleVoiceCommand}"/>
     </i:Interaction.Behaviors>
@@ -730,8 +730,9 @@
                             <RowDefinition Height="30"/>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="30"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="30"/>
                         </Grid.RowDefinitions>
-
                         <Grid Grid.Row="0">
                             <Grid.Background>
                                 <LinearGradientBrush EndPoint="0.5,0" StartPoint="1,1" SpreadMethod="Pad">
@@ -761,7 +762,69 @@
                                 <CheckBox x:Name="ChatFX_checkbox" IsChecked="{Binding ChatFX, Mode=TwoWay}" Margin="15,0,0,15" Height="22" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Play FX sound for VRChat users when sending message</CheckBox>
                             </StackPanel>
                         </Grid>
+
                         <Grid Grid.Row="2">
+                            <Grid.Background>
+                                <LinearGradientBrush EndPoint="0.5,0" StartPoint="1,1" SpreadMethod="Pad">
+                                    <GradientStop Color="#FF3A3053"/>
+                                    <GradientStop Color="#FF40365B" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  HorizontalAlignment="Left">
+                                <TextBlock Text="IntelliChat" 
+                                Foreground="#FF7D7397"
+                                Grid.Column="0"
+                                FontSize="16"
+                                FontFamily="Albert Sans Thin" 
+                                       Padding="15,0,0,0"
+                            />
+                                <TextBlock x:Name="LearnMoreAboutIntelliChatAI" MouseUp="LearnMoreAboutIntelliChatAI_MouseUp" Cursor="Hand" Text="Learn more about OpenAI" 
+                       Foreground="#FF31B7B4"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Padding="10,0,0,0" HorizontalAlignment="Center"  Width="auto" VerticalAlignment="Center" TextDecorations="Underline" />
+                                <TextBlock x:Name="IntelliChatAIapiPage" MouseUp="IntelliChatAIapiPage_MouseUp" Cursor="Hand" Text="Generate API key" 
+                       Foreground="#FF31B7B4"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Padding="10,0,0,0" HorizontalAlignment="Center"  Width="auto" VerticalAlignment="Center" TextDecorations="Underline" />
+                                <TextBlock x:Name="OpenAITerms" MouseUp="OpenAITerms_MouseUp" Cursor="Hand" Text="OpenAI terms" 
+                       Foreground="#FF847E94"
+                       FontSize="12"
+                       FontFamily="Albert Sans Thin" Padding="10,0,0,0" HorizontalAlignment="Center"  Width="auto" VerticalAlignment="Center"  />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="3">
+                            <StackPanel Height="auto" Width="auto" VerticalAlignment="Top" HorizontalAlignment="Left">
+                                <CheckBox  x:Name="IntelliChat_Enable" IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Enable IntelliChat</CheckBox>
+                                <CheckBox  x:Name="IntelliChatModeration" IsChecked="{Binding IntelliChatModeration, Mode=TwoWay}" Margin="15,0,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265" Content="Moderation on prompts to OpenAI"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="15,0,0,15" Width="auto" Height="22">
+                                    <ComboBox x:Name="IntelliChatAI_Model"  SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" ItemsSource="{Binding OpenAIAPIModels, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding OpenAIAPISelectedModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="135" BorderBrush="#FF020000" Opacity="0.4" FontSize="11.5" Height="21"/>
+                                    <TextBlock FontSize="16" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1"  VerticalAlignment="Center" Margin="10,0,5,0" ><Run Text="GPT Model (use GPT-3 for cheap and fast "/><Run Language="en-gb" Text="promts"/><Run Text=")"/></TextBlock>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,15" VerticalAlignment="Center" Width="auto" Height="auto">
+                                    <StackPanel Height="auto">
+                                        <TextBlock Text="OpenAI API key" 
+                                            Foreground="#FFB9B5C1"
+                                            Grid.Column="0"
+                                            FontSize="14"
+                                            FontFamily="Albert Sans Thin" 
+                                            Padding="15,0,0,0"/>
+                                        <TextBox Background="#FF7B7195" BorderThickness="0" x:Name="OpenAIAPIUrl" Margin="15,3,0,0" Width="223" Height="26" Text="{Binding OpenAIAPIKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Padding="5,0,0,0" FontSize="15" Foreground="#FF240E54"/>
+                                    </StackPanel>
+                                    <Button x:Name="OpenAIAPITestConnection" Click="OpenAIAPITestConnection_ClickAsync" VerticalAlignment="Bottom" Content="Say 'Hi' to GPT" Style="{DynamicResource Status_Button_style}" Height="26" Width="85" Margin="15,15,5,0"/>
+                                    <TextBlock Text="{Binding OpenAIAPITestResponse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        VerticalAlignment="Bottom"
+                                        Foreground="#FF008BFF"
+                                        Grid.Column="0"
+                                        FontSize="12"
+                                        FontFamily="Albert Sans Thin" 
+                                        Padding="5,0,0,5"
+                                               Width="310"
+                                        MaxWidth="200"       
+                                    />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="4">
                             <Grid.Background>
                                 <LinearGradientBrush EndPoint="0.5,0" StartPoint="1,1" SpreadMethod="Pad">
                                     <GradientStop Color="#FF3A3053"/>
@@ -778,7 +841,7 @@
                             />
                             </StackPanel>
                         </Grid>
-                        <Grid Grid.Row="3">
+                        <Grid Grid.Row="5">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="WindowOnTop_checkbox" IsChecked="{Binding Topmost, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Always on top</CheckBox>
                                 <CheckBox x:Name="ToggleVoiceWithV" IsChecked="{Binding ToggleVoiceWithV, Mode=TwoWay}" Margin="15,0,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice with 'V'</CheckBox>
@@ -792,7 +855,7 @@
 
                             </StackPanel>
                         </Grid>
-                        <Grid Grid.Row="4">
+                        <Grid Grid.Row="6">
                             <Grid.Background>
                                 <LinearGradientBrush EndPoint="0.5,0" StartPoint="1,1" SpreadMethod="Pad">
                                     <GradientStop Color="#FF3A3053"/>
@@ -812,7 +875,7 @@
                        FontFamily="Albert Sans Thin" Padding="10,0,0,0" HorizontalAlignment="Center"  Width="auto" VerticalAlignment="Center" TextDecorations="Underline" />
                             </StackPanel>
                         </Grid>
-                        <Grid Grid.Row="5">
+                        <Grid Grid.Row="7">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TTSCutOff, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Stop current playing TTS on new chat</CheckBox>
                                 <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}" Margin="15,15,0,15" Height="21" Style="{DynamicResource SettingsCheckbox}" FontSize="18" FontFamily="Comfortaa Light" Foreground="#FFB9B5C1" BorderBrush="#FF2D1265">Toggle VRChat voice on TTS</CheckBox>
@@ -824,7 +887,7 @@
 
                             </StackPanel>
                         </Grid>
-                        <Grid Grid.Row="6">
+                        <Grid Grid.Row="8">
                             <Grid.Background>
                                 <LinearGradientBrush EndPoint="0.5,0" StartPoint="1,1" SpreadMethod="Pad">
                                     <GradientStop Color="#FF3A3053"/>
@@ -841,7 +904,7 @@
                             />
                             </StackPanel>
                         </Grid>
-                        <Grid Grid.Row="7">
+                        <Grid Grid.Row="9">
                             <StackPanel Height="auto" VerticalAlignment="Top"  HorizontalAlignment="Left">
                                 <TextBlock Text="Local IP address" 
                                 Foreground="#FFB9B5C1"
@@ -910,7 +973,7 @@
 
 
                     <StackPanel Grid.Row="1" Margin="0,155,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
-                        
+
                         <StackPanel  Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5,5"  Width="auto" Height="auto">
                             <Button local:ButtonProperties.ShadowTrigger="{Binding TTSBtnShadow}" Click="ToggleVoicebtn_Click" x:Name="ToggleVoicebtn" Content="{Binding ToggleVoiceText}" Style="{DynamicResource Status_Button_style_Shadow}" Height="27" Width="101"/>
                         </StackPanel>
@@ -937,7 +1000,7 @@
                                 <Slider x:Name="VolumeSlider" Style="{StaticResource CustomSlider}" Margin="2.2,0,4.5,0" Width="134.5" Minimum="0" Maximum="1" Value="{Binding Path=TTSVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="12" />
                             </StackPanel>
                         </StackPanel>
-                        
+
                     </StackPanel>
                     <Grid Grid.Row="3" Height="45" VerticalAlignment="Bottom">
                         <TextBlock Text="{Binding UpdateStatustxt}" 
