@@ -5,11 +5,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection.Metadata;
-using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
@@ -141,7 +138,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
                 else
                 {
-                    if(response.ex.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase))
+                    if (response.ex.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase))
                     {
                         return $"Please check your API key";
                     }
@@ -149,7 +146,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         return $"{response.ex}";
                 }
 
-               
+
             }
             catch (Exception ex)
             {
@@ -158,7 +155,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
-        public static async Task<ChatModelMsg> ExecuteActionAsync(ChatModelMsg action, string? content = null)
+        public static async Task<ChatModelMsg> ExecuteActionAsync(ChatModelMsg action)
         {
             try
             {
@@ -169,18 +166,18 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         action
                     };
 
-                    if (content != null)
+                    if (ViewModel.Instance.NewChattingTxt.Length > 0 || action.takeChatBoxAsUserInput)
                     {
                         messages.Add(new ChatModelMsg
                         {
                             Role = ChatModelMsg.RoleType.User,
-                            Content = content
-                        });
+                            Content = ViewModel.Instance.NewChattingTxt
+                        }); ;
                     }
                     if (ViewModel.Instance.IntelliChatModeration)
                     {
                         foreach (ChatModelMsg item in messages)
-                    {
+                        {
 
                             // Check if the content violates usage policies
                             bool flagged = await ModerateContentAsync(item.Content);
@@ -199,7 +196,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     else
                         action.ChatModerationFlagged = false;
 
-                    if((bool)action.ChatModerationFlagged)
+                    if ((bool)action.ChatModerationFlagged)
                     {
                         // Handle flagged content, for example, return a message saying the content is inappropriate
                         action.Content = "The generated content violates usage policies and cannot be displayed.";
@@ -224,7 +221,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                             return result;
                         }
                     }
-                    
+
                 }
                 else
                 {
@@ -291,8 +288,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     };
 
 
-                    if(result.TotalTokens > 0)
-                    ViewModel.Instance.OpenAIUsedTokens = (int)(ViewModel.Instance.OpenAIUsedTokens + result.TotalTokens);
+                    if (result.TotalTokens > 0)
+                        ViewModel.Instance.OpenAIUsedTokens = (int)(ViewModel.Instance.OpenAIUsedTokens + result.TotalTokens);
                     result.Completed = true;
                     return result;
                 }

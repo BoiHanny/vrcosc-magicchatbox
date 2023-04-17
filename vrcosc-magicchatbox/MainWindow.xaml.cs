@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -14,8 +15,6 @@ using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using NLog;
-using System.Windows.Shapes;
 
 
 namespace vrcosc_magicchatbox
@@ -170,7 +169,7 @@ namespace vrcosc_magicchatbox
                 }
             }
             catch (Exception ex) { Logging.WriteException(ex, makeVMDump: false, MSGBox: false); }
-            
+
         }
 
         public void scantick()
@@ -178,9 +177,9 @@ namespace vrcosc_magicchatbox
             try
             {
                 if (ViewModel.Instance.IntgrScanSpotify == true)
-                { 
-                    ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong(); 
-                    ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning(); 
+                {
+                    ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
+                    ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
                 }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
@@ -259,7 +258,7 @@ namespace vrcosc_magicchatbox
 
         private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if(ViewModel.Instance.CanUpdate)
+            if (ViewModel.Instance.CanUpdate)
             {
                 ViewModel.Instance.CanUpdate = false;
                 Task.Run(() => UpdateApp.PrepareUpdate());
@@ -431,7 +430,7 @@ namespace vrcosc_magicchatbox
             {
                 int overmax = count - 140;
                 ViewModel.Instance.ChatBoxColor = "#FFFF9393";
-                ViewModel.Instance.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}. Reign in that message!";
+                ViewModel.Instance.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}.";
             }
             else if (count == 0)
             {
@@ -499,7 +498,7 @@ namespace vrcosc_magicchatbox
 
                 Timer(null, null);
                 RecentScroll.ScrollToEnd();
-            }   
+            }
         }
 
         public static async Task TTSGOAsync(string chat, bool resent = false)
@@ -517,7 +516,7 @@ namespace vrcosc_magicchatbox
 
 
                 byte[] audioFromApi = await TTSController.GetAudioBytesFromTikTokAPI(chat);
-                if(audioFromApi != null)
+                if (audioFromApi != null)
                 {
                     var cancellationTokenSource = new CancellationTokenSource();
                     _activeCancellationTokens.Add(cancellationTokenSource);
@@ -635,7 +634,7 @@ namespace vrcosc_magicchatbox
 
         private void GitHubChanges_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if(ViewModel.Instance.tagURL == null)
+            if (ViewModel.Instance.tagURL == null)
             {
                 Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
             }
@@ -643,7 +642,7 @@ namespace vrcosc_magicchatbox
             {
                 Process.Start("explorer", ViewModel.Instance.tagURL);
             }
-            
+
         }
 
         private void ToggleVoicebtn_Click(object sender, RoutedEventArgs e)
@@ -678,6 +677,12 @@ namespace vrcosc_magicchatbox
         private void OpenAITerms_MouseUp(object sender, MouseButtonEventArgs e)
         {
             Process.Start("explorer", "https://openai.com/policies/plugin-terms");
+
+        }
+
+        private void IntgrIntelliWing_btn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntgrIntelliWing = !ViewModel.Instance.IntgrIntelliWing;
         }
     }
 }

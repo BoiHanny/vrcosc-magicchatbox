@@ -1,15 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vrcosc_magicchatbox.ViewModels;
 using NLog;
+using System;
+using System.IO;
 using System.Windows.Forms;
-using System.Windows.Shapes;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {

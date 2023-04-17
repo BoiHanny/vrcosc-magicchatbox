@@ -1,5 +1,4 @@
-﻿
-namespace vrcosc_magicchatbox.ViewModels
+﻿namespace vrcosc_magicchatbox.ViewModels
 {
     public class Voice
     {

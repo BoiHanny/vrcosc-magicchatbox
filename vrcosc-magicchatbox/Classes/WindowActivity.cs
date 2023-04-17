@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -25,8 +23,8 @@ namespace vrcosc_magicchatbox.Classes
 
                 if (hwnd == null)
                 {
-                    return "Unknown";
                     Logging.WriteInfo("Unknown GetForegroundProcessName", makeVMDump: false, MSGBox: false);
+                    return "Unknown";
                 }
 
 

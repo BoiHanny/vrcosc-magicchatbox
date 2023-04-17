@@ -6,7 +6,7 @@ namespace vrcosc_magicchatbox.Classes
 {
     public static class SystemStats
     {
-         public static string GetTime()
+        public static string GetTime()
         {
             try
             {

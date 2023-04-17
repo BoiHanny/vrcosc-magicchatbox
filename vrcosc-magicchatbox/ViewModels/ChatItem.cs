@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
@@ -88,7 +87,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             try
             {
-                if(ViewModel.Instance.MasterSwitch == false)
+                if (ViewModel.Instance.MasterSwitch == false)
                 {
                     ViewModel.Instance.ChatFeedbackTxt = "Sent to VRChat is off";
                     return;
@@ -124,7 +123,7 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
             }
-            
+
         }
 
 

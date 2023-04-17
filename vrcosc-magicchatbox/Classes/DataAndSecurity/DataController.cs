@@ -71,7 +71,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
         }
 
-        public static bool PopulateOutputDevices(bool beforeTTS= false)
+        public static bool PopulateOutputDevices(bool beforeTTS = false)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     else
                     {
                         ViewModel.Instance.SelectedPlaybackOutputDevice = ADevice;
-                        
+
                     }
                 }
             }
@@ -262,6 +262,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = ViewModel.Instance.OpenAIUsedTokens.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("IntgrIntelliWing");
+                    userNode.InnerText = ViewModel.Instance.IntgrIntelliWing.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
                 }
                 catch (Exception ex)
@@ -311,10 +315,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.OpenAIAPIKey = doc.GetElementsByTagName("OpenAIAPIKey")[0].InnerText;
                 ViewModel.Instance.OpenAIAPISelectedModel = doc.GetElementsByTagName("OpenAIAPISelectedModel")[0].InnerText;
                 ViewModel.Instance.OpenAIUsedTokens = int.Parse(doc.GetElementsByTagName("OpenAIUsedTokens")[0].InnerText);
+                ViewModel.Instance.IntgrIntelliWing = bool.Parse(doc.GetElementsByTagName("IntgrIntelliWing")[0].InnerText);
             }
             catch (Exception ex)
             {
-                
+
             }
         }
 
@@ -337,7 +342,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
 
             }
-            
+
         }
 
         public static void SaveChatList()
@@ -392,7 +397,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         var json = response.Content.ReadAsStringAsync().Result;
                         dynamic release = JsonConvert.DeserializeObject(json);
                         string latestVersion = release.tag_name;
-                        string tagURL = "https://github.com/BoiHanny/vrcosc-magicchatbox/releases/tag/" + latestVersion; 
+                        string tagURL = "https://github.com/BoiHanny/vrcosc-magicchatbox/releases/tag/" + latestVersion;
                         ViewModel.Instance.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
                         if (ViewModel.Instance.GitHubVersion != null)
                         {
@@ -430,25 +435,25 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 var currentVersion = ViewModel.Instance.AppVersion.VersionNumber; ;
                 var githubVersion = ViewModel.Instance.GitHubVersion.VersionNumber;
 
-                    int result = currentVersion.CompareTo(githubVersion);
-                    if (result < 0)
-                    {
-                        ViewModel.Instance.VersionTxt = "Update now";
-                        ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
-                        ViewModel.Instance.CanUpdate = true;
-                    }
-                    else if (result == 0)
-                    {
-                        ViewModel.Instance.VersionTxt = "You are up-to-date";
-                        ViewModel.Instance.VersionTxtColor = "#FF92CC90";
-                        ViewModel.Instance.CanUpdate = false;
-                    }
-                    else
-                    {
-                        ViewModel.Instance.VersionTxt = "You running a preview, fun!";
-                        ViewModel.Instance.VersionTxtColor = "#FFE816EA";
-                        ViewModel.Instance.CanUpdate = false;
-                    }
+                int result = currentVersion.CompareTo(githubVersion);
+                if (result < 0)
+                {
+                    ViewModel.Instance.VersionTxt = "Update now";
+                    ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
+                    ViewModel.Instance.CanUpdate = true;
+                }
+                else if (result == 0)
+                {
+                    ViewModel.Instance.VersionTxt = "You are up-to-date";
+                    ViewModel.Instance.VersionTxtColor = "#FF92CC90";
+                    ViewModel.Instance.CanUpdate = false;
+                }
+                else
+                {
+                    ViewModel.Instance.VersionTxt = "You running a preview, fun!";
+                    ViewModel.Instance.VersionTxtColor = "#FFE816EA";
+                    ViewModel.Instance.CanUpdate = false;
+                }
 
             }
             catch (Exception ex)

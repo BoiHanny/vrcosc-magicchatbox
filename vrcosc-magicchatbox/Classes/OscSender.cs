@@ -1,14 +1,14 @@
-﻿using vrcosc_magicchatbox.ViewModels;
-using CoreOSC;
-using System.Collections.Generic;
+﻿using CoreOSC;
 using System;
-using System.Text;
-using System.Linq;
-using System.Globalization;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -263,7 +263,7 @@ namespace vrcosc_magicchatbox.Classes
 
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
-            
+
 
 
         }
@@ -333,7 +333,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
-            
+
         }
 
         internal static void ClearChat()

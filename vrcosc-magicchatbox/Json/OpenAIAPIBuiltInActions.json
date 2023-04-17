@@ -10,7 +10,10 @@
     "ex": null,
     "ChatModerationFlagged": null,
     "temperature": 0.5,
-    "maxTokens": 50
+    "maxTokens": 50,
+    "InAppAction": "Chat",
+    "takeChatBoxAsUserInput": true,
+    "takeStatusBoxAsUserInput": false
   },
   {
     "FriendlyName": "Spelling check",
@@ -23,7 +26,10 @@
     "ex": null,
     "ChatModerationFlagged": null,
     "temperature": 1.0,
-    "maxTokens": 50
+    "maxTokens": 50,
+    "InAppAction": "Chat",
+    "takeChatBoxAsUserInput": true,
+    "takeStatusBoxAsUserInput": false
   },
   {
     "FriendlyName": "Shorten Message",
@@ -36,7 +42,10 @@
     "ex": null,
     "ChatModerationFlagged": null,
     "temperature": 0.5,
-    "maxTokens": 50
+    "maxTokens": 50,
+    "InAppAction": "Chat",
+    "takeChatBoxAsUserInput": true,
+    "takeStatusBoxAsUserInput": false
   },
   {
     "FriendlyName": "Suggest Conversation Topic",
@@ -49,11 +58,14 @@
     "ex": null,
     "ChatModerationFlagged": null,
     "temperature": 0.1,
-    "maxTokens": 50
+    "maxTokens": 50,
+    "InAppAction": "Chat",
+    "takeChatBoxAsUserInput": false,
+    "takeStatusBoxAsUserInput": false
   },
   {
     "FriendlyName": "SYSTEM_API_CHECK",
-    "Role": "User",
+    "Role": "System",
     "Content": "Say 'Hi'",
     "PromptTokens": null,
     "CompletionTokens": null,
@@ -62,7 +74,10 @@
     "ex": null,
     "ChatModerationFlagged": null,
     "temperature": 1.0,
-    "maxTokens": 2
+    "maxTokens": 2,
+    "InAppAction": "System",
+    "takeChatBoxAsUserInput": false,
+    "takeStatusBoxAsUserInput": false
   }
 
 ]

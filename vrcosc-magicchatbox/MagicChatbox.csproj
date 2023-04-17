@@ -42,6 +42,7 @@
     <None Remove="Img\Icons\SystemTime_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
+    <None Remove="Img\OpenAI_logo.png" />
     <None Remove="Json\OpenAIAPIBuiltInActions.json" />
     <None Remove="Json\voices.json" />
     <None Remove="NLog.config" />
@@ -81,6 +82,9 @@
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Img\OpenAI_logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Json\OpenAIAPIBuiltInActions.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

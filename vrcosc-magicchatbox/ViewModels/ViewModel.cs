@@ -177,6 +177,18 @@ namespace vrcosc_magicchatbox.ViewModels
         private float _TTSVolume = 0.2f;
 
 
+
+        private bool _IntgrIntelliWing = false;
+        public bool IntgrIntelliWing
+        {
+            get { return _IntgrIntelliWing; }
+            set
+            {
+                _IntgrIntelliWing = value;
+                NotifyPropertyChanged(nameof(IntgrIntelliWing));
+            }
+        }
+
         private bool _AppIsEnabled = true;
         public bool AppIsEnabled
         {

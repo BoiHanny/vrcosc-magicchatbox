@@ -1,6 +1,4 @@
-﻿using NAudio.SoundFont;
-
-namespace vrcosc_magicchatbox.ViewModels
+﻿namespace vrcosc_magicchatbox.ViewModels
 {
     public class ChatModelMsg
     {
@@ -9,6 +7,13 @@ namespace vrcosc_magicchatbox.ViewModels
             System,
             User,
             Assistant
+        }
+
+        public enum InAppActionTypes
+        {
+            Chat,
+            Status,
+            System
         }
 
         public string? FriendlyName { get; set; }
@@ -22,5 +27,8 @@ namespace vrcosc_magicchatbox.ViewModels
         public bool? ChatModerationFlagged { get; set; }
         public double? temperature { get; set; }
         public int? maxTokens { get; set; }
+        public InAppActionTypes InAppAction { get; set; }
+        public bool takeChatBoxAsUserInput { get; set; }
+        public bool takeStatusBoxAsUserInput { get; set; }
     }
 }

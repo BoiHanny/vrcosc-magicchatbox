@@ -1,15 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
@@ -46,14 +42,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 foreach (DirectoryInfo dir in currentAppDirectory.GetDirectories())
                 {
-                        dir.Delete(true); 
+                    dir.Delete(true);
                 }
             }
             catch (Exception ex)
             {
                 if (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    if(admin == true)
+                    if (admin == true)
                     {
                         MessageBoxResult result = MessageBox.Show($"Looks like you have MagicChatBox Running.\nPlease close MagicChatBox.\n\n'OK' to retry.\n'Cancel' to stop the update process.", $"MagicChatBox updater {ViewModel.Instance.AppVersion.VersionNumber} | Directory in Use", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                         if (result == MessageBoxResult.Cancel)
@@ -153,7 +149,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 Thread.Sleep(300);
                 using (WebClient webClient = new WebClient())
                 {
-                   await webClient.DownloadFileTaskAsync(ViewModel.Instance.NewVersionURL, zipPath);
+                    await webClient.DownloadFileTaskAsync(ViewModel.Instance.NewVersionURL, zipPath);
                 }
 
                 // Extract the contents of the zip file

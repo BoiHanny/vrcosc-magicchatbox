@@ -1,8 +1,8 @@
-﻿using System.Windows;
+﻿using Microsoft.Xaml.Behaviors;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using Microsoft.Xaml.Behaviors;
 
 namespace vrcosc_magicchatbox.Classes
 {
