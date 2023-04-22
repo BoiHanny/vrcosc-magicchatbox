@@ -177,6 +177,16 @@ namespace vrcosc_magicchatbox.ViewModels
         private float _TTSVolume = 0.2f;
 
 
+        private bool _GetForegroundProcessNew = true;
+        public bool GetForegroundProcessNew
+        {
+            get { return _GetForegroundProcessNew; }
+            set
+            {
+                _GetForegroundProcessNew = value;
+                NotifyPropertyChanged(nameof(GetForegroundProcessNew));
+            }
+        }
 
         private bool _IntgrIntelliWing = false;
         public bool IntgrIntelliWing

@@ -266,6 +266,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     userNode.InnerText = ViewModel.Instance.IntgrIntelliWing.ToString();
                     rootNode.AppendChild(userNode);
 
+                    userNode = xmlDoc.CreateElement("GetForegroundProcessNew");
+                    userNode.InnerText = ViewModel.Instance.GetForegroundProcessNew.ToString();
+                    rootNode.AppendChild(userNode);
+
                     xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
                 }
                 catch (Exception ex)
@@ -316,6 +320,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.OpenAIAPISelectedModel = doc.GetElementsByTagName("OpenAIAPISelectedModel")[0].InnerText;
                 ViewModel.Instance.OpenAIUsedTokens = int.Parse(doc.GetElementsByTagName("OpenAIUsedTokens")[0].InnerText);
                 ViewModel.Instance.IntgrIntelliWing = bool.Parse(doc.GetElementsByTagName("IntgrIntelliWing")[0].InnerText);
+                ViewModel.Instance.GetForegroundProcessNew = bool.Parse(doc.GetElementsByTagName("GetForegroundProcessNew")[0].InnerText);
             }
             catch (Exception ex)
             {

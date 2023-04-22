@@ -7,8 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using System.Windows.Media;
+using System.Diagnostics;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -228,10 +233,81 @@ namespace vrcosc_magicchatbox.Classes
                             }
                             else
                             {
-                                Logging.WriteException(new Exception("Playing SongTitle Length is 0\nTry installing the windows version of Spotify"), makeVMDump: true, MSGBox: true);
+                                string message = "Playing SongTitle Length is 0\nTry installing the windows version of Spotify\n";
+                                Uri uri = new Uri("https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/");
+
+                                // Create a new window
+                                Window infoWindow = new Window
+                                {
+                                    Title = "Information",
+                                    Width = 300,
+                                    Height = 130,
+                                    ResizeMode = ResizeMode.NoResize,
+                                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                                    Background = new SolidColorBrush(Color.FromRgb(46, 20, 103))
+                                };
+
+                                // Create Grid to hold the content
+                                Grid grid = new Grid();
+                                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                                // Add TextBlock with the message
+                                TextBlock msgText = new TextBlock
+                                {
+                                    Text = message,
+                                    TextWrapping = TextWrapping.Wrap,
+                                    Margin = new Thickness(20, 10, 20, 0),
+                                    Foreground = Brushes.White
+                                };
+                                Grid.SetRow(msgText, 0);
+                                grid.Children.Add(msgText);
+
+                                // Create StackPanel for buttons
+                                StackPanel buttonPanel = new StackPanel
+                                {
+                                    Orientation = Orientation.Horizontal,
+                                    HorizontalAlignment = HorizontalAlignment.Center,
+                                    Margin = new Thickness(0, 10, 0, 0)
+                                };
+                                Grid.SetRow(buttonPanel, 1);
+
+                                // Create a button to open the URL
+                                Button openUrlButton = new Button
+                                {
+                                    Content = "More help",
+                                    Width = 120,
+                                    Margin = new Thickness(5),
+                                    Background = new SolidColorBrush(Color.FromRgb(73, 62, 137)),
+                                    Foreground = Brushes.White
+                                };
+                                openUrlButton.Click += (s, e) => { Process.Start("explorer", uri.ToString()); infoWindow.Close(); };
+                                buttonPanel.Children.Add(openUrlButton);
+
+                                // Create a button to close the window
+                                Button closeButton = new Button
+                                {
+                                    Content = "Close",
+                                    Width = 120,
+                                    Margin = new Thickness(5),
+                                    Background = new SolidColorBrush(Color.FromRgb(73, 62, 137)),
+                                    Foreground = Brushes.White
+                                };
+                                closeButton.Click += (s, e) => { infoWindow.Close(); };
+                                buttonPanel.Children.Add(closeButton);
+
+                                grid.Children.Add(buttonPanel);
+
+                                // Set window content and show the window
+                                infoWindow.Content = grid;
+                                infoWindow.ShowDialog();
+
                                 ViewModel.Instance.IntgrScanSpotify = false;
                                 ViewModel.Instance.SpotifyPaused = true;
                             }
+
+
+
                         }
                     }
                 }
