@@ -52,6 +52,6 @@ Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love t
 
 - **Discord:**  [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 - **Github Issues:**  [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)
-- Wiki:[Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)
+- Wiki: [Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)
 
 We're committed to providing the best possible experience for our users, and your feedback helps us make MagicChatbox even better.
