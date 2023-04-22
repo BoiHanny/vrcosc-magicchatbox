@@ -203,7 +203,6 @@ namespace vrcosc_magicchatbox.Classes
                                 ViewModel.Instance.Spotify_Opacity = "0.5";
                             }
                         }
-
                         else
                         {
                             if (ViewModel.Instance.PlayingSongTitle.Length > 0)
@@ -229,7 +228,9 @@ namespace vrcosc_magicchatbox.Classes
                             }
                             else
                             {
+                                Logging.WriteException(new Exception("Playing SongTitle Length is 0\nTry installing the windows version of Spotify"), makeVMDump: true, MSGBox: true);
                                 ViewModel.Instance.IntgrScanSpotify = false;
+                                ViewModel.Instance.SpotifyPaused = true;
                             }
                         }
                     }

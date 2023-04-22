@@ -37,9 +37,10 @@ namespace vrcosc_magicchatbox.Classes
                         ViewModel.Instance.SpotifyPaused = true;
                         return "";
                     }
+
                 }
                 return "No music";
-                ViewModel.Instance.SpotifyPaused = true;
+
             }
             catch (Exception ex)
             {
