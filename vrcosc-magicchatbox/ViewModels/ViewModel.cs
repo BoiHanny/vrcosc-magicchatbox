@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -14,13 +17,71 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public static readonly ViewModel Instance = new ViewModel();
 
+        #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }
         public ICommand ToggleVoiceCommand { get; }
+        public ICommand SortScannedAppsByProcessNameCommand { get; }
+        public ICommand SortScannedAppsByFocusCountCommand { get; }
+        public ICommand SortScannedAppsByUsedNewMethodCommand { get; }
+        public ICommand SortScannedAppsByIsPrivateAppCommand { get; }
+        public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
+
+        #endregion
 
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
             ToggleVoiceCommand = new RelayCommand(ToggleVoice);
+            SortScannedAppsByProcessNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ProcessName));
+            SortScannedAppsByFocusCountCommand = new RelayCommand(() => SortScannedApps(SortProperty.FocusCount));
+            SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
+            SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
+            SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
+        }
+
+        public void SortScannedApps(SortProperty sortProperty)
+        {
+            var isAscending = _sortDirection[sortProperty];
+            _sortDirection[sortProperty] = !isAscending;
+
+            IOrderedEnumerable<ProcessInfo> sortedScannedApps;
+
+            switch (sortProperty)
+            {
+                case SortProperty.ProcessName:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.ProcessName)
+                        : _ScannedApps.OrderByDescending(process => process.ProcessName);
+                    break;
+
+                case SortProperty.UsedNewMethod:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.UsedNewMethod)
+                        : _ScannedApps.OrderByDescending(process => process.UsedNewMethod);
+                    break;
+
+                case SortProperty.ApplyCustomAppName:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.ApplyCustomAppName)
+                        : _ScannedApps.OrderByDescending(process => process.ApplyCustomAppName);
+                    break;
+
+                case SortProperty.FocusCount:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.FocusCount)
+                        : _ScannedApps.OrderByDescending(process => process.FocusCount);
+                    break;
+                case SortProperty.IsPrivateApp:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.IsPrivateApp)
+                        : _ScannedApps.OrderByDescending(process => process.IsPrivateApp);
+                    break;
+
+                default:
+                    throw new ArgumentException($"Invalid sort property: {sortProperty}");
+            }
+
+            ScannedApps = new ObservableCollection<ProcessInfo>(sortedScannedApps);
         }
 
         private void ToggleVoice()
@@ -55,6 +116,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
 
         }
+
+        public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "FocusCount")
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
+                });
+            }
+        }
+
         public static void SaveStatusList()
         {
             try
@@ -175,6 +248,58 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _ToggleVoiceWithV = true;
         private bool _TTSBtnShadow = false;
         private float _TTSVolume = 0.2f;
+
+
+        private ProcessInfo _LastProcessFocused = new ProcessInfo();
+        private Dictionary<SortProperty, bool> _sortDirection = new Dictionary<SortProperty, bool>
+        {
+            { SortProperty.ProcessName, true },
+            { SortProperty.UsedNewMethod, true },
+            { SortProperty.ApplyCustomAppName, true },
+            { SortProperty.IsPrivateApp, true },
+            { SortProperty.FocusCount, true }
+        };
+        public enum SortProperty
+        {
+            ProcessName,
+            UsedNewMethod,
+            ApplyCustomAppName,
+            IsPrivateApp,
+            FocusCount
+        }
+
+        private string _lastUsedSortDirection;
+        public string LastUsedSortDirection
+        {
+            get { return _lastUsedSortDirection; }
+            set
+            {
+                _lastUsedSortDirection = value;
+                NotifyPropertyChanged(nameof(LastUsedSortDirection));
+            }
+        }
+
+
+        public ProcessInfo LastProcessFocused
+        {
+            get { return _LastProcessFocused; }
+            set
+            {
+                _LastProcessFocused = value;
+                NotifyPropertyChanged(nameof(LastProcessFocused));
+            }
+        }
+
+        private ObservableCollection<ProcessInfo> _ScannedApps = new ObservableCollection<ProcessInfo>();
+        public ObservableCollection<ProcessInfo> ScannedApps
+        {
+            get { return _ScannedApps; }
+            set
+            {
+                _ScannedApps = value;
+                NotifyPropertyChanged(nameof(ScannedApps));
+            }
+        }
 
 
         private bool _GetForegroundProcessNew = true;

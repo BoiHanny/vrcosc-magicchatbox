@@ -63,6 +63,7 @@ namespace vrcosc_magicchatbox
             DataController.LoadSettingsFromXML();
             DataController.LoadStatusList();
             DataController.LoadChatList();
+            DataController.LoadAppList();
             ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
             SelectTTS();
             OpenAIClient.LoadOpenAIClient();
@@ -106,6 +107,7 @@ namespace vrcosc_magicchatbox
             try
             {
                 this.Hide();
+                DataController.SaveAppList();
                 DataAndSecurity.DataController.SaveSettingsToXML();
                 System.Environment.Exit(1);
             }
@@ -182,7 +184,10 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
                 }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)
+                {
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
+                }
+                    
                 ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();
                 if (ViewModel.Instance.IntgrScanWindowTime == true)
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();

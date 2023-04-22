@@ -321,6 +321,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.OpenAIUsedTokens = int.Parse(doc.GetElementsByTagName("OpenAIUsedTokens")[0].InnerText);
                 ViewModel.Instance.IntgrIntelliWing = bool.Parse(doc.GetElementsByTagName("IntgrIntelliWing")[0].InnerText);
                 ViewModel.Instance.GetForegroundProcessNew = bool.Parse(doc.GetElementsByTagName("GetForegroundProcessNew")[0].InnerText);
+
             }
             catch (Exception ex)
             {
@@ -358,6 +359,45 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
                     System.IO.File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"), json);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+
+        }
+
+        public static void LoadAppList()
+        {
+            try
+            {
+                if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml")))
+                {
+                    string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml"));
+                    ViewModel.Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
+                }
+                else
+                {
+
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+
+        }
+
+        public static void SaveAppList()
+        {
+            try
+            {
+                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(ViewModel.Instance.ScannedApps);
+                    System.IO.File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml"), json);
                 }
 
             }

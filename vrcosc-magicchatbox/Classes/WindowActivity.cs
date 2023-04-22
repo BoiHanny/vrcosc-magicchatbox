@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -25,48 +27,86 @@ namespace vrcosc_magicchatbox.Classes
 
                 if (hwnd == IntPtr.Zero)
                 {
-                    Logging.WriteInfo("Unknown GetForegroundProcessName", makeVMDump: false, MSGBox: false);
                     return "Unknown";
                 }
 
-                uint pid;
-                GetWindowThreadProcessId(hwnd, out pid);
+                GetWindowThreadProcessId(hwnd, out uint pid);
 
-                string processName = "Unknown";
+                string foregroundProcessName = string.Empty;
+                Process process = Process.GetProcesses().FirstOrDefault(p => p.Id == pid);
 
-                if (ViewModel.Instance.GetForegroundProcessNew)
+                if (process != null)
                 {
-                    try
+                    string processName;
+                    bool usedNewMethod = false;
+
+                    if (ViewModel.Instance.GetForegroundProcessNew)
                     {
-                        foreach (Process p in Process.GetProcesses())
+                        try
                         {
-                            if (p.Id == pid)
+                            processName = GetFileDescription(process.MainModule.FileName);
+                            usedNewMethod = true;
+                        }
+                        catch (System.ComponentModel.Win32Exception ex)
+                        {
+                            if (ex.Message != "Access is denied.")
                             {
-                                processName = GetFileDescription(p.MainModule.FileName);
-                                break;
+                                throw;
                             }
+
+                            processName = process.ProcessName;
                         }
                     }
-                    catch (System.ComponentModel.Win32Exception ex)
+                    else
                     {
-                        if (ex.Message != "Access is denied.")
+                        processName = process.ProcessName;
+                    }
+
+                    processName = RemoveExeExtension(processName);
+
+                    // Rest of the method remains unchanged
+                    ProcessInfo existingProcessInfo = ViewModel.Instance.ScannedApps.FirstOrDefault(info => info.ProcessName == processName);
+
+                    if (existingProcessInfo == null)
+                    {
+                        ProcessInfo processInfo = new ProcessInfo
                         {
-                            throw;
+                            ProcessName = processName,
+                            UsedNewMethod = usedNewMethod,
+                            ApplyCustomAppName = false,
+                            CustomAppName = string.Empty,
+                            IsPrivateApp = false,
+                            FocusCount = 1
+                        };
+
+                        ViewModel.Instance.ScannedApps.Add(processInfo);
+                        ViewModel.Instance.LastProcessFocused = processInfo;
+                        return processName;
+                    }
+                    else
+                    {
+                        if (ViewModel.Instance.LastProcessFocused.ProcessName != processName)
+                        {
+                            existingProcessInfo.FocusCount++;
+                            ViewModel.Instance.LastProcessFocused = existingProcessInfo;
+                        }
+
+                        if (existingProcessInfo.IsPrivateApp)
+                        {
+                            return "Private App";
+                        }
+                        else if (existingProcessInfo.ApplyCustomAppName)
+                        {
+                            return existingProcessInfo.CustomAppName;
+                        }
+                        else
+                        {
+                            return processName;
                         }
                     }
-
-                    // If the new method doesn't give a valid result, fall back to the old method.
-                    if (processName == "Unknown")
-                    {
-                        processName = GetProcessNameOldMethod(pid);
-                    }
-                }
-                else
-                {
-                    processName = GetProcessNameOldMethod(pid);
                 }
 
-                return processName;
+                return "Unknown";
             }
             catch (Exception)
             {
@@ -74,18 +114,13 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-        private static string GetProcessNameOldMethod(uint pid)
-        {
-            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcesses())
-            {
-                if (p.Id == pid)
-                {
-                    return p.ProcessName;
-                }
-            }
 
-            return "Unknown";
+        public static void SortScannedAppsByFocusCount()
+        {
+            ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>(
+                ViewModel.Instance.ScannedApps.OrderByDescending(p => p.FocusCount));
         }
+
         private static string GetFileDescription(string filePath)
         {
             try
@@ -97,6 +132,13 @@ namespace vrcosc_magicchatbox.Classes
             {
                 return Path.GetFileName(filePath);
             }
+        }
+
+        private static string RemoveExeExtension(string processName)
+        {
+            return processName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+                ? processName.Substring(0, processName.Length - 4)
+                : processName;
         }
 
         public static bool IsVRRunning()
