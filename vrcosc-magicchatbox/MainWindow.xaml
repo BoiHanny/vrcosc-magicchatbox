@@ -164,9 +164,31 @@
                         <GradientStop Color="#FF1B0C3A" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
-                <Grid Margin="0,0,0,0"/>
+                <Grid Margin="0,0,0,0">
+                    <ItemsControl ItemsSource="{Binding OpenAIAPIBuiltInActions}" Tag="Chat">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" MaxWidth="900" />
+                                <!-- Adjust MaxWidth based on the width of your buttons and the desired number of items per row -->
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Margin="3" Content="{Binding FriendlyName}"
+                                Width="150"
+                                Style="{StaticResource Status_Button_style_Small}"
+                                Command="{Binding DataContext.YourCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                FontSize="10"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
             </Border>
         </Grid>
+
 
 
         <Border Background="Transparent" Grid.Row="0" BorderBrush="#FF240E55" BorderThickness="1" Height="630" Margin="10,10,10,0" VerticalAlignment="Top">
