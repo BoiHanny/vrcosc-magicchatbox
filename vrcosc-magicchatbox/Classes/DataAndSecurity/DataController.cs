@@ -164,38 +164,47 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         rootNode = xmlDoc.SelectSingleNode("Settings");
                     }
 
-                    var settings = new Dictionary<string, Type>()
+                    var settings = new Dictionary<string, (Type type, string category)>()
                     {
-                        {"IntgrStatus", typeof(bool)},
-                        {"IntgrScanWindowActivity", typeof(bool)},
-                        {"IntgrScanSpotify", typeof(bool)},
-                        {"IntgrScanWindowTime", typeof(bool)},
-                        {"PrefixTime", typeof(bool)},
-                        {"OnlyShowTimeVR", typeof(bool)},
-                        {"ScanInterval", typeof(int)},
-                        {"OSCIP", typeof(string)},
-                        {"OSCPortOut", typeof(int)},
-                        {"Time24H", typeof(bool)},
-                        {"CurrentMenuItem", typeof(int)},
-                        {"PrefixIconMusic", typeof(bool)},
-                        {"PrefixIconStatus", typeof(bool)},
-                        {"ScanPauseTimeout", typeof(int)},
-                        {"PrefixChat", typeof(bool)},
-                        {"ChatFX", typeof(bool)},
-                        {"PauseIconMusic", typeof(bool)},
-                        {"Topmost", typeof(bool)},
-                        {"RecentTikTokTTSVoice", typeof(string)},
-                        {"TTSTikTokEnabled", typeof(bool)},
-                        {"TTSCutOff", typeof(bool)},
-                        {"RecentPlayBackOutput", typeof(string)},
-                        {"AutoUnmuteTTS", typeof(bool)},
-                        {"TTSVolume", typeof(float)},
-                        {"ToggleVoiceWithV", typeof(bool)},
-                        {"OpenAIAPIKey", typeof(string)},
-                        {"OpenAIAPISelectedModel", typeof(string)},
-                        {"OpenAIUsedTokens", typeof(int)},
-                        {"IntgrIntelliWing", typeof(bool)},
-                        {"GetForegroundProcessNew", typeof(bool)}
+                        {"IntgrStatus", (typeof(bool), "Integrations")},
+                        {"IntgrScanWindowActivity", (typeof(bool), "Integrations")},
+                        {"IntgrScanSpotify", (typeof(bool), "Integrations")},
+                        {"IntgrScanWindowTime", (typeof(bool), "Integrations")},
+                        {"IntgrIntelliWing", (typeof(bool), "Integrations")},
+                        {"ApplicationHookV2", (typeof(bool), "Integrations")},
+
+                        {"Time24H", (typeof(bool), "Time")},
+                        {"OnlyShowTimeVR", (typeof(bool), "Time")},
+                        {"PrefixTime", (typeof(bool), "Time")},
+
+                        {"CurrentMenuItem", (typeof(int), "Menu")},
+
+                        {"ScanInterval", (typeof(int), "Scanning")},
+                        {"ScanPauseTimeout", (typeof(int), "Scanning")},
+
+                        {"PrefixIconMusic", (typeof(bool), "Icons")},
+                        {"PauseIconMusic", (typeof(bool), "Icons")},
+                        {"PrefixIconStatus", (typeof(bool), "Icons")},
+
+                        {"PrefixChat", (typeof(bool), "Chat")},
+                        {"ChatFX", (typeof(bool), "Chat")},
+
+                        {"Topmost", (typeof(bool), "Window")},
+
+                        {"TTSTikTokEnabled", (typeof(bool), "TTS")},
+                        {"TTSCutOff", (typeof(bool), "TTS")},
+                        {"AutoUnmuteTTS", (typeof(bool), "TTS")},
+                        {"ToggleVoiceWithV", (typeof(bool), "TTS")},
+                        {"TTSVolume", (typeof(float), "TTS")},
+                        {"RecentTikTokTTSVoice", (typeof(string), "TTS")},
+                        {"RecentPlayBackOutput", (typeof(string), "TTS")},
+
+                        {"OpenAIAPIKey", (typeof(string), "OpenAI")},
+                        {"OpenAIAPISelectedModel", (typeof(string), "OpenAI")},
+                        {"OpenAIUsedTokens", (typeof(int), "OpenAI")},
+
+                        {"OSCIP", (typeof(string), "OSC")},
+                        {"OSCPortOut", (typeof(int), "OSC")},
                     };
 
                     foreach (var setting in settings)
@@ -203,6 +212,13 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         try
                         {
                             PropertyInfo property = ViewModel.Instance.GetType().GetProperty(setting.Key);
+                            XmlNode categoryNode = rootNode.SelectSingleNode(setting.Value.category);
+
+                            if (categoryNode == null)
+                            {
+                                categoryNode = xmlDoc.CreateElement(setting.Value.category);
+                                rootNode.AppendChild(categoryNode);
+                            }
 
                             if (saveSettings)
                             {
@@ -211,28 +227,28 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                 {
                                     XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
                                     settingNode.InnerText = value.ToString();
-                                    rootNode.AppendChild(settingNode);
+                                    categoryNode.AppendChild(settingNode);
                                 }
                             }
                             else
                             {
-                                XmlNode settingNode = rootNode.SelectSingleNode(setting.Key);
+                                XmlNode settingNode = categoryNode.SelectSingleNode(setting.Key);
 
                                 if (settingNode != null && !string.IsNullOrEmpty(settingNode.InnerText))
                                 {
-                                    if (setting.Value == typeof(bool))
+                                    if (setting.Value.type == typeof(bool))
                                     {
                                         property.SetValue(ViewModel.Instance, bool.Parse(settingNode.InnerText));
                                     }
-                                    else if (setting.Value == typeof(int))
+                                    else if (setting.Value.type == typeof(int))
                                     {
                                         property.SetValue(ViewModel.Instance, int.Parse(settingNode.InnerText));
                                     }
-                                    else if (setting.Value == typeof(float))
+                                    else if (setting.Value.type == typeof(float))
                                     {
                                         property.SetValue(ViewModel.Instance, float.Parse(settingNode.InnerText));
                                     }
-                                    else if (setting.Value == typeof(string))
+                                    else if (setting.Value.type == typeof(string))
                                     {
                                         property.SetValue(ViewModel.Instance, settingNode.InnerText);
                                     }
@@ -241,7 +257,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         }
                         catch (Exception ex)
                         {
-                            Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                            // Log the exception or handle it as needed
                         }
                     }
 
@@ -252,10 +268,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
                 catch (Exception ex)
                 {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                    // Log the exception or handle it as needed
                 }
             }
         }
+
 
 
 

@@ -302,14 +302,14 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _GetForegroundProcessNew = true;
-        public bool GetForegroundProcessNew
+        private bool _ApplicationHookV2 = true;
+        public bool ApplicationHookV2
         {
-            get { return _GetForegroundProcessNew; }
+            get { return _ApplicationHookV2; }
             set
             {
-                _GetForegroundProcessNew = value;
-                NotifyPropertyChanged(nameof(GetForegroundProcessNew));
+                _ApplicationHookV2 = value;
+                NotifyPropertyChanged(nameof(ApplicationHookV2));
             }
         }
 

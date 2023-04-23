@@ -40,7 +40,7 @@ namespace vrcosc_magicchatbox.Classes
                     string processName;
                     bool usedNewMethod = false;
 
-                    if (ViewModel.Instance.GetForegroundProcessNew)
+                    if (ViewModel.Instance.ApplicationHookV2)
                     {
                         try
                         {

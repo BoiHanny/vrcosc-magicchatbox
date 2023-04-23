@@ -1717,7 +1717,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="18"
                                 Foreground="#FFB9B5C1"
-                                IsChecked="{Binding GetForegroundProcessNew, Mode=TwoWay}"
+                                IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}"
                                 Unchecked="Update_Click">
                                 Enhanced application name in Window activity integration
