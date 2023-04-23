@@ -178,6 +178,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"OnlyShowTimeVR", (typeof(bool), "Time")},
                         {"PrefixTime", (typeof(bool), "Time")},
                         {"TimeShowTimeZone", (typeof(bool), "Time")},
+                        {"SelectedTimeZone", (typeof(Timezone), "Time")},
 
                         {"CurrentMenuItem", (typeof(int), "Menu")},
 
