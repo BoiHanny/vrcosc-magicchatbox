@@ -206,15 +206,19 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                             if (saveSettings)
                             {
-                                XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
-                                settingNode.InnerText = property.GetValue(ViewModel.Instance).ToString();
-                                rootNode.AppendChild(settingNode);
+                                object value = property.GetValue(ViewModel.Instance);
+                                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                                {
+                                    XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
+                                    settingNode.InnerText = value.ToString();
+                                    rootNode.AppendChild(settingNode);
+                                }
                             }
                             else
                             {
                                 XmlNode settingNode = rootNode.SelectSingleNode(setting.Key);
 
-                                if (settingNode != null)
+                                if (settingNode != null && !string.IsNullOrEmpty(settingNode.InnerText))
                                 {
                                     if (setting.Value == typeof(bool))
                                     {
@@ -252,6 +256,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
             }
         }
+
 
 
 
