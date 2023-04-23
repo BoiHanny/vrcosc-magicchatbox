@@ -60,7 +60,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.IntgrScanWindowTime = true;
             ViewModel.Instance.IntgrStatus = true;
             ViewModel.Instance.MasterSwitch = true;
-            DataController.LoadSettingsFromXML();
+            DataController.ManageSettingsXML();
             DataController.LoadStatusList();
             DataController.LoadChatList();
             DataController.LoadAppList();
@@ -107,14 +107,14 @@ namespace vrcosc_magicchatbox
             try
             {
                 this.Hide();
+                DataController.ManageSettingsXML(true);
                 DataController.SaveAppList();
-                DataAndSecurity.DataController.SaveSettingsToXML();
                 System.Environment.Exit(1);
             }
             catch (Exception ex)
             {
 
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
             }
 
         }

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -140,194 +141,120 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
 
         }
-        public static void SaveSettingsToXML()
+
+
+
+        public static void ManageSettingsXML(bool saveSettings = false)
         {
             if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
             {
                 try
                 {
                     XmlDocument xmlDoc = new XmlDocument();
-                    XmlNode rootNode = xmlDoc.CreateElement("Settings");
-                    xmlDoc.AppendChild(rootNode);
+                    XmlNode rootNode;
 
-                    XmlNode userNode = xmlDoc.CreateElement("IntgrStatus");
-                    userNode.InnerText = ViewModel.Instance.IntgrStatus.ToString();
-                    rootNode.AppendChild(userNode);
+                    if (saveSettings)
+                    {
+                        rootNode = xmlDoc.CreateElement("Settings");
+                        xmlDoc.AppendChild(rootNode);
+                    }
+                    else
+                    {
+                        xmlDoc.Load(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
+                        rootNode = xmlDoc.SelectSingleNode("Settings");
+                    }
 
-                    userNode = xmlDoc.CreateElement("IntgrScanWindowActivity");
-                    userNode.InnerText = ViewModel.Instance.IntgrScanWindowActivity.ToString();
-                    rootNode.AppendChild(userNode);
+                    var settings = new Dictionary<string, Type>()
+                    {
+                        {"IntgrStatus", typeof(bool)},
+                        {"IntgrScanWindowActivity", typeof(bool)},
+                        {"IntgrScanSpotify", typeof(bool)},
+                        {"IntgrScanWindowTime", typeof(bool)},
+                        {"PrefixTime", typeof(bool)},
+                        {"OnlyShowTimeVR", typeof(bool)},
+                        {"ScanInterval", typeof(int)},
+                        {"OSCIP", typeof(string)},
+                        {"OSCPortOut", typeof(int)},
+                        {"Time24H", typeof(bool)},
+                        {"CurrentMenuItem", typeof(int)},
+                        {"PrefixIconMusic", typeof(bool)},
+                        {"PrefixIconStatus", typeof(bool)},
+                        {"ScanPauseTimeout", typeof(int)},
+                        {"PrefixChat", typeof(bool)},
+                        {"ChatFX", typeof(bool)},
+                        {"PauseIconMusic", typeof(bool)},
+                        {"Topmost", typeof(bool)},
+                        {"RecentTikTokTTSVoice", typeof(string)},
+                        {"TTSTikTokEnabled", typeof(bool)},
+                        {"TTSCutOff", typeof(bool)},
+                        {"RecentPlayBackOutput", typeof(string)},
+                        {"AutoUnmuteTTS", typeof(bool)},
+                        {"TTSVolume", typeof(float)},
+                        {"ToggleVoiceWithV", typeof(bool)},
+                        {"OpenAIAPIKey", typeof(string)},
+                        {"OpenAIAPISelectedModel", typeof(string)},
+                        {"OpenAIUsedTokens", typeof(int)},
+                        {"IntgrIntelliWing", typeof(bool)},
+                        {"GetForegroundProcessNew", typeof(bool)}
+                    };
 
-                    userNode = xmlDoc.CreateElement("IntgrScanSpotify");
-                    userNode.InnerText = ViewModel.Instance.IntgrScanSpotify.ToString();
-                    rootNode.AppendChild(userNode);
+                    foreach (var setting in settings)
+                    {
+                        try
+                        {
+                            PropertyInfo property = ViewModel.Instance.GetType().GetProperty(setting.Key);
 
-                    userNode = xmlDoc.CreateElement("IntgrScanWindowTime");
-                    userNode.InnerText = ViewModel.Instance.IntgrScanWindowTime.ToString();
-                    rootNode.AppendChild(userNode);
+                            if (saveSettings)
+                            {
+                                XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
+                                settingNode.InnerText = property.GetValue(ViewModel.Instance).ToString();
+                                rootNode.AppendChild(settingNode);
+                            }
+                            else
+                            {
+                                XmlNode settingNode = rootNode.SelectSingleNode(setting.Key);
 
-                    userNode = xmlDoc.CreateElement("PrefixTime");
-                    userNode.InnerText = ViewModel.Instance.PrefixTime.ToString();
-                    rootNode.AppendChild(userNode);
+                                if (settingNode != null)
+                                {
+                                    if (setting.Value == typeof(bool))
+                                    {
+                                        property.SetValue(ViewModel.Instance, bool.Parse(settingNode.InnerText));
+                                    }
+                                    else if (setting.Value == typeof(int))
+                                    {
+                                        property.SetValue(ViewModel.Instance, int.Parse(settingNode.InnerText));
+                                    }
+                                    else if (setting.Value == typeof(float))
+                                    {
+                                        property.SetValue(ViewModel.Instance, float.Parse(settingNode.InnerText));
+                                    }
+                                    else if (setting.Value == typeof(string))
+                                    {
+                                        property.SetValue(ViewModel.Instance, settingNode.InnerText);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                        }
+                    }
 
-                    userNode = xmlDoc.CreateElement("OnlyShowTimeVR");
-                    userNode.InnerText = ViewModel.Instance.OnlyShowTimeVR.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("ScanInterval");
-                    userNode.InnerText = ViewModel.Instance.ScanInterval.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("OSCIP");
-                    userNode.InnerText = ViewModel.Instance.OSCIP.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("OSCPortOut");
-                    userNode.InnerText = ViewModel.Instance.OSCPortOut.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("Time24H");
-                    userNode.InnerText = ViewModel.Instance.Time24H.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("CurrentMenuItem");
-                    userNode.InnerText = ViewModel.Instance.CurrentMenuItem.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("PrefixIconMusic");
-                    userNode.InnerText = ViewModel.Instance.PrefixIconMusic.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("PrefixIconStatus");
-                    userNode.InnerText = ViewModel.Instance.PrefixIconStatus.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("ScanPauseTimeout");
-                    userNode.InnerText = ViewModel.Instance.ScanPauseTimeout.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("PrefixChat");
-                    userNode.InnerText = ViewModel.Instance.PrefixChat.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("ChatFX");
-                    userNode.InnerText = ViewModel.Instance.ChatFX.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("PauseIconMusic");
-                    userNode.InnerText = ViewModel.Instance.PauseIconMusic.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("Topmost");
-                    userNode.InnerText = ViewModel.Instance.Topmost.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("RecentTikTokTTSVoice");
-                    userNode.InnerText = ViewModel.Instance.RecentTikTokTTSVoice.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("TTSTikTokEnabled");
-                    userNode.InnerText = ViewModel.Instance.TTSTikTokEnabled.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("TTSCutOff");
-                    userNode.InnerText = ViewModel.Instance.TTSCutOff.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("RecentPlayBackOutput");
-                    userNode.InnerText = ViewModel.Instance.RecentPlayBackOutput.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("AutoUnmuteTTS");
-                    userNode.InnerText = ViewModel.Instance.AutoUnmuteTTS.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("TTSVolume");
-                    userNode.InnerText = ViewModel.Instance.TTSVolume.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("ToggleVoiceWithV");
-                    userNode.InnerText = ViewModel.Instance.ToggleVoiceWithV.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("OpenAIAPIKey");
-                    userNode.InnerText = ViewModel.Instance.OpenAIAPIKey.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("OpenAIAPISelectedModel");
-                    userNode.InnerText = ViewModel.Instance.OpenAIAPISelectedModel.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("OpenAIUsedTokens");
-                    userNode.InnerText = ViewModel.Instance.OpenAIUsedTokens.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("IntgrIntelliWing");
-                    userNode.InnerText = ViewModel.Instance.IntgrIntelliWing.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    userNode = xmlDoc.CreateElement("GetForegroundProcessNew");
-                    userNode.InnerText = ViewModel.Instance.GetForegroundProcessNew.ToString();
-                    rootNode.AppendChild(userNode);
-
-                    xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
+                    if (saveSettings)
+                    {
+                        xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-
                 }
             }
-
-
-
         }
 
-        public static void LoadSettingsFromXML()
-        {
-            try
-            {
-                XmlDocument doc = new XmlDocument();
-                doc.Load(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
 
-                ViewModel.Instance.IntgrStatus = bool.Parse(doc.GetElementsByTagName("IntgrStatus")[0].InnerText);
-                ViewModel.Instance.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
-                ViewModel.Instance.IntgrScanWindowActivity = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowActivity")[0].InnerText);
-                ViewModel.Instance.IntgrScanSpotify = bool.Parse(doc.GetElementsByTagName("IntgrScanSpotify")[0].InnerText);
-                ViewModel.Instance.IntgrScanWindowTime = bool.Parse(doc.GetElementsByTagName("IntgrScanWindowTime")[0].InnerText);
-                ViewModel.Instance.PrefixTime = bool.Parse(doc.GetElementsByTagName("PrefixTime")[0].InnerText);
-                ViewModel.Instance.OnlyShowTimeVR = bool.Parse(doc.GetElementsByTagName("OnlyShowTimeVR")[0].InnerText);
-                ViewModel.Instance.Time24H = bool.Parse(doc.GetElementsByTagName("Time24H")[0].InnerText);
-                ViewModel.Instance.ScanInterval = int.Parse(doc.GetElementsByTagName("ScanInterval")[0].InnerText);
-                ViewModel.Instance.CurrentMenuItem = int.Parse(doc.GetElementsByTagName("CurrentMenuItem")[0].InnerText);
-                ViewModel.Instance.OSCIP = doc.GetElementsByTagName("OSCIP")[0].InnerText;
-                ViewModel.Instance.OSCPortOut = int.Parse(doc.GetElementsByTagName("OSCPortOut")[0].InnerText);
-                ViewModel.Instance.PrefixIconMusic = bool.Parse(doc.GetElementsByTagName("PrefixIconMusic")[0].InnerText);
-                ViewModel.Instance.PrefixIconStatus = bool.Parse(doc.GetElementsByTagName("PrefixIconStatus")[0].InnerText);
-                ViewModel.Instance.ScanPauseTimeout = int.Parse(doc.GetElementsByTagName("ScanPauseTimeout")[0].InnerText);
-                ViewModel.Instance.PrefixChat = bool.Parse(doc.GetElementsByTagName("PrefixChat")[0].InnerText);
-                ViewModel.Instance.ChatFX = bool.Parse(doc.GetElementsByTagName("ChatFX")[0].InnerText);
-                ViewModel.Instance.PauseIconMusic = bool.Parse(doc.GetElementsByTagName("PauseIconMusic")[0].InnerText);
-                ViewModel.Instance.Topmost = bool.Parse(doc.GetElementsByTagName("Topmost")[0].InnerText);
-                ViewModel.Instance.RecentTikTokTTSVoice = doc.GetElementsByTagName("RecentTikTokTTSVoice")[0].InnerText;
-                ViewModel.Instance.TTSTikTokEnabled = bool.Parse(doc.GetElementsByTagName("TTSTikTokEnabled")[0].InnerText);
-                ViewModel.Instance.TTSCutOff = bool.Parse(doc.GetElementsByTagName("TTSCutOff")[0].InnerText);
-                ViewModel.Instance.RecentPlayBackOutput = doc.GetElementsByTagName("RecentPlayBackOutput")[0].InnerText;
-                ViewModel.Instance.AutoUnmuteTTS = bool.Parse(doc.GetElementsByTagName("AutoUnmuteTTS")[0].InnerText);
-                ViewModel.Instance.TTSVolume = float.Parse(doc.GetElementsByTagName("TTSVolume")[0].InnerText);
-                ViewModel.Instance.ToggleVoiceWithV = bool.Parse(doc.GetElementsByTagName("ToggleVoiceWithV")[0].InnerText);
-                ViewModel.Instance.OpenAIAPIKey = doc.GetElementsByTagName("OpenAIAPIKey")[0].InnerText;
-                ViewModel.Instance.OpenAIAPISelectedModel = doc.GetElementsByTagName("OpenAIAPISelectedModel")[0].InnerText;
-                ViewModel.Instance.OpenAIUsedTokens = int.Parse(doc.GetElementsByTagName("OpenAIUsedTokens")[0].InnerText);
-                ViewModel.Instance.IntgrIntelliWing = bool.Parse(doc.GetElementsByTagName("IntgrIntelliWing")[0].InnerText);
-                ViewModel.Instance.GetForegroundProcessNew = bool.Parse(doc.GetElementsByTagName("GetForegroundProcessNew")[0].InnerText);
 
-            }
-            catch (Exception ex)
-            {
-
-            }
-        }
 
 
         public static void LoadChatList()
