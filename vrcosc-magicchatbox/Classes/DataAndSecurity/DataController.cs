@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using static vrcosc_magicchatbox.ViewModels.ViewModel;
 using Version = vrcosc_magicchatbox.ViewModels.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
@@ -176,6 +177,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"Time24H", (typeof(bool), "Time")},
                         {"OnlyShowTimeVR", (typeof(bool), "Time")},
                         {"PrefixTime", (typeof(bool), "Time")},
+                        {"TimeShowTimeZone", (typeof(bool), "Time")},
 
                         {"CurrentMenuItem", (typeof(int), "Menu")},
 
@@ -251,6 +253,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                     else if (setting.Value.type == typeof(string))
                                     {
                                         property.SetValue(ViewModel.Instance, settingNode.InnerText);
+                                    }
+                                    else if (setting.Value.type == typeof(Timezone))
+                                    {
+                                        property.SetValue(ViewModel.Instance, Enum.Parse(typeof(Timezone), settingNode.InnerText));
                                     }
                                 }
                             }

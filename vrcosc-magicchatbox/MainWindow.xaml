@@ -1181,8 +1181,50 @@
                                     IsChecked="{Binding Time24H, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}"
                                     Unchecked="Update_Click">
-                                    24-Hour Time Format
+                                    24-Hour time format
                                 </CheckBox>
+                                <CheckBox
+                                    x:Name="TimeShowTimeZone_checkbox"
+                                    Height="20"
+                                    Margin="15,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding TimeShowTimeZone, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Custom time zone
+                                </CheckBox>
+                                <StackPanel
+                                    Width="auto"
+                                    Height="22"
+                                    Margin="15,0,0,15"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal"
+                                    Visibility="{Binding TimeShowTimeZone, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+                                    <ComboBox
+                                x:Name="TimeZoneComboBox"
+                                Width="183"
+                                Height="21"
+                                BorderBrush="#FF020000"
+                                FontSize="11.5"
+                                ItemsSource="{Binding TimezoneFriendlyNames, UpdateSourceTrigger=PropertyChanged}"
+                                Opacity="0.4"
+                                SelectedValue="{Binding SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                SelectedValuePath="Key"
+                                DisplayMemberPath="Value"/>
+                                    <TextBlock
+                                        Margin="10,2,5,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Convert your local time to a standard time zone" />
+                                </StackPanel>
+                                
 
                                 <CheckBox
                                     x:Name="MusicIconPrefix_checkbox"
@@ -1720,7 +1762,7 @@
                                 IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}"
                                 Unchecked="Update_Click">
-                                Enhanced application name in Window activity integration
+                                Enhanced application hook for Window activity integration
                             </CheckBox>
                             <Border
                                 Grid.Row="1"
@@ -1746,7 +1788,7 @@
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
-                                            Text="App Name" />
+                                            Text="App" />
                                     </Button>
                                     <Button
                                         Grid.Column="1"
@@ -1759,7 +1801,7 @@
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
-                                            Text="Count" />
+                                            Text="Focused" />
                                     </Button>
                                     <Button
                                         Grid.Column="2"
@@ -1770,7 +1812,7 @@
                                             HorizontalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
-                                            Text="New App Hook" />
+                                            Text="Enhanced hook" />
                                     </Button>
                                     <Button
                                         Grid.Column="3"
@@ -1791,7 +1833,7 @@
                                         <TextBlock
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
-                                            Text="Custom App Name" />
+                                            Text="Custom app name" />
                                     </Button>
                                 </Grid>
                             </Border>

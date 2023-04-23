@@ -28,6 +28,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         #endregion
 
+        public Dictionary<Timezone, string> TimezoneFriendlyNames { get; }
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
@@ -37,6 +38,15 @@ namespace vrcosc_magicchatbox.ViewModels
             SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
             SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
             SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
+            TimezoneFriendlyNames = new Dictionary<Timezone, string>
+        {
+            { Timezone.UTC, "Coordinated Universal Time (UTC)" },
+            { Timezone.EST, "Eastern Standard Time (EST)" },
+            { Timezone.CST, "Central Standard Time (CST)" },
+            { Timezone.PST, "Pacific Standard Time (PST)" },
+            { Timezone.CET, "European Central Time (CET)" },
+            { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
+        };
         }
 
         public void SortScannedApps(SortProperty sortProperty)
@@ -266,6 +276,39 @@ namespace vrcosc_magicchatbox.ViewModels
             ApplyCustomAppName,
             IsPrivateApp,
             FocusCount
+        }
+
+        public enum Timezone
+        {
+            UTC,
+            EST,
+            CST,
+            PST,
+            CET,
+            AEST
+        }
+
+
+        private bool _timeShowTimeZone = false;
+        public bool TimeShowTimeZone
+        {
+            get => _timeShowTimeZone;
+            set
+            {
+                _timeShowTimeZone = value;
+                NotifyPropertyChanged(nameof(TimeShowTimeZone));
+            }
+        }
+
+        private Timezone _selectedTimeZone;
+        public Timezone SelectedTimeZone
+        {
+            get => _selectedTimeZone;
+            set
+            {
+                _selectedTimeZone = value;
+                NotifyPropertyChanged(nameof(SelectedTimeZone));
+            }
         }
 
         private string _lastUsedSortDirection;
