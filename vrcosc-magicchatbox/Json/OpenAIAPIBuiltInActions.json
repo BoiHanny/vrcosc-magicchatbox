@@ -50,7 +50,7 @@
   {
     "FriendlyName": "Generate chat content explanation",
     "Role": "System",
-    "Content": "You task is to make this sentence more rich, only return the exlplaination, staying within the 140-character limit.",
+    "Content": "You task is to make this sentence more rich, only return the explaination, staying within the 140-character limit.",
     "PromptTokens": null,
     "CompletionTokens": null,
     "TotalTokens": null,
