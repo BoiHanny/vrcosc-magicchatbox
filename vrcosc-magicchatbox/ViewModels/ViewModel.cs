@@ -278,6 +278,30 @@ namespace vrcosc_magicchatbox.ViewModels
             FocusCount
         }
 
+
+        private bool _AutoSetDaylight = true;
+        public bool AutoSetDaylight
+        {
+            get { return _AutoSetDaylight; }
+            set
+            {
+                _AutoSetDaylight = value;
+                NotifyPropertyChanged(nameof(AutoSetDaylight));
+            }
+        }
+
+
+        private bool _UseDaylightSavingTime = false;
+        public bool UseDaylightSavingTime
+        {
+            get { return _UseDaylightSavingTime; }
+            set
+            {
+                _UseDaylightSavingTime = value;
+                NotifyPropertyChanged(nameof(UseDaylightSavingTime));
+            }
+        }
+
         public enum Timezone
         {
             UTC,

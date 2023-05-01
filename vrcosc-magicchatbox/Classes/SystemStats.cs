@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using static vrcosc_magicchatbox.ViewModels.ViewModel;
@@ -14,59 +15,70 @@ namespace vrcosc_magicchatbox.Classes
             {
                 CultureInfo userCulture = CultureInfo.CurrentCulture;
                 DateTimeOffset localDateTime = DateTimeOffset.Now;
-                TimeSpan timeZoneOffset;
+                TimeZoneInfo timeZoneInfo;
                 string TimezoneLabel = null;
 
                 switch (ViewModel.Instance.SelectedTimeZone)
                 {
                     case Timezone.UTC:
-                        timeZoneOffset = TimeSpan.Zero;
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("UTC");
                         TimezoneLabel = "UTC";
                         break;
                     case Timezone.EST:
-                        timeZoneOffset = TimeSpan.FromHours(-5);
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
                         TimezoneLabel = "EST";
                         break;
                     case Timezone.CST:
-                        timeZoneOffset = TimeSpan.FromHours(-6);
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
                         TimezoneLabel = "CST";
                         break;
                     case Timezone.PST:
-                        timeZoneOffset = TimeSpan.FromHours(-8);
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
                         TimezoneLabel = "PST";
                         break;
                     case Timezone.CET:
-                        timeZoneOffset = TimeSpan.FromHours(1);
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
                         TimezoneLabel = "CET";
                         break;
                     case Timezone.AEST:
-                        timeZoneOffset = TimeSpan.FromHours(10);
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. Australia Standard Time");
                         TimezoneLabel = "AEST";
                         break;
                     default:
-                        timeZoneOffset = localDateTime.Offset;
+                        timeZoneInfo = TimeZoneInfo.Local;
                         TimezoneLabel = "??";
                         break;
                 }
 
-                DateTimeOffset dateTimeWithZone = localDateTime.ToOffset(timeZoneOffset);
-                string formattedTimeZoneOffset = timeZoneOffset.ToString("hh");
-                string timeZoneInfo = $" ({TimezoneLabel.Replace(" ", "")}{(timeZoneOffset < TimeSpan.Zero ? "-" : "+")}{formattedTimeZoneOffset})";
+                DateTimeOffset dateTimeWithZone;
+                TimeSpan timeZoneOffset;
 
-
-
-
-
-
-                if (ViewModel.Instance.Time24H)
+                if (ViewModel.Instance.AutoSetDaylight)
                 {
-                    return dateTimeWithZone.ToString($"HH:mm{(ViewModel.Instance.TimeShowTimeZone ? timeZoneInfo : "")}", userCulture);
+                    dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
+                    timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
                 }
                 else
                 {
-                    return dateTimeWithZone.ToString($"hh:mm tt{(ViewModel.Instance.TimeShowTimeZone ? timeZoneInfo : "")}", userCulture).ToUpper();
+                    timeZoneOffset = timeZoneInfo.BaseUtcOffset;
+                    if (ViewModel.Instance.UseDaylightSavingTime)
+                    {
+                        TimeSpan adjustment = timeZoneInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta ?? TimeSpan.Zero;
+                        timeZoneOffset = timeZoneOffset.Add(adjustment);
+                    }
+                    dateTimeWithZone = localDateTime.ToOffset(timeZoneOffset);
+                }
 
+                string timeZoneOffsetStr = timeZoneOffset.ToString("hh");
+                string timeZoneDisplay = $" ({TimezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "-" : "+")}{timeZoneOffsetStr})";
 
+                if (ViewModel.Instance.Time24H)
+                {
+                    return dateTimeWithZone.ToString($"HH:mm{(ViewModel.Instance.TimeShowTimeZone ? timeZoneDisplay : "")}", userCulture);
+                }
+                else
+                {
+                    return dateTimeWithZone.ToString($"hh:mm tt{(ViewModel.Instance.TimeShowTimeZone ? timeZoneDisplay : "")}", userCulture).ToUpper();
                 }
             }
             catch (Exception ex)

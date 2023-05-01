@@ -179,6 +179,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"PrefixTime", (typeof(bool), "Time")},
                         {"TimeShowTimeZone", (typeof(bool), "Time")},
                         {"SelectedTimeZone", (typeof(Timezone), "Time")},
+                        {"UseDaylightSavingTime", (typeof(bool), "Time")},
+                        {"AutoSetDaylight", (typeof(bool), "Time")},
 
                         {"CurrentMenuItem", (typeof(int), "Menu")},
 

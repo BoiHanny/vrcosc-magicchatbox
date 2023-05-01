@@ -1184,6 +1184,35 @@
                                     24-Hour time format
                                 </CheckBox>
                                 <CheckBox
+                                    x:Name="AutoSetDaylight_checkbox"
+                                    Height="20"
+                                    Margin="15,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding AutoSetDaylight, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Auto daylight saving time
+                                </CheckBox>
+                                <CheckBox
+                                    x:Name="DaylightSavingTime_checkbox"
+                                    Height="20"
+                                    Margin="15,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding UseDaylightSavingTime, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click"
+                                    Visibility="{Binding AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    Daylight saving time
+                                </CheckBox>
+                                <CheckBox
                                     x:Name="TimeShowTimeZone_checkbox"
                                     Height="20"
                                     Margin="15,0,0,15"
@@ -1206,16 +1235,16 @@
                                     Visibility="{Binding TimeShowTimeZone, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                                     <ComboBox
-                                x:Name="TimeZoneComboBox"
-                                Width="183"
-                                Height="21"
-                                BorderBrush="#FF020000"
-                                FontSize="11.5"
-                                ItemsSource="{Binding TimezoneFriendlyNames, UpdateSourceTrigger=PropertyChanged}"
-                                Opacity="0.4"
-                                SelectedValue="{Binding SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                SelectedValuePath="Key"
-                                DisplayMemberPath="Value"/>
+                                        x:Name="TimeZoneComboBox"
+                                        Width="183"
+                                        Height="21"
+                                        BorderBrush="#FF020000"
+                                        DisplayMemberPath="Value"
+                                        FontSize="11.5"
+                                        ItemsSource="{Binding TimezoneFriendlyNames, UpdateSourceTrigger=PropertyChanged}"
+                                        Opacity="0.4"
+                                        SelectedValue="{Binding SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        SelectedValuePath="Key" />
                                     <TextBlock
                                         Margin="10,2,5,0"
                                         VerticalAlignment="Center"
@@ -1224,7 +1253,7 @@
                                         Foreground="#FFB9B5C1"
                                         Text="Convert your local time to a standard time zone" />
                                 </StackPanel>
-                                
+
 
                                 <CheckBox
                                     x:Name="MusicIconPrefix_checkbox"
