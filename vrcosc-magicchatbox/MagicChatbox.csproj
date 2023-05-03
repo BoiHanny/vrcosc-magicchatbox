@@ -85,7 +85,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Content Include="Img\OpenAI_logo.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
     <Content Include="Json\OpenAIAPIBuiltInActions.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
