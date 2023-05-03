@@ -57,6 +57,12 @@ namespace vrcosc_magicchatbox.Classes
                     int heartRate = await GetHeartRateViaHttpAsync();
                     if (heartRate != -1)
                     {
+                        // Apply the adjustment
+                        heartRate += ViewModel.Instance.HeartRateAdjustment;
+
+                        // Ensure the adjusted heart rate is not negative
+                        heartRate = Math.Max(0, heartRate);
+
                         ViewModel.Instance.HeartRate = heartRate;
                         ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
                     }
@@ -81,6 +87,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
             }
         }
+
 
 
 

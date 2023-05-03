@@ -1079,6 +1079,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private int _HeartRateAdjustment = 0;
+        public int HeartRateAdjustment
+        {
+            get { return _HeartRateAdjustment; }
+            set
+            {
+                _HeartRateAdjustment = value;
+                NotifyPropertyChanged(nameof(HeartRateAdjustment));
+            }
+        }
+
         public string HeartRate_Opacity
         {
             get { return _HeartRate_Opacity; }

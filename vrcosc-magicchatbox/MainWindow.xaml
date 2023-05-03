@@ -1449,6 +1449,26 @@
                                     FontSize="15"
                                     Foreground="#FF240E54"
                                     Text="{Binding HeartRateScanInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Padding="15,10,0,5"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="14"
+                                    Foreground="#FFB9B5C1"
+                                    Text="HeartRate Adjustment " />
+                                <TextBox
+                                    x:Name="HeartRateAdjustment"
+                                    Width="40"
+                                    Height="26"
+                                    Margin="15,3,0,15"
+                                    Padding="5,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalContentAlignment="Center"
+                                    Background="#FF7B7195"
+                                    BorderThickness="0"
+                                    FontSize="15"
+                                    Foreground="#FF240E54"
+                                    Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="2">
