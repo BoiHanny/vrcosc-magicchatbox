@@ -824,6 +824,7 @@
                         <RowDefinition Height="85" />
                         <RowDefinition Height="85" />
                         <RowDefinition Height="85" />
+                        <RowDefinition Height="85" />
                     </Grid.RowDefinitions>
 
                     <Grid Background="#FF41375C" Visibility="{Binding Char_Limit}">
@@ -903,7 +904,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="4" Opacity="{Binding Spotify_Opacity}">
+                    <Grid Grid.Row="2" Opacity="{Binding HeartRate_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -927,14 +928,34 @@
                                         <RowDefinition />
                                         <RowDefinition />
                                     </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Spotify" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            Text="Heart rate" />
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="8,9,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Foreground="#ABA4B8"
+                                            Text="Last update:"
+                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="3,9,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="11"
+                                            Foreground="#ABA4B8"
+                                            Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
                                     <TextBlock
                                         Grid.Row="1"
                                         Margin="0,0,0,5"
@@ -942,7 +963,7 @@
                                         FontFamily="Comfortaa Light"
                                         FontSize="13"
                                         Foreground="LightGray"
-                                        Text="This intergration will show the playing song title and artist, It will also show                                                 if the song is paused."
+                                        Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
                                         TextWrapping="Wrap" />
 
                                 </Grid>
@@ -952,84 +973,21 @@
                                     Margin="15"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Source="/Img/Icons/spotify_ico.png" />
+                                    Source="/Img/Icons/HeartRate_ico.png" />
                                 <CheckBox
-                                    Name="Spotify_switch"
+                                    Name="HR_Switch"
                                     Grid.Column="2"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}"
+                                    IsChecked="{Binding IntgrHeartRate, Mode=TwoWay}"
                                     Style="{DynamicResource Switch}" />
 
                             </Grid>
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="3" Opacity="{Binding Time_Opacity}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Current time" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="This intergration works in VR mode, it will show your local                                                 machine time."
-                                        TextWrapping="Wrap" />
-
-                                </Grid>
-
-                                <Image
-                                    Grid.Column="0"
-                                    Margin="7"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/SystemTime_ico.png" />
-                                <CheckBox
-                                    Name="SystemTime_switch"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid Grid.Row="2" Opacity="{Binding Window_Opacity}">
+                    <Grid Grid.Row="3" Opacity="{Binding Window_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -1092,6 +1050,134 @@
                         </Border>
 
                     </Grid>
+                    <Grid Grid.Row="4" Opacity="{Binding Time_Opacity}">
+                        <Border
+                            Margin="6"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Quality"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85" />
+                                    <ColumnDefinition Width="440" />
+                                    <ColumnDefinition Width="123" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="0,8,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Current time" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="0,0,0,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        Text="This intergration works in VR mode, it will show your local                                                 machine time."
+                                        TextWrapping="Wrap" />
+
+                                </Grid>
+
+                                <Image
+                                    Grid.Column="0"
+                                    Margin="7"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Source="/Img/Icons/SystemTime_ico.png" />
+                                <CheckBox
+                                    Name="SystemTime_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="5" Opacity="{Binding Spotify_Opacity}">
+                        <Border
+                            Margin="6"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Quality"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85" />
+                                    <ColumnDefinition Width="440" />
+                                    <ColumnDefinition Width="123" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="0,8,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Spotify" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="0,0,0,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        Text="This intergration will show the playing song title and artist, It will also show                                                 if the song is paused."
+                                        TextWrapping="Wrap" />
+
+                                </Grid>
+
+                                <Image
+                                    Grid.Column="0"
+                                    Margin="15"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Source="/Img/Icons/spotify_ico.png" />
+                                <CheckBox
+                                    Name="Spotify_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
+
 
 
                 </Grid>
@@ -1315,7 +1401,7 @@
                                 <CheckBox
                                     x:Name="ChatFX_checkbox"
                                     Height="22"
-                                    Margin="15,0,0,15"
+                                    Margin="15,0,0,10"
                                     BorderBrush="#FF2D1265"
                                     FontFamily="Comfortaa Light"
                                     FontSize="18"
@@ -1324,6 +1410,45 @@
                                     Style="{DynamicResource SettingsCheckbox}">
                                     Play FX sound for VRChat users when sending message
                                 </CheckBox>
+                                <TextBlock
+                                    Padding="15,0,0,5"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="14"
+                                    Foreground="#FFB9B5C1"
+                                    Text="Pulsoid access token" />
+                                <TextBox
+                                    x:Name="PulsoidAccessToken"
+                                    Width="223"
+                                    Height="26"
+                                    Margin="15,3,0,0"
+                                    Padding="5,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalContentAlignment="Center"
+                                    Background="#FF7B7195"
+                                    BorderThickness="0"
+                                    FontSize="15"
+                                    Foreground="#FF240E54"
+                                    Text="{Binding PulsoidAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Padding="15,10,0,5"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="14"
+                                    Foreground="#FFB9B5C1"
+                                    Text="Heart rate scan interval" />
+                                <TextBox
+                                    x:Name="heartRateScanInt"
+                                    Width="40"
+                                    Height="26"
+                                    Margin="15,3,0,15"
+                                    Padding="5,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalContentAlignment="Center"
+                                    Background="#FF7B7195"
+                                    BorderThickness="0"
+                                    FontSize="15"
+                                    Foreground="#FF240E54"
+                                    Text="{Binding HeartRateScanInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="2">

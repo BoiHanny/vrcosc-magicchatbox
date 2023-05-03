@@ -16,6 +16,7 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ViewModel : INotifyPropertyChanged
     {
         public static readonly ViewModel Instance = new ViewModel();
+        private HeartRateConnector _heartRateConnector;
 
         #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }
@@ -47,6 +48,8 @@ namespace vrcosc_magicchatbox.ViewModels
             { Timezone.CET, "European Central Time (CET)" },
             { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
         };
+            _heartRateConnector = new HeartRateConnector();
+            PropertyChanged += _heartRateConnector.PropertyChangedHandler;
         }
 
         public void SortScannedApps(SortProperty sortProperty)
@@ -238,6 +241,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Status_Opacity = "1";
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
+        private string _HeartRate_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
@@ -259,7 +263,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _TTSBtnShadow = false;
         private float _TTSVolume = 0.2f;
 
-
         private ProcessInfo _LastProcessFocused = new ProcessInfo();
         private Dictionary<SortProperty, bool> _sortDirection = new Dictionary<SortProperty, bool>
         {
@@ -278,6 +281,28 @@ namespace vrcosc_magicchatbox.ViewModels
             FocusCount
         }
 
+
+        private int _HeartRateScanInterval = 3;
+        public int HeartRateScanInterval
+        {
+            get { return _HeartRateScanInterval; }
+            set
+            {
+                _HeartRateScanInterval = value;
+                NotifyPropertyChanged(nameof(HeartRateScanInterval));
+            }
+        }
+
+        private DateTime _HeartRateLastUpdate;
+        public DateTime HeartRateLastUpdate
+        {
+            get { return _HeartRateLastUpdate; }
+            set
+            {
+                _HeartRateLastUpdate = value;
+                NotifyPropertyChanged(nameof(HeartRateLastUpdate));
+            }
+        }
 
         private bool _AutoSetDaylight = true;
         public bool AutoSetDaylight
@@ -310,6 +335,29 @@ namespace vrcosc_magicchatbox.ViewModels
             PST,
             CET,
             AEST
+        }
+
+
+        private int _HeartRate;
+        public int HeartRate
+        {
+            get { return _HeartRate; }
+            set
+            {
+                _HeartRate = value;
+                NotifyPropertyChanged(nameof(HeartRate));
+            }
+        }
+
+        private string _PulsoidAccessToken;
+        public string PulsoidAccessToken
+        {
+            get { return _PulsoidAccessToken; }
+            set
+            {
+                _PulsoidAccessToken = value;
+                NotifyPropertyChanged(nameof(PulsoidAccessToken));
+            }
         }
 
 
@@ -1028,6 +1076,28 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Spotify_Opacity = value;
                 NotifyPropertyChanged(nameof(Spotify_Opacity));
+            }
+        }
+
+        public string HeartRate_Opacity
+        {
+            get { return _HeartRate_Opacity; }
+            set
+            {
+                _HeartRate_Opacity = value;
+                NotifyPropertyChanged(nameof(HeartRate_Opacity));
+            }
+        }
+
+
+        private bool _IntgrHeartRate = false;
+        public bool IntgrHeartRate
+        {
+            get { return _IntgrHeartRate; }
+            set
+            {
+                _IntgrHeartRate = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate));
             }
         }
 

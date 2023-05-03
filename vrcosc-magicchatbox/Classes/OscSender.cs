@@ -99,6 +99,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 ViewModel.Instance.Char_Limit = "Hidden";
                 ViewModel.Instance.Spotify_Opacity = "1";
+                ViewModel.Instance.HeartRate_Opacity = "1";
                 ViewModel.Instance.Window_Opacity = "1";
                 ViewModel.Instance.Time_Opacity = "1";
 
@@ -124,6 +125,29 @@ namespace vrcosc_magicchatbox.Classes
                     {
                         ViewModel.Instance.Char_Limit = "Visible";
                         ViewModel.Instance.Window_Opacity = "0.5";
+                    }
+                }
+                if (ViewModel.Instance.IntgrHeartRate == true)
+                {
+                    if (ViewModel.Instance.HeartRate > 0)
+                    {
+                        x = ViewModel.Instance.HeartRate + " BPM";
+                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        {
+                            Uncomplete.Add(x);
+                        }
+                        else
+                        {
+                            ViewModel.Instance.Char_Limit = "Visible";
+                            ViewModel.Instance.Window_Opacity = "0.5";
+                        }
+
+
+
+                    }
+                    else
+                    {
+                        
                     }
                 }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)

@@ -173,6 +173,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrScanWindowTime", (typeof(bool), "Integrations")},
                         {"IntgrIntelliWing", (typeof(bool), "Integrations")},
                         {"ApplicationHookV2", (typeof(bool), "Integrations")},
+                        {"IntgrHeartRate", (typeof(bool), "Integrations")},
 
                         {"Time24H", (typeof(bool), "Time")},
                         {"OnlyShowTimeVR", (typeof(bool), "Time")},
@@ -210,6 +211,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"OSCIP", (typeof(string), "OSC")},
                         {"OSCPortOut", (typeof(int), "OSC")},
+
+                        {"PulsoidAccessToken", (typeof(string), "HeartRateConnector")},
+                        {"HeartRateScanInterval", (typeof(int), "HeartRateConnector")},
+                        {"HeartRateLastUpdate", (typeof(DateTime), "HeartRateConnector")},
                     };
 
                     foreach (var setting in settings)

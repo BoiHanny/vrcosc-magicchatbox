@@ -26,6 +26,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        
         public bool UsedNewMethod
         {
             get { return _usedNewMethod; }
