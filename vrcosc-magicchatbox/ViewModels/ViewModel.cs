@@ -282,6 +282,39 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _Settings_WindowActivity = false;
+        public bool Settings_WindowActivity
+        {
+            get { return _Settings_WindowActivity; }
+            set
+            {
+                _Settings_WindowActivity = value;
+                NotifyPropertyChanged(nameof(Settings_WindowActivity));
+            }
+        }
+
+        private bool _Settings_IntelliChat = false;
+        public bool Settings_IntelliChat
+        {
+            get { return _Settings_IntelliChat; }
+            set
+            {
+                _Settings_IntelliChat = value;
+                NotifyPropertyChanged(nameof(Settings_IntelliChat));
+            }
+        }
+
+        private bool _Settings_Spotify = false;
+        public bool Settings_Spotify
+        {
+            get { return _Settings_Spotify; }
+            set
+            {
+                _Settings_Spotify = value;
+                NotifyPropertyChanged(nameof(Settings_Spotify));
+            }
+        }
+
         private int _HeartRateScanInterval = 3;
         public int HeartRateScanInterval
         {
@@ -324,6 +357,73 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _UseDaylightSavingTime = value;
                 NotifyPropertyChanged(nameof(UseDaylightSavingTime));
+            }
+        }
+
+
+        private bool _Settings_Chatting = false;
+        public bool Settings_Chatting
+        {
+            get { return _Settings_Chatting; }
+            set
+            {
+                _Settings_Chatting = value;
+                NotifyPropertyChanged(nameof(Settings_Chatting));
+            }
+        }
+
+
+        private bool _Settings_AppOptions = false;
+        public bool Settings_AppOptions
+        {
+            get { return _Settings_AppOptions; }
+            set
+            {
+                _Settings_AppOptions = value;
+                NotifyPropertyChanged(nameof(Settings_AppOptions));
+            }
+        }
+
+        private bool _Settings_TTS = false;
+        public bool Settings_TTS
+        {
+            get { return _Settings_TTS; }
+            set
+            {
+                _Settings_TTS = value;
+                NotifyPropertyChanged(nameof(Settings_TTS));
+            }
+        }
+
+        private bool _Settings_Time = false;
+        public bool Settings_Time
+        {
+            get { return _Settings_Time; }
+            set
+            {
+                _Settings_Time = value;
+                NotifyPropertyChanged(nameof(Settings_Time));
+            }
+        }
+
+        private bool _Settings_HeartRate = false;
+        public bool Settings_HeartRate
+        {
+            get { return _Settings_HeartRate; }
+            set
+            {
+                _Settings_HeartRate = value;
+                NotifyPropertyChanged(nameof(Settings_HeartRate));
+            }
+        }
+        private bool _Settings_Status = false;
+        public bool Settings_Status
+        {
+            get { return _Settings_Status; }
+            set
+            {
+                _Settings_Status = value;
+                NotifyPropertyChanged(nameof(Settings_Status));
             }
         }
 
@@ -517,7 +617,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _IntgrIntelliChat = true;
+        private bool _IntgrIntelliChat = false;
         public bool IntgrIntelliChat
         {
             get { return _IntgrIntelliChat; }

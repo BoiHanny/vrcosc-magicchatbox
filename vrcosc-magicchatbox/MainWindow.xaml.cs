@@ -90,14 +90,14 @@ namespace vrcosc_magicchatbox
 
         public void SelectTTSOutput()
         {
-            foreach (var AudioDevice in PlaybackOutputDeviceComboBox.Items)
-            {
-                if (AudioDevice is AudioDevice && (AudioDevice as AudioDevice).FriendlyName == ViewModel.Instance.SelectedPlaybackOutputDevice?.FriendlyName)
-                {
-                    PlaybackOutputDeviceComboBox.SelectedItem = AudioDevice;
-                    break;
-                }
-            }
+            //foreach (var AudioDevice in PlaybackOutputDeviceComboBox.Items)
+            //{
+            //    if (AudioDevice is AudioDevice && (AudioDevice as AudioDevice).FriendlyName == ViewModel.Instance.SelectedPlaybackOutputDevice?.FriendlyName)
+            //    {
+            //        PlaybackOutputDeviceComboBox.SelectedItem = AudioDevice;
+            //        break;
+            //    }
+            //}
         }
 
 
@@ -688,6 +688,11 @@ namespace vrcosc_magicchatbox
         private void IntgrIntelliWing_btn_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.IntgrIntelliWing = !ViewModel.Instance.IntgrIntelliWing;
+        }
+
+        private void LearnMoreAboutSpotifybtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Use-the-Spotify-Integration-%F0%9F%8E%B5");
         }
     }
 }

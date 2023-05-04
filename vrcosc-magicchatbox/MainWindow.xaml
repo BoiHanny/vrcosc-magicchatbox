@@ -1188,192 +1188,53 @@
 
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="30" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
+
+                        <Grid Grid.Row="0" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.Background>
                                 <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
                                     <GradientStop Color="#FF3A3053" />
                                     <GradientStop Offset="1" Color="#FF40365B" />
                                 </LinearGradientBrush>
                             </Grid.Background>
-                            <StackPanel
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    Foreground="#FF7D7397"
-                                    Text="Intergration options" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="1">
-                            <StackPanel
-                                Height="auto"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <CheckBox
-                                    x:Name="OnlyShowTimeVR_checkbox"
-                                    Height="21"
-                                    Margin="15,15,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Only show time in VR
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="PrefixTime_checkbox"
-                                    Height="22"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding PrefixTime, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Show 'My time:' in front of the time integration
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="Time24H_checkbox"
-                                    Height="20"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding Time24H, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    24-Hour time format
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="AutoSetDaylight_checkbox"
-                                    Height="20"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding AutoSetDaylight, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Auto daylight saving time
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="DaylightSavingTime_checkbox"
-                                    Height="20"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding UseDaylightSavingTime, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
-                                    Visibility="{Binding AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Daylight saving time
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="TimeShowTimeZone_checkbox"
-                                    Height="20"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding TimeShowTimeZone, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Custom time zone
-                                </CheckBox>
-                                <StackPanel
-                                    Width="auto"
-                                    Height="22"
-                                    Margin="15,0,0,15"
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
                                     HorizontalAlignment="Left"
-                                    Orientation="Horizontal"
-                                    Visibility="{Binding TimeShowTimeZone, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-
-                                    <ComboBox
-                                        x:Name="TimeZoneComboBox"
-                                        Width="183"
-                                        Height="21"
-                                        BorderBrush="#FF020000"
-                                        DisplayMemberPath="Value"
-                                        FontSize="11.5"
-                                        ItemsSource="{Binding TimezoneFriendlyNames, UpdateSourceTrigger=PropertyChanged}"
-                                        Opacity="0.4"
-                                        SelectedValue="{Binding SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        SelectedValuePath="Key" />
-                                    <TextBlock
-                                        Margin="10,2,5,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="16"
-                                        Foreground="#FFB9B5C1"
-                                        Text="Convert your local time to a standard time zone" />
-                                </StackPanel>
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_Status, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Status options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
 
 
-                                <CheckBox
-                                    x:Name="MusicIconPrefix_checkbox"
-                                    Height="21"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Change 'listening to:' prefix to 🎵
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="PauseIconPrefix_checkbox"
-                                    Height="20"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding PauseIconMusic, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
-                                    Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Show ⏸ when  music is paused
-                                </CheckBox>
+                            <Grid
+                                x:Name="Settings_Status_Grid"
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_Status, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <CheckBox
                                     x:Name="StatusIconPrefix_checkbox"
                                     Height="20"
-                                    Margin="15,0,0,15"
+                                    Margin="0,0,0,15"
                                     BorderBrush="#FF2D1265"
                                     Checked="Update_Click"
                                     FontFamily="Comfortaa Light"
@@ -1384,129 +1245,539 @@
                                     Unchecked="Update_Click">
                                     Add 💬 as prefix for the personal status
                                 </CheckBox>
-                                <CheckBox
-                                    x:Name="ChatIconPrefix_checkbox"
-                                    Height="22"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding PrefixChat, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Add 💬 as prefix for chat messages
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="ChatFX_checkbox"
-                                    Height="22"
-                                    Margin="15,0,0,10"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding ChatFX, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Play FX sound for VRChat users when sending message
-                                </CheckBox>
-                                <TextBlock
-                                    Padding="15,0,0,5"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="14"
-                                    Foreground="#FFB9B5C1"
-                                    Text="Pulsoid access token" />
-                                <TextBox
-                                    x:Name="PulsoidAccessToken"
-                                    Width="223"
-                                    Height="26"
-                                    Margin="15,3,0,0"
-                                    Padding="5,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding PulsoidAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,10,0,5"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="14"
-                                    Foreground="#FFB9B5C1"
-                                    Text="Heart rate scan interval" />
-                                <TextBox
-                                    x:Name="heartRateScanInt"
-                                    Width="40"
-                                    Height="26"
-                                    Margin="15,3,0,15"
-                                    Padding="5,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding HeartRateScanInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,10,0,5"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="14"
-                                    Foreground="#FFB9B5C1"
-                                    Text="HeartRate Adjustment " />
-                                <TextBox
-                                    x:Name="HeartRateAdjustment"
-                                    Width="40"
-                                    Height="26"
-                                    Margin="15,3,0,15"
-                                    Padding="5,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
+                            </Grid>
                         </Grid>
-                        <Grid Grid.Row="2">
+                        <Grid Grid.Row="1" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.Background>
                                 <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
                                     <GradientStop Color="#FF3A3053" />
                                     <GradientStop Offset="1" Color="#FF40365B" />
                                 </LinearGradientBrush>
                             </Grid.Background>
-                            <StackPanel
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_HeartRate, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Heart monitoring options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <TextBlock
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="14"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Pulsoid access token" />
+                                    <TextBox
+                                        x:Name="PulsoidAccessToken"
+                                        Width="223"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding PulsoidAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Padding="0,10,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="14"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Heart rate scan interval" />
+                                    <TextBox
+                                        x:Name="heartRateScanInt"
+                                        Width="40"
+                                        Height="26"
+                                        Margin="0,3,0,10"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding HeartRateScanInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="14"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Heart rate adjustment " />
+                                    <TextBox
+                                        x:Name="HeartRateAdjustment"
+                                        Width="40"
+                                        Height="26"
+                                        Margin="0,3,0,15"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Row="2" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_Time, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Time options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_Time, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <CheckBox
+                                        x:Name="OnlyShowTimeVR_checkbox"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding OnlyShowTimeVR, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Only show time in VR
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="PrefixTime_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding PrefixTime, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show 'My time:' in front of the time integration
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="Time24H_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding Time24H, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        24-Hour time format
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="AutoSetDaylight_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding AutoSetDaylight, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Auto daylight saving time
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="DaylightSavingTime_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding UseDaylightSavingTime, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click"
+                                        Visibility="{Binding AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Daylight saving time
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="TimeShowTimeZone_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TimeShowTimeZone, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Custom time zone
+                                    </CheckBox>
+                                    <StackPanel
+                                        Width="auto"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        HorizontalAlignment="Left"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding TimeShowTimeZone, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+                                        <ComboBox
+                                            x:Name="TimeZoneComboBox"
+                                            Width="183"
+                                            Height="21"
+                                            BorderBrush="#FF020000"
+                                            DisplayMemberPath="Value"
+                                            FontSize="11.5"
+                                            ItemsSource="{Binding TimezoneFriendlyNames, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="0.4"
+                                            SelectedValue="{Binding SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedValuePath="Key" />
+                                        <TextBlock
+                                            Margin="10,2,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="16"
+                                            Foreground="#FFB9B5C1"
+                                            Text="Convert your local time to a standard time zone" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Row="3" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_Chatting, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Chatting options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_Chatting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="14"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Chat timeout" />
+                                    <TextBox
+                                        x:Name="ScanPauseCountDown"
+                                        Width="40"
+                                        Height="26"
+                                        Margin="0,3,0,12"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <CheckBox
+                                        x:Name="ChatIconPrefix_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding PrefixChat, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Add 💬 as prefix for chat messages
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ChatFX_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatFX, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Play FX sound for VRChat users when sending message
+                                    </CheckBox>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Row="4" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_TTS, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Text to speech options"
+                                    TextOptions.TextRenderingMode="ClearType" />
                                 <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,0,0,0"
+                                    x:Name="LearnMoreAboutTTSbtn"
+                                    Width="auto"
+                                    Margin="188,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Cursor="Hand"
                                     FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    Foreground="#FF7D7397"
-                                    Text="IntelliChat" />
+                                    FontSize="12"
+                                    Foreground="#FF31B7B4"
+                                    MouseUp="LearnMoreAboutTTSbtn_MouseUp"
+                                    Text="Learn more"
+                                    TextDecorations="Underline" />
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_TTS, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <CheckBox
+                                        x:Name="TTSCutOff"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TTSCutOff, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Stop current playing TTS on new chat
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="TTSAutoUnmute"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Autotoggle VRChat voice on TTS
+                                    </CheckBox>
+
+                                    <StackPanel
+                                        Width="auto"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        HorizontalAlignment="Left"
+                                        Orientation="Horizontal">
+                                        <ComboBox
+                                            x:Name="PlaybackOutputDeviceComboBox"
+                                            Width="186"
+                                            Height="25"
+                                            Margin="0"
+                                            DisplayMemberPath="FriendlyName"
+                                            ItemsSource="{Binding PlaybackOutputDevices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            Opacity="0.4"
+                                            SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}"
+                                            SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" />
+                                        <TextBlock
+                                            Margin="10,0,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="16"
+                                            Foreground="#FFB9B5C1"
+                                            Text="TTS Output" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+
+                        </Grid>
+                        <Grid Grid.Row="5" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_Spotify, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Spotify options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                                <TextBlock
+                                    x:Name="LearnMoreAboutSpotifybtn"
+                                    Width="auto"
+                                    Margin="143,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Cursor="Hand"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="#FF31B7B4"
+                                    MouseUp="LearnMoreAboutSpotifybtn_MouseUp"
+                                    Text="Learn more"
+                                    TextDecorations="Underline" />
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_Spotify, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <CheckBox
+                                        x:Name="MusicIconPrefix_checkbox"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Change 'listening to:' prefix to 🎵
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="PauseIconPrefix_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding PauseIconMusic, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click"
+                                        Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Show ⏸ when  music is paused
+                                    </CheckBox>
+                                </StackPanel>
+                            </Grid>
+
+                        </Grid>
+                        <Grid Grid.Row="6" Margin="0,5,0,0"
+                            Cursor="No">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_IntelliChat, Mode=TwoWay}"
+                                    IsEnabled="False"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="IntelliChat options"
+                                    TextOptions.TextRenderingMode="ClearType" />
                                 <TextBlock
                                     x:Name="LearnMoreAboutIntelliChatAI"
                                     Width="auto"
-                                    Padding="10,0,0,0"
-                                    HorizontalAlignment="Center"
+                                    Margin="165,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Cursor="Hand"
                                     FontFamily="Albert Sans Thin"
                                     FontSize="12"
                                     Foreground="#FF31B7B4"
                                     MouseUp="LearnMoreAboutIntelliChatAI_MouseUp"
-                                    Text="Learn more about OpenAI"
+                                    Text="Learn more"
                                     TextDecorations="Underline" />
                                 <TextBlock
                                     x:Name="IntelliChatAIapiPage"
                                     Width="auto"
-                                    Padding="10,0,0,0"
-                                    HorizontalAlignment="Center"
+                                    Margin="233,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Cursor="Hand"
                                     FontFamily="Albert Sans Thin"
@@ -1518,8 +1789,8 @@
                                 <TextBlock
                                     x:Name="OpenAITerms"
                                     Width="auto"
-                                    Padding="10,0,0,0"
-                                    HorizontalAlignment="Center"
+                                    Margin="331,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Cursor="Hand"
                                     FontFamily="Albert Sans Thin"
@@ -1527,588 +1798,473 @@
                                     Foreground="#FF847E94"
                                     MouseUp="OpenAITerms_MouseUp"
                                     Text="OpenAI terms" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="3">
-                            <StackPanel
-                                Width="auto"
-                                Height="auto"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <CheckBox
-                                    x:Name="IntelliChat_Enable"
-                                    Height="21"
-                                    Margin="15,15,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding IntgrIntelliChat, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Enable IntelliChat
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="IntelliChatModeration"
-                                    Height="21"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Content="Moderation on prompts to OpenAI"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding IntelliChatModeration, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Visibility="{Binding IntgrIntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                <StackPanel
-                                    Width="auto"
-                                    Height="22"
-                                    Margin="15,0,0,15"
-                                    HorizontalAlignment="Left"
-                                    Orientation="Horizontal"
-                                    Visibility="{Binding IntgrIntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <ComboBox
-                                        x:Name="IntelliChatAI_Model"
-                                        Width="135"
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_IntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <CheckBox
+                                        x:Name="IntelliChat_Enable"
                                         Height="21"
-                                        BorderBrush="#FF020000"
-                                        FontSize="11.5"
-                                        ItemsSource="{Binding OpenAIAPIModels, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        Opacity="0.4"
-                                        SelectedItem="{Binding OpenAIAPISelectedModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" />
-                                    <TextBlock
-                                        Margin="10,0,5,0"
-                                        VerticalAlignment="Center"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
                                         FontFamily="Comfortaa Light"
-                                        FontSize="16"
-                                        Foreground="#FFB9B5C1"><Run Text="GPT Model (use GPT-3 for cheap and fast " /><Run Language="en-gb" Text="promts" /><Run Text=")" /></TextBlock>
-                                </StackPanel>
-                                <StackPanel
-                                    Width="auto"
-                                    Height="auto"
-                                    Margin="0,0,0,15"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Orientation="Horizontal"
-                                    Visibility="{Binding IntgrIntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <StackPanel Height="auto">
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding IntgrIntelliChat, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Enable IntelliChat
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="IntelliChatModeration"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Content="Moderation on prompts to OpenAI"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding IntelliChatModeration, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Visibility="{Binding IntgrIntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel
+                                        Width="auto"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        HorizontalAlignment="Left"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding IntgrIntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <ComboBox
+                                            x:Name="IntelliChatAI_Model"
+                                            Width="135"
+                                            Height="21"
+                                            BorderBrush="#FF020000"
+                                            FontSize="11.5"
+                                            ItemsSource="{Binding OpenAIAPIModels, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="0.4"
+                                            SelectedItem="{Binding OpenAIAPISelectedModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" />
+                                        <TextBlock
+                                            Margin="10,0,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="16"
+                                            Foreground="#FFB9B5C1"><Run Text="GPT Model (use GPT-3 for cheap and fast " /><Run Language="en-gb" Text="promts" /><Run Text=")" /></TextBlock>
+                                    </StackPanel>
+                                    <StackPanel
+                                        Width="auto"
+                                        Height="auto"
+                                        Margin="0,0,0,15"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding IntgrIntelliChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel HorizontalAlignment="Left">
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Padding="0,0,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                Foreground="#FFB9B5C1"
+                                                Text="OpenAI API key" />
+                                            <TextBox
+                                                x:Name="OpenAIAPIUrl"
+                                                Width="223"
+                                                Height="26"
+                                                Margin="0,3,0,0"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding OpenAIAPIKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <Button
+                                            x:Name="OpenAIAPITestConnection"
+                                            Width="85"
+                                            Height="26"
+                                            Margin="10,15,5,0"
+                                            VerticalAlignment="Bottom"
+                                            Click="OpenAIAPITestConnection_ClickAsync"
+                                            Content="Say 'Hi' to GPT"
+                                            Style="{DynamicResource Status_Button_style}" />
                                         <TextBlock
                                             Grid.Column="0"
-                                            Padding="15,0,0,0"
+                                            Width="310"
+                                            MaxWidth="200"
+                                            Padding="0,0,0,5"
+                                            VerticalAlignment="Bottom"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="12"
+                                            Foreground="#FF008BFF"
+                                            Text="{Binding OpenAIAPITestResponse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+
+
+                        </Grid>
+                        <Grid Grid.Row="7" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_AppOptions, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="App options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
+                            <Grid
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_AppOptions, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <StackPanel>
+                                    <StackPanel>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            HorizontalAlignment="Left"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
                                             Foreground="#FFB9B5C1"
-                                            Text="OpenAI API key" />
+                                            Text="Local IP address" />
                                         <TextBox
-                                            x:Name="OpenAIAPIUrl"
-                                            Width="223"
+                                            x:Name="OSCIPBox"
+                                            Width="100"
                                             Height="26"
-                                            Margin="15,3,0,0"
+                                            Margin="0,3,0,0"
                                             Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
                                             Background="#FF7B7195"
                                             BorderThickness="0"
                                             FontSize="15"
                                             Foreground="#FF240E54"
-                                            Text="{Binding OpenAIAPIKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,10,0,0"
+                                            HorizontalAlignment="Left"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="14"
+                                            Foreground="#FFB9B5C1"
+                                            Text="Port (outgoing)" />
+                                        <TextBox
+                                            x:Name="OSCPortOutBox"
+                                            Width="100"
+                                            Height="26"
+                                            Margin="0,3,0,15"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
                                     </StackPanel>
-                                    <Button
-                                        x:Name="OpenAIAPITestConnection"
-                                        Width="85"
-                                        Height="26"
-                                        Margin="15,15,5,0"
-                                        VerticalAlignment="Bottom"
-                                        Click="OpenAIAPITestConnection_ClickAsync"
-                                        Content="Say 'Hi' to GPT"
-                                        Style="{DynamicResource Status_Button_style}" />
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Width="310"
-                                        MaxWidth="200"
-                                        Padding="5,0,0,5"
-                                        VerticalAlignment="Bottom"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="12"
-                                        Foreground="#FF008BFF"
-                                        Text="{Binding OpenAIAPITestResponse, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="4">
-                            <Grid.Background>
-                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
-                                    <GradientStop Color="#FF3A3053" />
-                                    <GradientStop Offset="1" Color="#FF40365B" />
-                                </LinearGradientBrush>
-                            </Grid.Background>
-                            <StackPanel
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    Foreground="#FF7D7397"
-                                    Text="App options" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="5">
-                            <StackPanel
-                                Height="auto"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <CheckBox
-                                    x:Name="WindowOnTop_checkbox"
-                                    Height="21"
-                                    Margin="15,15,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding Topmost, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Always on top
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="ToggleVoiceWithV"
-                                    Height="21"
-                                    Margin="15,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding ToggleVoiceWithV, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Toggle VRChat voice with 'V'
-                                </CheckBox>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button
-                                        x:Name="ResetFavorites"
-                                        Width="85"
-                                        Height="25"
-                                        Margin="15,0,5,15"
-                                        HorizontalAlignment="Left"
-                                        Click="ResetFavorites_Click"
-                                        Content="Reset Status"
-                                        Style="{DynamicResource Status_Button_style}" />
-                                    <Button
-                                        x:Name="MakeDataDump"
-                                        Width="99"
-                                        Height="25"
-                                        Margin="5,0,5,15"
-                                        Click="MakeDataDump_Click"
-                                        Content="Make data dump"
-                                        Style="{DynamicResource Status_Button_style}" />
-                                    <Button
-                                        x:Name="OpenConfigFolder"
-                                        Width="111"
-                                        Height="25"
-                                        Margin="5,0,5,15"
-                                        Click="OpenConfigFolder_Click"
-                                        Content="Open config folder"
-                                        Style="{DynamicResource Status_Button_style}" />
-                                    <Button
-                                        x:Name="OpenLogFolder"
-                                        Width="101"
-                                        Height="25"
-                                        Margin="5,0,5,15"
-                                        Click="OpenLogFolder_Click"
-                                        Content="Open log folder"
-                                        Style="{DynamicResource Status_Button_style}" />
-
-                                </StackPanel>
-
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="6">
-                            <Grid.Background>
-                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
-                                    <GradientStop Color="#FF3A3053" />
-                                    <GradientStop Offset="1" Color="#FF40365B" />
-                                </LinearGradientBrush>
-                            </Grid.Background>
-                            <StackPanel
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    Foreground="#FF7D7397"
-                                    Text="TTS options" />
-                                <TextBlock
-                                    x:Name="LearnMoreAboutTTSbtn"
-                                    Width="auto"
-                                    Padding="10,0,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Cursor="Hand"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="#FF31B7B4"
-                                    MouseUp="LearnMoreAboutTTSbtn_MouseUp"
-                                    Text="Learn more"
-                                    TextDecorations="Underline" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="7">
-                            <StackPanel
-                                Height="auto"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <CheckBox
-                                    x:Name="TTSCutOff"
-                                    Height="21"
-                                    Margin="15,15,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding TTSCutOff, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Stop current playing TTS on new chat
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="TTSAutoUnmute"
-                                    Height="21"
-                                    Margin="15,15,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding AutoUnmuteTTS, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Autotoggle VRChat voice on TTS
-                                </CheckBox>
-
-                                <StackPanel
-                                    Width="auto"
-                                    Height="22"
-                                    Margin="15,0,0,15"
-                                    HorizontalAlignment="Left"
-                                    Orientation="Horizontal">
-                                    <ComboBox
-                                        x:Name="PlaybackOutputDeviceComboBox"
-                                        Width="186"
-                                        Height="25"
-                                        Margin="0"
-                                        DisplayMemberPath="FriendlyName"
-                                        ItemsSource="{Binding PlaybackOutputDevices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                        Opacity="0.4"
-                                        SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}"
-                                        SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" />
-                                    <TextBlock
-                                        Margin="10,0,5,0"
-                                        VerticalAlignment="Center"
+                                    <CheckBox
+                                        x:Name="WindowOnTop_checkbox"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
                                         FontFamily="Comfortaa Light"
-                                        FontSize="16"
+                                        FontSize="18"
                                         Foreground="#FFB9B5C1"
-                                        Text="TTS Output" />
+                                        IsChecked="{Binding Topmost, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Always on top
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ToggleVoiceWithV"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ToggleVoiceWithV, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Toggle VRChat voice with 'V'
+                                    </CheckBox>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button
+                                            x:Name="ResetFavorites"
+                                            Width="85"
+                                            Height="25"
+                                            Margin="0,0,5,15"
+                                            HorizontalAlignment="Left"
+                                            Click="ResetFavorites_Click"
+                                            Content="Reset Status"
+                                            Style="{DynamicResource Status_Button_style}" />
+                                        <Button
+                                            x:Name="MakeDataDump"
+                                            Width="99"
+                                            Height="25"
+                                            Margin="5,0,5,15"
+                                            Click="MakeDataDump_Click"
+                                            Content="Make data dump"
+                                            Style="{DynamicResource Status_Button_style}" />
+                                        <Button
+                                            x:Name="OpenConfigFolder"
+                                            Width="111"
+                                            Height="25"
+                                            Margin="5,0,5,15"
+                                            Click="OpenConfigFolder_Click"
+                                            Content="Open config folder"
+                                            Style="{DynamicResource Status_Button_style}" />
+                                        <Button
+                                            x:Name="OpenLogFolder"
+                                            Width="101"
+                                            Height="25"
+                                            Margin="5,0,5,15"
+                                            Click="OpenLogFolder_Click"
+                                            Content="Open log folder"
+                                            Style="{DynamicResource Status_Button_style}" />
+                                    </StackPanel>
                                 </StackPanel>
-
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="8">
-                            <Grid.Background>
-                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
-                                    <GradientStop Color="#FF3A3053" />
-                                    <GradientStop Offset="1" Color="#FF40365B" />
-                                </LinearGradientBrush>
-                            </Grid.Background>
-                            <StackPanel
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    Foreground="#FF7D7397"
-                                    Text="OSC options" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="9">
-                            <StackPanel
-                                Height="auto"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,10,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="14"
-                                    Foreground="#FFB9B5C1"
-                                    Text="Local IP address" />
-                                <TextBox
-                                    x:Name="OSCIPBox"
-                                    Width="100"
-                                    Height="26"
-                                    Margin="15,3,0,0"
-                                    Padding="5,0,0,0"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,10,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="14"
-                                    Foreground="#FFB9B5C1"
-                                    Text="Port (outgoing)" />
-                                <TextBox
-                                    x:Name="OSCPortOutBox"
-                                    Width="100"
-                                    Height="26"
-                                    Margin="15,3,0,0"
-                                    Padding="5,0,0,0"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,10,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="14"
-                                    Foreground="#FFB9B5C1"
-                                    Text="Chat timeout" />
-                                <TextBox
-                                    x:Name="ScanPauseCountDown"
-                                    Width="100"
-                                    Height="26"
-                                    Margin="15,3,0,15"
-                                    Padding="5,0,0,0"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
 
 
-                            </StackPanel>
                         </Grid>
-                        <Grid x:Name="WindowActivitycontrol" Grid.Row="10">
-                            <Grid.Background>
-                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
-                                    <GradientStop Color="#FF3A3053" />
-                                    <GradientStop Offset="1" Color="#FF40365B" />
-                                </LinearGradientBrush>
-                            </Grid.Background>
-                            <StackPanel
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="15,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    Foreground="#FF7D7397"
-                                    Text="Window Activity control" />
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="11">
+                        <Grid Grid.Row="8" Margin="0,5,0,10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <CheckBox
-                                x:Name="enhancedapp_checkbox"
-                                Height="20"
-                                Margin="15,15,0,0"
-                                BorderBrush="#FF2D1265"
-                                Checked="Update_Click"
-                                FontFamily="Comfortaa Light"
-                                FontSize="18"
-                                Foreground="#FFB9B5C1"
-                                IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
-                                Style="{DynamicResource SettingsCheckbox}"
-                                Unchecked="Update_Click">
-                                Enhanced application hook for Window activity integration
-                            </CheckBox>
-                            <Border
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,1">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#FF40365B" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_WindowActivity, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                    Tag="Window activity options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
+
+
+                            <Grid
                                 Grid.Row="1"
-                                Margin="13,15,1,0"
-                                Background="DarkSlateBlue"
-                                CornerRadius="5">
-                                <Grid Margin="10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150" />
-                                        <ColumnDefinition Width="80" />
-                                        <ColumnDefinition Width="125" />
-                                        <ColumnDefinition Width="65" />
-                                        <ColumnDefinition Width="188" />
-                                    </Grid.ColumnDefinitions>
+                                Width="auto"
+                                Margin="10,0,0,0"
+                                Visibility="{Binding Settings_WindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <CheckBox
+                                    x:Name="enhancedapp_checkbox"
+                                    Height="20"
+                                    Margin="0,15,0,0"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Enhanced application hook for Window activity integration
+                                </CheckBox>
+                                <Border
+                                    Grid.Row="1"
+                                    Margin="0,15,1,0"
+                                    Background="DarkSlateBlue"
+                                    CornerRadius="5">
+                                    <Grid Margin="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="125" />
+                                            <ColumnDefinition Width="65" />
+                                            <ColumnDefinition Width="188" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <Button
-                                        Grid.Column="0"
-                                        Margin="3,0"
-                                        Command="{Binding SortScannedAppsByProcessNameCommand}"
-                                        Style="{StaticResource Sort_Button_style}">
-                                        <TextBlock
-                                            Padding="5"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Text="App" />
-                                    </Button>
-                                    <Button
-                                        Grid.Column="1"
-                                        Margin="3,0"
-                                        Command="{Binding SortScannedAppsByFocusCountCommand}"
-                                        Style="{StaticResource Sort_Button_style}">
-                                        <TextBlock
-                                            Padding="5"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Text="Focused" />
-                                    </Button>
-                                    <Button
-                                        Grid.Column="2"
-                                        Margin="3,0"
-                                        Command="{Binding SortScannedAppsByUsedNewMethodCommand}"
-                                        Style="{StaticResource Sort_Button_style}">
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Text="Enhanced hook" />
-                                    </Button>
-                                    <Button
-                                        Grid.Column="3"
-                                        Margin="3,0"
-                                        Command="{Binding SortScannedAppsByIsPrivateAppCommand}"
-                                        Style="{StaticResource Sort_Button_style}">
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Text="Private" />
-                                    </Button>
-                                    <Button
-                                        Grid.Column="4"
-                                        Margin="3,0"
-                                        Command="{Binding SortScannedAppsByApplyCustomAppNameCommand}"
-                                        Style="{StaticResource Sort_Button_style}">
-                                        <TextBlock
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Text="Custom app name" />
-                                    </Button>
-                                </Grid>
-                            </Border>
+                                        <Button
+                                            Grid.Column="0"
+                                            Margin="3,0"
+                                            Command="{Binding SortScannedAppsByProcessNameCommand}"
+                                            Style="{StaticResource Sort_Button_style}">
+                                            <TextBlock
+                                                Padding="5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                Text="App" />
+                                        </Button>
+                                        <Button
+                                            Grid.Column="1"
+                                            Margin="3,0"
+                                            Command="{Binding SortScannedAppsByFocusCountCommand}"
+                                            Style="{StaticResource Sort_Button_style}">
+                                            <TextBlock
+                                                Padding="5"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                Text="Focused" />
+                                        </Button>
+                                        <Button
+                                            Grid.Column="2"
+                                            Margin="3,0"
+                                            Command="{Binding SortScannedAppsByUsedNewMethodCommand}"
+                                            Style="{StaticResource Sort_Button_style}">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                Text="Enhanced hook" />
+                                        </Button>
+                                        <Button
+                                            Grid.Column="3"
+                                            Margin="3,0"
+                                            Command="{Binding SortScannedAppsByIsPrivateAppCommand}"
+                                            Style="{StaticResource Sort_Button_style}">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                Text="Private" />
+                                        </Button>
+                                        <Button
+                                            Grid.Column="4"
+                                            Margin="3,0"
+                                            Command="{Binding SortScannedAppsByApplyCustomAppNameCommand}"
+                                            Style="{StaticResource Sort_Button_style}">
+                                            <TextBlock
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                Text="Custom app name" />
+                                        </Button>
+                                    </Grid>
+                                </Border>
 
-                            <ItemsControl
-                                Grid.Row="2"
-                                Background="#FF3A3053"
-                                ItemsSource="{Binding ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:ProcessInfo}">
-                                        <Border
-                                            Margin="10,15,0,0"
-                                            Background="DarkSlateBlue"
-                                            CornerRadius="5">
-                                            <Grid Margin="10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="150" />
-                                                    <ColumnDefinition Width="80" />
-                                                    <ColumnDefinition Width="125" />
-                                                    <ColumnDefinition Width="65" />
-                                                    <ColumnDefinition Width="188" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock
-                                                    Grid.Column="0"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="16"
-                                                    Foreground="#FFB9B5C1"
-                                                    Text="{Binding ProcessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    TextWrapping="Wrap" />
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="16"
-                                                    Foreground="#FFB9B5C1"
-                                                    Text="{Binding FocusCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                <TextBlock
-                                                    Grid.Column="2"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="16"
-                                                    Foreground="#FFB9B5C1"
-                                                    Text="{Binding UsedNewMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <ItemsControl Grid.Row="2" ItemsSource="{Binding ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:ProcessInfo}">
+                                            <Border
+                                                Margin="0,15,0,0"
+                                                Background="DarkSlateBlue"
+                                                CornerRadius="5">
+                                                <Grid Margin="10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="150" />
+                                                        <ColumnDefinition Width="80" />
+                                                        <ColumnDefinition Width="125" />
+                                                        <ColumnDefinition Width="65" />
+                                                        <ColumnDefinition Width="188" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        Grid.Column="0"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="16"
+                                                        Foreground="#FFB9B5C1"
+                                                        Text="{Binding ProcessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        TextWrapping="Wrap" />
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="16"
+                                                        Foreground="#FFB9B5C1"
+                                                        Text="{Binding FocusCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <TextBlock
+                                                        Grid.Column="2"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="16"
+                                                        Foreground="#FFB9B5C1"
+                                                        Text="{Binding UsedNewMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                                                <CheckBox
-                                                    x:Name="IsPrivateApp"
-                                                    Grid.Column="3"
-                                                    Width="23"
-                                                    Height="20"
-                                                    HorizontalAlignment="Center"
-                                                    BorderBrush="#FF2D1265"
-                                                    FontFamily="Comfortaa Light"
-                                                    FontSize="18"
-                                                    Foreground="#FFB9B5C1"
-                                                    IsChecked="{Binding IsPrivateApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    Style="{DynamicResource SettingsCheckbox}" />
-                                                <StackPanel
-                                                    Grid.Column="4"
-                                                    Width="186"
-                                                    Orientation="Horizontal">
                                                     <CheckBox
-                                                        x:Name="ApplyCustomAppName"
+                                                        x:Name="IsPrivateApp"
+                                                        Grid.Column="3"
                                                         Width="23"
                                                         Height="20"
-                                                        Margin="5,0,0,0"
+                                                        HorizontalAlignment="Center"
                                                         BorderBrush="#FF2D1265"
                                                         FontFamily="Comfortaa Light"
                                                         FontSize="18"
                                                         Foreground="#FFB9B5C1"
-                                                        IsChecked="{Binding ApplyCustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        IsChecked="{Binding IsPrivateApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                         Style="{DynamicResource SettingsCheckbox}" />
-                                                    <TextBox
-                                                        Width="150"
-                                                        Margin="5,0,0,0"
-                                                        Padding="5,0,0,0"
-                                                        VerticalAlignment="Center"
-                                                        VerticalContentAlignment="Center"
-                                                        Background="#FF7B7195"
-                                                        BorderThickness="0"
-                                                        FontSize="15"
-                                                        Foreground="#FF240E54"
-                                                        Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                                        <TextBox.Style>
-                                                            <Style TargetType="{x:Type TextBox}">
-                                                                <Setter Property="Opacity" Value="0.3" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding ApplyCustomAppName}" Value="True">
-                                                                        <Setter Property="Opacity" Value="1" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBox.Style>
-                                                    </TextBox>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                                    <StackPanel
+                                                        Grid.Column="4"
+                                                        Width="186"
+                                                        Orientation="Horizontal">
+                                                        <CheckBox
+                                                            x:Name="ApplyCustomAppName"
+                                                            Width="23"
+                                                            Height="20"
+                                                            Margin="5,0,0,0"
+                                                            BorderBrush="#FF2D1265"
+                                                            FontFamily="Comfortaa Light"
+                                                            FontSize="18"
+                                                            Foreground="#FFB9B5C1"
+                                                            IsChecked="{Binding ApplyCustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                            Style="{DynamicResource SettingsCheckbox}" />
+                                                        <TextBox
+                                                            Width="150"
+                                                            Margin="5,0,0,0"
+                                                            Padding="5,0,0,0"
+                                                            VerticalAlignment="Center"
+                                                            VerticalContentAlignment="Center"
+                                                            Background="#FF7B7195"
+                                                            BorderThickness="0"
+                                                            FontSize="15"
+                                                            Foreground="#FF240E54"
+                                                            Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                            <TextBox.Style>
+                                                                <Style TargetType="{x:Type TextBox}">
+                                                                    <Setter Property="Opacity" Value="0.3" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding ApplyCustomAppName}" Value="True">
+                                                                            <Setter Property="Opacity" Value="1" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBox.Style>
+                                                        </TextBox>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </ScrollViewer>

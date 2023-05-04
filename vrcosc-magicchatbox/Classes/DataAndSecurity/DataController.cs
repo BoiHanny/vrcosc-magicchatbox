@@ -215,6 +215,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"PulsoidAccessToken", (typeof(string), "HeartRateConnector")},
                         {"HeartRateScanInterval", (typeof(int), "HeartRateConnector")},
                         {"HeartRateLastUpdate", (typeof(DateTime), "HeartRateConnector")},
+
+                        {"Settings_Status", (typeof(bool), "OptionsTabState")},
+                        {"Settings_HeartRate", (typeof(bool), "OptionsTabState")},
+                        {"Settings_Time", (typeof(bool), "OptionsTabState")},
+                        {"Settings_Chatting", (typeof(bool), "OptionsTabState")},
+                        {"Settings_TTS", (typeof(bool), "OptionsTabState")},
+                        {"Settings_Spotify", (typeof(bool), "OptionsTabState")},
+                        {"Settings_IntelliChat", (typeof(bool), "OptionsTabState")},
+                        {"Settings_AppOptions", (typeof(bool), "OptionsTabState")},
+                        {"Settings_WindowActivity", (typeof(bool), "OptionsTabState")},
+
                     };
 
                     foreach (var setting in settings)
