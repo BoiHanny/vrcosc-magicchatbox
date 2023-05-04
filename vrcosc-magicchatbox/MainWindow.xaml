@@ -1302,7 +1302,7 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="14"
                                         Foreground="#FFB9B5C1"
-                                        Text="Heart rate scan interval" />
+                                        Text="Heart rate request interval" />
                                     <TextBox
                                         x:Name="heartRateScanInt"
                                         Width="40"

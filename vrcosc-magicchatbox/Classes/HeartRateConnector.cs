@@ -62,9 +62,11 @@ namespace vrcosc_magicchatbox.Classes
 
                         // Ensure the adjusted heart rate is not negative
                         heartRate = Math.Max(0, heartRate);
-
-                        ViewModel.Instance.HeartRate = heartRate;
-                        ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
+                        if (ViewModel.Instance.HeartRate != heartRate)
+                        {
+                            ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
+                            ViewModel.Instance.HeartRate = heartRate;
+                        }
                     }
                 }
                 catch (Exception ex)
