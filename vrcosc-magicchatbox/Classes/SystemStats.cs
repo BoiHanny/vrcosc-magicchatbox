@@ -55,8 +55,16 @@ namespace vrcosc_magicchatbox.Classes
 
                 if (ViewModel.Instance.AutoSetDaylight)
                 {
-                    dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
-                    timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
+                    if (ViewModel.Instance.TimeShowTimeZone)
+                    {
+                        timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
+                        dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
+                    }
+                    else
+                    {
+                        timeZoneOffset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
+                        dateTimeWithZone = localDateTime;
+                    }
                 }
                 else
                 {
@@ -87,6 +95,7 @@ namespace vrcosc_magicchatbox.Classes
                 return "00:00 XX";
             }
         }
+
 
 
 
