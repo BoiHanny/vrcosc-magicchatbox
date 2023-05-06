@@ -214,7 +214,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"PulsoidAccessToken", (typeof(string), "HeartRateConnector")},
                         {"HeartRateScanInterval", (typeof(int), "HeartRateConnector")},
+                        {"HeartRate", (typeof(int), "HeartRateConnector")},
                         {"HeartRateLastUpdate", (typeof(DateTime), "HeartRateConnector")},
+                        {"ShowBPMSuffix", (typeof(bool), "HeartRateConnector")},
+                        {"HeartRateAdjustment", (typeof(int), "HeartRateConnector")},
 
                         {"Settings_Status", (typeof(bool), "OptionsTabState")},
                         {"Settings_HeartRate", (typeof(bool), "OptionsTabState")},
@@ -277,12 +280,15 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                     {
                                         property.SetValue(ViewModel.Instance, Enum.Parse(typeof(Timezone), settingNode.InnerText));
                                     }
+                                    else if (setting.Value.type == typeof(DateTime))
+                                    {
+                                        property.SetValue(ViewModel.Instance, DateTime.Parse(settingNode.InnerText));
+                                    }
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            // Log the exception or handle it as needed
                         }
                     }
 
@@ -293,7 +299,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception or handle it as needed
                 }
             }
         }

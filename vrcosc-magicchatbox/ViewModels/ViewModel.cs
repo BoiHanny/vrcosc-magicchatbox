@@ -326,7 +326,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private DateTime _HeartRateLastUpdate;
+        private DateTime _HeartRateLastUpdate = DateTime.Now;
         public DateTime HeartRateLastUpdate
         {
             get { return _HeartRateLastUpdate; }
@@ -446,6 +446,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _HeartRate = value;
                 NotifyPropertyChanged(nameof(HeartRate));
+            }
+        }
+
+
+        private bool _ShowBPMSuffix = false;
+        public bool ShowBPMSuffix
+        {
+            get { return _ShowBPMSuffix; }
+            set
+            {
+                _ShowBPMSuffix = value;
+                NotifyPropertyChanged(nameof(ShowBPMSuffix));
             }
         }
 

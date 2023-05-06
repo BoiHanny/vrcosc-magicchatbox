@@ -904,7 +904,70 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="2" Opacity="{Binding HeartRate_Opacity}">
+                    <Grid Grid.Row="2" Opacity="{Binding Window_Opacity}">
+                        <Border
+                            Margin="6"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Quality"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85" />
+                                    <ColumnDefinition Width="440" />
+                                    <ColumnDefinition Width="123" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="0,8,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Window activity" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="0,0,0,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        Text="Shows if you are in VR or DESKTOP mode, in desktop it will show in which application you are focused."
+                                        TextWrapping="Wrap" />
+
+                                </Grid>
+
+                                <Image
+                                    Grid.Column="0"
+                                    Margin="9"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Source="/Img/Icons/WindowActivity_ico.png" />
+                                <CheckBox
+                                    Name="WindowActivity_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="3" Opacity="{Binding HeartRate_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -981,69 +1044,6 @@
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrHeartRate, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid Grid.Row="3" Opacity="{Binding Window_Opacity}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Window activity" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="Shows if you are in VR or DESKTOP mode, in desktop it will show in which application you are focused."
-                                        TextWrapping="Wrap" />
-
-                                </Grid>
-
-                                <Image
-                                    Grid.Column="0"
-                                    Margin="9"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/WindowActivity_ico.png" />
-                                <CheckBox
-                                    Name="WindowActivity_switch"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}"
                                     Style="{DynamicResource Switch}" />
 
                             </Grid>
@@ -1176,10 +1176,6 @@
                         </Border>
 
                     </Grid>
-
-
-
-
                 </Grid>
                 <ScrollViewer
                     Grid.Row="1"
@@ -1277,6 +1273,20 @@
                                 Margin="10,10,0,0"
                                 Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
+                                    <CheckBox
+                                        x:Name="ShowBPMSuffix_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowBPMSuffix, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show BPM instead of 💖
+                                    </CheckBox>
                                     <TextBlock
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -1735,7 +1745,9 @@
                             </Grid>
 
                         </Grid>
-                        <Grid Grid.Row="6" Margin="0,5,0,0"
+                        <Grid
+                            Grid.Row="6"
+                            Margin="0,5,0,0"
                             Cursor="No">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />

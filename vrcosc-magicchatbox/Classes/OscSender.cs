@@ -127,29 +127,6 @@ namespace vrcosc_magicchatbox.Classes
                         ViewModel.Instance.Window_Opacity = "0.5";
                     }
                 }
-                if (ViewModel.Instance.IntgrHeartRate == true)
-                {
-                    if (ViewModel.Instance.HeartRate > 0)
-                    {
-                        x = ViewModel.Instance.HeartRate + " BPM";
-                        if (OSCmsgLenght(Uncomplete, x) < 144)
-                        {
-                            Uncomplete.Add(x);
-                        }
-                        else
-                        {
-                            ViewModel.Instance.Char_Limit = "Visible";
-                            ViewModel.Instance.Window_Opacity = "0.5";
-                        }
-
-
-
-                    }
-                    else
-                    {
-                        
-                    }
-                }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)
                 {
                     if (ViewModel.Instance.IsVRRunning)
@@ -180,6 +157,26 @@ namespace vrcosc_magicchatbox.Classes
                             ViewModel.Instance.Char_Limit = "Visible";
                             ViewModel.Instance.Window_Opacity = "0.5";
                         }
+                    }
+                }
+                if (ViewModel.Instance.IntgrHeartRate == true)
+                {
+                    if (ViewModel.Instance.HeartRate > 0)
+                    {
+                        x = ViewModel.Instance.HeartRate + (ViewModel.Instance.ShowBPMSuffix ? " BPM" : " 💖");
+                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        {
+                            Uncomplete.Add(x);
+                        }
+                        else
+                        {
+                            ViewModel.Instance.Char_Limit = "Visible";
+                            ViewModel.Instance.Window_Opacity = "0.5";
+                        }
+                    }
+                    else
+                    {
+
                     }
                 }
                 if (ViewModel.Instance.IntgrScanWindowTime == true & ViewModel.Instance.OnlyShowTimeVR == true & ViewModel.Instance.IsVRRunning == true | ViewModel.Instance.IntgrScanWindowTime == true & ViewModel.Instance.OnlyShowTimeVR == false)
