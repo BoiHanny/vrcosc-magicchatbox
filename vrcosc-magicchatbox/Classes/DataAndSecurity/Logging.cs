@@ -76,6 +76,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                     string viewModelDump = JsonConvert.SerializeObject(ViewModel.Instance, settings);
 
+
                     string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
                     File.WriteAllText($@"{folderPath}\ViewModelDump{timestamp}.json", viewModelDump);
                     WriteInfo($@"ViewModelDump was called and created a json file in {folderPath}. ViewModel dump: ViewModelDump{timestamp}.json");
@@ -129,6 +130,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             // Only serialize bools, strings, and ints
             if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime)  || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
             {
+                property.ShouldSerialize = instance => false;
+            }
+            if(property.PropertyName == "aesKey" || property.PropertyName == "ApiStream" || property.PropertyName == "OpenAIAPIKey" || property.PropertyName == "PulsoidAccessToken")
+                    {
                 property.ShouldSerialize = instance => false;
             }
 
