@@ -1,10 +1,13 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using NLog;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using static vrcosc_magicchatbox.ViewModels.ViewModel;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
@@ -48,8 +51,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             AutoClosingMessageBox.Show(msgboxtext, "Application error", msgboxtimeout);
         }
 
-
-
         public static void ViewModelDump()
         {
             try
@@ -67,15 +68,13 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         return;
                     }
 
-                    ViewModel viewModelCopy = JsonConvert.DeserializeObject<ViewModel>(JsonConvert.SerializeObject(ViewModel.Instance));
-                    viewModelCopy.aesKey = null;
-                    viewModelCopy.ApiStream = null;
-                    viewModelCopy.OpenAIAPIKey = null;
-                    viewModelCopy.PulsoidAccessToken = null;
+                    var settings = new JsonSerializerSettings
+                    {
+                        Formatting = Formatting.Indented,
+                        ContractResolver = new ShouldSerializeContractResolver()
+                    };
 
-
-
-                    string viewModelDump = JsonConvert.SerializeObject(viewModelCopy, Formatting.Indented);
+                    string viewModelDump = JsonConvert.SerializeObject(ViewModel.Instance, settings);
 
                     string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
                     File.WriteAllText($@"{folderPath}\ViewModelDump{timestamp}.json", viewModelDump);
@@ -118,6 +117,22 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+        }
+    }
+
+    public class ShouldSerializeContractResolver : DefaultContractResolver
+    {
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        {
+            var property = base.CreateProperty(member, memberSerialization);
+
+            // Only serialize bools, strings, and ints
+            if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime)  || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
+            {
+                property.ShouldSerialize = instance => false;
+            }
+
+            return property;
         }
     }
 }
