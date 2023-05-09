@@ -2182,7 +2182,7 @@
                                     IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}"
                                     Unchecked="Update_Click">
-                                    Enhanced application hook for Window activity integration
+                                    Enhanced hook for better app names
                                 </CheckBox>
                                 <Border
                                     Grid.Row="1"
