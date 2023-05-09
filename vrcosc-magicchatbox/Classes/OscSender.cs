@@ -14,6 +14,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using System.Windows.Media;
 using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -261,12 +262,17 @@ namespace vrcosc_magicchatbox.Classes
                                 Window infoWindow = new Window
                                 {
                                     Title = "Information",
+                                    Topmost = true,
                                     Width = 300,
                                     Height = 130,
                                     ResizeMode = ResizeMode.NoResize,
                                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
                                     Background = new SolidColorBrush(Color.FromRgb(46, 20, 103))
                                 };
+
+                                // Create a timer that will close the window after 20 seconds
+                                DispatcherTimer timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
+                                timer.Tick += (s, e) => { infoWindow.Close(); timer.Stop(); };
 
                                 // Create Grid to hold the content
                                 Grid grid = new Grid();
@@ -323,7 +329,8 @@ namespace vrcosc_magicchatbox.Classes
                                 infoWindow.Content = grid;
                                 infoWindow.ShowDialog();
 
-                                ViewModel.Instance.IntgrScanSpotify = false;
+                                timer.Start();
+
                                 ViewModel.Instance.SpotifyPaused = true;
                             }
 
