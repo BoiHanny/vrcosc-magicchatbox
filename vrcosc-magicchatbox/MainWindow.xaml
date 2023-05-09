@@ -1366,8 +1366,8 @@
                                     <TextBlock
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
-                                        FontSize="14"
-                                        Foreground="#FFB9B5C1"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
                                         Text="Pulsoid access token" />
                                     <TextBox
                                         x:Name="PulsoidAccessToken"
@@ -1386,8 +1386,8 @@
                                         Grid.Column="0"
                                         Padding="0,10,0,0"
                                         FontFamily="Albert Sans Thin"
-                                        FontSize="14"
-                                        Foreground="#FFB9B5C1"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
                                         Text="Heart rate request interval" />
                                     <TextBox
                                         x:Name="heartRateScanInt"
@@ -1406,8 +1406,8 @@
                                         Grid.Column="0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
-                                        FontSize="14"
-                                        Foreground="#FFB9B5C1"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
                                         Text="Heart rate adjustment " />
                                     <TextBox
                                         x:Name="HeartRateAdjustment"
@@ -1604,8 +1604,8 @@
                                         Grid.Column="0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
-                                        FontSize="14"
-                                        Foreground="#FFB9B5C1"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
                                         Text="Chat timeout" />
                                     <TextBox
                                         x:Name="ScanPauseCountDown"
@@ -1734,11 +1734,11 @@
                                             SelectedItem="{Binding SelectedPlaybackOutputDevice, Mode=TwoWay}"
                                             SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" />
                                         <TextBlock
-                                            Margin="10,0,5,0"
+                                            Margin="8,0,5,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="16"
-                                            Foreground="#FFB9B5C1"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
                                             Text="TTS Output" />
                                     </StackPanel>
                                 </StackPanel>
@@ -1937,9 +1937,9 @@
                                         <TextBlock
                                             Margin="10,0,5,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="16"
-                                            Foreground="#FFB9B5C1"><Run Text="GPT Model (use GPT-3 for cheap and fast " /><Run Language="en-gb" Text="promts" /><Run Text=")" /></TextBlock>
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"><Run Text="GPT Model (use GPT-3 for cheap and fast " /><Run Language="en-gb" Text="promts" /><Run Text=")" /></TextBlock>
                                     </StackPanel>
                                     <StackPanel
                                         Width="auto"
@@ -1954,8 +1954,8 @@
                                                 Grid.Column="0"
                                                 Padding="0,0,0,0"
                                                 FontFamily="Albert Sans Thin"
-                                                FontSize="14"
-                                                Foreground="#FFB9B5C1"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
                                                 Text="OpenAI API key" />
                                             <TextBox
                                                 x:Name="OpenAIAPIUrl"
@@ -2031,8 +2031,8 @@
                                             Padding="0,0,0,0"
                                             HorizontalAlignment="Left"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Foreground="#FFB9B5C1"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
                                             Text="Local IP address" />
                                         <TextBox
                                             x:Name="OSCIPBox"
@@ -2052,8 +2052,8 @@
                                             Padding="0,10,0,0"
                                             HorizontalAlignment="Left"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            Foreground="#FFB9B5C1"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
                                             Text="Port (outgoing)" />
                                         <TextBox
                                             x:Name="OSCPortOutBox"
@@ -2157,6 +2157,7 @@
                                     Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                     Tag="Window activity options"
                                     TextOptions.TextRenderingMode="ClearType" />
+
                             </Grid>
 
 
@@ -2166,6 +2167,9 @@
                                 Margin="10,0,0,0"
                                 Visibility="{Binding Settings_WindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
@@ -2184,8 +2188,52 @@
                                     Unchecked="Update_Click">
                                     Enhanced hook for better app names
                                 </CheckBox>
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Margin="0,15,0,5"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="15"
+                                    Foreground="#FF9983AD"
+                                    Text="Cleanup action" />
+                                <StackPanel Grid.Row="3" Orientation="Horizontal">
+                                    <Button
+                                        x:Name="SmartClearnup"
+                                        Width="60"
+                                        Height="25"
+                                        Margin="0,0,5,0"
+                                        HorizontalAlignment="Left"
+                                        Click="SmartClearnup_Click"
+                                        Content="Smart"
+                                        Style="{DynamicResource Status_Button_style}" />
+                                    <Button
+                                        x:Name="ClearnupKeepSettings"
+                                        Width="150"
+                                        Height="25"
+                                        Margin="0,0,5,0"
+                                        HorizontalAlignment="Left"
+                                        Click="ClearnupKeepSettings_Click"
+                                        Content="Keep apps with settings"
+                                        Style="{DynamicResource Status_Button_style}" />
+                                    <Button
+                                        x:Name="ResetWindowActivity"
+                                        Width="50"
+                                        Height="25"
+                                        Margin="0,0,5,0"
+                                        HorizontalAlignment="Left"
+                                        Click="ResetWindowActivity_Click"
+                                        Content="Reset"
+                                        Style="{DynamicResource Status_Button_style}" />
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Margin="0,3,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="16"
+                                        Foreground="#FF9983AD"
+                                        Text="{Binding DeletedAppslabel, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
                                 <Border
-                                    Grid.Row="1"
+                                    Grid.Row="4"
                                     Margin="0,15,1,0"
                                     Background="DarkSlateBlue"
                                     CornerRadius="5">
@@ -2258,7 +2306,7 @@
                                     </Grid>
                                 </Border>
 
-                                <ItemsControl Grid.Row="2" ItemsSource="{Binding ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                                <ItemsControl Grid.Row="5" ItemsSource="{Binding ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:ProcessInfo}">
                                             <Border

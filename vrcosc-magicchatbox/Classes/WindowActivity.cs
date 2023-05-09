@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Automation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
@@ -204,6 +205,48 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
+        public static int SmartCleanup()
+        {
+            int removed = 0;
+            for (int i = ViewModel.Instance.ScannedApps.Count - 1; i >= 0; i--)
+            {
+                var app = ViewModel.Instance.ScannedApps[i];
+                if (app.FocusCount < 15 && !app.IsPrivateApp && !app.ApplyCustomAppName && string.IsNullOrEmpty(app.CustomAppName))
+                {
+                    ViewModel.Instance.ScannedApps.RemoveAt(i);
+                    removed ++;
+                }
+            }
+            return removed;
+        }
+
+        public static int CleanAndKeepAppsWithSettings()
+        {
+            int removed = 0;
+            for (int i = ViewModel.Instance.ScannedApps.Count - 1; i >= 0; i--)
+            {
+                var app = ViewModel.Instance.ScannedApps[i];
+                if (!app.IsPrivateApp && !app.ApplyCustomAppName && string.IsNullOrEmpty(app.CustomAppName))
+                {
+                    ViewModel.Instance.ScannedApps.RemoveAt(i);
+                    removed++;
+                }
+            }
+            return removed;
+        }
+
+        public static int ResetWindowActivity()
+        {
+            int removed = 0;
+            var result = MessageBox.Show("Are you sure you want to delete all the history and settings of the Window Activity integration?", "Confirmation", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
+
+            if (result == MessageBoxResult.OK)
+            {
+                ViewModel.Instance.ScannedApps.Clear();
+                removed++;
+            }
+            return removed;
+        }
 
     }
 }

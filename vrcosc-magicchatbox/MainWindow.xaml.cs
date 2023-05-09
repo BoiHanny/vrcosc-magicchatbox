@@ -694,5 +694,41 @@ namespace vrcosc_magicchatbox
         {
             Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Use-the-Spotify-Integration-%F0%9F%8E%B5");
         }
+
+        private void SmartClearnup_Click(object sender, RoutedEventArgs e)
+        {
+            int ItemRemoved = WindowActivity.SmartCleanup();
+            if(ItemRemoved > 0)
+            {
+                ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
+                
+            }
+            else
+            {
+                ViewModel.Instance.DeletedAppslabel = $"No apps removed from history";
+            }
+        }
+
+        private void ClearnupKeepSettings_Click(object sender, RoutedEventArgs e)
+        {
+            int ItemRemoved = WindowActivity.CleanAndKeepAppsWithSettings();
+            if (ItemRemoved > 0)
+            {
+                ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
+            }
+            else
+            {
+                ViewModel.Instance.DeletedAppslabel = $"No apps removed from history";
+            }
+        }
+
+        private void ResetWindowActivity_Click(object sender, RoutedEventArgs e)
+        {
+            int ItemRemoved = WindowActivity.ResetWindowActivity();
+            if (ItemRemoved > 0)
+            {
+                ViewModel.Instance.DeletedAppslabel = "All apps from history";
+            }
+        }
     }
 }

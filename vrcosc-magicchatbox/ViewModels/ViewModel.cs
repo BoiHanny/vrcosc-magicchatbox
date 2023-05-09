@@ -546,6 +546,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private string _DeletedAppslabel;
+        public string DeletedAppslabel
+        {
+            get { return _DeletedAppslabel; }
+            set
+            {
+                _DeletedAppslabel = value;
+                NotifyPropertyChanged(nameof(DeletedAppslabel));
+            }
+        }
+
         private ObservableCollection<ProcessInfo> _ScannedApps = new ObservableCollection<ProcessInfo>();
         public ObservableCollection<ProcessInfo> ScannedApps
         {
