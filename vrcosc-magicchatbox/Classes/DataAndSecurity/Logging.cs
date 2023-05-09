@@ -70,6 +70,11 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     ViewModel viewModelCopy = JsonConvert.DeserializeObject<ViewModel>(JsonConvert.SerializeObject(ViewModel.Instance));
                     viewModelCopy.aesKey = null;
                     viewModelCopy.ApiStream = null;
+                    viewModelCopy.OpenAIAPIKey = null;
+                    viewModelCopy.PulsoidAccessToken = null;
+
+
+
                     string viewModelDump = JsonConvert.SerializeObject(viewModelCopy, Formatting.Indented);
 
                     string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
