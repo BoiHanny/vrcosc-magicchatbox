@@ -108,9 +108,11 @@ namespace vrcosc_magicchatbox.Classes
 
                 return "Unknown";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "Unknown";
+
             }
         }
 

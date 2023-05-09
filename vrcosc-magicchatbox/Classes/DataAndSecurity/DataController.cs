@@ -145,6 +145,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
 
 
+
         public static void ManageSettingsXML(bool saveSettings = false)
         {
             if (CreateIfMissing(ViewModel.Instance.DataPath) == true)

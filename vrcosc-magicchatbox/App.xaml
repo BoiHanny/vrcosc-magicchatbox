@@ -7,6 +7,38 @@
     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
     StartupUri="MainWindow.xaml">
     <Application.Resources>
+
+        <Style x:Key="CircleButton" TargetType="Button">
+            <Setter Property="Background" Value="#3D217A" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="30">
+                            <ContentPresenter
+                                Margin="4"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2C1265" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#230E53" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="ExpandCollapseToggleButtonStyle" TargetType="ToggleButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#B7BBD4" />
@@ -19,25 +51,26 @@
                             <Border x:Name="border" Background="{TemplateBinding Background}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Image x:Name="SymbolImage"
-                                Grid.Column="0"
-                                Width="16"
-                                Height="16"
-                                Margin="10,0,0,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Source="/Img/Icons/Plus_ico.png" />
+                                    <Image
+                                        x:Name="SymbolImage"
+                                        Grid.Column="0"
+                                        Width="16"
+                                        Height="16"
+                                        Margin="10,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Source="/Img/Icons/Plus_ico.png" />
                                     <TextBlock
-                                x:Name="CustomTextContentControl"
-                                Grid.Column="1"
-                                Margin="8,0,10,0"
-                                VerticalAlignment="Center"
-                                Text="{TemplateBinding Tag}"
-                                FontSize="13"
-                                Foreground="#B7BBD4" />
+                                        x:Name="CustomTextContentControl"
+                                        Grid.Column="1"
+                                        Margin="8,0,10,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        Foreground="#B7BBD4"
+                                        Text="{TemplateBinding Tag}" />
                                 </Grid>
                             </Border>
                             <VisualStateManager.VisualStateGroups>
@@ -46,19 +79,19 @@
                                     <VisualState x:Name="MouseOver">
                                         <Storyboard>
                                             <ColorAnimation
-                                Storyboard.TargetName="border"
-                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                To="#FF4A4063"
-                                Duration="0" />
+                                                Storyboard.TargetName="border"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#FF4A4063"
+                                                Duration="0" />
                                         </Storyboard>
                                     </VisualState>
                                     <VisualState x:Name="Pressed">
                                         <Storyboard>
                                             <ColorAnimation
-                                Storyboard.TargetName="border"
-                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                To="#FF2A2043"
-                                Duration="0" />
+                                                Storyboard.TargetName="border"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#FF2A2043"
+                                                Duration="0" />
                                         </Storyboard>
                                     </VisualState>
                                 </VisualStateGroup>
@@ -825,6 +858,7 @@
         <SolidColorBrush x:Key="OptionMark.Disabled.Border" Color="#FFBCBCBC" />
         <SolidColorBrush x:Key="OptionMark.Disabled.Glyph" Color="#FF707070" />
         <Style x:Key="Switch" TargetType="{x:Type CheckBox}">
+            <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">

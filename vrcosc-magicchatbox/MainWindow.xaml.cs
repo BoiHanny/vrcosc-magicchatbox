@@ -204,7 +204,7 @@ namespace vrcosc_magicchatbox
 
         }
 
-        public void ChangeMenuItem(int changeINT)
+        public static void ChangeMenuItem(int changeINT)
         {
             ViewModel.Instance.CurrentMenuItem = changeINT;
             ViewModel.Instance.MenuItem_0_Visibility = "Hidden";

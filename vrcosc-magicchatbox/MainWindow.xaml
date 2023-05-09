@@ -857,9 +857,24 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
+                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
+                                <Button
+                                    Grid.Column="3"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Status"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="/Img/Icons/Next_ico.png" />
+                                </Button>
+
                                 <Grid Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -880,7 +895,7 @@
                                         FontFamily="Comfortaa Light"
                                         FontSize="13"
                                         Foreground="LightGray"
-                                        Text="With this integration you can write an epic status that you want to show to everyone in game"
+                                        Text="With this integration, you can write an epic status that you want to show to everyone in game"
                                         TextWrapping="Wrap" />
 
                                 </Grid>
@@ -894,7 +909,8 @@
                                 <CheckBox
                                     Name="Status_Switch"
                                     Grid.Column="2"
-                                    HorizontalAlignment="Center"
+                                    Margin="20,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrStatus, Mode=TwoWay}"
@@ -920,9 +936,23 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
+                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
+                                <Button
+                                    Grid.Column="3"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_WindowActivity"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="/Img/Icons/Next_ico.png" />
+                                </Button>
                                 <Grid Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -943,7 +973,7 @@
                                         FontFamily="Comfortaa Light"
                                         FontSize="13"
                                         Foreground="LightGray"
-                                        Text="Shows if you are in VR or DESKTOP mode, in desktop it will show in which application you are focused."
+                                        Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
                                         TextWrapping="Wrap" />
 
                                 </Grid>
@@ -957,7 +987,8 @@
                                 <CheckBox
                                     Name="WindowActivity_switch"
                                     Grid.Column="2"
-                                    HorizontalAlignment="Center"
+                                    Margin="20,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}"
@@ -983,9 +1014,23 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
+                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
+                                <Button
+                                    Grid.Column="3"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_HeartRate"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="/Img/Icons/Next_ico.png" />
+                                </Button>
                                 <Grid Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -1040,7 +1085,8 @@
                                 <CheckBox
                                     Name="HR_Switch"
                                     Grid.Column="2"
-                                    HorizontalAlignment="Center"
+                                    Margin="20,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrHeartRate, Mode=TwoWay}"
@@ -1066,9 +1112,23 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
+                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
+                                <Button
+                                    Grid.Column="3"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Time"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="/Img/Icons/Next_ico.png" />
+                                </Button>
                                 <Grid Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -1089,7 +1149,7 @@
                                         FontFamily="Comfortaa Light"
                                         FontSize="13"
                                         Foreground="LightGray"
-                                        Text="This intergration works in VR mode, it will show your local                                                 machine time."
+                                        Text="With this integration, you can display your local machine's current time and also convert it to a custom timezone of your choice."
                                         TextWrapping="Wrap" />
 
                                 </Grid>
@@ -1103,7 +1163,8 @@
                                 <CheckBox
                                     Name="SystemTime_switch"
                                     Grid.Column="2"
-                                    HorizontalAlignment="Center"
+                                    Margin="20,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
@@ -1129,9 +1190,23 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="123" />
+                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
+                                <Button
+                                    Grid.Column="3"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Spotify"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="/Img/Icons/Next_ico.png" />
+                                </Button>
                                 <Grid Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -1152,7 +1227,7 @@
                                         FontFamily="Comfortaa Light"
                                         FontSize="13"
                                         Foreground="LightGray"
-                                        Text="This intergration will show the playing song title and artist, It will also show                                                 if the song is paused."
+                                        Text="With this integration, you can show the title and artist of the currently playing song, it will also indicate if the song is paused."
                                         TextWrapping="Wrap" />
 
                                 </Grid>
@@ -1166,7 +1241,8 @@
                                 <CheckBox
                                     Name="Spotify_switch"
                                     Grid.Column="2"
-                                    HorizontalAlignment="Center"
+                                    Margin="20,0,0,0"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}"

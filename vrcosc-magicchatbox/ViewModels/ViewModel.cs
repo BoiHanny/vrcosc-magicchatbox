@@ -16,6 +16,7 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ViewModel : INotifyPropertyChanged
     {
         public static readonly ViewModel Instance = new ViewModel();
+
         private HeartRateConnector _heartRateConnector;
 
         #region ICommand's
@@ -26,10 +27,12 @@ namespace vrcosc_magicchatbox.ViewModels
         public ICommand SortScannedAppsByUsedNewMethodCommand { get; }
         public ICommand SortScannedAppsByIsPrivateAppCommand { get; }
         public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
+        public RelayCommand<string> ActivateSettingCommand { get; }
 
         #endregion
 
         public Dictionary<Timezone, string> TimezoneFriendlyNames { get; }
+        public Dictionary<string, Action<bool>> SettingsMap;
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
@@ -39,6 +42,7 @@ namespace vrcosc_magicchatbox.ViewModels
             SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
             SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
             SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
+            ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
             TimezoneFriendlyNames = new Dictionary<Timezone, string>
         {
             { Timezone.UTC, "Coordinated Universal Time (UTC)" },
@@ -48,8 +52,32 @@ namespace vrcosc_magicchatbox.ViewModels
             { Timezone.CET, "European Central Time (CET)" },
             { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
         };
+            SettingsMap = new Dictionary<string, Action<bool>>
+    {
+        { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
+        { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
+        { nameof(Settings_Spotify), value => Settings_Spotify = value },
+        { nameof(Settings_Chatting), value => Settings_Chatting = value },
+        { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
+        { nameof(Settings_TTS), value => Settings_TTS = value },
+        { nameof(Settings_Time), value => Settings_Time = value },
+        { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
+        { nameof(Settings_Status), value => Settings_Status = value }
+    };
             _heartRateConnector = new HeartRateConnector();
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
+        }
+
+        public void ActivateSetting(string settingName)
+        {
+            if (SettingsMap.ContainsKey(settingName))
+            {
+                foreach (var setting in SettingsMap)
+                {
+                    setting.Value(setting.Key == settingName);
+                }
+                MainWindow.ChangeMenuItem(3);
+            }
         }
 
         public void SortScannedApps(SortProperty sortProperty)
@@ -282,38 +310,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _Settings_WindowActivity = false;
-        public bool Settings_WindowActivity
-        {
-            get { return _Settings_WindowActivity; }
-            set
-            {
-                _Settings_WindowActivity = value;
-                NotifyPropertyChanged(nameof(Settings_WindowActivity));
-            }
-        }
 
-        private bool _Settings_IntelliChat = false;
-        public bool Settings_IntelliChat
-        {
-            get { return _Settings_IntelliChat; }
-            set
-            {
-                _Settings_IntelliChat = value;
-                NotifyPropertyChanged(nameof(Settings_IntelliChat));
-            }
-        }
-
-        private bool _Settings_Spotify = false;
-        public bool Settings_Spotify
-        {
-            get { return _Settings_Spotify; }
-            set
-            {
-                _Settings_Spotify = value;
-                NotifyPropertyChanged(nameof(Settings_Spotify));
-            }
-        }
 
         private int _HeartRateScanInterval = 3;
         public int HeartRateScanInterval
@@ -360,6 +357,38 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _Settings_WindowActivity = false;
+        public bool Settings_WindowActivity
+        {
+            get { return _Settings_WindowActivity; }
+            set
+            {
+                _Settings_WindowActivity = value;
+                NotifyPropertyChanged(nameof(Settings_WindowActivity));
+            }
+        }
+
+        private bool _Settings_IntelliChat = false;
+        public bool Settings_IntelliChat
+        {
+            get { return _Settings_IntelliChat; }
+            set
+            {
+                _Settings_IntelliChat = value;
+                NotifyPropertyChanged(nameof(Settings_IntelliChat));
+            }
+        }
+
+        private bool _Settings_Spotify = false;
+        public bool Settings_Spotify
+        {
+            get { return _Settings_Spotify; }
+            set
+            {
+                _Settings_Spotify = value;
+                NotifyPropertyChanged(nameof(Settings_Spotify));
+            }
+        }
 
         private bool _Settings_Chatting = false;
         public bool Settings_Chatting
