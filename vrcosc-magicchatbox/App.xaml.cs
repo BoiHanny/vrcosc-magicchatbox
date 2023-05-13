@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using System.Windows.Media.Animation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox
@@ -32,4 +31,3 @@ namespace vrcosc_magicchatbox
 
     }
 }
-    

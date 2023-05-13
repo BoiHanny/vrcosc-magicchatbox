@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -14,19 +17,118 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public static readonly ViewModel Instance = new ViewModel();
 
+        private HeartRateConnector _heartRateConnector;
+
+        #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }
         public ICommand ToggleVoiceCommand { get; }
+        public ICommand SortScannedAppsByProcessNameCommand { get; }
+        public ICommand SortScannedAppsByFocusCountCommand { get; }
+        public ICommand SortScannedAppsByUsedNewMethodCommand { get; }
+        public ICommand SortScannedAppsByIsPrivateAppCommand { get; }
+        public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
+        public RelayCommand<string> ActivateSettingCommand { get; }
 
+        #endregion
+
+        public Dictionary<Timezone, string> TimezoneFriendlyNames { get; }
+        public Dictionary<string, Action<bool>> SettingsMap;
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
             ToggleVoiceCommand = new RelayCommand(ToggleVoice);
+            SortScannedAppsByProcessNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ProcessName));
+            SortScannedAppsByFocusCountCommand = new RelayCommand(() => SortScannedApps(SortProperty.FocusCount));
+            SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
+            SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
+            SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
+            ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
+            TimezoneFriendlyNames = new Dictionary<Timezone, string>
+        {
+            { Timezone.UTC, "Coordinated Universal Time (UTC)" },
+            { Timezone.EST, "Eastern Standard Time (EST)" },
+            { Timezone.CST, "Central Standard Time (CST)" },
+            { Timezone.PST, "Pacific Standard Time (PST)" },
+            { Timezone.CET, "European Central Time (CET)" },
+            { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
+        };
+            SettingsMap = new Dictionary<string, Action<bool>>
+    {
+        { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
+        { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
+        { nameof(Settings_Spotify), value => Settings_Spotify = value },
+        { nameof(Settings_Chatting), value => Settings_Chatting = value },
+        { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
+        { nameof(Settings_TTS), value => Settings_TTS = value },
+        { nameof(Settings_Time), value => Settings_Time = value },
+        { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
+        { nameof(Settings_Status), value => Settings_Status = value }
+    };
+            _heartRateConnector = new HeartRateConnector();
+            PropertyChanged += _heartRateConnector.PropertyChangedHandler;
+        }
+
+        public void ActivateSetting(string settingName)
+        {
+            if (SettingsMap.ContainsKey(settingName))
+            {
+                foreach (var setting in SettingsMap)
+                {
+                    setting.Value(setting.Key == settingName);
+                }
+                MainWindow.ChangeMenuItem(3);
+            }
+        }
+
+        public void SortScannedApps(SortProperty sortProperty)
+        {
+            var isAscending = _sortDirection[sortProperty];
+            _sortDirection[sortProperty] = !isAscending;
+
+            IOrderedEnumerable<ProcessInfo> sortedScannedApps;
+
+            switch (sortProperty)
+            {
+                case SortProperty.ProcessName:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.ProcessName)
+                        : _ScannedApps.OrderByDescending(process => process.ProcessName);
+                    break;
+
+                case SortProperty.UsedNewMethod:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.UsedNewMethod)
+                        : _ScannedApps.OrderByDescending(process => process.UsedNewMethod);
+                    break;
+
+                case SortProperty.ApplyCustomAppName:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.ApplyCustomAppName)
+                        : _ScannedApps.OrderByDescending(process => process.ApplyCustomAppName);
+                    break;
+
+                case SortProperty.FocusCount:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.FocusCount)
+                        : _ScannedApps.OrderByDescending(process => process.FocusCount);
+                    break;
+                case SortProperty.IsPrivateApp:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.IsPrivateApp)
+                        : _ScannedApps.OrderByDescending(process => process.IsPrivateApp);
+                    break;
+
+                default:
+                    throw new ArgumentException($"Invalid sort property: {sortProperty}");
+            }
+
+            ScannedApps = new ObservableCollection<ProcessInfo>(sortedScannedApps);
         }
 
         private void ToggleVoice()
         {
-            if(Instance.ToggleVoiceWithV)
-            OscSender.ToggleVoice(true);
+            if (Instance.ToggleVoiceWithV)
+                OscSender.ToggleVoice(true);
         }
 
         public static void ActivateStatus(object parameter)
@@ -53,8 +155,20 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
             }
-            
+
         }
+
+        public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "FocusCount")
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
+                });
+            }
+        }
+
         public static void SaveStatusList()
         {
             try
@@ -127,7 +241,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = "";
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.6.1");
+        private Version _AppVersion = new("0.7.0");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -155,6 +269,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Status_Opacity = "1";
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
+        private string _HeartRate_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
@@ -170,8 +285,446 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _VrcConnected;
         private string _NewVersionURL;
         private bool _CanUpdate;
-
         private string _toggleVoiceText = "Toggle voice (V)";
+        private bool _AutoUnmuteTTS = true;
+        private bool _ToggleVoiceWithV = true;
+        private bool _TTSBtnShadow = false;
+        private float _TTSVolume = 0.2f;
+
+        private ProcessInfo _LastProcessFocused = new ProcessInfo();
+        private Dictionary<SortProperty, bool> _sortDirection = new Dictionary<SortProperty, bool>
+        {
+            { SortProperty.ProcessName, true },
+            { SortProperty.UsedNewMethod, true },
+            { SortProperty.ApplyCustomAppName, true },
+            { SortProperty.IsPrivateApp, true },
+            { SortProperty.FocusCount, true }
+        };
+        public enum SortProperty
+        {
+            ProcessName,
+            UsedNewMethod,
+            ApplyCustomAppName,
+            IsPrivateApp,
+            FocusCount
+        }
+
+
+
+
+        private int _HeartRateScanInterval = 3;
+        public int HeartRateScanInterval
+        {
+            get { return _HeartRateScanInterval; }
+            set
+            {
+                _HeartRateScanInterval = value;
+                NotifyPropertyChanged(nameof(HeartRateScanInterval));
+            }
+        }
+
+        private DateTime _HeartRateLastUpdate = DateTime.Now;
+        public DateTime HeartRateLastUpdate
+        {
+            get { return _HeartRateLastUpdate; }
+            set
+            {
+                _HeartRateLastUpdate = value;
+                NotifyPropertyChanged(nameof(HeartRateLastUpdate));
+            }
+        }
+
+        private bool _AutoSetDaylight = true;
+        public bool AutoSetDaylight
+        {
+            get { return _AutoSetDaylight; }
+            set
+            {
+                _AutoSetDaylight = value;
+                NotifyPropertyChanged(nameof(AutoSetDaylight));
+            }
+        }
+
+
+        private bool _UseDaylightSavingTime = false;
+        public bool UseDaylightSavingTime
+        {
+            get { return _UseDaylightSavingTime; }
+            set
+            {
+                _UseDaylightSavingTime = value;
+                NotifyPropertyChanged(nameof(UseDaylightSavingTime));
+            }
+        }
+
+        private bool _Settings_WindowActivity = false;
+        public bool Settings_WindowActivity
+        {
+            get { return _Settings_WindowActivity; }
+            set
+            {
+                _Settings_WindowActivity = value;
+                NotifyPropertyChanged(nameof(Settings_WindowActivity));
+            }
+        }
+
+        private bool _Settings_IntelliChat = false;
+        public bool Settings_IntelliChat
+        {
+            get { return _Settings_IntelliChat; }
+            set
+            {
+                _Settings_IntelliChat = value;
+                NotifyPropertyChanged(nameof(Settings_IntelliChat));
+            }
+        }
+
+        private bool _Settings_Spotify = false;
+        public bool Settings_Spotify
+        {
+            get { return _Settings_Spotify; }
+            set
+            {
+                _Settings_Spotify = value;
+                NotifyPropertyChanged(nameof(Settings_Spotify));
+            }
+        }
+
+        private bool _Settings_Chatting = false;
+        public bool Settings_Chatting
+        {
+            get { return _Settings_Chatting; }
+            set
+            {
+                _Settings_Chatting = value;
+                NotifyPropertyChanged(nameof(Settings_Chatting));
+            }
+        }
+
+
+        private bool _Settings_AppOptions = false;
+        public bool Settings_AppOptions
+        {
+            get { return _Settings_AppOptions; }
+            set
+            {
+                _Settings_AppOptions = value;
+                NotifyPropertyChanged(nameof(Settings_AppOptions));
+            }
+        }
+
+        private bool _Settings_TTS = false;
+        public bool Settings_TTS
+        {
+            get { return _Settings_TTS; }
+            set
+            {
+                _Settings_TTS = value;
+                NotifyPropertyChanged(nameof(Settings_TTS));
+            }
+        }
+
+        private bool _Settings_Time = false;
+        public bool Settings_Time
+        {
+            get { return _Settings_Time; }
+            set
+            {
+                _Settings_Time = value;
+                NotifyPropertyChanged(nameof(Settings_Time));
+            }
+        }
+
+        private bool _Settings_HeartRate = false;
+        public bool Settings_HeartRate
+        {
+            get { return _Settings_HeartRate; }
+            set
+            {
+                _Settings_HeartRate = value;
+                NotifyPropertyChanged(nameof(Settings_HeartRate));
+            }
+        }
+        private bool _Settings_Status = false;
+        public bool Settings_Status
+        {
+            get { return _Settings_Status; }
+            set
+            {
+                _Settings_Status = value;
+                NotifyPropertyChanged(nameof(Settings_Status));
+            }
+        }
+
+        public enum Timezone
+        {
+            UTC,
+            EST,
+            CST,
+            PST,
+            CET,
+            AEST
+        }
+
+
+        private int _HeartRate;
+        public int HeartRate
+        {
+            get { return _HeartRate; }
+            set
+            {
+                _HeartRate = value;
+                NotifyPropertyChanged(nameof(HeartRate));
+            }
+        }
+
+
+        private bool _ShowBPMSuffix = false;
+        public bool ShowBPMSuffix
+        {
+            get { return _ShowBPMSuffix; }
+            set
+            {
+                _ShowBPMSuffix = value;
+                NotifyPropertyChanged(nameof(ShowBPMSuffix));
+            }
+        }
+
+        private string _PulsoidAccessToken;
+        public string PulsoidAccessToken
+        {
+            get { return _PulsoidAccessToken; }
+            set
+            {
+                _PulsoidAccessToken = value;
+                NotifyPropertyChanged(nameof(PulsoidAccessToken));
+            }
+        }
+
+
+        private bool _timeShowTimeZone = false;
+        public bool TimeShowTimeZone
+        {
+            get => _timeShowTimeZone;
+            set
+            {
+                _timeShowTimeZone = value;
+                NotifyPropertyChanged(nameof(TimeShowTimeZone));
+            }
+        }
+
+        private Timezone _selectedTimeZone;
+        public Timezone SelectedTimeZone
+        {
+            get => _selectedTimeZone;
+            set
+            {
+                _selectedTimeZone = value;
+                NotifyPropertyChanged(nameof(SelectedTimeZone));
+            }
+        }
+
+        private string _lastUsedSortDirection;
+        public string LastUsedSortDirection
+        {
+            get { return _lastUsedSortDirection; }
+            set
+            {
+                _lastUsedSortDirection = value;
+                NotifyPropertyChanged(nameof(LastUsedSortDirection));
+            }
+        }
+
+
+        public ProcessInfo LastProcessFocused
+        {
+            get { return _LastProcessFocused; }
+            set
+            {
+                _LastProcessFocused = value;
+                NotifyPropertyChanged(nameof(LastProcessFocused));
+            }
+        }
+
+
+        private string _DeletedAppslabel;
+        public string DeletedAppslabel
+        {
+            get { return _DeletedAppslabel; }
+            set
+            {
+                _DeletedAppslabel = value;
+                NotifyPropertyChanged(nameof(DeletedAppslabel));
+            }
+        }
+
+        private ObservableCollection<ProcessInfo> _ScannedApps = new ObservableCollection<ProcessInfo>();
+        public ObservableCollection<ProcessInfo> ScannedApps
+        {
+            get { return _ScannedApps; }
+            set
+            {
+                _ScannedApps = value;
+                NotifyPropertyChanged(nameof(ScannedApps));
+            }
+        }
+
+
+        private bool _ApplicationHookV2 = true;
+        public bool ApplicationHookV2
+        {
+            get { return _ApplicationHookV2; }
+            set
+            {
+                _ApplicationHookV2 = value;
+                NotifyPropertyChanged(nameof(ApplicationHookV2));
+            }
+        }
+
+        private bool _IntgrIntelliWing = false;
+        public bool IntgrIntelliWing
+        {
+            get { return _IntgrIntelliWing; }
+            set
+            {
+                _IntgrIntelliWing = value;
+                NotifyPropertyChanged(nameof(IntgrIntelliWing));
+            }
+        }
+
+        private bool _AppIsEnabled = true;
+        public bool AppIsEnabled
+        {
+            get { return _AppIsEnabled; }
+            set
+            {
+                _AppIsEnabled = value;
+                NotifyPropertyChanged(nameof(AppIsEnabled));
+            }
+        }
+
+        private double _AppOpacity = 0.98;
+        public double AppOpacity
+        {
+            get { return _AppOpacity; }
+            set
+            {
+                _AppOpacity = value;
+                NotifyPropertyChanged(nameof(AppOpacity));
+            }
+        }
+
+
+        private ObservableCollection<ChatModelMsg> _OpenAIAPIBuiltInActions;
+        public ObservableCollection<ChatModelMsg> OpenAIAPIBuiltInActions
+        {
+            get { return _OpenAIAPIBuiltInActions; }
+            set
+            {
+                _OpenAIAPIBuiltInActions = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIBuiltInActions));
+            }
+        }
+
+        private string _OpenAIAPITestResponse;
+        public string OpenAIAPITestResponse
+        {
+            get { return _OpenAIAPITestResponse; }
+            set
+            {
+                _OpenAIAPITestResponse = value;
+                NotifyPropertyChanged(nameof(OpenAIAPITestResponse));
+            }
+        }
+        private int _OpenAIUsedTokens;
+        public int OpenAIUsedTokens
+        {
+            get { return _OpenAIUsedTokens; }
+            set
+            {
+                _OpenAIUsedTokens = value;
+                NotifyPropertyChanged(nameof(OpenAIUsedTokens));
+            }
+        }
+
+
+        private bool _IntelliChatModeration = true;
+        public bool IntelliChatModeration
+        {
+            get { return _IntelliChatModeration; }
+            set
+            {
+                _IntelliChatModeration = value;
+                NotifyPropertyChanged(nameof(IntelliChatModeration));
+            }
+        }
+
+        private string _OpenAIModerationUrl;
+        public string OpenAIModerationUrl
+        {
+            get { return _OpenAIModerationUrl; }
+            set
+            {
+                _OpenAIModerationUrl = value;
+                NotifyPropertyChanged(nameof(OpenAIModerationUrl));
+            }
+        }
+
+        private bool _IntgrIntelliChat = false;
+        public bool IntgrIntelliChat
+        {
+            get { return _IntgrIntelliChat; }
+            set
+            {
+                _IntgrIntelliChat = value;
+                NotifyPropertyChanged(nameof(IntgrIntelliChat));
+            }
+        }
+
+        private string _OpenAIAPISelectedModel;
+        public string OpenAIAPISelectedModel
+        {
+            get { return _OpenAIAPISelectedModel; }
+            set
+            {
+                _OpenAIAPISelectedModel = value;
+                NotifyPropertyChanged(nameof(OpenAIAPISelectedModel));
+            }
+        }
+
+        private ObservableCollection<string> _OpenAIAPIModels;
+        public ObservableCollection<string> OpenAIAPIModels
+        {
+            get { return _OpenAIAPIModels; }
+            set
+            {
+                _OpenAIAPIModels = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIModels));
+            }
+        }
+
+        private string _OpenAIAPIUrl;
+        public string OpenAIAPIUrl
+        {
+            get { return _OpenAIAPIUrl; }
+            set
+            {
+                _OpenAIAPIUrl = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIUrl));
+            }
+        }
+
+        private string _OpenAIAPIKey;
+        public string OpenAIAPIKey
+        {
+            get { return _OpenAIAPIKey; }
+            set
+            {
+                _OpenAIAPIKey = value;
+                NotifyPropertyChanged(nameof(OpenAIAPIKey));
+            }
+        }
+
         public string ToggleVoiceText
         {
             get { return _toggleVoiceText; }
@@ -181,11 +734,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ToggleVoiceText));
             }
         }
-
-        private bool _AutoUnmuteTTS = true;
-
-
-        private bool _ToggleVoiceWithV = true;
         public bool ToggleVoiceWithV
         {
             get { return _ToggleVoiceWithV; }
@@ -196,8 +744,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 UpdateToggleVoiceText();
             }
         }
-
-        private bool _TTSBtnShadow = false;
         public bool TTSBtnShadow
         {
             get { return _TTSBtnShadow; }
@@ -219,7 +765,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private float _TTSVolume = 0.2f;
+
         public float TTSVolume
         {
             get { return _TTSVolume; }
@@ -683,6 +1229,40 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Spotify_Opacity = value;
                 NotifyPropertyChanged(nameof(Spotify_Opacity));
+            }
+        }
+
+
+        private int _HeartRateAdjustment = 0;
+        public int HeartRateAdjustment
+        {
+            get { return _HeartRateAdjustment; }
+            set
+            {
+                _HeartRateAdjustment = value;
+                NotifyPropertyChanged(nameof(HeartRateAdjustment));
+            }
+        }
+
+        public string HeartRate_Opacity
+        {
+            get { return _HeartRate_Opacity; }
+            set
+            {
+                _HeartRate_Opacity = value;
+                NotifyPropertyChanged(nameof(HeartRate_Opacity));
+            }
+        }
+
+
+        private bool _IntgrHeartRate = false;
+        public bool IntgrHeartRate
+        {
+            get { return _IntgrHeartRate; }
+            set
+            {
+                _IntgrHeartRate = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate));
             }
         }
 

@@ -1,9 +1,8 @@
-﻿using vrcosc_magicchatbox.ViewModels;
+﻿using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
-using System;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -38,9 +37,10 @@ namespace vrcosc_magicchatbox.Classes
                         ViewModel.Instance.SpotifyPaused = true;
                         return "";
                     }
+
                 }
                 return "No music";
-                ViewModel.Instance.SpotifyPaused = true;
+
             }
             catch (Exception ex)
             {

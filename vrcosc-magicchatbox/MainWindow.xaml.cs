@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -14,8 +15,6 @@ using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using NLog;
-using System.Windows.Shapes;
 
 
 namespace vrcosc_magicchatbox
@@ -61,11 +60,14 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.IntgrScanWindowTime = true;
             ViewModel.Instance.IntgrStatus = true;
             ViewModel.Instance.MasterSwitch = true;
-            DataController.LoadSettingsFromXML();
+            DataController.ManageSettingsXML();
             DataController.LoadStatusList();
             DataController.LoadChatList();
+            DataController.LoadAppList();
             ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
             SelectTTS();
+            OpenAIClient.LoadOpenAIClient();
+            DataController.LoadIntelliChatBuiltInActions();
             DataController.PopulateOutputDevices();
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
@@ -105,13 +107,14 @@ namespace vrcosc_magicchatbox
             try
             {
                 this.Hide();
-                DataAndSecurity.DataController.SaveSettingsToXML();
+                DataController.ManageSettingsXML(true);
+                DataController.SaveAppList();
                 System.Environment.Exit(1);
             }
             catch (Exception ex)
             {
 
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
             }
 
         }
@@ -168,7 +171,7 @@ namespace vrcosc_magicchatbox
                 }
             }
             catch (Exception ex) { Logging.WriteException(ex, makeVMDump: false, MSGBox: false); }
-            
+
         }
 
         public void scantick()
@@ -176,12 +179,15 @@ namespace vrcosc_magicchatbox
             try
             {
                 if (ViewModel.Instance.IntgrScanSpotify == true)
-                { 
-                    ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong(); 
-                    ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning(); 
+                {
+                    ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
+                    ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
                 }
                 if (ViewModel.Instance.IntgrScanWindowActivity == true)
+                {
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
+                }
+                    
                 ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();
                 if (ViewModel.Instance.IntgrScanWindowTime == true)
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
@@ -198,7 +204,7 @@ namespace vrcosc_magicchatbox
 
         }
 
-        public void ChangeMenuItem(int changeINT)
+        public static void ChangeMenuItem(int changeINT)
         {
             ViewModel.Instance.CurrentMenuItem = changeINT;
             ViewModel.Instance.MenuItem_0_Visibility = "Hidden";
@@ -257,7 +263,7 @@ namespace vrcosc_magicchatbox
 
         private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if(ViewModel.Instance.CanUpdate)
+            if (ViewModel.Instance.CanUpdate)
             {
                 ViewModel.Instance.CanUpdate = false;
                 Task.Run(() => UpdateApp.PrepareUpdate());
@@ -429,7 +435,7 @@ namespace vrcosc_magicchatbox
             {
                 int overmax = count - 140;
                 ViewModel.Instance.ChatBoxColor = "#FFFF9393";
-                ViewModel.Instance.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}. Reign in that message!";
+                ViewModel.Instance.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}.";
             }
             else if (count == 0)
             {
@@ -497,7 +503,7 @@ namespace vrcosc_magicchatbox
 
                 Timer(null, null);
                 RecentScroll.ScrollToEnd();
-            }   
+            }
         }
 
         public static async Task TTSGOAsync(string chat, bool resent = false)
@@ -515,7 +521,7 @@ namespace vrcosc_magicchatbox
 
 
                 byte[] audioFromApi = await TTSController.GetAudioBytesFromTikTokAPI(chat);
-                if(audioFromApi != null)
+                if (audioFromApi != null)
                 {
                     var cancellationTokenSource = new CancellationTokenSource();
                     _activeCancellationTokens.Add(cancellationTokenSource);
@@ -633,7 +639,7 @@ namespace vrcosc_magicchatbox
 
         private void GitHubChanges_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if(ViewModel.Instance.tagURL == null)
+            if (ViewModel.Instance.tagURL == null)
             {
                 Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
             }
@@ -641,7 +647,7 @@ namespace vrcosc_magicchatbox
             {
                 Process.Start("explorer", ViewModel.Instance.tagURL);
             }
-            
+
         }
 
         private void ToggleVoicebtn_Click(object sender, RoutedEventArgs e)
@@ -652,6 +658,77 @@ namespace vrcosc_magicchatbox
         private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)
         {
             Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Play-TTS-Output-of-MagicChatbox-to-Main-Audio-Device-and-Microphone-in-VRChat-Using-VB-Audio-Cable-(Simple-Setup)");
+        }
+
+        private void LearnMoreAboutIntelliChatAI_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://openai.com/product");
+        }
+
+        private void IntelliChatAIapiPage_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://platform.openai.com/account/api-keys");
+        }
+
+        private async void OpenAIAPITestConnection_ClickAsync(object sender, RoutedEventArgs e)
+        {
+            //ChatModelMsg action = ViewModel.Instance.OpenAIAPIBuiltInActions.FirstOrDefault(a => a.FriendlyName == "Add Emojis");
+            //ChatModelMsg response = await OpenAIClient.ExecuteActionAsync(action, ViewModel.Instance.NewChattingTxt);
+            //ViewModel.Instance.NewChattingTxt = response.Content;
+            ViewModel.Instance.OpenAIAPITestResponse = await OpenAIClient.TestAPIConnection();
+        }
+
+
+        private void OpenAITerms_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://openai.com/policies/plugin-terms");
+
+        }
+
+        private void IntgrIntelliWing_btn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntgrIntelliWing = !ViewModel.Instance.IntgrIntelliWing;
+        }
+
+        private void LearnMoreAboutSpotifybtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Use-the-Spotify-Integration-%F0%9F%8E%B5");
+        }
+
+        private void SmartClearnup_Click(object sender, RoutedEventArgs e)
+        {
+            int ItemRemoved = WindowActivity.SmartCleanup();
+            if(ItemRemoved > 0)
+            {
+                ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
+                
+            }
+            else
+            {
+                ViewModel.Instance.DeletedAppslabel = $"No apps removed from history";
+            }
+        }
+
+        private void ClearnupKeepSettings_Click(object sender, RoutedEventArgs e)
+        {
+            int ItemRemoved = WindowActivity.CleanAndKeepAppsWithSettings();
+            if (ItemRemoved > 0)
+            {
+                ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
+            }
+            else
+            {
+                ViewModel.Instance.DeletedAppslabel = $"No apps removed from history";
+            }
+        }
+
+        private void ResetWindowActivity_Click(object sender, RoutedEventArgs e)
+        {
+            int ItemRemoved = WindowActivity.ResetWindowActivity();
+            if (ItemRemoved > 0)
+            {
+                ViewModel.Instance.DeletedAppslabel = "All apps from history";
+            }
         }
     }
 }

@@ -1,15 +1,13 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vrcosc_magicchatbox.ViewModels;
+using Newtonsoft.Json.Serialization;
 using NLog;
+using System;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
-using System.Windows.Shapes;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
+using static vrcosc_magicchatbox.ViewModels.ViewModel;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
@@ -53,8 +51,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             AutoClosingMessageBox.Show(msgboxtext, "Application error", msgboxtimeout);
         }
 
-
-
         public static void ViewModelDump()
         {
             try
@@ -72,10 +68,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         return;
                     }
 
-                    ViewModel viewModelCopy = JsonConvert.DeserializeObject<ViewModel>(JsonConvert.SerializeObject(ViewModel.Instance));
-                    viewModelCopy.aesKey = null;
-                    viewModelCopy.ApiStream = null;
-                    string viewModelDump = JsonConvert.SerializeObject(viewModelCopy, Formatting.Indented);
+                    var settings = new JsonSerializerSettings
+                    {
+                        Formatting = Formatting.Indented,
+                        ContractResolver = new ShouldSerializeContractResolver()
+                    };
+
+                    string viewModelDump = JsonConvert.SerializeObject(ViewModel.Instance, settings);
+
 
                     string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
                     File.WriteAllText($@"{folderPath}\ViewModelDump{timestamp}.json", viewModelDump);
@@ -118,6 +118,26 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+        }
+    }
+
+    public class ShouldSerializeContractResolver : DefaultContractResolver
+    {
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        {
+            var property = base.CreateProperty(member, memberSerialization);
+
+            // Only serialize bools, strings, and ints
+            if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime)  || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
+            {
+                property.ShouldSerialize = instance => false;
+            }
+            if(property.PropertyName == "aesKey" || property.PropertyName == "ApiStream" || property.PropertyName == "OpenAIAPIKey" || property.PropertyName == "PulsoidAccessToken")
+                    {
+                property.ShouldSerialize = instance => false;
+            }
+
+            return property;
         }
     }
 }

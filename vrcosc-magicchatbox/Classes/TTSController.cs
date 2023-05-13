@@ -1,12 +1,12 @@
 ﻿using NAudio.Wave;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
-using System.Threading.Tasks;
-using vrcosc_magicchatbox.ViewModels;
-using Newtonsoft.Json.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -38,7 +38,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
 
                 audioBytes = Convert.FromBase64String(audioInBase64);
-    
+
             }
             catch (Exception ex)
             {

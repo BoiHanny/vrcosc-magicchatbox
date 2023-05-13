@@ -1,9 +1,4 @@
-﻿using System;
-using System.Net;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
-
-public static class OscReceiver
+﻿public static class OscReceiver
 {
     //public static void CheckOSCConnection()
     //{

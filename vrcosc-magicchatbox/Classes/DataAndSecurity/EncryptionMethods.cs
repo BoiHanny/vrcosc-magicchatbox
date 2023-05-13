@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
@@ -69,7 +69,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
                 return null;
             }
-           
+
         }
     }
 }

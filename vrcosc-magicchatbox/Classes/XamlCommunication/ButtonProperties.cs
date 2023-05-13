@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using System.Windows;
 
 namespace vrcosc_magicchatbox.Classes
 {
