@@ -1,9 +1,9 @@
 ![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.7.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/18)
 <!-- BEGIN LATEST DOWNLOAD BUTTON -->
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip) [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
-[![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
+
 
 
 **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
