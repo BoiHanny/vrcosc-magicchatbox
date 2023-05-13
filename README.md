@@ -10,7 +10,6 @@
 
 ### Download and Installation
 
-1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip).
 2. Right-click and choose the option 'extract all'.
 3. By default it will create a new folder in your download folder (you can also extract the content to other locations).
 4. When extracted, the folder will open.
@@ -56,5 +55,6 @@ Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love t
 
 - **Discord:**  [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 - **Github Issues:**  [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)
+- Wiki: [Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)
 
 We're committed to providing the best possible experience for our users, and your feedback helps us make MagicChatbox even better.
