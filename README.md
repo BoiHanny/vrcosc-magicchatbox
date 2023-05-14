@@ -1,4 +1,4 @@
-![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.7.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/18)
+![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.7.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/19)
 <!-- BEGIN LATEST DOWNLOAD BUTTON -->
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip) [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 <!-- END LATEST DOWNLOAD BUTTON -->
@@ -9,7 +9,7 @@
 **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
 
 ### Download and Installation
-
+1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip).
 2. Right-click and choose the option 'extract all'.
 3. By default it will create a new folder in your download folder (you can also extract the content to other locations).
 4. When extracted, the folder will open.
