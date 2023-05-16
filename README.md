@@ -48,8 +48,6 @@
 
 - **Options** tab allows you to customize your experience by enabling/disabling options.
 
-- **In-app updates** will make it easier to keep it up-to-date, it will communicate with the GitHub API and pull the .ZIP file from the latest branch.
-
 ### Contact
 Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love to hear from you! Feel free to reach out to us through one of the following channels:
 
