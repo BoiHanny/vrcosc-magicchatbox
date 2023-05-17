@@ -1,12 +1,22 @@
-![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)    v0.7.0 | [See changes](https://github.com/BoiHanny/vrcosc-magicchatbox/pull/19)
-<!-- BEGIN LATEST DOWNLOAD BUTTON -->
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-blue?style=for-the-badge&logo=download&logoColor=white "Download zip")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip) [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
+![MagicOSC_icon](https://user-images.githubusercontent.com/114599052/194428052-3e5d0018-4a96-405d-b2e2-c7db16d02940.png)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=%20&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox)
+[![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
+[![GitHub top language](https://img.shields.io/github/languages/top/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&style=plastic)](https://github.com/search?q=repo%3ABoiHanny%2Fvrcosc-magicchatbox++language%3AC%23&type=code)
+[![NET](https://img.shields.io/badge/.NET%206-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-6.0.16-windows-hosting-bundle-installer)
+[![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=VR%20OSC&logo=discord&logoColor=white&style=plastic)](https://discord.gg/ZaSFwBfhvG)
+[![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
+--
+
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/url/278d310f0d2a1e0dce2f4471d64f7b0a705e9aef3a173eb8880cedc2c3d94c06)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
-
-
-
 **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
+
+
+![Version_0 7_ex](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/7e62994b-f525-4270-80f0-f425b09cb728)
+
 
 ### Download and Installation
 1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip).
@@ -16,9 +26,6 @@
 5. Run the file 'MagicChatbox.exe'.
 
 [**Please make sure OSC is enabled in VRChat**](https://youtu.be/OHjN_q6RqGY?t=80)
-
-![Version_0 7_ex](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/7e62994b-f525-4270-80f0-f425b09cb728)
-
 
 ### Features
 
