@@ -3,7 +3,7 @@
 [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox)
 [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
 [![GitHub top language](https://img.shields.io/github/languages/top/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&style=plastic)](https://github.com/search?q=repo%3ABoiHanny%2Fvrcosc-magicchatbox++language%3AC%23&type=code)
-[![NET](https://img.shields.io/badge/.NET%206-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-6.0.16-windows-hosting-bundle-installer)
+[![NET](https://img.shields.io/badge/.NET%206-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download)
 [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=VR%20OSC&logo=discord&logoColor=white&style=plastic)](https://discord.gg/ZaSFwBfhvG)
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
@@ -20,12 +20,16 @@
 
 ### Download and Installation
 1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip).
-2. Right-click and choose the option 'extract all'.
-3. By default it will create a new folder in your download folder (you can also extract the content to other locations).
-4. When extracted, the folder will open.
-5. Run the file 'MagicChatbox.exe'.
+2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
+3. Right-click and choose the option 'extract all'.
+4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
+5. When extracted, the folder will open.
+6. Run the file 'MagicChatbox.exe'.
 
 [**Please make sure OSC is enabled in VRChat**](https://youtu.be/OHjN_q6RqGY?t=80)
+
+![image](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/616efa5c-9126-4364-8782-975b1d2bb5db)
+
 
 ### Features
 
