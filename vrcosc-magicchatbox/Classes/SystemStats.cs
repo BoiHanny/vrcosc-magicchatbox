@@ -86,7 +86,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
                 else
                 {
-                    return dateTimeWithZone.ToString($"hh:mm tt{(ViewModel.Instance.TimeShowTimeZone ? timeZoneDisplay : "")}", userCulture).ToUpper();
+                    return dateTimeWithZone.ToString($"hh:mm tt{(ViewModel.Instance.TimeShowTimeZone ? timeZoneDisplay : "")}", CultureInfo.InvariantCulture).ToUpper();
                 }
             }
             catch (Exception ex)
