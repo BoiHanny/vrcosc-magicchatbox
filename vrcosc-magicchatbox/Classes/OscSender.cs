@@ -149,16 +149,13 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-
-        public static int OSCmsgLenght(List<string> content, string add)
+        // this function calculates the length of the OSC message to be sent to VRChat and returns it as an int
+        // it takes a list of strings and a string to add to the list as parameters
+        public static int CalculateOSCMsgLength(List<string> content, string add)
         {
-            List<string> list = new List<string>(content);
-            list.Add(add);
-
-            byte[] utf8Bytes = Encoding.UTF8.GetBytes(String.Join(" | ", list));
-            string x = Encoding.UTF8.GetString(utf8Bytes);
-
-            return x.Length;
+            List<string> list = new List<string>(content) { add };
+            string joinedString = String.Join(" | ", list);
+            return joinedString.Length;
         }
 
         public static void BuildOSC()
@@ -185,7 +182,7 @@ namespace vrcosc_magicchatbox.Classes
                         x = ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
                     }
 
-                    if (OSCmsgLenght(Uncomplete, x) < 144)
+                    if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                     {
                         Uncomplete.Add(x);
                     }
@@ -200,7 +197,7 @@ namespace vrcosc_magicchatbox.Classes
                     if (ViewModel.Instance.IsVRRunning)
                     {
                         x = "In VR";
-                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                         {
                             Uncomplete.Add(x);
                         }
@@ -216,7 +213,7 @@ namespace vrcosc_magicchatbox.Classes
                     else
                     {
                         x = "On desktop in '" + ViewModel.Instance.FocusedWindow + "'";
-                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                         {
                             Uncomplete.Add(x);
                         }
@@ -232,7 +229,7 @@ namespace vrcosc_magicchatbox.Classes
                     if (ViewModel.Instance.HeartRate > 0)
                     {
                         x = ViewModel.Instance.HeartRate + (ViewModel.Instance.ShowBPMSuffix ? " BPM" : " 💖");
-                        if (OSCmsgLenght(Uncomplete, x) < 144)
+                        if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                         {
                             Uncomplete.Add(x);
                         }
@@ -260,7 +257,7 @@ namespace vrcosc_magicchatbox.Classes
                     x = x + ViewModel.Instance.CurrentTime;
 
 
-                    if (OSCmsgLenght(Uncomplete, x) < 144)
+                    if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                     {
                         Uncomplete.Add(x);
                     }
@@ -287,7 +284,7 @@ namespace vrcosc_magicchatbox.Classes
                             {
                                 x = "Music paused";
                             }
-                            if (OSCmsgLenght(Uncomplete, x) < 144)
+                            if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                             {
                                 Uncomplete.Add(x);
                             }
@@ -310,7 +307,7 @@ namespace vrcosc_magicchatbox.Classes
                                     x = "Listening to '" + ViewModel.Instance.PlayingSongTitle + "'";
                                 }
 
-                                if (OSCmsgLenght(Uncomplete, x) < 144)
+                                if (CalculateOSCMsgLength(Uncomplete, x) < 144)
                                 {
                                     Uncomplete.Add(x);
                                 }
