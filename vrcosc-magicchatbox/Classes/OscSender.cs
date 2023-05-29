@@ -59,27 +59,39 @@ namespace vrcosc_magicchatbox.Classes
             });
         }
 
-
-
-
-
         public static async Task ToggleVoice(bool force = false)
         {
-            if (ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS || force && ViewModel.Instance.MasterSwitch)
+            if (!ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
             {
-                try
+                return;
+            }
+
+            try
+            {
+                if (oscSender != null && (ViewModel.Instance.OSCIP != oscSender.Address || ViewModel.Instance.OSCPortOut != oscSender.Port))
                 {
-                    oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+                    oscSender.Close();
+                    oscSender = null;
+                }
+
+                // Create a new sender if there is none
+                if (oscSender == null)
+                {
+                    oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+                }
+
+                await Task.Run(() =>
+                {
                     oscSender.Send(new OscMessage("/input/Voice", 1));
                     ViewModel.Instance.TTSBtnShadow = true;
                     Thread.Sleep(100);
                     oscSender.Send(new OscMessage("/input/Voice", 0));
                     ViewModel.Instance.TTSBtnShadow = false;
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                }
+                });
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
 
