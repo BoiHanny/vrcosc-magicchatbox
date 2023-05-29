@@ -39,35 +39,9 @@ namespace vrcosc_magicchatbox.Classes
                 return;
             }
 
-            // Check if we need to close the current sender and create a new one with the updated IP and port
-            if (oscSender != null && (ViewModel.Instance.OSCIP != oscSender.Address || ViewModel.Instance.OSCPortOut != oscSender.Port))
-            {
-                oscSender.Close();
-                oscSender = null;
-            }
-
-            // Create a new sender if there is none
-            if (oscSender == null)
-            {
-                oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
-            }
-
-            // Send the OSC message in a separate thread
-            await Task.Run(() =>
-            {
-                oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
-            });
-        }
-
-        public static async Task ToggleVoice(bool force = false)
-        {
-            if (!ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
-            {
-                return;
-            }
-
             try
             {
+                // Check if we need to close the current sender and create a new one with the updated IP and port
                 if (oscSender != null && (ViewModel.Instance.OSCIP != oscSender.Address || ViewModel.Instance.OSCPortOut != oscSender.Port))
                 {
                     oscSender.Close();
@@ -80,6 +54,46 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                 }
 
+                // Send the OSC message in a separate thread
+                await Task.Run(() =>
+                {
+                    oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                });
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return;
+            }
+            
+        }
+
+        // this method sends an OSC message to toggle the TTS button on and off in VRChat
+        // if force is true, the TTS button is forced to be toggled on
+        public static async Task ToggleVoice(bool force = false)
+        {
+            // Check if the master switch is on and if the auto unmute TTS is on or if we force the TTS but only if the master switch is on
+            if (!ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
+            {
+                return;
+            }
+
+            try
+            {
+                // Check if we need to close the current sender and create a new one with the updated IP and port
+                if (oscSender != null && (ViewModel.Instance.OSCIP != oscSender.Address || ViewModel.Instance.OSCPortOut != oscSender.Port))
+                {
+                    oscSender.Close();
+                    oscSender = null;
+                }
+
+                // Create a new sender if there is none
+                if (oscSender == null)
+                {
+                    oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+                }
+
+                // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
                     oscSender.Send(new OscMessage("/input/Voice", 1));
@@ -95,20 +109,43 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-        public static void TypingIndicator(bool Typing)
+        // this method will change the typing indicator in VRChat to the current state of the method call
+        // if typing is true, the typing indicator will be on
+        public static async Task TypingIndicatorAsync(bool Typing)
         {
-            if (ViewModel.Instance.MasterSwitch == true)
+            // Check if the master switch is on
+            if (!ViewModel.Instance.MasterSwitch)
             {
-                try
+                return;
+            }
+
+            //Set the TypingIndicator in the ViewModel to the current state from the method call
+            ViewModel.Instance.TypingIndicator = Typing;
+            try
+            {
+                // Check if we need to close the current sender and create a new one with the updated IP and port
+                if (oscSender != null && (ViewModel.Instance.OSCIP != oscSender.Address || ViewModel.Instance.OSCPortOut != oscSender.Port))
                 {
-                    ViewModel.Instance.TypingIndicator = Typing;
-                    oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+                    oscSender.Close();
+                    oscSender = null;
+                }
+
+                // Create a new sender if there is none
+                if (oscSender == null)
+                {
+                    oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+                }
+
+                // Send the OSC message in a separate thread
+                await Task.Run(() =>
+                {
                     oscSender.Send(new OscMessage("/chatbox/typing", Typing));
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                }
+                });
+
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
 

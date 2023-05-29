@@ -449,7 +449,7 @@ namespace vrcosc_magicchatbox
 
             }
 
-            OscSender.TypingIndicator(true);
+            OscSender.TypingIndicatorAsync(true);
 
 
             if (typingTimer != null)
@@ -460,7 +460,7 @@ namespace vrcosc_magicchatbox
             else
             {
                 typingTimer = new System.Timers.Timer(2000);
-                typingTimer.Elapsed += (s, args) => OscSender.TypingIndicator(false);
+                typingTimer.Elapsed += (s, args) => OscSender.TypingIndicatorAsync(false);
                 typingTimer.AutoReset = false;
                 typingTimer.Enabled = true;
             }
