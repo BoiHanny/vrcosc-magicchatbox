@@ -203,10 +203,29 @@ namespace vrcosc_magicchatbox.Classes
         // this function is for building the final OSC message to be sent to VRChat and it will set the opacity of the controls in the UI based on the length of the message
         // it will also set the OSCtoSent property in the ViewModel to the final OSC message 
         public static void BuildOSC()
-        {                
+        {
             //  Create a list of strings to hold the OSC message
             var Complete_msg = "";
             List<string> Uncomplete = new List<string>();
+
+            // Mapping the functions with their respective boolean properties
+            var functionMap = new Dictionary<Func<bool>, Action<List<string>>>
+            {
+                { () => ViewModel.Instance.IntgrStatus_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrStatus_DESKTOP && !ViewModel.Instance.IsVRRunning, AddStatusMessage },
+
+                { () => ViewModel.Instance.IntgrWindowActivity_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrWindowActivity_DESKTOP && !ViewModel.Instance.IsVRRunning, AddWindowActivity },
+
+                { () => ViewModel.Instance.IntgrHeartRate_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrHeartRate_DESKTOP && !ViewModel.Instance.IsVRRunning, AddHeartRate },
+
+                { () => ViewModel.Instance.IntgrCurrentTime_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrCurrentTime_DESKTOP && !ViewModel.Instance.IsVRRunning, AddCurrentTime },
+
+                { () => ViewModel.Instance.IntgrSpotifyStatus_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrSpotifyStatus_DESKTOP && !ViewModel.Instance.IsVRRunning, AddSpotifyStatus },
+            };
 
             try
             {
@@ -218,19 +237,21 @@ namespace vrcosc_magicchatbox.Classes
                 SetOpacity("Time", "1");
 
                 // Add the strings to the list if the total length of the list is less than 144 characters
-                AddStatusMessage(Uncomplete);
-                AddWindowActivity(Uncomplete);
-                AddHeartRate(Uncomplete);
-                AddCurrentTime(Uncomplete);
-                AddSpotifyStatus(Uncomplete);
+                foreach (var kvp in functionMap)
+                {
+                    if (kvp.Key.Invoke())
+                    {
+                        kvp.Value.Invoke(Uncomplete);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
 
-                // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
-                Complete_msg = Uncomplete.Count > 0 ? String.Join(" ┆ ", Uncomplete) : "";
+            // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
+            Complete_msg = Uncomplete.Count > 0 ? String.Join(" ┆ ", Uncomplete) : "";
 
                 // set ui elements based on the length of the final OSC message and set the OSCtoSent property in the ViewModel to the final OSC message
                 if (Complete_msg.Length > 144)
@@ -286,8 +307,7 @@ namespace vrcosc_magicchatbox.Classes
         // this function will build the current time message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddCurrentTime(List<string> Uncomplete)
         {
-            if ((ViewModel.Instance.IntgrScanWindowTime == true & ViewModel.Instance.OnlyShowTimeVR == true & ViewModel.Instance.IsVRRunning == true)
-                | ViewModel.Instance.IntgrScanWindowTime == true & ViewModel.Instance.OnlyShowTimeVR == false)
+            if (ViewModel.Instance.IntgrScanWindowTime == true)
             {
                 string x = ViewModel.Instance.PrefixTime == true ? "My time: " + ViewModel.Instance.CurrentTime
                                                                   : ViewModel.Instance.CurrentTime;
@@ -329,6 +349,8 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
+        // this function will create a new chat message and add it to the list of strings if the total length of the list is less than 144 characters
+        // this function will also set the OSCtoSent property in the ViewModel to the final OSC message
         public static void CreateChat(bool createItem)
         {
             try
@@ -398,6 +420,7 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
+        // this function clears the chat window and resets the chat related variables to their default values
         internal static void ClearChat()
         {
             ViewModel.Instance.ScanPause = false;

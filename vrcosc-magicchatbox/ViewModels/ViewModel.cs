@@ -131,6 +131,118 @@ namespace vrcosc_magicchatbox.ViewModels
                 OSCController.ToggleVoice(true);
         }
 
+        private bool _IntgrWindowActivity_DESKTOP = true;
+        public bool IntgrWindowActivity_DESKTOP
+        {
+            get { return _IntgrWindowActivity_DESKTOP; }
+            set
+            {
+                _IntgrWindowActivity_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrWindowActivity_DESKTOP));
+            }
+        }
+
+
+        private bool _IntgrSpotifyStatus_DESKTOP = true;
+        public bool IntgrSpotifyStatus_DESKTOP
+        {
+            get { return _IntgrSpotifyStatus_DESKTOP; }
+            set
+            {
+                _IntgrSpotifyStatus_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_DESKTOP));
+            }
+        }
+
+        private bool _IntgrSpotifyStatus_VR = true;
+        public bool IntgrSpotifyStatus_VR
+        {
+            get { return _IntgrSpotifyStatus_VR; }
+            set
+            {
+                _IntgrSpotifyStatus_VR = value;
+                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_VR));
+            }
+        }
+
+        private bool _IntgrCurrentTime_DESKTOP = false;
+        public bool IntgrCurrentTime_DESKTOP
+        {
+            get { return _IntgrCurrentTime_DESKTOP; }
+            set
+            {
+                _IntgrCurrentTime_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrCurrentTime_DESKTOP));
+            }
+        }
+
+        private bool _IntgrCurrentTime_VR = true;
+        public bool IntgrCurrentTime_VR
+        {
+            get { return _IntgrCurrentTime_VR; }
+            set
+            {
+                _IntgrCurrentTime_VR = value;
+                NotifyPropertyChanged(nameof(IntgrCurrentTime_VR));
+            }
+        }
+
+        private bool _IntgrHeartRate_VR = true;
+        public bool IntgrHeartRate_VR
+        {
+            get { return _IntgrHeartRate_VR; }
+            set
+            {
+                _IntgrHeartRate_VR = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_VR));
+            }
+        }
+
+
+        private bool _IntgrHeartRate_DESKTOP = false;
+        public bool IntgrHeartRate_DESKTOP
+        {
+            get { return _IntgrHeartRate_DESKTOP; }
+            set
+            {
+                _IntgrHeartRate_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_DESKTOP));
+            }
+        }
+
+        private bool _IntgrWindowActivity_VR = false;
+        public bool IntgrWindowActivity_VR
+        {
+            get { return _IntgrWindowActivity_VR; }
+            set
+            {
+                _IntgrWindowActivity_VR = value;
+                NotifyPropertyChanged(nameof(IntgrWindowActivity_VR));
+            }
+        }
+
+        private bool _IntgrStatus_VR = true;
+        public bool IntgrStatus_VR
+        {
+            get { return _IntgrStatus_VR; }
+            set
+            {
+                _IntgrStatus_VR = value;
+                NotifyPropertyChanged(nameof(IntgrStatus_VR));
+            }
+        }
+
+        private bool _IntgrStatus_DESKTOP = true;
+        public bool IntgrStatus_DESKTOP
+        {
+            get { return _IntgrStatus_DESKTOP; }
+            set
+            {
+                _IntgrStatus_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrStatus_DESKTOP));
+            }
+        }
+
         public static void ActivateStatus(object parameter)
         {
             try
@@ -229,7 +341,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
         private bool _MasterSwitch = false;
-        private bool _OnlyShowTimeVR = true;
         private bool _PrefixTime = false;
         private bool _PrefixChat = true;
         private bool _ChatFX = true;
@@ -1184,15 +1295,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _MenuItem_0_Visibility = value;
                 NotifyPropertyChanged(nameof(MenuItem_0_Visibility));
-            }
-        }
-        public bool OnlyShowTimeVR
-        {
-            get { return _OnlyShowTimeVR; }
-            set
-            {
-                _OnlyShowTimeVR = value;
-                NotifyPropertyChanged(nameof(OnlyShowTimeVR));
             }
         }
         public int CurrentMenuItem

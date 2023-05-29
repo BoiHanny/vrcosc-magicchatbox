@@ -80,11 +80,6 @@ namespace vrcosc_magicchatbox.Classes
                                 }
                                 catch (System.ComponentModel.Win32Exception ex)
                                 {
-                                    if (ex.Message != "Access is denied.")
-                                    {
-                                        throw;
-                                    }
-
                                     processName = process.ProcessName;
                                 }
                             }
