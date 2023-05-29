@@ -165,8 +165,8 @@ namespace vrcosc_magicchatbox
                     {
                         ViewModel.Instance.ScanPauseCountDown = 0;
                     }
-                    OscSender.ClearChat();
-                    OscSender.SendOSCMessage(false);
+                    OSCController.ClearChat();
+                    OSCController.SendOSCMessage(false);
                     Timer(null, null);
                 }
             }
@@ -194,8 +194,8 @@ namespace vrcosc_magicchatbox
                 //if (ViewModel.Instance.CheckOSCConnection == true)
                 //    Task.Run(() => OscReceiver.CheckOSCConnection());
                 ViewModel.Instance.ChatFeedbackTxt = "";
-                OscSender.BuildOSC();
-                OscSender.SendOSCMessage(false);
+                OSCController.BuildOSC();
+                OSCController.SendOSCMessage(false);
             }
             catch (Exception ex)
             {
@@ -239,7 +239,7 @@ namespace vrcosc_magicchatbox
         {
             if (ViewModel.Instance.ScanPause != true)
             {
-                OscSender.BuildOSC();
+                OSCController.BuildOSC();
             }
         }
 
@@ -449,7 +449,7 @@ namespace vrcosc_magicchatbox
 
             }
 
-            OscSender.TypingIndicatorAsync(true);
+            OSCController.TypingIndicatorAsync(true);
 
 
             if (typingTimer != null)
@@ -460,7 +460,7 @@ namespace vrcosc_magicchatbox
             else
             {
                 typingTimer = new System.Timers.Timer(2000);
-                typingTimer.Elapsed += (s, args) => OscSender.TypingIndicatorAsync(false);
+                typingTimer.Elapsed += (s, args) => OSCController.TypingIndicatorAsync(false);
                 typingTimer.AutoReset = false;
                 typingTimer.Enabled = true;
             }
@@ -484,8 +484,8 @@ namespace vrcosc_magicchatbox
             string chat = ViewModel.Instance.NewChattingTxt;
             if (chat.Length > 0 && chat.Length <= 141 && ViewModel.Instance.MasterSwitch)
             {
-                OscSender.CreateChat(true);
-                OscSender.SendOSCMessage(ViewModel.Instance.ChatFX);
+                OSCController.CreateChat(true);
+                OSCController.SendOSCMessage(ViewModel.Instance.ChatFX);
                 DataController.SaveChatList();
                 if (ViewModel.Instance.TTSTikTokEnabled == true)
                 {
@@ -561,8 +561,8 @@ namespace vrcosc_magicchatbox
 
         private void StopChat_Click(object sender, RoutedEventArgs e)
         {
-            OscSender.ClearChat();
-            OscSender.SendOSCMessage(false);
+            OSCController.ClearChat();
+            OSCController.SendOSCMessage(false);
             Timer(null, null);
             foreach (var token in _activeCancellationTokens)
             {
@@ -652,7 +652,7 @@ namespace vrcosc_magicchatbox
 
         private void ToggleVoicebtn_Click(object sender, RoutedEventArgs e)
         {
-            OscSender.ToggleVoice(true);
+            OSCController.ToggleVoice(true);
         }
 
         private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)

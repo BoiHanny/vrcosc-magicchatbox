@@ -128,7 +128,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private void ToggleVoice()
         {
             if (Instance.ToggleVoiceWithV)
-                OscSender.ToggleVoice(true);
+                OSCController.ToggleVoice(true);
         }
 
         public static void ActivateStatus(object parameter)
