@@ -23,26 +23,44 @@ namespace vrcosc_magicchatbox.Classes
 
         public static UDPSender oscSender;
 
-        public static void SendOSCMessage(bool FX)
+        // This method sends an OSC packet to a specified address and port with the ViewModel's OSC input
+        // If FX is true, the OSC message is formatted to be displayed as FX text
+        public static async Task SendOSCMessage(bool FX)
         {
-
-            if (ViewModel.Instance.MasterSwitch == true)
+            // Check if the master switch is on
+            if (!ViewModel.Instance.MasterSwitch)
             {
-                try
-                {
-                    if (ViewModel.Instance.OSCtoSent.Length > 0 && ViewModel.Instance.OSCtoSent.Length <= 144)
-                    {
-                        oscSender = new(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
-                        oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                }
+                return;
             }
 
+            // Check if the OSC input is null or too long
+            if (string.IsNullOrEmpty(ViewModel.Instance.OSCtoSent) || ViewModel.Instance.OSCtoSent.Length > 144)
+            {
+                return;
+            }
+
+            // Check if we need to close the current sender and create a new one with the updated IP and port
+            if (oscSender != null && (ViewModel.Instance.OSCIP != oscSender.Address || ViewModel.Instance.OSCPortOut != oscSender.Port))
+            {
+                oscSender.Close();
+                oscSender = null;
+            }
+
+            // Create a new sender if there is none
+            if (oscSender == null)
+            {
+                oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
+            }
+
+            // Send the OSC message in a separate thread
+            await Task.Run(() =>
+            {
+                oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+            });
         }
+
+
+
 
 
         public static async Task ToggleVoice(bool force = false)
