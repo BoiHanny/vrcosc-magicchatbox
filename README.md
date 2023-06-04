@@ -8,18 +8,18 @@
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.1/Version-0.7.1.zip)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/url/278d310f0d2a1e0dce2f4471d64f7b0a705e9aef3a173eb8880cedc2c3d94c06)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
 **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
 
 
-![Version_0 7_ex](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/7e62994b-f525-4270-80f0-f425b09cb728)
+![Version_0 7 1_ex](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/fd4706e6-39ba-4484-8d21-b73f8c32f41d)
 
 
 ### Download and Installation
-1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.0/Version-0.7.0.zip).
+1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.1/Version-0.7.1.zip).
 2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
 3. Right-click and choose the option 'extract all'.
 4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
