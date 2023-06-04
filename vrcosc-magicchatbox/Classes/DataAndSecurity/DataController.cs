@@ -176,8 +176,22 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"ApplicationHookV2", (typeof(bool), "Integrations")},
                         {"IntgrHeartRate", (typeof(bool), "Integrations")},
 
+                        {"IntgrStatus_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
+
+                        {"IntgrWindowActivity_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrWindowActivity_DESKTOP", (typeof(bool), "IntegrationToggles")},
+
+                        {"IntgrHeartRate_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrHeartRate_DESKTOP", (typeof(bool), "IntegrationToggles")},
+
+                        {"IntgrCurrentTime_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles")},
+
+                        {"IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
+
                         {"Time24H", (typeof(bool), "Time")},
-                        {"OnlyShowTimeVR", (typeof(bool), "Time")},
                         {"PrefixTime", (typeof(bool), "Time")},
                         {"TimeShowTimeZone", (typeof(bool), "Time")},
                         {"SelectedTimeZone", (typeof(Timezone), "Time")},
@@ -228,7 +242,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"Settings_Spotify", (typeof(bool), "OptionsTabState")},
                         {"Settings_IntelliChat", (typeof(bool), "OptionsTabState")},
                         {"Settings_AppOptions", (typeof(bool), "OptionsTabState")},
-                        {"Settings_WindowActivity", (typeof(bool), "OptionsTabState")},
+                        {"Settings_WindowActivity", (typeof(bool), "OptionsTabState")}
 
                     };
 

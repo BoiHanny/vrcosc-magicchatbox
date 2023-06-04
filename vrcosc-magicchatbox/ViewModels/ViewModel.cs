@@ -128,7 +128,119 @@ namespace vrcosc_magicchatbox.ViewModels
         private void ToggleVoice()
         {
             if (Instance.ToggleVoiceWithV)
-                OscSender.ToggleVoice(true);
+                OSCController.ToggleVoice(true);
+        }
+
+        private bool _IntgrWindowActivity_DESKTOP = true;
+        public bool IntgrWindowActivity_DESKTOP
+        {
+            get { return _IntgrWindowActivity_DESKTOP; }
+            set
+            {
+                _IntgrWindowActivity_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrWindowActivity_DESKTOP));
+            }
+        }
+
+
+        private bool _IntgrSpotifyStatus_DESKTOP = true;
+        public bool IntgrSpotifyStatus_DESKTOP
+        {
+            get { return _IntgrSpotifyStatus_DESKTOP; }
+            set
+            {
+                _IntgrSpotifyStatus_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_DESKTOP));
+            }
+        }
+
+        private bool _IntgrSpotifyStatus_VR = true;
+        public bool IntgrSpotifyStatus_VR
+        {
+            get { return _IntgrSpotifyStatus_VR; }
+            set
+            {
+                _IntgrSpotifyStatus_VR = value;
+                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_VR));
+            }
+        }
+
+        private bool _IntgrCurrentTime_DESKTOP = false;
+        public bool IntgrCurrentTime_DESKTOP
+        {
+            get { return _IntgrCurrentTime_DESKTOP; }
+            set
+            {
+                _IntgrCurrentTime_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrCurrentTime_DESKTOP));
+            }
+        }
+
+        private bool _IntgrCurrentTime_VR = true;
+        public bool IntgrCurrentTime_VR
+        {
+            get { return _IntgrCurrentTime_VR; }
+            set
+            {
+                _IntgrCurrentTime_VR = value;
+                NotifyPropertyChanged(nameof(IntgrCurrentTime_VR));
+            }
+        }
+
+        private bool _IntgrHeartRate_VR = true;
+        public bool IntgrHeartRate_VR
+        {
+            get { return _IntgrHeartRate_VR; }
+            set
+            {
+                _IntgrHeartRate_VR = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_VR));
+            }
+        }
+
+
+        private bool _IntgrHeartRate_DESKTOP = false;
+        public bool IntgrHeartRate_DESKTOP
+        {
+            get { return _IntgrHeartRate_DESKTOP; }
+            set
+            {
+                _IntgrHeartRate_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_DESKTOP));
+            }
+        }
+
+        private bool _IntgrWindowActivity_VR = false;
+        public bool IntgrWindowActivity_VR
+        {
+            get { return _IntgrWindowActivity_VR; }
+            set
+            {
+                _IntgrWindowActivity_VR = value;
+                NotifyPropertyChanged(nameof(IntgrWindowActivity_VR));
+            }
+        }
+
+        private bool _IntgrStatus_VR = true;
+        public bool IntgrStatus_VR
+        {
+            get { return _IntgrStatus_VR; }
+            set
+            {
+                _IntgrStatus_VR = value;
+                NotifyPropertyChanged(nameof(IntgrStatus_VR));
+            }
+        }
+
+        private bool _IntgrStatus_DESKTOP = true;
+        public bool IntgrStatus_DESKTOP
+        {
+            get { return _IntgrStatus_DESKTOP; }
+            set
+            {
+                _IntgrStatus_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrStatus_DESKTOP));
+            }
         }
 
         public static void ActivateStatus(object parameter)
@@ -229,7 +341,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
         private bool _MasterSwitch = false;
-        private bool _OnlyShowTimeVR = true;
         private bool _PrefixTime = false;
         private bool _PrefixChat = true;
         private bool _ChatFX = true;
@@ -241,7 +352,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = "";
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.7.0");
+        private Version _AppVersion = new("0.7.1");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -1184,15 +1295,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _MenuItem_0_Visibility = value;
                 NotifyPropertyChanged(nameof(MenuItem_0_Visibility));
-            }
-        }
-        public bool OnlyShowTimeVR
-        {
-            get { return _OnlyShowTimeVR; }
-            set
-            {
-                _OnlyShowTimeVR = value;
-                NotifyPropertyChanged(nameof(OnlyShowTimeVR));
             }
         }
         public int CurrentMenuItem
