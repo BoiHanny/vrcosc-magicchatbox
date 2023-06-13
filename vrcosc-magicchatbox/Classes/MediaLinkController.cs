@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using Windows.Media.Control;
@@ -12,10 +14,13 @@ namespace vrcosc_magicchatbox.Classes
     {
         private static MediaManager? mediaManager = null;
         private static MediaSession? currentSession = null;
+        private static Dictionary<MediaSession, MediaSessionInfo> sessionInfoLookup = new Dictionary<MediaSession, MediaSessionInfo>();
 
-        public MediaLinkController()
+        public MediaLinkController(bool shouldStart)
         {
             ViewModel.Instance.PropertyChanged += ViewModel_PropertyChanged;
+            if (shouldStart)
+                Start();
         }
 
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -23,7 +28,7 @@ namespace vrcosc_magicchatbox.Classes
             if (e.PropertyName == "IntgrScanMediaLink")
             {
                 if (ViewModel.Instance.IntgrScanMediaLink)
-                    Start();
+                     Start();
                 else
                     Dispose();
             }
@@ -38,22 +43,26 @@ namespace vrcosc_magicchatbox.Classes
             mediaManager.OnAnyPlaybackStateChanged += MediaManager_OnAnyPlaybackStateChanged;
             mediaManager.OnAnyMediaPropertyChanged += MediaManager_OnAnyMediaPropertyChanged;
             mediaManager.Start();
-
-            foreach (var session in mediaManager.CurrentMediaSessions.Values)
-            {
-                var playbackInfo = session.ControlSession.GetPlaybackInfo();
-                MediaManager_OnAnyPlaybackStateChanged(session, playbackInfo);
-            }
         }
+
 
         public static void Dispose()
         {
             if (mediaManager != null)
             {
+                // Unsubscribe from the events
+                mediaManager.OnAnySessionOpened -= MediaManager_OnAnySessionOpened;
+                mediaManager.OnAnySessionClosed -= MediaManager_OnAnySessionClosed;
+                mediaManager.OnFocusedSessionChanged -= MediaManager_OnFocusedSessionChanged;
+                mediaManager.OnAnyPlaybackStateChanged -= MediaManager_OnAnyPlaybackStateChanged;
+                mediaManager.OnAnyMediaPropertyChanged -= MediaManager_OnAnyMediaPropertyChanged;
+
+                // Dispose the mediaManager
                 mediaManager.Dispose();
                 mediaManager = null;
             }
         }
+
 
         private static void MediaManager_OnAnySessionOpened(MediaSession session)
         {
@@ -63,17 +72,19 @@ namespace vrcosc_magicchatbox.Classes
             };
 
             ViewModel.Instance.MediaSessions.Add(sessionInfo);
+            sessionInfoLookup[session] = sessionInfo;
 
             currentSession = session;
         }
 
         private static void MediaManager_OnAnySessionClosed(MediaSession session)
         {
-            var sessionInfo = ViewModel.Instance.MediaSessions.FirstOrDefault(s => s.Session == session);
+            var sessionInfo = sessionInfoLookup.GetValueOrDefault(session);
 
             if (sessionInfo != null)
             {
                 ViewModel.Instance.MediaSessions.Remove(sessionInfo);
+                sessionInfoLookup.Remove(session);
             }
 
             if (currentSession == session)
@@ -91,7 +102,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                var sessionInfo = ViewModel.Instance.MediaSessions.FirstOrDefault(s => s.Session == sender);
+                var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
 
                 if (sessionInfo != null)
                 {
@@ -106,7 +117,7 @@ namespace vrcosc_magicchatbox.Classes
 
         private static void MediaManager_OnAnyMediaPropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionMediaProperties args)
         {
-            var sessionInfo = ViewModel.Instance.MediaSessions.FirstOrDefault(s => s.Session == sender);
+            var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
 
             if (sessionInfo != null)
             {
@@ -116,7 +127,11 @@ namespace vrcosc_magicchatbox.Classes
                 sessionInfo.PlaybackType = (Windows.Media.MediaPlaybackType)args.PlaybackType;
                 sessionInfo.Title = args.Title;
 
+                // Get and update the PlaybackStatus
+                var playbackStatus = sender.ControlSession.GetPlaybackInfo().PlaybackStatus;
+                sessionInfo.PlaybackStatus = playbackStatus;
             }
         }
+
     }
 }

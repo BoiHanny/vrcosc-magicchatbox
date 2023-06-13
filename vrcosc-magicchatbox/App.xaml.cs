@@ -11,6 +11,8 @@ namespace vrcosc_magicchatbox
 {
     public partial class App : Application
     {
+        public MediaLinkController MediaController { get; private set; }
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -68,8 +70,10 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 80);
             await Task.Run(() => DataController.CheckForUpdate());
 
+            if(ViewModel.Instance.IntgrScanMediaLink)
             loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 90);
-            await Task.Run(() => MediaLinkController.Start());
+            //await Task.Run(() => MediaLinkController.Start());
+            MediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
 
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
 

@@ -175,6 +175,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrIntelliWing", (typeof(bool), "Integrations")},
                         {"ApplicationHookV2", (typeof(bool), "Integrations")},
                         {"IntgrHeartRate", (typeof(bool), "Integrations")},
+                        {"IntgrScanMediaLink", (typeof(bool), "Integrations")},
 
                         {"IntgrStatus_VR", (typeof(bool), "IntegrationToggles")},
                         {"IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
@@ -243,6 +244,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"Settings_IntelliChat", (typeof(bool), "OptionsTabState")},
                         {"Settings_AppOptions", (typeof(bool), "OptionsTabState")},
                         {"Settings_WindowActivity", (typeof(bool), "OptionsTabState")}
+
+
 
                     };
 

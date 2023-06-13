@@ -223,7 +223,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _IntgrScanMediaLink = true;
+        private bool _IntgrScanMediaLink = false;
         public bool IntgrScanMediaLink
         {
             get { return _IntgrScanMediaLink; }
@@ -1654,11 +1654,11 @@ namespace vrcosc_magicchatbox.ViewModels
         #endregion
 
         #region PropChangedEvent
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public void NotifyPropertyChanged(string name)
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged(string name)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         #endregion
     }
