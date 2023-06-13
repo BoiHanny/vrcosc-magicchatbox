@@ -2240,6 +2240,7 @@
                         <RowDefinition Height="85" />
                         <RowDefinition Height="85" />
                         <RowDefinition Height="85" />
+                        <RowDefinition Height="85" />
                     </Grid.RowDefinitions>
 
                     <Grid Background="#FF41375C" Visibility="{Binding Char_Limit}">
@@ -2752,6 +2753,110 @@
                                     IsChecked="{Binding IntgrSpotifyStatus_VR, Mode=TwoWay}"
                                     Style="{StaticResource GlowyToggleButton}" />
                             </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="6" Opacity="{Binding MediaLink_Opacity}">
+                        <Border
+                            Margin="6,6,6,-32"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Quality"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="73" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" VerticalAlignment="Top">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="85" />
+                                        <ColumnDefinition Width="440" />
+                                        <ColumnDefinition Width="122" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            Text="MediaLink" />
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Margin="0,0,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="13"
+                                            Foreground="LightGray"
+                                            Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
+                                            TextWrapping="Wrap" />
+                                        <Button
+                                            Margin="98,11,0,0"
+                                            Padding="0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_MediaLink"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                        </Button>
+                                    </Grid>
+
+                                    <Image
+                                        Grid.Column="0"
+                                        Margin="15"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
+                                        Source="/Img/Icons/MediaLink_ico.png" />
+                                    <CheckBox
+                                        Name="MediaLink_switch"
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrScanMediaLink, Mode=TwoWay}"
+                                        IsEnabled="false"
+                                        Style="{DynamicResource Switch}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="60"
+                                        Height="19"
+                                        Margin="127,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrMediaLink_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="30"
+                                        Height="19"
+                                        Margin="192,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrMediaLink_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                </Grid>
+                            </Grid>
+
                         </Border>
 
                     </Grid>

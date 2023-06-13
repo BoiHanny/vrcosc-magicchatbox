@@ -37,6 +37,7 @@
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
     <None Remove="Img\Icons\HeartRate_ico.png" />
+    <None Remove="Img\Icons\MediaLink_ico.png" />
     <None Remove="Img\Icons\Min_ico.png" />
     <None Remove="Img\Icons\Next_ico.png" />
     <None Remove="Img\Icons\PersonalMsg_ico.png" />
@@ -69,6 +70,7 @@
     <Resource Include="Img\Icons\Favorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\MediaLink_ico.png" />
     <Resource Include="Img\Icons\Min_ico.png" />
     <Resource Include="Img\Icons\Next_ico.png" />
     <Resource Include="Img\Icons\PersonalMsg_ico.png">
@@ -116,8 +118,7 @@
 
   <ItemGroup>
     <Reference Include="CoreOSC">
-      <HintPath>..\..\..\..\Documents\CoreOSC.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\..\..\..\Temp\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 
