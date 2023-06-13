@@ -131,6 +131,18 @@ namespace vrcosc_magicchatbox.ViewModels
                 OSCController.ToggleVoice(true);
         }
 
+
+        private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
+        public ObservableCollection<MediaSessionInfo> MediaSessions
+        {
+            get { return _MediaSessions; }
+            set
+            {
+                _MediaSessions = value;
+                NotifyPropertyChanged(nameof(MediaSessions));
+            }
+        }
+
         private bool _IntgrWindowActivity_DESKTOP = true;
         public bool IntgrWindowActivity_DESKTOP
         {
@@ -207,6 +219,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrHeartRate_DESKTOP = value;
                 NotifyPropertyChanged(nameof(IntgrHeartRate_DESKTOP));
+            }
+        }
+
+
+        private bool _IntgrScanMediaLink = true;
+        public bool IntgrScanMediaLink
+        {
+            get { return _IntgrScanMediaLink; }
+            set
+            {
+                _IntgrScanMediaLink = value;
+                NotifyPropertyChanged(nameof(IntgrScanMediaLink));
             }
         }
 
@@ -340,7 +364,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
-        private bool _MasterSwitch = false;
+        private bool _MasterSwitch = true;
         private bool _PrefixTime = false;
         private bool _PrefixChat = true;
         private bool _ChatFX = true;
@@ -362,10 +386,10 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _ChatBoxColor = "#FF504767";
         private string _CurrentTime = "";
         private string _ActiveChatTxt = "";
-        private bool _IntgrStatus = false;
+        private bool _IntgrStatus = true;
         private bool _IntgrScanWindowActivity = false;
-        private bool _IntgrScanWindowTime = false;
-        private bool _IntgrScanSpotify = false;
+        private bool _IntgrScanWindowTime = true;
+        private bool _IntgrScanSpotify = true;
         private int _ScanInterval = 4;
         private int _CurrentMenuItem = 0;
         private string _MenuItem_0_Visibility = "Hidden";

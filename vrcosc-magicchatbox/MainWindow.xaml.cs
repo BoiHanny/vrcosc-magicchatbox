@@ -48,32 +48,18 @@ namespace vrcosc_magicchatbox
 
         public MainWindow()
         {
-            LogManager.LoadConfiguration("NLog.config");
             Closing += SaveDataToDisk;
-            this.DataContext = ViewModel.Instance;
             InitializeComponent();
 
+            DispatcherTimer backgroundCheck = new DispatcherTimer();
+            backgroundCheck.Tick += Timer;
+            backgroundCheck.Interval = new TimeSpan(0, 0, ViewModel.Instance.ScanInterval);
+            backgroundCheck.Start();
 
-            backgroundCheck.Tick += Timer; backgroundCheck.Interval = new TimeSpan(0, 0, ViewModel.Instance.ScanInterval); backgroundCheck.Start();
-            ViewModel.Instance.IntgrScanWindowActivity = false;
-            ViewModel.Instance.IntgrScanSpotify = true;
-            ViewModel.Instance.IntgrScanWindowTime = true;
-            ViewModel.Instance.IntgrStatus = true;
-            ViewModel.Instance.MasterSwitch = true;
-            DataController.ManageSettingsXML();
-            DataController.LoadStatusList();
-            DataController.LoadChatList();
-            DataController.LoadAppList();
-            ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
             SelectTTS();
-            OpenAIClient.LoadOpenAIClient();
-            DataController.LoadIntelliChatBuiltInActions();
-            DataController.PopulateOutputDevices();
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
-            DataController.CheckForUpdate();
-
         }
 
         public void SelectTTS()

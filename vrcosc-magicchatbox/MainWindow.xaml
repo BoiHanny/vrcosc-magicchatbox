@@ -243,16 +243,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button
-                                    Width="150"
-                                    Margin="3"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Command="{Binding DataContext.YourCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}"
-                                    Content="{Binding FriendlyName}"
-                                    FontSize="10"
-                                    Style="{StaticResource Status_Button_style_Small}" />
+                                
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -2832,7 +2823,6 @@
                                         VerticalAlignment="Center"
                                         Click="Update_Click"
                                         IsChecked="{Binding IntgrScanMediaLink, Mode=TwoWay}"
-                                        IsEnabled="false"
                                         Style="{DynamicResource Switch}" />
                                     <ToggleButton
                                         Grid.Column="1"

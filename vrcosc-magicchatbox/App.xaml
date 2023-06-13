@@ -4,8 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
-    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
-    StartupUri="MainWindow.xaml">
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Application.Resources>
 
         <Style x:Key="CircleButton" TargetType="Button">
@@ -620,6 +619,36 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+        <Style TargetType="{x:Type ProgressBar}">
+            <Setter Property="MinHeight" Value="6" />
+            <Setter Property="MaxHeight" Value="6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ProgressBar}">
+                        <Grid>
+                            <Border
+                            Background="#7F759A"
+                            BorderThickness="0"
+                            CornerRadius="4">
+                                <Border x:Name="PART_Track" ClipToBounds="True">
+                                    <Rectangle
+                                    x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Fill="#2D1267"
+                                    RadiusX="4"
+                                    RadiusY="4" />
+                                </Border>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsIndeterminate" Value="True">
+                                <Setter TargetName="PART_Indicator" Property="Visibility" Value="Hidden" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style
             x:Key="Status_Button_style_Shadow"
             BasedOn="{StaticResource Status_Button_style}"
