@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using Windows.Media.Control;
@@ -70,8 +69,11 @@ namespace vrcosc_magicchatbox.Classes
             {
                 Session = session
             };
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ViewModel.Instance.MediaSessions.Add(sessionInfo);
+                });
 
-            ViewModel.Instance.MediaSessions.Add(sessionInfo);
             sessionInfoLookup[session] = sessionInfo;
 
             currentSession = session;
@@ -83,7 +85,10 @@ namespace vrcosc_magicchatbox.Classes
 
             if (sessionInfo != null)
             {
-                ViewModel.Instance.MediaSessions.Remove(sessionInfo);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.MediaSessions.Remove(sessionInfo);
+                    });
                 sessionInfoLookup.Remove(session);
             }
 
@@ -124,7 +129,6 @@ namespace vrcosc_magicchatbox.Classes
                 sessionInfo.AlbumArtist = args.AlbumArtist;
                 sessionInfo.AlbumTitle = args.AlbumTitle;
                 sessionInfo.Artist = args.Artist;
-                sessionInfo.PlaybackType = (Windows.Media.MediaPlaybackType)args.PlaybackType;
                 sessionInfo.Title = args.Title;
 
                 // Get and update the PlaybackStatus

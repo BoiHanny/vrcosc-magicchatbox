@@ -242,9 +242,7 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                
-                            </DataTemplate>
+                            <DataTemplate />
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
@@ -2226,12 +2224,12 @@
                     Visibility="{Binding MenuItem_0_Visibility}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="25" />
-                        <RowDefinition Height="85" />
-                        <RowDefinition Height="85" />
-                        <RowDefinition Height="85" />
-                        <RowDefinition Height="85" />
-                        <RowDefinition Height="85" />
-                        <RowDefinition Height="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Background="#FF41375C" Visibility="{Binding Char_Limit}">
@@ -2261,7 +2259,7 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
+                            <Grid Height="72">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
                                     <ColumnDefinition Width="440" />
@@ -2359,7 +2357,7 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
+                            <Grid Height="72">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
                                     <ColumnDefinition Width="440" />
@@ -2454,7 +2452,7 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
+                            <Grid Height="72">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
                                     <ColumnDefinition Width="440" />
@@ -2570,7 +2568,7 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
+                            <Grid Height="72">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
                                     <ColumnDefinition Width="440" />
@@ -2652,7 +2650,10 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="5" Opacity="{Binding Spotify_Opacity}">
+                    <Grid
+                        Grid.Row="5"
+                        Opacity="{Binding Spotify_Opacity}"
+                        Visibility="Collapsed">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -2665,7 +2666,7 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
+                            <Grid Height="72">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85" />
                                     <ColumnDefinition Width="440" />
@@ -2760,7 +2761,7 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
+                            <Grid Height="auto">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="73" />
                                     <RowDefinition Height="Auto" />
@@ -2845,6 +2846,56 @@
                                         IsChecked="{Binding IntgrMediaLink_VR, Mode=TwoWay}"
                                         Style="{StaticResource GlowyToggleButton}" />
                                 </Grid>
+                                <Border
+                                    Grid.Row="1"
+                                    Height="auto"
+                                    Background="#240E54"
+                                    CornerRadius="0,0,5,5">
+                                    <ItemsControl
+                                        Width="auto"
+                                        Height="auto"
+                                        ItemsSource="{Binding MediaSessions}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel HorizontalAlignment="left" Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border
+                                                    Background="#3A1F74"
+                                                    Margin="5"
+                                                    CornerRadius="5">
+                                                    <StackPanel
+                                                        Width="auto"
+                                                        Margin="10,0"
+                                                        VerticalAlignment="Center"
+                                                        Orientation="Horizontal">
+                                                        <!--  RadioButton linked to IsActive  -->
+                                                        <RadioButton
+                                                            Margin="0,0,10,0"
+                                                            GroupName="MediaSessions"
+                                                            IsChecked="{Binding IsActive}" />
+                                                        <!--  Label for FriendlyAppName  -->
+                                                        <Label Margin="0,0,10,0" Content="{Binding FriendlyAppName}" />
+                                                        <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
+                                                        <CheckBox
+                                                            Margin="0,0,10,0"
+                                                            Content="Video"
+                                                            IsChecked="{Binding IsVideo}" />
+                                                        <CheckBox
+                                                            Margin="0,0,10,0"
+                                                            Content="Artist"
+                                                            IsChecked="{Binding ShowArtist}" />
+                                                        <CheckBox Content="Title" IsChecked="{Binding ShowTitle}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+
+
                             </Grid>
 
                         </Border>
