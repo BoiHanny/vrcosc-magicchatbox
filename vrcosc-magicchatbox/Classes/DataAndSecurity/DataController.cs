@@ -543,8 +543,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
 
                 // Check if a downgrade is needed
-                if (!ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.PreReleaseVersion != null &&
-                    currentVersion.CompareTo(ViewModel.Instance.PreReleaseVersion.VersionNumber) > 0)
+                if (!ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.LatestReleaseVersion != null &&
+                    currentVersion.CompareTo(ViewModel.Instance.LatestReleaseVersion.VersionNumber) > 0)
                 {
                     // If the current version is a pre-release version and the user has opted out of the alpha channel
                     ViewModel.Instance.VersionTxt = "Downgrade now";
