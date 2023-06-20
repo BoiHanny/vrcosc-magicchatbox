@@ -1,5 +1,6 @@
 ﻿using NAudio.CoreAudioApi;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
@@ -16,8 +18,27 @@ using Version = vrcosc_magicchatbox.ViewModels.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
 {
-    internal static class DataController
+    public static class DataController
     {
+        private static bool isUpdateCheckRunning = false;
+
+        public static async Task CheckForUpdateAndWait()
+        {
+            // Wait until previous check for updates is not running anymore
+            while (isUpdateCheckRunning)
+            {
+                await Task.Delay(500); // Wait for 500 ms before checking again
+            }
+
+            // Lock the check for updates
+            isUpdateCheckRunning = true;
+
+            // Write your code to check for updates here
+            CheckForUpdate();
+
+            // Unlock the check for updates
+            isUpdateCheckRunning = false;
+        }
 
         public static List<Voice> ReadTkTkTTSVoices()
         {
@@ -215,6 +236,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"ChatFX", (typeof(bool), "Chat")},
 
                         {"Topmost", (typeof(bool), "Window")},
+                        {"JoinedAlphaChannel", (typeof(bool), "Update")},
 
                         {"TTSTikTokEnabled", (typeof(bool), "TTS")},
                         {"TTSCutOff", (typeof(bool), "TTS")},
@@ -426,41 +448,51 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
         }
 
-        public static void CheckForUpdate()
+        private static void CheckForUpdate()
         {
             try
             {
                 string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
-                string url = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
-                if (url != null)
+                string urlLatest = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
+                string urlPreRelease = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases";
+                if (urlLatest != null)
                 {
                     using (var client = new HttpClient())
                     {
                         client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
                         client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
-                        var response = client.GetAsync(url).Result;
-                        var json = response.Content.ReadAsStringAsync().Result;
-                        dynamic release = JsonConvert.DeserializeObject(json);
-                        string latestVersion = release.tag_name;
-                        string tagURL = "https://github.com/BoiHanny/vrcosc-magicchatbox/releases/tag/" + latestVersion;
-                        ViewModel.Instance.GitHubVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
-                        if (ViewModel.Instance.GitHubVersion != null)
+
+                        // Check the latest release
+                        var responseLatest = client.GetAsync(urlLatest).Result;
+                        var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
+                        dynamic releaseLatest = JsonConvert.DeserializeObject(jsonLatest);
+                        string latestVersion = releaseLatest.tag_name;
+
+                        ViewModel.Instance.LatestReleaseVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
+                        ViewModel.Instance.LatestReleaseURL = releaseLatest.assets[0].browser_download_url; // Store the download URL
+
+                        // Check the latest pre-release
+                        var responsePreRelease = client.GetAsync(urlPreRelease).Result;
+                        var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
+                        JArray releases = JArray.Parse(jsonPreRelease);
+                        string preReleaseVersion = "";
+                        foreach (var release in releases)
                         {
-                            CompareVersions();
-                            ViewModel.Instance.NewVersionURL = release.assets[0].browser_download_url; // Store the download URL
-                            ViewModel.Instance.tagURL = tagURL;
+                            if ((bool)release["prerelease"])
+                            {
+                                preReleaseVersion = release["tag_name"].ToString();
+                                break;
+                            }
                         }
-                        else
+
+                        // Check if there's a new pre-release and user is joined to alpha channel
+                        if (ViewModel.Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
                         {
-                            ViewModel.Instance.VersionTxt = "Internal update server error";
-                            ViewModel.Instance.VersionTxtColor = "#F65F69";
-                            Logging.WriteInfo("Internal update server error", makeVMDump: true, MSGBox: false);
-                            ViewModel.Instance.CanUpdate = false;
+                            ViewModel.Instance.PreReleaseVersion = new Version(Regex.Replace(preReleaseVersion, "[^0-9.]", ""));
+                            ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
                         }
                     }
-
                 }
-
             }
             catch (Exception ex)
             {
@@ -468,43 +500,59 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 ViewModel.Instance.VersionTxt = "Can't check updates";
                 ViewModel.Instance.VersionTxtColor = "#F36734";
             }
-
+            finally
+            {
+                CompareVersions();
+            }
         }
+
 
 
         public static void CompareVersions()
         {
-
             try
             {
-                var currentVersion = ViewModel.Instance.AppVersion.VersionNumber; ;
-                var githubVersion = ViewModel.Instance.GitHubVersion.VersionNumber;
+                var currentVersion = ViewModel.Instance.AppVersion.VersionNumber;
+                var latestReleaseVersion = ViewModel.Instance.LatestReleaseVersion.VersionNumber;
 
-                int result = currentVersion.CompareTo(githubVersion);
-                if (result < 0)
+                int compareWithLatestRelease = currentVersion.CompareTo(latestReleaseVersion);
+
+                if (compareWithLatestRelease < 0)
                 {
+                    // If the latest release version is greater than the current version
                     ViewModel.Instance.VersionTxt = "Update now";
                     ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
                     ViewModel.Instance.CanUpdate = true;
-                }
-                else if (result == 0)
-                {
-                    ViewModel.Instance.VersionTxt = "You are up-to-date";
-                    ViewModel.Instance.VersionTxtColor = "#FF92CC90";
-                    ViewModel.Instance.CanUpdate = false;
-                }
-                else
-                {
-                    ViewModel.Instance.VersionTxt = "You running a preview, fun!";
-                    ViewModel.Instance.VersionTxtColor = "#FFE816EA";
-                    ViewModel.Instance.CanUpdate = false;
+                    ViewModel.Instance.UpdateURL = ViewModel.Instance.LatestReleaseURL;
+                    return;
                 }
 
+                if (ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.PreReleaseVersion != null)
+                {
+                    var preReleaseVersion = ViewModel.Instance.PreReleaseVersion.VersionNumber;
+                    int compareWithPreRelease = currentVersion.CompareTo(preReleaseVersion);
+                    if (compareWithPreRelease < 0)
+                    {
+                        // If the pre-release version is greater than the current version and the user has joined the alpha channel
+                        ViewModel.Instance.VersionTxt = "Install pre-release";
+                        ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
+                        ViewModel.Instance.CanUpdate = true;
+                        ViewModel.Instance.UpdateURL = ViewModel.Instance.PreReleaseURL;
+                        return;
+                    }
+                }
+
+                // If no new update or pre-release is found
+                ViewModel.Instance.VersionTxt = "You are up-to-date";
+                ViewModel.Instance.VersionTxtColor = "#FF92CC90";
+                ViewModel.Instance.CanUpdate = false;
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
+
     }
 }

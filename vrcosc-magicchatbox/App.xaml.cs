@@ -68,7 +68,7 @@ namespace vrcosc_magicchatbox
             await Task.Run(() => DataController.PopulateOutputDevices());
 
             loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 80);
-            await Task.Run(() => DataController.CheckForUpdate());
+            await Task.Run(() => DataController.CheckForUpdateAndWait());
 
             if(ViewModel.Instance.IntgrScanMediaLink)
             loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 90);

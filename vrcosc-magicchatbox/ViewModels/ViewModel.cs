@@ -5,11 +5,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -167,6 +169,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _JoinedAlphaChannel = true;
+        public bool JoinedAlphaChannel
+        {
+            get { return _JoinedAlphaChannel; }
+            set
+            {
+                _JoinedAlphaChannel = value;
+                Task.Run(() => DataController.CheckForUpdateAndWait());
+                NotifyPropertyChanged(nameof(JoinedAlphaChannel));
+            }
+        }
 
         private bool _IntgrMediaLink_DESKTOP = true;
         public bool IntgrMediaLink_DESKTOP
@@ -479,7 +493,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _LogPath = @"C:\temp\Vrcosc-MagicChatbox";
         private string _RecentPlayBackOutput;
         private bool _VrcConnected;
-        private string _NewVersionURL;
         private bool _CanUpdate;
         private string _toggleVoiceText = "Toggle voice (V)";
         private bool _AutoUnmuteTTS = true;
@@ -1031,15 +1044,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CanUpdate));
             }
         }
-        public string NewVersionURL
-        {
-            get { return _NewVersionURL; }
-            set
-            {
-                _NewVersionURL = value;
-                NotifyPropertyChanged(nameof(NewVersionURL));
-            }
-        }
         public bool VrcConnected
         {
             get { return _VrcConnected; }
@@ -1049,6 +1053,66 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(VrcConnected));
             }
         }
+
+
+        private Version _LatestReleaseVersion;
+        public Version LatestReleaseVersion
+        {
+            get { return _LatestReleaseVersion; }
+            set
+            {
+                _LatestReleaseVersion = value;
+                NotifyPropertyChanged(nameof(LatestReleaseVersion));
+            }
+        }
+
+
+        private string _UpdateURL;
+        public string UpdateURL
+        {
+            get { return _UpdateURL; }
+            set
+            {
+                _UpdateURL = value;
+                NotifyPropertyChanged(nameof(UpdateURL));
+            }
+        }
+
+        private string _LatestReleaseURL;
+        public string LatestReleaseURL
+        {
+            get { return _LatestReleaseURL; }
+            set
+            {
+                _LatestReleaseURL = value;
+                NotifyPropertyChanged(nameof(LatestReleaseURL));
+            }
+        }
+
+
+        private Version _PreReleaseVersion;
+        public Version  PreReleaseVersion
+        {
+            get { return _PreReleaseVersion; }
+            set
+            {
+                _PreReleaseVersion = value;
+                NotifyPropertyChanged(nameof(PreReleaseVersion));
+            }
+        }
+
+
+        private string _PreReleaseURL;
+        public string PreReleaseURL
+        {
+            get { return _PreReleaseURL; }
+            set
+            {
+                _PreReleaseURL = value;
+                NotifyPropertyChanged(nameof(PreReleaseURL));
+            }
+        }
+
         public string LogPath
         {
             get { return _LogPath; }

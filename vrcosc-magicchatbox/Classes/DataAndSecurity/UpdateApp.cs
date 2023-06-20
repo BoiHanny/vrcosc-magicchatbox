@@ -126,7 +126,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             try
             {
-                UpdateStatus($"Requesting update {ViewModel.Instance.GitHubVersion.VersionNumber}");
+                UpdateStatus($"Requesting update");
                 Thread.Sleep(1500);
                 string tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
                 string zipPath = Path.Combine(tempPath, "update.zip");
@@ -149,7 +149,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 Thread.Sleep(300);
                 using (WebClient webClient = new WebClient())
                 {
-                    await webClient.DownloadFileTaskAsync(ViewModel.Instance.NewVersionURL, zipPath);
+                    await webClient.DownloadFileTaskAsync(ViewModel.Instance.UpdateURL, zipPath);
+
                 }
 
                 // Extract the contents of the zip file

@@ -1631,6 +1631,18 @@
                                         Style="{DynamicResource SettingsCheckbox}">
                                         Toggle VRChat voice with 'V'
                                     </CheckBox>
+                                    <CheckBox
+                                        x:Name="ToggleJoinedApha"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding JoinedAlphaChannel, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Beta channel updates
+                                    </CheckBox>
                                     <StackPanel Orientation="Horizontal">
                                         <Button
                                             x:Name="ResetFavorites"
