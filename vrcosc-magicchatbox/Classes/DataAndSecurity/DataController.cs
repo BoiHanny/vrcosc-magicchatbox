@@ -191,7 +191,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     {
                         {"IntgrStatus", (typeof(bool), "Integrations")},
                         {"IntgrScanWindowActivity", (typeof(bool), "Integrations")},
-                        {"IntgrScanSpotify", (typeof(bool), "Integrations")},
+                        {"IntgrScanSpotify_OLD", (typeof(bool), "Integrations")},
                         {"IntgrScanWindowTime", (typeof(bool), "Integrations")},
                         {"IntgrIntelliWing", (typeof(bool), "Integrations")},
                         {"ApplicationHookV2", (typeof(bool), "Integrations")},

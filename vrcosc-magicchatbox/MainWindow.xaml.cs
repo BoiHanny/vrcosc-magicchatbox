@@ -164,7 +164,7 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                if (ViewModel.Instance.IntgrScanSpotify == true)
+                if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
                 {
                     ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
                     ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();

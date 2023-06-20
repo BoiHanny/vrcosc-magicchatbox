@@ -304,6 +304,10 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrScanMediaLink = value;
+                if (_IntgrScanMediaLink)
+                {
+                    IntgrScanSpotify_OLD = false;
+                }
                 NotifyPropertyChanged(nameof(IntgrScanMediaLink));
             }
         }
@@ -463,7 +467,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IntgrStatus = true;
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = true;
-        private bool _IntgrScanSpotify = true;
+        private bool _IntgrScanSpotify = false;
         private int _ScanInterval = 4;
         private int _CurrentMenuItem = 0;
         private string _MenuItem_0_Visibility = "Hidden";
@@ -1659,13 +1663,17 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public bool IntgrScanSpotify
+        public bool IntgrScanSpotify_OLD
         {
             get { return _IntgrScanSpotify; }
             set
             {
                 _IntgrScanSpotify = value;
-                NotifyPropertyChanged(nameof(IntgrScanSpotify));
+                if (_IntgrScanSpotify)
+                {
+                    IntgrScanMediaLink = false;
+                }
+                NotifyPropertyChanged(nameof(IntgrScanSpotify_OLD));
             }
         }
 

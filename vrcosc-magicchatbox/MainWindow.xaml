@@ -2734,7 +2734,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanSpotify, Mode=TwoWay}"
+                                    IsChecked="{Binding IntgrScanSpotify_OLD, Mode=TwoWay}"
                                     Style="{DynamicResource Switch}" />
                                 <ToggleButton
                                     Grid.Column="1"
@@ -2885,22 +2885,52 @@
                                                         Orientation="Horizontal">
                                                         <!--  RadioButton linked to IsActive  -->
                                                         <RadioButton
-                                                            Margin="0,0,10,0"
+                                                            Margin="0,10,10,10"
+                                                            VerticalAlignment="Center"
+                                                            Checked="Update_Click"
+                                                            Content="{Binding FriendlyAppName}"
+                                                            Foreground="#DBD9DE"
                                                             GroupName="MediaSessions"
-                                                            IsChecked="{Binding IsActive}" />
+                                                            IsChecked="{Binding IsActive}"
+                                                            Unchecked="Update_Click" />
                                                         <!--  Label for FriendlyAppName  -->
-                                                        <Label Margin="0,0,10,0" Content="{Binding FriendlyAppName}" />
+
                                                         <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
                                                         <CheckBox
                                                             Margin="0,0,10,0"
+                                                            VerticalAlignment="Center"
+                                                            Checked="Update_Click"
                                                             Content="Video"
-                                                            IsChecked="{Binding IsVideo}" />
+                                                            Foreground="#DBD9DE"
+                                                            IsChecked="{Binding IsVideo}"
+                                                            Style="{DynamicResource SettingsCheckbox}"
+                                                            Unchecked="Update_Click" />
                                                         <CheckBox
                                                             Margin="0,0,10,0"
+                                                            VerticalAlignment="Center"
+                                                            Checked="Update_Click"
                                                             Content="Artist"
-                                                            IsChecked="{Binding ShowArtist}" />
-                                                        <CheckBox Content="Title" IsChecked="{Binding ShowTitle}" />
-                                                        <CheckBox Content="AutoSwitch" IsChecked="{Binding AutoSwitch}" />
+                                                            Foreground="#DBD9DE"
+                                                            IsChecked="{Binding ShowArtist}"
+                                                            Style="{DynamicResource SettingsCheckbox}"
+                                                            Unchecked="Update_Click" />
+                                                        <CheckBox
+                                                            Margin="0,0,10,0"
+                                                            VerticalAlignment="Center"
+                                                            Checked="Update_Click"
+                                                            Content="Title"
+                                                            Foreground="#DBD9DE"
+                                                            IsChecked="{Binding ShowTitle}"
+                                                            Style="{DynamicResource SettingsCheckbox}"
+                                                            Unchecked="Update_Click" />
+                                                        <CheckBox
+                                                            VerticalAlignment="Center"
+                                                            Checked="Update_Click"
+                                                            Content="AutoSwitch"
+                                                            Foreground="#DBD9DE"
+                                                            IsChecked="{Binding AutoSwitch}"
+                                                            Style="{DynamicResource SettingsCheckbox}"
+                                                            Unchecked="Update_Click" />
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>

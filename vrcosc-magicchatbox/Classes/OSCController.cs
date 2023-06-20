@@ -326,7 +326,7 @@ namespace vrcosc_magicchatbox.Classes
         // this function will build the spotify status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddSpotifyStatus(List<string> Uncomplete)
         {
-            if (ViewModel.Instance.IntgrScanSpotify == true)
+            if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
             {
                 if (ViewModel.Instance.SpotifyActive == true)
                 {
