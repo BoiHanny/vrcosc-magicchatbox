@@ -37,7 +37,6 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (e.PropertyName == "IntgrScanMediaLink")
             {
-                ViewModel.Instance.MediaSessions.Clear();
                 if (ViewModel.Instance.IntgrScanMediaLink)
                     Start();
                 else
@@ -78,6 +77,7 @@ namespace vrcosc_magicchatbox.Classes
                 mediaManager.OnAnyMediaPropertyChanged -= MediaManager_OnAnyMediaPropertyChanged;
 
                 mediaManager.Dispose();
+                ViewModel.Instance.MediaSessions.Clear();
                 mediaManager = null;
             }
         }
