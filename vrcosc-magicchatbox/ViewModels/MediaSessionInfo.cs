@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Globalization;
-using Windows.Media;
 using Windows.Media.Control;
 using static WindowsMediaController.MediaManager;
 

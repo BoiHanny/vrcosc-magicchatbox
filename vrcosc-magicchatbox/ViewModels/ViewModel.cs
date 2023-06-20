@@ -132,6 +132,18 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private int _MediaSession_Timeout = 3;
+        public int MediaSession_Timeout
+        {
+            get { return _MediaSession_Timeout; }
+            set
+            {
+                _MediaSession_Timeout = value;
+                NotifyPropertyChanged(nameof(MediaSession_Timeout));
+            }
+        }
+
+
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
         public ObservableCollection<MediaSessionInfo> MediaSessions
         {
