@@ -46,7 +46,7 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-
+        // this function will start the media manager and subscribe to all the events that we need to listen to for media sessions
         public static void Start()
         {
             try
@@ -65,7 +65,7 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-
+        // this function will stop the media manager and unsubscribe from all the events that we were listening to for media sessions
         public static void Dispose()
         {
             if (mediaManager != null)
@@ -82,7 +82,7 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-
+        // this fucntion will be called whe the user opens a new media session.
         private static void MediaManager_OnAnySessionOpened(MediaSession session)
         {
             MediaSessionInfo sessionInfo = null;
@@ -113,6 +113,7 @@ namespace vrcosc_magicchatbox.Classes
             currentSession = session;
         }
 
+        // this function will be called when the user closes a media session, we temporarily store the session info in a dictionary so we can restore it if the user reopens the session within a certain time period
         private static async void MediaManager_OnAnySessionClosed(MediaSession session)
         {
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(session);
@@ -137,6 +138,7 @@ namespace vrcosc_magicchatbox.Classes
             await Task.Run(() => CleanupExpiredSessions());
         }
 
+        // this funtion will clean up any expired sessions that have been closed for longer than the grace period.
         private static void CleanupExpiredSessions()
         {
             var expiredSessions = recentlyClosedSessions
@@ -149,11 +151,13 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
+        // this function will be  called when the user changes the focused media session
         private static void MediaManager_OnFocusedSessionChanged(MediaSession session)
         {
             currentSession = session;
         }
 
+        // this function will be called when the user changes the playback state of a media session
         private static void MediaManager_OnAnyPlaybackStateChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo args)
         {
             try
@@ -171,6 +175,7 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
+        // this function will be called when the user changes the media properties of a media session
         private static void MediaManager_OnAnyMediaPropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionMediaProperties args)
         {
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
