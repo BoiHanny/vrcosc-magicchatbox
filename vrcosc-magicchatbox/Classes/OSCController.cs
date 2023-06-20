@@ -194,6 +194,9 @@ namespace vrcosc_magicchatbox.Classes
                 case "HeartRate":
                     ViewModel.Instance.HeartRate_Opacity = opacity;
                     break;
+                case "MediaLink":
+                    ViewModel.Instance.HeartRate_Opacity = opacity;
+                    break;
                 default:
                     break;
             }
@@ -225,6 +228,9 @@ namespace vrcosc_magicchatbox.Classes
 
                 { () => ViewModel.Instance.IntgrSpotifyStatus_VR && ViewModel.Instance.IsVRRunning
                         || ViewModel.Instance.IntgrSpotifyStatus_DESKTOP && !ViewModel.Instance.IsVRRunning, AddSpotifyStatus },
+
+                { () => ViewModel.Instance.IntgrMediaLink_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrMediaLink_DESKTOP && !ViewModel.Instance.IsVRRunning, AddMediaLink },
             };
 
             try
@@ -235,6 +241,7 @@ namespace vrcosc_magicchatbox.Classes
                 SetOpacity("HeartRate", "1");
                 SetOpacity("Window", "1");
                 SetOpacity("Time", "1");
+                SetOpacity("MediaLink", "1");
 
                 // Add the strings to the list if the total length of the list is less than 144 characters
                 foreach (var kvp in functionMap)
@@ -348,6 +355,76 @@ namespace vrcosc_magicchatbox.Classes
                 }
             }
         }
+
+        public static void AddMediaLink(List<string> Uncomplete)
+        {
+            if (ViewModel.Instance.IntgrScanMediaLink)
+            {
+                string x;
+                MediaSessionInfo mediaSession = ViewModel.Instance.MediaSessions.FirstOrDefault(item => item.IsActive);
+
+                if (mediaSession != null)
+                {
+                    var isPaused = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+                    var isPlaying = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+
+                    if (isPaused || isPlaying)
+                    {
+                        var mediaType = mediaSession.IsVideo ? "Video" : "Music";
+                        var prefix = mediaSession.IsVideo ? "🎬" : "🎵";
+                        var mediaAction = mediaSession.IsVideo ? "Watching" : "Listening to";
+
+                        if (isPaused)
+                        {
+                            x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic ? "⏸" : $"{mediaType} paused";
+                        }
+                        else // isPlaying
+                        {
+                            var mediaLinkTitle = CreateMediaLinkTitle(mediaSession);
+                            x = ViewModel.Instance.PrefixIconMusic ? $"{prefix} '{mediaLinkTitle}'" : $"{mediaAction} '{mediaLinkTitle}'";
+                        }
+
+                        TryAddToUncomplete(Uncomplete, x, "MediaLink");
+                    }
+                }
+                else
+                {
+                    x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic ? "⏸" : "Paused";
+                    TryAddToUncomplete(Uncomplete, x, "MediaLink");
+                }
+            }
+        }
+
+
+
+        //make a function to create the song title take the 3 bools in mediasessioninfo IsVideo, ShowArtist, ShowTitle
+        public static string CreateMediaLinkTitle(MediaSessionInfo mediaSession)
+        {
+            StringBuilder mediaLinkTitle = new StringBuilder();
+
+            if (mediaSession.ShowTitle && !string.IsNullOrEmpty(mediaSession.Title))
+            {
+                mediaLinkTitle.Append(mediaSession.Title);
+            }
+
+            if (mediaSession.ShowArtist && !string.IsNullOrEmpty(mediaSession.Artist))
+            {
+                if (mediaLinkTitle.Length > 0)
+                {
+                    mediaLinkTitle.Append(" ᵇʸ ");
+                }
+
+                mediaLinkTitle.Append(mediaSession.Artist);
+            }
+
+            return mediaLinkTitle.Length > 0 ? mediaLinkTitle.ToString() : "⏸";
+        }
+
+
+
+
+
+
 
         // this function will create a new chat message and add it to the list of strings if the total length of the list is less than 144 characters
         // this function will also set the OSCtoSent property in the ViewModel to the final OSC message

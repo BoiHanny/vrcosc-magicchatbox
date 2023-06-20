@@ -1301,14 +1301,14 @@
                                     FontSize="15"
                                     FontWeight="Bold"
                                     Foreground="#BDAEE2"
-                                    IsChecked="{Binding Settings_Spotify, Mode=TwoWay}"
+                                    IsChecked="{Binding Settings_MediaLink, Mode=TwoWay}"
                                     Style="{StaticResource ExpandCollapseToggleButtonStyle}"
-                                    Tag="Spotify options"
+                                    Tag="MediaLink options"
                                     TextOptions.TextRenderingMode="ClearType" />
                                 <TextBlock
                                     x:Name="LearnMoreAboutSpotifybtn"
                                     Width="auto"
-                                    Margin="143,0,0,0"
+                                    Margin="155,0,0,0"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Cursor="Hand"
@@ -1323,7 +1323,7 @@
                                 Grid.Row="1"
                                 Height="Auto"
                                 Margin="10,10,0,0"
-                                Visibility="{Binding Settings_Spotify, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                Visibility="{Binding Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <CheckBox
                                         x:Name="MusicIconPrefix_checkbox"
@@ -2701,7 +2701,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Spotify"
+                                        CommandParameter="Settings_MediaLink"
                                         Style="{StaticResource CircleButton}">
                                         <Image
                                             Width="15"
@@ -2886,8 +2886,7 @@
                                                         <CheckBox
                                                             Margin="0,0,10,0"
                                                             Content="Artist"
-                                                            IsChecked="{Binding ShowArtist}"
-                                                            Visibility="{Binding MediaSession_AutoSwitch, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                            IsChecked="{Binding ShowArtist}" />
                                                         <CheckBox Content="Title" IsChecked="{Binding ShowTitle}" />
                                                         <CheckBox Content="AutoSwitch" IsChecked="{Binding AutoSwitch}" />
                                                     </StackPanel>

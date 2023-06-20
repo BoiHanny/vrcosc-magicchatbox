@@ -56,7 +56,7 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
         { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
-        { nameof(Settings_Spotify), value => Settings_Spotify = value },
+        { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
         { nameof(Settings_Chatting), value => Settings_Chatting = value },
         { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
         { nameof(Settings_TTS), value => Settings_TTS = value },
@@ -152,6 +152,30 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _MediaSession_AutoSwitch = value;
                 NotifyPropertyChanged(nameof(MediaSession_AutoSwitch));
+            }
+        }
+
+
+        private bool _IntgrMediaLink_VR = true;
+        public bool  IntgrMediaLink_VR
+        {
+            get { return _IntgrMediaLink_VR; }
+            set
+            {
+                _IntgrMediaLink_VR = value;
+                NotifyPropertyChanged(nameof(IntgrMediaLink_VR));
+            }
+        }
+
+
+        private bool _IntgrMediaLink_DESKTOP = true;
+        public bool IntgrMediaLink_DESKTOP
+        {
+            get { return _IntgrMediaLink_DESKTOP; }
+            set
+            {
+                _IntgrMediaLink_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrMediaLink_DESKTOP));
             }
         }
 
@@ -441,6 +465,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
         private string _HeartRate_Opacity = "1";
+        private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
@@ -505,6 +530,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+
+        public string MediaLink_Opacity
+        {
+            get { return _MediaLink_Opacity; }
+            set
+            {
+                _MediaLink_Opacity = value;
+                NotifyPropertyChanged(nameof(MediaLink_Opacity));
+            }
+        }
+
         private bool _AutoSetDaylight = true;
         public bool AutoSetDaylight
         {
@@ -550,14 +587,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _Settings_Spotify = false;
-        public bool Settings_Spotify
+
+
+        private bool _Settings_MediaLink = false;
+        public bool Settings_MediaLink
         {
-            get { return _Settings_Spotify; }
+            get { return _Settings_MediaLink; }
             set
             {
-                _Settings_Spotify = value;
-                NotifyPropertyChanged(nameof(Settings_Spotify));
+                _Settings_MediaLink = value;
+                NotifyPropertyChanged(nameof(Settings_MediaLink));
             }
         }
 

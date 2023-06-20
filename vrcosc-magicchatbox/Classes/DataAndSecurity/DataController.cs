@@ -180,6 +180,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrStatus_VR", (typeof(bool), "IntegrationToggles")},
                         {"IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
 
+                        {"IntgrMediaLink_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrMediaLink_DESKTOP", (typeof(bool), "IntegrationToggles")},
+
                         {"IntgrWindowActivity_VR", (typeof(bool), "IntegrationToggles")},
                         {"IntgrWindowActivity_DESKTOP", (typeof(bool), "IntegrationToggles")},
 
@@ -240,7 +243,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"Settings_Time", (typeof(bool), "OptionsTabState")},
                         {"Settings_Chatting", (typeof(bool), "OptionsTabState")},
                         {"Settings_TTS", (typeof(bool), "OptionsTabState")},
-                        {"Settings_Spotify", (typeof(bool), "OptionsTabState")},
+                        {"Settings_MediaLink", (typeof(bool), "OptionsTabState")},
                         {"Settings_IntelliChat", (typeof(bool), "OptionsTabState")},
                         {"Settings_AppOptions", (typeof(bool), "OptionsTabState")},
                         {"Settings_WindowActivity", (typeof(bool), "OptionsTabState")}
