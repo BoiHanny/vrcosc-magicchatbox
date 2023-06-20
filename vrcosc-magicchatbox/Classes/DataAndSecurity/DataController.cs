@@ -542,6 +542,18 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                 }
 
+                // Check if a downgrade is needed
+                if (!ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.PreReleaseVersion != null &&
+                    currentVersion.CompareTo(ViewModel.Instance.PreReleaseVersion.VersionNumber) > 0)
+                {
+                    // If the current version is a pre-release version and the user has opted out of the alpha channel
+                    ViewModel.Instance.VersionTxt = "Downgrade now";
+                    ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
+                    ViewModel.Instance.CanUpdate = true;
+                    ViewModel.Instance.UpdateURL = ViewModel.Instance.LatestReleaseURL;
+                    return;
+                }
+
                 // If no new update or pre-release is found
                 ViewModel.Instance.VersionTxt = "You are up-to-date";
                 ViewModel.Instance.VersionTxtColor = "#FF92CC90";
@@ -552,6 +564,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
 
 
     }
