@@ -1308,7 +1308,7 @@
                                 <TextBlock
                                     x:Name="LearnMoreAboutSpotifybtn"
                                     Width="auto"
-                                    Margin="155,0,0,0"
+                                    Margin="162,0,0,0"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Cursor="Hand"
@@ -1325,6 +1325,20 @@
                                 Margin="10,10,0,0"
                                 Visibility="{Binding Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
+                                    <CheckBox
+                                        x:Name="UseOldSpotify_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding DisableMediaLink, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Use old Spotify integration (deprecated)
+                                    </CheckBox>
                                     <CheckBox
                                         x:Name="MusicIconPrefix_checkbox"
                                         Height="21"
@@ -1354,6 +1368,58 @@
                                         Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         Show ⏸ when  music is paused
                                     </CheckBox>
+                                    <CheckBox
+                                        x:Name="MediaSession_AutoSwitch_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding MediaSession_AutoSwitch, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click"
+                                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Auto switch when media state is changed (must enable checkbox)
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="MediaSession_AutoSwitchSpawn_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding MediaSession_AutoSwitchSpawn, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click"
+                                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Turn autoswitch on when new session detected
+                                    </CheckBox>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                        Text="Forget session after disconnect (in seconds)" />
+                                    <TextBox
+                                        x:Name="MediaSession_Timeout_int"
+                                        Width="40"
+                                        Height="26"
+                                        Margin="0,3,0,10"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                                                                Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                        Text="{Binding MediaSession_Timeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                             </Grid>
 
@@ -2665,7 +2731,7 @@
                     <Grid
                         Grid.Row="5"
                         Opacity="{Binding Spotify_Opacity}"
-                        Visibility="Visible">
+                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -2760,7 +2826,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="6" Opacity="{Binding MediaLink_Opacity}">
+                    <Grid Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Grid.Row="6" Opacity="{Binding MediaLink_Opacity}">
                         <Border
                             Margin="6,6,6,-32"
                             Background="DarkSlateBlue"

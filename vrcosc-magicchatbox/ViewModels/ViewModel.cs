@@ -206,6 +206,8 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        
+
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
         public ObservableCollection<MediaSessionInfo> MediaSessions
         {
@@ -248,6 +250,27 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrSpotifyStatus_VR = value;
                 NotifyPropertyChanged(nameof(IntgrSpotifyStatus_VR));
+            }
+        }
+
+
+        private bool _DisableMediaLink = false;
+        public bool DisableMediaLink
+        {
+            get { return _DisableMediaLink; }
+            set
+            {
+
+                _DisableMediaLink = value;
+                if (_DisableMediaLink)
+                {
+                    IntgrScanMediaLink = false;
+                }
+                else
+                {
+                      IntgrScanSpotify_OLD = false;
+                }
+                    NotifyPropertyChanged(nameof(DisableMediaLink));
             }
         }
 
@@ -297,7 +320,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _IntgrScanMediaLink = false;
+        private bool _IntgrScanMediaLink = true;
         public bool IntgrScanMediaLink
         {
             get { return _IntgrScanMediaLink; }

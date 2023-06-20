@@ -225,6 +225,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"CurrentMenuItem", (typeof(int), "Menu")},
 
+                        {"MediaSession_Timeout", (typeof(int), "MediaLink")},
+                        {"MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink")},
+                        {"MediaSession_AutoSwitch", (typeof(bool), "MediaLink")},
+                        {"DisableMediaLink", (typeof(bool), "MediaLink")},
+
                         {"ScanInterval", (typeof(int), "Scanning")},
                         {"ScanPauseTimeout", (typeof(int), "Scanning")},
 
