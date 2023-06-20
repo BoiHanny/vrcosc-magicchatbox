@@ -54,6 +54,17 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _AutoSwitch = ViewModel.Instance.MediaSession_AutoSwitchSpawn;
+        public bool AutoSwitch
+        {
+            get { return _AutoSwitch; }
+            set
+            {
+                _AutoSwitch = value;
+                NotifyPropertyChanged(nameof(AutoSwitch));
+            }
+        }
+
         private bool _ShowTitle = true;
         public bool ShowTitle
         {
@@ -88,6 +99,10 @@ namespace vrcosc_magicchatbox.ViewModels
                 if (id.Contains('!'))
                 {
                     id = id.Substring(id.IndexOf('!') + 1);
+                }
+                if (id.Contains(".exe"))
+                {
+                    id = id.Substring(0, id.IndexOf(".exe"));
                 }
 
                 FriendlyAppName = id;

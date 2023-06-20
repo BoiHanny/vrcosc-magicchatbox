@@ -2653,7 +2653,7 @@
                     <Grid
                         Grid.Row="5"
                         Opacity="{Binding Spotify_Opacity}"
-                        Visibility="Collapsed">
+                        Visibility="Visible">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -2863,8 +2863,8 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border
-                                                    Background="#3A1F74"
                                                     Margin="5"
+                                                    Background="#3A1F74"
                                                     CornerRadius="5">
                                                     <StackPanel
                                                         Width="auto"
@@ -2886,8 +2886,10 @@
                                                         <CheckBox
                                                             Margin="0,0,10,0"
                                                             Content="Artist"
-                                                            IsChecked="{Binding ShowArtist}" />
+                                                            IsChecked="{Binding ShowArtist}"
+                                                            Visibility="{Binding MediaSession_AutoSwitch, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                                         <CheckBox Content="Title" IsChecked="{Binding ShowTitle}" />
+                                                        <CheckBox Content="AutoSwitch" IsChecked="{Binding AutoSwitch}" />
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>

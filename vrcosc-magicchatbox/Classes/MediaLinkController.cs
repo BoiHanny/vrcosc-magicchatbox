@@ -167,6 +167,7 @@ namespace vrcosc_magicchatbox.Classes
                 if (sessionInfo != null)
                 {
                     sessionInfo.PlaybackStatus = args.PlaybackStatus;
+                    AutoSwitchMediaSession(sessionInfo);
                 }
             }
             catch (Exception ex)
@@ -189,6 +190,24 @@ namespace vrcosc_magicchatbox.Classes
 
                 var playbackStatus = sender.ControlSession.GetPlaybackInfo().PlaybackStatus;
                 sessionInfo.PlaybackStatus = playbackStatus;
+
+                AutoSwitchMediaSession(sessionInfo);
+
+            }
+        }
+
+        // this function is used to automatically switch to a media session if the user has the auto switch setting enabled and the media session is playing and the media session is set to auto switch
+        private static void AutoSwitchMediaSession(MediaSessionInfo sessionInfo)
+        {
+            if (ViewModel.Instance.MediaSession_AutoSwitch && sessionInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing && sessionInfo.AutoSwitch)
+            {
+                foreach (var item in ViewModel.Instance.MediaSessions)
+                {
+                    if (item.Session.Id == sessionInfo.Session.Id)
+                    {
+                        item.IsActive = true;
+                    }
+                }
             }
         }
 

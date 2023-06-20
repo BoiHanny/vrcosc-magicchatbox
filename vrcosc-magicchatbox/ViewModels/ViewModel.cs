@@ -144,6 +144,30 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _MediaSession_AutoSwitch = true;
+        public bool MediaSession_AutoSwitch
+        {
+            get { return _MediaSession_AutoSwitch; }
+            set
+            {
+                _MediaSession_AutoSwitch = value;
+                NotifyPropertyChanged(nameof(MediaSession_AutoSwitch));
+            }
+        }
+
+
+        private bool _MediaSession_AutoSwitchSpawn = true;
+        public bool MediaSession_AutoSwitchSpawn
+        {
+            get { return _MediaSession_AutoSwitchSpawn; }
+            set
+            {
+                _MediaSession_AutoSwitchSpawn = value;
+                NotifyPropertyChanged(nameof(MediaSession_AutoSwitchSpawn));
+            }
+        }
+
+
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
         public ObservableCollection<MediaSessionInfo> MediaSessions
         {
