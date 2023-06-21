@@ -727,5 +727,17 @@ namespace vrcosc_magicchatbox
                 ViewModel.Instance.DeletedAppslabel = "All apps from history";
             }
         }
+
+        private async Task ManualUpdateCheckAsync()
+        {
+            await Task.Run(() => DataController.CheckForUpdateAndWait(true));
+        }
+
+        private void CheckUpdateBtnn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.VersionTxt = "Checking for updates...";
+            ViewModel.Instance.VersionTxtColor = "#FBB644";
+            ManualUpdateCheckAsync();
+        }
     }
 }

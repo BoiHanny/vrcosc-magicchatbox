@@ -269,10 +269,31 @@ namespace vrcosc_magicchatbox.Classes
             }
 
             // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
-            Complete_msg = Uncomplete.Count > 0 ? String.Join(" ┆ ", Uncomplete) : "";
+            if (ViewModel.Instance.SeperateWithENTERS)
+            {
+                var sb = new StringBuilder();
+                foreach (var item in Uncomplete)
+                {
+                    sb.Append(item);
+                    sb.Append("\v");
+                }
+                Complete_msg = sb.ToString();
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (var item in Uncomplete)
+                {
+                    sb.Append(item);
+                    sb.Append(" ┆ ");
+                }
+                Complete_msg = sb.ToString();
+            }
 
-                // set ui elements based on the length of the final OSC message and set the OSCtoSent property in the ViewModel to the final OSC message
-                if (Complete_msg.Length > 144)
+
+
+            // set ui elements based on the length of the final OSC message and set the OSCtoSent property in the ViewModel to the final OSC message
+            if (Complete_msg.Length > 144)
                 {
                     ViewModel.Instance.OSCtoSent = "";
                     ViewModel.Instance.OSCmsg_count = Complete_msg.Length;

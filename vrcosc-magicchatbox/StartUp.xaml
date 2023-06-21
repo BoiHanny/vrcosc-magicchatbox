@@ -64,6 +64,25 @@
                         Margin="8,5,122,4"
                         Source="/Img/Icons/MagicChatbox_ico.png"
                         Stretch="Fill" />
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="117,-4,0,0"
+                        Padding="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="White"
+                        Text="{Binding AppVersion.VersionNumber}">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="15"
+                                Direction="315"
+                                Opacity="1"
+                                ShadowDepth="0"
+                                Color="Black" />
+                        </TextBlock.Effect>
+                    </TextBlock>
                 </Grid>
             </StackPanel>
             <Grid Grid.Row="1" Background="#ADA6BB">
@@ -98,20 +117,79 @@
                 Grid.Row="2"
                 BorderBrush="#FF7F759A"
                 BorderThickness="0,1,0,0">
-                <Grid Background="#3B2075">
+                <Grid>
+                    <Grid.Background>
+                        <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
+                            <LinearGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                    <SkewTransform CenterX="0.5" CenterY="0.5"/>
+                                    <RotateTransform Angle="-106.965" CenterX="0.5" CenterY="0.5"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </LinearGradientBrush.RelativeTransform>
+                            <GradientStop Color="#FF3B2075"/>
+                            <GradientStop Color="#FF562020" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
                     <StackPanel
                         Margin="0,0,24,0"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal">
                         <Button
                             x:Name="CancelButton"
-                            Width="65"
-                            Height="21"
-                            Margin="5,0,0,0"
+                            Width="69"
+                            Height="25"
                             Click="CancelButton_Click"
                             Content="Cancel"
-                            Style="{StaticResource Status_Button_style}" />
+                            Style="{StaticResource Status_Button_style}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="0"
+                                    Opacity="0.7"
+                                    ShadowDepth="0"
+                                    Color="#FFCE5050"/>
+                            </Button.Effect>
+                        </Button>
                     </StackPanel>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="10,2,0,0"
+                        Padding="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="#FF9AA1FF"
+                        Text="By BoiHanny">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="15"
+                                Direction="315"
+                                Opacity="1"
+                                ShadowDepth="0"
+                                Color="#FF122BFF" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="80,4,0,0"
+                        Padding="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="10"
+                        Foreground="#FF9AA1FF"
+                        >
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="15"
+                                Direction="315"
+                                Opacity="1"
+                                ShadowDepth="0"
+                                Color="#FFE712FF" />
+                        </TextBlock.Effect><Run Language="en-gb" Text="ItsByMe"/></TextBlock>
                 </Grid>
             </Border>
         </Grid>

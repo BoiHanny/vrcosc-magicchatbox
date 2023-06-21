@@ -22,8 +22,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     {
         private static bool isUpdateCheckRunning = false;
 
-        public static async Task CheckForUpdateAndWait()
+        public static async Task CheckForUpdateAndWait(bool checkagain = false)
         {
+            if(checkagain == true)
+            {
+                Task.Delay(1000).Wait();
+            }
             // Wait until previous check for updates is not running anymore
             while (isUpdateCheckRunning)
             {
@@ -239,6 +243,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"PrefixChat", (typeof(bool), "Chat")},
                         {"ChatFX", (typeof(bool), "Chat")},
+
+                        {"SeperateWithENTERS", (typeof(bool), "Custom")},
 
                         {"Topmost", (typeof(bool), "Window")},
                         {"JoinedAlphaChannel", (typeof(bool), "Update")},

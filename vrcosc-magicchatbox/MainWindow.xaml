@@ -1687,6 +1687,18 @@
                                         Always on top
                                     </CheckBox>
                                     <CheckBox
+                                        x:Name="SeperateWithENTERS_checkbox"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding SeperateWithENTERS, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Separate integrations using 'ENTER' instead of '┆'
+                                    </CheckBox>
+                                    <CheckBox
                                         x:Name="ToggleVoiceWithV"
                                         Height="21"
                                         Margin="0,0,0,15"
@@ -1771,7 +1783,7 @@
                                     Foreground="#BDAEE2"
                                     IsChecked="{Binding Settings_Dev, Mode=TwoWay}"
                                     Style="{StaticResource ExpandCollapseToggleButtonStyleDEV}"
-                                    Tag="Dev options"
+                                    Tag="EGG options"
                                     TextOptions.TextRenderingMode="ClearType" />
                                 
                             </Grid>
@@ -1781,7 +1793,7 @@
                                 x:Name="Settings_Dev_Grid"
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="5,10,0,0"
                                 Visibility="{Binding Settings_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <CheckBox
                                     x:Name="BlankEgg_checkbox"
@@ -1795,7 +1807,7 @@
                                     IsChecked="{Binding BlankEgg, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}"
                                     Unchecked="Update_Click">
-                                    BlankEgg
+                                    ItsByMe MODE
                                 </CheckBox>
                             </Grid>
                         </Grid>
@@ -3255,8 +3267,8 @@
                             HorizontalAlignment="Center"
                             Cursor="Hand"
                             FontFamily="Albert Sans Thin"
-                            FontSize="10"
-                            Foreground="#FF31B7B4"
+                            FontSize="8.5"
+                            Foreground="#FFE27EE8"
                             MouseUp="GitHubChanges_MouseUp"
                             Text="View changes on GitHub"
                             TextDecorations="Underline"
@@ -3265,18 +3277,31 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
                             Orientation="Horizontal">
-
+                            <Button
+                                Margin="0,-3"
+                                x:Name="CheckUpdateBtnn"
+                                            Padding="0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                Click="CheckUpdateBtnn_Click"
+                                            Style="{StaticResource CircleButton}">
+                                <Image
+                                                Width="12"
+                                                Height="12"
+                                                Source="/Img/Icons/Load_ico.png"
+                                    RenderOptions.BitmapScalingMode="Linear"/>
+                            </Button>
                             <TextBlock
                                 Margin="5,0.5,5,5"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Stretch"
                                 FontFamily="Albert Sans Thin"
-                                FontSize="12"
-                                Foreground="#FF7D7397"
+                                FontSize="13"
+                                Foreground="#9D91D2"
                                 Text="{Binding AppVersion.VersionNumber}" />
                             <TextBlock
                                 Name="NewVersion"
-                                Margin="0,0,5,8"
+                                Margin="0,0.5,5,8"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Bottom"
                                 Cursor="Hand"
