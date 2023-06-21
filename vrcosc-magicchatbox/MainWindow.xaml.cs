@@ -300,6 +300,11 @@ namespace vrcosc_magicchatbox
             {
                 var button = sender as Button;
                 var item = button.Tag as StatusItem;
+                if(item.msg == "SR4 Series")
+                {
+                    ViewModel.Instance.Egg_Dev = false;
+                    MessageBox.Show("damn u left the dev egggmoooodeee", "Egg", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 ViewModel.Instance.StatusList.Remove(item);
                 ViewModel.SaveStatusList();
             }
@@ -389,8 +394,14 @@ namespace vrcosc_magicchatbox
             {
                 ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = IsActive, IsFavorite = false, msg = ViewModel.Instance.NewStatusItemTxt, MSGLenght = ViewModel.Instance.NewStatusItemTxt.Count(), MSGID = randomId });
                 ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(ViewModel.Instance.StatusList.OrderByDescending(x => x.CreationDate));
+                if (ViewModel.Instance.NewStatusItemTxt == "SR4 Series")
+                {
+                    ViewModel.Instance.Egg_Dev = true;
+                    MessageBox.Show("u found the dev egggmoooodeee", "Egg", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 ViewModel.Instance.NewStatusItemTxt = "";
                 ViewModel.SaveStatusList();
+                
             }
         }
 

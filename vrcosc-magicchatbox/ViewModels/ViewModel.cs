@@ -219,6 +219,40 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _BlankEgg = false;
+        public bool BlankEgg
+        {
+            get { return _BlankEgg; }
+            set
+            {
+                _BlankEgg = value;
+                NotifyPropertyChanged(nameof(BlankEgg));
+            }
+        }
+
+        private bool _Egg_Dev = false;
+        public bool Egg_Dev
+        {
+            get { return _Egg_Dev; }
+            set
+            {
+                _Egg_Dev = value;
+                NotifyPropertyChanged(nameof(Egg_Dev));
+            }
+        }
+
+        private bool _Settings_Dev = false;
+        public bool Settings_Dev
+        {
+            get { return _Settings_Dev; }
+            set
+            {
+                _Settings_Dev = value;
+                NotifyPropertyChanged(nameof(Settings_Dev));
+            }
+        }
+
         private bool _IntgrWindowActivity_DESKTOP = true;
         public bool IntgrWindowActivity_DESKTOP
         {

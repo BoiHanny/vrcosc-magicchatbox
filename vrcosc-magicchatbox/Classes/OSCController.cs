@@ -54,10 +54,21 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                 }
 
+                string BlankEgg = "\u0003\u001f";
+                string combinedText = ViewModel.Instance.OSCtoSent + BlankEgg;
+
                 // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
-                    oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                        if (combinedText.Length < 145 & ViewModel.Instance.Egg_Dev && ViewModel.Instance.BlankEgg)
+                        {
+                        oscSender.Send(new OscMessage("/chatbox/input", combinedText, true, FX));
+                        }
+                        else
+                        {
+                        oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                    }
+
                 });
             }
             catch (Exception ex)

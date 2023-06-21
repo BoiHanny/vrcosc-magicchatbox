@@ -820,6 +820,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -1749,7 +1750,41 @@
 
 
                         </Grid>
-                        <Grid Grid.Row="8" Margin="0,5,0,10">
+                        <Grid Grid.Row="8" Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0.5,0">
+                                    <GradientStop Color="#FF3A3053" />
+                                    <GradientStop Offset="1" Color="#EA005E" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <Grid Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0">
+                                <ToggleButton
+                                    Width="Auto"
+                                    Height="30"
+                                    HorizontalAlignment="Left"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#BDAEE2"
+                                    IsChecked="{Binding Settings_Dev, Mode=TwoWay}"
+                                    Style="{StaticResource ExpandCollapseToggleButtonStyleDEV}"
+                                    Tag="Dev options"
+                                    TextOptions.TextRenderingMode="ClearType" />
+                            </Grid>
+
+
+                            <Grid
+                                x:Name="Settings_Dev_Grid"
+                                Grid.Row="1"
+                                Height="Auto"
+                                Margin="10,10,0,0"
+                                Visibility="{Binding Settings_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Row="9" Margin="0,5,0,10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />

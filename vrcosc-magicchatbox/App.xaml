@@ -116,6 +116,84 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="ExpandCollapseToggleButtonStyleDEV" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#B7BBD4" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="5,0,5,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image
+                                x:Name="SymbolImage"
+                                Grid.Column="0"
+                                Width="16"
+                                Height="16"
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Source="/Img/Icons/Plus_ico.png" />
+                                    <TextBlock
+                                x:Name="CustomTextContentControl"
+                                Grid.Column="1"
+                                Margin="8,0,10,0"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                Foreground="#B7BBD4"
+                                Text="{TemplateBinding Tag}" />
+                                </Grid>
+                            </Border>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <ColorAnimation
+                                        Storyboard.TargetName="border"
+                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                        To="#E8478A"
+                                        Duration="0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ColorAnimation
+                                        Storyboard.TargetName="border"
+                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                        To="#B52F66"
+                                        Duration="0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Plus_ico.png" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Min_ico.png" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="False">
+                    <Setter Property="Content" Value="{x:Null}" />
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Content" Value="{x:Null}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
