@@ -85,7 +85,7 @@ namespace vrcosc_magicchatbox.Classes
         public static async Task ToggleVoice(bool force = false)
         {
             // Check if the master switch is on and if the auto unmute TTS is on or if we force the TTS but only if the master switch is on
-            if (!ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
+            if (ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
             {
                 return;
             }

@@ -1773,6 +1773,7 @@
                                     Style="{StaticResource ExpandCollapseToggleButtonStyleDEV}"
                                     Tag="Dev options"
                                     TextOptions.TextRenderingMode="ClearType" />
+                                
                             </Grid>
 
 
@@ -1782,6 +1783,20 @@
                                 Height="Auto"
                                 Margin="10,10,0,0"
                                 Visibility="{Binding Settings_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <CheckBox
+                                    x:Name="BlankEgg_checkbox"
+                                    Height="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding BlankEgg, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    BlankEgg
+                                </CheckBox>
                             </Grid>
                         </Grid>
                         <Grid Grid.Row="9" Margin="0,5,0,10">
@@ -1807,7 +1822,6 @@
                                     Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                     Tag="Window activity options"
                                     TextOptions.TextRenderingMode="ClearType" />
-
                             </Grid>
 
 
