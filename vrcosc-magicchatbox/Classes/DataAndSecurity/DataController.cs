@@ -258,6 +258,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"OSCIP", (typeof(string), "OSC")},
                         {"OSCPortOut", (typeof(int), "OSC")},
 
+                        {"BlankEgg", (typeof(bool), "DEV")},
+                        {"Egg_Dev", (typeof(bool), "DEV")},
+
                         {"PulsoidAccessToken", (typeof(string), "HeartRateConnector")},
                         {"HeartRateScanInterval", (typeof(int), "HeartRateConnector")},
                         {"HeartRate", (typeof(int), "HeartRateConnector")},
