@@ -164,23 +164,28 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     {
                         string destinationPath = Path.Combine(unzipPath, entry.FullName);
 
-                        if (entry.FullName.EndsWith("/")) // Check if it's a directory
+                        // Check if it's a directory
+                        if (string.IsNullOrEmpty(Path.GetFileName(entry.FullName)))
                         {
-                            string directoryPath = destinationPath.TrimEnd('/'); // Remove the trailing slash
                             ViewModel.Instance.UpdateStatustxt = $"Creating directory {prosessedFileCount}/{fileCount}";
-                            DataController.CreateIfMissing(directoryPath);
+                            DataController.CreateIfMissing(destinationPath);
                             prosessedFileCount += 1;
                             Thread.Sleep(200);
                         }
                         else
                         {
-                            string destinationDirectory = Path.GetDirectoryName(destinationPath);
                             ViewModel.Instance.UpdateStatustxt = $"Extracting file {prosessedFileCount}/{fileCount}";
+
+                            // Ensure the destination directory exists
+                            string destinationDirectory = Path.GetDirectoryName(destinationPath);
+                            DataController.CreateIfMissing(destinationDirectory);
+
                             entry.ExtractToFile(destinationPath, true);
                             prosessedFileCount += 1;
                             Thread.Sleep(70);
                         }
                     }
+
                 }
 
                 // Create a JSON file with the location path of the current running app
