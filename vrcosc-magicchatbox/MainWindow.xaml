@@ -1675,6 +1675,41 @@
 
                                     </StackPanel>
                                     <CheckBox
+                                        x:Name="SecOSC_checkbox"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding SecOSC, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        2nd VRChat output
+                                    </CheckBox>
+                                    <StackPanel Visibility="{Binding SecOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15">
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="2nd VRChat port (outgoing)" />
+                                        <TextBox
+                                            x:Name="SecOSCPort"
+                                            Width="100"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding SecOSCPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <CheckBox
                                         x:Name="WindowOnTop_checkbox"
                                         Height="21"
                                         Margin="0,0,0,15"
