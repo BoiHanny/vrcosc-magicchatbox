@@ -2426,7 +2426,15 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
-                                            Text="Personal status" />
+                                            Text="Personal status">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
                                         <TextBlock
                                             Grid.Row="1"
                                             Margin="0,0,0,5"
@@ -2435,7 +2443,15 @@
                                             FontSize="13"
                                             Foreground="LightGray"
                                             Text="With this integration, you can write an epic status that you want to show to everyone in game"
-                                            TextWrapping="Wrap" />
+                                            TextWrapping="Wrap">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
                                         <Button
                                             Margin="137,11,0,0"
                                             Padding="0"
@@ -2448,6 +2464,13 @@
                                                 Width="15"
                                                 Height="15"
                                                 Source="/Img/Icons/Next_ico.png" />
+                                            <Button.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Button.Effect>
                                         </Button>
                                     </Grid>
 
@@ -2456,7 +2479,15 @@
                                         Margin="15"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Source="/Img/Icons/PersonalMsg_ico.png" />
+                                        Source="/Img/Icons/PersonalMsg_ico.png">
+                                        <Image.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="25"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Image.Effect>
+                                    </Image>
                                     <CheckBox
                                         Name="Status_Switch"
                                         Grid.Column="2"
@@ -2523,7 +2554,15 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
-                                            Text="Window activity" />
+                                            Text="Window activity">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
                                         <TextBlock
                                             Grid.Row="1"
                                             Margin="0,0,0,5"
@@ -2532,7 +2571,15 @@
                                             FontSize="13"
                                             Foreground="LightGray"
                                             Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
-                                            TextWrapping="Wrap" />
+                                            TextWrapping="Wrap">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
                                         <Button
                                             Margin="148,11,0,0"
                                             Padding="0"
@@ -2545,6 +2592,13 @@
                                                 Width="15"
                                                 Height="15"
                                                 Source="/Img/Icons/Next_ico.png" />
+                                            <Button.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Button.Effect>
                                         </Button>
                                     </Grid>
 
@@ -2553,7 +2607,15 @@
                                         Margin="9"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Source="/Img/Icons/WindowActivity_ico.png" />
+                                        Source="/Img/Icons/WindowActivity_ico.png">
+                                        <Image.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="25"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Image.Effect>
+                                    </Image>
                                     <CheckBox
                                         Name="WindowActivity_switch"
                                         Grid.Column="2"
@@ -2618,6 +2680,13 @@
                                             Width="15"
                                             Height="15"
                                             Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
                                     </Button>
                                     <Grid Grid.Column="1">
                                         <Grid.RowDefinitions>
@@ -2632,7 +2701,15 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="20"
                                                 Foreground="White"
-                                                Text="Heart rate" />
+                                                Text="Heart rate">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="1"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
                                             <TextBlock
                                                 Grid.Row="0"
                                                 Margin="140,9,0,0"
@@ -2660,7 +2737,15 @@
                                             FontSize="13"
                                             Foreground="LightGray"
                                             Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
-                                            TextWrapping="Wrap" />
+                                            TextWrapping="Wrap">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
 
                                     </Grid>
 
@@ -2669,7 +2754,15 @@
                                         Margin="15"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Source="/Img/Icons/HeartRate_ico.png" />
+                                        Source="/Img/Icons/HeartRate_ico.png">
+                                        <Image.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="25"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Image.Effect>
+                                    </Image>
                                     <CheckBox
                                         Name="HR_Switch"
                                         Grid.Column="2"
@@ -2734,7 +2827,15 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
-                                            Text="Current time" />
+                                            Text="Current time">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
                                         <TextBlock
                                             Grid.Row="1"
                                             Margin="0,0,0,5"
@@ -2743,7 +2844,15 @@
                                             FontSize="13"
                                             Foreground="LightGray"
                                             Text="With this integration, you can display your local machine's current time and also convert it to a custom timezone of your choice."
-                                            TextWrapping="Wrap" />
+                                            TextWrapping="Wrap">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="0.5"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
                                         <Button
                                             Margin="117,11,0,0"
                                             Padding="0"
@@ -2756,6 +2865,13 @@
                                                 Width="15"
                                                 Height="15"
                                                 Source="/Img/Icons/Next_ico.png" />
+                                            <Button.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Button.Effect>
                                         </Button>
                                     </Grid>
 
@@ -2764,7 +2880,15 @@
                                         Margin="7"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Source="/Img/Icons/SystemTime_ico.png" />
+                                        Source="/Img/Icons/SystemTime_ico.png">
+                                        <Image.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="25"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Image.Effect>
+                                    </Image>
                                     <CheckBox
                                         Name="SystemTime_switch"
                                         Grid.Column="2"
@@ -2935,7 +3059,15 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="20"
                                                 Foreground="White"
-                                                Text="MediaLink" />
+                                                Text="MediaLink">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="1"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Margin="0,0,0,5"
@@ -2944,7 +3076,15 @@
                                                 FontSize="13"
                                                 Foreground="LightGray"
                                                 Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
-                                                TextWrapping="Wrap" />
+                                                TextWrapping="Wrap">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="0.5"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
                                             <Button
                                                 Margin="98,11,0,0"
                                                 Padding="0"
@@ -2957,6 +3097,13 @@
                                                     Width="15"
                                                     Height="15"
                                                     Source="/Img/Icons/Next_ico.png" />
+                                                <Button.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="5"
+                                                        Opacity="0.4"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </Button.Effect>
                                             </Button>
                                         </Grid>
 
@@ -2966,7 +3113,16 @@
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             RenderOptions.BitmapScalingMode="HighQuality"
-                                            Source="/Img/Icons/MediaLink_ico.png" />
+                                            Source="/Img/Icons/MediaLink_ico.png">
+                                            <Image.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="25"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Image.Effect>
+                                        </Image>
+
                                         <CheckBox
                                             Name="MediaLink_switch"
                                             Grid.Column="2"
@@ -2997,17 +3153,20 @@
                                             Style="{StaticResource GlowyToggleButton}" />
                                     </Grid>
                                     <Border
-                                        Padding="5,5,5,0"
                                         Grid.Row="1"
                                         Height="auto"
-                                        Background="#240E54"
+                                        Background="Transparent"
                                         CornerRadius="0,0,5,5">
-                                        <ItemsControl Height="auto" ItemsSource="{Binding MediaSessions}">
+                                        <ItemsControl
+                                            Height="auto"
+                                            Padding="0,0,0,5"
+                                            Background="#240E54"
+                                            ItemsSource="{Binding MediaSessions}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border
                                                         Width="auto"
-                                                        Margin="0,0,0,5"
+                                                        Margin="5,5,5,0"
                                                         VerticalAlignment="Stretch"
                                                         Background="#3A1F74"
                                                         CornerRadius="5">
@@ -3024,6 +3183,7 @@
                                                             <RadioButton
                                                                 Grid.Column="0"
                                                                 Width="auto"
+                                                                Margin="-5,0,0,0"
                                                                 VerticalAlignment="Center"
                                                                 Checked="Update_Click"
                                                                 Content="{Binding FriendlyAppName}"
@@ -3036,7 +3196,7 @@
                                                             <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
                                                             <StackPanel
                                                                 Grid.Column="1"
-                                                                Margin="5,0,0,0"
+                                                                Margin="7,0,0,0"
                                                                 Orientation="Horizontal">
                                                                 <CheckBox
                                                                     Width="auto"

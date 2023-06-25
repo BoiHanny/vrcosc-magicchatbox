@@ -35,9 +35,9 @@ namespace vrcosc_magicchatbox.Classes
         // this funion will be called when the user changes the setting to enable/disable the media link
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "IntgrScanMediaLink")
+            if (e.PropertyName == "IntgrScanMediaLink" || e.PropertyName == "IntgrMediaLink_VR" || e.PropertyName == "IntgrMediaLink_DESKTOP")
             {
-                if (ViewModel.Instance.IntgrScanMediaLink)
+                if (ViewModel.Instance.IntgrScanMediaLink && ViewModel.Instance.IntgrMediaLink_VR && ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrScanMediaLink && ViewModel.Instance.IntgrMediaLink_DESKTOP && !ViewModel.Instance.IsVRRunning)
                     Start();
                 else
                     Dispose();
