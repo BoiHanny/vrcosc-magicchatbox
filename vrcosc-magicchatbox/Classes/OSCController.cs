@@ -206,7 +206,7 @@ namespace vrcosc_magicchatbox.Classes
                     ViewModel.Instance.HeartRate_Opacity = opacity;
                     break;
                 case "MediaLink":
-                    ViewModel.Instance.HeartRate_Opacity = opacity;
+                    ViewModel.Instance.MediaLink_Opacity = opacity;
                     break;
                 default:
                     break;

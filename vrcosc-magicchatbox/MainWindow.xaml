@@ -1405,8 +1405,8 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
-                                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                        Text="Forget session after disconnect (in seconds)" />
+                                        Text="Forget session after disconnect (in seconds)"
+                                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBox
                                         x:Name="MediaSession_Timeout_int"
                                         Width="40"
@@ -1419,8 +1419,8 @@
                                         BorderThickness="0"
                                         FontSize="15"
                                         Foreground="#FF240E54"
-                                                                                Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                        Text="{Binding MediaSession_Timeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        Text="{Binding MediaSession_Timeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                             </Grid>
 
@@ -1773,7 +1773,7 @@
                                     <GradientStop Offset="1" Color="#EA005E" />
                                 </LinearGradientBrush>
                             </Grid.Background>
-                            <Grid Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0">
+                            <Grid Grid.Row="0" Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <ToggleButton
                                     Width="Auto"
                                     Height="30"
@@ -1785,7 +1785,7 @@
                                     Style="{StaticResource ExpandCollapseToggleButtonStyleDEV}"
                                     Tag="EGG options"
                                     TextOptions.TextRenderingMode="ClearType" />
-                                
+
                             </Grid>
 
 
@@ -2357,266 +2357,68 @@
 
                     </Grid>
                 </Grid>
-                <Grid
+                <ScrollViewer
                     Grid.Row="1"
-                    Background="#FF3B3054"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding MenuItem_0_Visibility}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="25" />
-                        <RowDefinition Height="auto" MaxHeight="85" />
-                        <RowDefinition Height="auto" MaxHeight="85" />
-                        <RowDefinition Height="auto" MaxHeight="85" />
-                        <RowDefinition Height="auto" MaxHeight="85" />
-                        <RowDefinition Height="auto" MaxHeight="85" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
+                    <Grid Background="#FF3B3054">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="25" />
+                            <RowDefinition Height="auto" MaxHeight="85" />
+                            <RowDefinition Height="auto" MaxHeight="85" />
+                            <RowDefinition Height="auto" MaxHeight="85" />
+                            <RowDefinition Height="auto" MaxHeight="85" />
+                            <RowDefinition Height="auto" MaxHeight="85" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
 
-                    <Grid Background="#FF41375C" Visibility="{Binding Char_Limit}">
-                        <StackPanel
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal">
-                            <TextBlock
-                                Grid.Column="0"
-                                Margin="0,3,0,0"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="16"
-                                Foreground="#FF9983AD"
-                                Text="Some intergrations can't be showed because a limit on characters" />
-                        </StackPanel>
-                    </Grid>
-                    <Grid Grid.Row="1" Opacity="{Binding Status_Opacity}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid Height="72">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="122" />
-                                </Grid.ColumnDefinitions>
-
-
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Personal status" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="With this integration, you can write an epic status that you want to show to everyone in game"
-                                        TextWrapping="Wrap" />
-                                    <Button
-                                        Margin="137,11,0,0"
-                                        Padding="0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Status"
-                                        Style="{StaticResource CircleButton}">
-                                        <Image
-                                            Width="15"
-                                            Height="15"
-                                            Source="/Img/Icons/Next_ico.png" />
-                                    </Button>
-                                </Grid>
-
-                                <Image
+                        <Grid Margin="-10,0,0,0" Visibility="{Binding Char_Limit}">
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Offset="1" Color="#FF3B3054" />
+                                    <GradientStop Offset="0" Color="#FF41375C" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <TextBlock
                                     Grid.Column="0"
-                                    Margin="15"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/PersonalMsg_ico.png" />
-                                <CheckBox
-                                    Name="Status_Switch"
-                                    Grid.Column="2"
-                                    Grid.ColumnSpan="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrStatus, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="60"
-                                    Height="19"
-                                    Margin="167,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntgrStatus_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="30"
-                                    Height="19"
-                                    Margin="232,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="VR"
-                                    IsChecked="{Binding IntgrStatus_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
+                                    Margin="0,3,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="16"
+                                    Foreground="#FF9983AD"
+                                    Text="Some intergrations can't be showed because a limit on characters" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="1" Opacity="{Binding Status_Opacity}">
+                            <Border
+                                Margin="6"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Quality"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid Height="72">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="85" />
+                                        <ColumnDefinition Width="440" />
+                                        <ColumnDefinition Width="122" />
+                                    </Grid.ColumnDefinitions>
 
-                            </Grid>
-                        </Border>
 
-                    </Grid>
-                    <Grid Grid.Row="2" Opacity="{Binding Window_Opacity}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid Height="72">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="122" />
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Window activity" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
-                                        TextWrapping="Wrap" />
-                                    <Button
-                                        Margin="148,11,0,0"
-                                        Padding="0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_WindowActivity"
-                                        Style="{StaticResource CircleButton}">
-                                        <Image
-                                            Width="15"
-                                            Height="15"
-                                            Source="/Img/Icons/Next_ico.png" />
-                                    </Button>
-                                </Grid>
-
-                                <Image
-                                    Grid.Column="0"
-                                    Margin="9"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/WindowActivity_ico.png" />
-                                <CheckBox
-                                    Name="WindowActivity_switch"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="60"
-                                    Height="19"
-                                    Margin="178,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntgrWindowActivity_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="30"
-                                    Height="19"
-                                    Margin="243,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="VR"
-                                    IsChecked="{Binding IntgrWindowActivity_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid Grid.Row="3" Opacity="{Binding HeartRate_Opacity}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid Height="72">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="122" />
-                                </Grid.ColumnDefinitions>
-                                <Button
-                                    Grid.Column="1"
-                                    Margin="95,11,0,0"
-                                    Padding="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_HeartRate"
-                                    Style="{StaticResource CircleButton}">
-                                    <Image
-                                        Width="15"
-                                        Height="15"
-                                        Source="/Img/Icons/Next_ico.png" />
-                                </Button>
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Orientation="Horizontal">
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
                                         <TextBlock
                                             Grid.Row="0"
                                             Margin="0,8,0,0"
@@ -2624,288 +2426,85 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
-                                            Text="Heart rate" />
+                                            Text="Personal status" />
                                         <TextBlock
-                                            Grid.Row="0"
-                                            Margin="140,9,0,0"
+                                            Grid.Row="1"
+                                            Margin="0,0,0,5"
                                             VerticalAlignment="Center"
                                             FontFamily="Comfortaa Light"
-                                            FontSize="12"
-                                            Foreground="#ABA4B8"
-                                            Text="Last update:"
-                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBlock
-                                            Grid.Row="0"
-                                            Margin="3,9,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="11"
-                                            Foreground="#ABA4B8"
-                                            Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
-                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                    </StackPanel>
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
+                                            FontSize="13"
+                                            Foreground="LightGray"
+                                            Text="With this integration, you can write an epic status that you want to show to everyone in game"
+                                            TextWrapping="Wrap" />
+                                        <Button
+                                            Margin="137,11,0,0"
+                                            Padding="0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_Status"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                        </Button>
+                                    </Grid>
+
+                                    <Image
+                                        Grid.Column="0"
+                                        Margin="15"
+                                        HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
-                                        TextWrapping="Wrap" />
-
-                                </Grid>
-
-                                <Image
-                                    Grid.Column="0"
-                                    Margin="15"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/HeartRate_ico.png" />
-                                <CheckBox
-                                    Name="HR_Switch"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrHeartRate, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="60"
-                                    Height="19"
-                                    Margin="125,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntgrHeartRate_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="30"
-                                    Height="19"
-                                    Margin="190,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="VR"
-                                    IsChecked="{Binding IntgrHeartRate_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid Grid.Row="4" Opacity="{Binding Time_Opacity}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid Height="72">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="122" />
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
+                                        Source="/Img/Icons/PersonalMsg_ico.png" />
+                                    <CheckBox
+                                        Name="Status_Switch"
+                                        Grid.Column="2"
+                                        Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Current time" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="With this integration, you can display your local machine's current time and also convert it to a custom timezone of your choice."
-                                        TextWrapping="Wrap" />
-                                    <Button
-                                        Margin="117,11,0,0"
-                                        Padding="0"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrStatus, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="60"
+                                        Height="19"
+                                        Margin="167,13,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Time"
-                                        Style="{StaticResource CircleButton}">
-                                        <Image
-                                            Width="15"
-                                            Height="15"
-                                            Source="/Img/Icons/Next_ico.png" />
-                                    </Button>
-                                </Grid>
-
-                                <Image
-                                    Grid.Column="0"
-                                    Margin="7"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/SystemTime_ico.png" />
-                                <CheckBox
-                                    Name="SystemTime_switch"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="60"
-                                    Height="19"
-                                    Margin="147,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntgrCurrentTime_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="30"
-                                    Height="19"
-                                    Margin="212,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="VR"
-                                    IsChecked="{Binding IntgrCurrentTime_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid
-                        Grid.Row="5"
-                        Opacity="{Binding Spotify_Opacity}"
-                        Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <Border
-                            Margin="6"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid Height="72">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85" />
-                                    <ColumnDefinition Width="440" />
-                                    <ColumnDefinition Width="122" />
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBlock
-                                        Grid.Row="0"
-                                        Margin="0,8,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Spotify" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Margin="0,0,0,5"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        Foreground="LightGray"
-                                        Text="With this integration, you can show the title and artist of the currently playing song, it will also indicate if the song is paused."
-                                        TextWrapping="Wrap" />
-                                    <Button
-                                        Margin="67,11,0,0"
-                                        Padding="0"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrStatus_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="30"
+                                        Height="19"
+                                        Margin="232,13,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_MediaLink"
-                                        Style="{StaticResource CircleButton}">
-                                        <Image
-                                            Width="15"
-                                            Height="15"
-                                            Source="/Img/Icons/Next_ico.png" />
-                                    </Button>
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrStatus_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+
                                 </Grid>
+                            </Border>
 
-                                <Image
-                                    Grid.Column="0"
-                                    Margin="15"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Source="/Img/Icons/spotify_ico.png" />
-                                <CheckBox
-                                    Name="Spotify_switch"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrScanSpotify_OLD, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="60"
-                                    Height="19"
-                                    Margin="98,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntgrSpotifyStatus_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                                <ToggleButton
-                                    Grid.Column="1"
-                                    Width="30"
-                                    Height="19"
-                                    Margin="163,13,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Content="VR"
-                                    IsChecked="{Binding IntgrSpotifyStatus_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
-                            </Grid>
-                        </Border>
-
-                    </Grid>
-                    <Grid Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Grid.Row="6" Opacity="{Binding MediaLink_Opacity}">
-                        <Border
-                            Margin="6,6,6,-32"
-                            Background="DarkSlateBlue"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Quality"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                            <Grid Height="auto">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="73" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" VerticalAlignment="Top">
+                        </Grid>
+                        <Grid Grid.Row="2" Opacity="{Binding Window_Opacity}">
+                            <Border
+                                Margin="6"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Quality"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid Height="72">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="85" />
                                         <ColumnDefinition Width="440" />
@@ -2924,7 +2523,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
-                                            Text="MediaLink" />
+                                            Text="Window activity" />
                                         <TextBlock
                                             Grid.Row="1"
                                             Margin="0,0,0,5"
@@ -2932,10 +2531,319 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="13"
                                             Foreground="LightGray"
-                                            Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
+                                            Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
                                             TextWrapping="Wrap" />
                                         <Button
-                                            Margin="98,11,0,0"
+                                            Margin="148,11,0,0"
+                                            Padding="0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_WindowActivity"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                        </Button>
+                                    </Grid>
+
+                                    <Image
+                                        Grid.Column="0"
+                                        Margin="9"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Source="/Img/Icons/WindowActivity_ico.png" />
+                                    <CheckBox
+                                        Name="WindowActivity_switch"
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="60"
+                                        Height="19"
+                                        Margin="178,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrWindowActivity_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="30"
+                                        Height="19"
+                                        Margin="243,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrWindowActivity_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                </Grid>
+                            </Border>
+
+                        </Grid>
+                        <Grid Grid.Row="3" Opacity="{Binding HeartRate_Opacity}">
+                            <Border
+                                Margin="6"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Quality"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid Height="72">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="85" />
+                                        <ColumnDefinition Width="440" />
+                                        <ColumnDefinition Width="122" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button
+                                        Grid.Column="1"
+                                        Margin="95,11,0,0"
+                                        Padding="0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_HeartRate"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                    </Button>
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock
+                                                Grid.Row="0"
+                                                Margin="0,8,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="20"
+                                                Foreground="White"
+                                                Text="Heart rate" />
+                                            <TextBlock
+                                                Grid.Row="0"
+                                                Margin="140,9,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="12"
+                                                Foreground="#ABA4B8"
+                                                Text="Last update:"
+                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Grid.Row="0"
+                                                Margin="3,9,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="11"
+                                                Foreground="#ABA4B8"
+                                                Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Margin="0,0,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="13"
+                                            Foreground="LightGray"
+                                            Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
+                                            TextWrapping="Wrap" />
+
+                                    </Grid>
+
+                                    <Image
+                                        Grid.Column="0"
+                                        Margin="15"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Source="/Img/Icons/HeartRate_ico.png" />
+                                    <CheckBox
+                                        Name="HR_Switch"
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrHeartRate, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="60"
+                                        Height="19"
+                                        Margin="125,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrHeartRate_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="30"
+                                        Height="19"
+                                        Margin="190,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrHeartRate_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                </Grid>
+                            </Border>
+
+                        </Grid>
+                        <Grid Grid.Row="4" Opacity="{Binding Time_Opacity}">
+                            <Border
+                                Margin="6"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Quality"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid Height="72">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="85" />
+                                        <ColumnDefinition Width="440" />
+                                        <ColumnDefinition Width="122" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            Text="Current time" />
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Margin="0,0,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="13"
+                                            Foreground="LightGray"
+                                            Text="With this integration, you can display your local machine's current time and also convert it to a custom timezone of your choice."
+                                            TextWrapping="Wrap" />
+                                        <Button
+                                            Margin="117,11,0,0"
+                                            Padding="0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_Time"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                        </Button>
+                                    </Grid>
+
+                                    <Image
+                                        Grid.Column="0"
+                                        Margin="7"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Source="/Img/Icons/SystemTime_ico.png" />
+                                    <CheckBox
+                                        Name="SystemTime_switch"
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="60"
+                                        Height="19"
+                                        Margin="147,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrCurrentTime_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="30"
+                                        Height="19"
+                                        Margin="212,13,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrCurrentTime_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                </Grid>
+                            </Border>
+
+                        </Grid>
+                        <Grid
+                            Grid.Row="5"
+                            Opacity="{Binding Spotify_Opacity}"
+                            Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <Border
+                                Margin="6"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Quality"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid Height="72">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="85" />
+                                        <ColumnDefinition Width="440" />
+                                        <ColumnDefinition Width="122" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            Text="Spotify" />
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Margin="0,0,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="13"
+                                            Foreground="LightGray"
+                                            Text="With this integration, you can show the title and artist of the currently playing song, it will also indicate if the song is paused."
+                                            TextWrapping="Wrap" />
+                                        <Button
+                                            Margin="67,11,0,0"
                                             Padding="0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Top"
@@ -2954,124 +2862,241 @@
                                         Margin="15"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        RenderOptions.BitmapScalingMode="HighQuality"
-                                        Source="/Img/Icons/MediaLink_ico.png" />
+                                        Source="/Img/Icons/spotify_ico.png" />
                                     <CheckBox
-                                        Name="MediaLink_switch"
+                                        Name="Spotify_switch"
                                         Grid.Column="2"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         Click="Update_Click"
-                                        IsChecked="{Binding IntgrScanMediaLink, Mode=TwoWay}"
+                                        IsChecked="{Binding IntgrScanSpotify_OLD, Mode=TwoWay}"
                                         Style="{DynamicResource Switch}" />
                                     <ToggleButton
                                         Grid.Column="1"
                                         Width="60"
                                         Height="19"
-                                        Margin="127,13,0,0"
+                                        Margin="98,13,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
-                                        IsChecked="{Binding IntgrMediaLink_DESKTOP, Mode=TwoWay}"
+                                        IsChecked="{Binding IntgrSpotifyStatus_DESKTOP, Mode=TwoWay}"
                                         Style="{StaticResource GlowyToggleButton}" />
                                     <ToggleButton
                                         Grid.Column="1"
                                         Width="30"
                                         Height="19"
-                                        Margin="192,13,0,0"
+                                        Margin="163,13,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Content="VR"
-                                        IsChecked="{Binding IntgrMediaLink_VR, Mode=TwoWay}"
+                                        IsChecked="{Binding IntgrSpotifyStatus_VR, Mode=TwoWay}"
                                         Style="{StaticResource GlowyToggleButton}" />
                                 </Grid>
-                                <Border
-                                    Grid.Row="1"
-                                    Height="auto"
-                                    Background="#240E54"
-                                    CornerRadius="0,0,5,5">
-                                    <ItemsControl
-                                        Width="auto"
+                            </Border>
+
+                        </Grid>
+                        <Grid
+                            Grid.Row="6"
+                            Opacity="{Binding MediaLink_Opacity}"
+                            Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <Border
+                                Margin="6,6,6,10"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Quality"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid Height="auto">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="73" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0" VerticalAlignment="Top">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="85" />
+                                            <ColumnDefinition Width="440" />
+                                            <ColumnDefinition Width="122" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid Grid.Column="1">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition />
+                                                <RowDefinition />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock
+                                                Grid.Row="0"
+                                                Margin="0,8,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="20"
+                                                Foreground="White"
+                                                Text="MediaLink" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Margin="0,0,0,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="13"
+                                                Foreground="LightGray"
+                                                Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
+                                                TextWrapping="Wrap" />
+                                            <Button
+                                                Margin="98,11,0,0"
+                                                Padding="0"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Top"
+                                                Command="{Binding ActivateSettingCommand}"
+                                                CommandParameter="Settings_MediaLink"
+                                                Style="{StaticResource CircleButton}">
+                                                <Image
+                                                    Width="15"
+                                                    Height="15"
+                                                    Source="/Img/Icons/Next_ico.png" />
+                                            </Button>
+                                        </Grid>
+
+                                        <Image
+                                            Grid.Column="0"
+                                            Margin="15"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            Source="/Img/Icons/MediaLink_ico.png" />
+                                        <CheckBox
+                                            Name="MediaLink_switch"
+                                            Grid.Column="2"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Click="Update_Click"
+                                            IsChecked="{Binding IntgrScanMediaLink, Mode=TwoWay}"
+                                            Style="{DynamicResource Switch}" />
+                                        <ToggleButton
+                                            Grid.Column="1"
+                                            Width="60"
+                                            Height="19"
+                                            Margin="127,13,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="DESKTOP"
+                                            IsChecked="{Binding IntgrMediaLink_DESKTOP, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <ToggleButton
+                                            Grid.Column="1"
+                                            Width="30"
+                                            Height="19"
+                                            Margin="192,13,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="VR"
+                                            IsChecked="{Binding IntgrMediaLink_VR, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                    </Grid>
+                                    <Border
+                                        Padding="5,5,5,0"
+                                        Grid.Row="1"
                                         Height="auto"
-                                        ItemsSource="{Binding MediaSessions}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel HorizontalAlignment="left" Orientation="Horizontal" />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border
-                                                    Margin="5"
-                                                    Background="#3A1F74"
-                                                    CornerRadius="5">
-                                                    <StackPanel
+                                        Background="#240E54"
+                                        CornerRadius="0,0,5,5">
+                                        <ItemsControl Height="auto" ItemsSource="{Binding MediaSessions}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border
                                                         Width="auto"
-                                                        Margin="10,0"
-                                                        VerticalAlignment="Center"
-                                                        Orientation="Horizontal">
-                                                        <!--  RadioButton linked to IsActive  -->
-                                                        <RadioButton
-                                                            Margin="0,10,10,10"
-                                                            VerticalAlignment="Center"
-                                                            Checked="Update_Click"
-                                                            Content="{Binding FriendlyAppName}"
-                                                            Foreground="#DBD9DE"
-                                                            GroupName="MediaSessions"
-                                                            IsChecked="{Binding IsActive}"
-                                                            Unchecked="Update_Click" />
-                                                        <!--  Label for FriendlyAppName  -->
+                                                        Margin="0,0,0,5"
+                                                        VerticalAlignment="Stretch"
+                                                        Background="#3A1F74"
+                                                        CornerRadius="5">
+                                                        <Grid Margin="10,5">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" MinWidth="60" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
 
-                                                        <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
-                                                        <CheckBox
-                                                            Margin="0,0,10,0"
-                                                            VerticalAlignment="Center"
-                                                            Checked="Update_Click"
-                                                            Content="Video"
-                                                            Foreground="#DBD9DE"
-                                                            IsChecked="{Binding IsVideo}"
-                                                            Style="{DynamicResource SettingsCheckbox}"
-                                                            Unchecked="Update_Click" />
-                                                        <CheckBox
-                                                            Margin="0,0,10,0"
-                                                            VerticalAlignment="Center"
-                                                            Checked="Update_Click"
-                                                            Content="Artist"
-                                                            Foreground="#DBD9DE"
-                                                            IsChecked="{Binding ShowArtist}"
-                                                            Style="{DynamicResource SettingsCheckbox}"
-                                                            Unchecked="Update_Click" />
-                                                        <CheckBox
-                                                            Margin="0,0,10,0"
-                                                            VerticalAlignment="Center"
-                                                            Checked="Update_Click"
-                                                            Content="Title"
-                                                            Foreground="#DBD9DE"
-                                                            IsChecked="{Binding ShowTitle}"
-                                                            Style="{DynamicResource SettingsCheckbox}"
-                                                            Unchecked="Update_Click" />
-                                                        <CheckBox
-                                                            VerticalAlignment="Center"
-                                                            Checked="Update_Click"
-                                                            Content="AutoSwitch"
-                                                            Foreground="#DBD9DE"
-                                                            IsChecked="{Binding AutoSwitch}"
-                                                            Style="{DynamicResource SettingsCheckbox}"
-                                                            Unchecked="Update_Click" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </Border>
+                                                            <!--  RadioButton linked to IsActive  -->
 
 
-                            </Grid>
+                                                            <RadioButton
+                                                                Grid.Column="0"
+                                                                Width="auto"
+                                                                VerticalAlignment="Center"
+                                                                Checked="Update_Click"
+                                                                Content="{Binding FriendlyAppName}"
+                                                                Foreground="#DBD9DE"
+                                                                GroupName="MediaSessions"
+                                                                IsChecked="{Binding IsActive}"
+                                                                Unchecked="Update_Click" />
+                                                            <!--  Label for FriendlyAppName  -->
 
-                        </Border>
+                                                            <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
+                                                            <StackPanel
+                                                                Grid.Column="1"
+                                                                Margin="5,0,0,0"
+                                                                Orientation="Horizontal">
+                                                                <CheckBox
+                                                                    Width="auto"
+                                                                    Height="25"
+                                                                    Margin="3,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Checked="Update_Click"
+                                                                    Content="VIDEO"
+                                                                    IsChecked="{Binding IsVideo}"
+                                                                    Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                    Unchecked="Update_Click" />
+                                                                <CheckBox
+                                                                    Width="auto"
+                                                                    Height="25"
+                                                                    Margin="3,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Checked="Update_Click"
+                                                                    Content="ARTIST"
+                                                                    IsChecked="{Binding ShowArtist}"
+                                                                    Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                    Unchecked="Update_Click" />
+                                                                <CheckBox
+                                                                    Width="auto"
+                                                                    Height="25"
+                                                                    Margin="3,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Checked="Update_Click"
+                                                                    Content="TITLE"
+                                                                    IsChecked="{Binding ShowTitle}"
+                                                                    Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                    Unchecked="Update_Click" />
+                                                            </StackPanel>
+                                                            <CheckBox
+                                                                Grid.Column="2"
+                                                                Height="25"
+                                                                Margin="0,0,-5,0"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
+                                                                Checked="Update_Click"
+                                                                Content="AUTOSWITCH ON PLAY"
+                                                                IsChecked="{Binding AutoSwitch}"
+                                                                Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                Unchecked="Update_Click" />
 
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Border>
+
+
+                                </Grid>
+
+                            </Border>
+
+                        </Grid>
                     </Grid>
-                </Grid>
+                </ScrollViewer>
+
                 <Grid
                     Grid.Row="1"
                     Grid.Column="1"
@@ -3278,18 +3303,18 @@
                             VerticalAlignment="Bottom"
                             Orientation="Horizontal">
                             <Button
-                                Margin="0,-3"
                                 x:Name="CheckUpdateBtnn"
-                                            Padding="0"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Top"
+                                Margin="0,-3"
+                                Padding="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
                                 Click="CheckUpdateBtnn_Click"
-                                            Style="{StaticResource CircleButton}">
+                                Style="{StaticResource CircleButton}">
                                 <Image
-                                                Width="12"
-                                                Height="12"
-                                                Source="/Img/Icons/Load_ico.png"
-                                    RenderOptions.BitmapScalingMode="Linear"/>
+                                    Width="12"
+                                    Height="12"
+                                    RenderOptions.BitmapScalingMode="Linear"
+                                    Source="/Img/Icons/Load_ico.png" />
                             </Button>
                             <TextBlock
                                 Margin="5,0.5,5,5"
