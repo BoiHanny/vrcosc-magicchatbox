@@ -24,7 +24,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static async Task CheckForUpdateAndWait(bool checkagain = false)
         {
-            if(checkagain == true)
+            ViewModel.Instance.VersionTxt = "Checking for updates...";
+            ViewModel.Instance.VersionTxtColor = "#FBB644";
+            if (checkagain == true)
             {
                 Task.Delay(1000).Wait();
             }

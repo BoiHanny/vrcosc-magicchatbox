@@ -735,8 +735,6 @@ namespace vrcosc_magicchatbox
 
         private void CheckUpdateBtnn_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.VersionTxt = "Checking for updates...";
-            ViewModel.Instance.VersionTxtColor = "#FBB644";
             ManualUpdateCheckAsync();
         }
     }

@@ -1879,7 +1879,7 @@
                                         BorderBrush="#FF2D1265"
                                         FontFamily="Comfortaa Light"
                                         FontSize="18"
-                                        Foreground="#FFB9B5C1"
+                                        Foreground="#FFE39E"
                                         IsChecked="{Binding JoinedAlphaChannel, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
                                         Beta channel updates
@@ -1896,7 +1896,7 @@
                                             Style="{DynamicResource Status_Button_style}" />
                                         <Button
                                             x:Name="MakeDataDump"
-                                            Width="99"
+                                            Width="110"
                                             Height="25"
                                             Margin="5,0,5,15"
                                             Click="MakeDataDump_Click"
@@ -1904,7 +1904,7 @@
                                             Style="{DynamicResource Status_Button_style}" />
                                         <Button
                                             x:Name="OpenConfigFolder"
-                                            Width="111"
+                                            Width="120"
                                             Height="25"
                                             Margin="5,0,5,15"
                                             Click="OpenConfigFolder_Click"
