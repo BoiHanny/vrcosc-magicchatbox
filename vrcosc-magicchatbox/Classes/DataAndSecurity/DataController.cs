@@ -278,6 +278,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"HeartRateAdjustment", (typeof(int), "HeartRateConnector")},
                         {"SmoothHeartRate", (typeof(bool), "HeartRateConnector")},
                         {"HeartRateTimeSpan", (typeof(int), "HeartRateConnector")},
+                        {"HeartRateTrendIndicatorSensitivity", (typeof(double), "HeartRateConnector")},
+                        {"ShowHeartRateTrendIndicator", (typeof(bool), "HeartRateConnector")},
+                        {"HeartRateTrendIndicatorSampleRate", (typeof(int), "HeartRateConnector")},
+
 
                         {"Settings_Status", (typeof(bool), "OptionsTabState")},
                         {"Settings_HeartRate", (typeof(bool), "OptionsTabState")},
@@ -330,13 +334,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                     {
                                         property.SetValue(ViewModel.Instance, int.Parse(settingNode.InnerText));
                                     }
+                                    else if (setting.Value.type == typeof(string))
+                                    {
+                                        property.SetValue(ViewModel.Instance, settingNode.InnerText);
+                                    }
                                     else if (setting.Value.type == typeof(float))
                                     {
                                         property.SetValue(ViewModel.Instance, float.Parse(settingNode.InnerText));
                                     }
-                                    else if (setting.Value.type == typeof(string))
+                                    else if (setting.Value.type == typeof(double))
                                     {
-                                        property.SetValue(ViewModel.Instance, settingNode.InnerText);
+                                        property.SetValue(ViewModel.Instance, double.Parse(settingNode.InnerText));
                                     }
                                     else if (setting.Value.type == typeof(Timezone))
                                     {

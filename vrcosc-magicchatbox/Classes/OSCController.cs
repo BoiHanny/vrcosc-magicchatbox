@@ -397,10 +397,15 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
-                string x = ViewModel.Instance.HeartRate + (ViewModel.Instance.ShowBPMSuffix ? " BPM" : " 💖");
+                string x = (ViewModel.Instance.ShowBPMSuffix ? ViewModel.Instance.HeartRate + " BPM" : "💖 " + ViewModel.Instance.HeartRate);
+                if(ViewModel.Instance.ShowHeartRateTrendIndicator)
+                {
+                    x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                }
                 TryAddToUncomplete(Uncomplete, x, "HeartRate");
             }
         }
+
 
 
         // this function will build the current time message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters

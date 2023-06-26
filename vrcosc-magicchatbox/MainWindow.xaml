@@ -955,29 +955,29 @@
                                         Unchecked="Update_Click">
                                         Heart rate adjustment
                                     </CheckBox>
-                                    <StackPanel Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,-5,0,0">
+                                    <StackPanel Margin="0,-5,0,0" Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
-                                        Grid.Column="0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="#FF9983AD"
-                                        Text="Heart rate adjustment in BPM" />
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Heart rate adjustment in BPM" />
                                         <TextBox
-                                        x:Name="HeartRateAdjustment"
-                                        Width="40"
-                                        Height="26"
-                                        Margin="0,3,0,15"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            x:Name="HeartRateAdjustment"
+                                            Width="40"
+                                            Height="26"
+                                            Margin="0,3,0,15"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
-                                    
+
                                     <CheckBox
                                         x:Name="ShowBPMSuffix_checkbox"
                                         Height="20"
@@ -1028,7 +1028,79 @@
                                             Foreground="#FF240E54"
                                             Text="{Binding HeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
+                                    <CheckBox
+                                        x:Name="ShowHeartRateTrendIndicator"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowHeartRateTrendIndicator, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Heart rate trend indicator
+                                    </CheckBox>
+                                    <StackPanel Margin="0,-5,0,0" Visibility="{Binding ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Use last amount heart rate scans to identify trends" />
+                                        <TextBox
+                                            x:Name="HeartRateTrendIndicatorSampleRate_INT"
+                                            Width="40"
+                                            Height="26"
+                                            Margin="0,3,0,10"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Trend sensitivity" />
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="0,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="Low" />
+                                            <Slider
+                                                x:Name="HeartRateTrendIndicatorSensitivitySlider"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                Maximum="1"
+                                                Minimum="0"
+                                                Style="{StaticResource CustomSlider}"
+                                                Value="{Binding Path=HeartRateTrendIndicatorSensitivity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="High" />
+                                        </StackPanel>
+                                    </StackPanel>
                                 </StackPanel>
                             </Grid>
                         </Grid>

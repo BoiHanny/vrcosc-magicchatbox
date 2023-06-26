@@ -1564,6 +1564,53 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(MenuItem_3_Visibility));
             }
         }
+
+
+        private int _HeartRateTrendIndicatorSampleRate = 4;
+        public int HeartRateTrendIndicatorSampleRate
+        {
+            get { return _HeartRateTrendIndicatorSampleRate; }
+            set
+            {
+                _HeartRateTrendIndicatorSampleRate = value;
+                NotifyPropertyChanged(nameof(HeartRateTrendIndicatorSampleRate));
+            }
+        }
+
+        private bool _ShowHeartRateTrendIndicator = true;
+        public bool ShowHeartRateTrendIndicator
+        {
+            get { return _ShowHeartRateTrendIndicator; }
+            set
+            {
+                _ShowHeartRateTrendIndicator = value;
+                NotifyPropertyChanged(nameof(ShowHeartRateTrendIndicator));
+            }
+        }
+
+        private string _HeartRateTrendIndicator = "";
+        public string HeartRateTrendIndicator
+        {
+            get { return _HeartRateTrendIndicator; }
+            set
+            {
+                _HeartRateTrendIndicator = value;
+                NotifyPropertyChanged(nameof(HeartRateTrendIndicator));
+            }
+        }
+
+
+        private double _HeartRateTrendIndicatorSensitivity = 0.65;
+        public double HeartRateTrendIndicatorSensitivity
+        {
+            get { return _HeartRateTrendIndicatorSensitivity; }
+            set
+            {
+                _HeartRateTrendIndicatorSensitivity = value;
+                NotifyPropertyChanged(nameof(HeartRateTrendIndicatorSensitivity));
+            }
+        }
+
         public string MenuItem_2_Visibility
         {
             get { return _MenuItem_2_Visibility; }

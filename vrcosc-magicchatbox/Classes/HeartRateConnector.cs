@@ -20,6 +20,26 @@ namespace vrcosc_magicchatbox.Classes
         
         private CancellationTokenSource _cts;
         private Queue<Tuple<DateTime, int>> _heartRates = new Queue<Tuple<DateTime, int>>();
+        Queue<int> _heartRateHistory = new Queue<int>();
+        private double CalculateSlope(Queue<int> values)
+        {
+            int count = values.Count;
+            double avgX = count / 2.0;
+            double avgY = values.Average();
+
+            double sumXY = 0;
+            double sumXX = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                sumXY += (i - avgX) * (values.ElementAt(i) - avgY);
+                sumXX += Math.Pow(i - avgX, 2);
+            }
+
+            double slope = sumXY / sumXX;
+            return slope;
+        }
+
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
@@ -83,6 +103,36 @@ namespace vrcosc_magicchatbox.Classes
                             heartRate = (int)_heartRates.Average(t => t.Item2);
                         }
 
+                        // Record the heart rate for trend analysis
+                        if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+                        {
+                            // Only keep the last N heart rates, where N is HeartRateTrendIndicatorSampleRate
+                            if (_heartRateHistory.Count >= ViewModel.Instance.HeartRateTrendIndicatorSampleRate)
+                            {
+                                _heartRateHistory.Dequeue();
+                            }
+
+                            _heartRateHistory.Enqueue(heartRate);
+
+                            // Update the trend indicator
+                            if (_heartRateHistory.Count > 1)
+                            {
+                                double slope = CalculateSlope(_heartRateHistory);
+                                if (slope > ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
+                                {
+                                    ViewModel.Instance.HeartRateTrendIndicator = "⤴️";
+                                }
+                                else if (slope < -ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
+                                {
+                                    ViewModel.Instance.HeartRateTrendIndicator = "⤵️";
+                                }
+                                else
+                                {
+                                    ViewModel.Instance.HeartRateTrendIndicator = "";
+                                }
+                            }
+                        }
+
                         if (ViewModel.Instance.HeartRate != heartRate)
                         {
                             ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
@@ -98,16 +148,14 @@ namespace vrcosc_magicchatbox.Classes
                 }
 
                 int scanInterval = ViewModel.Instance.HeartRateScanInterval > 0 ? ViewModel.Instance.HeartRateScanInterval : 5;
-
-                // Calculate the time it took to get the heart rate
                 TimeSpan elapsedTime = DateTime.UtcNow - startTime;
-
-                // Calculate the remaining time for the delay
                 TimeSpan remainingDelay = TimeSpan.FromSeconds(scanInterval) - elapsedTime;
+
                 if (remainingDelay > TimeSpan.Zero)
                 {
                     await Task.Delay(remainingDelay, cancellationToken);
                 }
+
             }
         }
 
