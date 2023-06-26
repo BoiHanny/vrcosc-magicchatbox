@@ -894,6 +894,7 @@
                                     Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                     Tag="Heart monitoring options"
                                     TextOptions.TextRenderingMode="ClearType" />
+
                             </Grid>
                             <Grid
                                 Grid.Row="1"
@@ -901,20 +902,6 @@
                                 Margin="10,10,0,0"
                                 Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
-                                    <CheckBox
-                                        x:Name="ShowBPMSuffix_checkbox"
-                                        Height="20"
-                                        Margin="0,0,0,15"
-                                        BorderBrush="#FF2D1265"
-                                        Checked="Update_Click"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="18"
-                                        Foreground="#FFB9B5C1"
-                                        IsChecked="{Binding ShowBPMSuffix, Mode=TwoWay}"
-                                        Style="{DynamicResource SettingsCheckbox}"
-                                        Unchecked="Update_Click">
-                                        Show BPM instead of 💖
-                                    </CheckBox>
                                     <TextBlock
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -954,14 +941,29 @@
                                         FontSize="15"
                                         Foreground="#FF240E54"
                                         Text="{Binding HeartRateScanInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <TextBlock
+                                    <CheckBox
+                                        x:Name="ApplyHeartRateAdjustment_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ApplyHeartRateAdjustment, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Heart rate adjustment
+                                    </CheckBox>
+                                    <StackPanel Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,-5,0,0">
+                                        <TextBlock
                                         Grid.Column="0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
-                                        Text="Heart rate adjustment " />
-                                    <TextBox
+                                        Text="Heart rate adjustment in BPM" />
+                                        <TextBox
                                         x:Name="HeartRateAdjustment"
                                         Width="40"
                                         Height="26"
@@ -974,6 +976,59 @@
                                         FontSize="15"
                                         Foreground="#FF240E54"
                                         Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    
+                                    <CheckBox
+                                        x:Name="ShowBPMSuffix_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowBPMSuffix, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show BPM instead of 💖
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="SmoothHeartRate_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding SmoothHeartRate, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Smooth heart rate
+                                    </CheckBox>
+                                    <StackPanel Margin="0,-5,0,0" Visibility="{Binding SmoothHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Smooth amound in seconds" />
+                                        <TextBox
+                                            x:Name="SmoothHeartRate_INT"
+                                            Width="40"
+                                            Height="26"
+                                            Margin="0,3,0,10"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding HeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -1686,7 +1741,7 @@
                                         Style="{DynamicResource SettingsCheckbox}">
                                         2nd VRChat output
                                     </CheckBox>
-                                    <StackPanel Visibility="{Binding SecOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15">
+                                    <StackPanel Margin="0,0,0,15" Visibility="{Binding SecOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
@@ -1797,7 +1852,7 @@
 
 
                         </Grid>
-                        <Grid Grid.Row="8" Margin="0,5,0,0">
+                        <Grid Grid.Row="8" Margin="0,0,0,0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />

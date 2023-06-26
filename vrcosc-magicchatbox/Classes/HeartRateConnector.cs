@@ -19,6 +19,7 @@ namespace vrcosc_magicchatbox.Classes
     {
         
         private CancellationTokenSource _cts;
+        private Queue<Tuple<DateTime, int>> _heartRates = new Queue<Tuple<DateTime, int>>();
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
@@ -57,11 +58,31 @@ namespace vrcosc_magicchatbox.Classes
                     int heartRate = await GetHeartRateViaHttpAsync();
                     if (heartRate != -1)
                     {
-                        // Apply the adjustment
-                        heartRate += ViewModel.Instance.HeartRateAdjustment;
+                        // Apply the adjustment if ApplyHeartRateAdjustment is true
+                        if (ViewModel.Instance.ApplyHeartRateAdjustment)
+                        {
+                            heartRate += ViewModel.Instance.HeartRateAdjustment;
+                        }
 
                         // Ensure the adjusted heart rate is not negative
                         heartRate = Math.Max(0, heartRate);
+
+                        // If SmoothHeartRate is true, calculate and use average heart rate
+                        if (ViewModel.Instance.SmoothHeartRate)
+                        {
+                            // Record the heart rate with the current time
+                            _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));
+
+                            // Remove old data
+                            while (_heartRates.Count > 0 && (DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.HeartRateTimeSpan)))
+                            {
+                                _heartRates.Dequeue();
+                            }
+
+                            // Calculate average heart rate over the defined timespan
+                            heartRate = (int)_heartRates.Average(t => t.Item2);
+                        }
+
                         if (ViewModel.Instance.HeartRate != heartRate)
                         {
                             ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
@@ -89,6 +110,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
             }
         }
+
 
 
 

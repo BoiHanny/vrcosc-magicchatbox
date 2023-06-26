@@ -799,6 +799,40 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _ApplyHeartRateAdjustment = false;
+        public bool ApplyHeartRateAdjustment
+        {
+            get { return _ApplyHeartRateAdjustment; }
+            set
+            {
+                _ApplyHeartRateAdjustment = value;
+                NotifyPropertyChanged(nameof(ApplyHeartRateAdjustment));
+            }
+        }
+
+        private int _HeartRateTimeSpan = 18;
+        public int HeartRateTimeSpan
+        {
+            get { return _HeartRateTimeSpan; }
+            set
+            {
+                _HeartRateTimeSpan = value;
+                NotifyPropertyChanged(nameof(HeartRateTimeSpan));
+            }
+        }
+
+        private bool _SmoothHeartRate = false;
+        public bool SmoothHeartRate
+        {
+            get { return _SmoothHeartRate; }
+            set
+            {
+                _SmoothHeartRate = value;
+                NotifyPropertyChanged(nameof(SmoothHeartRate));
+            }
+        }
+
+
         private bool _ShowBPMSuffix = false;
         public bool ShowBPMSuffix
         {
@@ -1595,7 +1629,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private int _HeartRateAdjustment = 0;
+        private int _HeartRateAdjustment = -5;
         public int HeartRateAdjustment
         {
             get { return _HeartRateAdjustment; }
