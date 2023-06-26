@@ -17,6 +17,7 @@ namespace vrcosc_magicchatbox.Classes
         // this is the main MediaManager object that will be used to get all the media sessions
         private static MediaManager? mediaManager = null;
         private static MediaSession? currentSession = null;
+        private static Boolean? NeedsChange = null;
 
         // this is a lookup of all sessions that have been opened by the MediaManager and their associated info
         private static ConcurrentDictionary<MediaSession, MediaSessionInfo> sessionInfoLookup = new ConcurrentDictionary<MediaSession, MediaSessionInfo>();
@@ -35,14 +36,18 @@ namespace vrcosc_magicchatbox.Classes
         // this funion will be called when the user changes the setting to enable/disable the media link
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "IntgrScanMediaLink" || e.PropertyName == "IntgrMediaLink_VR" || e.PropertyName == "IntgrMediaLink_DESKTOP" )
+            if (e.PropertyName == "IntgrScanMediaLink" || e.PropertyName == "IntgrMediaLink_VR" || e.PropertyName == "IntgrMediaLink_DESKTOP" || e.PropertyName == "IsVRRunning")
             {
                 if (ViewModel.Instance.IntgrScanMediaLink && ViewModel.Instance.IntgrMediaLink_VR && ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrScanMediaLink && ViewModel.Instance.IntgrMediaLink_DESKTOP && !ViewModel.Instance.IsVRRunning)
-                Start();
+                {
+                    if(mediaManager == null)
+                    Start();
+                }
                 else
-                Dispose();
-
-
+                {
+                    if (mediaManager != null)
+                        Dispose();
+                }
             }
         }
 
