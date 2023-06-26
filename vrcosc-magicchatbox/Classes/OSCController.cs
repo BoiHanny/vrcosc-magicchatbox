@@ -7,14 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using System.Windows.Media;
-using System.Diagnostics;
-using System.Windows.Threading;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -87,7 +81,7 @@ namespace vrcosc_magicchatbox.Classes
                         oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
                         if (ViewModel.Instance.SecOSC)
                         {
-                            oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                            SecOscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
                         }
                     }
 
@@ -146,14 +140,14 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender.Send(new OscMessage("/input/Voice", 1));
                     if (ViewModel.Instance.SecOSC)
                     {
-                        oscSender.Send(new OscMessage("/input/Voice", 1));
+                        SecOscSender.Send(new OscMessage("/input/Voice", 1));
                     }
                     ViewModel.Instance.TTSBtnShadow = true;
                     Thread.Sleep(100);
                     oscSender.Send(new OscMessage("/input/Voice", 0));
                     if (ViewModel.Instance.SecOSC)
                     {
-                        oscSender.Send(new OscMessage("/input/Voice", 1));
+                        SecOscSender.Send(new OscMessage("/input/Voice", 1));
                     }
                     ViewModel.Instance.TTSBtnShadow = false;
                 });
@@ -189,8 +183,8 @@ namespace vrcosc_magicchatbox.Classes
                 // Check if we need to close the SECcurrent sender and create a new one with the updated IP and port
                 if (SecOscSender != null && (ViewModel.Instance.OSCIP != SecOscSender.Address || ViewModel.Instance.SecOSCPort != SecOscSender.Port))
                 {
-                    oscSender.Close();
-                    oscSender = null;
+                    SecOscSender.Close();
+                    SecOscSender = null;
                 }
 
                 // Create a new sender if there is none
@@ -211,7 +205,7 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender.Send(new OscMessage("/chatbox/typing", Typing));
                     if (ViewModel.Instance.SecOSC)
                     {
-                        oscSender.Send(new OscMessage("/chatbox/typing", Typing));
+                        SecOscSender.Send(new OscMessage("/chatbox/typing", Typing));
                     }
                 });
 

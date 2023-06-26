@@ -265,7 +265,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"OSCIP", (typeof(string), "OSC")},
                         {"OSCPortOut", (typeof(int), "OSC")},
-                        {"SecOSC", (typeof(string), "OSC")},
+                        {"SecOSC", (typeof(bool), "OSC")},
                         {"SecOSCPort", (typeof(int), "OSC")},
 
                         {"BlankEgg", (typeof(bool), "DEV")},
