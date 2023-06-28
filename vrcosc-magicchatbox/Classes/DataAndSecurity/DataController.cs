@@ -24,8 +24,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static async Task CheckForUpdateAndWait(bool checkagain = false)
         {
-            ViewModel.Instance.VersionTxt = "Checking for updates...";
-            ViewModel.Instance.VersionTxtColor = "#FBB644";
+            Instance.VersionTxt = "Checking for updates...";
+            Instance.VersionTxtColor = "#FBB644";
             if (checkagain == true)
             {
                 Task.Delay(1000).Wait();
@@ -53,19 +53,19 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 string json = System.IO.File.ReadAllText(@"Json\voices.json");
                 List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
 
-                if (string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                if (string.IsNullOrEmpty(Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
                 {
-                    ViewModel.Instance.RecentTikTokTTSVoice = "en_us_001";
+                    Instance.RecentTikTokTTSVoice = "en_us_001";
                 }
-                if (!string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                if (!string.IsNullOrEmpty(Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
                 {
-                    Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == ViewModel.Instance.RecentTikTokTTSVoice);
+                    Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == Instance.RecentTikTokTTSVoice);
                     if (selectedVoice == null)
                     {
                     }
                     else
                     {
-                        ViewModel.Instance.SelectedTikTokTTSVoice = selectedVoice;
+                        Instance.SelectedTikTokTTSVoice = selectedVoice;
                     }
                 }
 
@@ -86,17 +86,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (File.Exists(@"Json\\OpenAIAPIBuiltInActions.json"))
                 {
                     string json = File.ReadAllText(@"Json\\OpenAIAPIBuiltInActions.json");
-                    ViewModel.Instance.OpenAIAPIBuiltInActions = JsonConvert.DeserializeObject<ObservableCollection<ChatModelMsg>>(json);
+                    Instance.OpenAIAPIBuiltInActions = JsonConvert.DeserializeObject<ObservableCollection<ChatModelMsg>>(json);
                 }
                 else
                 {
                     // Initialize PreCreatedActions with default actions or an empty list
-                    ViewModel.Instance.OpenAIAPIBuiltInActions = new ObservableCollection<ChatModelMsg>();
+                    Instance.OpenAIAPIBuiltInActions = new ObservableCollection<ChatModelMsg>();
                 }
             }
             catch (Exception ex)
             {
-                // Handle the exception, e.g., by logging it
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
 
@@ -111,31 +111,31 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 if (beforeTTS == true)
                 {
-                    ViewModel.Instance.PlaybackOutputDevices.Clear();
+                    Instance.PlaybackOutputDevices.Clear();
                 }
 
                 foreach (var device in devicesRen)
                 {
-                    ViewModel.Instance.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
+                    Instance.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
                 }
 
                 var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-                if (ViewModel.Instance.RecentPlayBackOutput == null)
+                if (Instance.RecentPlayBackOutput == null)
                 {
-                    ViewModel.Instance.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
-                    ViewModel.Instance.RecentPlayBackOutput = ViewModel.Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                    Instance.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                    Instance.RecentPlayBackOutput = Instance.SelectedPlaybackOutputDevice.FriendlyName;
                 }
                 else
                 {
-                    AudioDevice ADevice = ViewModel.Instance.PlaybackOutputDevices.FirstOrDefault(v => v.FriendlyName == ViewModel.Instance.RecentPlayBackOutput);
+                    AudioDevice ADevice = Instance.PlaybackOutputDevices.FirstOrDefault(v => v.FriendlyName == Instance.RecentPlayBackOutput);
                     if (ADevice == null)
                     {
-                        ViewModel.Instance.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
-                        ViewModel.Instance.RecentPlayBackOutput = ViewModel.Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                        Instance.SelectedPlaybackOutputDevice = new AudioDevice(defaultPlaybackOutputDevice.FriendlyName, defaultPlaybackOutputDevice.ID, -1);
+                        Instance.RecentPlayBackOutput = Instance.SelectedPlaybackOutputDevice.FriendlyName;
                     }
                     else
                     {
-                        ViewModel.Instance.SelectedPlaybackOutputDevice = ADevice;
+                        Instance.SelectedPlaybackOutputDevice = ADevice;
 
                     }
                 }
@@ -175,7 +175,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static void ManageSettingsXML(bool saveSettings = false)
         {
-            if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+            if (CreateIfMissing(Instance.DataPath) == true)
             {
                 try
                 {
@@ -189,7 +189,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                     else
                     {
-                        xmlDoc.Load(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
+                        xmlDoc.Load(Path.Combine(Instance.DataPath, "settings.xml"));
                         rootNode = xmlDoc.SelectSingleNode("Settings");
                     }
 
@@ -303,7 +303,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     {
                         try
                         {
-                            PropertyInfo property = ViewModel.Instance.GetType().GetProperty(setting.Key);
+                            PropertyInfo property =Instance.GetType().GetProperty(setting.Key);
                             XmlNode categoryNode = rootNode.SelectSingleNode(setting.Value.category);
 
                             if (categoryNode == null)
@@ -314,7 +314,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                             if (saveSettings)
                             {
-                                object value = property.GetValue(ViewModel.Instance);
+                                object value = property.GetValue(Instance);
                                 if (value != null && !string.IsNullOrEmpty(value.ToString()))
                                 {
                                     XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
@@ -330,31 +330,31 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                 {
                                     if (setting.Value.type == typeof(bool))
                                     {
-                                        property.SetValue(ViewModel.Instance, bool.Parse(settingNode.InnerText));
+                                        property.SetValue(Instance, bool.Parse(settingNode.InnerText));
                                     }
                                     else if (setting.Value.type == typeof(int))
                                     {
-                                        property.SetValue(ViewModel.Instance, int.Parse(settingNode.InnerText));
+                                        property.SetValue(Instance, int.Parse(settingNode.InnerText));
                                     }
                                     else if (setting.Value.type == typeof(string))
                                     {
-                                        property.SetValue(ViewModel.Instance, settingNode.InnerText);
+                                        property.SetValue(Instance, settingNode.InnerText);
                                     }
                                     else if (setting.Value.type == typeof(float))
                                     {
-                                        property.SetValue(ViewModel.Instance, float.Parse(settingNode.InnerText));
+                                        property.SetValue(Instance, float.Parse(settingNode.InnerText));
                                     }
                                     else if (setting.Value.type == typeof(double))
                                     {
-                                        property.SetValue(ViewModel.Instance, double.Parse(settingNode.InnerText));
+                                        property.SetValue(Instance, double.Parse(settingNode.InnerText));
                                     }
                                     else if (setting.Value.type == typeof(Timezone))
                                     {
-                                        property.SetValue(ViewModel.Instance, Enum.Parse(typeof(Timezone), settingNode.InnerText));
+                                        property.SetValue(Instance, Enum.Parse(typeof(Timezone), settingNode.InnerText));
                                     }
                                     else if (setting.Value.type == typeof(DateTime))
                                     {
-                                        property.SetValue(ViewModel.Instance, DateTime.Parse(settingNode.InnerText));
+                                        property.SetValue(Instance, DateTime.Parse(settingNode.InnerText));
                                     }
                                 }
                             }
@@ -366,29 +366,25 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                     if (saveSettings)
                     {
-                        xmlDoc.Save(Path.Combine(ViewModel.Instance.DataPath, "settings.xml"));
+                        xmlDoc.Save(Path.Combine(Instance.DataPath, "settings.xml"));
                     }
                 }
                 catch (Exception ex)
                 {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
             }
         }
 
 
-
-
-
-
-
-        public static void LoadChatList()
+        public static void LoadMediaSessions()
         {
             try
             {
-                if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml")))
+                if (System.IO.File.Exists(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml")))
                 {
-                    string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"));
-                    ViewModel.Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"));
+                    Instance.SavedSessionSettings = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
                 }
                 else
                 {
@@ -397,7 +393,49 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception)
             {
+                Logging.WriteInfo("LastMediaSessions history has never been created, not problem :P");
+            }
 
+        }
+
+        public static void SaveMediaSessions()
+        {
+            try
+            {
+                if (CreateIfMissing(Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(Instance.SavedSessionSettings);
+                    System.IO.File.WriteAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"), json);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+
+        }
+
+
+
+
+        public static void LoadChatList()
+        {
+            try
+            {
+                if (System.IO.File.Exists(Path.Combine(Instance.DataPath, "LastMessages.xml")))
+                {
+                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"));
+                    Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                }
+                else
+                {
+
+                }
+            }
+            catch (Exception)
+            {
+                Logging.WriteInfo("LastMessages history has never been created, not problem :P");
             }
 
         }
@@ -406,10 +444,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                if (CreateIfMissing(Instance.DataPath) == true)
                 {
-                    string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
-                    System.IO.File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"), json);
+                    string json = JsonConvert.SerializeObject(Instance.LastMessages);
+                    System.IO.File.WriteAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"), json);
                 }
 
             }
@@ -424,10 +462,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml")))
+                if (System.IO.File.Exists(Path.Combine(Instance.DataPath, "AppHistory.xml")))
                 {
-                    string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml"));
-                    ViewModel.Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
+                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"));
+                    Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
                 }
                 else
                 {
@@ -436,7 +474,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception)
             {
-
+                Logging.WriteInfo("AppHistory history has never been created, not problem :P");
             }
 
         }
@@ -445,10 +483,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                if (CreateIfMissing(Instance.DataPath) == true)
                 {
-                    string json = JsonConvert.SerializeObject(ViewModel.Instance.ScannedApps);
-                    System.IO.File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml"), json);
+                    string json = JsonConvert.SerializeObject(Instance.ScannedApps);
+                    System.IO.File.WriteAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"), json);
                 }
 
             }
@@ -462,26 +500,34 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static void LoadStatusList()
         {
-            if (System.IO.File.Exists(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml")))
+            try
             {
-                string json = System.IO.File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"));
-                ViewModel.Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
+                if (System.IO.File.Exists(Path.Combine(Instance.DataPath, "StatusList.xml")))
+                {
+                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "StatusList.xml"));
+                    Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
+                }
+                else
+                {
+                    Random random = new Random();
+                    int randomId = random.Next(10, 99999999);
+                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Bubs", MSGLenght = 4, MSGID = randomId });
+                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = true, msg = "Enjoy <$", MSGLenght = 8, MSGID = randomId });
+                    SaveStatusList();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Random random = new Random();
-                int randomId = random.Next(10, 99999999);
-                ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Bubs", MSGLenght = 4, MSGID = randomId });
-                ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = true, msg = "Enjoy <$", MSGLenght = 8, MSGID = randomId });
-                ViewModel.SaveStatusList();
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+
         }
 
         private static void CheckForUpdate()
         {
             try
             {
-                string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
+                string token = EncryptionMethods.DecryptString(Instance.ApiStream);
                 string urlLatest = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
                 string urlPreRelease = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases";
                 if (urlLatest != null)
@@ -497,8 +543,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         dynamic releaseLatest = JsonConvert.DeserializeObject(jsonLatest);
                         string latestVersion = releaseLatest.tag_name;
 
-                        ViewModel.Instance.LatestReleaseVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
-                        ViewModel.Instance.LatestReleaseURL = releaseLatest.assets[0].browser_download_url; // Store the download URL
+                        Instance.LatestReleaseVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
+                        Instance.LatestReleaseURL = releaseLatest.assets[0].browser_download_url; // Store the download URL
 
                         // Check the latest pre-release
                         var responsePreRelease = client.GetAsync(urlPreRelease).Result;
@@ -515,10 +561,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         }
 
                         // Check if there's a new pre-release and user is joined to alpha channel
-                        if (ViewModel.Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
+                        if (Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
                         {
-                            ViewModel.Instance.PreReleaseVersion = new Version(Regex.Replace(preReleaseVersion, "[^0-9.]", ""));
-                            ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
+                            Instance.PreReleaseVersion = new Version(Regex.Replace(preReleaseVersion, "[^0-9.]", ""));
+                            Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
                         }
                     }
                 }
@@ -526,8 +572,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
-                ViewModel.Instance.VersionTxt = "Can't check updates";
-                ViewModel.Instance.VersionTxtColor = "#F36734";
+                Instance.VersionTxt = "Can't check updates";
+                Instance.VersionTxtColor = "#F36734";
             }
             finally
             {
@@ -541,52 +587,52 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                var currentVersion = ViewModel.Instance.AppVersion.VersionNumber;
-                var latestReleaseVersion = ViewModel.Instance.LatestReleaseVersion.VersionNumber;
+                var currentVersion = Instance.AppVersion.VersionNumber;
+                var latestReleaseVersion = Instance.LatestReleaseVersion.VersionNumber;
 
                 int compareWithLatestRelease = currentVersion.CompareTo(latestReleaseVersion);
 
                 if (compareWithLatestRelease < 0)
                 {
                     // If the latest release version is greater than the current version
-                    ViewModel.Instance.VersionTxt = "Update now";
-                    ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
-                    ViewModel.Instance.CanUpdate = true;
-                    ViewModel.Instance.UpdateURL = ViewModel.Instance.LatestReleaseURL;
+                    Instance.VersionTxt = "Update now";
+                    Instance.VersionTxtColor = "#FF8AFF04";
+                    Instance.CanUpdate = true;
+                    Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
                 }
 
-                if (ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.PreReleaseVersion != null)
+                if (Instance.JoinedAlphaChannel && Instance.PreReleaseVersion != null)
                 {
-                    var preReleaseVersion = ViewModel.Instance.PreReleaseVersion.VersionNumber;
+                    var preReleaseVersion = Instance.PreReleaseVersion.VersionNumber;
                     int compareWithPreRelease = currentVersion.CompareTo(preReleaseVersion);
                     if (compareWithPreRelease < 0)
                     {
                         // If the pre-release version is greater than the current version and the user has joined the alpha channel
-                        ViewModel.Instance.VersionTxt = "Install pre-release";
-                        ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
-                        ViewModel.Instance.CanUpdate = true;
-                        ViewModel.Instance.UpdateURL = ViewModel.Instance.PreReleaseURL;
+                        Instance.VersionTxt = "Install pre-release";
+                        Instance.VersionTxtColor = "#FF8AFF04";
+                        Instance.CanUpdate = true;
+                        Instance.UpdateURL = Instance.PreReleaseURL;
                         return;
                     }
                 }
 
                 // Check if a downgrade is needed
-                if (!ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.LatestReleaseVersion != null &&
-                    currentVersion.CompareTo(ViewModel.Instance.LatestReleaseVersion.VersionNumber) > 0)
+                if (!Instance.JoinedAlphaChannel && Instance.LatestReleaseVersion != null &&
+                    currentVersion.CompareTo(   Instance.LatestReleaseVersion.VersionNumber) > 0)
                 {
                     // If the current version is a pre-release version and the user has opted out of the alpha channel
-                    ViewModel.Instance.VersionTxt = "Downgrade now";
-                    ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
-                    ViewModel.Instance.CanUpdate = true;
-                    ViewModel.Instance.UpdateURL = ViewModel.Instance.LatestReleaseURL;
+                    Instance.VersionTxt = "Downgrade now";
+                    Instance.VersionTxtColor = "#FF8AFF04";
+                    Instance.CanUpdate = true;
+                    Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
                 }
 
                 // If no new update or pre-release is found
-                ViewModel.Instance.VersionTxt = "You are up-to-date";
-                ViewModel.Instance.VersionTxtColor = "#FF92CC90";
-                ViewModel.Instance.CanUpdate = false;
+                Instance.VersionTxt = "You are up-to-date";
+                Instance.VersionTxtColor = "#FF92CC90";
+                Instance.CanUpdate = false;
             }
             catch (Exception ex)
             {

@@ -128,12 +128,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             var property = base.CreateProperty(member, memberSerialization);
 
             // Only serialize bools, strings, and ints
-            if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime)  || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
+            if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
             {
                 property.ShouldSerialize = instance => false;
             }
-            if(property.PropertyName == "aesKey" || property.PropertyName == "ApiStream" || property.PropertyName == "OpenAIAPIKey" || property.PropertyName == "PulsoidAccessToken")
-                    {
+            if (property.PropertyName == "aesKey" || property.PropertyName == "ApiStream" || property.PropertyName == "OpenAIAPIKey" || property.PropertyName == "PulsoidAccessToken")
+            {
                 property.ShouldSerialize = instance => false;
             }
 

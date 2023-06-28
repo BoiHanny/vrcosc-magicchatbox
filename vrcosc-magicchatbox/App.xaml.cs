@@ -1,5 +1,4 @@
 ﻿using NLog;
-using System;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes;
@@ -52,7 +51,10 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Hunting down the last session's chat messages... Gotcha!", 25);
             await Task.Run(() => DataController.LoadChatList());
 
-            loadingWindow.UpdateProgress("Picking out your recent apps for the window integration!", 30);
+            loadingWindow.UpdateProgress("Seaking hard to locate the last MediaLink's settings... WHOAAH!", 30);
+            await Task.Run(() => DataController.LoadMediaSessions());
+
+            loadingWindow.UpdateProgress("Picking out your recent apps for the window integration!", 35);
             await Task.Run(() => DataController.LoadAppList());
 
             loadingWindow.UpdateProgress("Tuning up the TTS voices. Get ready to hear!", 40);
@@ -70,8 +72,8 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 80);
             await Task.Run(() => DataController.CheckForUpdateAndWait());
 
-            if(ViewModel.Instance.IntgrScanMediaLink)
-            loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 90);
+            if (ViewModel.Instance.IntgrScanMediaLink)
+                loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 90);
             //await Task.Run(() => MediaLinkController.Start());
             MediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
 

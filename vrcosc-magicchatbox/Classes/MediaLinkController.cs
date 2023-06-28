@@ -17,7 +17,6 @@ namespace vrcosc_magicchatbox.Classes
         // this is the main MediaManager object that will be used to get all the media sessions
         private static MediaManager? mediaManager = null;
         private static MediaSession? currentSession = null;
-        private static Boolean? NeedsChange = null;
 
         // this is a lookup of all sessions that have been opened by the MediaManager and their associated info
         private static ConcurrentDictionary<MediaSession, MediaSessionInfo> sessionInfoLookup = new ConcurrentDictionary<MediaSession, MediaSessionInfo>();
@@ -40,8 +39,8 @@ namespace vrcosc_magicchatbox.Classes
             {
                 if (ViewModel.Instance.IntgrScanMediaLink && ViewModel.Instance.IntgrMediaLink_VR && ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrScanMediaLink && ViewModel.Instance.IntgrMediaLink_DESKTOP && !ViewModel.Instance.IsVRRunning)
                 {
-                    if(mediaManager == null)
-                    Start();
+                    if (mediaManager == null)
+                        Start();
                 }
                 else
                 {
@@ -116,7 +115,36 @@ namespace vrcosc_magicchatbox.Classes
 
             sessionInfoLookup[session] = sessionInfo;
             currentSession = session;
+            SessionRestore(sessionInfo);
         }
+
+        public static void SessionRestore(MediaSessionInfo session)
+        {
+            MediaSessionSettings savedSettings = new MediaSessionSettings();
+
+            MediaSessionSettings matchingSettings = ViewModel.Instance.SavedSessionSettings
+                .FirstOrDefault(s => s.SessionId == session.Session.Id);
+
+            if (matchingSettings != null)
+            {
+                // Copy the values from matchingSettings to savedSettings
+                savedSettings.ShowTitle = matchingSettings.ShowTitle;
+                savedSettings.AutoSwitch = matchingSettings.AutoSwitch;
+                savedSettings.ShowArtist = matchingSettings.ShowArtist;
+                savedSettings.IsVideo = matchingSettings.IsVideo;
+                savedSettings.KeepSaved = matchingSettings.KeepSaved;
+
+                if (savedSettings != null && !session.TimeoutRestore)
+                {
+                    session.ShowTitle = savedSettings.ShowTitle;
+                    session.AutoSwitch = savedSettings.AutoSwitch;
+                    session.ShowArtist = savedSettings.ShowArtist;
+                    session.IsVideo = savedSettings.IsVideo;
+                    session.KeepSaved = savedSettings.KeepSaved;
+                }
+            }
+        }
+
 
         // this function will be called when the user closes a media session, we temporarily store the session info in a dictionary so we can restore it if the user reopens the session within a certain time period
         private static async void MediaManager_OnAnySessionClosed(MediaSession session)
@@ -125,6 +153,7 @@ namespace vrcosc_magicchatbox.Classes
 
             if (sessionInfo != null)
             {
+                sessionInfo.TimeoutRestore = true;
                 recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
 
                 Application.Current.Dispatcher.Invoke(() =>

@@ -209,7 +209,7 @@ namespace vrcosc_magicchatbox.Classes
                 if (app.FocusCount < 15 && !app.IsPrivateApp && !app.ApplyCustomAppName && string.IsNullOrEmpty(app.CustomAppName))
                 {
                     ViewModel.Instance.ScannedApps.RemoveAt(i);
-                    removed ++;
+                    removed++;
                 }
             }
             return removed;

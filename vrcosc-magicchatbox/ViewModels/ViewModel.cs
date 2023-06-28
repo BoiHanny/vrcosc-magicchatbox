@@ -159,7 +159,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _IntgrMediaLink_VR = true;
-        public bool  IntgrMediaLink_VR
+        public bool IntgrMediaLink_VR
         {
             get { return _IntgrMediaLink_VR; }
             set
@@ -206,7 +206,19 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        
+
+
+
+        private List<MediaSessionSettings> _SavedSessionSettings = new List<MediaSessionSettings>();
+        public List<MediaSessionSettings> SavedSessionSettings
+        {
+            get { return _SavedSessionSettings; }
+            set
+            {
+                _SavedSessionSettings = value;
+                NotifyPropertyChanged(nameof(SavedSessionSettings));
+            }
+        }
 
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
         public ObservableCollection<MediaSessionInfo> MediaSessions
@@ -302,9 +314,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 else
                 {
-                      IntgrScanSpotify_OLD = false;
+                    IntgrScanSpotify_OLD = false;
                 }
-                    NotifyPropertyChanged(nameof(DisableMediaLink));
+                NotifyPropertyChanged(nameof(DisableMediaLink));
             }
         }
 
@@ -1222,7 +1234,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private Version _PreReleaseVersion;
-        public Version  PreReleaseVersion
+        public Version PreReleaseVersion
         {
             get { return _PreReleaseVersion; }
             set

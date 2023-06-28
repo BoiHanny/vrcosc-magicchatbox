@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using Windows.Media.Control;
 using static WindowsMediaController.MediaManager;
 
@@ -19,6 +23,18 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _TimeoutRestore = false;
+        public bool TimeoutRestore
+        {
+            get { return _TimeoutRestore; }
+            set
+            {
+                _TimeoutRestore = value;
+                NotifyPropertyChanged(nameof(TimeoutRestore));
+            }
+        }
+
+
         private bool _IsActive;
         public bool IsActive
         {
@@ -30,29 +46,17 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _IsVideo;
-        public bool IsVideo
+        private bool _ShowTitle = true;
+        public bool ShowTitle
         {
-            get { return _IsVideo; }
+            get { return _ShowTitle; }
             set
             {
-                _IsVideo = value;
-                NotifyPropertyChanged(nameof(IsVideo));
+                _ShowTitle = value;
+                NotifyPropertyChanged(nameof(ShowTitle));
+                SaveOrDeleteSettings();
             }
         }
-
-
-        private bool _ShowArtist = true;
-        public bool ShowArtist
-        {
-            get { return _ShowArtist; }
-            set
-            {
-                _ShowArtist = value;
-                NotifyPropertyChanged(nameof(ShowArtist));
-            }
-        }
-
 
         private bool _AutoSwitch = ViewModel.Instance.MediaSession_AutoSwitchSpawn;
         public bool AutoSwitch
@@ -62,6 +66,31 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _AutoSwitch = value;
                 NotifyPropertyChanged(nameof(AutoSwitch));
+                SaveOrDeleteSettings();
+            }
+        }
+
+        private bool _ShowArtist = true;
+        public bool ShowArtist
+        {
+            get { return _ShowArtist; }
+            set
+            {
+                _ShowArtist = value;
+                NotifyPropertyChanged(nameof(ShowArtist));
+                SaveOrDeleteSettings();
+            }
+        }
+
+        private bool _IsVideo;
+        public bool IsVideo
+        {
+            get { return _IsVideo; }
+            set
+            {
+                _IsVideo = value;
+                NotifyPropertyChanged(nameof(IsVideo));
+                SaveOrDeleteSettings();
             }
         }
 
@@ -73,17 +102,7 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _KeepSaved = value;
                 NotifyPropertyChanged(nameof(KeepSaved));
-            }
-        }
-
-        private bool _ShowTitle = true;
-        public bool ShowTitle
-        {
-            get { return _ShowTitle; }
-            set
-            {
-                _ShowTitle = value;
-                NotifyPropertyChanged(nameof(ShowTitle));
+                SaveOrDeleteSettings();
             }
         }
 
@@ -98,25 +117,68 @@ namespace vrcosc_magicchatbox.ViewModels
         private void UpdateFriendlyAppName()
         {
             string id = Session.Id;
-
-            // If the Id is already user-friendly, use it directly
-            if (!id.Contains('.') && !id.Contains('!') && char.IsUpper(id[0]))
+            try
             {
+                if (!id.Contains('.') && !id.Contains('!') && char.IsUpper(id[0]))
+                {
+                    FriendlyAppName = id;
+                }
+                else
+                {
+                    if (id.Contains('!'))
+                    {
+                        id = id.Split('!')[1];
+                    }
+
+                    if (id.Contains(".exe"))
+                    {
+                        id = Path.GetFileNameWithoutExtension(id);
+                    }
+                    FriendlyAppName = id;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 FriendlyAppName = id;
+            }
+
+        }
+
+        private void SaveOrDeleteSettings()
+        {
+            if (_KeepSaved)
+            {
+                var savedSettings = ViewModel.Instance.SavedSessionSettings.FirstOrDefault(s => s.SessionId == Session.Id);
+                if (savedSettings != null)
+                {
+                    savedSettings.ShowTitle = _ShowTitle;
+                    savedSettings.AutoSwitch = _AutoSwitch;
+                    savedSettings.ShowArtist = _ShowArtist;
+                    savedSettings.IsVideo = _IsVideo;
+                    savedSettings.KeepSaved = _KeepSaved;
+                }
+                else
+                {
+                    ViewModel.Instance.SavedSessionSettings.Add(new MediaSessionSettings
+                    {
+                        SessionId = Session.Id,
+                        ShowTitle = _ShowTitle,
+                        AutoSwitch = _AutoSwitch,
+                        ShowArtist = _ShowArtist,
+                        IsVideo = _IsVideo,
+                        KeepSaved = _KeepSaved
+                    });
+                }
             }
             else
             {
-                // If the Id contains a '!', take the part after the '!'
-                if (id.Contains('!'))
+                var savedSettings = ViewModel.Instance.SavedSessionSettings.FirstOrDefault(s => s.SessionId == Session.Id);
+                if (savedSettings != null)
                 {
-                    id = id.Substring(id.IndexOf('!') + 1);
+                    ViewModel.Instance.SavedSessionSettings.Remove(savedSettings);
                 }
-                if (id.Contains(".exe"))
-                {
-                    id = id.Substring(0, id.IndexOf(".exe"));
-                }
-
-                FriendlyAppName = id;
             }
         }
 
@@ -127,4 +189,15 @@ namespace vrcosc_magicchatbox.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
+
+    public class MediaSessionSettings
+    {
+        public string SessionId { get; set; }
+        public bool ShowTitle { get; set; }
+        public bool KeepSaved { get; set; }
+        public bool AutoSwitch { get; set; }
+        public bool ShowArtist { get; set; }
+        public bool IsVideo { get; set; }
+    }
+
 }

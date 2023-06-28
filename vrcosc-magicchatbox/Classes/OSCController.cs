@@ -68,16 +68,16 @@ namespace vrcosc_magicchatbox.Classes
                 // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
-                        if (combinedText.Length < 145 & ViewModel.Instance.Egg_Dev && ViewModel.Instance.BlankEgg)
-                        {
+                    if (combinedText.Length < 145 & ViewModel.Instance.Egg_Dev && ViewModel.Instance.BlankEgg)
+                    {
                         oscSender.Send(new OscMessage("/chatbox/input", combinedText, true, FX));
-                        if(ViewModel.Instance.SecOSC)
+                        if (ViewModel.Instance.SecOSC)
                         {
                             SecOscSender.Send(new OscMessage("/chatbox/input", combinedText, true, FX));
                         }
-                        }
-                        else
-                        {
+                    }
+                    else
+                    {
                         oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
                         if (ViewModel.Instance.SecOSC)
                         {
@@ -92,7 +92,7 @@ namespace vrcosc_magicchatbox.Classes
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return;
             }
-            
+
         }
 
 
@@ -348,17 +348,17 @@ namespace vrcosc_magicchatbox.Classes
 
             // set ui elements based on the length of the final OSC message and set the OSCtoSent property in the ViewModel to the final OSC message
             if (Complete_msg.Length > 144)
-                {
-                    ViewModel.Instance.OSCtoSent = "";
-                    ViewModel.Instance.OSCmsg_count = Complete_msg.Length;
-                    ViewModel.Instance.OSCmsg_countUI = "MAX/144";
-                }
-                else
-                {
-                    ViewModel.Instance.OSCtoSent = Complete_msg;
-                    ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
-                    ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
-                }
+            {
+                ViewModel.Instance.OSCtoSent = "";
+                ViewModel.Instance.OSCmsg_count = Complete_msg.Length;
+                ViewModel.Instance.OSCmsg_countUI = "MAX/144";
+            }
+            else
+            {
+                ViewModel.Instance.OSCtoSent = Complete_msg;
+                ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
+                ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
+            }
         }
 
 
@@ -392,7 +392,7 @@ namespace vrcosc_magicchatbox.Classes
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
                 string x = (ViewModel.Instance.ShowBPMSuffix ? ViewModel.Instance.HeartRate + " BPM" : "💖 " + ViewModel.Instance.HeartRate);
-                if(ViewModel.Instance.ShowHeartRateTrendIndicator)
+                if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                 {
                     x = x + ViewModel.Instance.HeartRateTrendIndicator;
                 }

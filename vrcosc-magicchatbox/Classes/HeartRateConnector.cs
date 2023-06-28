@@ -3,13 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Net.Http;
-using System.Net.WebSockets;
-using System.Text;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -17,7 +14,7 @@ namespace vrcosc_magicchatbox.Classes
 {
     public class HeartRateConnector
     {
-        
+
         private CancellationTokenSource _cts;
         private Queue<Tuple<DateTime, int>> _heartRates = new Queue<Tuple<DateTime, int>>();
         Queue<int> _heartRateHistory = new Queue<int>();
