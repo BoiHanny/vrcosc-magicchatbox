@@ -15,10 +15,10 @@ namespace vrcosc_magicchatbox.Classes
     public class HeartRateConnector
     {
 
-        private CancellationTokenSource _cts;
-        private Queue<Tuple<DateTime, int>> _heartRates = new Queue<Tuple<DateTime, int>>();
-        Queue<int> _heartRateHistory = new Queue<int>();
-        private double CalculateSlope(Queue<int> values)
+        private CancellationTokenSource? _cts;
+        private readonly Queue<Tuple<DateTime, int>> _heartRates = new();
+        private readonly Queue<int> _heartRateHistory = new();
+        private static double CalculateSlope(Queue<int> values)
         {
             int count = values.Count;
             double avgX = count / 2.0;
@@ -139,9 +139,8 @@ namespace vrcosc_magicchatbox.Classes
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception here, for example using Logging.WriteException(ex);
-                    // You may want to add a short delay before continuing to prevent rapid retries in case of persistent errors
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
 
                 int scanInterval = ViewModel.Instance.HeartRateScanInterval > 0 ? ViewModel.Instance.HeartRateScanInterval : 5;
@@ -171,26 +170,23 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-        public async Task<int> GetHeartRateViaHttpAsync()
+        public static async Task<int> GetHeartRateViaHttpAsync()
         {
             string accessToken = ViewModel.Instance.PulsoidAccessToken;
             string url = "https://dev.pulsoid.net/api/v1/data/heart_rate/latest";
 
             try
             {
-                using (var httpClient = new HttpClient())
-                {
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var response = await httpClient.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
+                var response = await httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
 
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    JObject json = JObject.Parse(jsonResponse);
-
-                    return json["data"]["heart_rate"].Value<int>();
-                }
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                JObject json = JObject.Parse(jsonResponse);
+                return json["data"]["heart_rate"].Value<int>();
             }
             catch (Exception ex)
             {
