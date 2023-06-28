@@ -65,6 +65,17 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _KeepSaved = true;
+        public bool KeepSaved
+        {
+            get { return _KeepSaved; }
+            set
+            {
+                _KeepSaved = value;
+                NotifyPropertyChanged(nameof(KeepSaved));
+            }
+        }
+
         private bool _ShowTitle = true;
         public bool ShowTitle
         {

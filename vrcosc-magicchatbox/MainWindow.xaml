@@ -3390,6 +3390,16 @@
                                                                     IsChecked="{Binding ShowTitle}"
                                                                     Style="{DynamicResource GlowyToggleButtonMediaLink}"
                                                                     Unchecked="Update_Click" />
+                                                                <CheckBox
+                                                                    Width="auto"
+                                                                    Height="25"
+                                                                    Margin="3,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Checked="Update_Click"
+                                                                    Content="SAVE"
+                                                                    IsChecked="{Binding KeepSaved}"
+                                                                    Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                    Unchecked="Update_Click" />
                                                             </StackPanel>
                                                             <CheckBox
                                                                 Grid.Column="2"
