@@ -3574,6 +3574,7 @@
                                     DisplayMemberPath="DisplayName"
                                     FontSize="11.5"
                                     ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectedItem="{Binding SelectedTikTokTTSVoice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     Opacity="0.4"
                                     SelectedValuePath="ApiName"
                                     SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" />
