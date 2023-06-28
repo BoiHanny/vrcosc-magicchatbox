@@ -94,7 +94,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _KeepSaved = true;
+        private bool _KeepSaved = false;
         public bool KeepSaved
         {
             get { return _KeepSaved; }

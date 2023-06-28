@@ -44,6 +44,8 @@
     <None Remove="Img\Icons\Next_ico.png" />
     <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\Plus_ico.png" />
+    <None Remove="Img\Icons\SaveDark.png" />
+    <None Remove="Img\Icons\SaveLight.png" />
     <None Remove="Img\Icons\Settings_ico.png" />
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
@@ -82,6 +84,8 @@
     </Resource>
     <Resource Include="Img\Icons\HeartRate_ico.png" />
     <Resource Include="Img\Icons\Plus_ico.png" />
+    <Resource Include="Img\Icons\SaveDark.png" />
+    <Resource Include="Img\Icons\SaveLight.png" />
     <Resource Include="Img\Icons\spotify_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -123,7 +127,7 @@
 
   <ItemGroup>
     <Reference Include="CoreOSC">
-      <HintPath>..\..\..\..\..\..\Temp\CoreOSC.dll</HintPath>
+      <HintPath>..\..\..\..\Documents\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 

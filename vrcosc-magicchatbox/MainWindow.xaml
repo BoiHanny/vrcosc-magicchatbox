@@ -3341,18 +3341,72 @@
 
                                                             <!--  RadioButton linked to IsActive  -->
 
+                                                            <Border
+                                                                Margin="-10,-5,-5,-5"
+                                                                BorderThickness="3,3,0,3"
+                                                                CornerRadius="4,0,0,4"
+                                                                IsHitTestVisible="False"
+                                                                Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                                <Border.Background>
+                                                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                                        <GradientStop Color="#3A1F74" />
+                                                                        <GradientStop Offset="1" Color="#230E53" />
+                                                                    </LinearGradientBrush>
+                                                                </Border.Background>
+                                                                <Border.BorderBrush>
+                                                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                                        <GradientStop Color="#3A1F74" />
+                                                                        <GradientStop Offset="1" Color="#A38ED1" />
+                                                                    </LinearGradientBrush>
+                                                                </Border.BorderBrush>
 
+                                                            </Border>
+                                                            <Border
+                                                                Margin="-10,-5,-5,-5"
+                                                                BorderThickness="3,3,0,3"
+                                                                CornerRadius="4,0,0,4"
+                                                                IsHitTestVisible="False"
+                                                                Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                                <Border.Background>
+                                                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                                        <GradientStop Color="#3A1F74" />
+                                                                        <GradientStop Offset="1" Color="#2B165C" />
+                                                                    </LinearGradientBrush>
+                                                                </Border.Background>
+                                                                <Border.BorderBrush>
+                                                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                                        <GradientStop Color="#3A1F74" />
+                                                                        <GradientStop Offset="1" Color="#482D7F" />
+                                                                    </LinearGradientBrush>
+                                                                </Border.BorderBrush>
+
+                                                            </Border>
                                                             <RadioButton
                                                                 Grid.Column="0"
                                                                 Width="auto"
-                                                                Margin="-5,0,0,0"
+                                                                Margin="0,-1,0,0"
                                                                 VerticalAlignment="Center"
+                                                                VerticalContentAlignment="Center"
                                                                 Checked="Update_Click"
                                                                 Content="{Binding FriendlyAppName}"
+                                                                Cursor="Hand"
                                                                 Foreground="#DBD9DE"
                                                                 GroupName="MediaSessions"
                                                                 IsChecked="{Binding IsActive}"
-                                                                Unchecked="Update_Click" />
+                                                                Unchecked="Update_Click">
+
+                                                                <RadioButton.Template>
+                                                                    <ControlTemplate TargetType="RadioButton">
+                                                                        <ContentPresenter
+                                                                            x:Name="contentPresenter"
+                                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                                            Content="{TemplateBinding Content}"
+                                                                            ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                                                    </ControlTemplate>
+                                                                </RadioButton.Template>
+                                                            </RadioButton>
+
                                                             <!--  Label for FriendlyAppName  -->
 
                                                             <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
@@ -3390,28 +3444,34 @@
                                                                     IsChecked="{Binding ShowTitle}"
                                                                     Style="{DynamicResource GlowyToggleButtonMediaLink}"
                                                                     Unchecked="Update_Click" />
+
+                                                            </StackPanel>
+                                                            <StackPanel />
+                                                            <StackPanel
+                                                                Grid.Column="2"
+                                                                Margin="0,0,-6,0"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
+                                                                Orientation="Horizontal">
                                                                 <CheckBox
-                                                                    Width="auto"
+                                                                    Height="25"
+                                                                    Margin="0,0,3,0"
+                                                                    Checked="Update_Click"
+                                                                    Content="AUTOSWITCH ON PLAY"
+                                                                    IsChecked="{Binding AutoSwitch}"
+                                                                    Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                    Unchecked="Update_Click" />
+                                                                <CheckBox
+                                                                    Width="25"
                                                                     Height="25"
                                                                     Margin="3,0"
                                                                     VerticalAlignment="Center"
                                                                     Checked="Update_Click"
-                                                                    Content="SAVE"
+                                                                    Content=""
                                                                     IsChecked="{Binding KeepSaved}"
-                                                                    Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                                    Style="{DynamicResource GlowyToggleButtonMediaLinkWithImage}"
                                                                     Unchecked="Update_Click" />
                                                             </StackPanel>
-                                                            <CheckBox
-                                                                Grid.Column="2"
-                                                                Height="25"
-                                                                Margin="0,0,-5,0"
-                                                                HorizontalAlignment="Right"
-                                                                VerticalAlignment="Center"
-                                                                Checked="Update_Click"
-                                                                Content="AUTOSWITCH ON PLAY"
-                                                                IsChecked="{Binding AutoSwitch}"
-                                                                Style="{DynamicResource GlowyToggleButtonMediaLink}"
-                                                                Unchecked="Update_Click" />
 
                                                         </Grid>
                                                     </Border>
@@ -3574,8 +3634,8 @@
                                     DisplayMemberPath="DisplayName"
                                     FontSize="11.5"
                                     ItemsSource="{Binding TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    SelectedItem="{Binding SelectedTikTokTTSVoice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     Opacity="0.4"
+                                    SelectedItem="{Binding SelectedTikTokTTSVoice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     SelectedValuePath="ApiName"
                                     SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" />
                             </StackPanel>
