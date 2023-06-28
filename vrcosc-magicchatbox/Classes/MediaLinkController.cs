@@ -237,10 +237,13 @@ namespace vrcosc_magicchatbox.Classes
             {
                 foreach (var item in ViewModel.Instance.MediaSessions)
                 {
+
                     if (item.Session.Id == sessionInfo.Session.Id)
                     {
                         item.IsActive = true;
                     }
+                    else
+                    { item.IsActive = false; }
                 }
             }
         }
