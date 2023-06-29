@@ -907,7 +907,19 @@
                                     Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                     Tag="Heart monitoring options"
                                     TextOptions.TextRenderingMode="ClearType" />
-
+                                <TextBlock
+                                    x:Name="LearnMoreAboutHeartbtn"
+                                    Width="auto"
+                                    Margin="208,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Cursor="Hand"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="#FF31B7B4"
+                                    MouseUp="LearnMoreAboutHeartbtn_MouseUp"
+                                    Text="Learn more"
+                                    TextDecorations="Underline" />
                             </Grid>
                             <Grid
                                 Grid.Row="1"
@@ -1890,12 +1902,19 @@
                                         Height="21"
                                         Margin="0,0,0,15"
                                         BorderBrush="#FF2D1265"
+                                        Content="Beta channel updates"
                                         FontFamily="Comfortaa Light"
                                         FontSize="18"
-                                        Foreground="#FFE39E"
+                                        Foreground="{Binding VersionTxtColor}"
                                         IsChecked="{Binding JoinedAlphaChannel, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
-                                        Beta channel updates
+                                        <CheckBox.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="15"
+                                                Opacity="0.7"
+                                                ShadowDepth="0"
+                                                Color="{Binding VersionTxtColor}" />
+                                        </CheckBox.Effect>
                                     </CheckBox>
                                     <StackPanel Orientation="Horizontal">
                                         <Button
@@ -2538,6 +2557,7 @@
                     VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding MenuItem_0_Visibility}">
                     <Grid Background="#FF3B3054">
+
                         <Grid.RowDefinitions>
                             <RowDefinition Height="25" />
                             <RowDefinition Height="auto" MaxHeight="85" />
@@ -3563,7 +3583,6 @@
                         </Grid>
                     </Grid>
                 </ScrollViewer>
-
                 <Grid
                     Grid.Row="1"
                     Grid.Column="1"
@@ -3612,85 +3631,65 @@
                         Grid.Row="1"
                         Height="157"
                         Margin="5,0,6,0"
-                        VerticalAlignment="Top"
-                        Background="#FF7F759A">
-
-
+                        VerticalAlignment="Top">
+                        <Border Background="#FF7F759A">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Quality"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                        </Border>
                         <TextBox
                             Margin="8,8,8,5"
                             d:Text="This song is paused 💖💬⏸🎵"
                             AllowDrop="False"
+                            Background="Transparent"
                             BorderThickness="0"
                             Focusable="False"
                             FontFamily="Albert Sans Thin"
-                            FontSize="13"
+                            FontSize="14"
+                            Foreground="#7E7498"
+                            IsHitTestVisible="False"
+                            IsReadOnly="True"
+                            IsTabStop="False"
+                            MaxLength="144"
+                            Text="{Binding OSCtoSent}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap">
+                            <TextBox.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="13"
+                                    Opacity="0.8"
+                                    ShadowDepth="0"
+                                    Color="white" />
+                            </TextBox.Effect>
+                        </TextBox>
+                        <TextBox
+                            Margin="8,8,8,5"
+                            d:Text="This song is paused 💖💬⏸🎵"
+                            AllowDrop="False"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Focusable="False"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
                             Foreground="#FFDFDDE2"
                             IsHitTestVisible="False"
                             IsReadOnly="True"
                             IsTabStop="False"
                             MaxLength="144"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                             Text="{Binding OSCtoSent}"
                             TextAlignment="Center"
-                            TextWrapping="Wrap">
-                            <TextBox.Template>
-                                <ControlTemplate TargetType="TextBox">
-                                    <TextBlock
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="{TemplateBinding Text}"
-                                        TextAlignment="{TemplateBinding TextAlignment}"
-                                        TextWrapping="{TemplateBinding TextWrapping}">
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="15"
-                                                Opacity="0.5"
-                                                ShadowDepth="0"
-                                                Color="black" />
-                                        </TextBlock.Effect>
-                                    </TextBlock>
-                                </ControlTemplate>
-                            </TextBox.Template>
-                        </TextBox>
-                        <Grid.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Direction="0"
-                                Opacity="0.3"
-                                ShadowDepth="0"
-                                Color="#FF000000" />
-                        </Grid.Effect>
+                            TextWrapping="Wrap" />
+
+
+
                     </Grid>
 
-                    <StackPanel
-                        Grid.Row="1"
-                        Margin="0,0,0,35"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Bottom"
-                        Orientation="Horizontal"
-                        Visibility="{Binding CanUpdate, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <Button
-                            x:Name="Discord"
-                            Margin="2.5,0"
-                            Click="CheckUpdateBtnn_Click"
-                            Style="{StaticResource CircleButton}">
-                            <Image
-                                Width="15"
-                                Height="15"
-                                RenderOptions.BitmapScalingMode="Linear"
-                                Source="/Img/Icons/Load_ico.png" />
-                        </Button>
-                        <Button
-                            x:Name="GitHub"
-                            Margin="2.5,0"
-                            Click="CheckUpdateBtnn_Click"
-                            Style="{StaticResource CircleButton}">
-                            <Image
-                                Width="15"
-                                Height="15"
-                                RenderOptions.BitmapScalingMode="Linear"
-                                Source="/Img/Icons/Load_ico.png" />
-                        </Button>
-                    </StackPanel>
+
 
                     <StackPanel
                         Grid.Row="1"
@@ -3857,7 +3856,7 @@
                                     <Slider.Effect>
                                         <DropShadowEffect
                                             BlurRadius="10"
-                                            Opacity="0.5"
+                                            Opacity="0.3"
                                             ShadowDepth="0"
                                             Color="#251153" />
                                     </Slider.Effect>
@@ -3927,10 +3926,10 @@
                                 Text="{Binding AppVersion.VersionNumber}">
                                 <TextBlock.Effect>
                                     <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.5"
+                                        BlurRadius="15"
+                                        Opacity="0.9"
                                         ShadowDepth="0"
-                                        Color="#251153" />
+                                        Color="{Binding VersionTxtColor}" />
                                 </TextBlock.Effect>
 
                             </TextBlock>
@@ -3945,19 +3944,57 @@
                                 Foreground="{Binding VersionTxtColor}"
                                 MouseUp="NewVersion_MouseUp"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="{Binding VersionTxt}"
-                                TextDecorations="Underline">
+                                Text="{Binding VersionTxt}">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding VersionTxtUnderLine}" Value="True">
+                                                <Setter Property="TextDecorations" Value="Underline" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
 
                                 <TextBlock.Effect>
                                     <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.5"
+                                        BlurRadius="15"
+                                        Opacity="0.7"
                                         ShadowDepth="0"
-                                        Color="#251153" />
+                                        Color="{Binding VersionTxtColor}" />
                                 </TextBlock.Effect>
                             </TextBlock>
                         </StackPanel>
                     </Grid>
+                    <Button
+                        x:Name="Discord"
+                        Width="auto"
+                        Margin="6,3,190,5"
+                        Click="Discord_Click"
+                        Opacity="0.6"
+                        Style="{DynamicResource LINK_Button_style}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                Height="20"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Source="/Img/Icons/Discord.png" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="Github"
+                        Width="auto"
+                        Margin="32,3,164,5"
+                        Click="Github_Click"
+                        Opacity="0.4"
+                        Style="{DynamicResource LINK_Button_style}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                Height="20"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Source="/Img/Icons/GitHub.png" />
+                        </StackPanel>
+                    </Button>
 
                 </Grid>
             </Grid>

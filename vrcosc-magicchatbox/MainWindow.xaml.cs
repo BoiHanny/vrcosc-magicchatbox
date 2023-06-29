@@ -736,5 +736,20 @@ namespace vrcosc_magicchatbox
         {
             ManualUpdateCheckAsync();
         }
+
+        private void Discord_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", "https://discord.gg/ZaSFwBfhvG");
+        }
+
+        private void Github_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox");
+        }
+
+        private void LearnMoreAboutHeartbtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Set-Up-MagicChatbox-with-Pulsoid-for-VRChat-%F0%9F%92%9C");
+        }
     }
 }

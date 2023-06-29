@@ -604,6 +604,17 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _VersionTxtUnderLine = false;
+        public bool VersionTxtUnderLine
+        {
+            get { return _VersionTxtUnderLine; }
+            set
+            {
+                _VersionTxtUnderLine = value;
+                NotifyPropertyChanged(nameof(VersionTxtUnderLine));
+            }
+        }
+
         private int _HeartRateScanInterval = 3;
         public int HeartRateScanInterval
         {

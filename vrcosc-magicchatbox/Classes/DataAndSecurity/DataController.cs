@@ -26,6 +26,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             Instance.VersionTxt = "Checking for updates...";
             Instance.VersionTxtColor = "#FBB644";
+            Instance.VersionTxtUnderLine = false;
             if (checkagain == true)
             {
                 Task.Delay(1000).Wait();
@@ -573,6 +574,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
                 Instance.VersionTxt = "Can't check updates";
                 Instance.VersionTxtColor = "#F36734";
+                Instance.VersionTxtUnderLine = false;
             }
             finally
             {
@@ -596,6 +598,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     // If the latest release version is greater than the current version
                     Instance.VersionTxt = "Update now";
                     Instance.VersionTxtColor = "#FF8AFF04";
+                    Instance.VersionTxtUnderLine = true;
                     Instance.CanUpdate = true;
                     Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
@@ -610,6 +613,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     {
                         // If the pre-release version is greater than the current version and the user has joined the alpha channel
                         Instance.VersionTxt = "Install pre-release";
+                        Instance.VersionTxtUnderLine = true;
                         Instance.VersionTxtColor = "#2FD9FF";
                         Instance.CanUpdate = true;
                         Instance.UpdateURL = Instance.PreReleaseURL;
@@ -618,8 +622,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     else if (compareWithPreRelease == 0)
                     {
                         // If the pre-release version is equal to the current version and the user has joined the alpha channel
-                        Instance.VersionTxt = "pre-release up-to-date";
-                        Instance.VersionTxtColor = "#FF92CC90";
+                        Instance.VersionTxt = "Up-to-date (pre-release)";
+                        Instance.VersionTxtUnderLine = false;
+                        Instance.VersionTxtColor = "#75D5FE";
                         Instance.CanUpdate = false;
                         return;
                     }
@@ -632,6 +637,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     // If the current version is a pre-release version and the user has opted out of the alpha channel
                     Instance.VersionTxt = "Downgrade now";
                     Instance.VersionTxtColor = "#FF8AFF04";
+                    Instance.VersionTxtUnderLine = true;
                     Instance.CanUpdate = true;
                     Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
@@ -639,6 +645,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 // If no new update or pre-release is found
                 Instance.VersionTxt = "You are up-to-date";
+                Instance.VersionTxtUnderLine = false;
                 Instance.VersionTxtColor = "#FF92CC90";
                 Instance.CanUpdate = false;
             }

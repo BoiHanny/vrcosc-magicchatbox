@@ -35,7 +35,9 @@
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
     <None Remove="Img\Icons\Close_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
+    <None Remove="Img\Icons\Discord.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
+    <None Remove="Img\Icons\GitHub.png" />
     <None Remove="Img\Icons\HeartRate_ico.png" />
     <None Remove="Img\Icons\Load_ico.png" />
     <None Remove="Img\Icons\MagicChatbox_ico.png" />
@@ -71,9 +73,11 @@
     <Resource Include="Img\Icons\Delete_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Discord.png" />
     <Resource Include="Img\Icons\Favorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\GitHub.png" />
     <Resource Include="Img\Icons\Load_ico.png" />
     <Resource Include="Img\Icons\MagicChatbox_ico.png" />
     <Resource Include="Img\Icons\MediaLink_ico.png" />
