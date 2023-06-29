@@ -279,6 +279,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid Grid.ColumnSpan="2" Background="#FF2D1267">
+
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150" />
                         <ColumnDefinition Width="143" />
@@ -298,6 +299,7 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="16"
                                 Foreground="White"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="MagicChatbox">
                                 <TextBlock.Effect>
                                     <DropShadowEffect
@@ -316,6 +318,7 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="10"
                                 Foreground="MediumPurple"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="VRC OSC">
                                 <TextBlock.Effect>
                                     <DropShadowEffect
@@ -434,9 +437,10 @@
                                 VerticalAlignment="Center"
                                 Click="MasterSwitch_Click"
                                 IsChecked="{Binding MasterSwitch, Mode=TwoWay}"
-                                Opacity="0.75"
+                                Opacity="0.90"
                                 Style="{DynamicResource Switch}" />
                         </StackPanel>
+
                     </Grid>
                     <Grid Grid.Column="6" HorizontalAlignment="Right">
                         <Grid.ColumnDefinitions>
@@ -494,8 +498,17 @@
                                 Grid.Column="0"
                                 FontFamily="Albert Sans Thin"
                                 FontSize="16"
-                                Foreground="#FF9983AD"
-                                Text="Here you can add ur personal message to the chatbox!" />
+                                Foreground="#AAA3B7"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="Here you can add ur personal message to the chatbox!">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Opacity="1"
+                                        ShadowDepth="0"
+                                        Color="#251153" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer
@@ -2545,14 +2558,23 @@
                             <StackPanel
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Orientation="Horizontal">
+                                Orientation="Horizontal"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor">
                                 <TextBlock
                                     Grid.Column="0"
                                     Margin="0,3,0,0"
                                     FontFamily="Albert Sans Thin"
                                     FontSize="16"
                                     Foreground="#FF9983AD"
-                                    Text="Some intergrations can't be showed because a limit on characters" />
+                                    Text="Some intergrations can't be showed because a limit on characters">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="1"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
                             </StackPanel>
                         </Grid>
                         <Grid Grid.Row="1" Opacity="{Binding Status_Opacity}">
@@ -2588,6 +2610,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="Personal status">
                                             <TextBlock.Effect>
                                                 <DropShadowEffect
@@ -2604,6 +2627,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="13"
                                             Foreground="LightGray"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="With this integration, you can write an epic status that you want to show to everyone in game"
                                             TextWrapping="Wrap">
                                             <TextBlock.Effect>
@@ -2621,6 +2645,7 @@
                                             VerticalAlignment="Top"
                                             Command="{Binding ActivateSettingCommand}"
                                             CommandParameter="Settings_Status"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Style="{StaticResource CircleButton}">
                                             <Image
                                                 Width="15"
@@ -2716,6 +2741,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="Window activity">
                                             <TextBlock.Effect>
                                                 <DropShadowEffect
@@ -2732,6 +2758,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="13"
                                             Foreground="LightGray"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
                                             TextWrapping="Wrap">
                                             <TextBlock.Effect>
@@ -2749,6 +2776,7 @@
                                             VerticalAlignment="Top"
                                             Command="{Binding ActivateSettingCommand}"
                                             CommandParameter="Settings_WindowActivity"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Style="{StaticResource CircleButton}">
                                             <Image
                                                 Width="15"
@@ -2837,6 +2865,7 @@
                                         VerticalAlignment="Top"
                                         Command="{Binding ActivateSettingCommand}"
                                         CommandParameter="Settings_HeartRate"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Style="{StaticResource CircleButton}">
                                         <Image
                                             Width="15"
@@ -2863,6 +2892,7 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="20"
                                                 Foreground="White"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="Heart rate">
                                                 <TextBlock.Effect>
                                                     <DropShadowEffect
@@ -2879,8 +2909,17 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="12"
                                                 Foreground="#ABA4B8"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="Last update:"
-                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="0.5"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
                                             <TextBlock
                                                 Grid.Row="0"
                                                 Margin="3,9,0,0"
@@ -2888,8 +2927,17 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="11"
                                                 Foreground="#ABA4B8"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
-                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="0.5"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
                                         </StackPanel>
                                         <TextBlock
                                             Grid.Row="1"
@@ -2898,6 +2946,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="13"
                                             Foreground="LightGray"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
                                             TextWrapping="Wrap">
                                             <TextBlock.Effect>
@@ -2989,6 +3038,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="20"
                                             Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="Current time">
                                             <TextBlock.Effect>
                                                 <DropShadowEffect
@@ -3005,6 +3055,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="13"
                                             Foreground="LightGray"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="With this integration, you can display your local machine's current time and also convert it to a custom timezone of your choice."
                                             TextWrapping="Wrap">
                                             <TextBlock.Effect>
@@ -3022,6 +3073,7 @@
                                             VerticalAlignment="Top"
                                             Command="{Binding ActivateSettingCommand}"
                                             CommandParameter="Settings_Time"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Style="{StaticResource CircleButton}">
                                             <Image
                                                 Width="15"
@@ -3135,6 +3187,7 @@
                                             VerticalAlignment="Top"
                                             Command="{Binding ActivateSettingCommand}"
                                             CommandParameter="Settings_MediaLink"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Style="{StaticResource CircleButton}">
                                             <Image
                                                 Width="15"
@@ -3221,6 +3274,7 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="20"
                                                 Foreground="White"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="MediaLink">
                                                 <TextBlock.Effect>
                                                     <DropShadowEffect
@@ -3237,6 +3291,7 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="13"
                                                 Foreground="LightGray"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
                                                 TextWrapping="Wrap">
                                                 <TextBlock.Effect>
@@ -3254,6 +3309,7 @@
                                                 VerticalAlignment="Top"
                                                 Command="{Binding ActivateSettingCommand}"
                                                 CommandParameter="Settings_MediaLink"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Style="{StaticResource CircleButton}">
                                                 <Image
                                                     Width="15"
@@ -3403,9 +3459,28 @@
                                                                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                                                             Content="{TemplateBinding Content}"
                                                                             ContentTemplate="{TemplateBinding ContentTemplate}" />
+
+                                                                        <ControlTemplate.Triggers>
+                                                                            <MultiDataTrigger>
+                                                                                <MultiDataTrigger.Conditions>
+                                                                                    <Condition Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource Self}}" Value="False" />
+                                                                                    <Condition Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                                                                </MultiDataTrigger.Conditions>
+                                                                                <Setter TargetName="contentPresenter" Property="Effect">
+                                                                                    <Setter.Value>
+                                                                                        <DropShadowEffect
+                                                                                            BlurRadius="15"
+                                                                                            Opacity="1"
+                                                                                            ShadowDepth="0"
+                                                                                            Color="White" />
+                                                                                    </Setter.Value>
+                                                                                </Setter>
+                                                                            </MultiDataTrigger>
+                                                                        </ControlTemplate.Triggers>
                                                                     </ControlTemplate>
                                                                 </RadioButton.Template>
                                                             </RadioButton>
+
 
                                                             <!--  Label for FriendlyAppName  -->
 
@@ -3505,7 +3580,16 @@
                         FontFamily="Albert Sans Thin"
                         FontSize="16"
                         Foreground="White"
-                        Text="Preview" />
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Text="Preview">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="10"
+                                Opacity="1"
+                                ShadowDepth="0"
+                                Color="#251153" />
+                        </TextBlock.Effect>
+                    </TextBlock>
                     <TextBlock
                         Grid.Column="0"
                         Margin="0,0,10,0"
@@ -3514,34 +3598,103 @@
                         FontFamily="Albert Sans Thin"
                         FontSize="12"
                         Foreground="#FF8D7DB9"
-                        Text="{Binding OSCmsg_countUI}" />
+                        Text="{Binding OSCmsg_countUI}">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="10"
+                                Opacity="1"
+                                ShadowDepth="0"
+                                Color="#251153" />
+                        </TextBlock.Effect>
+                    </TextBlock>
 
-                    <TextBox
+                    <Grid
                         Grid.Row="1"
-                        Height="150"
-                        Margin="5,0,5,0"
-                        Padding="8,5,8,5"
-                        HorizontalAlignment="Stretch"
+                        Height="157"
+                        Margin="5,0,6,0"
                         VerticalAlignment="Top"
-                        AllowDrop="False"
-                        Background="#FF7F759A"
-                        BorderThickness="0"
-                        Focusable="False"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="#FFDFDDE2"
-                        IsHitTestVisible="False"
-                        IsReadOnly="True"
-                        IsTabStop="False"
-                        MaxLength="144"
-                        Text="{Binding OSCtoSent}"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap" />
+                        Background="#FF7F759A">
 
+
+                        <TextBox
+                            Margin="8,8,8,5"
+                            d:Text="This song is paused 💖💬⏸🎵"
+                            AllowDrop="False"
+                            BorderThickness="0"
+                            Focusable="False"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="#FFDFDDE2"
+                            IsHitTestVisible="False"
+                            IsReadOnly="True"
+                            IsTabStop="False"
+                            MaxLength="144"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="{Binding OSCtoSent}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap">
+                            <TextBox.Template>
+                                <ControlTemplate TargetType="TextBox">
+                                    <TextBlock
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{TemplateBinding Text}"
+                                        TextAlignment="{TemplateBinding TextAlignment}"
+                                        TextWrapping="{TemplateBinding TextWrapping}">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="15"
+                                                Opacity="0.5"
+                                                ShadowDepth="0"
+                                                Color="black" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                </ControlTemplate>
+                            </TextBox.Template>
+                        </TextBox>
+                        <Grid.Effect>
+                            <DropShadowEffect
+                                BlurRadius="10"
+                                Direction="0"
+                                Opacity="0.3"
+                                ShadowDepth="0"
+                                Color="#FF000000" />
+                        </Grid.Effect>
+                    </Grid>
 
                     <StackPanel
                         Grid.Row="1"
-                        Margin="0,155,0,0"
+                        Margin="0,0,0,35"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal"
+                        Visibility="{Binding CanUpdate, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <Button
+                            x:Name="Discord"
+                            Margin="2.5,0"
+                            Click="CheckUpdateBtnn_Click"
+                            Style="{StaticResource CircleButton}">
+                            <Image
+                                Width="15"
+                                Height="15"
+                                RenderOptions.BitmapScalingMode="Linear"
+                                Source="/Img/Icons/Load_ico.png" />
+                        </Button>
+                        <Button
+                            x:Name="GitHub"
+                            Margin="2.5,0"
+                            Click="CheckUpdateBtnn_Click"
+                            Style="{StaticResource CircleButton}">
+                            <Image
+                                Width="15"
+                                Height="15"
+                                RenderOptions.BitmapScalingMode="Linear"
+                                Source="/Img/Icons/Load_ico.png" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,164,0,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top">
 
@@ -3576,7 +3729,16 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
                                 Foreground="#FF7D7397"
-                                Text="TopMost" />
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="TopMost">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Opacity="0.5"
+                                        ShadowDepth="0"
+                                        Color="#251153" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                             <CheckBox
                                 Width="20"
                                 BorderBrush="#FF2D1265"
@@ -3600,7 +3762,16 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
                                 Foreground="#FF7D7397"
-                                Text="Text to speech" />
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="Text to speech">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Opacity="0.5"
+                                        ShadowDepth="0"
+                                        Color="#251153" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                             <CheckBox
                                 Width="20"
                                 BorderBrush="#FF2D1265"
@@ -3625,7 +3796,16 @@
                                     FontFamily="Albert Sans Thin"
                                     FontSize="13"
                                     Foreground="#FF7D7397"
-                                    Text="Voice" />
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Voice">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
                                 <ComboBox
                                     x:Name="TikTokTTSVoices_combo"
                                     Width="135"
@@ -3654,7 +3834,16 @@
                                     FontFamily="Albert Sans Thin"
                                     FontSize="13"
                                     Foreground="#FF7D7397"
-                                    Text="TTS volume" />
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="TTS volume">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
                                 <Slider
                                     x:Name="VolumeSlider"
                                     Width="134.5"
@@ -3662,8 +3851,17 @@
                                     Margin="2.2,0,4.5,0"
                                     Maximum="1"
                                     Minimum="0"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Style="{StaticResource CustomSlider}"
-                                    Value="{Binding Path=TTSVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    Value="{Binding Path=TTSVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                    <Slider.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Slider.Effect>
+                                </Slider>
                             </StackPanel>
                         </StackPanel>
 
@@ -3690,7 +3888,15 @@
                             MouseUp="GitHubChanges_MouseUp"
                             Text="View changes on GitHub"
                             TextDecorations="Underline"
-                            Visibility="{Binding CanUpdate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            Visibility="{Binding CanUpdate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Opacity="1"
+                                    ShadowDepth="0"
+                                    Color="#251153" />
+                            </TextBlock.Effect>
+                        </TextBlock>
                         <StackPanel
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
@@ -3708,6 +3914,7 @@
                                     Height="12"
                                     RenderOptions.BitmapScalingMode="Linear"
                                     Source="/Img/Icons/Load_ico.png" />
+
                             </Button>
                             <TextBlock
                                 Margin="5,0.5,5,5"
@@ -3716,7 +3923,17 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
                                 Foreground="#9D91D2"
-                                Text="{Binding AppVersion.VersionNumber}" />
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="{Binding AppVersion.VersionNumber}">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Opacity="0.5"
+                                        ShadowDepth="0"
+                                        Color="#251153" />
+                                </TextBlock.Effect>
+
+                            </TextBlock>
                             <TextBlock
                                 Name="NewVersion"
                                 Margin="0,0.5,5,8"
@@ -3727,8 +3944,18 @@
                                 FontSize="12"
                                 Foreground="{Binding VersionTxtColor}"
                                 MouseUp="NewVersion_MouseUp"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="{Binding VersionTxt}"
-                                TextDecorations="Underline" />
+                                TextDecorations="Underline">
+
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Opacity="0.5"
+                                        ShadowDepth="0"
+                                        Color="#251153" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                         </StackPanel>
                     </Grid>
 

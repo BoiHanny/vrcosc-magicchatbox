@@ -6,27 +6,7 @@
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Application.Resources>
-        <Style x:Key="MediaLinkButtonStyle" TargetType="RadioButton">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Width" Value="Auto" />
-            <Setter Property="Margin" Value="-5,0,0,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground" Value="#DBD9DE" />
 
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <ContentPresenter
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}" />
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <Style x:Key="CircleButton" TargetType="Button">
             <Setter Property="Background" Value="#3D217A" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -676,6 +656,7 @@
         <Style x:Key="GlowyToggleButton" TargetType="{x:Type ToggleButton}">
             <Setter Property="Background" Value="#3A3644" />
             <Setter Property="Foreground" Value="#82829B" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
@@ -1141,6 +1122,7 @@
         <SolidColorBrush x:Key="OptionMark.Disabled.Glyph" Color="#FF707070" />
         <Style x:Key="Switch" TargetType="{x:Type CheckBox}">
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
@@ -1151,7 +1133,15 @@
                                     Height="20"
                                     Margin="5,0"
                                     Background="LightGray"
-                                    CornerRadius="10" />
+                                    CornerRadius="10">
+                                    <Border.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="25"
+                                            Opacity="0.4"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Border.Effect>
+                                </Border>
                                 <Border
                                     x:Name="button"
                                     Width="25"
@@ -1172,7 +1162,7 @@
                                     Storyboard.TargetProperty="Margin"
                                     From="0,0,0,0"
                                     To="28,0,0,0"
-                                    Duration="0:0:0.4">
+                                    Duration="0:0:0.15">
                                     <ThicknessAnimation.EasingFunction>
                                         <CircleEase EasingMode="EaseOut" />
                                     </ThicknessAnimation.EasingFunction>
@@ -1184,7 +1174,7 @@
                                     Storyboard.TargetProperty="Margin"
                                     From="28,0,0,0"
                                     To="0,0,0,0"
-                                    Duration="0:0:0.4">
+                                    Duration="0:0:0.15">
                                     <ThicknessAnimation.EasingFunction>
                                         <CircleEase EasingMode="EaseOut" />
                                     </ThicknessAnimation.EasingFunction>
@@ -1204,7 +1194,7 @@
                                     <RemoveStoryboard BeginStoryboardName="rightt" />
                                     <BeginStoryboard x:Name="leftt" Storyboard="{StaticResource left}" />
                                 </Trigger.ExitActions>
-                                <Setter TargetName="button" Property="Background" Value="#20BF55" />
+                                <Setter TargetName="button" Property="Background" Value="#1ED760" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -1227,10 +1217,12 @@
                                 x:Name="Rectangle1"
                                 Width="Auto"
                                 Height="Auto"
+                                Margin="0,5"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="5" />
+                                CornerRadius="5"
+                                Cursor="Hand" />
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Tag" Value="Horizontal">

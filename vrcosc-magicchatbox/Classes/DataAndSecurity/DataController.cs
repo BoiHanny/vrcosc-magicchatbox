@@ -511,8 +511,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     Random random = new Random();
                     int randomId = random.Next(10, 99999999);
-                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Bubs", MSGLenght = 4, MSGID = randomId });
-                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = false, IsFavorite = true, msg = "Enjoy <$", MSGLenght = 8, MSGID = randomId });
+                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Enjoy 💖", MSGLenght = 7, MSGID = randomId });
                     SaveStatusList();
                 }
             }
@@ -606,20 +605,29 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     var preReleaseVersion = Instance.PreReleaseVersion.VersionNumber;
                     int compareWithPreRelease = currentVersion.CompareTo(preReleaseVersion);
+
                     if (compareWithPreRelease < 0)
                     {
                         // If the pre-release version is greater than the current version and the user has joined the alpha channel
                         Instance.VersionTxt = "Install pre-release";
-                        Instance.VersionTxtColor = "#FF8AFF04";
+                        Instance.VersionTxtColor = "#2FD9FF";
                         Instance.CanUpdate = true;
                         Instance.UpdateURL = Instance.PreReleaseURL;
+                        return;
+                    }
+                    else if (compareWithPreRelease == 0)
+                    {
+                        // If the pre-release version is equal to the current version and the user has joined the alpha channel
+                        Instance.VersionTxt = "pre-release up-to-date";
+                        Instance.VersionTxtColor = "#FF92CC90";
+                        Instance.CanUpdate = false;
                         return;
                     }
                 }
 
                 // Check if a downgrade is needed
                 if (!Instance.JoinedAlphaChannel && Instance.LatestReleaseVersion != null &&
-                    currentVersion.CompareTo(   Instance.LatestReleaseVersion.VersionNumber) > 0)
+                    currentVersion.CompareTo(Instance.LatestReleaseVersion.VersionNumber) > 0)
                 {
                     // If the current version is a pre-release version and the user has opted out of the alpha channel
                     Instance.VersionTxt = "Downgrade now";
@@ -639,6 +647,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
 
 
 
