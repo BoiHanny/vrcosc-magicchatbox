@@ -377,7 +377,7 @@ namespace vrcosc_magicchatbox.Classes
         // this function will build the window activity message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddWindowActivity(List<string> Uncomplete)
         {
-            if (ViewModel.Instance.IntgrScanWindowActivity == true)
+            if (ViewModel.Instance.IntgrScanWindowActivity && ViewModel.Instance.FocusedWindow.Length > 0)
             {
                 string x = ViewModel.Instance.IsVRRunning ? "In VR"
                                                             : "On desktop in '" + ViewModel.Instance.FocusedWindow + "'";
@@ -407,11 +407,20 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrScanWindowTime == true)
             {
-                string x = ViewModel.Instance.PrefixTime == true ? "My time: " + ViewModel.Instance.CurrentTime
-                                                                  : ViewModel.Instance.CurrentTime;
-                TryAddToUncomplete(Uncomplete, x, "Time");
+                if (ViewModel.Instance.CurrentTime != null)
+                {
+                    string x = ViewModel.Instance.PrefixTime == true ? "My time: " + ViewModel.Instance.CurrentTime
+                                                                      : ViewModel.Instance.CurrentTime;
+                    TryAddToUncomplete(Uncomplete, x, "Time");
+                }
+                else
+                {
+                    // Handle the situation when ViewModel.Instance.CurrentTime is null.
+                    // For example, you might want to log an error message or throw an exception.
+                }
             }
         }
+
 
 
         // this function will build the spotify status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
