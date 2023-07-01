@@ -50,8 +50,16 @@ namespace vrcosc_magicchatbox
             InitializeComponent();
 
             DispatcherTimer backgroundCheck = new DispatcherTimer();
+
+            Closing += SaveDataToDisk;
+            InitializeComponent();
+
+            backgroundCheck = new DispatcherTimer();
             backgroundCheck.Tick += Timer;
-            backgroundCheck.Interval = new TimeSpan(0, 0, ViewModel.Instance.ScanInterval);
+
+            // Here we set the interval by multiplying ScanInterval by 1000 to get milliseconds
+            backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
+
             backgroundCheck.Start();
 
             SelectTTS();

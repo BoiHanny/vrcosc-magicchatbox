@@ -866,7 +866,7 @@
                                 x:Name="Settings_Status_Grid"
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_Status, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <CheckBox
                                     x:Name="StatusIconPrefix_checkbox"
@@ -924,7 +924,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <TextBlock
@@ -952,7 +952,7 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
-                                        Text="Heart rate request interval" />
+                                        Text="Pulsoid request rate in sec" />
                                     <TextBox
                                         x:Name="heartRateScanInt"
                                         Width="40"
@@ -965,7 +965,7 @@
                                         BorderThickness="0"
                                         FontSize="15"
                                         Foreground="#FF240E54"
-                                        Text="{Binding HeartRateScanInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        Text="{Binding HeartRateScanInterval_v1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <CheckBox
                                         x:Name="ApplyHeartRateAdjustment_checkbox"
                                         Height="20"
@@ -1051,7 +1051,7 @@
                                             BorderThickness="0"
                                             FontSize="15"
                                             Foreground="#FF240E54"
-                                            Text="{Binding HeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            Text="{Binding SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                     <CheckBox
                                         x:Name="ShowHeartRateTrendIndicator"
@@ -1065,7 +1065,7 @@
                                         IsChecked="{Binding ShowHeartRateTrendIndicator, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}"
                                         Unchecked="Update_Click">
-                                        Heart rate trend indicator
+                                        Heart rate trend indicator ⤴️ ⤵️
                                     </CheckBox>
                                     <StackPanel Margin="0,-5,0,0" Visibility="{Binding ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
@@ -1101,12 +1101,12 @@
 
                                             <TextBlock
                                                 Width="auto"
-                                                Padding="0,5"
+                                                Padding="2,5,5,5"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="13"
                                                 Foreground="#FF7D7397"
-                                                Text="Low" />
+                                                Text="Quick" />
                                             <Slider
                                                 x:Name="HeartRateTrendIndicatorSensitivitySlider"
                                                 Width="134.5"
@@ -1123,7 +1123,7 @@
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="13"
                                                 Foreground="#FF7D7397"
-                                                Text="High" />
+                                                Text="Slow" />
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
@@ -1156,7 +1156,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_Time, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <CheckBox
@@ -1287,7 +1287,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_Chatting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <TextBlock
@@ -1379,7 +1379,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_TTS, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <CheckBox
@@ -1475,7 +1475,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <CheckBox
@@ -1778,7 +1778,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="10,10,0,0"
+                                Margin="34,10,0,0"
                                 Visibility="{Binding Settings_AppOptions, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <StackPanel>
@@ -1826,6 +1826,44 @@
                                             Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                                     </StackPanel>
+                                    <TextBlock
+                                        Width="auto"
+                                        Padding="0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="OSC update rate" />
+                                    <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                        <Slider
+                                            x:Name="ScanningIntervalSensitivitySlider"
+                                            Width="134.5"
+                                            Height="12"
+                                            Margin="2.2,0,4.5,0"
+                                            IsSnapToTickEnabled="True"
+                                            Maximum="10"
+                                            Minimum="1.5"
+                                            Style="{StaticResource CustomSlider}"
+                                            TickFrequency="0.1"
+                                            Value="{Binding Path=ScanningInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF7D7397"
+                                            Text="{Binding ScanningInterval}" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="-2,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF7D7397"
+                                            Text="sec" />
+                                    </StackPanel>
+
                                     <CheckBox
                                         x:Name="SecOSC_checkbox"
                                         Height="21"
@@ -1987,7 +2025,7 @@
                                 x:Name="Settings_Dev_Grid"
                                 Grid.Row="1"
                                 Height="Auto"
-                                Margin="5,10,0,0"
+                                Margin="35,10,0,0"
                                 Visibility="{Binding Settings_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <CheckBox
                                     x:Name="BlankEgg_checkbox"

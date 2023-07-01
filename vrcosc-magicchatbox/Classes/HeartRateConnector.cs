@@ -91,7 +91,7 @@ namespace vrcosc_magicchatbox.Classes
                             _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));
 
                             // Remove old data
-                            while (_heartRates.Count > 0 && (DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.HeartRateTimeSpan)))
+                            while (_heartRates.Count > 0 && (DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.SmoothHeartRateTimeSpan)))
                             {
                                 _heartRates.Dequeue();
                             }
@@ -143,7 +143,7 @@ namespace vrcosc_magicchatbox.Classes
                     Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
 
-                int scanInterval = ViewModel.Instance.HeartRateScanInterval > 0 ? ViewModel.Instance.HeartRateScanInterval : 5;
+                int scanInterval = ViewModel.Instance.HeartRateScanInterval_v1 > 0 ? ViewModel.Instance.HeartRateScanInterval_v1 : 5;
                 TimeSpan elapsedTime = DateTime.UtcNow - startTime;
                 TimeSpan remainingDelay = TimeSpan.FromSeconds(scanInterval) - elapsedTime;
 

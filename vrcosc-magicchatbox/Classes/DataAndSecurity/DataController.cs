@@ -237,7 +237,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"MediaSession_AutoSwitch", (typeof(bool), "MediaLink")},
                         {"DisableMediaLink", (typeof(bool), "MediaLink")},
 
-                        {"ScanInterval", (typeof(int), "Scanning")},
+                        {"ScanningInterval", (typeof(double), "Scanning")},
                         {"ScanPauseTimeout", (typeof(int), "Scanning")},
 
                         {"PrefixIconMusic", (typeof(bool), "Icons")},
@@ -273,14 +273,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"Egg_Dev", (typeof(bool), "DEV")},
 
                         {"PulsoidAccessToken", (typeof(string), "HeartRateConnector")},
-                        {"HeartRateScanInterval", (typeof(int), "HeartRateConnector")},
+                        {"HeartRateScanInterval_v1", (typeof(int), "HeartRateConnector")},
                         {"HeartRate", (typeof(int), "HeartRateConnector")},
                         {"HeartRateLastUpdate", (typeof(DateTime), "HeartRateConnector")},
                         {"ShowBPMSuffix", (typeof(bool), "HeartRateConnector")},
                         {"ApplyHeartRateAdjustment", (typeof(bool), "HeartRateConnector")},
                         {"HeartRateAdjustment", (typeof(int), "HeartRateConnector")},
                         {"SmoothHeartRate", (typeof(bool), "HeartRateConnector")},
-                        {"HeartRateTimeSpan", (typeof(int), "HeartRateConnector")},
+                        {"SmoothHeartRateTimeSpan", (typeof(int), "HeartRateConnector")},
                         {"HeartRateTrendIndicatorSensitivity", (typeof(double), "HeartRateConnector")},
                         {"ShowHeartRateTrendIndicator", (typeof(bool), "HeartRateConnector")},
                         {"HeartRateTrendIndicatorSampleRate", (typeof(int), "HeartRateConnector")},

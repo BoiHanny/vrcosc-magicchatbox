@@ -537,7 +537,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = true;
         private bool _IntgrScanSpotify = false;
-        private int _ScanInterval = 4;
         private int _CurrentMenuItem = 0;
         private string _MenuItem_0_Visibility = "Hidden";
         private string _MenuItem_1_Visibility = "Hidden";
@@ -615,14 +614,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private int _HeartRateScanInterval = 3;
-        public int HeartRateScanInterval
+
+
+        private int _HeartRateScanInterval_v1 = 1;
+        public int HeartRateScanInterval_v1
         {
-            get { return _HeartRateScanInterval; }
+            get { return _HeartRateScanInterval_v1; }
             set
             {
-                _HeartRateScanInterval = value;
-                NotifyPropertyChanged(nameof(HeartRateScanInterval));
+                _HeartRateScanInterval_v1 = value;
+                NotifyPropertyChanged(nameof(HeartRateScanInterval_v1));
             }
         }
 
@@ -833,14 +834,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private int _HeartRateTimeSpan = 18;
-        public int HeartRateTimeSpan
+
+
+        private int _SmoothHeartRateTimeSpan = 4;
+        public int SmoothHeartRateTimeSpan
         {
-            get { return _HeartRateTimeSpan; }
+            get { return _SmoothHeartRateTimeSpan; }
             set
             {
-                _HeartRateTimeSpan = value;
-                NotifyPropertyChanged(nameof(HeartRateTimeSpan));
+                _SmoothHeartRateTimeSpan = value;
+                NotifyPropertyChanged(nameof(SmoothHeartRateTimeSpan));
             }
         }
 
@@ -1874,15 +1877,19 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public int ScanInterval
+
+
+        private double _ScanningInterval = 1.5;
+        public double ScanningInterval
         {
-            get { return _ScanInterval; }
+            get { return _ScanningInterval; }
             set
             {
-                _ScanInterval = value;
-                NotifyPropertyChanged(nameof(ScanInterval));
+                _ScanningInterval = Math.Round(value, 1); // rounds the value to the nearest 0.1
+                NotifyPropertyChanged(nameof(ScanningInterval));
             }
         }
+
 
         public string CurrentTime
         {
