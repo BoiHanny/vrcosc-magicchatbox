@@ -25,7 +25,7 @@
     </i:Interaction.Behaviors>
     <Window.Resources>
         <ResourceDictionary>
-
+            <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
@@ -3432,7 +3432,8 @@
                                         Grid.Row="1"
                                         Height="auto"
                                         Background="Transparent"
-                                        CornerRadius="0,0,5,5">
+                                        CornerRadius="0,0,5,5"
+                                        Visibility="{Binding MediaSessions.Count, Converter={StaticResource CountToVisibilityConverter}}">
                                         <ItemsControl
                                             Height="auto"
                                             Padding="0,0,0,5"
