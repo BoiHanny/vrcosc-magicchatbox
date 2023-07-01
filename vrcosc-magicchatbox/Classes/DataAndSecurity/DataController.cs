@@ -279,7 +279,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"ShowBPMSuffix", (typeof(bool), "HeartRateConnector")},
                         {"ApplyHeartRateAdjustment", (typeof(bool), "HeartRateConnector")},
                         {"HeartRateAdjustment", (typeof(int), "HeartRateConnector")},
-                        {"SmoothHeartRate", (typeof(bool), "HeartRateConnector")},
+                        {"SmoothHeartRate_v1", (typeof(bool), "HeartRateConnector")},
                         {"SmoothHeartRateTimeSpan", (typeof(int), "HeartRateConnector")},
                         {"HeartRateTrendIndicatorSensitivity", (typeof(double), "HeartRateConnector")},
                         {"ShowHeartRateTrendIndicator", (typeof(bool), "HeartRateConnector")},

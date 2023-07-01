@@ -84,8 +84,8 @@ namespace vrcosc_magicchatbox.Classes
                         // Ensure the adjusted heart rate is not negative
                         heartRate = Math.Max(0, heartRate);
 
-                        // If SmoothHeartRate is true, calculate and use average heart rate
-                        if (ViewModel.Instance.SmoothHeartRate)
+                        // If SmoothHeartRate_v1 is true, calculate and use average heart rate
+                        if (ViewModel.Instance.SmoothHeartRate_v1)
                         {
                             // Record the heart rate with the current time
                             _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));

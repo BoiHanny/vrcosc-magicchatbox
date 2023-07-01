@@ -847,14 +847,15 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _SmoothHeartRate = false;
-        public bool SmoothHeartRate
+
+        private bool _SmoothHeartRate_v1 = true;
+        public bool SmoothHeartRate_v1
         {
-            get { return _SmoothHeartRate; }
+            get { return _SmoothHeartRate_v1; }
             set
             {
-                _SmoothHeartRate = value;
-                NotifyPropertyChanged(nameof(SmoothHeartRate));
+                _SmoothHeartRate_v1 = value;
+                NotifyPropertyChanged(nameof(SmoothHeartRate_v1));
             }
         }
 

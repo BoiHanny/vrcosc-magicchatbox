@@ -1026,12 +1026,12 @@
                                         FontFamily="Comfortaa Light"
                                         FontSize="18"
                                         Foreground="#FFB9B5C1"
-                                        IsChecked="{Binding SmoothHeartRate, Mode=TwoWay}"
+                                        IsChecked="{Binding SmoothHeartRate_v1, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}"
                                         Unchecked="Update_Click">
                                         Smooth heart rate
                                     </CheckBox>
-                                    <StackPanel Margin="0,-5,0,0" Visibility="{Binding SmoothHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <StackPanel Margin="0,-5,0,0" Visibility="{Binding SmoothHeartRate_v1, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
