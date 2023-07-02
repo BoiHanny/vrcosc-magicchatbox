@@ -7,14 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using System.Windows.Media;
-using System.Diagnostics;
-using System.Windows.Threading;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -22,6 +16,7 @@ namespace vrcosc_magicchatbox.Classes
     {
 
         public static UDPSender oscSender;
+        public static UDPSender SecOscSender;
 
         // This method sends an OSC packet to a specified address and port with the ViewModel's OSC input
         // If FX is true, the OSC message is formatted to be displayed as FX text
@@ -48,16 +43,48 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender = null;
                 }
 
+                // Check if we need to close the SECcurrent sender and create a new one with the updated IP and port
+                if (SecOscSender != null && (ViewModel.Instance.OSCIP != SecOscSender.Address || ViewModel.Instance.SecOSCPort != SecOscSender.Port))
+                {
+                    oscSender.Close();
+                    oscSender = null;
+                }
+
                 // Create a new sender if there is none
                 if (oscSender == null)
                 {
                     oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                 }
 
+                // Create a new SECsender if there is none
+                if (SecOscSender == null)
+                {
+                    SecOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.SecOSCPort);
+                }
+
+                string BlankEgg = "\u0003\u001f";
+                string combinedText = ViewModel.Instance.OSCtoSent + BlankEgg;
+
                 // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
-                    oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                    if (combinedText.Length < 145 & ViewModel.Instance.Egg_Dev && ViewModel.Instance.BlankEgg)
+                    {
+                        oscSender.Send(new OscMessage("/chatbox/input", combinedText, true, FX));
+                        if (ViewModel.Instance.SecOSC)
+                        {
+                            SecOscSender.Send(new OscMessage("/chatbox/input", combinedText, true, FX));
+                        }
+                    }
+                    else
+                    {
+                        oscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                        if (ViewModel.Instance.SecOSC)
+                        {
+                            SecOscSender.Send(new OscMessage("/chatbox/input", ViewModel.Instance.OSCtoSent, true, FX));
+                        }
+                    }
+
                 });
             }
             catch (Exception ex)
@@ -65,7 +92,7 @@ namespace vrcosc_magicchatbox.Classes
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return;
             }
-            
+
         }
 
 
@@ -74,7 +101,7 @@ namespace vrcosc_magicchatbox.Classes
         public static async Task ToggleVoice(bool force = false)
         {
             // Check if the master switch is on and if the auto unmute TTS is on or if we force the TTS but only if the master switch is on
-            if (!ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
+            if (ViewModel.Instance.MasterSwitch && !ViewModel.Instance.AutoUnmuteTTS || !force && !ViewModel.Instance.MasterSwitch)
             {
                 return;
             }
@@ -88,19 +115,40 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender = null;
                 }
 
+                // Check if we need to close the SECcurrent sender and create a new one with the updated IP and port
+                if (SecOscSender != null && (ViewModel.Instance.OSCIP != SecOscSender.Address || ViewModel.Instance.SecOSCPort != SecOscSender.Port))
+                {
+                    oscSender.Close();
+                    oscSender = null;
+                }
+
                 // Create a new sender if there is none
                 if (oscSender == null)
                 {
                     oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                 }
 
+                // Create a new SECsender if there is none
+                if (SecOscSender == null)
+                {
+                    SecOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.SecOSCPort);
+                }
+
                 // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
                     oscSender.Send(new OscMessage("/input/Voice", 1));
+                    if (ViewModel.Instance.SecOSC)
+                    {
+                        SecOscSender.Send(new OscMessage("/input/Voice", 1));
+                    }
                     ViewModel.Instance.TTSBtnShadow = true;
                     Thread.Sleep(100);
                     oscSender.Send(new OscMessage("/input/Voice", 0));
+                    if (ViewModel.Instance.SecOSC)
+                    {
+                        SecOscSender.Send(new OscMessage("/input/Voice", 1));
+                    }
                     ViewModel.Instance.TTSBtnShadow = false;
                 });
             }
@@ -132,16 +180,33 @@ namespace vrcosc_magicchatbox.Classes
                     oscSender = null;
                 }
 
+                // Check if we need to close the SECcurrent sender and create a new one with the updated IP and port
+                if (SecOscSender != null && (ViewModel.Instance.OSCIP != SecOscSender.Address || ViewModel.Instance.SecOSCPort != SecOscSender.Port))
+                {
+                    SecOscSender.Close();
+                    SecOscSender = null;
+                }
+
                 // Create a new sender if there is none
                 if (oscSender == null)
                 {
                     oscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.OSCPortOut);
                 }
 
+                // Create a new SECsender if there is none
+                if (SecOscSender == null)
+                {
+                    SecOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.SecOSCPort);
+                }
+
                 // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
                     oscSender.Send(new OscMessage("/chatbox/typing", Typing));
+                    if (ViewModel.Instance.SecOSC)
+                    {
+                        SecOscSender.Send(new OscMessage("/chatbox/typing", Typing));
+                    }
                 });
 
             }
@@ -194,6 +259,9 @@ namespace vrcosc_magicchatbox.Classes
                 case "HeartRate":
                     ViewModel.Instance.HeartRate_Opacity = opacity;
                     break;
+                case "MediaLink":
+                    ViewModel.Instance.MediaLink_Opacity = opacity;
+                    break;
                 default:
                     break;
             }
@@ -225,6 +293,9 @@ namespace vrcosc_magicchatbox.Classes
 
                 { () => ViewModel.Instance.IntgrSpotifyStatus_VR && ViewModel.Instance.IsVRRunning
                         || ViewModel.Instance.IntgrSpotifyStatus_DESKTOP && !ViewModel.Instance.IsVRRunning, AddSpotifyStatus },
+
+                { () => ViewModel.Instance.IntgrMediaLink_VR && ViewModel.Instance.IsVRRunning
+                        || ViewModel.Instance.IntgrMediaLink_DESKTOP && !ViewModel.Instance.IsVRRunning, AddMediaLink },
             };
 
             try
@@ -235,6 +306,7 @@ namespace vrcosc_magicchatbox.Classes
                 SetOpacity("HeartRate", "1");
                 SetOpacity("Window", "1");
                 SetOpacity("Time", "1");
+                SetOpacity("MediaLink", "1");
 
                 // Add the strings to the list if the total length of the list is less than 144 characters
                 foreach (var kvp in functionMap)
@@ -251,21 +323,42 @@ namespace vrcosc_magicchatbox.Classes
             }
 
             // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
-            Complete_msg = Uncomplete.Count > 0 ? String.Join(" ┆ ", Uncomplete) : "";
+            if (ViewModel.Instance.SeperateWithENTERS)
+            {
+                var sb = new StringBuilder();
+                foreach (var item in Uncomplete)
+                {
+                    sb.Append(item);
+                    sb.Append("\v");
+                }
+                Complete_msg = sb.ToString();
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (var item in Uncomplete)
+                {
+                    sb.Append(item);
+                    sb.Append(" ┆ ");
+                }
+                Complete_msg = sb.ToString();
+            }
 
-                // set ui elements based on the length of the final OSC message and set the OSCtoSent property in the ViewModel to the final OSC message
-                if (Complete_msg.Length > 144)
-                {
-                    ViewModel.Instance.OSCtoSent = "";
-                    ViewModel.Instance.OSCmsg_count = Complete_msg.Length;
-                    ViewModel.Instance.OSCmsg_countUI = "MAX/144";
-                }
-                else
-                {
-                    ViewModel.Instance.OSCtoSent = Complete_msg;
-                    ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
-                    ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
-                }
+
+
+            // set ui elements based on the length of the final OSC message and set the OSCtoSent property in the ViewModel to the final OSC message
+            if (Complete_msg.Length > 144)
+            {
+                ViewModel.Instance.OSCtoSent = "";
+                ViewModel.Instance.OSCmsg_count = Complete_msg.Length;
+                ViewModel.Instance.OSCmsg_countUI = "MAX/144";
+            }
+            else
+            {
+                ViewModel.Instance.OSCtoSent = Complete_msg;
+                ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
+                ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
+            }
         }
 
 
@@ -284,7 +377,7 @@ namespace vrcosc_magicchatbox.Classes
         // this function will build the window activity message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddWindowActivity(List<string> Uncomplete)
         {
-            if (ViewModel.Instance.IntgrScanWindowActivity == true)
+            if (ViewModel.Instance.IntgrScanWindowActivity && ViewModel.Instance.FocusedWindow.Length > 0)
             {
                 string x = ViewModel.Instance.IsVRRunning ? "In VR"
                                                             : "On desktop in '" + ViewModel.Instance.FocusedWindow + "'";
@@ -298,10 +391,15 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
-                string x = ViewModel.Instance.HeartRate + (ViewModel.Instance.ShowBPMSuffix ? " BPM" : " 💖");
+                string x = (ViewModel.Instance.ShowBPMSuffix ? ViewModel.Instance.HeartRate + " BPM" : "💖 " + ViewModel.Instance.HeartRate);
+                if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+                {
+                    x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                }
                 TryAddToUncomplete(Uncomplete, x, "HeartRate");
             }
         }
+
 
 
         // this function will build the current time message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
@@ -309,17 +407,26 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrScanWindowTime == true)
             {
-                string x = ViewModel.Instance.PrefixTime == true ? "My time: " + ViewModel.Instance.CurrentTime
-                                                                  : ViewModel.Instance.CurrentTime;
-                TryAddToUncomplete(Uncomplete, x, "Time");
+                if (ViewModel.Instance.CurrentTime != null)
+                {
+                    string x = ViewModel.Instance.PrefixTime == true ? "My time: " + ViewModel.Instance.CurrentTime
+                                                                      : ViewModel.Instance.CurrentTime;
+                    TryAddToUncomplete(Uncomplete, x, "Time");
+                }
+                else
+                {
+                    // Handle the situation when ViewModel.Instance.CurrentTime is null.
+                    // For example, you might want to log an error message or throw an exception.
+                }
             }
         }
+
 
 
         // this function will build the spotify status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddSpotifyStatus(List<string> Uncomplete)
         {
-            if (ViewModel.Instance.IntgrScanSpotify == true)
+            if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
             {
                 if (ViewModel.Instance.SpotifyActive == true)
                 {
@@ -348,6 +455,76 @@ namespace vrcosc_magicchatbox.Classes
                 }
             }
         }
+
+        public static void AddMediaLink(List<string> Uncomplete)
+        {
+            if (ViewModel.Instance.IntgrScanMediaLink)
+            {
+                string x;
+                MediaSessionInfo mediaSession = ViewModel.Instance.MediaSessions.FirstOrDefault(item => item.IsActive);
+
+                if (mediaSession != null)
+                {
+                    var isPaused = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+                    var isPlaying = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+
+                    if (isPaused || isPlaying)
+                    {
+                        var mediaType = mediaSession.IsVideo ? "Video" : "Music";
+                        var prefix = mediaSession.IsVideo ? "🎬" : "🎵";
+                        var mediaAction = mediaSession.IsVideo ? "Watching" : "Listening to";
+
+                        if (isPaused)
+                        {
+                            x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic ? "⏸" : $"{mediaType} paused";
+                        }
+                        else // isPlaying
+                        {
+                            var mediaLinkTitle = CreateMediaLinkTitle(mediaSession);
+                            x = ViewModel.Instance.PrefixIconMusic ? $"{prefix} '{mediaLinkTitle}'" : $"{mediaAction} '{mediaLinkTitle}'";
+                        }
+
+                        TryAddToUncomplete(Uncomplete, x, "MediaLink");
+                    }
+                }
+                else
+                {
+                    x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic ? "⏸" : "Paused";
+                    TryAddToUncomplete(Uncomplete, x, "MediaLink");
+                }
+            }
+        }
+
+
+
+        //make a function to create the song title take the 3 bools in mediasessioninfo IsVideo, ShowArtist, ShowTitle
+        public static string CreateMediaLinkTitle(MediaSessionInfo mediaSession)
+        {
+            StringBuilder mediaLinkTitle = new StringBuilder();
+
+            if (mediaSession.ShowTitle && !string.IsNullOrEmpty(mediaSession.Title))
+            {
+                mediaLinkTitle.Append(mediaSession.Title);
+            }
+
+            if (mediaSession.ShowArtist && !string.IsNullOrEmpty(mediaSession.Artist))
+            {
+                if (mediaLinkTitle.Length > 0)
+                {
+                    mediaLinkTitle.Append(" ᵇʸ ");
+                }
+
+                mediaLinkTitle.Append(mediaSession.Artist);
+            }
+
+            return mediaLinkTitle.Length > 0 ? mediaLinkTitle.ToString() : "⏸";
+        }
+
+
+
+
+
+
 
         // this function will create a new chat message and add it to the list of strings if the total length of the list is less than 144 characters
         // this function will also set the OSCtoSent property in the ViewModel to the final OSC message

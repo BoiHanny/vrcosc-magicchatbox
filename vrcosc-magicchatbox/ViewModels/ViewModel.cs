@@ -5,11 +5,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -56,7 +58,7 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
         { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
-        { nameof(Settings_Spotify), value => Settings_Spotify = value },
+        { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
         { nameof(Settings_Chatting), value => Settings_Chatting = value },
         { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
         { nameof(Settings_TTS), value => Settings_TTS = value },
@@ -131,6 +133,138 @@ namespace vrcosc_magicchatbox.ViewModels
                 OSCController.ToggleVoice(true);
         }
 
+
+        private int _MediaSession_Timeout = 3;
+        public int MediaSession_Timeout
+        {
+            get { return _MediaSession_Timeout; }
+            set
+            {
+                _MediaSession_Timeout = value;
+                NotifyPropertyChanged(nameof(MediaSession_Timeout));
+            }
+        }
+
+
+        private bool _MediaSession_AutoSwitch = true;
+        public bool MediaSession_AutoSwitch
+        {
+            get { return _MediaSession_AutoSwitch; }
+            set
+            {
+                _MediaSession_AutoSwitch = value;
+                NotifyPropertyChanged(nameof(MediaSession_AutoSwitch));
+            }
+        }
+
+
+        private bool _IntgrMediaLink_VR = true;
+        public bool IntgrMediaLink_VR
+        {
+            get { return _IntgrMediaLink_VR; }
+            set
+            {
+                _IntgrMediaLink_VR = value;
+                NotifyPropertyChanged(nameof(IntgrMediaLink_VR));
+            }
+        }
+
+
+        private bool _JoinedAlphaChannel = true;
+        public bool JoinedAlphaChannel
+        {
+            get { return _JoinedAlphaChannel; }
+            set
+            {
+                _JoinedAlphaChannel = value;
+                Task.Run(() => DataController.CheckForUpdateAndWait());
+                NotifyPropertyChanged(nameof(JoinedAlphaChannel));
+            }
+        }
+
+        private bool _IntgrMediaLink_DESKTOP = true;
+        public bool IntgrMediaLink_DESKTOP
+        {
+            get { return _IntgrMediaLink_DESKTOP; }
+            set
+            {
+                _IntgrMediaLink_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrMediaLink_DESKTOP));
+            }
+        }
+
+
+        private bool _MediaSession_AutoSwitchSpawn = true;
+        public bool MediaSession_AutoSwitchSpawn
+        {
+            get { return _MediaSession_AutoSwitchSpawn; }
+            set
+            {
+                _MediaSession_AutoSwitchSpawn = value;
+                NotifyPropertyChanged(nameof(MediaSession_AutoSwitchSpawn));
+            }
+        }
+
+
+
+
+
+        private List<MediaSessionSettings> _SavedSessionSettings = new List<MediaSessionSettings>();
+        public List<MediaSessionSettings> SavedSessionSettings
+        {
+            get { return _SavedSessionSettings; }
+            set
+            {
+                _SavedSessionSettings = value;
+                NotifyPropertyChanged(nameof(SavedSessionSettings));
+            }
+        }
+
+        private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
+        public ObservableCollection<MediaSessionInfo> MediaSessions
+        {
+            get { return _MediaSessions; }
+            set
+            {
+                _MediaSessions = value;
+                NotifyPropertyChanged(nameof(MediaSessions));
+            }
+        }
+
+
+        private bool _BlankEgg = false;
+        public bool BlankEgg
+        {
+            get { return _BlankEgg; }
+            set
+            {
+                _BlankEgg = value;
+                NotifyPropertyChanged(nameof(BlankEgg));
+            }
+        }
+
+        private bool _Egg_Dev = false;
+        public bool Egg_Dev
+        {
+            get { return _Egg_Dev; }
+            set
+            {
+                _Egg_Dev = value;
+                NotifyPropertyChanged(nameof(Egg_Dev));
+            }
+        }
+
+        private bool _Settings_Dev = false;
+        public bool Settings_Dev
+        {
+            get { return _Settings_Dev; }
+            set
+            {
+                _Settings_Dev = value;
+                NotifyPropertyChanged(nameof(Settings_Dev));
+            }
+        }
+
         private bool _IntgrWindowActivity_DESKTOP = true;
         public bool IntgrWindowActivity_DESKTOP
         {
@@ -162,6 +296,27 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrSpotifyStatus_VR = value;
                 NotifyPropertyChanged(nameof(IntgrSpotifyStatus_VR));
+            }
+        }
+
+
+        private bool _DisableMediaLink = false;
+        public bool DisableMediaLink
+        {
+            get { return _DisableMediaLink; }
+            set
+            {
+
+                _DisableMediaLink = value;
+                if (_DisableMediaLink)
+                {
+                    IntgrScanMediaLink = false;
+                }
+                else
+                {
+                    IntgrScanSpotify_OLD = false;
+                }
+                NotifyPropertyChanged(nameof(DisableMediaLink));
             }
         }
 
@@ -207,6 +362,22 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrHeartRate_DESKTOP = value;
                 NotifyPropertyChanged(nameof(IntgrHeartRate_DESKTOP));
+            }
+        }
+
+
+        private bool _IntgrScanMediaLink = true;
+        public bool IntgrScanMediaLink
+        {
+            get { return _IntgrScanMediaLink; }
+            set
+            {
+                _IntgrScanMediaLink = value;
+                if (_IntgrScanMediaLink)
+                {
+                    IntgrScanSpotify_OLD = false;
+                }
+                NotifyPropertyChanged(nameof(IntgrScanMediaLink));
             }
         }
 
@@ -340,7 +511,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
-        private bool _MasterSwitch = false;
+        private bool _MasterSwitch = true;
         private bool _PrefixTime = false;
         private bool _PrefixChat = true;
         private bool _ChatFX = true;
@@ -352,7 +523,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = "";
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.7.1");
+        private Version _AppVersion = new("0.8.142");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -362,11 +533,10 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _ChatBoxColor = "#FF504767";
         private string _CurrentTime = "";
         private string _ActiveChatTxt = "";
-        private bool _IntgrStatus = false;
+        private bool _IntgrStatus = true;
         private bool _IntgrScanWindowActivity = false;
-        private bool _IntgrScanWindowTime = false;
+        private bool _IntgrScanWindowTime = true;
         private bool _IntgrScanSpotify = false;
-        private int _ScanInterval = 4;
         private int _CurrentMenuItem = 0;
         private string _MenuItem_0_Visibility = "Hidden";
         private string _MenuItem_1_Visibility = "Hidden";
@@ -381,6 +551,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
         private string _HeartRate_Opacity = "1";
+        private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
@@ -394,7 +565,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _LogPath = @"C:\temp\Vrcosc-MagicChatbox";
         private string _RecentPlayBackOutput;
         private bool _VrcConnected;
-        private string _NewVersionURL;
         private bool _CanUpdate;
         private string _toggleVoiceText = "Toggle voice (V)";
         private bool _AutoUnmuteTTS = true;
@@ -421,16 +591,39 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-
-
-        private int _HeartRateScanInterval = 3;
-        public int HeartRateScanInterval
+        private bool _SeperateWithENTERS = true;
+        public bool SeperateWithENTERS
         {
-            get { return _HeartRateScanInterval; }
+            get { return _SeperateWithENTERS; }
             set
             {
-                _HeartRateScanInterval = value;
-                NotifyPropertyChanged(nameof(HeartRateScanInterval));
+                _SeperateWithENTERS = value;
+                NotifyPropertyChanged(nameof(SeperateWithENTERS));
+            }
+        }
+
+
+        private bool _VersionTxtUnderLine = false;
+        public bool VersionTxtUnderLine
+        {
+            get { return _VersionTxtUnderLine; }
+            set
+            {
+                _VersionTxtUnderLine = value;
+                NotifyPropertyChanged(nameof(VersionTxtUnderLine));
+            }
+        }
+
+
+
+        private int _HeartRateScanInterval_v1 = 1;
+        public int HeartRateScanInterval_v1
+        {
+            get { return _HeartRateScanInterval_v1; }
+            set
+            {
+                _HeartRateScanInterval_v1 = value;
+                NotifyPropertyChanged(nameof(HeartRateScanInterval_v1));
             }
         }
 
@@ -445,6 +638,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+
+        public string MediaLink_Opacity
+        {
+            get { return _MediaLink_Opacity; }
+            set
+            {
+                _MediaLink_Opacity = value;
+                NotifyPropertyChanged(nameof(MediaLink_Opacity));
+            }
+        }
+
         private bool _AutoSetDaylight = true;
         public bool AutoSetDaylight
         {
@@ -453,6 +658,32 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _AutoSetDaylight = value;
                 NotifyPropertyChanged(nameof(AutoSetDaylight));
+            }
+        }
+
+
+
+
+        private bool _SecOSC = false;
+        public bool SecOSC
+        {
+            get { return _SecOSC; }
+            set
+            {
+                _SecOSC = value;
+                NotifyPropertyChanged(nameof(SecOSC));
+            }
+        }
+
+
+        private int _SecOSCPort = 9002;
+        public int SecOSCPort
+        {
+            get { return _SecOSCPort; }
+            set
+            {
+                _SecOSCPort = value;
+                NotifyPropertyChanged(nameof(SecOSCPort));
             }
         }
 
@@ -490,14 +721,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _Settings_Spotify = false;
-        public bool Settings_Spotify
+
+
+        private bool _Settings_MediaLink = false;
+        public bool Settings_MediaLink
         {
-            get { return _Settings_Spotify; }
+            get { return _Settings_MediaLink; }
             set
             {
-                _Settings_Spotify = value;
-                NotifyPropertyChanged(nameof(Settings_Spotify));
+                _Settings_MediaLink = value;
+                NotifyPropertyChanged(nameof(Settings_MediaLink));
             }
         }
 
@@ -586,6 +819,43 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _HeartRate = value;
                 NotifyPropertyChanged(nameof(HeartRate));
+            }
+        }
+
+
+        private bool _ApplyHeartRateAdjustment = false;
+        public bool ApplyHeartRateAdjustment
+        {
+            get { return _ApplyHeartRateAdjustment; }
+            set
+            {
+                _ApplyHeartRateAdjustment = value;
+                NotifyPropertyChanged(nameof(ApplyHeartRateAdjustment));
+            }
+        }
+
+
+
+        private int _SmoothHeartRateTimeSpan = 4;
+        public int SmoothHeartRateTimeSpan
+        {
+            get { return _SmoothHeartRateTimeSpan; }
+            set
+            {
+                _SmoothHeartRateTimeSpan = value;
+                NotifyPropertyChanged(nameof(SmoothHeartRateTimeSpan));
+            }
+        }
+
+
+        private bool _SmoothHeartRate_v1 = true;
+        public bool SmoothHeartRate_v1
+        {
+            get { return _SmoothHeartRate_v1; }
+            set
+            {
+                _SmoothHeartRate_v1 = value;
+                NotifyPropertyChanged(nameof(SmoothHeartRate_v1));
             }
         }
 
@@ -932,15 +1202,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CanUpdate));
             }
         }
-        public string NewVersionURL
-        {
-            get { return _NewVersionURL; }
-            set
-            {
-                _NewVersionURL = value;
-                NotifyPropertyChanged(nameof(NewVersionURL));
-            }
-        }
         public bool VrcConnected
         {
             get { return _VrcConnected; }
@@ -950,6 +1211,66 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(VrcConnected));
             }
         }
+
+
+        private Version _LatestReleaseVersion;
+        public Version LatestReleaseVersion
+        {
+            get { return _LatestReleaseVersion; }
+            set
+            {
+                _LatestReleaseVersion = value;
+                NotifyPropertyChanged(nameof(LatestReleaseVersion));
+            }
+        }
+
+
+        private string _UpdateURL;
+        public string UpdateURL
+        {
+            get { return _UpdateURL; }
+            set
+            {
+                _UpdateURL = value;
+                NotifyPropertyChanged(nameof(UpdateURL));
+            }
+        }
+
+        private string _LatestReleaseURL;
+        public string LatestReleaseURL
+        {
+            get { return _LatestReleaseURL; }
+            set
+            {
+                _LatestReleaseURL = value;
+                NotifyPropertyChanged(nameof(LatestReleaseURL));
+            }
+        }
+
+
+        private Version _PreReleaseVersion;
+        public Version PreReleaseVersion
+        {
+            get { return _PreReleaseVersion; }
+            set
+            {
+                _PreReleaseVersion = value;
+                NotifyPropertyChanged(nameof(PreReleaseVersion));
+            }
+        }
+
+
+        private string _PreReleaseURL;
+        public string PreReleaseURL
+        {
+            get { return _PreReleaseURL; }
+            set
+            {
+                _PreReleaseURL = value;
+                NotifyPropertyChanged(nameof(PreReleaseURL));
+            }
+        }
+
         public string LogPath
         {
             get { return _LogPath; }
@@ -1270,6 +1591,53 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(MenuItem_3_Visibility));
             }
         }
+
+
+        private int _HeartRateTrendIndicatorSampleRate = 4;
+        public int HeartRateTrendIndicatorSampleRate
+        {
+            get { return _HeartRateTrendIndicatorSampleRate; }
+            set
+            {
+                _HeartRateTrendIndicatorSampleRate = value;
+                NotifyPropertyChanged(nameof(HeartRateTrendIndicatorSampleRate));
+            }
+        }
+
+        private bool _ShowHeartRateTrendIndicator = true;
+        public bool ShowHeartRateTrendIndicator
+        {
+            get { return _ShowHeartRateTrendIndicator; }
+            set
+            {
+                _ShowHeartRateTrendIndicator = value;
+                NotifyPropertyChanged(nameof(ShowHeartRateTrendIndicator));
+            }
+        }
+
+        private string _HeartRateTrendIndicator = "";
+        public string HeartRateTrendIndicator
+        {
+            get { return _HeartRateTrendIndicator; }
+            set
+            {
+                _HeartRateTrendIndicator = value;
+                NotifyPropertyChanged(nameof(HeartRateTrendIndicator));
+            }
+        }
+
+
+        private double _HeartRateTrendIndicatorSensitivity = 0.65;
+        public double HeartRateTrendIndicatorSensitivity
+        {
+            get { return _HeartRateTrendIndicatorSensitivity; }
+            set
+            {
+                _HeartRateTrendIndicatorSensitivity = value;
+                NotifyPropertyChanged(nameof(HeartRateTrendIndicatorSensitivity));
+            }
+        }
+
         public string MenuItem_2_Visibility
         {
             get { return _MenuItem_2_Visibility; }
@@ -1335,7 +1703,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private int _HeartRateAdjustment = 0;
+        private int _HeartRateAdjustment = -5;
         public int HeartRateAdjustment
         {
             get { return _HeartRateAdjustment; }
@@ -1496,25 +1864,33 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public bool IntgrScanSpotify
+        public bool IntgrScanSpotify_OLD
         {
             get { return _IntgrScanSpotify; }
             set
             {
                 _IntgrScanSpotify = value;
-                NotifyPropertyChanged(nameof(IntgrScanSpotify));
+                if (_IntgrScanSpotify)
+                {
+                    IntgrScanMediaLink = false;
+                }
+                NotifyPropertyChanged(nameof(IntgrScanSpotify_OLD));
             }
         }
 
-        public int ScanInterval
+
+
+        private double _ScanningInterval = 1.5;
+        public double ScanningInterval
         {
-            get { return _ScanInterval; }
+            get { return _ScanningInterval; }
             set
             {
-                _ScanInterval = value;
-                NotifyPropertyChanged(nameof(ScanInterval));
+                _ScanningInterval = Math.Round(value, 1); // rounds the value to the nearest 0.1
+                NotifyPropertyChanged(nameof(ScanningInterval));
             }
         }
+
 
         public string CurrentTime
         {
@@ -1630,11 +2006,11 @@ namespace vrcosc_magicchatbox.ViewModels
         #endregion
 
         #region PropChangedEvent
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public void NotifyPropertyChanged(string name)
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged(string name)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         #endregion
     }

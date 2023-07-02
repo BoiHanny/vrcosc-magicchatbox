@@ -4,8 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
-    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
-    StartupUri="MainWindow.xaml">
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Application.Resources>
 
         <Style x:Key="CircleButton" TargetType="Button">
@@ -91,6 +90,84 @@
                                                 Storyboard.TargetName="border"
                                                 Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                                                 To="#FF2A2043"
+                                                Duration="0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Plus_ico.png" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Min_ico.png" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="False">
+                    <Setter Property="Content" Value="{x:Null}" />
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Content" Value="{x:Null}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ExpandCollapseToggleButtonStyleDEV" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#B7BBD4" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="5,0,5,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image
+                                        x:Name="SymbolImage"
+                                        Grid.Column="0"
+                                        Width="16"
+                                        Height="16"
+                                        Margin="10,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Source="/Img/Icons/Plus_ico.png" />
+                                    <TextBlock
+                                        x:Name="CustomTextContentControl"
+                                        Grid.Column="1"
+                                        Margin="8,0,10,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        Foreground="#B7BBD4"
+                                        Text="{TemplateBinding Tag}" />
+                                </Grid>
+                            </Border>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <ColorAnimation
+                                                Storyboard.TargetName="border"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#E8478A"
+                                                Duration="0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ColorAnimation
+                                                Storyboard.TargetName="border"
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#B52F66"
                                                 Duration="0" />
                                         </Storyboard>
                                     </VisualState>
@@ -376,6 +453,51 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="LINK_Button_style" TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
+            <Setter Property="Background" Value="#240F53" />
+            <Setter Property="BorderBrush" Value="#240F53" />
+            <Setter Property="Foreground" Value="#655689" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border
+                            x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3"
+                            SnapsToDevicePixels="true">
+                            <ContentPresenter
+                                x:Name="contentPresenter"
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Focusable="False"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="border" Property="Background" Value="#2D1072" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#2D1072" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter TargetName="border" Property="Background" Value="#371491" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#371491" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="Status_Button_style" TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
             <Setter Property="Background" Value="{StaticResource Button.Static.Background3}" />
@@ -579,47 +701,189 @@
         <Style x:Key="GlowyToggleButton" TargetType="{x:Type ToggleButton}">
             <Setter Property="Background" Value="#3A3644" />
             <Setter Property="Foreground" Value="#82829B" />
-                <Setter Property="FontSize" Value="11" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                                <TextBlock
-                                    Padding="0,2,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Foreground="{TemplateBinding Foreground}"
-                                    Text="{TemplateBinding Content}" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid>
+                            <Border
+                                x:Name="buttonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4" />
+                            <TextBlock
+                                x:Name="buttonText"
+                                Padding="0,2,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground}"
+                                Text="{TemplateBinding Content}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="#322E3A" />
-                                </Trigger>
-                                <Trigger Property="IsChecked" Value="True">
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
                                 <Setter Property="Background" Value="#9E82DD" />
                                 <Setter Property="Foreground" Value="#312844" />
-                                    <Setter Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect
-                                                BlurRadius="9"
-                                                ShadowDepth="0"
-                                                Color="#B4A4DB" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsMouseOver" Value="True" />
-                                        <Condition Property="IsChecked" Value="True" />
-                                    </MultiTrigger.Conditions>
+                                <Setter TargetName="buttonBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect
+                                            BlurRadius="9"
+                                            ShadowDepth="0"
+                                            Color="#B4A4DB" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsChecked" Value="True" />
+                                </MultiTrigger.Conditions>
                                 <Setter Property="Background" Value="#A78FE0" />
-                                </MultiTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style x:Key="GlowyToggleButtonMediaLink" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Background" Value="#240F53" />
+            <Setter Property="Foreground" Value="#D0D0D0" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid>
+                            <Border
+                                x:Name="buttonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4" />
+                            <TextBlock
+                                x:Name="buttonText"
+                                Padding="8,2,8,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground}"
+                                Text="{TemplateBinding Content}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#14092D" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="#26A3FE" />
+                                <Setter Property="Foreground" Value="#240F53" />
+                                <Setter TargetName="buttonBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect
+                                            BlurRadius="5"
+                                            ShadowDepth="0"
+                                            Color="#B9CAF7" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsChecked" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="#41AEFC" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style
+            x:Key="GlowyToggleButtonMediaLinkWithImage"
+            BasedOn="{StaticResource GlowyToggleButtonMediaLink}"
+            TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid>
+                            <Border
+                                x:Name="buttonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4" />
+
+                            <Image
+                                x:Name="buttonImage"
+                                Width="20"
+                                Height="20"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Source="Img\Icons\SaveLight.png"
+                                Stretch="UniformToFill" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#14092D" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="#26A3FE" />
+                                <Setter Property="Foreground" Value="#240F53" />
+                                <Setter TargetName="buttonImage" Property="Source" Value="Img\Icons\SaveDark.png" />
+                                <Setter TargetName="buttonBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect
+                                            BlurRadius="5"
+                                            ShadowDepth="0"
+                                            Color="#B9CAF7" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsChecked" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="#41AEFC" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type ProgressBar}">
+            <Setter Property="MinHeight" Value="6" />
+            <Setter Property="MaxHeight" Value="6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ProgressBar}">
+                        <Grid>
+                            <Border
+                                Background="#7F759A"
+                                BorderThickness="0"
+                                CornerRadius="4">
+                                <Border x:Name="PART_Track" ClipToBounds="True">
+                                    <Rectangle
+                                        x:Name="PART_Indicator"
+                                        HorizontalAlignment="Left"
+                                        Fill="#2D1267"
+                                        RadiusX="4"
+                                        RadiusY="4" />
+                                </Border>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsIndeterminate" Value="True">
+                                <Setter TargetName="PART_Indicator" Property="Visibility" Value="Hidden" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style
             x:Key="Status_Button_style_Shadow"
             BasedOn="{StaticResource Status_Button_style}"
@@ -903,6 +1167,7 @@
         <SolidColorBrush x:Key="OptionMark.Disabled.Glyph" Color="#FF707070" />
         <Style x:Key="Switch" TargetType="{x:Type CheckBox}">
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
@@ -913,7 +1178,16 @@
                                     Height="20"
                                     Margin="5,0"
                                     Background="LightGray"
-                                    CornerRadius="10" />
+                                    CornerRadius="10"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <Border.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="25"
+                                            Opacity="0.4"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Border.Effect>
+                                </Border>
                                 <Border
                                     x:Name="button"
                                     Width="25"
@@ -934,7 +1208,7 @@
                                     Storyboard.TargetProperty="Margin"
                                     From="0,0,0,0"
                                     To="28,0,0,0"
-                                    Duration="0:0:0.4">
+                                    Duration="0:0:0.15">
                                     <ThicknessAnimation.EasingFunction>
                                         <CircleEase EasingMode="EaseOut" />
                                     </ThicknessAnimation.EasingFunction>
@@ -946,7 +1220,7 @@
                                     Storyboard.TargetProperty="Margin"
                                     From="28,0,0,0"
                                     To="0,0,0,0"
-                                    Duration="0:0:0.4">
+                                    Duration="0:0:0.15">
                                     <ThicknessAnimation.EasingFunction>
                                         <CircleEase EasingMode="EaseOut" />
                                     </ThicknessAnimation.EasingFunction>
@@ -966,7 +1240,7 @@
                                     <RemoveStoryboard BeginStoryboardName="rightt" />
                                     <BeginStoryboard x:Name="leftt" Storyboard="{StaticResource left}" />
                                 </Trigger.ExitActions>
-                                <Setter TargetName="button" Property="Background" Value="#20BF55" />
+                                <Setter TargetName="button" Property="Background" Value="#1ED760" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -989,10 +1263,12 @@
                                 x:Name="Rectangle1"
                                 Width="Auto"
                                 Height="Auto"
+                                Margin="0,5"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="5" />
+                                CornerRadius="5"
+                                Cursor="Hand" />
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Tag" Value="Horizontal">

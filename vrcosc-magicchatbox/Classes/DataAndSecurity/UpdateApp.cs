@@ -126,7 +126,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             try
             {
-                UpdateStatus($"Requesting update {ViewModel.Instance.GitHubVersion.VersionNumber}");
+                UpdateStatus($"Requesting update");
                 Thread.Sleep(1500);
                 string tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
                 string zipPath = Path.Combine(tempPath, "update.zip");
@@ -149,7 +149,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 Thread.Sleep(300);
                 using (WebClient webClient = new WebClient())
                 {
-                    await webClient.DownloadFileTaskAsync(ViewModel.Instance.NewVersionURL, zipPath);
+                    await webClient.DownloadFileTaskAsync(ViewModel.Instance.UpdateURL, zipPath);
+
                 }
 
                 // Extract the contents of the zip file
@@ -163,23 +164,28 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     {
                         string destinationPath = Path.Combine(unzipPath, entry.FullName);
 
-                        if (entry.FullName.EndsWith("/")) // Check if it's a directory
+                        // Check if it's a directory
+                        if (string.IsNullOrEmpty(Path.GetFileName(entry.FullName)))
                         {
-                            string directoryPath = destinationPath.TrimEnd('/'); // Remove the trailing slash
                             ViewModel.Instance.UpdateStatustxt = $"Creating directory {prosessedFileCount}/{fileCount}";
-                            DataController.CreateIfMissing(directoryPath);
+                            DataController.CreateIfMissing(destinationPath);
                             prosessedFileCount += 1;
                             Thread.Sleep(200);
                         }
                         else
                         {
-                            string destinationDirectory = Path.GetDirectoryName(destinationPath);
                             ViewModel.Instance.UpdateStatustxt = $"Extracting file {prosessedFileCount}/{fileCount}";
+
+                            // Ensure the destination directory exists
+                            string destinationDirectory = Path.GetDirectoryName(destinationPath);
+                            DataController.CreateIfMissing(destinationDirectory);
+
                             entry.ExtractToFile(destinationPath, true);
                             prosessedFileCount += 1;
                             Thread.Sleep(70);
                         }
                     }
+
                 }
 
                 // Create a JSON file with the location path of the current running app

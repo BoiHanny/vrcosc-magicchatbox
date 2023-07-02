@@ -8,18 +8,19 @@
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.1/Version-0.7.1.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.142/Version-0.8.142.zip)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/url/2272f38d83c52608fd49d187fa109ca55108a7dd3a6b63dfd76285a2e987b967?nocache=1)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
 **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
 
 
-![Version_0 7 1_ex](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/fd4706e6-39ba-4484-8d21-b73f8c32f41d)
+![Version_0 8](https://github.com/BoiHanny/vrcosc-magicchatbox/assets/114599052/f8394c0a-699b-43ce-b5dd-70b4f6fa2f26)
+
 
 
 ### Download and Installation
-1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.7.1/Version-0.7.1.zip).
+1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.142/Version-0.8.142.zip).
 2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
 3. Right-click and choose the option 'extract all'.
 4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
@@ -33,11 +34,15 @@
 
 ### Features
 
+- **Extended Media Support:** We've introduced `MediaLink` to the integration tab and incorporated support for YouTube Music, SoundCloud, and even YouTube videos with the help of the `Windows Media API`. 
+
 - **VR mode:** MagicChatbox shows "In VR" on the UI, and you have the option to display your local time in-game. MagicChatbox also provides a Spotify integration that shows the currently playing song, adding to the immersive experience. You can enable or disable this feature from the options menu.
 
 - **Desktop mode:** MagicChatbox shows "On desktop" on the UI, and displays which application you are currently focused on. It's a great way to keep track of your messages while multitasking. The Spotify integration also shows the currently playing song, making it easier to keep up with your favorite tunes.
 
 - **Heart Rate Display**: Display your heart rate in real-time using Pulsoid-supported devices. This feature requires a 'BRO plan' from Pulsoid.
+
+- **Enhanced Heart Rate Monitoring:** Enhanced your heart rate monitoring experience with the addition of "Smooth Heart Rate" and a "Heart Rate Trend Indicator" under `Options > Heart Monitoring Options`. Additionally, we've optimized the `HeartRateConnector` to provide smoother and more accurate heart rate readings. 
 
 - **Status tab:** One of the most exciting changes we made back in version 0.4.0 is the addition of the Status tab, which provides an easy way to manage your status items. You can sort your status items based on creation date, recent usage, and if they are a favorite. Each status item has three types of interactions - activate, delete, and favorite - and you can quickly add new items using the input box.
 
@@ -47,9 +52,19 @@
 
 - **Time options:** MagicChatbox offers an option to show only the current time in VR, without the "my time:" prefix. You can choose to display the time in a 24-hour format, making it easier to read. u can also set a custom time zone and auto-apply or toggle daylight saving time.
 
-- **In-app updates**: Keep MagicChatbox up-to-date with the in-app update feature. It communicates with the GitHub API and pulls the .ZIP file from the latest branch
+- **In-app updates**: Keep MagicChatbox up-to-date with the in-app update feature. It communicates with the GitHub API and pulls the .ZIP file from the latest branch.
+
+- **Simplified Beta Updates:** A new update module for beta builds has been introduced, offering seamless beta updates and an option to downgrade if you want to switch back to a stable version. An option has also been added to opt-out of the alpha channel.
 
 - **OSC customization:** We have updated our codebase to support UTF-8 and made the switch from Sharp OSC to CoreOSC-VRC-UTF8, which was a collaborative effort with VRCWizard. MagicChatbox also provides an option to change the OSC IP and port from the options menu, allowing for more customization.
+
+- **2nd VRChat Output Option:** We've introduced a new feature under `Options > App Options > 2nd VRChat output`, enabling you to send OSC messages to a second VRChat session.
+ 
+- **Integration Separator Toggle:** A new option to switch the integration separator from '┆' to 'Enter' for cleaner VRChat interactions.
+
+- **Improved Windows Activity Integration & Control in Settings:** We've made improvements to the Windows activity integration, providing more accurate information about your current Windows activity. You can now manage the Window Activity feature directly from the settings for easier control.
+
+- **Enhanced Application Names Setting:** Customize the names of your applications in the settings for a more personalized experience.
 
 - **Local save and version checker:** We have implemented a local JSON file to save your status items, ensuring they are always available to you. The application also features a built-in version checker that informs you if you have the latest version, if a new version is available, or if you are running a preview version.
 

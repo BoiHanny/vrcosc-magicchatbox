@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <Configurations>Debug;Release;Beta</Configurations>
     <DebugType>portable</DebugType>
-    <FileVersion>0.6.0</FileVersion>
-    <AssemblyVersion>0.6.0</AssemblyVersion>
+    <FileVersion>0.7.642</FileVersion>
+    <AssemblyVersion>0.7.642</AssemblyVersion>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
     <TargetFrameworks></TargetFrameworks>
     <PlatformTarget>x64</PlatformTarget>
@@ -35,12 +35,19 @@
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
     <None Remove="Img\Icons\Close_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
+    <None Remove="Img\Icons\Discord.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
+    <None Remove="Img\Icons\GitHub.png" />
     <None Remove="Img\Icons\HeartRate_ico.png" />
+    <None Remove="Img\Icons\Load_ico.png" />
+    <None Remove="Img\Icons\MagicChatbox_ico.png" />
+    <None Remove="Img\Icons\MediaLink_ico.png" />
     <None Remove="Img\Icons\Min_ico.png" />
     <None Remove="Img\Icons\Next_ico.png" />
     <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\Plus_ico.png" />
+    <None Remove="Img\Icons\SaveDark.png" />
+    <None Remove="Img\Icons\SaveLight.png" />
     <None Remove="Img\Icons\Settings_ico.png" />
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
@@ -66,9 +73,14 @@
     <Resource Include="Img\Icons\Delete_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Discord.png" />
     <Resource Include="Img\Icons\Favorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\GitHub.png" />
+    <Resource Include="Img\Icons\Load_ico.png" />
+    <Resource Include="Img\Icons\MagicChatbox_ico.png" />
+    <Resource Include="Img\Icons\MediaLink_ico.png" />
     <Resource Include="Img\Icons\Min_ico.png" />
     <Resource Include="Img\Icons\Next_ico.png" />
     <Resource Include="Img\Icons\PersonalMsg_ico.png">
@@ -76,6 +88,8 @@
     </Resource>
     <Resource Include="Img\Icons\HeartRate_ico.png" />
     <Resource Include="Img\Icons\Plus_ico.png" />
+    <Resource Include="Img\Icons\SaveDark.png" />
+    <Resource Include="Img\Icons\SaveLight.png" />
     <Resource Include="Img\Icons\spotify_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -108,16 +122,16 @@
 
   <ItemGroup>
     <PackageReference Include="AutoClosingMessageBox" Version="1.0.0.5" />
+    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="5.1.4" />
+    <PackageReference Include="NLog" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="CoreOSC">
-      <HintPath>..\..\..\..\Documents\CoreOSC.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\..\..\..\Temp\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 

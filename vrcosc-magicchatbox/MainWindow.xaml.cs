@@ -1,5 +1,4 @@
-﻿using NLog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -15,7 +14,6 @@ using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-
 
 namespace vrcosc_magicchatbox
 {
@@ -48,32 +46,26 @@ namespace vrcosc_magicchatbox
 
         public MainWindow()
         {
-            LogManager.LoadConfiguration("NLog.config");
             Closing += SaveDataToDisk;
-            this.DataContext = ViewModel.Instance;
             InitializeComponent();
 
+            DispatcherTimer backgroundCheck = new DispatcherTimer();
 
-            backgroundCheck.Tick += Timer; backgroundCheck.Interval = new TimeSpan(0, 0, ViewModel.Instance.ScanInterval); backgroundCheck.Start();
-            ViewModel.Instance.IntgrScanWindowActivity = false;
-            ViewModel.Instance.IntgrScanSpotify = true;
-            ViewModel.Instance.IntgrScanWindowTime = true;
-            ViewModel.Instance.IntgrStatus = true;
-            ViewModel.Instance.MasterSwitch = true;
-            DataController.ManageSettingsXML();
-            DataController.LoadStatusList();
-            DataController.LoadChatList();
-            DataController.LoadAppList();
-            ViewModel.Instance.TikTokTTSVoices = DataAndSecurity.DataController.ReadTkTkTTSVoices();
+            Closing += SaveDataToDisk;
+            InitializeComponent();
+
+            backgroundCheck = new DispatcherTimer();
+            backgroundCheck.Tick += Timer;
+
+            // Here we set the interval by multiplying ScanInterval by 1000 to get milliseconds
+            backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
+
+            backgroundCheck.Start();
+
             SelectTTS();
-            OpenAIClient.LoadOpenAIClient();
-            DataController.LoadIntelliChatBuiltInActions();
-            DataController.PopulateOutputDevices();
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
-            DataController.CheckForUpdate();
-
         }
 
         public void SelectTTS()
@@ -109,6 +101,7 @@ namespace vrcosc_magicchatbox
                 this.Hide();
                 DataController.ManageSettingsXML(true);
                 DataController.SaveAppList();
+                DataController.SaveMediaSessions();
                 System.Environment.Exit(1);
             }
             catch (Exception ex)
@@ -178,7 +171,7 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                if (ViewModel.Instance.IntgrScanSpotify == true)
+                if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
                 {
                     ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
                     ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
@@ -187,7 +180,7 @@ namespace vrcosc_magicchatbox
                 {
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 }
-                    
+
                 ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();
                 if (ViewModel.Instance.IntgrScanWindowTime == true)
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
@@ -314,6 +307,11 @@ namespace vrcosc_magicchatbox
             {
                 var button = sender as Button;
                 var item = button.Tag as StatusItem;
+                if (item.msg.ToLower() == "sr4 series" || item.msg.ToLower() == "boihanny")
+                {
+                    ViewModel.Instance.Egg_Dev = false;
+                    MessageBox.Show("damn u left the dev egggmoooodeee", "Egg", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 ViewModel.Instance.StatusList.Remove(item);
                 ViewModel.SaveStatusList();
             }
@@ -403,8 +401,14 @@ namespace vrcosc_magicchatbox
             {
                 ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = IsActive, IsFavorite = false, msg = ViewModel.Instance.NewStatusItemTxt, MSGLenght = ViewModel.Instance.NewStatusItemTxt.Count(), MSGID = randomId });
                 ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(ViewModel.Instance.StatusList.OrderByDescending(x => x.CreationDate));
+                if (ViewModel.Instance.NewStatusItemTxt.ToLower() == "sr4 series" || ViewModel.Instance.NewStatusItemTxt.ToLower() == "boihanny")
+                {
+                    ViewModel.Instance.Egg_Dev = true;
+                    MessageBox.Show("u found the dev egggmoooodeee", "Egg", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 ViewModel.Instance.NewStatusItemTxt = "";
                 ViewModel.SaveStatusList();
+
             }
         }
 
@@ -698,10 +702,10 @@ namespace vrcosc_magicchatbox
         private void SmartClearnup_Click(object sender, RoutedEventArgs e)
         {
             int ItemRemoved = WindowActivity.SmartCleanup();
-            if(ItemRemoved > 0)
+            if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
-                
+
             }
             else
             {
@@ -729,6 +733,31 @@ namespace vrcosc_magicchatbox
             {
                 ViewModel.Instance.DeletedAppslabel = "All apps from history";
             }
+        }
+
+        private async Task ManualUpdateCheckAsync()
+        {
+            await Task.Run(() => DataController.CheckForUpdateAndWait(true));
+        }
+
+        private void CheckUpdateBtnn_Click(object sender, RoutedEventArgs e)
+        {
+            ManualUpdateCheckAsync();
+        }
+
+        private void Discord_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", "https://discord.gg/ZaSFwBfhvG");
+        }
+
+        private void Github_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox");
+        }
+
+        private void LearnMoreAboutHeartbtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Set-Up-MagicChatbox-with-Pulsoid-for-VRChat-%F0%9F%92%9C");
         }
     }
 }

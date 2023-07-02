@@ -29,7 +29,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 System.Environment.Exit(10);
         }
 
-        public static void WriteException(Exception ex = null, bool makeVMDump = true, bool MSGBox = true, bool exitapp = false)
+        public static void WriteException(Exception? ex = null, bool makeVMDump = true, bool MSGBox = true, bool exitapp = false)
         {
             LogController.Error(ex);
             if (makeVMDump)
@@ -44,7 +44,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         }
 
 
-        public static void ShowMSGBox(int msgboxtimeout = 5000, string msgboxtext = "something went wrong...", Exception ex = null)
+        public static void ShowMSGBox(int msgboxtimeout = 5000, string msgboxtext = "something went wrong...", Exception? ex = null)
         {
             if (ex != null)
                 msgboxtext = ex.Message;
@@ -99,7 +99,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             try
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(folderPath);
+                DirectoryInfo directoryInfo = new(folderPath);
                 FileInfo[] files = directoryInfo.GetFiles("*.json");
 
                 // Sort files by creation time
@@ -128,12 +128,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             var property = base.CreateProperty(member, memberSerialization);
 
             // Only serialize bools, strings, and ints
-            if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime)  || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
+            if (!(property.PropertyType == typeof(bool) || property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(Timezone) || property.PropertyType == typeof(int)))
             {
                 property.ShouldSerialize = instance => false;
             }
-            if(property.PropertyName == "aesKey" || property.PropertyName == "ApiStream" || property.PropertyName == "OpenAIAPIKey" || property.PropertyName == "PulsoidAccessToken")
-                    {
+            if (property.PropertyName == "aesKey" || property.PropertyName == "ApiStream" || property.PropertyName == "OpenAIAPIKey" || property.PropertyName == "PulsoidAccessToken")
+            {
                 property.ShouldSerialize = instance => false;
             }
 
