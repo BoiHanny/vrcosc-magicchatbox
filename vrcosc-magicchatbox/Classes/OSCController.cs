@@ -282,7 +282,15 @@ namespace vrcosc_magicchatbox.Classes
                         else 
                         {
                             var mediaLinkTitle = CreateMediaLinkTitle(mediaSession);
-                            x = ViewModel.Instance.PrefixIconMusic ? $"{prefix} '{mediaLinkTitle}'" : $"{mediaAction} '{mediaLinkTitle}'";
+                            if(string.IsNullOrEmpty(mediaLinkTitle))
+                            {
+                                x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic ? "⏸" : "Paused";
+                            }
+                            else
+                            {
+                                x = ViewModel.Instance.PrefixIconMusic ? $"{prefix} '{mediaLinkTitle}'" : $"{mediaAction} '{mediaLinkTitle}'";
+                            }
+
                         }
 
                         TryAddToUncomplete(Uncomplete, x, "MediaLink");
@@ -318,7 +326,7 @@ namespace vrcosc_magicchatbox.Classes
                 mediaLinkTitle.Append(mediaSession.Artist);
             }
 
-            return mediaLinkTitle.Length > 0 ? mediaLinkTitle.ToString() : "⏸";
+            return mediaLinkTitle.Length > 0 ? mediaLinkTitle.ToString() : "";
         }
 
 

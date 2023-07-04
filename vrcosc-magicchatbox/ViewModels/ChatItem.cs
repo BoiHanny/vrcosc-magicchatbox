@@ -97,7 +97,7 @@ namespace vrcosc_magicchatbox.ViewModels
                     string savedtxt = ViewModel.Instance.NewChattingTxt;
                     ViewModel.Instance.NewChattingTxt = text;
                     OSCController.CreateChat(false);
-                    OSCController.SendOSCMessage(true);
+                    OSCSender.SendOSCMessage(true);
                     ViewModel.Instance.NewChattingTxt = savedtxt;
 
                     if (ViewModel.Instance.TTSTikTokEnabled == true)

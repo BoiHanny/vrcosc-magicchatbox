@@ -68,7 +68,7 @@ namespace vrcosc_magicchatbox.Classes
 
                     waveOut.Init(audioReader);
 
-                    OSCController.ToggleVoice();
+                    OSCSender.ToggleVoice();
                     Thread.Sleep(300);
 
                     waveOut.Play();
@@ -80,12 +80,12 @@ namespace vrcosc_magicchatbox.Classes
                         if (cancellationToken.IsCancellationRequested)
                         {
                             waveOut.Stop();
-                            OSCController.ToggleVoice();
+                            OSCSender.ToggleVoice();
                             break;
                         }
                         await Task.Delay(100);
                     }
-                    OSCController.ToggleVoice();
+                    OSCSender.ToggleVoice();
                 }
             }
             catch (Exception ex)
