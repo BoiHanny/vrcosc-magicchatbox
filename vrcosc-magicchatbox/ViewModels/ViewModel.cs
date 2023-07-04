@@ -553,6 +553,17 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _HeartRate_Opacity = "1";
         private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
+
+        private int _OSCPOrtIN = 9001;
+        public int OSCPOrtIN
+        {
+            get { return _OSCPOrtIN; }
+            set
+            {
+                _OSCPOrtIN = value;
+                NotifyPropertyChanged(nameof(OSCPOrtIN));
+            }
+        }
         private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
         private Voice _SelectedTikTokTTSVoice;
