@@ -1,13 +1,8 @@
 ﻿using CoreOSC;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using System.Dynamic;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -17,49 +12,44 @@ namespace vrcosc_magicchatbox.Classes
     public static class OSCReader
     {
         private static UDPListener listener;
-        private static Dictionary<string, List<object>> oscData = new Dictionary<string, List<object>>();
+        private static CancellationTokenSource cancellation = new CancellationTokenSource();
 
 
         public static void StartListening()
         {
-            // Define OscPacketCallback - what to do when an OSC packet is received
             void callback(OscPacket packet)
             {
                 if (packet is OscMessage message && message.Arguments.Count > 0)
                 {
-                    // Only process certain addresses
                     if (message.Address.StartsWith("/avatar/parameters/"))
                     {
-                        // Check if we already have a list for this address
-                        if (!oscData.TryGetValue(message.Address, out var list))
-                        {
-                            // If not, create a new list and add it to the dictionary
-                            list = new List<object>();
-                            oscData[message.Address] = list;
-                            Logging.WriteInfo($"OSC: created new list for address: {message.Address}");
-                        }
+                        var parameterName = message.Address.Substring("/avatar/parameters/".Length);
+                        var parameterProperty = typeof(OSCParameters).GetProperty(parameterName);
 
-                        // Add the received value to the list
-                        if (message.Arguments[0] is float value)
+                        if (parameterProperty != null)
                         {
-                            list.Add(value);
-                            Logging.WriteInfo($"OSC: updated new float value: {message.Address} with the value: {value}");
+                            // This is a built-in parameter
+                            var parameter = (OSCParameter)parameterProperty.GetValue(null);
+                            parameter.SetValue(message.Arguments[0]);
+                            ViewModel.Instance.BuiltInOSCData[parameterName] = parameter;
                         }
-                        else if (message.Arguments[0] is bool boolValue)
+                        else
                         {
-                            list.Add(boolValue);
-                            Logging.WriteInfo($"OSC: updated new bool value: {message.Address} with the value: {boolValue}");
-                        }
-                    }
-                    else
-                    {
+                            // This is a dynamic parameter
+                            if (!(ViewModel.Instance.DynamicOSCData as IDictionary<string, object>).TryGetValue(parameterName, out var parameterObject))
+                            {
+                                // This is a new parameter
+                                var newParameter = new OSCParameter(parameterName, message.Address, message.Arguments[0].GetType().Name);
+                                (ViewModel.Instance.DynamicOSCData as IDictionary<string, object>)[parameterName] = newParameter;
+                            }
 
-                        Logging.WriteInfo(new Exception("Received OSC message with address: " + message.Address).ToString());
+                            var dynamicParameter = parameterObject as OSCParameter;
+                            dynamicParameter.SetValue(message.Arguments[0]);
+                        }
                     }
                 }
             }
 
-            // Create a new listener if it doesn't exist
             if (listener == null)
             {
                 listener = new UDPListener(ViewModel.Instance.OSCPOrtIN, callback);
@@ -68,13 +58,13 @@ namespace vrcosc_magicchatbox.Classes
 
         public static void StopListening()
         {
-            // Dispose of the listener if it exists
             if (listener != null)
             {
                 listener.Dispose();
                 listener = null;
             }
         }
+
     }
 
 

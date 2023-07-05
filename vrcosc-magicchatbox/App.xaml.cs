@@ -66,16 +66,12 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Revving up the OpenAI engines... Can you hear the roar?", 60);
             await Task.Run(() => DataController.LoadIntelliChatBuiltInActions());
 
+
             loadingWindow.UpdateProgress("Setting up your concert - choosing the best audio devices!", 70);
             await Task.Run(() => DataController.PopulateOutputDevices());
 
             loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 80);
             await Task.Run(() => DataController.CheckForUpdateAndWait());
-
-            if (ViewModel.Instance.IntgrScanMediaLink)
-                loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 90);
-            //await Task.Run(() => MediaLinkController.Start());
-            MediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
 
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
 

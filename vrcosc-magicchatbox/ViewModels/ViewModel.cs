@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -68,6 +69,7 @@ namespace vrcosc_magicchatbox.ViewModels
     };
             _heartRateConnector = new HeartRateConnector();
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
+            _dynamicOSCData = new ExpandoObject();
         }
 
         public void ActivateSetting(string settingName)
@@ -601,6 +603,28 @@ namespace vrcosc_magicchatbox.ViewModels
             FocusCount
         }
 
+        private Dictionary<string, OSCParameter> _builtInOSCData = new Dictionary<string, OSCParameter>();
+        private ExpandoObject _dynamicOSCData = new ExpandoObject();
+
+        public Dictionary<string, OSCParameter> BuiltInOSCData
+        {
+            get { return _builtInOSCData; }
+            set
+            {
+                _builtInOSCData = value;
+                NotifyPropertyChanged(nameof(BuiltInOSCData));
+            }
+        }
+
+        public dynamic DynamicOSCData
+        {
+            get { return _dynamicOSCData; }
+            set
+            {
+                _dynamicOSCData = value;
+                NotifyPropertyChanged(nameof(DynamicOSCData));
+            }
+        }
 
         private bool _SeperateWithENTERS = true;
         public bool SeperateWithENTERS
