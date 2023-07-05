@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xaml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -192,12 +193,26 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
-                string x = (ViewModel.Instance.ShowBPMSuffix ? ViewModel.Instance.HeartRate + " BPM" : "💖 " + ViewModel.Instance.HeartRate);
-                if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+                if (ViewModel.Instance.HeartRateTitle)
                 {
-                    x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                    string hrTitle = "Heart rate" + (ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ");
+                    string x = (ViewModel.Instance.ShowBPMSuffix ? ViewModel.Instance.HeartRate + " bpm" : (ViewModel.Instance.SeperateWithENTERS ? "💖 " : "") + ViewModel.Instance.HeartRate);
+                    if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+                    {
+                        x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                    }
+                    TryAddToUncomplete(Uncomplete, hrTitle + x, "HeartRate");
                 }
-                TryAddToUncomplete(Uncomplete, x, "HeartRate");
+                else
+                {
+                    string x = (ViewModel.Instance.ShowBPMSuffix ? ViewModel.Instance.HeartRate + "bpm" : "💖 " + ViewModel.Instance.HeartRate);
+                    if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+                    {
+                        x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                    }
+                    TryAddToUncomplete(Uncomplete, x, "HeartRate");
+                }
+                
             }
         }
 

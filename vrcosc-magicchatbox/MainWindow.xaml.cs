@@ -66,7 +66,7 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
-            OSCReader.StartListening();
+            //OSCReader.StartListening();
         }
 
         public void SelectTTS()

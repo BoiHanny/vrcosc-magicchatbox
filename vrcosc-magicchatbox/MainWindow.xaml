@@ -1018,6 +1018,20 @@
                                         Show BPM instead of 💖
                                     </CheckBox>
                                     <CheckBox
+                                        x:Name="HeartRateTitle_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding HeartRateTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show heart rate title
+                                    </CheckBox>
+                                    <CheckBox
                                         x:Name="SmoothHeartRate_checkbox"
                                         Height="20"
                                         Margin="0,0,0,15"

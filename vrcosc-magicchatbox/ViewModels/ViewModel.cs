@@ -84,6 +84,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _HeartRateTitle = false;
+        public bool HeartRateTitle
+        {
+            get { return _HeartRateTitle; }
+            set
+            {
+                _HeartRateTitle = value;
+                NotifyPropertyChanged(nameof(HeartRateTitle));
+            }
+        }
+
         public void SortScannedApps(SortProperty sortProperty)
         {
             var isAscending = _sortDirection[sortProperty];
