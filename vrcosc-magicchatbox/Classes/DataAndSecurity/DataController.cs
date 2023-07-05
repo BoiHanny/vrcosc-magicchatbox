@@ -284,6 +284,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"HeartRateTrendIndicatorSensitivity", (typeof(double), "HeartRateConnector")},
                         {"ShowHeartRateTrendIndicator", (typeof(bool), "HeartRateConnector")},
                         {"HeartRateTrendIndicatorSampleRate", (typeof(int), "HeartRateConnector")},
+                        {"HeartRateTitle", (typeof(bool), "HeartRateConnector")},
 
 
                         {"Settings_Status", (typeof(bool), "OptionsTabState")},
