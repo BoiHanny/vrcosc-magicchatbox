@@ -24,7 +24,6 @@ namespace vrcosc_magicchatbox
 
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer pauseTimer;
-        private System.Timers.Timer typingTimer;
         private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
         private static double _shadowOpacity;
         public static double ShadowOpacity
@@ -455,20 +454,6 @@ namespace vrcosc_magicchatbox
             }
 
             OSCSender.TypingIndicatorAsync(true);
-
-
-            if (typingTimer != null)
-            {
-                typingTimer.Stop();
-                typingTimer.Start();
-            }
-            else
-            {
-                typingTimer = new System.Timers.Timer(2000);
-                typingTimer.Elapsed += (s, args) => OSCSender.TypingIndicatorAsync(false);
-                typingTimer.AutoReset = false;
-                typingTimer.Enabled = true;
-            }
 
         }
 
