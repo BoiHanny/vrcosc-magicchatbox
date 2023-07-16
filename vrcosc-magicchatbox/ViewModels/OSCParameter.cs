@@ -59,6 +59,7 @@ public static class OSCParameters
     public static OSCParameter Seated { get; private set; } = new OSCParameter("Seated", "/avatar/parameters/Seated", "Boolean", 5);
     public static OSCParameter AFK { get; private set; } = new OSCParameter("AFK", "/avatar/parameters/AFK", "Boolean", 5);
     public static OSCParameter Upright { get; private set; } = new OSCParameter("Upright", "/avatar/parameters/Upright", "Single", 5);
+    public static OSCParameter VelocityMagnitude { get; private set; } = new OSCParameter("VelocityMagnitude", "/avatar/parameters/VelocityMagnitude", "Single", 5);
     public static OSCParameter AngularY { get; private set; } = new OSCParameter("AngularY", "/avatar/parameters/AngularY", "Single", 5);
     public static OSCParameter Grounded { get; private set; } = new OSCParameter("Grounded", "/avatar/parameters/Grounded", "Boolean", 5);
     public static OSCParameter MuteSelf { get; private set; } = new OSCParameter("MuteSelf", "/avatar/parameters/MuteSelf", "Boolean", 5);
