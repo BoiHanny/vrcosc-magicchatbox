@@ -28,6 +28,7 @@
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+            <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
@@ -169,7 +170,6 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="5,0,0,5"
                                 SnapsToDevicePixels="true">
                                 <ContentPresenter
                                     x:Name="contentPresenter"
@@ -185,6 +185,103 @@
                                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#56477F" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#56477F" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#625191" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#625191" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
+                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="CancelEditbutton" TargetType="{x:Type Button}">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
+                <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="1" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#7F0000" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#7F0000" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#8C0000" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#8C0000" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
+                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="Editbutton" TargetType="{x:Type ToggleButton}">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
+                <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="1" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ToggleButton}">
+                            <Border
+                                x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5,0,0,5"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="true">
                                     <Setter TargetName="border" Property="Background" Value="#564BA0" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#564BA0" />
                                 </Trigger>
@@ -192,11 +289,12 @@
                                     <Setter TargetName="border" Property="Background" Value="#5D559B" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#5D559B" />
                                 </Trigger>
-                                <Trigger Property="IsEnabled" Value="false">
-                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
-                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
+                                <Trigger Property="IsChecked" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#240F53" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#240F53" />
+
                                 </Trigger>
+
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -532,6 +630,16 @@
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
+                                <Style x:Key="ActiveStatusTextEdit" TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                            <Setter Property="Foreground" Value="#FF9DDAA8" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                            <Setter Property="Foreground" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
                             </ItemsControl.Resources>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -553,8 +661,9 @@
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="35" />
-                                                <ColumnDefinition Width="507" />
-                                                <ColumnDefinition Width="35" />
+                                                <ColumnDefinition Width="486" />
+                                                <ColumnDefinition Width="25" />
+                                                <ColumnDefinition Width="30" />
                                                 <ColumnDefinition Width="35" />
                                             </Grid.ColumnDefinitions>
                                             <Border
@@ -571,12 +680,12 @@
                                             <Button
                                                 x:Name="Deletebutton"
                                                 Grid.Row="0"
-                                                Grid.Column="2"
-                                                Width="35"
+                                                Grid.Column="3"
+                                                Width="30"
                                                 Height="35"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
-                                                Background="#483472"
+                                                Background="#3F2970"
                                                 BorderThickness="0"
                                                 Click="DeleteButton_Click"
                                                 Cursor="Hand"
@@ -590,6 +699,32 @@
                                                 </Grid>
                                             </Button>
 
+                                            <ToggleButton
+                                                x:Name="Editbutton"
+                                                Grid.Row="0"
+                                                Grid.Column="2"
+                                                Width="25"
+                                                Height="35"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="#483472"
+                                                BorderThickness="0"
+                                                Checked="Editbutton_Checked"
+                                                Cursor="Hand"
+                                                IsChecked="{Binding IsEditing}"
+                                                Style="{DynamicResource Editbutton}"
+                                                Tag="{Binding}"
+                                                Unchecked="Editbutton_Checked">
+                                                <Grid>
+                                                    <Image
+                                                        Width="15"
+                                                        Height="15"
+                                                        RenderOptions.BitmapScalingMode="Linear"
+                                                        Source="/Img/Icons/Edit_ico.png" />
+                                                </Grid>
+                                            </ToggleButton>
+
+
 
                                             <TextBlock
                                                 Grid.Row="0"
@@ -599,7 +734,48 @@
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="15"
                                                 Style="{StaticResource ActiveStatusText}"
-                                                Text="{Binding msg}" />
+                                                Text="{Binding msg}"
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox
+                                                Grid.Row="0"
+                                                Grid.Column="1"
+                                                Margin="7,0,30,0"
+                                                VerticalAlignment="Center"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="15"
+                                                FontWeight="Medium"
+                                                IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                                Style="{StaticResource ActiveStatusTextEdit}"
+                                                Text="{Binding editMsg}"
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+                                            <Button
+                                                x:Name="CancelEditbutton"
+                                                Grid.Row="0"
+                                                Grid.Column="1"
+                                                Width="20"
+                                                Height="20"
+                                                Margin="0,0,5,0"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="#6B0000"
+                                                BorderThickness="0"
+                                                Click="CancelEditbutton_Click"
+                                                Cursor="Hand"
+                                                Style="{DynamicResource CancelEditbutton}"
+                                                Tag="{Binding}"
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <Grid>
+                                                    <Image
+                                                        Width="15"
+                                                        Height="15"
+                                                        RenderOptions.BitmapScalingMode="Linear"
+                                                        Source="/Img/Icons/Cross_ico.png" />
+                                                </Grid>
+                                            </Button>
+
                                             <Button
                                                 Name="Activatebutton"
                                                 Grid.Row="0"
@@ -626,7 +802,7 @@
                                             <Button
                                                 Name="Favbutton"
                                                 Grid.Row="0"
-                                                Grid.Column="3"
+                                                Grid.Column="4"
                                                 Width="35"
                                                 Height="35"
                                                 HorizontalAlignment="Left"

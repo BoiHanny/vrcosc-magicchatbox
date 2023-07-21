@@ -513,7 +513,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     Random random = new Random();
                     int randomId = random.Next(10, 99999999);
-                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Enjoy 💖", MSGLenght = 7, MSGID = randomId });
+                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Enjoy 💖", MSGID = randomId });
                     SaveStatusList();
                 }
             }

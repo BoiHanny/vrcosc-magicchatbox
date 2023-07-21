@@ -24,6 +24,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _IsEditing = false;
+        public bool IsEditing
+        {
+            get { return _IsEditing; }
+            set
+            {
+                _IsEditing = value;
+                NotifyPropertyChanged(nameof(IsEditing));
+            }
+        }
+
         public bool IsFavorite
         {
             get { return _IsFavorite; }
@@ -44,13 +56,15 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public int MSGLenght
+
+        private string _editMsg = "";
+        public string editMsg
         {
-            get { return _MSGLenght; }
+            get { return _editMsg; }
             set
             {
-                _MSGLenght = value;
-                NotifyPropertyChanged(nameof(MSGLenght));
+                _editMsg = value;
+                NotifyPropertyChanged(nameof(editMsg));
             }
         }
 
@@ -64,6 +78,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private DateTime _LastEdited;
+
+        public DateTime LastEdited
+        {
+            get { return _LastEdited; }
+            set
+            {
+                _LastEdited = value;
+                NotifyPropertyChanged(nameof(LastEdited));
+            }
+        }
 
         public DateTime CreationDate
         {

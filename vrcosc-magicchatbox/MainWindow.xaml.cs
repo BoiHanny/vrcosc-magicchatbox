@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes;
@@ -65,7 +66,7 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
-            OSCReader.StartListening();
+            //OSCReader.StartListening();
         }
 
         public void SelectTTS()
@@ -399,7 +400,7 @@ namespace vrcosc_magicchatbox
 
             if (ViewModel.Instance.NewStatusItemTxt.Count() > 0 && ViewModel.Instance.NewStatusItemTxt.Count() < 141)
             {
-                ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = IsActive, IsFavorite = false, msg = ViewModel.Instance.NewStatusItemTxt, MSGLenght = ViewModel.Instance.NewStatusItemTxt.Count(), MSGID = randomId });
+                ViewModel.Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = IsActive, IsFavorite = false, msg = ViewModel.Instance.NewStatusItemTxt, MSGID = randomId });
                 ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(ViewModel.Instance.StatusList.OrderByDescending(x => x.CreationDate));
                 if (ViewModel.Instance.NewStatusItemTxt.ToLower() == "sr4 series" || ViewModel.Instance.NewStatusItemTxt.ToLower() == "boihanny")
                 {
@@ -744,6 +745,48 @@ namespace vrcosc_magicchatbox
         private void LearnMoreAboutHeartbtn_MouseUp(object sender, MouseButtonEventArgs e)
         {
             Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Set-Up-MagicChatbox-with-Pulsoid-for-VRChat-%F0%9F%92%9C");
+        }
+
+        private void CancelEditbutton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var button = sender as Button;
+                var item = button.Tag as StatusItem;
+                item.IsEditing = false;
+                item.editMsg = "";
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void Editbutton_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var button = sender as ToggleButton;
+                var item = button.Tag as StatusItem;
+                if ((bool)button.IsChecked)
+                {
+                    item.editMsg = item.msg;
+                }
+                else
+                {
+                    if(item.editMsg.Count() < 145)
+                    {
+                        item.msg = item.editMsg;
+                    }
+                    item.IsEditing = false;
+                    item.editMsg = "";
+                
+                }
+            }
+            catch (Exception)
+            {
+
+            }
         }
     }
 }
