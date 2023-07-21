@@ -777,15 +777,24 @@ namespace vrcosc_magicchatbox
                     if(item.editMsg.Count() < 145)
                     {
                         item.msg = item.editMsg;
+                        item.IsEditing = false;
+                        item.editMsg = "";
+                        item.LastEdited = DateTime.Now;
                     }
-                    item.IsEditing = false;
-                    item.editMsg = "";
+
                 
                 }
             }
             catch (Exception)
             {
 
+            }
+        }
+
+        private void SortEdited_Click(object sender, RoutedEventArgs e)
+        {
+            {
+                ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(ViewModel.Instance.StatusList.OrderByDescending(x => x.LastEdited));
             }
         }
     }

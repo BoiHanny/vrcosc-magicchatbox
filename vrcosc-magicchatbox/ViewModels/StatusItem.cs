@@ -8,7 +8,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private DateTime _CreationDate;
         private DateTime _LastUsed;
-        private int _MSGLenght;
         private int _MSGID;
         private string _msg = "";
         private bool _IsFavorite;
@@ -83,7 +82,18 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public DateTime LastEdited
         {
-            get { return _LastEdited; }
+            get
+            {
+                if (_LastEdited == null)
+                {
+                    return _CreationDate;
+                }
+                else
+                {
+                    return _LastEdited;
+                }
+            }
+
             set
             {
                 _LastEdited = value;

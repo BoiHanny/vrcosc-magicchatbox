@@ -971,7 +971,7 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Click="SortUsed_Click"
-                                Content="Recent used"
+                                Content="Recently used"
                                 Style="{DynamicResource Status_Button_style}" />
                             <Button
                                 x:Name="SortFav"
@@ -979,7 +979,7 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Click="SortFav_Click"
-                                Content="Favorites"
+                                Content="My favorites"
                                 Style="{DynamicResource Status_Button_style}" />
                             <Button
                                 x:Name="SortDate"
@@ -987,7 +987,15 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Click="SortDate_Click"
-                                Content="Create date"
+                                Content="Creation date"
+                                Style="{DynamicResource Status_Button_style}" />
+                            <Button
+                                x:Name="SortEdited"
+                                Width="100"
+                                Height="25"
+                                Margin="5,0,5,0"
+                                Click="SortEdited_Click"
+                                Content="Edit date"
                                 Style="{DynamicResource Status_Button_style}" />
                         </StackPanel>
                     </Grid>
