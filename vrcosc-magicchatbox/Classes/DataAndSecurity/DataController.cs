@@ -601,6 +601,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     Instance.VersionTxtColor = "#FF8AFF04";
                     Instance.VersionTxtUnderLine = true;
                     Instance.CanUpdate = true;
+                    Instance.CanUpdateLabel = true;
                     Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
                 }
@@ -617,6 +618,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         Instance.VersionTxtUnderLine = true;
                         Instance.VersionTxtColor = "#2FD9FF";
                         Instance.CanUpdate = true;
+                        Instance.CanUpdateLabel = false;
                         Instance.UpdateURL = Instance.PreReleaseURL;
                         return;
                     }
@@ -626,6 +628,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         Instance.VersionTxt = "Up-to-date (pre-release)";
                         Instance.VersionTxtUnderLine = false;
                         Instance.VersionTxtColor = "#75D5FE";
+                        Instance.CanUpdateLabel = false;
                         Instance.CanUpdate = false;
                         return;
                     }
@@ -640,6 +643,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     Instance.VersionTxtColor = "#FF8AFF04";
                     Instance.VersionTxtUnderLine = true;
                     Instance.CanUpdate = true;
+                    Instance.CanUpdateLabel = false;
                     Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
                 }
@@ -648,6 +652,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Instance.VersionTxt = "You are up-to-date";
                 Instance.VersionTxtUnderLine = false;
                 Instance.VersionTxtColor = "#FF92CC90";
+                Instance.CanUpdateLabel = false;
                 Instance.CanUpdate = false;
             }
             catch (Exception ex)

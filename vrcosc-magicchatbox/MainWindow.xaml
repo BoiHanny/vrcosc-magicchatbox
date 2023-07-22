@@ -4138,7 +4138,7 @@
                             MouseUp="GitHubChanges_MouseUp"
                             Text="View changes on GitHub"
                             TextDecorations="Underline"
-                            Visibility="{Binding CanUpdate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBlock.Effect>
                                 <DropShadowEffect
                                     BlurRadius="10"

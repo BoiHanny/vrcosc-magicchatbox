@@ -260,6 +260,7 @@ namespace vrcosc_magicchatbox
             if (ViewModel.Instance.CanUpdate)
             {
                 ViewModel.Instance.CanUpdate = false;
+                ViewModel.Instance.CanUpdateLabel = false;
                 Task.Run(() => UpdateApp.PrepareUpdate());
             }
             else

@@ -590,7 +590,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _LogPath = @"C:\temp\Vrcosc-MagicChatbox";
         private string _RecentPlayBackOutput;
         private bool _VrcConnected;
-        private bool _CanUpdate;
+        private bool _CanUpdate = false;
         private string _toggleVoiceText = "Toggle voice (V)";
         private bool _AutoUnmuteTTS = true;
         private bool _ToggleVoiceWithV = true;
@@ -1247,6 +1247,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _CanUpdate = value;
                 NotifyPropertyChanged(nameof(CanUpdate));
+            }
+        }
+
+
+        private bool _CanUpdateLabel = false;
+        public bool CanUpdateLabel
+        {
+            get { return _CanUpdateLabel; }
+            set
+            {
+                _CanUpdateLabel = value;
+                NotifyPropertyChanged(nameof(CanUpdateLabel));
             }
         }
         public bool VrcConnected
