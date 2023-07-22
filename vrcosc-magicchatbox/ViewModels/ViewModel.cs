@@ -1822,6 +1822,29 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private string _PulsoidAccessErrorTxt = "";
+        public string PulsoidAccessErrorTxt
+        {
+            get { return _PulsoidAccessErrorTxt; }
+            set
+            {
+                _PulsoidAccessErrorTxt = value;
+                NotifyPropertyChanged(nameof(PulsoidAccessErrorTxt));
+            }
+        }
+
+        private bool _PulsoidAccessError = false;
+        public bool PulsoidAccessError
+        {
+            get { return _PulsoidAccessError; }
+            set
+            {
+                _PulsoidAccessError = value;
+                NotifyPropertyChanged(nameof(PulsoidAccessError));
+            }
+        }
+
         public bool MasterSwitch
         {
             get { return _MasterSwitch; }
