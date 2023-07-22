@@ -1927,13 +1927,24 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
 
-        private double _ScanningInterval = 1.5;
+        private double _ScanningInterval = 1.6;
         public double ScanningInterval
         {
             get { return _ScanningInterval; }
             set
             {
-                _ScanningInterval = Math.Round(value, 1); // rounds the value to the nearest 0.1
+                if (value < 1.6)
+                {
+                    _ScanningInterval = 1.6;
+                }
+                else if (value > 10)
+                {
+                    _ScanningInterval = 10;
+                }
+                else
+                {
+                    _ScanningInterval = Math.Round(value, 1);
+                }
                 NotifyPropertyChanged(nameof(ScanningInterval));
             }
         }

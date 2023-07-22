@@ -2040,7 +2040,7 @@
                                             Margin="2.2,0,4.5,0"
                                             IsSnapToTickEnabled="True"
                                             Maximum="10"
-                                            Minimum="1.5"
+                                            Minimum="1.6"
                                             Style="{StaticResource CustomSlider}"
                                             TickFrequency="0.1"
                                             Value="{Binding Path=ScanningInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
