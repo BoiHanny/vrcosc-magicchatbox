@@ -753,8 +753,9 @@ namespace vrcosc_magicchatbox
             {
                 var button = sender as Button;
                 var item = button.Tag as StatusItem;
-                item.IsEditing = false;
                 item.editMsg = "";
+                item.IsEditing = false;
+               
             }
             catch (Exception)
             {
@@ -774,8 +775,9 @@ namespace vrcosc_magicchatbox
                 }
                 else
                 {
-                    if(item.editMsg.Count() < 145)
+                    if(item.editMsg.Count() < 145 && !string.IsNullOrEmpty(item.editMsg))
                     {
+                        
                         item.msg = item.editMsg;
                         item.IsEditing = false;
                         item.editMsg = "";
