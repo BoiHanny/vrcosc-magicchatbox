@@ -737,10 +737,12 @@
                                                 Text="{Binding msg}"
                                                 Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBox
+                                                x:Name="EditTextBox"
                                                 Grid.Row="0"
                                                 Grid.Column="1"
                                                 Margin="7,0,30,0"
                                                 VerticalAlignment="Center"
+                                                local:TextBoxBehaviour.HandleEnterKey="True"
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 FontFamily="Comfortaa Light"
@@ -750,6 +752,8 @@
                                                 Style="{StaticResource ActiveStatusTextEdit}"
                                                 Text="{Binding editMsg}"
                                                 Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+
 
                                             <Button
                                                 x:Name="CancelEditbutton"

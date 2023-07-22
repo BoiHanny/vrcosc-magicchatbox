@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -773,26 +774,35 @@ namespace vrcosc_magicchatbox
                 if ((bool)button.IsChecked)
                 {
                     item.editMsg = item.msg;
+                    // Find the TextBox in the same container as the ToggleButton
+                    var parent = VisualTreeHelper.GetParent(button);
+                    while (!(parent is ContentPresenter))
+                    {
+                        parent = VisualTreeHelper.GetParent(parent);
+                    }
+                    var contentPresenter = parent as ContentPresenter;
+                    var dataTemplate = contentPresenter.ContentTemplate;
+                    var editTextBox = (TextBox)dataTemplate.FindName("EditTextBox", contentPresenter);
+                    editTextBox.Focus();
+                    // Set the cursor at the end of the text
+                    editTextBox.CaretIndex = editTextBox.Text.Length;
                 }
                 else
                 {
-                    if(item.editMsg.Count() < 145 && !string.IsNullOrEmpty(item.editMsg))
+                    if (item.editMsg.Count() < 145 && !string.IsNullOrEmpty(item.editMsg))
                     {
-                        
                         item.msg = item.editMsg;
                         item.IsEditing = false;
                         item.editMsg = "";
                         item.LastEdited = DateTime.Now;
                     }
-
-                
                 }
             }
             catch (Exception)
             {
-
             }
         }
+
 
         private void SortEdited_Click(object sender, RoutedEventArgs e)
         {
