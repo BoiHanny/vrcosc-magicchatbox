@@ -4134,7 +4134,7 @@
                             Cursor="Hand"
                             FontFamily="Albert Sans Thin"
                             FontSize="8.5"
-                            Foreground="#FFE27EE8"
+                            Foreground="#26A1FA"
                             MouseUp="GitHubChanges_MouseUp"
                             Text="View changes on GitHub"
                             TextDecorations="Underline"
@@ -4142,7 +4142,7 @@
                             <TextBlock.Effect>
                                 <DropShadowEffect
                                     BlurRadius="10"
-                                    Opacity="1"
+                                    Opacity="0.3"
                                     ShadowDepth="0"
                                     Color="#251153" />
                             </TextBlock.Effect>
