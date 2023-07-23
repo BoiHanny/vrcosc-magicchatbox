@@ -17,7 +17,7 @@ namespace vrcosc_magicchatbox.Classes
 
         // This method sends an OSC packet to a specified address and port with the ViewModel's OSC input
         // If FX is true, the OSC message is formatted to be displayed as FX text
-        public static async Task SendOSCMessage(bool FX)
+        public static async Task SendOSCMessage(bool FX, int delay = 0)
         {
             // Check if the master switch is on
             if (!ViewModel.Instance.MasterSwitch)
@@ -62,9 +62,13 @@ namespace vrcosc_magicchatbox.Classes
                 string BlankEgg = "\u0003\u001f";
                 string combinedText = ViewModel.Instance.OSCtoSent + BlankEgg;
 
+
+
                 // Send the OSC message in a separate thread
                 await Task.Run(() =>
                 {
+                    if (delay > 0)
+                        Thread.Sleep(delay);
                     if (combinedText.Length < 145 & ViewModel.Instance.Egg_Dev && ViewModel.Instance.BlankEgg)
                     {
                         oscSender.Send(new OscMessage("/chatbox/input", combinedText, true, FX));

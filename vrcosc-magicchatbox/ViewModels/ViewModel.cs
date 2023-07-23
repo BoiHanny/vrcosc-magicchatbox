@@ -220,8 +220,120 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _KeepUpdatingChat = true;
+        public bool KeepUpdatingChat
+        {
+            get { return _KeepUpdatingChat; }
+            set
+            {
+                _KeepUpdatingChat = value;
+                if(!value)
+                {
+                    ViewModel.Instance.ChatLiveEdit = false;
+                }
+                NotifyPropertyChanged(nameof(KeepUpdatingChat));
+            }
+        }
+
+        private bool _ChatLiveEdit = true;
+        public bool ChatLiveEdit
+        {
+            get { return _ChatLiveEdit; }
+            set
+            {
+                _ChatLiveEdit = value;
+                NotifyPropertyChanged(nameof(ChatLiveEdit));
+            }
+        }
 
 
+        private bool _ChatAddSmallDelay = true;
+        public bool ChatAddSmallDelay
+        {
+            get { return _ChatAddSmallDelay; }
+            set
+            {
+                _ChatAddSmallDelay = value;
+                NotifyPropertyChanged(nameof(ChatAddSmallDelay));
+            }
+        }
+
+
+
+        private bool _RealTimeChatEdit = true;
+        public bool RealTimeChatEdit
+        {
+            get { return _RealTimeChatEdit; }
+            set
+            {
+                _RealTimeChatEdit = value;
+                NotifyPropertyChanged(nameof(RealTimeChatEdit));
+            }
+        }
+    
+
+        private double _ChatAddSmallDelayTIME = 1.4;
+        public double ChatAddSmallDelayTIME
+        {
+            get { return _ChatAddSmallDelayTIME; }
+            set
+            {
+                if (value < 0.1)
+                {
+                    _ChatAddSmallDelayTIME = 0.1;
+                }
+                else if (value > 2)
+                {
+                    _ChatAddSmallDelayTIME = 2;
+                }
+                    _ChatAddSmallDelayTIME = Math.Round(value, 1);
+                NotifyPropertyChanged(nameof(ChatAddSmallDelayTIME));
+            }
+        }
+
+
+        private double _ChattingUpdateRate = 3;
+        public double ChattingUpdateRate
+        {
+            get { return _ChattingUpdateRate; }
+            set
+            {
+                if (value < 2)
+                {
+                    _ChattingUpdateRate = 2;
+                }
+                else if (value > 10)
+                {
+                    _ChattingUpdateRate = 10;
+                }
+
+                _ChattingUpdateRate = Math.Round(value, 1);
+                NotifyPropertyChanged(nameof(ChattingUpdateRate));
+            }
+        }
+
+
+        private bool _TTSOnResendChat = false;
+        public bool TTSOnResendChat
+        {
+            get { return _TTSOnResendChat; }
+            set
+            {
+                _TTSOnResendChat = value;
+                NotifyPropertyChanged(nameof(TTSOnResendChat));
+            }
+        }
+
+        private bool _ChatSendAgainFX = true;
+        public bool ChatSendAgainFX
+        {
+            get { return _ChatSendAgainFX; }
+            set
+            {
+                _ChatSendAgainFX = value;
+                NotifyPropertyChanged(nameof(ChatSendAgainFX));
+            }
+        }
 
         private List<MediaSessionSettings> _SavedSessionSettings = new List<MediaSessionSettings>();
         public List<MediaSessionSettings> SavedSessionSettings

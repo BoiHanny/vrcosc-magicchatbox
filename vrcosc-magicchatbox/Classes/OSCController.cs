@@ -388,7 +388,16 @@ namespace vrcosc_magicchatbox.Classes
                         Random random = new Random();
                         int randomId = random.Next(10, 99999999);
 
-                        var newChatItem = new ChatItem() { Msg = ViewModel.Instance.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId };
+                        if(ViewModel.Instance.ChatLiveEdit)
+                        foreach (var item in ViewModel.Instance.LastMessages)
+                        {
+                            item.CanLiveEdit = false;
+                            item.CanLiveEditRun = false;
+                            item.MsgReplace = "";
+                            item.IsRunning = false;
+                        }
+
+                        var newChatItem = new ChatItem() { Msg = ViewModel.Instance.NewChattingTxt, MainMsg = ViewModel.Instance.NewChattingTxt, CreationDate = DateTime.Now, ID = randomId, IsRunning=true, CanLiveEdit = ViewModel.Instance.ChatLiveEdit };
                         ViewModel.Instance.LastMessages.Add(newChatItem);
 
                         if (ViewModel.Instance.LastMessages.Count > 5)
@@ -422,13 +431,21 @@ namespace vrcosc_magicchatbox.Classes
         }
 
         // this function clears the chat window and resets the chat related variables to their default values
-        internal static void ClearChat()
+        internal static void ClearChat(ChatItem lastsendchat = null)
         {
             ViewModel.Instance.ScanPause = false;
             ViewModel.Instance.OSCtoSent = "";
             ViewModel.Instance.OSCmsg_count = 0;
             ViewModel.Instance.OSCmsg_countUI = "0/144";
             ViewModel.Instance.ActiveChatTxt = "";
+            if (lastsendchat != null)
+            {
+                lastsendchat.CanLiveEdit = false;
+                lastsendchat.CanLiveEditRun = false;
+                lastsendchat.MsgReplace = "";
+                lastsendchat.IsRunning = false;
+            }
+            
         }
     }
 }

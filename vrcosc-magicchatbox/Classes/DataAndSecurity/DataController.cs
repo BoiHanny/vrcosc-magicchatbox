@@ -246,6 +246,13 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"PrefixChat", (typeof(bool), "Chat")},
                         {"ChatFX", (typeof(bool), "Chat")},
+                        {"ChatLiveEdit", (typeof(bool), "Chat")},
+                        {"KeepUpdatingChat", (typeof(bool), "Chat")},
+                        {"ChatSendAgainFX", (typeof(bool), "Chat")},
+                        {"ChatAddSmallDelay", (typeof(bool), "Chat")},
+                        {"ChatAddSmallDelayTIME", (typeof(double), "Chat")},
+                        {"ChattingUpdateRate", (typeof(double), "Chat")},
+                        {"RealTimeChatEdit", (typeof(bool), "Chat")},
 
                         {"SeperateWithENTERS", (typeof(bool), "Custom")},
 
@@ -259,6 +266,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"TTSVolume", (typeof(float), "TTS")},
                         {"RecentTikTokTTSVoice", (typeof(string), "TTS")},
                         {"RecentPlayBackOutput", (typeof(string), "TTS")},
+                        {"TTSOnResendChat", (typeof(bool), "TTS")},
 
                         {"OpenAIAPIKey", (typeof(string), "OpenAI")},
                         {"OpenAIAPISelectedModel", (typeof(string), "OpenAI")},
@@ -429,6 +437,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"));
                     Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                    foreach (var item in Instance.LastMessages)
+                    {
+                        item.CanLiveEdit = false;
+                    }
                 }
                 else
                 {

@@ -1526,6 +1526,9 @@
                                         FontSize="15"
                                         Foreground="#FF240E54"
                                         Text="{Binding ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+
+
                                     <CheckBox
                                         x:Name="ChatIconPrefix_checkbox"
                                         Height="22"
@@ -1540,6 +1543,7 @@
                                         Unchecked="Update_Click">
                                         Add 💬 as prefix for chat messages
                                     </CheckBox>
+
                                     <CheckBox
                                         x:Name="ChatFX_checkbox"
                                         Height="22"
@@ -1552,6 +1556,152 @@
                                         Style="{DynamicResource SettingsCheckbox}">
                                         Play FX sound for VRChat users when sending message
                                     </CheckBox>
+                                    <CheckBox
+                                        x:Name="ChatSendAgainFX_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatSendAgainFX, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Visibility="{Binding ChatFX, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Play FX when clicking resend
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ChatAddSmallDelay_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatAddSmallDelay, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Small delay when sending message (prevents timeout)
+                                    </CheckBox>
+
+                                    <StackPanel Visibility="{Binding ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Delay before sending" />
+                                        <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                            <Slider
+                                                x:Name="ChatAddSmallDelaySensitivitySlider"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="2"
+                                                Minimum="0.1"
+                                                Style="{StaticResource CustomSlider}"
+                                                TickFrequency="0.1"
+                                                Value="{Binding Path=ChatAddSmallDelayTIME, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="{Binding ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Margin="-2,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="sec" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="KeepUpdatingChat_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding KeepUpdatingChat, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Overide display time for chat messages (keep updating)
+                                    </CheckBox>
+                                    <StackPanel Visibility="{Binding KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Update rate of active chat message" />
+                                        <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                            <Slider
+                                                x:Name="ChattingUpdateRateSensitivitySlider"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="10"
+                                                Minimum="2"
+                                                Style="{StaticResource CustomSlider}"
+                                                TickFrequency="0.1"
+                                                Value="{Binding Path=ChattingUpdateRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="{Binding ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Margin="-2,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="sec" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="ChatEdit_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatLiveEdit, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Visibility="{Binding KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Edit chat messages
+                                    </CheckBox>
+                                    <Grid Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <CheckBox
+                                            x:Name="ChatLiveEdit_checkbox"
+                                            Height="22"
+                                            Margin="0,0,0,10"
+                                            BorderBrush="#FF2D1265"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding RealTimeChatEdit, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Visibility="{Binding KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            Live editing
+                                        </CheckBox>
+                                    </Grid>
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -1609,6 +1759,18 @@
                                         IsChecked="{Binding TTSCutOff, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
                                         Stop current playing TTS on new chat
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="TTSOnResendChat"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TTSOnResendChat, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Replay TTS on resend
                                     </CheckBox>
                                     <CheckBox
                                         x:Name="TTSAutoUnmute"
@@ -2720,39 +2882,129 @@
                                             BorderThickness="0"
                                             CornerRadius="5"
                                             Opacity="{Binding Opacity}">
-                                            <StackPanel
+                                            <Grid
+                                                Width="auto"
                                                 Height="auto"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
-                                                <TextBox
-                                                    Width="475"
+                                                VerticalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Width="auto"
                                                     Height="Auto"
                                                     Padding="15,15,0,15"
+                                                    HorizontalAlignment="Stretch"
+                                                    Background="Transparent"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="16"
+                                                    Foreground="LightGray"
+                                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                    Text="{Binding Msg, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="18"
+                                                            Opacity="0.9"
+                                                            RenderingBias="Quality"
+                                                            ShadowDepth="0"
+                                                            Color="WhiteSmoke" />
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <TextBox
+                                                    x:Name="EditChatTextBox"
+                                                    Grid.Column="0"
+                                                    Width="auto"
+                                                    Height="Auto"
+                                                    Padding="13,15,0,15"
+                                                    HorizontalAlignment="Stretch"
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     FontFamily="Albert Sans Thin"
                                                     FontSize="16"
-                                                    Foreground="LightGray"
-                                                    IsReadOnly="True"
-                                                    Text="{Binding Msg}"
-                                                    TextWrapping="Wrap" />
-                                                <Button
-                                                    Width="80"
-                                                    Margin="5,5,0,5"
-                                                    HorizontalAlignment="Right"
-                                                    Command="{Binding SendAgainCommand}"
-                                                    CommandParameter="{Binding Msg}"
-                                                    Content="Send again"
-                                                    Style="{DynamicResource Status_Button_style}" />
-                                                <Button
-                                                    Width="50"
-                                                    Margin="5"
-                                                    HorizontalAlignment="Right"
-                                                    Command="{Binding CopyToClipboardCommand}"
-                                                    CommandParameter="{Binding Msg}"
-                                                    Content="Copy"
-                                                    Style="{DynamicResource Status_Button_style}" />
-                                            </StackPanel>
+                                                    FontWeight="DemiBold"
+                                                    Foreground="#6FC2EC"
+                                                    IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                    KeyDown="EditChatTextBox_KeyDown"
+                                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                    Text="{Binding MsgReplace, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextChanged="EditChatTextBox_TextChanged"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBox.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="18"
+                                                            Opacity="0.9"
+                                                            RenderingBias="Quality"
+                                                            ShadowDepth="0"
+                                                            Color="#B0E6FC" />
+                                                    </TextBox.Effect>
+                                                </TextBox>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <Grid>
+                                                        <Button
+                                                            x:Name="CancelEditChatbutton"
+                                                            Grid.Row="0"
+                                                            Grid.Column="1"
+                                                            Width="20"
+                                                            Height="40"
+                                                            Margin="0,0,0,0"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center"
+                                                            Background="#6B0000"
+                                                            BorderThickness="0"
+                                                            Click="CancelEditChatbutton_Click"
+                                                            Cursor="Hand"
+                                                            Style="{DynamicResource CancelEditbutton}"
+                                                            Tag="{Binding}"
+                                                            Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                            <Grid>
+                                                                <Image
+                                                                    Width="15"
+                                                                    Height="15"
+                                                                    RenderOptions.BitmapScalingMode="Linear"
+                                                                    Source="/Img/Icons/Cross_ico.png" />
+                                                            </Grid>
+                                                        </Button>
+                                                    </Grid>
+
+                                                    <ToggleButton
+                                                        Width="auto"
+                                                        Margin="5,5,0,5"
+                                                        Padding="5,0"
+                                                        HorizontalAlignment="Right"
+                                                        Checked="ToggleButton_Checked"
+                                                        Content="{Binding LiveEditButtonTxt}"
+                                                        IsChecked="{Binding CanLiveEditRun, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                        Style="{DynamicResource Status_Toggle_style}"
+                                                        Tag="{Binding}"
+                                                        Unchecked="ToggleButton_Checked"
+                                                        Visibility="{Binding CanLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <Button
+                                                        Width="auto"
+                                                        Margin="5,5,0,5"
+                                                        Padding="5,0"
+                                                        HorizontalAlignment="Right"
+                                                        Click="OnSendAgain"
+                                                        Content="Resend"
+                                                        Style="{DynamicResource Status_Button_style}"
+                                                        Tag="{Binding}" />
+                                                    <Button
+                                                        Width="auto"
+                                                        Margin="5"
+                                                        Padding="5,0"
+                                                        HorizontalAlignment="Right"
+                                                        Command="{Binding CopyToClipboardCommand}"
+                                                        CommandParameter="{Binding Msg}"
+                                                        Style="{DynamicResource Status_Button_style}">
+                                                        <Image Width="18" Source="/Img/Icons/Copy_ico.png" />
+                                                    </Button>
+
+                                                </StackPanel>
+
+                                            </Grid>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -3978,7 +4230,7 @@
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
                             <TextBlock
-                                Margin="0,0,5,0"
+                                Margin="0,2,5,0"
                                 VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
@@ -4002,7 +4254,42 @@
                                 IsChecked="{Binding Topmost, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}" />
                         </StackPanel>
+                        <StackPanel
+                            Width="auto"
+                            Height="auto"
+                            Margin="5,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Visibility="{Binding MenuItem_2_Visibility}">
+                            <StackPanel Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBlock
+                                    Margin="0,3,5,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF7D7397"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Live edit chats">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
 
+                            <CheckBox
+                                Width="20"
+                                BorderBrush="#FF2D1265"
+                                FontFamily="Comfortaa Light"
+                                FontSize="12"
+                                Foreground="#FFB9B5C1"
+                                IsChecked="{Binding RealTimeChatEdit, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
                         <StackPanel
                             Width="112"
                             Height="20"
