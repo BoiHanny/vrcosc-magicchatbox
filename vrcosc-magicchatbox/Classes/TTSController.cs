@@ -69,7 +69,7 @@ namespace vrcosc_magicchatbox.Classes
                     waveOut.Init(audioReader);
 
                     OSCSender.ToggleVoice();
-                    Thread.Sleep(300);
+                    Thread.Sleep(175);
 
                     waveOut.Play();
 
