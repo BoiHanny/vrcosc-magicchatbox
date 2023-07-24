@@ -46,6 +46,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             // Unlock the check for updates
             isUpdateCheckRunning = false;
         }
+        // Check for updates
 
         public static List<Voice> ReadTkTkTTSVoices()
         {

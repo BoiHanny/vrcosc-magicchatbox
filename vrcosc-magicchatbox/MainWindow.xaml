@@ -2073,7 +2073,11 @@
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
-                                            Foreground="#FF9983AD"><Run Text="GPT Model (use GPT-3 for cheap and fast " /><Run Language="en-gb" Text="promts" /><Run Text=")" /></TextBlock>
+                                            Foreground="#FF9983AD">
+                                            <Run Text="GPT Model (use GPT-3 for cheap and fast " />
+                                            <Run Language="en-gb" Text="promts" />
+                                            <Run Text=")" />
+                                        </TextBlock>
                                     </StackPanel>
                                     <StackPanel
                                         Width="auto"
@@ -4544,7 +4548,3 @@
 
     </Grid>
 </Window>
-
-
-
-

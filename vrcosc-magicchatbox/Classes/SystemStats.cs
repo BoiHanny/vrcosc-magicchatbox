@@ -9,85 +9,101 @@ namespace vrcosc_magicchatbox.Classes
 {
     public static class SystemStats
     {
+
+        private static DateTimeOffset GetDateTimeWithZone(bool autoSetDaylight, bool timeShowTimeZone, DateTimeOffset localDateTime, TimeZoneInfo timeZoneInfo, out TimeSpan timeZoneOffset)
+        {
+            DateTimeOffset dateTimeWithZone;
+
+            if (autoSetDaylight)
+            {
+                if (timeShowTimeZone)
+                {
+                    timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
+                    dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
+                }
+                else
+                {
+                    timeZoneOffset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
+                    dateTimeWithZone = localDateTime;
+                }
+            }
+            else
+            {
+                timeZoneOffset = timeZoneInfo.BaseUtcOffset;
+                if (ViewModel.Instance.UseDaylightSavingTime)
+                {
+                    TimeSpan adjustment = timeZoneInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta ?? TimeSpan.Zero;
+                    timeZoneOffset = timeZoneOffset.Add(adjustment);
+                }
+                dateTimeWithZone = localDateTime.ToOffset(timeZoneOffset);
+            }
+            return dateTimeWithZone;
+        }
+
+        private static string GetFormattedTime(DateTimeOffset dateTimeWithZone, bool time24H, bool timeShowTimeZone, string timeZoneDisplay)
+        {
+            CultureInfo userCulture = CultureInfo.CurrentCulture;
+            string timeFormat = time24H ? "HH:mm" : "hh:mm tt";
+
+            if (timeShowTimeZone)
+            {
+                return dateTimeWithZone.ToString($"{timeFormat}{timeZoneDisplay}", userCulture);
+            }
+            else
+            {
+                return dateTimeWithZone.ToString(timeFormat, CultureInfo.InvariantCulture).ToUpper();
+            }
+        }
+
         public static string GetTime()
         {
             try
             {
-                CultureInfo userCulture = CultureInfo.CurrentCulture;
                 DateTimeOffset localDateTime = DateTimeOffset.Now;
                 TimeZoneInfo timeZoneInfo;
-                string TimezoneLabel = null;
+                string timezoneLabel = null;
 
                 switch (ViewModel.Instance.SelectedTimeZone)
                 {
                     case Timezone.UTC:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("UTC");
-                        TimezoneLabel = "UTC";
+                        timezoneLabel = "UTC";
                         break;
                     case Timezone.EST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                        TimezoneLabel = "EST";
+                        timezoneLabel = "EST";
                         break;
                     case Timezone.CST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
-                        TimezoneLabel = "CST";
+                        timezoneLabel = "CST";
                         break;
                     case Timezone.PST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                        TimezoneLabel = "PST";
+                        timezoneLabel = "PST";
                         break;
                     case Timezone.CET:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-                        TimezoneLabel = "CET";
+                        timezoneLabel = "CET";
                         break;
                     case Timezone.AEST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. Australia Standard Time");
-                        TimezoneLabel = "AEST";
+                        timezoneLabel = "AEST";
                         break;
                     default:
                         timeZoneInfo = TimeZoneInfo.Local;
-                        TimezoneLabel = "??";
+                        timezoneLabel = "??";
                         break;
                 }
 
-                DateTimeOffset dateTimeWithZone;
                 TimeSpan timeZoneOffset;
+                var dateTimeWithZone = GetDateTimeWithZone(ViewModel.Instance.AutoSetDaylight,
+                                                            ViewModel.Instance.TimeShowTimeZone,
+                                                            localDateTime,
+                                                            timeZoneInfo,
+                                                            out timeZoneOffset);
 
-                if (ViewModel.Instance.AutoSetDaylight)
-                {
-                    if (ViewModel.Instance.TimeShowTimeZone)
-                    {
-                        timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
-                        dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
-                    }
-                    else
-                    {
-                        timeZoneOffset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
-                        dateTimeWithZone = localDateTime;
-                    }
-                }
-                else
-                {
-                    timeZoneOffset = timeZoneInfo.BaseUtcOffset;
-                    if (ViewModel.Instance.UseDaylightSavingTime)
-                    {
-                        TimeSpan adjustment = timeZoneInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta ?? TimeSpan.Zero;
-                        timeZoneOffset = timeZoneOffset.Add(adjustment);
-                    }
-                    dateTimeWithZone = localDateTime.ToOffset(timeZoneOffset);
-                }
-
-                string timeZoneOffsetStr = timeZoneOffset.ToString("hh");
-                string timeZoneDisplay = $" ({TimezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "-" : "+")}{timeZoneOffsetStr})";
-
-                if (ViewModel.Instance.Time24H)
-                {
-                    return dateTimeWithZone.ToString($"HH:mm{(ViewModel.Instance.TimeShowTimeZone ? timeZoneDisplay : "")}", userCulture);
-                }
-                else
-                {
-                    return dateTimeWithZone.ToString($"hh:mm tt{(ViewModel.Instance.TimeShowTimeZone ? timeZoneDisplay : "")}", CultureInfo.InvariantCulture).ToUpper();
-                }
+                string timeZoneDisplay = $" ({timezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "-" : "+")}{timeZoneOffset.Hours.ToString("00")})";
+                return GetFormattedTime(dateTimeWithZone, ViewModel.Instance.Time24H, ViewModel.Instance.TimeShowTimeZone, timeZoneDisplay);
             }
             catch (Exception ex)
             {
@@ -95,6 +111,7 @@ namespace vrcosc_magicchatbox.Classes
                 return "00:00 XX";
             }
         }
+
 
 
 

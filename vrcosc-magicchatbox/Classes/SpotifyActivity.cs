@@ -35,7 +35,7 @@ namespace vrcosc_magicchatbox.Classes
                     else
                     {
                         ViewModel.Instance.SpotifyPaused = true;
-                        return "";
+                        return string.Empty;
                     }
 
                 }

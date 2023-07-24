@@ -69,6 +69,7 @@ namespace vrcosc_magicchatbox
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
             //OSCReader.StartListening();
+
         }
 
         public void SelectTTS()
@@ -938,6 +939,8 @@ namespace vrcosc_magicchatbox
                 lastsendchat.Msg = lastsendchat.MainMsg;
             } 
         }
+
+        
 
         public void OnSendAgain(object sender, RoutedEventArgs e)
         {
