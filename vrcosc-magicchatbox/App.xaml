@@ -536,9 +536,9 @@
                                 <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Pressed.Border2}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#1E4E55" />
-                                <Setter TargetName="border" Property="BorderBrush" Value="#1E4E55" />
-                                <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground3}" />
+                                <Setter TargetName="border" Property="Background" Value="#228908" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#228908" />
+                                <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.MouseOver.Background2}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
