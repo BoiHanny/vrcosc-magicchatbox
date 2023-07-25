@@ -321,7 +321,7 @@
                     <DropShadowEffect
                         BlurRadius="8"
                         Direction="-63"
-                        RenderingBias="Quality"
+                        RenderingBias="Performance"
                         ShadowDepth="0"
                         Color="#FF1B1BAF" />
                 </Border.Effect>
@@ -361,7 +361,7 @@
                 <DropShadowEffect
                     BlurRadius="15"
                     Direction="-63"
-                    RenderingBias="Quality"
+                    RenderingBias="Performance"
                     ShadowDepth="0"
                     Color="DarkBlue" />
             </Border.Effect>
@@ -651,7 +651,7 @@
                                             <DropShadowEffect
                                                 BlurRadius="5"
                                                 Direction="-23"
-                                                RenderingBias="Quality"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="DarkBlue" />
                                         </Border.Effect>
@@ -674,7 +674,15 @@
                                                     Width="22"
                                                     Height="22"
                                                     Source="/Img/Icons/ActivatedStatus_ico.png"
-                                                    Stretch="Uniform" />
+                                                    Stretch="Uniform">
+                                                    <Image.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="15"
+                                                            RenderingBias="Performance"
+                                                            ShadowDepth="0"
+                                                            Color="LimeGreen" />
+                                                    </Image.Effect>
+                                                </Image>
                                             </Border>
 
                                             <Button
@@ -732,10 +740,19 @@
                                                 Margin="8,0,0,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Comfortaa Light"
-                                                FontSize="15"
+                                                FontSize="16"
                                                 Style="{StaticResource ActiveStatusText}"
                                                 Text="{Binding msg}"
-                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="18"
+                                                        Opacity="0.6"
+                                                        RenderingBias="Performance"
+                                                        ShadowDepth="0"
+                                                        Color="WhiteSmoke" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
                                             <TextBox
                                                 x:Name="EditTextBox"
                                                 Grid.Row="0"
@@ -746,12 +763,21 @@
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 FontFamily="Comfortaa Light"
-                                                FontSize="15"
+                                                FontSize="16"
                                                 FontWeight="Medium"
                                                 IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
                                                 Style="{StaticResource ActiveStatusTextEdit}"
                                                 Text="{Binding editMsg}"
-                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBox.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="18"
+                                                        Opacity="0.9"
+                                                        RenderingBias="Performance"
+                                                        ShadowDepth="0"
+                                                        Color="#B0E6FC" />
+                                                </TextBox.Effect>
+                                            </TextBox>
 
 
 
@@ -775,7 +801,6 @@
                                                     <Image
                                                         Width="15"
                                                         Height="15"
-                                                        RenderOptions.BitmapScalingMode="Linear"
                                                         Source="/Img/Icons/Cross_ico.png" />
                                                 </Grid>
                                             </Button>
@@ -887,7 +912,7 @@
                                 <DropShadowEffect
                                     BlurRadius="5"
                                     Direction="-23"
-                                    RenderingBias="Quality"
+                                    RenderingBias="Performance"
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </TextBox.Effect>
@@ -940,7 +965,7 @@
                                 BlurRadius="10"
                                 Direction="90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -961,7 +986,7 @@
                                 BlurRadius="10"
                                 Direction="-90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -2454,7 +2479,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Width="auto"
-                                Margin="10,0,0,0"
+                                Margin="10,0,2,0"
                                 Visibility="{Binding Settings_WindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -2594,6 +2619,15 @@
                                                 Text="Custom app name" />
                                         </Button>
                                     </Grid>
+                                    <Border.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Direction="0"
+                                            Opacity="0.5"
+                                            RenderingBias="Performance"
+                                            ShadowDepth="0"
+                                            Color="black" />
+                                    </Border.Effect>
                                 </Border>
 
                                 <ItemsControl Grid.Row="5" ItemsSource="{Binding ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
@@ -2602,7 +2636,9 @@
                                             <Border
                                                 Margin="0,15,0,0"
                                                 Background="DarkSlateBlue"
-                                                CornerRadius="5">
+                                                CornerRadius="5"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
+
                                                 <Grid Margin="10">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="150" />
@@ -2683,9 +2719,19 @@
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </TextBox.Style>
+
                                                         </TextBox>
                                                     </StackPanel>
                                                 </Grid>
+                                                <Border.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Direction="0"
+                                                        Opacity="0.5"
+                                                        RenderingBias="Performance"
+                                                        ShadowDepth="0"
+                                                        Color="black" />
+                                                </Border.Effect>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -2749,7 +2795,7 @@
                                 <DropShadowEffect
                                     BlurRadius="5"
                                     Direction="-23"
-                                    RenderingBias="Quality"
+                                    RenderingBias="Performance"
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </TextBox.Effect>
@@ -2798,7 +2844,7 @@
                                 BlurRadius="10"
                                 Direction="-90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -2885,7 +2931,8 @@
                                             Background="DarkSlateBlue"
                                             BorderThickness="0"
                                             CornerRadius="5"
-                                            Opacity="{Binding Opacity}">
+                                            Opacity="{Binding Opacity}"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
                                             <Grid
                                                 Width="auto"
                                                 Height="auto"
@@ -2902,17 +2949,16 @@
                                                     HorizontalAlignment="Stretch"
                                                     Background="Transparent"
                                                     FontFamily="Albert Sans Thin"
-                                                    FontSize="16"
+                                                    FontSize="18"
                                                     Foreground="LightGray"
-                                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                     Text="{Binding Msg, UpdateSourceTrigger=PropertyChanged}"
                                                     TextWrapping="Wrap"
                                                     Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                     <TextBlock.Effect>
                                                         <DropShadowEffect
-                                                            BlurRadius="18"
+                                                            BlurRadius="20"
                                                             Opacity="0.9"
-                                                            RenderingBias="Quality"
+                                                            RenderingBias="Performance"
                                                             ShadowDepth="0"
                                                             Color="WhiteSmoke" />
                                                     </TextBlock.Effect>
@@ -2927,21 +2973,20 @@
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     FontFamily="Albert Sans Thin"
-                                                    FontSize="16"
+                                                    FontSize="18"
                                                     FontWeight="DemiBold"
                                                     Foreground="#6FC2EC"
                                                     IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                     KeyDown="EditChatTextBox_KeyDown"
-                                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                     Text="{Binding MsgReplace, UpdateSourceTrigger=PropertyChanged}"
                                                     TextChanged="EditChatTextBox_TextChanged"
                                                     TextWrapping="Wrap"
                                                     Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                     <TextBox.Effect>
                                                         <DropShadowEffect
-                                                            BlurRadius="18"
+                                                            BlurRadius="20"
                                                             Opacity="0.9"
-                                                            RenderingBias="Quality"
+                                                            RenderingBias="Performance"
                                                             ShadowDepth="0"
                                                             Color="#B0E6FC" />
                                                     </TextBox.Effect>
@@ -3009,6 +3054,15 @@
                                                 </StackPanel>
 
                                             </Grid>
+                                            <Border.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Direction="0"
+                                                    Opacity="0.5"
+                                                    RenderingBias="Performance"
+                                                    ShadowDepth="0"
+                                                    Color="black" />
+                                            </Border.Effect>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -3024,7 +3078,7 @@
                                 BlurRadius="10"
                                 Direction="90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -3116,7 +3170,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3248,7 +3302,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3377,7 +3431,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3545,7 +3599,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3677,7 +3731,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3776,7 +3830,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -4148,7 +4202,7 @@
                                 <DropShadowEffect
                                     BlurRadius="5"
                                     Direction="-23"
-                                    RenderingBias="Quality"
+                                    RenderingBias="Performance"
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
@@ -4266,6 +4320,7 @@
                             Orientation="Horizontal"
                             Visibility="{Binding MenuItem_2_Visibility}">
                             <StackPanel Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
                                 <TextBlock
                                     Margin="0,3,5,0"
                                     VerticalAlignment="Center"
@@ -4295,9 +4350,9 @@
                                 Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                         <StackPanel
-                            Width="112"
-                            Height="20"
-                            Margin="0,5"
+                            Width="auto"
+                            Height="auto"
+                            Margin="5,5"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
                             Visibility="{Binding MenuItem_2_Visibility}">
