@@ -46,6 +46,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             // Unlock the check for updates
             isUpdateCheckRunning = false;
         }
+        // Check for updates
 
         public static List<Voice> ReadTkTkTTSVoices()
         {
@@ -246,6 +247,13 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                         {"PrefixChat", (typeof(bool), "Chat")},
                         {"ChatFX", (typeof(bool), "Chat")},
+                        {"ChatLiveEdit", (typeof(bool), "Chat")},
+                        {"KeepUpdatingChat", (typeof(bool), "Chat")},
+                        {"ChatSendAgainFX", (typeof(bool), "Chat")},
+                        {"ChatAddSmallDelay", (typeof(bool), "Chat")},
+                        {"ChatAddSmallDelayTIME", (typeof(double), "Chat")},
+                        {"ChattingUpdateRate", (typeof(double), "Chat")},
+                        {"RealTimeChatEdit", (typeof(bool), "Chat")},
 
                         {"SeperateWithENTERS", (typeof(bool), "Custom")},
 
@@ -259,6 +267,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"TTSVolume", (typeof(float), "TTS")},
                         {"RecentTikTokTTSVoice", (typeof(string), "TTS")},
                         {"RecentPlayBackOutput", (typeof(string), "TTS")},
+                        {"TTSOnResendChat", (typeof(bool), "TTS")},
 
                         {"OpenAIAPIKey", (typeof(string), "OpenAI")},
                         {"OpenAIAPISelectedModel", (typeof(string), "OpenAI")},
@@ -284,6 +293,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"HeartRateTrendIndicatorSensitivity", (typeof(double), "HeartRateConnector")},
                         {"ShowHeartRateTrendIndicator", (typeof(bool), "HeartRateConnector")},
                         {"HeartRateTrendIndicatorSampleRate", (typeof(int), "HeartRateConnector")},
+                        {"HeartRateTitle", (typeof(bool), "HeartRateConnector")},
 
 
                         {"Settings_Status", (typeof(bool), "OptionsTabState")},
@@ -428,6 +438,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"));
                     Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                    foreach (var item in Instance.LastMessages)
+                    {
+                        item.CanLiveEdit = false;
+                    }
                 }
                 else
                 {
@@ -512,7 +526,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     Random random = new Random();
                     int randomId = random.Next(10, 99999999);
-                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Enjoy 💖", MSGLenght = 7, MSGID = randomId });
+                    Instance.StatusList.Add(new StatusItem { CreationDate = DateTime.Now, IsActive = true, IsFavorite = true, msg = "Enjoy 💖", MSGID = randomId });
                     SaveStatusList();
                 }
             }
@@ -600,6 +614,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     Instance.VersionTxtColor = "#FF8AFF04";
                     Instance.VersionTxtUnderLine = true;
                     Instance.CanUpdate = true;
+                    Instance.CanUpdateLabel = true;
                     Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
                 }
@@ -616,6 +631,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         Instance.VersionTxtUnderLine = true;
                         Instance.VersionTxtColor = "#2FD9FF";
                         Instance.CanUpdate = true;
+                        Instance.CanUpdateLabel = false;
                         Instance.UpdateURL = Instance.PreReleaseURL;
                         return;
                     }
@@ -625,6 +641,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         Instance.VersionTxt = "Up-to-date (pre-release)";
                         Instance.VersionTxtUnderLine = false;
                         Instance.VersionTxtColor = "#75D5FE";
+                        Instance.CanUpdateLabel = false;
                         Instance.CanUpdate = false;
                         return;
                     }
@@ -639,6 +656,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     Instance.VersionTxtColor = "#FF8AFF04";
                     Instance.VersionTxtUnderLine = true;
                     Instance.CanUpdate = true;
+                    Instance.CanUpdateLabel = false;
                     Instance.UpdateURL = Instance.LatestReleaseURL;
                     return;
                 }
@@ -647,6 +665,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Instance.VersionTxt = "You are up-to-date";
                 Instance.VersionTxtUnderLine = false;
                 Instance.VersionTxtColor = "#FF92CC90";
+                Instance.CanUpdateLabel = false;
                 Instance.CanUpdate = false;
             }
             catch (Exception ex)

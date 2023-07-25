@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -68,10 +69,12 @@ namespace vrcosc_magicchatbox.Classes
         {
             while (!cancellationToken.IsCancellationRequested)
             {
+
                 DateTime startTime = DateTime.UtcNow;
 
                 try
                 {
+
                     int heartRate = await GetHeartRateViaHttpAsync();
                     if (heartRate != -1)
                     {
@@ -139,6 +142,11 @@ namespace vrcosc_magicchatbox.Classes
                 }
                 catch (Exception ex)
                 {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        ViewModel.Instance.PulsoidAccessError = true;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                        });
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                     Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
@@ -151,6 +159,8 @@ namespace vrcosc_magicchatbox.Classes
                 {
                     await Task.Delay(remainingDelay, cancellationToken);
                 }
+
+
 
             }
         }
@@ -172,6 +182,7 @@ namespace vrcosc_magicchatbox.Classes
 
         public static async Task<int> GetHeartRateViaHttpAsync()
         {
+
             string accessToken = ViewModel.Instance.PulsoidAccessToken;
             string url = "https://dev.pulsoid.net/api/v1/data/heart_rate/latest";
 
@@ -186,10 +197,21 @@ namespace vrcosc_magicchatbox.Classes
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 JObject json = JObject.Parse(jsonResponse);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.PulsoidAccessError = false;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = "";
+                });
                 return json["data"]["heart_rate"].Value<int>();
+                
             }
             catch (Exception ex)
             {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.PulsoidAccessError = true;
+                ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                    });
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return -1; // Return an error code or handle the error as needed
             }

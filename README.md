@@ -8,7 +8,7 @@
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.142/Version-0.8.142.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.321/v0.8.321.zip)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/url/0943e0bc664411f5bf4dade5ec00376ef1fd79cbedb863fad1cf98f64eb63507?nocache=1)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
@@ -20,7 +20,7 @@
 
 
 ### Download and Installation
-1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.142/Version-0.8.142.zip).
+1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.321/v0.8.321.zip).
 2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
 3. Right-click and choose the option 'extract all'.
 4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
@@ -49,6 +49,10 @@
 - **Personal Message integration:** In addition to the Status tab, we have also added a new Personal Message integration, allowing you to easily share messages with others.
 
 - **Chatting:** allows you to quickly send messages of up to 140 characters. The UI displays the last five messages in a scroll viewer that fades out, and you can copy or resend any of these messages. Additionally, when sending a new message, you can see a countdown of how long it will last (you can set this value in options), and there is a stop button to clear the message instantly in VRChat. You can also clear your message history (last 5 messages) with the Clear History button.
+
+- **Chat Message Editing**: Your chat messages are no longer set in stone! This feature lets you edit sent messages with two modes at your disposal:
+   - **'Live' mode** for real-time editing. See changes as you type!
+   - **'On Confirm' mode** lets you revise at leisure and hit `ENTER` to apply changes.
 
 - **Time options:** MagicChatbox offers an option to show only the current time in VR, without the "my time:" prefix. You can choose to display the time in a 24-hour format, making it easier to read. u can also set a custom time zone and auto-apply or toggle daylight saving time.
 

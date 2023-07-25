@@ -60,11 +60,12 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Tuning up the TTS voices. Get ready to hear!", 40);
             ViewModel.Instance.TikTokTTSVoices = await Task.Run(() => DataController.ReadTkTkTTSVoices());
 
-            loadingWindow.UpdateProgress("Warming up the OpenAI client... Get set for takeoff!", 50);
-            await Task.Run(() => OpenAIClient.LoadOpenAIClient());
+            //loadingWindow.UpdateProgress("Warming up the OpenAI client... Get set for takeoff!", 50);
+            //await Task.Run(() => OpenAIClient.LoadOpenAIClient());
 
-            loadingWindow.UpdateProgress("Revving up the OpenAI engines... Can you hear the roar?", 60);
-            await Task.Run(() => DataController.LoadIntelliChatBuiltInActions());
+            //loadingWindow.UpdateProgress("Revving up the OpenAI engines... Can you hear the roar?", 60);
+            //await Task.Run(() => DataController.LoadIntelliChatBuiltInActions());
+
 
             loadingWindow.UpdateProgress("Setting up your concert - choosing the best audio devices!", 70);
             await Task.Run(() => DataController.PopulateOutputDevices());

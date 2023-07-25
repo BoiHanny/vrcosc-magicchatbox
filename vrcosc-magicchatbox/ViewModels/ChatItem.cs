@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
@@ -19,8 +20,10 @@ namespace vrcosc_magicchatbox.ViewModels
         public ChatItem()
         {
             CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
-            SendAgainCommand = new RelayCommand(OnSendAgainAsync);
+
         }
+
+
 
         public string Opacity
         {
@@ -29,6 +32,65 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _opacity = value;
                 NotifyPropertyChanged(nameof(Opacity));
+            }
+        }
+
+
+        private string _Opacity_backup;
+        public string Opacity_backup
+        {
+            get { return _Opacity_backup; }
+            set
+            {
+                _Opacity_backup = value;
+                NotifyPropertyChanged(nameof(Opacity_backup));
+            }
+        }
+
+        private bool _CanLiveEditRun = false;
+        public bool CanLiveEditRun
+        {
+            get { return _CanLiveEditRun; }
+            set
+            {
+                _CanLiveEditRun = value;
+                NotifyPropertyChanged(nameof(CanLiveEditRun));
+            }
+        }
+
+        private bool _CanLiveEdit = false;
+        public bool CanLiveEdit
+        {
+            get { return _CanLiveEdit; }
+            set
+            {
+                _CanLiveEdit = value;
+                NotifyPropertyChanged(nameof(CanLiveEdit));
+            }
+        }
+
+        private string _MsgReplace = "";
+        public string MsgReplace
+        {
+            get { return _MsgReplace; }
+            set
+            {
+                _MsgReplace = value;
+                NotifyPropertyChanged(nameof(MsgReplace));
+            }
+        }
+
+
+
+
+        private string _LiveEditButtonTxt = "Sending...";
+        public string LiveEditButtonTxt
+        {
+            get { return _LiveEditButtonTxt; }
+            set
+            {
+                _LiveEditButtonTxt = value;
+                NotifyPropertyChanged(nameof(LiveEditButtonTxt));
             }
         }
 
@@ -52,6 +114,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private string _MainMsg = "";
+        public string MainMsg
+        {
+            get { return _MainMsg; }
+            set
+            {
+                _MainMsg = value;
+                NotifyPropertyChanged(nameof(MainMsg));
+            }
+        }
         public DateTime CreationDate
         {
             get { return _creationDate; }
@@ -63,7 +135,6 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         public ICommand CopyToClipboardCommand { get; }
-        public ICommand SendAgainCommand { get; }
 
         public void CopyToClipboard(object parameter)
         {
@@ -83,47 +154,16 @@ namespace vrcosc_magicchatbox.ViewModels
 
         }
 
-        public void OnSendAgainAsync(object parameter)
+
+        private bool _IsRunning = false;
+        public bool IsRunning
         {
-            try
+            get { return _IsRunning; }
+            set
             {
-                if (ViewModel.Instance.MasterSwitch == false)
-                {
-                    ViewModel.Instance.ChatFeedbackTxt = "Sent to VRChat is off";
-                    return;
-                }
-                if (parameter is string text)
-                {
-                    string savedtxt = ViewModel.Instance.NewChattingTxt;
-                    ViewModel.Instance.NewChattingTxt = text;
-                    OSCController.CreateChat(false);
-                    OSCController.SendOSCMessage(true);
-                    ViewModel.Instance.NewChattingTxt = savedtxt;
-
-                    if (ViewModel.Instance.TTSTikTokEnabled == true)
-                    {
-                        if (DataAndSecurity.DataController.PopulateOutputDevices(true))
-                        {
-                            ViewModel.Instance.ChatFeedbackTxt = "Requesting TTS...";
-                            MainWindow.TTSGOAsync(text, true);
-                        }
-                        else
-                        {
-                            ViewModel.Instance.ChatFeedbackTxt = "Error setting output device.";
-                        }
-                    }
-                    else
-                    {
-                        ViewModel.Instance.ChatFeedbackTxt = "Message sent again";
-                    }
-
-                }
+                _IsRunning = value;
+                NotifyPropertyChanged(nameof(IsRunning));
             }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
-            }
-
         }
 
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,22 +20,90 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public static readonly ViewModel Instance = new ViewModel();
 
+
+        private bool _BlankEgg = false;
+
+
+        private bool _ChatAddSmallDelay = true;
+
+
+        private double _ChatAddSmallDelayTIME = 1.4;
+
+        private bool _ChatLiveEdit = true;
+
+        private bool _ChatSendAgainFX = true;
+
+
+        private double _ChattingUpdateRate = 3;
+
+
+        private bool _DisableMediaLink = false;
+
+        private bool _Egg_Dev = false;
+
         private HeartRateConnector _heartRateConnector;
 
-        #region ICommand's
-        public ICommand ActivateStatusCommand { get; set; }
-        public ICommand ToggleVoiceCommand { get; }
-        public ICommand SortScannedAppsByProcessNameCommand { get; }
-        public ICommand SortScannedAppsByFocusCountCommand { get; }
-        public ICommand SortScannedAppsByUsedNewMethodCommand { get; }
-        public ICommand SortScannedAppsByIsPrivateAppCommand { get; }
-        public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
-        public RelayCommand<string> ActivateSettingCommand { get; }
 
-        #endregion
+        private bool _HeartRateTitle = false;
 
-        public Dictionary<Timezone, string> TimezoneFriendlyNames { get; }
+        private bool _IntgrCurrentTime_DESKTOP = false;
+
+        private bool _IntgrCurrentTime_VR = true;
+
+
+        private bool _IntgrHeartRate_DESKTOP = false;
+
+        private bool _IntgrHeartRate_VR = true;
+
+        private bool _IntgrMediaLink_DESKTOP = true;
+
+
+        private bool _IntgrMediaLink_VR = true;
+
+
+        private bool _IntgrScanMediaLink = true;
+
+
+        private bool _IntgrSpotifyStatus_DESKTOP = true;
+
+        private bool _IntgrSpotifyStatus_VR = true;
+
+        private bool _IntgrStatus_DESKTOP = true;
+
+        private bool _IntgrStatus_VR = true;
+
+        private bool _IntgrWindowActivity_DESKTOP = true;
+
+        private bool _IntgrWindowActivity_VR = false;
+
+
+        private bool _JoinedAlphaChannel = true;
+
+
+        private bool _KeepUpdatingChat = true;
+
+
+        private bool _MediaSession_AutoSwitch = true;
+
+
+        private bool _MediaSession_AutoSwitchSpawn = true;
+
+
+        private int _MediaSession_Timeout = 3;
+
+        private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
+
+
+        private bool _RealTimeChatEdit = true;
+
+        private List<MediaSessionSettings> _SavedSessionSettings = new List<MediaSessionSettings>();
+
+        private bool _Settings_Dev = false;
+
+
+        private bool _TTSOnResendChat = false;
         public Dictionary<string, Action<bool>> SettingsMap;
+
         public ViewModel()
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
@@ -43,42 +112,121 @@ namespace vrcosc_magicchatbox.ViewModels
             SortScannedAppsByFocusCountCommand = new RelayCommand(() => SortScannedApps(SortProperty.FocusCount));
             SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
             SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
-            SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
+            SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(
+                () => SortScannedApps(SortProperty.ApplyCustomAppName));
             ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
             TimezoneFriendlyNames = new Dictionary<Timezone, string>
-        {
-            { Timezone.UTC, "Coordinated Universal Time (UTC)" },
-            { Timezone.EST, "Eastern Standard Time (EST)" },
-            { Timezone.CST, "Central Standard Time (CST)" },
-            { Timezone.PST, "Pacific Standard Time (PST)" },
-            { Timezone.CET, "European Central Time (CET)" },
-            { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
-        };
+            {
+                { Timezone.UTC, "Coordinated Universal Time (UTC)" },
+                { Timezone.EST, "Eastern Standard Time (EST)" },
+                { Timezone.CST, "Central Standard Time (CST)" },
+                { Timezone.PST, "Pacific Standard Time (PST)" },
+                { Timezone.CET, "European Central Time (CET)" },
+                { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
+            };
             SettingsMap = new Dictionary<string, Action<bool>>
-    {
-        { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
-        { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
-        { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
-        { nameof(Settings_Chatting), value => Settings_Chatting = value },
-        { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
-        { nameof(Settings_TTS), value => Settings_TTS = value },
-        { nameof(Settings_Time), value => Settings_Time = value },
-        { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
-        { nameof(Settings_Status), value => Settings_Status = value }
-    };
+            {
+                { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
+                { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
+                { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
+                { nameof(Settings_Chatting), value => Settings_Chatting = value },
+                { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
+                { nameof(Settings_TTS), value => Settings_TTS = value },
+                { nameof(Settings_Time), value => Settings_Time = value },
+                { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
+                { nameof(Settings_Status), value => Settings_Status = value }
+            };
             _heartRateConnector = new HeartRateConnector();
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
+            _dynamicOSCData = new ExpandoObject();
         }
+
+        private void ToggleVoice()
+        {
+            if(Instance.ToggleVoiceWithV)
+                OSCSender.ToggleVoice(true);
+        }
+
+        private void UpdateToggleVoiceText()
+        { ToggleVoiceText = ToggleVoiceWithV ? "Toggle voice (V)" : "Toggle voice"; }
 
         public void ActivateSetting(string settingName)
         {
-            if (SettingsMap.ContainsKey(settingName))
+            if(SettingsMap.ContainsKey(settingName))
             {
-                foreach (var setting in SettingsMap)
+                foreach(var setting in SettingsMap)
                 {
                     setting.Value(setting.Key == settingName);
                 }
                 MainWindow.ChangeMenuItem(3);
+            }
+        }
+
+        public static void ActivateStatus(object parameter)
+        {
+            try
+            {
+                var item = parameter as StatusItem;
+                foreach(var i in ViewModel.Instance.StatusList)
+                {
+                    if(i == item)
+                    {
+                        i.IsActive = true;
+                        i.LastUsed = DateTime.Now;
+                    } else
+                    {
+                        i.IsActive = false;
+                    }
+                }
+                SaveStatusList();
+            } catch(Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+            }
+        }
+
+        public static bool CreateIfMissing(string path)
+        {
+            try
+            {
+                if(!Directory.Exists(path))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(path);
+                    return true;
+                }
+                return true;
+            } catch(IOException ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return false;
+            }
+        }
+
+        public static void SaveStatusList()
+        {
+            try
+            {
+                if(CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(ViewModel.Instance.StatusList);
+                    File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"), json);
+                }
+            } catch(Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+        public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "FocusCount")
+            {
+                Application.Current.Dispatcher
+                    .Invoke(
+                        () =>
+                        {
+                            CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
+                        });
             }
         }
 
@@ -89,7 +237,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
             IOrderedEnumerable<ProcessInfo> sortedScannedApps;
 
-            switch (sortProperty)
+            switch(sortProperty)
             {
                 case SortProperty.ProcessName:
                     sortedScannedApps = isAscending
@@ -127,38 +275,168 @@ namespace vrcosc_magicchatbox.ViewModels
             ScannedApps = new ObservableCollection<ProcessInfo>(sortedScannedApps);
         }
 
-        private void ToggleVoice()
+        public bool BlankEgg
         {
-            if (Instance.ToggleVoiceWithV)
-                OSCController.ToggleVoice(true);
-        }
-
-
-        private int _MediaSession_Timeout = 3;
-        public int MediaSession_Timeout
-        {
-            get { return _MediaSession_Timeout; }
+            get { return _BlankEgg; }
             set
             {
-                _MediaSession_Timeout = value;
-                NotifyPropertyChanged(nameof(MediaSession_Timeout));
+                _BlankEgg = value;
+                NotifyPropertyChanged(nameof(BlankEgg));
             }
         }
 
-
-        private bool _MediaSession_AutoSwitch = true;
-        public bool MediaSession_AutoSwitch
+        public bool ChatAddSmallDelay
         {
-            get { return _MediaSession_AutoSwitch; }
+            get { return _ChatAddSmallDelay; }
             set
             {
-                _MediaSession_AutoSwitch = value;
-                NotifyPropertyChanged(nameof(MediaSession_AutoSwitch));
+                _ChatAddSmallDelay = value;
+                NotifyPropertyChanged(nameof(ChatAddSmallDelay));
             }
         }
 
+        public double ChatAddSmallDelayTIME
+        {
+            get { return _ChatAddSmallDelayTIME; }
+            set
+            {
+                if(value < 0.1)
+                {
+                    _ChatAddSmallDelayTIME = 0.1;
+                } else if(value > 2)
+                {
+                    _ChatAddSmallDelayTIME = 2;
+                }
+                _ChatAddSmallDelayTIME = Math.Round(value, 1);
+                NotifyPropertyChanged(nameof(ChatAddSmallDelayTIME));
+            }
+        }
 
-        private bool _IntgrMediaLink_VR = true;
+        public bool ChatLiveEdit
+        {
+            get { return _ChatLiveEdit; }
+            set
+            {
+                _ChatLiveEdit = value;
+                NotifyPropertyChanged(nameof(ChatLiveEdit));
+            }
+        }
+
+        public bool ChatSendAgainFX
+        {
+            get { return _ChatSendAgainFX; }
+            set
+            {
+                _ChatSendAgainFX = value;
+                NotifyPropertyChanged(nameof(ChatSendAgainFX));
+            }
+        }
+
+        public double ChattingUpdateRate
+        {
+            get { return _ChattingUpdateRate; }
+            set
+            {
+                if(value < 2)
+                {
+                    _ChattingUpdateRate = 2;
+                } else if(value > 10)
+                {
+                    _ChattingUpdateRate = 10;
+                }
+
+                _ChattingUpdateRate = Math.Round(value, 1);
+                NotifyPropertyChanged(nameof(ChattingUpdateRate));
+            }
+        }
+
+        public bool DisableMediaLink
+        {
+            get { return _DisableMediaLink; }
+            set
+            {
+                _DisableMediaLink = value;
+                if(_DisableMediaLink)
+                {
+                    IntgrScanMediaLink = false;
+                } else
+                {
+                    IntgrScanSpotify_OLD = false;
+                }
+                NotifyPropertyChanged(nameof(DisableMediaLink));
+            }
+        }
+
+        public bool Egg_Dev
+        {
+            get { return _Egg_Dev; }
+            set
+            {
+                _Egg_Dev = value;
+                NotifyPropertyChanged(nameof(Egg_Dev));
+            }
+        }
+
+        public bool HeartRateTitle
+        {
+            get { return _HeartRateTitle; }
+            set
+            {
+                _HeartRateTitle = value;
+                NotifyPropertyChanged(nameof(HeartRateTitle));
+            }
+        }
+
+        public bool IntgrCurrentTime_DESKTOP
+        {
+            get { return _IntgrCurrentTime_DESKTOP; }
+            set
+            {
+                _IntgrCurrentTime_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrCurrentTime_DESKTOP));
+            }
+        }
+
+        public bool IntgrCurrentTime_VR
+        {
+            get { return _IntgrCurrentTime_VR; }
+            set
+            {
+                _IntgrCurrentTime_VR = value;
+                NotifyPropertyChanged(nameof(IntgrCurrentTime_VR));
+            }
+        }
+
+        public bool IntgrHeartRate_DESKTOP
+        {
+            get { return _IntgrHeartRate_DESKTOP; }
+            set
+            {
+                _IntgrHeartRate_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_DESKTOP));
+            }
+        }
+
+        public bool IntgrHeartRate_VR
+        {
+            get { return _IntgrHeartRate_VR; }
+            set
+            {
+                _IntgrHeartRate_VR = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_VR));
+            }
+        }
+
+        public bool IntgrMediaLink_DESKTOP
+        {
+            get { return _IntgrMediaLink_DESKTOP; }
+            set
+            {
+                _IntgrMediaLink_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrMediaLink_DESKTOP));
+            }
+        }
+
         public bool IntgrMediaLink_VR
         {
             get { return _IntgrMediaLink_VR; }
@@ -169,8 +447,80 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool IntgrScanMediaLink
+        {
+            get { return _IntgrScanMediaLink; }
+            set
+            {
+                _IntgrScanMediaLink = value;
+                if(_IntgrScanMediaLink)
+                {
+                    IntgrScanSpotify_OLD = false;
+                }
+                NotifyPropertyChanged(nameof(IntgrScanMediaLink));
+            }
+        }
 
-        private bool _JoinedAlphaChannel = true;
+        public bool IntgrSpotifyStatus_DESKTOP
+        {
+            get { return _IntgrSpotifyStatus_DESKTOP; }
+            set
+            {
+                _IntgrSpotifyStatus_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_DESKTOP));
+            }
+        }
+
+        public bool IntgrSpotifyStatus_VR
+        {
+            get { return _IntgrSpotifyStatus_VR; }
+            set
+            {
+                _IntgrSpotifyStatus_VR = value;
+                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_VR));
+            }
+        }
+
+        public bool IntgrStatus_DESKTOP
+        {
+            get { return _IntgrStatus_DESKTOP; }
+            set
+            {
+                _IntgrStatus_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrStatus_DESKTOP));
+            }
+        }
+
+        public bool IntgrStatus_VR
+        {
+            get { return _IntgrStatus_VR; }
+            set
+            {
+                _IntgrStatus_VR = value;
+                NotifyPropertyChanged(nameof(IntgrStatus_VR));
+            }
+        }
+
+        public bool IntgrWindowActivity_DESKTOP
+        {
+            get { return _IntgrWindowActivity_DESKTOP; }
+            set
+            {
+                _IntgrWindowActivity_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrWindowActivity_DESKTOP));
+            }
+        }
+
+        public bool IntgrWindowActivity_VR
+        {
+            get { return _IntgrWindowActivity_VR; }
+            set
+            {
+                _IntgrWindowActivity_VR = value;
+                NotifyPropertyChanged(nameof(IntgrWindowActivity_VR));
+            }
+        }
+
         public bool JoinedAlphaChannel
         {
             get { return _JoinedAlphaChannel; }
@@ -182,19 +532,30 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _IntgrMediaLink_DESKTOP = true;
-        public bool IntgrMediaLink_DESKTOP
+        public bool KeepUpdatingChat
         {
-            get { return _IntgrMediaLink_DESKTOP; }
+            get { return _KeepUpdatingChat; }
             set
             {
-                _IntgrMediaLink_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrMediaLink_DESKTOP));
+                _KeepUpdatingChat = value;
+                if(!value)
+                {
+                    ViewModel.Instance.ChatLiveEdit = false;
+                }
+                NotifyPropertyChanged(nameof(KeepUpdatingChat));
             }
         }
 
+        public bool MediaSession_AutoSwitch
+        {
+            get { return _MediaSession_AutoSwitch; }
+            set
+            {
+                _MediaSession_AutoSwitch = value;
+                NotifyPropertyChanged(nameof(MediaSession_AutoSwitch));
+            }
+        }
 
-        private bool _MediaSession_AutoSwitchSpawn = true;
         public bool MediaSession_AutoSwitchSpawn
         {
             get { return _MediaSession_AutoSwitchSpawn; }
@@ -205,22 +566,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-
-
-
-        private List<MediaSessionSettings> _SavedSessionSettings = new List<MediaSessionSettings>();
-        public List<MediaSessionSettings> SavedSessionSettings
+        public int MediaSession_Timeout
         {
-            get { return _SavedSessionSettings; }
+            get { return _MediaSession_Timeout; }
             set
             {
-                _SavedSessionSettings = value;
-                NotifyPropertyChanged(nameof(SavedSessionSettings));
+                _MediaSession_Timeout = value;
+                NotifyPropertyChanged(nameof(MediaSession_Timeout));
             }
         }
 
-        private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
         public ObservableCollection<MediaSessionInfo> MediaSessions
         {
             get { return _MediaSessions; }
@@ -231,30 +586,26 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private bool _BlankEgg = false;
-        public bool BlankEgg
+        public bool RealTimeChatEdit
         {
-            get { return _BlankEgg; }
+            get { return _RealTimeChatEdit; }
             set
             {
-                _BlankEgg = value;
-                NotifyPropertyChanged(nameof(BlankEgg));
+                _RealTimeChatEdit = value;
+                NotifyPropertyChanged(nameof(RealTimeChatEdit));
             }
         }
 
-        private bool _Egg_Dev = false;
-        public bool Egg_Dev
+        public List<MediaSessionSettings> SavedSessionSettings
         {
-            get { return _Egg_Dev; }
+            get { return _SavedSessionSettings; }
             set
             {
-                _Egg_Dev = value;
-                NotifyPropertyChanged(nameof(Egg_Dev));
+                _SavedSessionSettings = value;
+                NotifyPropertyChanged(nameof(SavedSessionSettings));
             }
         }
 
-        private bool _Settings_Dev = false;
         public bool Settings_Dev
         {
             get { return _Settings_Dev; }
@@ -265,249 +616,51 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _IntgrWindowActivity_DESKTOP = true;
-        public bool IntgrWindowActivity_DESKTOP
+        public Dictionary<Timezone, string> TimezoneFriendlyNames { get; }
+
+        public bool TTSOnResendChat
         {
-            get { return _IntgrWindowActivity_DESKTOP; }
+            get { return _TTSOnResendChat; }
             set
             {
-                _IntgrWindowActivity_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrWindowActivity_DESKTOP));
+                _TTSOnResendChat = value;
+                NotifyPropertyChanged(nameof(TTSOnResendChat));
             }
         }
 
+        #region ICommand's
+        public ICommand ActivateStatusCommand { get; set; }
 
-        private bool _IntgrSpotifyStatus_DESKTOP = true;
-        public bool IntgrSpotifyStatus_DESKTOP
-        {
-            get { return _IntgrSpotifyStatus_DESKTOP; }
-            set
-            {
-                _IntgrSpotifyStatus_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_DESKTOP));
-            }
-        }
+        public ICommand ToggleVoiceCommand { get; }
 
-        private bool _IntgrSpotifyStatus_VR = true;
-        public bool IntgrSpotifyStatus_VR
-        {
-            get { return _IntgrSpotifyStatus_VR; }
-            set
-            {
-                _IntgrSpotifyStatus_VR = value;
-                NotifyPropertyChanged(nameof(IntgrSpotifyStatus_VR));
-            }
-        }
+        public ICommand SortScannedAppsByProcessNameCommand { get; }
 
+        public ICommand SortScannedAppsByFocusCountCommand { get; }
 
-        private bool _DisableMediaLink = false;
-        public bool DisableMediaLink
-        {
-            get { return _DisableMediaLink; }
-            set
-            {
+        public ICommand SortScannedAppsByUsedNewMethodCommand { get; }
 
-                _DisableMediaLink = value;
-                if (_DisableMediaLink)
-                {
-                    IntgrScanMediaLink = false;
-                }
-                else
-                {
-                    IntgrScanSpotify_OLD = false;
-                }
-                NotifyPropertyChanged(nameof(DisableMediaLink));
-            }
-        }
+        public ICommand SortScannedAppsByIsPrivateAppCommand { get; }
 
-        private bool _IntgrCurrentTime_DESKTOP = false;
-        public bool IntgrCurrentTime_DESKTOP
-        {
-            get { return _IntgrCurrentTime_DESKTOP; }
-            set
-            {
-                _IntgrCurrentTime_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrCurrentTime_DESKTOP));
-            }
-        }
+        public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
 
-        private bool _IntgrCurrentTime_VR = true;
-        public bool IntgrCurrentTime_VR
-        {
-            get { return _IntgrCurrentTime_VR; }
-            set
-            {
-                _IntgrCurrentTime_VR = value;
-                NotifyPropertyChanged(nameof(IntgrCurrentTime_VR));
-            }
-        }
-
-        private bool _IntgrHeartRate_VR = true;
-        public bool IntgrHeartRate_VR
-        {
-            get { return _IntgrHeartRate_VR; }
-            set
-            {
-                _IntgrHeartRate_VR = value;
-                NotifyPropertyChanged(nameof(IntgrHeartRate_VR));
-            }
-        }
-
-
-        private bool _IntgrHeartRate_DESKTOP = false;
-        public bool IntgrHeartRate_DESKTOP
-        {
-            get { return _IntgrHeartRate_DESKTOP; }
-            set
-            {
-                _IntgrHeartRate_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrHeartRate_DESKTOP));
-            }
-        }
-
-
-        private bool _IntgrScanMediaLink = true;
-        public bool IntgrScanMediaLink
-        {
-            get { return _IntgrScanMediaLink; }
-            set
-            {
-                _IntgrScanMediaLink = value;
-                if (_IntgrScanMediaLink)
-                {
-                    IntgrScanSpotify_OLD = false;
-                }
-                NotifyPropertyChanged(nameof(IntgrScanMediaLink));
-            }
-        }
-
-        private bool _IntgrWindowActivity_VR = false;
-        public bool IntgrWindowActivity_VR
-        {
-            get { return _IntgrWindowActivity_VR; }
-            set
-            {
-                _IntgrWindowActivity_VR = value;
-                NotifyPropertyChanged(nameof(IntgrWindowActivity_VR));
-            }
-        }
-
-        private bool _IntgrStatus_VR = true;
-        public bool IntgrStatus_VR
-        {
-            get { return _IntgrStatus_VR; }
-            set
-            {
-                _IntgrStatus_VR = value;
-                NotifyPropertyChanged(nameof(IntgrStatus_VR));
-            }
-        }
-
-        private bool _IntgrStatus_DESKTOP = true;
-        public bool IntgrStatus_DESKTOP
-        {
-            get { return _IntgrStatus_DESKTOP; }
-            set
-            {
-                _IntgrStatus_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrStatus_DESKTOP));
-            }
-        }
-
-        public static void ActivateStatus(object parameter)
-        {
-            try
-            {
-                var item = parameter as StatusItem;
-                foreach (var i in ViewModel.Instance.StatusList)
-                {
-                    if (i == item)
-                    {
-                        i.IsActive = true;
-                        i.LastUsed = DateTime.Now;
-
-                    }
-                    else
-                    {
-                        i.IsActive = false;
-                    }
-                }
-                SaveStatusList();
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
-            }
-
-        }
-
-        public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "FocusCount")
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
-                });
-            }
-        }
-
-        public static void SaveStatusList()
-        {
-            try
-            {
-                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
-                {
-                    string json = JsonConvert.SerializeObject(ViewModel.Instance.StatusList);
-                    File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"), json);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-
-        }
-        public static bool CreateIfMissing(string path)
-        {
-            try
-            {
-                if (!Directory.Exists(path))
-                {
-                    DirectoryInfo di = Directory.CreateDirectory(path);
-                    return true;
-                }
-                return true;
-            }
-            catch (IOException ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return false;
-            }
-
-        }
-        private void UpdateToggleVoiceText()
-        {
-            ToggleVoiceText = ToggleVoiceWithV ? "Toggle voice (V)" : "Toggle voice";
-        }
+        public RelayCommand<string> ActivateSettingCommand { get; }
+        #endregion
 
         #region Properties     
-
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private ObservableCollection<ChatItem> _LastMessages = new ObservableCollection<ChatItem>();
         private string _aesKey = "g5X5pFei6G8W6UwK6UaA6YhC6U8W6ZbP";
-        private string _PlayingSongTitle = "";
+        private string _PlayingSongTitle = string.Empty;
         private bool _ScanPause = false;
         private bool _Topmost = false;
         private int _ScanPauseTimeout = 25;
         private int _ScanPauseCountDown = 0;
-        private string _NewStatusItemTxt = "";
-        private string _NewChattingTxt = "";
-        private string _ChatFeedbackTxt = "";
-        private string _FocusedWindow = "";
-        private string _StatusTopBarTxt = "";
-        private string _ChatTopBarTxt = "";
+        private string _NewStatusItemTxt = string.Empty;
+        private string _NewChattingTxt = string.Empty;
+        private string _ChatFeedbackTxt = string.Empty;
+        private string _FocusedWindow = string.Empty;
+        private string _StatusTopBarTxt = string.Empty;
+        private string _ChatTopBarTxt = string.Empty;
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
         private bool _IsVRRunning = false;
@@ -521,9 +674,9 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _PrefixIconStatus = true;
         private bool _CountDownUI = true;
         private bool _Time24H = false;
-        private string _OSCtoSent = "";
+        private string _OSCtoSent = string.Empty;
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.8.142");
+        private Version _AppVersion = new("0.8.321");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -531,8 +684,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _StatusBoxColor = "#FF504767";
         private string _ChatBoxCount = "0/140";
         private string _ChatBoxColor = "#FF504767";
-        private string _CurrentTime = "";
-        private string _ActiveChatTxt = "";
+        private string _CurrentTime = string.Empty;
+        private string _ActiveChatTxt = string.Empty;
         private bool _IntgrStatus = true;
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = true;
@@ -543,7 +696,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _MenuItem_2_Visibility = "Hidden";
         private string _MenuItem_3_Visibility = "Visible";
         private int _OSCmsg_count = 0;
-        private string _OSCmsg_countUI = "";
+        private string _OSCmsg_countUI = string.Empty;
         private string _OSCIP = "127.0.0.1";
         private string _Char_Limit = "Hidden";
         private string _Spotify_Opacity = "1";
@@ -553,7 +706,22 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _HeartRate_Opacity = "1";
         private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
-        private string _DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
+
+        private int _OSCPOrtIN = 9001;
+
+        public int OSCPOrtIN
+        {
+            get { return _OSCPOrtIN; }
+            set
+            {
+                _OSCPOrtIN = value;
+                NotifyPropertyChanged(nameof(OSCPOrtIN));
+            }
+        }
+
+        private string _DataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Vrcosc-MagicChatbox");
         private List<Voice> _TikTokTTSVoices;
         private Voice _SelectedTikTokTTSVoice;
         private bool _TTSTikTokEnabled = false;
@@ -565,7 +733,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _LogPath = @"C:\temp\Vrcosc-MagicChatbox";
         private string _RecentPlayBackOutput;
         private bool _VrcConnected;
-        private bool _CanUpdate;
+        private bool _CanUpdate = false;
         private string _toggleVoiceText = "Toggle voice (V)";
         private bool _AutoUnmuteTTS = true;
         private bool _ToggleVoiceWithV = true;
@@ -581,6 +749,7 @@ namespace vrcosc_magicchatbox.ViewModels
             { SortProperty.IsPrivateApp, true },
             { SortProperty.FocusCount, true }
         };
+
         public enum SortProperty
         {
             ProcessName,
@@ -590,8 +759,31 @@ namespace vrcosc_magicchatbox.ViewModels
             FocusCount
         }
 
+        private Dictionary<string, OSCParameter> _builtInOSCData = new Dictionary<string, OSCParameter>();
+        private ExpandoObject _dynamicOSCData = new ExpandoObject();
+
+        public Dictionary<string, OSCParameter> BuiltInOSCData
+        {
+            get { return _builtInOSCData; }
+            set
+            {
+                _builtInOSCData = value;
+                NotifyPropertyChanged(nameof(BuiltInOSCData));
+            }
+        }
+
+        public dynamic DynamicOSCData
+        {
+            get { return _dynamicOSCData; }
+            set
+            {
+                _dynamicOSCData = value;
+                NotifyPropertyChanged(nameof(DynamicOSCData));
+            }
+        }
 
         private bool _SeperateWithENTERS = true;
+
         public bool SeperateWithENTERS
         {
             get { return _SeperateWithENTERS; }
@@ -604,6 +796,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _VersionTxtUnderLine = false;
+
         public bool VersionTxtUnderLine
         {
             get { return _VersionTxtUnderLine; }
@@ -615,8 +808,8 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-
         private int _HeartRateScanInterval_v1 = 1;
+
         public int HeartRateScanInterval_v1
         {
             get { return _HeartRateScanInterval_v1; }
@@ -628,6 +821,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private DateTime _HeartRateLastUpdate = DateTime.Now;
+
         public DateTime HeartRateLastUpdate
         {
             get { return _HeartRateLastUpdate; }
@@ -637,7 +831,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(HeartRateLastUpdate));
             }
         }
-
 
 
         public string MediaLink_Opacity
@@ -651,6 +844,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _AutoSetDaylight = true;
+
         public bool AutoSetDaylight
         {
             get { return _AutoSetDaylight; }
@@ -662,9 +856,8 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-
-
         private bool _SecOSC = false;
+
         public bool SecOSC
         {
             get { return _SecOSC; }
@@ -677,6 +870,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _SecOSCPort = 9002;
+
         public int SecOSCPort
         {
             get { return _SecOSCPort; }
@@ -689,6 +883,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _UseDaylightSavingTime = false;
+
         public bool UseDaylightSavingTime
         {
             get { return _UseDaylightSavingTime; }
@@ -700,6 +895,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _Settings_WindowActivity = false;
+
         public bool Settings_WindowActivity
         {
             get { return _Settings_WindowActivity; }
@@ -711,6 +907,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _Settings_IntelliChat = false;
+
         public bool Settings_IntelliChat
         {
             get { return _Settings_IntelliChat; }
@@ -722,8 +919,8 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-
         private bool _Settings_MediaLink = false;
+
         public bool Settings_MediaLink
         {
             get { return _Settings_MediaLink; }
@@ -735,6 +932,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _Settings_Chatting = false;
+
         public bool Settings_Chatting
         {
             get { return _Settings_Chatting; }
@@ -747,6 +945,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _Settings_AppOptions = false;
+
         public bool Settings_AppOptions
         {
             get { return _Settings_AppOptions; }
@@ -758,6 +957,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _Settings_TTS = false;
+
         public bool Settings_TTS
         {
             get { return _Settings_TTS; }
@@ -769,6 +969,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _Settings_Time = false;
+
         public bool Settings_Time
         {
             get { return _Settings_Time; }
@@ -780,6 +981,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _Settings_HeartRate = false;
+
         public bool Settings_HeartRate
         {
             get { return _Settings_HeartRate; }
@@ -789,7 +991,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(Settings_HeartRate));
             }
         }
+
         private bool _Settings_Status = false;
+
         public bool Settings_Status
         {
             get { return _Settings_Status; }
@@ -812,6 +1016,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _HeartRate;
+
         public int HeartRate
         {
             get { return _HeartRate; }
@@ -824,6 +1029,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _ApplyHeartRateAdjustment = false;
+
         public bool ApplyHeartRateAdjustment
         {
             get { return _ApplyHeartRateAdjustment; }
@@ -835,8 +1041,8 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-
         private int _SmoothHeartRateTimeSpan = 4;
+
         public int SmoothHeartRateTimeSpan
         {
             get { return _SmoothHeartRateTimeSpan; }
@@ -849,6 +1055,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _SmoothHeartRate_v1 = true;
+
         public bool SmoothHeartRate_v1
         {
             get { return _SmoothHeartRate_v1; }
@@ -861,6 +1068,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _ShowBPMSuffix = false;
+
         public bool ShowBPMSuffix
         {
             get { return _ShowBPMSuffix; }
@@ -872,6 +1080,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _PulsoidAccessToken;
+
         public string PulsoidAccessToken
         {
             get { return _PulsoidAccessToken; }
@@ -884,6 +1093,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _timeShowTimeZone = false;
+
         public bool TimeShowTimeZone
         {
             get => _timeShowTimeZone;
@@ -895,6 +1105,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private Timezone _selectedTimeZone;
+
         public Timezone SelectedTimeZone
         {
             get => _selectedTimeZone;
@@ -906,6 +1117,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _lastUsedSortDirection;
+
         public string LastUsedSortDirection
         {
             get { return _lastUsedSortDirection; }
@@ -929,6 +1141,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private string _DeletedAppslabel;
+
         public string DeletedAppslabel
         {
             get { return _DeletedAppslabel; }
@@ -940,6 +1153,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private ObservableCollection<ProcessInfo> _ScannedApps = new ObservableCollection<ProcessInfo>();
+
         public ObservableCollection<ProcessInfo> ScannedApps
         {
             get { return _ScannedApps; }
@@ -952,6 +1166,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _ApplicationHookV2 = true;
+
         public bool ApplicationHookV2
         {
             get { return _ApplicationHookV2; }
@@ -963,6 +1178,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _IntgrIntelliWing = false;
+
         public bool IntgrIntelliWing
         {
             get { return _IntgrIntelliWing; }
@@ -974,6 +1190,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _AppIsEnabled = true;
+
         public bool AppIsEnabled
         {
             get { return _AppIsEnabled; }
@@ -985,6 +1202,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private double _AppOpacity = 0.98;
+
         public double AppOpacity
         {
             get { return _AppOpacity; }
@@ -997,6 +1215,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private ObservableCollection<ChatModelMsg> _OpenAIAPIBuiltInActions;
+
         public ObservableCollection<ChatModelMsg> OpenAIAPIBuiltInActions
         {
             get { return _OpenAIAPIBuiltInActions; }
@@ -1008,6 +1227,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _OpenAIAPITestResponse;
+
         public string OpenAIAPITestResponse
         {
             get { return _OpenAIAPITestResponse; }
@@ -1017,7 +1237,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(OpenAIAPITestResponse));
             }
         }
+
         private int _OpenAIUsedTokens;
+
         public int OpenAIUsedTokens
         {
             get { return _OpenAIUsedTokens; }
@@ -1030,6 +1252,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _IntelliChatModeration = true;
+
         public bool IntelliChatModeration
         {
             get { return _IntelliChatModeration; }
@@ -1041,6 +1264,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _OpenAIModerationUrl;
+
         public string OpenAIModerationUrl
         {
             get { return _OpenAIModerationUrl; }
@@ -1052,6 +1276,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _IntgrIntelliChat = false;
+
         public bool IntgrIntelliChat
         {
             get { return _IntgrIntelliChat; }
@@ -1063,6 +1288,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _OpenAIAPISelectedModel;
+
         public string OpenAIAPISelectedModel
         {
             get { return _OpenAIAPISelectedModel; }
@@ -1074,6 +1300,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private ObservableCollection<string> _OpenAIAPIModels;
+
         public ObservableCollection<string> OpenAIAPIModels
         {
             get { return _OpenAIAPIModels; }
@@ -1085,6 +1312,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _OpenAIAPIUrl;
+
         public string OpenAIAPIUrl
         {
             get { return _OpenAIAPIUrl; }
@@ -1096,6 +1324,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _OpenAIAPIKey;
+
         public string OpenAIAPIKey
         {
             get { return _OpenAIAPIKey; }
@@ -1115,6 +1344,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ToggleVoiceText));
             }
         }
+
         public bool ToggleVoiceWithV
         {
             get { return _ToggleVoiceWithV; }
@@ -1125,6 +1355,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 UpdateToggleVoiceText();
             }
         }
+
         public bool TTSBtnShadow
         {
             get { return _TTSBtnShadow; }
@@ -1135,6 +1366,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 MainWindow.ShadowOpacity = value ? 1 : 0;
             }
         }
+
         public bool AutoUnmuteTTS
         {
             get { return _AutoUnmuteTTS; }
@@ -1144,7 +1376,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(AutoUnmuteTTS));
             }
         }
-
 
 
         public float TTSVolume
@@ -1158,6 +1389,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _tagURL;
+
         public string tagURL
         {
             get { return _tagURL; }
@@ -1170,6 +1402,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private string _UpdateStatustxt;
+
         public string UpdateStatustxt
         {
             get { return _UpdateStatustxt; }
@@ -1181,6 +1414,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _AppLocation;
+
         public string AppLocation
         {
             get { return _AppLocation; }
@@ -1192,7 +1426,6 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-
         public bool CanUpdate
         {
             get { return _CanUpdate; }
@@ -1202,6 +1435,20 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CanUpdate));
             }
         }
+
+
+        private bool _CanUpdateLabel = false;
+
+        public bool CanUpdateLabel
+        {
+            get { return _CanUpdateLabel; }
+            set
+            {
+                _CanUpdateLabel = value;
+                NotifyPropertyChanged(nameof(CanUpdateLabel));
+            }
+        }
+
         public bool VrcConnected
         {
             get { return _VrcConnected; }
@@ -1214,6 +1461,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private Version _LatestReleaseVersion;
+
         public Version LatestReleaseVersion
         {
             get { return _LatestReleaseVersion; }
@@ -1226,6 +1474,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private string _UpdateURL;
+
         public string UpdateURL
         {
             get { return _UpdateURL; }
@@ -1237,6 +1486,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _LatestReleaseURL;
+
         public string LatestReleaseURL
         {
             get { return _LatestReleaseURL; }
@@ -1249,6 +1499,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private Version _PreReleaseVersion;
+
         public Version PreReleaseVersion
         {
             get { return _PreReleaseVersion; }
@@ -1261,6 +1512,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private string _PreReleaseURL;
+
         public string PreReleaseURL
         {
             get { return _PreReleaseURL; }
@@ -1280,6 +1532,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(LogPath));
             }
         }
+
         public string RecentPlayBackOutput
         {
             get { return _RecentPlayBackOutput; }
@@ -1289,6 +1542,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(RecentPlayBackOutput));
             }
         }
+
         public bool TTSCutOff
         {
             get { return _TTSCutOff; }
@@ -1298,26 +1552,47 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(TTSCutOff));
             }
         }
+
         public List<AudioDevice> AuxOutputDevices
         {
             get { return _auxOutputDevices; }
-            set { _auxOutputDevices = value; NotifyPropertyChanged(nameof(AuxOutputDevices)); }
+            set
+            {
+                _auxOutputDevices = value;
+                NotifyPropertyChanged(nameof(AuxOutputDevices));
+            }
         }
+
         public List<AudioDevice> PlaybackOutputDevices
         {
             get { return _playbackOutputDevices; }
-            set { _playbackOutputDevices = value; NotifyPropertyChanged(nameof(PlaybackOutputDevices)); }
+            set
+            {
+                _playbackOutputDevices = value;
+                NotifyPropertyChanged(nameof(PlaybackOutputDevices));
+            }
         }
+
         public AudioDevice SelectedAuxOutputDevice
         {
             get { return _selectedAuxOutputDevice; }
-            set { _selectedAuxOutputDevice = value; NotifyPropertyChanged(nameof(SelectedAuxOutputDevice)); }
+            set
+            {
+                _selectedAuxOutputDevice = value;
+                NotifyPropertyChanged(nameof(SelectedAuxOutputDevice));
+            }
         }
+
         public AudioDevice SelectedPlaybackOutputDevice
         {
             get { return _selectedPlaybackOutputDevice; }
-            set { _selectedPlaybackOutputDevice = value; NotifyPropertyChanged(nameof(SelectedPlaybackOutputDevice)); }
+            set
+            {
+                _selectedPlaybackOutputDevice = value;
+                NotifyPropertyChanged(nameof(SelectedPlaybackOutputDevice));
+            }
         }
+
         public bool TTSTikTokEnabled
         {
             get { return _TTSTikTokEnabled; }
@@ -1327,7 +1602,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(TTSTikTokEnabled));
             }
         }
+
         private string _RecentTikTokTTSVoice = "en_au_001";
+
         public string RecentTikTokTTSVoice
         {
             get { return _RecentTikTokTTSVoice; }
@@ -1337,6 +1614,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(RecentTikTokTTSVoice));
             }
         }
+
         public Voice SelectedTikTokTTSVoice
         {
             get { return _SelectedTikTokTTSVoice; }
@@ -1346,6 +1624,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(SelectedTikTokTTSVoice));
             }
         }
+
         public List<Voice> TikTokTTSVoices
         {
             get { return _TikTokTTSVoices; }
@@ -1355,6 +1634,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(TikTokTTSVoices));
             }
         }
+
         public string ApiStream
         {
             get { return _ApiStream; }
@@ -1364,6 +1644,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ApiStream));
             }
         }
+
         public ObservableCollection<ChatItem> LastMessages
         {
             get { return _LastMessages; }
@@ -1373,6 +1654,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(LastMessages));
             }
         }
+
         public bool TypingIndicator
         {
             get { return _TypingIndicator; }
@@ -1382,6 +1664,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(TypingIndicator));
             }
         }
+
         public bool Topmost
         {
             get { return _Topmost; }
@@ -1391,6 +1674,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(Topmost));
             }
         }
+
         public bool PauseIconMusic
         {
             get { return _PauseIconMusic; }
@@ -1400,6 +1684,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(PauseIconMusic));
             }
         }
+
         public bool ChatFX
         {
             get { return _ChatFX; }
@@ -1409,6 +1694,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ChatFX));
             }
         }
+
         public bool CountDownUI
         {
             get { return _CountDownUI; }
@@ -1418,6 +1704,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CountDownUI));
             }
         }
+
         public bool PrefixChat
         {
             get { return _PrefixChat; }
@@ -1427,6 +1714,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(PrefixChat));
             }
         }
+
         public bool ScanPause
         {
             get { return _ScanPause; }
@@ -1436,6 +1724,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ScanPause));
             }
         }
+
         public int ScanPauseTimeout
         {
             get { return _ScanPauseTimeout; }
@@ -1445,6 +1734,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ScanPauseTimeout));
             }
         }
+
         public int ScanPauseCountDown
         {
             get { return _ScanPauseCountDown; }
@@ -1454,6 +1744,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ScanPauseCountDown));
             }
         }
+
         public string aesKey
         {
             get { return _aesKey; }
@@ -1463,6 +1754,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(aesKey));
             }
         }
+
         public string ChatTopBarTxt
         {
             get { return _ChatTopBarTxt; }
@@ -1472,6 +1764,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ChatTopBarTxt));
             }
         }
+
         public string ChatFeedbackTxt
         {
             get { return _ChatFeedbackTxt; }
@@ -1481,6 +1774,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ChatFeedbackTxt));
             }
         }
+
         public string ActiveChatTxt
         {
             get { return _ActiveChatTxt; }
@@ -1490,6 +1784,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ActiveChatTxt));
             }
         }
+
         public string StatusTopBarTxt
         {
             get { return _StatusTopBarTxt; }
@@ -1499,6 +1794,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(StatusTopBarTxt));
             }
         }
+
         public string NewChattingTxt
         {
             get { return _NewChattingTxt; }
@@ -1508,6 +1804,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(NewChattingTxt));
             }
         }
+
         public string NewStatusItemTxt
         {
             get { return _NewStatusItemTxt; }
@@ -1517,6 +1814,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(NewStatusItemTxt));
             }
         }
+
         public string ChatBoxCount
         {
             get { return _ChatBoxCount; }
@@ -1526,6 +1824,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ChatBoxCount));
             }
         }
+
         public string StatusBoxCount
         {
             get { return _StatusBoxCount; }
@@ -1535,6 +1834,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(StatusBoxCount));
             }
         }
+
         public string ChatBoxColor
         {
             get { return _ChatBoxColor; }
@@ -1544,6 +1844,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ChatBoxColor));
             }
         }
+
         public string StatusBoxColor
         {
             get { return _StatusBoxColor; }
@@ -1553,6 +1854,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(StatusBoxColor));
             }
         }
+
         public bool PrefixIconStatus
         {
             get { return _PrefixIconStatus; }
@@ -1562,6 +1864,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(PrefixIconStatus));
             }
         }
+
         public bool PrefixIconMusic
         {
             get { return _PrefixIconMusic; }
@@ -1571,6 +1874,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(PrefixIconMusic));
             }
         }
+
         public ObservableCollection<StatusItem> StatusList
         {
             get { return _StatusList; }
@@ -1578,10 +1882,9 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _StatusList = value;
                 NotifyPropertyChanged(nameof(StatusList));
-
-
             }
         }
+
         public string MenuItem_3_Visibility
         {
             get { return _MenuItem_3_Visibility; }
@@ -1594,6 +1897,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _HeartRateTrendIndicatorSampleRate = 4;
+
         public int HeartRateTrendIndicatorSampleRate
         {
             get { return _HeartRateTrendIndicatorSampleRate; }
@@ -1605,6 +1909,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private bool _ShowHeartRateTrendIndicator = true;
+
         public bool ShowHeartRateTrendIndicator
         {
             get { return _ShowHeartRateTrendIndicator; }
@@ -1615,7 +1920,8 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private string _HeartRateTrendIndicator = "";
+        private string _HeartRateTrendIndicator = string.Empty;
+
         public string HeartRateTrendIndicator
         {
             get { return _HeartRateTrendIndicator; }
@@ -1628,6 +1934,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private double _HeartRateTrendIndicatorSensitivity = 0.65;
+
         public double HeartRateTrendIndicatorSensitivity
         {
             get { return _HeartRateTrendIndicatorSensitivity; }
@@ -1647,6 +1954,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(MenuItem_2_Visibility));
             }
         }
+
         public string MenuItem_1_Visibility
         {
             get { return _MenuItem_1_Visibility; }
@@ -1656,6 +1964,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(MenuItem_1_Visibility));
             }
         }
+
         public string MenuItem_0_Visibility
         {
             get { return _MenuItem_0_Visibility; }
@@ -1665,6 +1974,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(MenuItem_0_Visibility));
             }
         }
+
         public int CurrentMenuItem
         {
             get { return _CurrentMenuItem; }
@@ -1674,6 +1984,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CurrentMenuItem));
             }
         }
+
         public bool Time24H
         {
             get { return _Time24H; }
@@ -1683,6 +1994,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(Time24H));
             }
         }
+
         public bool PrefixTime
         {
             get { return _PrefixTime; }
@@ -1692,6 +2004,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(PrefixTime));
             }
         }
+
         public string Spotify_Opacity
         {
             get { return _Spotify_Opacity; }
@@ -1704,6 +2017,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _HeartRateAdjustment = -5;
+
         public int HeartRateAdjustment
         {
             get { return _HeartRateAdjustment; }
@@ -1726,6 +2040,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _IntgrHeartRate = false;
+
         public bool IntgrHeartRate
         {
             get { return _IntgrHeartRate; }
@@ -1765,6 +2080,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(Window_Opacity));
             }
         }
+
         public bool IntgrStatus
         {
             get { return _IntgrStatus; }
@@ -1772,6 +2088,31 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrStatus = value;
                 NotifyPropertyChanged(nameof(IntgrStatus));
+            }
+        }
+
+
+        private string _PulsoidAccessErrorTxt = string.Empty;
+
+        public string PulsoidAccessErrorTxt
+        {
+            get { return _PulsoidAccessErrorTxt; }
+            set
+            {
+                _PulsoidAccessErrorTxt = value;
+                NotifyPropertyChanged(nameof(PulsoidAccessErrorTxt));
+            }
+        }
+
+        private bool _PulsoidAccessError = false;
+
+        public bool PulsoidAccessError
+        {
+            get { return _PulsoidAccessError; }
+            set
+            {
+                _PulsoidAccessError = value;
+                NotifyPropertyChanged(nameof(PulsoidAccessError));
             }
         }
 
@@ -1814,6 +2155,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(OSCmsg_countUI));
             }
         }
+
         public int OSCmsg_count
         {
             get { return _OSCmsg_count; }
@@ -1870,7 +2212,7 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrScanSpotify = value;
-                if (_IntgrScanSpotify)
+                if(_IntgrScanSpotify)
                 {
                     IntgrScanMediaLink = false;
                 }
@@ -1879,14 +2221,23 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private double _ScanningInterval = 1.6;
 
-        private double _ScanningInterval = 1.5;
         public double ScanningInterval
         {
             get { return _ScanningInterval; }
             set
             {
-                _ScanningInterval = Math.Round(value, 1); // rounds the value to the nearest 0.1
+                if(value < 1.6)
+                {
+                    _ScanningInterval = 1.6;
+                } else if(value > 10)
+                {
+                    _ScanningInterval = 10;
+                } else
+                {
+                    _ScanningInterval = Math.Round(value, 1);
+                }
                 NotifyPropertyChanged(nameof(ScanningInterval));
             }
         }
@@ -1901,7 +2252,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CurrentTime));
             }
         }
-
 
 
         public string VersionTxt
@@ -1965,6 +2315,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(OSCtoSent));
             }
         }
+
         public string FocusedWindow
         {
             get { return _FocusedWindow; }
@@ -1974,6 +2325,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(FocusedWindow));
             }
         }
+
         public string PlayingSongTitle
         {
             get { return _PlayingSongTitle; }
@@ -1983,6 +2335,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(PlayingSongTitle));
             }
         }
+
         public bool SpotifyActive
         {
             get { return _SpotifyActive; }
@@ -1992,6 +2345,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(SpotifyActive));
             }
         }
+
         public bool SpotifyPaused
         {
             get { return _SpotifyPaused; }
@@ -2002,16 +2356,13 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
         #endregion
 
         #region PropChangedEvent
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void NotifyPropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name)); }
         #endregion
     }
 }

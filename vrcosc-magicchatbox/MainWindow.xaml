@@ -28,6 +28,7 @@
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+            <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
@@ -169,7 +170,6 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="5,0,0,5"
                                 SnapsToDevicePixels="true">
                                 <ContentPresenter
                                     x:Name="contentPresenter"
@@ -185,6 +185,103 @@
                                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#56477F" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#56477F" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#625191" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#625191" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
+                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="CancelEditbutton" TargetType="{x:Type Button}">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
+                <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="1" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#7F0000" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#7F0000" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#8C0000" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#8C0000" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
+                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="Editbutton" TargetType="{x:Type ToggleButton}">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
+                <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="1" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ToggleButton}">
+                            <Border
+                                x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5,0,0,5"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="true">
                                     <Setter TargetName="border" Property="Background" Value="#564BA0" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#564BA0" />
                                 </Trigger>
@@ -192,11 +289,12 @@
                                     <Setter TargetName="border" Property="Background" Value="#5D559B" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#5D559B" />
                                 </Trigger>
-                                <Trigger Property="IsEnabled" Value="false">
-                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
-                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
+                                <Trigger Property="IsChecked" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#240F53" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#240F53" />
+
                                 </Trigger>
+
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -223,7 +321,7 @@
                     <DropShadowEffect
                         BlurRadius="8"
                         Direction="-63"
-                        RenderingBias="Quality"
+                        RenderingBias="Performance"
                         ShadowDepth="0"
                         Color="#FF1B1BAF" />
                 </Border.Effect>
@@ -263,7 +361,7 @@
                 <DropShadowEffect
                     BlurRadius="15"
                     Direction="-63"
-                    RenderingBias="Quality"
+                    RenderingBias="Performance"
                     ShadowDepth="0"
                     Color="DarkBlue" />
             </Border.Effect>
@@ -532,6 +630,16 @@
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
+                                <Style x:Key="ActiveStatusTextEdit" TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                            <Setter Property="Foreground" Value="#FF9DDAA8" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                            <Setter Property="Foreground" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
                             </ItemsControl.Resources>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -543,7 +651,7 @@
                                             <DropShadowEffect
                                                 BlurRadius="5"
                                                 Direction="-23"
-                                                RenderingBias="Quality"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="DarkBlue" />
                                         </Border.Effect>
@@ -553,8 +661,9 @@
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="35" />
-                                                <ColumnDefinition Width="507" />
-                                                <ColumnDefinition Width="35" />
+                                                <ColumnDefinition Width="486" />
+                                                <ColumnDefinition Width="25" />
+                                                <ColumnDefinition Width="30" />
                                                 <ColumnDefinition Width="35" />
                                             </Grid.ColumnDefinitions>
                                             <Border
@@ -565,18 +674,26 @@
                                                     Width="22"
                                                     Height="22"
                                                     Source="/Img/Icons/ActivatedStatus_ico.png"
-                                                    Stretch="Uniform" />
+                                                    Stretch="Uniform">
+                                                    <Image.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="15"
+                                                            RenderingBias="Performance"
+                                                            ShadowDepth="0"
+                                                            Color="LimeGreen" />
+                                                    </Image.Effect>
+                                                </Image>
                                             </Border>
 
                                             <Button
                                                 x:Name="Deletebutton"
                                                 Grid.Row="0"
-                                                Grid.Column="2"
-                                                Width="35"
+                                                Grid.Column="3"
+                                                Width="30"
                                                 Height="35"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
-                                                Background="#483472"
+                                                Background="#3F2970"
                                                 BorderThickness="0"
                                                 Click="DeleteButton_Click"
                                                 Cursor="Hand"
@@ -590,6 +707,32 @@
                                                 </Grid>
                                             </Button>
 
+                                            <ToggleButton
+                                                x:Name="Editbutton"
+                                                Grid.Row="0"
+                                                Grid.Column="2"
+                                                Width="25"
+                                                Height="35"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="#483472"
+                                                BorderThickness="0"
+                                                Checked="Editbutton_Checked"
+                                                Cursor="Hand"
+                                                IsChecked="{Binding IsEditing}"
+                                                Style="{DynamicResource Editbutton}"
+                                                Tag="{Binding}"
+                                                Unchecked="Editbutton_Checked">
+                                                <Grid>
+                                                    <Image
+                                                        Width="15"
+                                                        Height="15"
+                                                        RenderOptions.BitmapScalingMode="Linear"
+                                                        Source="/Img/Icons/Edit_ico.png" />
+                                                </Grid>
+                                            </ToggleButton>
+
+
 
                                             <TextBlock
                                                 Grid.Row="0"
@@ -597,9 +740,71 @@
                                                 Margin="8,0,0,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Comfortaa Light"
-                                                FontSize="15"
+                                                FontSize="16"
                                                 Style="{StaticResource ActiveStatusText}"
-                                                Text="{Binding msg}" />
+                                                Text="{Binding msg}"
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="18"
+                                                        Opacity="0.6"
+                                                        RenderingBias="Performance"
+                                                        ShadowDepth="0"
+                                                        Color="WhiteSmoke" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                            <TextBox
+                                                x:Name="EditTextBox"
+                                                Grid.Row="0"
+                                                Grid.Column="1"
+                                                Margin="7,0,30,0"
+                                                VerticalAlignment="Center"
+                                                local:TextBoxBehaviour.HandleEnterKey="True"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="16"
+                                                FontWeight="Medium"
+                                                IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                                Style="{StaticResource ActiveStatusTextEdit}"
+                                                Text="{Binding editMsg}"
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBox.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="18"
+                                                        Opacity="0.9"
+                                                        RenderingBias="Performance"
+                                                        ShadowDepth="0"
+                                                        Color="#B0E6FC" />
+                                                </TextBox.Effect>
+                                            </TextBox>
+
+
+
+                                            <Button
+                                                x:Name="CancelEditbutton"
+                                                Grid.Row="0"
+                                                Grid.Column="1"
+                                                Width="20"
+                                                Height="20"
+                                                Margin="0,0,5,0"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Background="#6B0000"
+                                                BorderThickness="0"
+                                                Click="CancelEditbutton_Click"
+                                                Cursor="Hand"
+                                                Style="{DynamicResource CancelEditbutton}"
+                                                Tag="{Binding}"
+                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <Grid>
+                                                    <Image
+                                                        Width="15"
+                                                        Height="15"
+                                                        Source="/Img/Icons/Cross_ico.png" />
+                                                </Grid>
+                                            </Button>
+
                                             <Button
                                                 Name="Activatebutton"
                                                 Grid.Row="0"
@@ -626,7 +831,7 @@
                                             <Button
                                                 Name="Favbutton"
                                                 Grid.Row="0"
-                                                Grid.Column="3"
+                                                Grid.Column="4"
                                                 Width="35"
                                                 Height="35"
                                                 HorizontalAlignment="Left"
@@ -707,7 +912,7 @@
                                 <DropShadowEffect
                                     BlurRadius="5"
                                     Direction="-23"
-                                    RenderingBias="Quality"
+                                    RenderingBias="Performance"
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </TextBox.Effect>
@@ -760,7 +965,7 @@
                                 BlurRadius="10"
                                 Direction="90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -781,7 +986,7 @@
                                 BlurRadius="10"
                                 Direction="-90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -795,7 +1000,7 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Click="SortUsed_Click"
-                                Content="Recent used"
+                                Content="Recently used"
                                 Style="{DynamicResource Status_Button_style}" />
                             <Button
                                 x:Name="SortFav"
@@ -803,7 +1008,7 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Click="SortFav_Click"
-                                Content="Favorites"
+                                Content="My favorites"
                                 Style="{DynamicResource Status_Button_style}" />
                             <Button
                                 x:Name="SortDate"
@@ -811,7 +1016,15 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Click="SortDate_Click"
-                                Content="Create date"
+                                Content="Creation date"
+                                Style="{DynamicResource Status_Button_style}" />
+                            <Button
+                                x:Name="SortEdited"
+                                Width="100"
+                                Height="25"
+                                Margin="5,0,5,0"
+                                Click="SortEdited_Click"
+                                Content="Edit date"
                                 Style="{DynamicResource Status_Button_style}" />
                         </StackPanel>
                     </Grid>
@@ -928,24 +1141,38 @@
                                 Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel>
                                     <TextBlock
+                                        Width="auto"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
                                         Text="Pulsoid access token" />
-                                    <TextBox
-                                        x:Name="PulsoidAccessToken"
-                                        Width="223"
-                                        Height="26"
-                                        Margin="0,3,0,0"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding PulsoidAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox
+                                            x:Name="PulsoidAccessToken"
+                                            Width="223"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding PulsoidAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Width="400"
+                                            Padding="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="PaleVioletRed"
+                                            Text="{Binding PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
                                     <TextBlock
                                         Grid.Column="0"
                                         Padding="0,10,0,0"
@@ -1016,6 +1243,20 @@
                                         Style="{DynamicResource SettingsCheckbox}"
                                         Unchecked="Update_Click">
                                         Show BPM instead of 💖
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="HeartRateTitle_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding HeartRateTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show heart rate title
                                     </CheckBox>
                                     <CheckBox
                                         x:Name="SmoothHeartRate_checkbox"
@@ -1310,6 +1551,9 @@
                                         FontSize="15"
                                         Foreground="#FF240E54"
                                         Text="{Binding ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+
+
                                     <CheckBox
                                         x:Name="ChatIconPrefix_checkbox"
                                         Height="22"
@@ -1324,6 +1568,7 @@
                                         Unchecked="Update_Click">
                                         Add 💬 as prefix for chat messages
                                     </CheckBox>
+
                                     <CheckBox
                                         x:Name="ChatFX_checkbox"
                                         Height="22"
@@ -1336,6 +1581,152 @@
                                         Style="{DynamicResource SettingsCheckbox}">
                                         Play FX sound for VRChat users when sending message
                                     </CheckBox>
+                                    <CheckBox
+                                        x:Name="ChatSendAgainFX_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatSendAgainFX, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Visibility="{Binding ChatFX, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Play FX when clicking resend
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ChatAddSmallDelay_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatAddSmallDelay, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Small delay when sending message (prevents timeout)
+                                    </CheckBox>
+
+                                    <StackPanel Visibility="{Binding ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Delay before sending" />
+                                        <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                            <Slider
+                                                x:Name="ChatAddSmallDelaySensitivitySlider"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="2"
+                                                Minimum="0.1"
+                                                Style="{StaticResource CustomSlider}"
+                                                TickFrequency="0.1"
+                                                Value="{Binding Path=ChatAddSmallDelayTIME, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="{Binding ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Margin="-2,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="sec" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="KeepUpdatingChat_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding KeepUpdatingChat, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Overide display time for chat messages (keep updating)
+                                    </CheckBox>
+                                    <StackPanel Visibility="{Binding KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Update rate of active chat message" />
+                                        <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                            <Slider
+                                                x:Name="ChattingUpdateRateSensitivitySlider"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="10"
+                                                Minimum="2"
+                                                Style="{StaticResource CustomSlider}"
+                                                TickFrequency="0.1"
+                                                Value="{Binding Path=ChattingUpdateRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="{Binding ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Margin="-2,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF7D7397"
+                                                Text="sec" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="ChatEdit_checkbox"
+                                        Height="22"
+                                        Margin="0,0,0,10"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ChatLiveEdit, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Visibility="{Binding KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Edit chat messages
+                                    </CheckBox>
+                                    <Grid Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <CheckBox
+                                            x:Name="ChatLiveEdit_checkbox"
+                                            Height="22"
+                                            Margin="0,0,0,10"
+                                            BorderBrush="#FF2D1265"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding RealTimeChatEdit, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Visibility="{Binding KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            Live editing
+                                        </CheckBox>
+                                    </Grid>
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -1393,6 +1784,18 @@
                                         IsChecked="{Binding TTSCutOff, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
                                         Stop current playing TTS on new chat
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="TTSOnResendChat"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TTSOnResendChat, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Replay TTS on resend
                                     </CheckBox>
                                     <CheckBox
                                         x:Name="TTSAutoUnmute"
@@ -1695,7 +2098,11 @@
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
-                                            Foreground="#FF9983AD"><Run Text="GPT Model (use GPT-3 for cheap and fast " /><Run Language="en-gb" Text="promts" /><Run Text=")" /></TextBlock>
+                                            Foreground="#FF9983AD">
+                                            <Run Text="GPT Model (use GPT-3 for cheap and fast " />
+                                            <Run Language="en-gb" Text="promts" />
+                                            <Run Text=")" />
+                                        </TextBlock>
                                     </StackPanel>
                                     <StackPanel
                                         Width="auto"
@@ -1842,7 +2249,7 @@
                                             Margin="2.2,0,4.5,0"
                                             IsSnapToTickEnabled="True"
                                             Maximum="10"
-                                            Minimum="1.5"
+                                            Minimum="1.6"
                                             Style="{StaticResource CustomSlider}"
                                             TickFrequency="0.1"
                                             Value="{Binding Path=ScanningInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -2072,7 +2479,7 @@
                             <Grid
                                 Grid.Row="1"
                                 Width="auto"
-                                Margin="10,0,0,0"
+                                Margin="10,0,2,0"
                                 Visibility="{Binding Settings_WindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -2212,6 +2619,15 @@
                                                 Text="Custom app name" />
                                         </Button>
                                     </Grid>
+                                    <Border.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Direction="0"
+                                            Opacity="0.5"
+                                            RenderingBias="Performance"
+                                            ShadowDepth="0"
+                                            Color="black" />
+                                    </Border.Effect>
                                 </Border>
 
                                 <ItemsControl Grid.Row="5" ItemsSource="{Binding ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
@@ -2220,7 +2636,9 @@
                                             <Border
                                                 Margin="0,15,0,0"
                                                 Background="DarkSlateBlue"
-                                                CornerRadius="5">
+                                                CornerRadius="5"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
+
                                                 <Grid Margin="10">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="150" />
@@ -2301,9 +2719,19 @@
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </TextBox.Style>
+
                                                         </TextBox>
                                                     </StackPanel>
                                                 </Grid>
+                                                <Border.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Direction="0"
+                                                        Opacity="0.5"
+                                                        RenderingBias="Performance"
+                                                        ShadowDepth="0"
+                                                        Color="black" />
+                                                </Border.Effect>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -2367,7 +2795,7 @@
                                 <DropShadowEffect
                                     BlurRadius="5"
                                     Direction="-23"
-                                    RenderingBias="Quality"
+                                    RenderingBias="Performance"
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </TextBox.Effect>
@@ -2416,7 +2844,7 @@
                                 BlurRadius="10"
                                 Direction="-90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -2503,40 +2931,138 @@
                                             Background="DarkSlateBlue"
                                             BorderThickness="0"
                                             CornerRadius="5"
-                                            Opacity="{Binding Opacity}">
-                                            <StackPanel
+                                            Opacity="{Binding Opacity}"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                            <Grid
+                                                Width="auto"
                                                 Height="auto"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
-                                                <TextBox
-                                                    Width="475"
+                                                VerticalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Width="auto"
                                                     Height="Auto"
                                                     Padding="15,15,0,15"
+                                                    HorizontalAlignment="Stretch"
+                                                    Background="Transparent"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="18"
+                                                    Foreground="LightGray"
+                                                    Text="{Binding Msg, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="20"
+                                                            Opacity="0.9"
+                                                            RenderingBias="Performance"
+                                                            ShadowDepth="0"
+                                                            Color="WhiteSmoke" />
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <TextBox
+                                                    x:Name="EditChatTextBox"
+                                                    Grid.Column="0"
+                                                    Width="auto"
+                                                    Height="Auto"
+                                                    Padding="13,15,0,15"
+                                                    HorizontalAlignment="Stretch"
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     FontFamily="Albert Sans Thin"
-                                                    FontSize="16"
-                                                    Foreground="LightGray"
-                                                    IsReadOnly="True"
-                                                    Text="{Binding Msg}"
-                                                    TextWrapping="Wrap" />
-                                                <Button
-                                                    Width="80"
-                                                    Margin="5,5,0,5"
-                                                    HorizontalAlignment="Right"
-                                                    Command="{Binding SendAgainCommand}"
-                                                    CommandParameter="{Binding Msg}"
-                                                    Content="Send again"
-                                                    Style="{DynamicResource Status_Button_style}" />
-                                                <Button
-                                                    Width="50"
-                                                    Margin="5"
-                                                    HorizontalAlignment="Right"
-                                                    Command="{Binding CopyToClipboardCommand}"
-                                                    CommandParameter="{Binding Msg}"
-                                                    Content="Copy"
-                                                    Style="{DynamicResource Status_Button_style}" />
-                                            </StackPanel>
+                                                    FontSize="18"
+                                                    FontWeight="DemiBold"
+                                                    Foreground="#6FC2EC"
+                                                    IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                    KeyDown="EditChatTextBox_KeyDown"
+                                                    Text="{Binding MsgReplace, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextChanged="EditChatTextBox_TextChanged"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBox.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="20"
+                                                            Opacity="0.9"
+                                                            RenderingBias="Performance"
+                                                            ShadowDepth="0"
+                                                            Color="#B0E6FC" />
+                                                    </TextBox.Effect>
+                                                </TextBox>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <Grid>
+                                                        <Button
+                                                            x:Name="CancelEditChatbutton"
+                                                            Grid.Row="0"
+                                                            Grid.Column="1"
+                                                            Width="20"
+                                                            Height="40"
+                                                            Margin="0,0,0,0"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center"
+                                                            Background="#6B0000"
+                                                            BorderThickness="0"
+                                                            Click="CancelEditChatbutton_Click"
+                                                            Cursor="Hand"
+                                                            Style="{DynamicResource CancelEditbutton}"
+                                                            Tag="{Binding}"
+                                                            Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                            <Grid>
+                                                                <Image
+                                                                    Width="15"
+                                                                    Height="15"
+                                                                    RenderOptions.BitmapScalingMode="Linear"
+                                                                    Source="/Img/Icons/Cross_ico.png" />
+                                                            </Grid>
+                                                        </Button>
+                                                    </Grid>
+
+                                                    <ToggleButton
+                                                        Width="auto"
+                                                        Margin="5,5,0,5"
+                                                        Padding="5,0"
+                                                        HorizontalAlignment="Right"
+                                                        Checked="ToggleButton_Checked"
+                                                        Content="{Binding LiveEditButtonTxt}"
+                                                        IsChecked="{Binding CanLiveEditRun, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                        Style="{DynamicResource Status_Toggle_style}"
+                                                        Tag="{Binding}"
+                                                        Unchecked="ToggleButton_Checked"
+                                                        Visibility="{Binding CanLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <Button
+                                                        Width="auto"
+                                                        Margin="5,5,0,5"
+                                                        Padding="5,0"
+                                                        HorizontalAlignment="Right"
+                                                        Click="OnSendAgain"
+                                                        Content="Resend"
+                                                        Style="{DynamicResource Status_Button_style}"
+                                                        Tag="{Binding}" />
+                                                    <Button
+                                                        Width="auto"
+                                                        Margin="5"
+                                                        Padding="5,0"
+                                                        HorizontalAlignment="Right"
+                                                        Command="{Binding CopyToClipboardCommand}"
+                                                        CommandParameter="{Binding Msg}"
+                                                        Style="{DynamicResource Status_Button_style}">
+                                                        <Image Width="18" Source="/Img/Icons/Copy_ico.png" />
+                                                    </Button>
+
+                                                </StackPanel>
+
+                                            </Grid>
+                                            <Border.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Direction="0"
+                                                    Opacity="0.5"
+                                                    RenderingBias="Performance"
+                                                    ShadowDepth="0"
+                                                    Color="black" />
+                                            </Border.Effect>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -2552,7 +3078,7 @@
                                 BlurRadius="10"
                                 Direction="90"
                                 Opacity="0.5"
-                                RenderingBias="Quality"
+                                RenderingBias="Performance"
                                 ShadowDepth="5"
                                 Color="#FF7F759A" />
                         </Grid.Effect>
@@ -2644,7 +3170,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -2776,7 +3302,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -2905,7 +3431,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3073,7 +3599,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3205,7 +3731,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3304,7 +3830,7 @@
                                     <DropShadowEffect
                                         BlurRadius="5"
                                         Direction="-23"
-                                        RenderingBias="Quality"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="DarkBlue" />
                                 </Border.Effect>
@@ -3676,7 +4202,7 @@
                                 <DropShadowEffect
                                     BlurRadius="5"
                                     Direction="-23"
-                                    RenderingBias="Quality"
+                                    RenderingBias="Performance"
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
@@ -3762,7 +4288,7 @@
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
                             <TextBlock
-                                Margin="0,0,5,0"
+                                Margin="0,2,5,0"
                                 VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
@@ -3786,11 +4312,47 @@
                                 IsChecked="{Binding Topmost, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}" />
                         </StackPanel>
-
                         <StackPanel
-                            Width="112"
-                            Height="20"
-                            Margin="0,5"
+                            Width="auto"
+                            Height="auto"
+                            Margin="5,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Visibility="{Binding MenuItem_2_Visibility}">
+                            <StackPanel Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+                                <TextBlock
+                                    Margin="0,3,5,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF7D7397"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Live edit chats">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <CheckBox
+                                Width="20"
+                                BorderBrush="#FF2D1265"
+                                FontFamily="Comfortaa Light"
+                                FontSize="12"
+                                Foreground="#FFB9B5C1"
+                                IsChecked="{Binding RealTimeChatEdit, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel
+                            Width="auto"
+                            Height="auto"
+                            Margin="5,5"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
                             Visibility="{Binding MenuItem_2_Visibility}">
@@ -3922,15 +4484,15 @@
                             Cursor="Hand"
                             FontFamily="Albert Sans Thin"
                             FontSize="8.5"
-                            Foreground="#FFE27EE8"
+                            Foreground="#26A1FA"
                             MouseUp="GitHubChanges_MouseUp"
                             Text="View changes on GitHub"
                             TextDecorations="Underline"
-                            Visibility="{Binding CanUpdate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBlock.Effect>
                                 <DropShadowEffect
                                     BlurRadius="10"
-                                    Opacity="1"
+                                    Opacity="0.3"
                                     ShadowDepth="0"
                                     Color="#251153" />
                             </TextBlock.Effect>
@@ -4041,7 +4603,3 @@
 
     </Grid>
 </Window>
-
-
-
-
