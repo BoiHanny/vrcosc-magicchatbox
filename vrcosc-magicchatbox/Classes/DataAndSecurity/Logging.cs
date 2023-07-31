@@ -139,7 +139,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             if(property.PropertyName == "aesKey" ||
                 property.PropertyName == "ApiStream" ||
-                property.PropertyName == "OpenAIAPIKey" ||
                 property.PropertyName == "PulsoidAccessToken")
             {
                 property.ShouldSerialize = instance => false;

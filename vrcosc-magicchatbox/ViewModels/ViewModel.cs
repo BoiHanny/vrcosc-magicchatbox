@@ -86,6 +86,42 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _MediaSession_AutoSwitch = true;
 
 
+        private bool _IntgrComponentStats_VR = true;
+        public bool IntgrComponentStats_VR
+        {
+            get { return _IntgrComponentStats_VR; }
+            set
+            {
+                _IntgrComponentStats_VR = value;
+                NotifyPropertyChanged(nameof(IntgrComponentStats_VR));
+            }
+        }
+
+        
+
+
+        private bool _IntgrComponentStats_DESKTOP = false;
+        public bool IntgrComponentStats_DESKTOP
+        {
+            get { return _IntgrComponentStats_DESKTOP; }
+            set
+            {
+                _IntgrComponentStats_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrComponentStats_DESKTOP));
+            }
+        }
+
+        private bool _IntgrComponentStats = true;
+        public bool IntgrComponentStats
+        {
+            get { return _IntgrComponentStats; }
+            set
+            {
+                _IntgrComponentStats = value;
+                NotifyPropertyChanged(nameof(IntgrComponentStats));
+            }
+        }
+
         private bool _MediaSession_AutoSwitchSpawn = true;
 
 
@@ -127,7 +163,6 @@ namespace vrcosc_magicchatbox.ViewModels
             SettingsMap = new Dictionary<string, Action<bool>>
             {
                 { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
-                { nameof(Settings_IntelliChat), value => Settings_IntelliChat = value },
                 { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
                 { nameof(Settings_Chatting), value => Settings_Chatting = value },
                 { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
@@ -906,17 +941,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _Settings_IntelliChat = false;
-
-        public bool Settings_IntelliChat
-        {
-            get { return _Settings_IntelliChat; }
-            set
-            {
-                _Settings_IntelliChat = value;
-                NotifyPropertyChanged(nameof(Settings_IntelliChat));
-            }
-        }
 
 
         private bool _Settings_MediaLink = false;
@@ -1177,17 +1201,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _IntgrIntelliWing = false;
-
-        public bool IntgrIntelliWing
-        {
-            get { return _IntgrIntelliWing; }
-            set
-            {
-                _IntgrIntelliWing = value;
-                NotifyPropertyChanged(nameof(IntgrIntelliWing));
-            }
-        }
 
         private bool _AppIsEnabled = true;
 
@@ -1210,128 +1223,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _AppOpacity = value;
                 NotifyPropertyChanged(nameof(AppOpacity));
-            }
-        }
-
-
-        private ObservableCollection<ChatModelMsg> _OpenAIAPIBuiltInActions;
-
-        public ObservableCollection<ChatModelMsg> OpenAIAPIBuiltInActions
-        {
-            get { return _OpenAIAPIBuiltInActions; }
-            set
-            {
-                _OpenAIAPIBuiltInActions = value;
-                NotifyPropertyChanged(nameof(OpenAIAPIBuiltInActions));
-            }
-        }
-
-        private string _OpenAIAPITestResponse;
-
-        public string OpenAIAPITestResponse
-        {
-            get { return _OpenAIAPITestResponse; }
-            set
-            {
-                _OpenAIAPITestResponse = value;
-                NotifyPropertyChanged(nameof(OpenAIAPITestResponse));
-            }
-        }
-
-        private int _OpenAIUsedTokens;
-
-        public int OpenAIUsedTokens
-        {
-            get { return _OpenAIUsedTokens; }
-            set
-            {
-                _OpenAIUsedTokens = value;
-                NotifyPropertyChanged(nameof(OpenAIUsedTokens));
-            }
-        }
-
-
-        private bool _IntelliChatModeration = true;
-
-        public bool IntelliChatModeration
-        {
-            get { return _IntelliChatModeration; }
-            set
-            {
-                _IntelliChatModeration = value;
-                NotifyPropertyChanged(nameof(IntelliChatModeration));
-            }
-        }
-
-        private string _OpenAIModerationUrl;
-
-        public string OpenAIModerationUrl
-        {
-            get { return _OpenAIModerationUrl; }
-            set
-            {
-                _OpenAIModerationUrl = value;
-                NotifyPropertyChanged(nameof(OpenAIModerationUrl));
-            }
-        }
-
-        private bool _IntgrIntelliChat = false;
-
-        public bool IntgrIntelliChat
-        {
-            get { return _IntgrIntelliChat; }
-            set
-            {
-                _IntgrIntelliChat = value;
-                NotifyPropertyChanged(nameof(IntgrIntelliChat));
-            }
-        }
-
-        private string _OpenAIAPISelectedModel;
-
-        public string OpenAIAPISelectedModel
-        {
-            get { return _OpenAIAPISelectedModel; }
-            set
-            {
-                _OpenAIAPISelectedModel = value;
-                NotifyPropertyChanged(nameof(OpenAIAPISelectedModel));
-            }
-        }
-
-        private ObservableCollection<string> _OpenAIAPIModels;
-
-        public ObservableCollection<string> OpenAIAPIModels
-        {
-            get { return _OpenAIAPIModels; }
-            set
-            {
-                _OpenAIAPIModels = value;
-                NotifyPropertyChanged(nameof(OpenAIAPIModels));
-            }
-        }
-
-        private string _OpenAIAPIUrl;
-
-        public string OpenAIAPIUrl
-        {
-            get { return _OpenAIAPIUrl; }
-            set
-            {
-                _OpenAIAPIUrl = value;
-                NotifyPropertyChanged(nameof(OpenAIAPIUrl));
-            }
-        }
-
-        private string _OpenAIAPIKey;
-
-        public string OpenAIAPIKey
-        {
-            get { return _OpenAIAPIKey; }
-            set
-            {
-                _OpenAIAPIKey = value;
-                NotifyPropertyChanged(nameof(OpenAIAPIKey));
             }
         }
 

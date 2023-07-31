@@ -42,47 +42,41 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Waking up the logging module... Rise and shine!", 10);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
 
-            loadingWindow.UpdateProgress("Digging through your old settings... Let's hope there's no dust!", 15);
+            loadingWindow.UpdateProgress("Digging through your old settings... Let's hope there's no dust!", 20);
             await Task.Run(() => DataController.ManageSettingsXML());
 
-            loadingWindow.UpdateProgress("Collecting all those juicy status items!", 20);
+            loadingWindow.UpdateProgress("Collecting all those juicy status items!", 30);
             await Task.Run(() => DataController.LoadStatusList());
 
-            loadingWindow.UpdateProgress("Hunting down the last session's chat messages... Gotcha!", 25);
+            loadingWindow.UpdateProgress("Hunting down the last session's chat messages... Gotcha!", 40);
             await Task.Run(() => DataController.LoadChatList());
 
-            loadingWindow.UpdateProgress("Seaking hard to locate the last MediaLink's settings... WHOAAH!", 30);
+            loadingWindow.UpdateProgress("Seaking hard to locate the last MediaLink's settings... WHOAAH!", 50);
             await Task.Run(() => DataController.LoadMediaSessions());
 
-            loadingWindow.UpdateProgress("Picking out your recent apps for the window integration!", 35);
+            loadingWindow.UpdateProgress("Picking out your recent apps for the window integration!", 60);
             await Task.Run(() => DataController.LoadAppList());
 
-            loadingWindow.UpdateProgress("Tuning up the TTS voices. Get ready to hear!", 40);
+            loadingWindow.UpdateProgress("Tuning up the TTS voices. Get ready to hear!", 70);
             ViewModel.Instance.TikTokTTSVoices = await Task.Run(() => DataController.ReadTkTkTTSVoices());
 
-            //loadingWindow.UpdateProgress("Warming up the OpenAI client... Get set for takeoff!", 50);
-            //await Task.Run(() => OpenAIClient.LoadOpenAIClient());
-
-            //loadingWindow.UpdateProgress("Revving up the OpenAI engines... Can you hear the roar?", 60);
-            //await Task.Run(() => DataController.LoadIntelliChatBuiltInActions());
-
-
-            loadingWindow.UpdateProgress("Setting up your concert - choosing the best audio devices!", 70);
+            loadingWindow.UpdateProgress("Setting up your concert - choosing the best audio devices!", 80);
             await Task.Run(() => DataController.PopulateOutputDevices());
 
-            loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 80);
+            loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 90);
             await Task.Run(() => DataController.CheckForUpdateAndWait());
 
             if (ViewModel.Instance.IntgrScanMediaLink)
-                loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 90);
+                loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 95);
             //await Task.Run(() => MediaLinkController.Start());
             MediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
-
-            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
 
             MainWindow mainWindow = new MainWindow();
             mainWindow.DataContext = ViewModel.Instance;
             mainWindow.Show();
+
+            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
+
 
             loadingWindow.Close();
 

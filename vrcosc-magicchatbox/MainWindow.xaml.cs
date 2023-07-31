@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -21,6 +22,10 @@ namespace vrcosc_magicchatbox
 {
     public partial class MainWindow : Window
     {
+
+        private const int WM_ENTERSIZEMOVE = 0x0231;
+        private const int WM_EXITSIZEMOVE = 0x0232;
+        private ResizeMode previousResizeMode = ResizeMode.CanResize;
         private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
         private static double _shadowOpacity;
         public static readonly DependencyProperty ShadowOpacityProperty = DependencyProperty.Register(
@@ -34,16 +39,74 @@ namespace vrcosc_magicchatbox
         private System.Timers.Timer pauseTimer;
         public float samplingTime = 1;
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            IntPtr handle = (new System.Windows.Interop.WindowInteropHelper(this)).Handle;
+            System.Windows.Interop.HwndSource.FromHwnd(handle)?.AddHook(WindowProc);
+
+            this.StateChanged += MainWindow_StateChanged;
+        }
+
+        private void MainWindow_StateChanged(object sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowChrome.GetWindowChrome(this).GlassFrameThickness = new Thickness(0);
+                this.BorderThickness = new Thickness(8);
+            }
+            else
+            {
+                WindowChrome.GetWindowChrome(this).GlassFrameThickness = new Thickness(1);
+                this.BorderThickness = new Thickness(0);
+            }
+        }
+
+        private IntPtr WindowProc(IntPtr hwnd, int uMsg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            switch (uMsg)
+            {
+                case WM_ENTERSIZEMOVE:
+                    if (ResizeMode == ResizeMode.CanResize || ResizeMode == ResizeMode.CanResizeWithGrip)
+                    {
+                        previousResizeMode = ResizeMode;
+                        ResizeMode = ResizeMode.NoResize; // Prevent resizing
+                        OnStartResize();
+                    }
+                    break;
+
+                case WM_EXITSIZEMOVE:
+                    if (ResizeMode == ResizeMode.NoResize)
+                    {
+                        ResizeMode = previousResizeMode; // Allow resizing again
+                        OnEndResize();
+                    }
+                    break;
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private void OnStartResize()
+        {
+            WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
+            windowChrome.GlassFrameThickness = new Thickness(0);
+        }
+
+        private void OnEndResize()
+        {
+            WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
+            windowChrome.GlassFrameThickness = new Thickness(1);
+        }
 
         public MainWindow()
         {
-            Closing += SaveDataToDisk;
             InitializeComponent();
-
+            Closing += SaveDataToDisk;
             DispatcherTimer backgroundCheck = new DispatcherTimer();
 
-            Closing += SaveDataToDisk;
-            InitializeComponent();
+
 
             backgroundCheck = new DispatcherTimer();
             backgroundCheck.Tick += Timer;
@@ -404,11 +467,6 @@ namespace vrcosc_magicchatbox
             }
         }
 
-        private void IntelliChatAIapiPage_MouseUp(object sender, MouseButtonEventArgs e)
-        { Process.Start("explorer", "https://platform.openai.com/account/api-keys"); }
-
-        private void IntgrIntelliWing_btn_Click(object sender, RoutedEventArgs e)
-        { ViewModel.Instance.IntgrIntelliWing = !ViewModel.Instance.IntgrIntelliWing; }
 
         private void LearnMoreAboutHeartbtn_MouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -417,8 +475,6 @@ namespace vrcosc_magicchatbox
                 "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Set-Up-MagicChatbox-with-Pulsoid-for-VRChat-%F0%9F%92%9C");
         }
 
-        private void LearnMoreAboutIntelliChatAI_MouseUp(object sender, MouseButtonEventArgs e)
-        { Process.Start("explorer", "https://openai.com/product"); }
 
         private void LearnMoreAboutSpotifybtn_MouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -543,17 +599,7 @@ namespace vrcosc_magicchatbox
             }
         }
 
-        private async void OpenAIAPITestConnection_ClickAsync(object sender, RoutedEventArgs e)
-        {
-            //ChatModelMsg action = ViewModel.Instance.OpenAIAPIBuiltInActions.FirstOrDefault(a => a.FriendlyName == "Add Emojis");
-            //ChatModelMsg response = await OpenAIClient.ExecuteActionAsync(action, ViewModel.Instance.NewChattingTxt);
-            //ViewModel.Instance.NewChattingTxt = response.Content;
-            ViewModel.Instance.OpenAIAPITestResponse = await OpenAIClient.TestAPIConnection();
-        }
 
-
-        private void OpenAITerms_MouseUp(object sender, MouseButtonEventArgs e)
-        { Process.Start("explorer", "https://openai.com/policies/plugin-terms"); }
 
         private void OpenConfigFolder_Click(object sender, RoutedEventArgs e)
         {

@@ -81,27 +81,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         }
 
-        public static void LoadIntelliChatBuiltInActions()
-        {
-            try
-            {
-                if (File.Exists(@"Json\\OpenAIAPIBuiltInActions.json"))
-                {
-                    string json = File.ReadAllText(@"Json\\OpenAIAPIBuiltInActions.json");
-                    Instance.OpenAIAPIBuiltInActions = JsonConvert.DeserializeObject<ObservableCollection<ChatModelMsg>>(json);
-                }
-                else
-                {
-                    // Initialize PreCreatedActions with default actions or an empty list
-                    Instance.OpenAIAPIBuiltInActions = new ObservableCollection<ChatModelMsg>();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
         public static bool PopulateOutputDevices(bool beforeTTS = false)
         {
             try
@@ -201,7 +180,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrScanWindowActivity", (typeof(bool), "Integrations")},
                         {"IntgrScanSpotify_OLD", (typeof(bool), "Integrations")},
                         {"IntgrScanWindowTime", (typeof(bool), "Integrations")},
-                        {"IntgrIntelliWing", (typeof(bool), "Integrations")},
                         {"ApplicationHookV2", (typeof(bool), "Integrations")},
                         {"IntgrHeartRate", (typeof(bool), "Integrations")},
                         {"IntgrScanMediaLink", (typeof(bool), "Integrations")},
@@ -269,9 +247,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"RecentPlayBackOutput", (typeof(string), "TTS")},
                         {"TTSOnResendChat", (typeof(bool), "TTS")},
 
-                        {"OpenAIAPIKey", (typeof(string), "OpenAI")},
-                        {"OpenAIAPISelectedModel", (typeof(string), "OpenAI")},
-                        {"OpenAIUsedTokens", (typeof(int), "OpenAI")},
 
                         {"OSCIP", (typeof(string), "OSC")},
                         {"OSCPortOut", (typeof(int), "OSC")},
@@ -302,7 +277,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"Settings_Chatting", (typeof(bool), "OptionsTabState")},
                         {"Settings_TTS", (typeof(bool), "OptionsTabState")},
                         {"Settings_MediaLink", (typeof(bool), "OptionsTabState")},
-                        {"Settings_IntelliChat", (typeof(bool), "OptionsTabState")},
                         {"Settings_AppOptions", (typeof(bool), "OptionsTabState")},
                         {"Settings_WindowActivity", (typeof(bool), "OptionsTabState")}
 
