@@ -886,6 +886,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Grid>
                             <TextBox
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 x:Name="NewFavText"
                                 Width="630"
                                 MinHeight="40"
