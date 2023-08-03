@@ -16,7 +16,7 @@ public class OSCParameter
     private readonly object lockObject = new object();
     private readonly Stack<object> values;
 
-    public OSCParameter(string name, string address, OSCParameterType type, int maxHistory = 5, bool isBuiltIn = false, bool logChange = false)
+    public OSCParameter(string name, string address, OSCParameterType type, int maxHistory = 5, bool isBuiltIn = false, bool logChange = false, bool execute = true)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Address = address ?? throw new ArgumentNullException(nameof(address));
@@ -24,6 +24,7 @@ public class OSCParameter
         IsBuiltIn = isBuiltIn;
         LogChanges = logChange;
         values = new Stack<object>(maxHistory);
+        Execute = execute;
 
         switch (type)
         {
@@ -99,6 +100,7 @@ public class OSCParameter
     public int MaxHistory { get; set; }
     public string Name { get; set; }
     public Type Type { get; set; }
+    public bool Execute { get; set; }
     public LinkedList<object> Values { get; set; }
 }
 
@@ -123,20 +125,20 @@ public static class OSCParameters
     static OSCParameters()
     {
         parameters["IsLocal"] = new OSCParameter("IsLocal", "/avatar/parameters/IsLocal", OSCParameterType.Boolean, 5, true, true);
-        parameters["Viseme"] = new OSCParameter("Viseme", "/avatar/parameters/Viseme", OSCParameterType.Int32, 5, true, false);
+        parameters["Viseme"] = new OSCParameter("Viseme", "/avatar/parameters/Viseme", OSCParameterType.Int32, 5, true, false, false);
         parameters["Voice"] = new OSCParameter("Voice", "/avatar/parameters/Voice", OSCParameterType.Single, 5, true, true);
         parameters["GestureLeft"] = new OSCParameter("GestureLeft", "/avatar/parameters/GestureLeft", OSCParameterType.Int32, 5, true, true);
         parameters["GestureRight"] = new OSCParameter("GestureRight", "/avatar/parameters/GestureRight", OSCParameterType.Int32, 5, true, true);
-        parameters["GestureLeftWeight"] = new OSCParameter("GestureLeftWeight", "/avatar/parameters/GestureLeftWeight", OSCParameterType.Single, 5, true, false);
-        parameters["GestureRightWeight"] = new OSCParameter("GestureRightWeight", "/avatar/parameters/GestureRightWeight", OSCParameterType.Single, 5, true, false);
-        parameters["AngularY"] = new OSCParameter("AngularY", "/avatar/parameters/AngularY", OSCParameterType.Single, 5, true, false);
-        parameters["VelocityX"] = new OSCParameter("VelocityX", "/avatar/parameters/VelocityX", OSCParameterType.Single, 5, true, false);
-        parameters["VelocityY"] = new OSCParameter("VelocityY", "/avatar/parameters/VelocityY", OSCParameterType.Single, 5, true, false);
-        parameters["VelocityZ"] = new OSCParameter("VelocityZ", "/avatar/parameters/VelocityZ", OSCParameterType.Single, 5, true, false);
-        parameters["VelocityMagnitude"] = new OSCParameter("VelocityMagnitude", "/avatar/parameters/VelocityMagnitude", OSCParameterType.Single, 5, true, false);
-        parameters["Upright"] = new OSCParameter("Upright", "/avatar/parameters/Upright", OSCParameterType.Single, 5, true, false);
-        parameters["Grounded"] = new OSCParameter("Grounded", "/avatar/parameters/Grounded", OSCParameterType.Boolean, 5, true, false);
-        parameters["Seated"] = new OSCParameter("Seated", "/avatar/parameters/Seated", OSCParameterType.Boolean, 5, true, false);
+        parameters["GestureLeftWeight"] = new OSCParameter("GestureLeftWeight", "/avatar/parameters/GestureLeftWeight", OSCParameterType.Single, 5, true, false, false);
+        parameters["GestureRightWeight"] = new OSCParameter("GestureRightWeight", "/avatar/parameters/GestureRightWeight", OSCParameterType.Single, 5, true, false, false);
+        parameters["AngularY"] = new OSCParameter("AngularY", "/avatar/parameters/AngularY", OSCParameterType.Single, 5, true, false, false);
+        parameters["VelocityX"] = new OSCParameter("VelocityX", "/avatar/parameters/VelocityX", OSCParameterType.Single, 5, true, false, false);
+        parameters["VelocityY"] = new OSCParameter("VelocityY", "/avatar/parameters/VelocityY", OSCParameterType.Single, 5, true, false, false);
+        parameters["VelocityZ"] = new OSCParameter("VelocityZ", "/avatar/parameters/VelocityZ", OSCParameterType.Single, 5, true, false, false);
+        parameters["VelocityMagnitude"] = new OSCParameter("VelocityMagnitude", "/avatar/parameters/VelocityMagnitude", OSCParameterType.Single, 5, true, false, false);
+        parameters["Upright"] = new OSCParameter("Upright", "/avatar/parameters/Upright", OSCParameterType.Single, 5, true, false, false);
+        parameters["Grounded"] = new OSCParameter("Grounded", "/avatar/parameters/Grounded", OSCParameterType.Boolean, 5, true, false, false);
+        parameters["Seated"] = new OSCParameter("Seated", "/avatar/parameters/Seated", OSCParameterType.Boolean, 5, true, false, false);
         parameters["AFK"] = new OSCParameter("AFK", "/avatar/parameters/AFK", OSCParameterType.Boolean, 5, true, true);
         parameters["AvatarChange"] = new OSCParameter("AvatarChange", "/avatar/Change", OSCParameterType.String, 15, true, true);
 

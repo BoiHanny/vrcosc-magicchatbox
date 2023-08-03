@@ -785,6 +785,18 @@ namespace vrcosc_magicchatbox.ViewModels
             { SortProperty.FocusCount, true }
         };
 
+
+        private bool _AvatarSyncExecute = true;
+        public bool AvatarSyncExecute
+        {
+            get { return _AvatarSyncExecute; }
+            set
+            {
+                _AvatarSyncExecute = value;
+                NotifyPropertyChanged(nameof(AvatarSyncExecute));
+            }
+        }
+
         public enum SortProperty
         {
             ProcessName,
@@ -793,6 +805,8 @@ namespace vrcosc_magicchatbox.ViewModels
             IsPrivateApp,
             FocusCount
         }
+
+
 
         private Dictionary<string, OSCParameter> _builtInOSCData = new Dictionary<string, OSCParameter>();
         private ExpandoObject _dynamicOSCData = new ExpandoObject();
