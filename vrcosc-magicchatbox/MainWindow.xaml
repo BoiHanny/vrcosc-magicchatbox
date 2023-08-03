@@ -314,28 +314,20 @@
 
 
     <Border
-        Height="auto"
-        VerticalAlignment="Top"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
         Background="#FF240E55"
         BorderBrush="#FF240E55"
         BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect
-                BlurRadius="15"
-                Direction="-63"
-                RenderingBias="Performance"
-                ShadowDepth="0"
-                Color="DarkBlue" />
-        </Border.Effect>
         <Grid Background="#FF3B3054">
             <Grid.RowDefinitions>
                 <RowDefinition Height="55" />
-                <RowDefinition />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="220" />
             </Grid.ColumnDefinitions>
 
             <Grid Grid.ColumnSpan="2" Background="#FF2D1267">
