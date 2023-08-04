@@ -183,6 +183,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"ApplicationHookV2", (typeof(bool), "Integrations")},
                         {"IntgrHeartRate", (typeof(bool), "Integrations")},
                         {"IntgrScanMediaLink", (typeof(bool), "Integrations")},
+                        {"IntgrComponentStats", (typeof(bool), "Integrations")},
+
+
+                        {"IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles")},
+                        {"IntgrComponentStats_DESKTOP", (typeof(bool), "IntegrationToggles")},
 
                         {"IntgrStatus_VR", (typeof(bool), "IntegrationToggles")},
                         {"IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
