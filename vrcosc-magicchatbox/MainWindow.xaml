@@ -2962,6 +2962,7 @@
                         <RowDefinition Height="auto" MaxHeight="85" />
                         <RowDefinition Height="auto" MaxHeight="85" />
                         <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
                         <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
@@ -3423,7 +3424,175 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="4" Opacity="{Binding Time_Opacity}">
+                    <Grid Grid.Row="4" Opacity="{Binding HeartRate_Opacity}">
+                        <Border
+                            Margin="6"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid Height="72">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="100" />
+                                </Grid.ColumnDefinitions>
+                                <Button
+                                    Grid.Column="1"
+                                    Margin="140,11,0,0"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_HeartRate"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="15"
+                                        Height="15"
+                                        Source="/Img/Icons/Next_ico.png" />
+                                    <Button.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="5"
+                                            Opacity="0.4"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Button.Effect>
+                                </Button>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="0,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="Component ˢᵗᵃᵗˢ">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="140,9,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Foreground="#ABA4B8"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="Last update:"
+                                            Visibility="{Binding IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="0.5"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Margin="3,9,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="11"
+                                            Foreground="#ABA4B8"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding ComponentStatsLastUpdate, StringFormat='{}{0:T}'}"
+                                            Visibility="{Binding IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="0.5"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="0,0,0,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Opacity="1"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+
+                                </Grid>
+
+                                <Image
+                                    Grid.Column="0"
+                                    Margin="15"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Source="/Img/Icons/HeartRate_ico.png">
+                                    <Image.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="25"
+                                            Opacity="0.4"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Image.Effect>
+                                </Image>
+                                <CheckBox
+                                    Name="COMP_Switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrComponentStats, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="60"
+                                    Height="19"
+                                    Margin="170,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="DESKTOP"
+                                    IsChecked="{Binding IntgrComponentStats_DESKTOP, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="30"
+                                    Height="19"
+                                    Margin="235,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="VR"
+                                    IsChecked="{Binding IntgrComponentStats_DESKTOP, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}" />
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="5" Opacity="{Binding Time_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -3553,7 +3722,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Opacity="{Binding Spotify_Opacity}"
                         Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border
@@ -3652,7 +3821,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="6"
+                        Grid.Row="7"
                         Opacity="{Binding MediaLink_Opacity}"
                         Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border

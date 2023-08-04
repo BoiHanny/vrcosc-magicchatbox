@@ -681,6 +681,18 @@ namespace vrcosc_magicchatbox.ViewModels
         public RelayCommand<string> ActivateSettingCommand { get; }
         #endregion
 
+
+        private ObservableCollection<OSCAvatar> _OSCAvatarDatabase = new ObservableCollection<OSCAvatar>();
+        public ObservableCollection<OSCAvatar> OSCAvatarDatabase
+        {
+            get { return _OSCAvatarDatabase; }
+            set
+            {
+                _OSCAvatarDatabase = value;
+                NotifyPropertyChanged(nameof(OSCAvatarDatabase));
+            }
+        }
+
         #region Properties     
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private ObservableCollection<ChatItem> _LastMessages = new ObservableCollection<ChatItem>();
@@ -878,6 +890,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _HeartRateLastUpdate = value;
                 NotifyPropertyChanged(nameof(HeartRateLastUpdate));
+            }
+        }
+
+        private DateTime _ComponentStatsLastUpdate = DateTime.Now;
+
+        public DateTime ComponentStatsLastUpdate
+        {
+            get { return _ComponentStatsLastUpdate; }
+            set
+            {
+                _ComponentStatsLastUpdate = value;
+                NotifyPropertyChanged(nameof(ComponentStatsLastUpdate));
             }
         }
 

@@ -88,7 +88,7 @@ namespace vrcosc_magicchatbox.Classes
                             isNewParameter = true;
                         }
 
-                        var dynamicParameter = parameterObject as OSCParameter;
+                        OSCParameter dynamicParameter = parameterObject as OSCParameter;
                         dynamicParameter.SetValue(message.Arguments[0]);
 
 
@@ -113,14 +113,14 @@ namespace vrcosc_magicchatbox.Classes
 
                         if (ViewModel.Instance.AvatarSyncExecute)
                         {
-                            sb.Append("BuiltIn OSCParameter !! [")
+                            sb.Append("Dynamic OSCParameter !! [")
                             .Append(dynamicParameter.Name)
                             .Append("] Type: (")
                             .Append(dynamicParameter.Type.Name)
                             .Append(") ")
                             .Append("RUN >>> ");
                             Logging.WriteInfo(sb.ToString());
-                            AvatarSyncController.RunSync(OSCParameters.GetParameter(parameterName));
+                            AvatarSyncController.RunSync(dynamicParameter);
                         }
 
                     }
