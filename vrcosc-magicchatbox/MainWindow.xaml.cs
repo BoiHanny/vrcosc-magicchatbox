@@ -982,7 +982,7 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
                     ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
                 }
-                if(ViewModel.Instance.IntgrScanWindowActivity == true)
+                if(ViewModel.Instance.IntgrScanWindowActivity == true )
                 {
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 }

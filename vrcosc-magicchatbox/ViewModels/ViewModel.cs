@@ -682,6 +682,17 @@ namespace vrcosc_magicchatbox.ViewModels
         #endregion
 
 
+        private bool _IntgrScanForce = true;
+        public bool IntgrScanForce
+        {
+            get { return _IntgrScanForce; }
+            set
+            {
+                _IntgrScanForce = value;
+                NotifyPropertyChanged(nameof(IntgrScanForce));
+            }
+        }
+
         private ObservableCollection<OSCAvatar> _OSCAvatarDatabase = new ObservableCollection<OSCAvatar>();
         public ObservableCollection<OSCAvatar> OSCAvatarDatabase
         {

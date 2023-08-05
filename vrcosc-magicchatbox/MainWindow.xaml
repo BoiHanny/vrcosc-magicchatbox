@@ -2309,20 +2309,36 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <CheckBox
-                                x:Name="enhancedapp_checkbox"
-                                Height="20"
-                                Margin="0,15,0,0"
-                                BorderBrush="#FF2D1265"
-                                Checked="Update_Click"
-                                FontFamily="Comfortaa Light"
-                                FontSize="18"
-                                Foreground="#FFB9B5C1"
-                                IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
-                                Style="{DynamicResource SettingsCheckbox}"
-                                Unchecked="Update_Click">
-                                Enhanced hook for better app names
-                            </CheckBox>
+                            <StackPanel>
+                                <CheckBox
+                                    x:Name="enhancedapp_checkbox"
+                                    Height="20"
+                                    Margin="0,15,0,0"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding ApplicationHookV2, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Enhanced hook for better app names
+                                </CheckBox>
+                                <CheckBox
+                                    x:Name="IntgrScanForc_checkbox"
+                                    Height="20"
+                                    Margin="0,15,0,0"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding IntgrScanForce, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Show focusing app in VR mode 
+                                </CheckBox>
+                            </StackPanel>
                             <TextBlock
                                 Grid.Row="2"
                                 Margin="0,15,0,5"
@@ -3252,6 +3268,17 @@
                                     Content="VR"
                                     IsChecked="{Binding IntgrWindowActivity_VR, Mode=TwoWay}"
                                     Style="{StaticResource GlowyToggleButton}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="57"
+                                    Height="19"
+                                    Margin="278,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="Force VR"
+                                    IsChecked="{Binding IntgrScanForce, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}"
+                                    Visibility="{Binding IntgrWindowActivity_VR, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
                         </Border>
 
