@@ -2336,7 +2336,7 @@
                                     IsChecked="{Binding IntgrScanForce, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}"
                                     Unchecked="Update_Click">
-                                    Show focusing app in VR mode 
+                                    Show focusing app in VR mode
                                 </CheckBox>
                             </StackPanel>
                             <TextBlock
