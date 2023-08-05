@@ -3283,7 +3283,9 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="3" Opacity="{Binding HeartRate_Opacity}">
+                    <Grid
+                        Grid.Row="3"
+                        Opacity="{Binding HeartRate_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -3451,7 +3453,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="4" Opacity="{Binding HeartRate_Opacity}">
+                    <Grid Visibility="Collapsed" Grid.Row="4" Opacity="{Binding HeartRate_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
