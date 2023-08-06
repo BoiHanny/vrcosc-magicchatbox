@@ -986,6 +986,16 @@ namespace vrcosc_magicchatbox
                 {
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 }
+                if (ViewModel.Instance.IntgrComponentStats == true)
+                {
+                    ViewModel.Instance.SyncComponentStatsList();
+                    bool UpdateStatsCompleted = SystemStats.UpdateStats();
+                    if(UpdateStatsCompleted)
+                    {
+                        ViewModel.Instance.ComponentStatCombined = ViewModel.Instance._statsManager.GenerateStatsDescription();
+                    }
+
+                }
 
                 ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();
                 if(ViewModel.Instance.IntgrScanWindowTime == true)

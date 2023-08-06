@@ -113,7 +113,118 @@ namespace vrcosc_magicchatbox.Classes
         }
 
 
+        public static bool UpdateStats()
+        {
+            try
+            {
+                // Fetches the ComponentStatsItem for the given type.
+                ComponentStatsItem GetStatsItem(StatsComponentType type)
+                {
+                    return ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type);
+                }
 
+                // CPU stats
+                var cpuStatItem = GetStatsItem(StatsComponentType.CPU);
+                if (cpuStatItem != null && cpuStatItem.IsEnabled)
+                {
+                    string cpuValue = FetchCPUStat();
+                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.CPU, cpuValue);
+                    ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.CPU, "100 %");
+                }
+
+                // GPU stats
+                var gpuStatItem = GetStatsItem(StatsComponentType.GPU);
+                if (gpuStatItem != null && gpuStatItem.IsEnabled)
+                {
+                    string gpuValue = FetchGPUStat();
+                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.GPU, gpuValue);
+                    ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.GPU, "100 %");
+                }
+
+                // RAM stats
+                var ramStatItem = GetStatsItem(StatsComponentType.RAM);
+                if (ramStatItem != null && ramStatItem.IsEnabled)
+                {
+                    string ramValue = FetchRAMStat();
+                    string ramValueMax = FetchRAMMaxStat();
+                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.RAM, ramValue);
+                    ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.RAM, ramValueMax);
+                }
+
+                // VRAM stats
+                var vramStatItem = GetStatsItem(StatsComponentType.VRAM);
+                if (vramStatItem != null && vramStatItem.IsEnabled)
+                {
+                    string vramValue = FetchVRAMStat();
+                    string vramValueMax = FetchVRAMMaxStat();
+                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.VRAM, vramValue);
+                    ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.VRAM, vramValueMax);
+                }
+
+                // FPS stats
+                var fpsStatItem = GetStatsItem(StatsComponentType.FPS);
+                if (fpsStatItem != null && fpsStatItem.IsEnabled)
+                {
+                    string fpsValue = FetchFPSStat();
+                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.FPS, fpsValue);
+                }
+            }
+            catch (Exception)
+            {
+
+               return false;
+            }
+            return true;
+        }
+
+
+        private static string FetchCPUStat()
+        {
+            // Replace with actual CPU fetching logic.
+            return "67";
+        }
+
+        private static string FetchGPUStat()
+        {
+            // Replace with actual GPU fetching logic.
+            return "88";
+        }
+
+        private static string FetchRAMStat()
+        {
+            // Replace with actual RAM fetching logic.
+            return "12";
+        }
+
+        private static string FetchVRAMStat()
+        {
+            // Replace with actual VRAM fetching logic.
+            return "5.5";
+        }
+
+        private static string FetchFPSStat()
+        {
+            // Replace with actual FPS fetching logic.
+            return "88";
+        }
+
+        private static string FetchRAMMaxStat()
+        {
+            //only one time??
+
+
+            // Replace with actual FPS fetching logic.
+            return "16 GB";
+        }
+
+        private static string FetchVRAMMaxStat()
+        {
+            //only one time??
+
+
+            // Replace with actual FPS fetching logic.
+            return "24 GB";
+        }
 
 
     }

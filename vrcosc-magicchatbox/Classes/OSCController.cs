@@ -58,7 +58,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 if (ViewModel.Instance.HeartRateTitle)
                 {
-                    string hrTitle = "Heart rate" + (ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ");
+                    string hrTitle = "Heart rate" + (ViewModel.Instance.SeperateWithENTERS ? "\v" : " ");
                     string x = (ViewModel.Instance.ShowBPMSuffix
                         ? ViewModel.Instance.HeartRate + " bpm"
                         : (ViewModel.Instance.SeperateWithENTERS ? "💖 " : string.Empty) + ViewModel.Instance.HeartRate);

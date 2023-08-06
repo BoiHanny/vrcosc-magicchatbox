@@ -20,6 +20,11 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public static readonly ViewModel Instance = new ViewModel();
 
+        public readonly StatsManager _statsManager = new StatsManager();
+
+        private ObservableCollection<ComponentStatsItem> _componentStatsListPrivate = new ObservableCollection<ComponentStatsItem>();
+        public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList => new ReadOnlyObservableCollection<ComponentStatsItem>(_componentStatsListPrivate);
+
 
         private bool _BlankEgg = false;
 
@@ -172,6 +177,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_Status), value => Settings_Status = value }
             };
             _heartRateConnector = new HeartRateConnector();
+            
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
             _dynamicOSCData = new ExpandoObject();
         }
@@ -766,6 +772,115 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _OSCPortOut = 9000;
 
         private int _OSCPOrtIN = 9001;
+
+        public void SyncComponentStatsList()
+        {
+            _componentStatsListPrivate.Clear();
+            foreach (var stat in _statsManager.GetAllStats())
+            {
+                _componentStatsListPrivate.Add(stat);
+            }
+ 
+        }
+
+
+
+        private string _ComponentStatCombined;
+        public string ComponentStatCombined
+        {
+            get { return _ComponentStatCombined; }
+            set
+            {
+                _ComponentStatCombined = value;
+                NotifyPropertyChanged(nameof(ComponentStatCombined));
+            }
+        }
+
+        public void UpdateComponentStat(StatsComponentType type, string newValue)
+        {
+            _statsManager.UpdateStatValue(type, newValue);
+        }
+
+        public string GetComponentStatValue(StatsComponentType type)
+        {
+            return _statsManager.GetStatValue(type);
+        }
+
+        public void ToggleComponentEnabledStatus(StatsComponentType type)
+        {
+            _statsManager.ToggleStatEnabledStatus(type);
+        }
+
+        public void SetComponentStatMaxValue(StatsComponentType type, string maxValue)
+        {
+            _statsManager.SetStatMaxValue(type, maxValue);
+        }
+
+        public string GetComponentStatMaxValue(StatsComponentType type)
+        {
+            return _statsManager.GetStatMaxValue(type);
+        }
+
+
+
+        private bool _StatsComponent_CPU = true;
+        public bool StatsComponent_CPU
+        {
+            get { return _StatsComponent_CPU; }
+            set
+            {
+                _StatsComponent_CPU = value;
+                NotifyPropertyChanged(nameof(StatsComponent_CPU));
+            }
+        }
+
+        private bool _StatsComponent_GPU = true;
+        public bool StatsComponent_GPU
+        {
+            get { return _StatsComponent_GPU; }
+            set
+            {
+                _StatsComponent_GPU = value;
+                NotifyPropertyChanged(nameof(StatsComponent_GPU));
+            }
+        }
+
+        private bool _StatsComponent_FPS = true;
+        public bool StatsComponent_FPS
+        {
+            get { return _StatsComponent_FPS; }
+            set
+            {
+                _StatsComponent_FPS = value;
+                NotifyPropertyChanged(nameof(StatsComponent_FPS));
+            }
+        }
+
+
+
+
+        private bool _StatsComponent_VRAM = true;
+        public bool StatsComponent_VRAM
+        {
+            get { return _StatsComponent_VRAM; }
+            set
+            {
+                _StatsComponent_VRAM = value;
+                NotifyPropertyChanged(nameof(StatsComponent_VRAM));
+            }
+        }
+
+
+        private bool _StatsComponent_RAM = true;
+        public bool StatsComponent_RAM
+        {
+            get { return _StatsComponent_RAM; }
+            set
+            {
+                _StatsComponent_RAM = value;
+                NotifyPropertyChanged(nameof(StatsComponent_RAM));
+            }
+        }
 
         public int OSCPOrtIN
         {

@@ -3563,7 +3563,6 @@
                                         FontSize="13"
                                         Foreground="LightGray"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
                                         TextWrapping="Wrap">
                                         <TextBlock.Effect>
                                             <DropShadowEffect
@@ -3571,8 +3570,7 @@
                                                 Opacity="1"
                                                 ShadowDepth="0"
                                                 Color="#251153" />
-                                        </TextBlock.Effect>
-                                    </TextBlock>
+                                        </TextBlock.Effect><Run Text="With this integration, you can display the utilization of your CPU, GPU, and others." /><Run Language="en-gb" /></TextBlock>
 
                                 </Grid>
 
@@ -3616,7 +3614,7 @@
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
                                     Content="VR"
-                                    IsChecked="{Binding IntgrComponentStats_DESKTOP, Mode=TwoWay}"
+                                    IsChecked="{Binding IntgrComponentStats_VR, Mode=TwoWay}"
                                     Style="{StaticResource GlowyToggleButton}" />
                             </Grid>
                         </Border>
