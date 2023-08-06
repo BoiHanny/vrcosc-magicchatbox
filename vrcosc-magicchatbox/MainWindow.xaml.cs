@@ -120,7 +120,7 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
-            OSCReader.StartListening();
+            // OSCReader.StartListening();
         }
 
         public static event EventHandler ShadowOpacityChanged;

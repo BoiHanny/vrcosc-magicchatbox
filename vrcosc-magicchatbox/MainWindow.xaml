@@ -3283,9 +3283,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid
-                        Grid.Row="3"
-                        Opacity="{Binding HeartRate_Opacity}">
+                    <Grid Grid.Row="3" Opacity="{Binding HeartRate_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -3453,7 +3451,10 @@
                         </Border>
 
                     </Grid>
-                    <Grid Visibility="Collapsed" Grid.Row="4" Opacity="{Binding HeartRate_Opacity}">
+                    <Grid
+                        Grid.Row="4"
+                        Opacity="{Binding HeartRate_Opacity}"
+                        Visibility="Visible">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -3577,10 +3578,10 @@
 
                                 <Image
                                     Grid.Column="0"
-                                    Margin="15"
+                                    Margin="12"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Source="/Img/Icons/HeartRate_ico.png">
+                                    Source="/Img/Icons/ComponentStats_ico.png">
                                     <Image.Effect>
                                         <DropShadowEffect
                                             BlurRadius="25"
