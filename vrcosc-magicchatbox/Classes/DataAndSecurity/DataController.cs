@@ -206,7 +206,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles")},
 
                         {"IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles")},
-                        {"IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},AutoShowTitleOnNewApp
+                        {"IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
                         {"Time24H", (typeof(bool), "Time")},
                         {"PrefixTime", (typeof(bool), "Time")},
                         {"TimeShowTimeZone", (typeof(bool), "Time")},
