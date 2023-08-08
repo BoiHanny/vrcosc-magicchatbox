@@ -184,6 +184,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrHeartRate", (typeof(bool), "Integrations")},
                         {"IntgrScanMediaLink", (typeof(bool), "Integrations")},
                         {"IntgrComponentStats", (typeof(bool), "Integrations")},
+                        
 
 
                         {"IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles")},
@@ -205,8 +206,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles")},
 
                         {"IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles")},
-                        {"IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},
-
+                        {"IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles")},AutoShowTitleOnNewApp
                         {"Time24H", (typeof(bool), "Time")},
                         {"PrefixTime", (typeof(bool), "Time")},
                         {"TimeShowTimeZone", (typeof(bool), "Time")},
@@ -217,6 +217,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"CurrentMenuItem", (typeof(int), "Menu")},
 
                         {"IntgrScanForce", (typeof(bool), "WindowActivity")},
+                        {"AutoShowTitleOnNewApp", (typeof(bool), "WindowActivity")},
+                        {"WindowActivityTitleScan", (typeof(bool), "WindowActivity")},
+                        {"MaxShowTitleCount", (typeof(int), "WindowActivity")},
+                        {"LimitTitleOnApp", (typeof(bool), "WindowActivity")},
+                        {"TitleOnAppVR", (typeof(bool), "WindowActivity")},
 
                         {"MediaSession_Timeout", (typeof(int), "MediaLink")},
                         {"MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink")},

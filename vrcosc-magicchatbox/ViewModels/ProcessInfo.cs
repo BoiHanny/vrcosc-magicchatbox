@@ -11,6 +11,31 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _isPrivateApp;
         private int _focusCount;
 
+
+
+        private string _lastTitle;
+        public string LastTitle
+        {
+            get { return _lastTitle; }
+            set
+            {
+                _lastTitle = value;
+                NotifyPropertyChanged(nameof(LastTitle));
+            }
+        }
+
+
+        private bool _ShowTitle = false;
+        public bool ShowTitle
+        {
+            get { return _ShowTitle; }
+            set
+            {
+                _ShowTitle = value;
+                NotifyPropertyChanged(nameof(ShowTitle));
+            }
+        }
+
         public string ProcessName
         {
             get { return _processName; }

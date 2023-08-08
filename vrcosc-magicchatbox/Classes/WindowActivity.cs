@@ -16,6 +16,45 @@ namespace vrcosc_magicchatbox.Classes
 
         private const uint SHGFI_DISPLAYNAME = 0x00000200;
 
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowTextLength(IntPtr hWnd);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+        private static string GetWindowTitle(IntPtr hwnd)
+        {
+            int length = GetWindowTextLength(hwnd) + 1;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(length);
+
+            if (GetWindowText(hwnd, sb, length) > 0)
+            {
+                string fullTitle = sb.ToString();
+
+                // First, let's truncate the application name after the hyphen.
+                int index = fullTitle.LastIndexOf(" - ");
+                if (index > 0)
+                {
+                    fullTitle = fullTitle.Substring(0, index);
+                }
+
+                // Now, check the length to see if we need to further truncate.
+                if (ViewModel.Instance.LimitTitleOnApp && fullTitle.Length > ViewModel.Instance.MaxShowTitleCount)
+                {
+                    fullTitle = fullTitle.Substring(0, ViewModel.Instance.MaxShowTitleCount) + "...";
+                }
+
+                return fullTitle;
+            }
+
+            return string.Empty;
+        }
+
+
+
+
+
+
+
         private static string GetFileDescription(string filePath)
         {
             try
@@ -70,6 +109,7 @@ namespace vrcosc_magicchatbox.Classes
         public static string GetForegroundProcessName()
         {
             const int maxRetries = 3;
+            string windowTitle = string.Empty;
             for (int attempt = 0; attempt < maxRetries; attempt++)
             {
                 try
@@ -136,9 +176,15 @@ namespace vrcosc_magicchatbox.Classes
                             }
                         }
 
-                        processName = RemoveExeExtension(processName);
 
-                        // Rest of the method remains unchanged
+                        processName = RemoveExeExtension(processName);
+                        
+                        if (ViewModel.Instance.WindowActivityTitleScan)
+                        {
+                            windowTitle = GetWindowTitle(hwnd);
+                        }
+
+
                         ProcessInfo existingProcessInfo = ViewModel.Instance.ScannedApps
                             .FirstOrDefault(info => info.ProcessName == processName);
 
@@ -146,6 +192,8 @@ namespace vrcosc_magicchatbox.Classes
                         {
                             ProcessInfo processInfo = new ProcessInfo
                             {
+                                LastTitle = windowTitle,
+                                ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
                                 ProcessName = processName,
                                 UsedNewMethod = usedNewMethod,
                                 ApplyCustomAppName = false,
@@ -166,17 +214,19 @@ namespace vrcosc_magicchatbox.Classes
                                 ViewModel.Instance.LastProcessFocused = existingProcessInfo;
                             }
 
+                            bool TitleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
+
                             if (existingProcessInfo.IsPrivateApp)
                             {
                                 return "Private App";
                             }
                             else if (existingProcessInfo.ApplyCustomAppName)
                             {
-                                return existingProcessInfo.CustomAppName;
+                                return existingProcessInfo.CustomAppName + (TitleCheck ? " - " + windowTitle : string.Empty);
                             }
                             else
                             {
-                                return processName;
+                                return processName + (TitleCheck ? " - " + windowTitle : string.Empty);
                             }
                         }
                     }
@@ -191,7 +241,19 @@ namespace vrcosc_magicchatbox.Classes
                 new Exception("Couldn't get application title after 3 tries"),
                 makeVMDump: false,
                 MSGBox: false);
-            return "Unknown";
+            return $"Unknown";
+        }
+
+        private static bool CheckTitleCondition(ProcessInfo existingProcessInfo, string windowTitle)
+        {
+            bool showTitle1stCheck = ViewModel.Instance.WindowActivityTitleScan
+                                        && existingProcessInfo.ShowTitle
+                                        && !string.IsNullOrEmpty(windowTitle);
+            if (ViewModel.Instance.TitleOnAppVR && ViewModel.Instance.IsVRRunning)
+            {
+                showTitle1stCheck = false;
+            }
+            return showTitle1stCheck;
         }
 
         public static bool IsVRRunning()

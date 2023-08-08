@@ -191,13 +191,29 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrScanWindowActivity && ViewModel.Instance.FocusedWindow.Length > 0)
             {
-                string x = ViewModel.Instance.IsVRRunning
-                                ? "In VR" + (ViewModel.Instance.IntgrScanForce ? " ᶠᵒᶜᵘˢˢⁱⁿᵍ ⁱⁿ '" : "")
-                                : "On desktop ⁱⁿ '";
-                x += ViewModel.Instance.FocusedWindow + "'";
-                TryAddToUncomplete(Uncomplete, x, "Window");
+                StringBuilder x = new StringBuilder();
+
+                if (ViewModel.Instance.IsVRRunning)
+                {
+                    x.Append("In VR");
+                    if (ViewModel.Instance.IntgrScanForce)
+                    {
+                        x.Append(" ᶠᵒᶜᵘˢˢⁱⁿᵍ ⁱⁿ '");
+                        x.Append(ViewModel.Instance.FocusedWindow);
+                        x.Append("'");
+                    }
+                }
+                else
+                {
+                    x.Append("On desktop ⁱⁿ '");
+                    x.Append(ViewModel.Instance.FocusedWindow);
+                    x.Append("'");
+                }
+
+                TryAddToUncomplete(Uncomplete, x.ToString(), "Window");
             }
         }
+
 
 
         // this function is for building the final OSC message to be sent to VRChat and it will set the opacity of the controls in the UI based on the length of the message

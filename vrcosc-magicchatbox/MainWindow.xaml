@@ -2338,6 +2338,87 @@
                                     Unchecked="Update_Click">
                                     Show focusing app in VR mode
                                 </CheckBox>
+                                <CheckBox
+                                    x:Name="WindowActivityTitleScan_checkbox"
+                                    Height="20"
+                                    Margin="0,15,0,0"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding WindowActivityTitleScan, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Show more info about focusing app
+                                </CheckBox>
+                                <StackPanel Visibility="{Binding WindowActivityTitleScan, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <CheckBox
+                                        x:Name="AutoShowTitleOnNewAppn_checkbox"
+                                        Height="20"
+                                        Margin="0,15,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding AutoShowTitleOnNewApp, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Auto show info on new app
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="TitleOnAppVR_checkbox"
+                                        Height="20"
+                                        Margin="0,15,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TitleOnAppVR, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show info in VR mode
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="LimitTitleOnApp_checkbox"
+                                        Height="20"
+                                        Margin="0,15,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding LimitTitleOnApp, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Limit info length on app
+                                    </CheckBox>
+                                    <StackPanel Margin="0,10,0,-10" Visibility="{Binding LimitTitleOnApp, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="max title lenght" />
+                                        <TextBox
+                                            x:Name="MaxShowTitleCount_INT"
+                                            Width="40"
+                                            Height="26"
+                                            Margin="0,3,0,10"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding MaxShowTitleCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </StackPanel>
+
                             </StackPanel>
                             <TextBlock
                                 Grid.Row="2"
@@ -2395,8 +2476,9 @@
                                         <ColumnDefinition Width="150" />
                                         <ColumnDefinition Width="80" />
                                         <ColumnDefinition Width="125" />
+                                        <ColumnDefinition Width="100" />
                                         <ColumnDefinition Width="65" />
-                                        <ColumnDefinition Width="285" />
+                                        <ColumnDefinition Width="185" />
                                     </Grid.ColumnDefinitions>
 
                                     <Button
@@ -2438,6 +2520,17 @@
                                     <Button
                                         Grid.Column="3"
                                         Margin="3,0"
+                                        Command="{Binding SortScannedAppsByIsShowInfoAppCommand}"
+                                        Style="{StaticResource Sort_Button_style}">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="14"
+                                            Text="Show info" />
+                                    </Button>
+                                    <Button
+                                        Grid.Column="4"
+                                        Margin="3,0"
                                         Command="{Binding SortScannedAppsByIsPrivateAppCommand}"
                                         Style="{StaticResource Sort_Button_style}">
                                         <TextBlock
@@ -2447,11 +2540,12 @@
                                             Text="Private" />
                                     </Button>
                                     <Button
-                                        Grid.Column="4"
+                                        Grid.Column="5"
                                         Margin="3,0"
                                         Command="{Binding SortScannedAppsByApplyCustomAppNameCommand}"
                                         Style="{StaticResource Sort_Button_style}">
                                         <TextBlock
+                                            HorizontalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
                                             Text="Custom app name" />
@@ -2486,8 +2580,9 @@
                                                     <ColumnDefinition Width="150" />
                                                     <ColumnDefinition Width="80" />
                                                     <ColumnDefinition Width="125" />
+                                                    <ColumnDefinition Width="100" />
                                                     <ColumnDefinition Width="65" />
-                                                    <ColumnDefinition Width="280" />
+                                                    <ColumnDefinition Width="180" />
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock
                                                     Grid.Column="0"
@@ -2512,10 +2607,21 @@
                                                     FontSize="16"
                                                     Foreground="#FFB9B5C1"
                                                     Text="{Binding UsedNewMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
+                                                <CheckBox
+                                                    x:Name="ShowTitle"
+                                                    Grid.Column="3"
+                                                    Width="23"
+                                                    Height="20"
+                                                    HorizontalAlignment="Center"
+                                                    BorderBrush="#FF2D1265"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="18"
+                                                    Foreground="#FFB9B5C1"
+                                                    IsChecked="{Binding ShowTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Style="{DynamicResource SettingsCheckbox}" />
                                                 <CheckBox
                                                     x:Name="IsPrivateApp"
-                                                    Grid.Column="3"
+                                                    Grid.Column="4"
                                                     Width="23"
                                                     Height="20"
                                                     HorizontalAlignment="Center"
@@ -2526,7 +2632,7 @@
                                                     IsChecked="{Binding IsPrivateApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                     Style="{DynamicResource SettingsCheckbox}" />
                                                 <StackPanel
-                                                    Grid.Column="4"
+                                                    Grid.Column="5"
                                                     Width="auto"
                                                     Orientation="Horizontal">
                                                     <CheckBox
@@ -3458,7 +3564,9 @@
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
-                            CornerRadius="5">
+                            CornerRadius="5"
+                            IsEnabled="False"
+                            Opacity="0.5">
                             <Border.Effect>
                                 <DropShadowEffect
                                     BlurRadius="5"

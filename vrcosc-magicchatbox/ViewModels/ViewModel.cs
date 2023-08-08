@@ -116,7 +116,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _IntgrComponentStats = true;
+        private bool _IntgrComponentStats = false;
         public bool IntgrComponentStats
         {
             get { return _IntgrComponentStats; }
@@ -153,6 +153,7 @@ namespace vrcosc_magicchatbox.ViewModels
             SortScannedAppsByFocusCountCommand = new RelayCommand(() => SortScannedApps(SortProperty.FocusCount));
             SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
             SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
+            SortScannedAppsByIsShowInfoAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.ShowInfo));
             SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(
                 () => SortScannedApps(SortProperty.ApplyCustomAppName));
             ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
@@ -307,6 +308,11 @@ namespace vrcosc_magicchatbox.ViewModels
                     sortedScannedApps = isAscending
                         ? _ScannedApps.OrderBy(process => process.IsPrivateApp)
                         : _ScannedApps.OrderByDescending(process => process.IsPrivateApp);
+                    break;
+                case SortProperty.ShowInfo:
+                    sortedScannedApps = isAscending
+                        ? _ScannedApps.OrderBy(process => process.ShowTitle)
+                        : _ScannedApps.OrderByDescending(process => process.ShowTitle);
                     break;
 
                 default:
@@ -682,6 +688,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public ICommand SortScannedAppsByIsPrivateAppCommand { get; }
 
+        public ICommand SortScannedAppsByIsShowInfoAppCommand { get; }
+
         public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
 
         public RelayCommand<string> ActivateSettingCommand { get; }
@@ -740,7 +748,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = string.Empty;
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new("0.8.358");
+        private Version _AppVersion = new("0.8.375");
         private Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
@@ -918,6 +926,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             { SortProperty.ProcessName, true },
             { SortProperty.UsedNewMethod, true },
+            { SortProperty.ShowInfo, true },
             { SortProperty.ApplyCustomAppName, true },
             { SortProperty.IsPrivateApp, true },
             { SortProperty.FocusCount, true }
@@ -941,7 +950,8 @@ namespace vrcosc_magicchatbox.ViewModels
             UsedNewMethod,
             ApplyCustomAppName,
             IsPrivateApp,
-            FocusCount
+            FocusCount,
+            ShowInfo
         }
 
 
@@ -981,6 +991,63 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _WindowActivityTitleScan = true;
+        public bool WindowActivityTitleScan
+        {
+            get { return _WindowActivityTitleScan; }
+            set
+            {
+                _WindowActivityTitleScan = value;
+                NotifyPropertyChanged(nameof(WindowActivityTitleScan));
+            }
+        }
+
+
+        private bool _AutoShowTitleOnNewApp = false;
+        public bool AutoShowTitleOnNewApp
+        {
+            get { return _AutoShowTitleOnNewApp; }
+            set
+            {
+                _AutoShowTitleOnNewApp = value;
+                NotifyPropertyChanged(nameof(AutoShowTitleOnNewApp));
+            }
+        }
+
+
+        private bool _TitleOnAppVR = false;
+        public bool TitleOnAppVR
+        {
+            get { return _TitleOnAppVR; }
+            set
+            {
+                _TitleOnAppVR = value;
+                NotifyPropertyChanged(nameof(TitleOnAppVR));
+            }
+        }
+
+
+        private bool _LimitTitleOnApp = true;
+        public bool LimitTitleOnApp
+        {
+            get { return _LimitTitleOnApp; }
+            set
+            {
+                _LimitTitleOnApp = value;
+                NotifyPropertyChanged(nameof(LimitTitleOnApp));
+            }
+        }
+
+        private int _MaxShowTitleCount = 10;
+        public int MaxShowTitleCount
+        {
+            get { return _MaxShowTitleCount; }
+            set
+            {
+                _MaxShowTitleCount = value;
+                NotifyPropertyChanged(nameof(MaxShowTitleCount));
+            }
+        }
 
         private bool _VersionTxtUnderLine = false;
 
