@@ -22,6 +22,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public readonly StatsManager _statsManager = new StatsManager();
 
+        private readonly object _lock = new object();
+
         private ObservableCollection<ComponentStatsItem> _componentStatsListPrivate = new ObservableCollection<ComponentStatsItem>();
         public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList => new ReadOnlyObservableCollection<ComponentStatsItem>(_componentStatsListPrivate);
 
@@ -149,14 +151,17 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             ActivateStatusCommand = new RelayCommand(ActivateStatus);
             ToggleVoiceCommand = new RelayCommand(ToggleVoice);
+
+            ScannedApps.CollectionChanged += ScannedApps_CollectionChanged;
             SortScannedAppsByProcessNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ProcessName));
             SortScannedAppsByFocusCountCommand = new RelayCommand(() => SortScannedApps(SortProperty.FocusCount));
             SortScannedAppsByUsedNewMethodCommand = new RelayCommand(() => SortScannedApps(SortProperty.UsedNewMethod));
             SortScannedAppsByIsPrivateAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.IsPrivateApp));
             SortScannedAppsByIsShowInfoAppCommand = new RelayCommand(() => SortScannedApps(SortProperty.ShowInfo));
-            SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(
-                () => SortScannedApps(SortProperty.ApplyCustomAppName));
+            SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
+
             ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
+
             TimezoneFriendlyNames = new Dictionary<Timezone, string>
             {
                 { Timezone.UTC, "Coordinated Universal Time (UTC)" },
@@ -166,6 +171,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { Timezone.CET, "European Central Time (CET)" },
                 { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
             };
+
             SettingsMap = new Dictionary<string, Action<bool>>
             {
                 { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
@@ -177,6 +183,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
                 { nameof(Settings_Status), value => Settings_Status = value }
             };
+
             _heartRateConnector = new HeartRateConnector();
             
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
@@ -272,55 +279,133 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public void SortScannedApps(SortProperty sortProperty)
+        private void ScannedApps_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            var isAscending = _sortDirection[sortProperty];
-            _sortDirection[sortProperty] = !isAscending;
-
-            IOrderedEnumerable<ProcessInfo> sortedScannedApps;
-
-            switch(sortProperty)
+            Resort();
+            if (e.OldItems != null)
             {
-                case SortProperty.ProcessName:
-                    sortedScannedApps = isAscending
-                        ? _ScannedApps.OrderBy(process => process.ProcessName)
-                        : _ScannedApps.OrderByDescending(process => process.ProcessName);
-                    break;
-
-                case SortProperty.UsedNewMethod:
-                    sortedScannedApps = isAscending
-                        ? _ScannedApps.OrderBy(process => process.UsedNewMethod)
-                        : _ScannedApps.OrderByDescending(process => process.UsedNewMethod);
-                    break;
-
-                case SortProperty.ApplyCustomAppName:
-                    sortedScannedApps = isAscending
-                        ? _ScannedApps.OrderBy(process => process.ApplyCustomAppName)
-                        : _ScannedApps.OrderByDescending(process => process.ApplyCustomAppName);
-                    break;
-
-                case SortProperty.FocusCount:
-                    sortedScannedApps = isAscending
-                        ? _ScannedApps.OrderBy(process => process.FocusCount)
-                        : _ScannedApps.OrderByDescending(process => process.FocusCount);
-                    break;
-                case SortProperty.IsPrivateApp:
-                    sortedScannedApps = isAscending
-                        ? _ScannedApps.OrderBy(process => process.IsPrivateApp)
-                        : _ScannedApps.OrderByDescending(process => process.IsPrivateApp);
-                    break;
-                case SortProperty.ShowInfo:
-                    sortedScannedApps = isAscending
-                        ? _ScannedApps.OrderBy(process => process.ShowTitle)
-                        : _ScannedApps.OrderByDescending(process => process.ShowTitle);
-                    break;
-
-                default:
-                    throw new ArgumentException($"Invalid sort property: {sortProperty}");
+                foreach (ProcessInfo processInfo in e.OldItems)
+                {
+                    processInfo.PropertyChanged -= ProcessInfo_PropertyChanged;
+                }
             }
 
-            ScannedApps = new ObservableCollection<ProcessInfo>(sortedScannedApps);
+            if (e.NewItems != null)
+            {
+                foreach (ProcessInfo processInfo in e.NewItems)
+                {
+                    processInfo.PropertyChanged += ProcessInfo_PropertyChanged;
+                }
+            }
         }
+
+        private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Resort();
+        }
+
+        public void SortScannedApps(SortProperty sortProperty)
+        {
+            if (!_sortDirection.ContainsKey(sortProperty))
+            {
+                Logging.WriteException(new Exception($"No sortDirection: {sortProperty}"), makeVMDump: false, MSGBox: false);
+                return;
+            }
+            try
+            {
+                _currentSortProperty = sortProperty;
+                var isAscending = _sortDirection[sortProperty];
+                _sortDirection[sortProperty] = !isAscending;
+                UpdateSortedApps();
+                NotifyPropertyChanged(nameof(ScannedApps));
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+
+
+        private void Resort()
+        {
+            if (_currentSortProperty != default)
+            {
+                UpdateSortedApps();
+            }
+        }
+
+        private void UpdateSortedApps()
+        {
+            lock (_lock)
+            {
+                ObservableCollection<ProcessInfo> tempList = null;
+                try
+                {
+                    var copiedList = ScannedApps.ToList(); // Create a copy of ScannedApps
+                    IOrderedEnumerable<ProcessInfo> sortedScannedApps = null;
+
+                    switch (_currentSortProperty)
+                    {
+                        case SortProperty.ProcessName:
+                            sortedScannedApps = _sortDirection[_currentSortProperty]
+                                ? copiedList.OrderBy(process => process.ProcessName)
+                                : copiedList.OrderByDescending(process => process.ProcessName);
+                            break;
+
+                        case SortProperty.UsedNewMethod:
+                            sortedScannedApps = _sortDirection[_currentSortProperty]
+                                ? copiedList.OrderBy(process => process.UsedNewMethod)
+                                : copiedList.OrderByDescending(process => process.UsedNewMethod);
+                            break;
+
+                        case SortProperty.ApplyCustomAppName:
+                            sortedScannedApps = _sortDirection[_currentSortProperty]
+                                ? copiedList.OrderBy(process => process.ApplyCustomAppName)
+                                : copiedList.OrderByDescending(process => process.ApplyCustomAppName);
+                            break;
+
+                        case SortProperty.IsPrivateApp:
+                            sortedScannedApps = _sortDirection[_currentSortProperty]
+                                ? copiedList.OrderBy(process => process.IsPrivateApp)
+                                : copiedList.OrderByDescending(process => process.IsPrivateApp);
+                            break;
+
+                        case SortProperty.FocusCount:
+                            sortedScannedApps = _sortDirection[_currentSortProperty]
+                                ? copiedList.OrderBy(process => process.FocusCount)
+                                : copiedList.OrderByDescending(process => process.FocusCount);
+                            break;
+
+                        case SortProperty.ShowInfo:
+                            sortedScannedApps = _sortDirection[_currentSortProperty]
+                                ? copiedList.OrderBy(process => process.ShowTitle)
+                                : copiedList.OrderByDescending(process => process.ShowTitle);
+                            break;
+                    }
+
+                    if (sortedScannedApps != null && sortedScannedApps.Any())
+                    {
+                        tempList = new ObservableCollection<ProcessInfo>(sortedScannedApps);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex);
+                }
+
+                if (tempList != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        ScannedApps = tempList;
+                    });
+                }
+            }
+        }
+
+
+
 
         public bool BlankEgg
         {
@@ -922,15 +1007,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private float _TTSVolume = 0.2f;
 
         private ProcessInfo _LastProcessFocused = new ProcessInfo();
-        private Dictionary<SortProperty, bool> _sortDirection = new Dictionary<SortProperty, bool>
-        {
-            { SortProperty.ProcessName, true },
-            { SortProperty.UsedNewMethod, true },
-            { SortProperty.ShowInfo, true },
-            { SortProperty.ApplyCustomAppName, true },
-            { SortProperty.IsPrivateApp, true },
-            { SortProperty.FocusCount, true }
-        };
+
 
 
         private bool _AvatarSyncExecute = true;
@@ -943,6 +1020,17 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(AvatarSyncExecute));
             }
         }
+
+        private SortProperty _currentSortProperty;
+        private Dictionary<SortProperty, bool> _sortDirection = new Dictionary<SortProperty, bool>
+        {
+            { SortProperty.ProcessName, true },
+            { SortProperty.UsedNewMethod, true },
+            { SortProperty.ShowInfo, true },
+            { SortProperty.ApplyCustomAppName, true },
+            { SortProperty.IsPrivateApp, true },
+            { SortProperty.FocusCount, true }
+        };
 
         public enum SortProperty
         {
@@ -1027,6 +1115,30 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private string _ErrorInWindowActivityMsg = "Error without information";
+        public string ErrorInWindowActivityMsg
+        {
+            get { return _ErrorInWindowActivityMsg; }
+            set
+            {
+                _ErrorInWindowActivityMsg = value;
+                NotifyPropertyChanged(nameof(ErrorInWindowActivityMsg));
+            }
+        }
+
+
+        private bool _ErrorInWindowActivity = false;
+        public bool ErrorInWindowActivity
+        {
+            get { return _ErrorInWindowActivity; }
+            set
+            {
+                _ErrorInWindowActivity = value;
+                NotifyPropertyChanged(nameof(ErrorInWindowActivity));
+            }
+        }
+
+
         private bool _LimitTitleOnApp = true;
         public bool LimitTitleOnApp
         {
@@ -1038,7 +1150,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private int _MaxShowTitleCount = 10;
+        private int _MaxShowTitleCount = 15;
         public int MaxShowTitleCount
         {
             get { return _MaxShowTitleCount; }
@@ -1406,16 +1518,18 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(DeletedAppslabel));
             }
         }
-
-        private ObservableCollection<ProcessInfo> _ScannedApps = new ObservableCollection<ProcessInfo>();
-
+        private ObservableCollection<ProcessInfo> _scannedApps = new ObservableCollection<ProcessInfo>();
         public ObservableCollection<ProcessInfo> ScannedApps
         {
-            get { return _ScannedApps; }
+            get { return _scannedApps; }
             set
             {
-                _ScannedApps = value;
-                NotifyPropertyChanged(nameof(ScannedApps));
+                if (_scannedApps != value)
+                {
+                    _scannedApps.CollectionChanged -= ScannedApps_CollectionChanged;
+                    _scannedApps = value;
+                    _scannedApps.CollectionChanged += ScannedApps_CollectionChanged;
+                }
             }
         }
 

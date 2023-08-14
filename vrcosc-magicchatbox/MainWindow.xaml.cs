@@ -997,7 +997,7 @@ namespace vrcosc_magicchatbox
 
                 }
 
-                ViewModel.Instance.IsVRRunning = WindowActivity.IsVRRunning();
+                ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning();
                 if(ViewModel.Instance.IntgrScanWindowTime == true)
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
                 ViewModel.Instance.ChatFeedbackTxt = string.Empty;

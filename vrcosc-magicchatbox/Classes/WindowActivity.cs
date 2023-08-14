@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Automation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -12,48 +13,66 @@ namespace vrcosc_magicchatbox.Classes
 {
     public static class WindowActivity
     {
+        // Constants and Structs
         private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
-
         private const uint SHGFI_DISPLAYNAME = 0x00000200;
+        private static bool _usedNewMethod = false;
 
-        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
-        private static extern int GetWindowTextLength(IntPtr hWnd);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
-        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
-        private static string GetWindowTitle(IntPtr hwnd)
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        private struct SHFILEINFO
         {
-            int length = GetWindowTextLength(hwnd) + 1;
-            System.Text.StringBuilder sb = new System.Text.StringBuilder(length);
-
-            if (GetWindowText(hwnd, sb, length) > 0)
-            {
-                string fullTitle = sb.ToString();
-
-                // First, let's truncate the application name after the hyphen.
-                int index = fullTitle.LastIndexOf(" - ");
-                if (index > 0)
-                {
-                    fullTitle = fullTitle.Substring(0, index);
-                }
-
-                // Now, check the length to see if we need to further truncate.
-                if (ViewModel.Instance.LimitTitleOnApp && fullTitle.Length > ViewModel.Instance.MaxShowTitleCount)
-                {
-                    fullTitle = fullTitle.Substring(0, ViewModel.Instance.MaxShowTitleCount) + "...";
-                }
-
-                return fullTitle;
-            }
-
-            return string.Empty;
+            public IntPtr hIcon;
+            public IntPtr iIcon;
+            public uint dwAttributes;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string szDisplayName;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 80)]
+            public string szTypeName;
         }
 
+        // Private Methods
+        private static string GetWindowTitle(IntPtr hwnd)
+        {
+            try
+            {
+                int length = GetWindowTextLength(hwnd) + 1;
+                System.Text.StringBuilder sb = new System.Text.StringBuilder(length);
 
+                if (GetWindowText(hwnd, sb, length) > 0)
+                {
+                    return FormatWindowTitle(sb.ToString());
+                }
 
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                ViewModel.Instance.ErrorInWindowActivity = true;
+                string errormsg = $"Error in GetWindowTitle: {ex.Message}";
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+                return string.Empty;
+            }
 
+        }
 
+        private static string FormatWindowTitle(string fullTitle)
+        {
+            // Truncate the application name after the hyphen.
+            int index = fullTitle.LastIndexOf(" - ");
+            if (index > 0)
+            {
+                fullTitle = fullTitle.Substring(0, index);
+            }
 
+            // Check length for further truncation.
+            if (ViewModel.Instance.LimitTitleOnApp && fullTitle.Length > ViewModel.Instance.MaxShowTitleCount)
+            {
+                fullTitle = fullTitle.Substring(0, ViewModel.Instance.MaxShowTitleCount) + "...";
+            }
+
+            return fullTitle;
+        }
 
         private static string GetFileDescription(string filePath)
         {
@@ -70,12 +89,6 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern Int32 GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
         private static string RemoveExeExtension(string processName)
         {
             return processName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
@@ -83,14 +96,35 @@ namespace vrcosc_magicchatbox.Classes
                 : processName;
         }
 
-        [System.Runtime.InteropServices.DllImport("shell32.dll")]
-        private static extern IntPtr SHGetFileInfo(
-            string pszPath,
-            uint dwFileAttributes,
-            ref SHFILEINFO psfi,
-            uint cbSizeFileInfo,
-            uint uFlags);
+        private static bool CheckTitleCondition(ProcessInfo existingProcessInfo, string windowTitle)
+        {
+            bool showTitle1stCheck = ViewModel.Instance.WindowActivityTitleScan
+                                    && existingProcessInfo.ShowTitle
+                                    && !string.IsNullOrEmpty(windowTitle);
+            if (ViewModel.Instance.TitleOnAppVR && ViewModel.Instance.IsVRRunning)
+            {
+                showTitle1stCheck = false;
+            }
+            return showTitle1stCheck;
+        }
 
+        // P/Invoke Methods
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowTextLength(IntPtr hWnd);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern Int32 GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [System.Runtime.InteropServices.DllImport("shell32.dll")]
+        private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
+
+        // Public Methods
         public static int CleanAndKeepAppsWithSettings()
         {
             int removed = 0;
@@ -106,189 +140,7 @@ namespace vrcosc_magicchatbox.Classes
             return removed;
         }
 
-        public static string GetForegroundProcessName()
-        {
-            const int maxRetries = 3;
-            string windowTitle = string.Empty;
-            for (int attempt = 0; attempt < maxRetries; attempt++)
-            {
-                try
-                {
-                    IntPtr hwnd = GetForegroundWindow();
 
-                    if (hwnd == IntPtr.Zero)
-                    {
-                        continue;
-                    }
-
-                    GetWindowThreadProcessId(hwnd, out uint pid);
-
-                    Process process = Process.GetProcesses().FirstOrDefault(p => p.Id == pid);
-                    string processName = "Unknown";
-                    if (process != null)
-                    {
-                        bool usedNewMethod = false;
-                        if (process.ProcessName == "ApplicationFrameHost" &&
-                            ViewModel.Instance.ApplicationHookV2 &&
-                            attempt == 0)
-                        {
-                            // If the process is an Application Frame Host, use UI Automation to get the window title
-                            AutomationElement element = AutomationElement.FromHandle(hwnd);
-                            if (element != null)
-                            {
-                                processName = element.Current.Name;
-                                usedNewMethod = true;
-                            }
-                        }
-                        else
-                        {
-                            if (ViewModel.Instance.ApplicationHookV2)
-                            {
-                                try
-                                {
-                                    processName = GetFileDescription(process.MainModule.FileName);
-                                    usedNewMethod = true;
-                                }
-                                catch (System.ComponentModel.Win32Exception ex)
-                                {
-                                    processName = process.ProcessName;
-                                }
-                            }
-                            else
-                            {
-                                processName = process.ProcessName;
-                            }
-
-                            if (string.IsNullOrEmpty(processName) || processName == "Unknown")
-                            {
-                                // If processName is null, empty, or "Unknown", try to get it using SHGetFileInfo
-                                SHFILEINFO shinfo = new SHFILEINFO();
-                                IntPtr result = SHGetFileInfo(
-                                    process.MainModule.FileName,
-                                    FILE_ATTRIBUTE_NORMAL,
-                                    ref shinfo,
-                                    (uint)System.Runtime.InteropServices.Marshal.SizeOf(shinfo),
-                                    SHGFI_DISPLAYNAME);
-                                if (result != IntPtr.Zero)
-                                {
-                                    processName = shinfo.szDisplayName;
-                                }
-                            }
-                        }
-
-
-                        processName = RemoveExeExtension(processName);
-                        
-                        if (ViewModel.Instance.WindowActivityTitleScan)
-                        {
-                            windowTitle = GetWindowTitle(hwnd);
-                        }
-
-
-                        ProcessInfo existingProcessInfo = ViewModel.Instance.ScannedApps
-                            .FirstOrDefault(info => info.ProcessName == processName);
-
-                        if (existingProcessInfo == null)
-                        {
-                            ProcessInfo processInfo = new ProcessInfo
-                            {
-                                LastTitle = windowTitle,
-                                ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
-                                ProcessName = processName,
-                                UsedNewMethod = usedNewMethod,
-                                ApplyCustomAppName = false,
-                                CustomAppName = string.Empty,
-                                IsPrivateApp = false,
-                                FocusCount = 1
-                            };
-
-                            ViewModel.Instance.ScannedApps.Add(processInfo);
-                            ViewModel.Instance.LastProcessFocused = processInfo;
-                            return processName;
-                        }
-                        else
-                        {
-                            if (ViewModel.Instance.LastProcessFocused.ProcessName != processName)
-                            {
-                                existingProcessInfo.FocusCount++;
-                                ViewModel.Instance.LastProcessFocused = existingProcessInfo;
-                            }
-
-                            bool TitleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
-
-                            if (existingProcessInfo.IsPrivateApp)
-                            {
-                                return "Private App";
-                            }
-                            else if (existingProcessInfo.ApplyCustomAppName)
-                            {
-                                return existingProcessInfo.CustomAppName + (TitleCheck ? " - " + windowTitle : string.Empty);
-                            }
-                            else
-                            {
-                                return processName + (TitleCheck ? " - " + windowTitle : string.Empty);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                }
-            }
-
-            Logging.WriteException(
-                new Exception("Couldn't get application title after 3 tries"),
-                makeVMDump: false,
-                MSGBox: false);
-            return $"Unknown";
-        }
-
-        private static bool CheckTitleCondition(ProcessInfo existingProcessInfo, string windowTitle)
-        {
-            bool showTitle1stCheck = ViewModel.Instance.WindowActivityTitleScan
-                                        && existingProcessInfo.ShowTitle
-                                        && !string.IsNullOrEmpty(windowTitle);
-            if (ViewModel.Instance.TitleOnAppVR && ViewModel.Instance.IsVRRunning)
-            {
-                showTitle1stCheck = false;
-            }
-            return showTitle1stCheck;
-        }
-
-        public static bool IsVRRunning()
-        {
-            try
-            {
-                Process[] pname = Process.GetProcessesByName("vrmonitor");
-                if (pname.Length == 0)
-                    return false;
-                else
-                    return true;
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return false;
-            }
-        }
-
-        public static int ResetWindowActivity()
-        {
-            int removed = 0;
-            var result = MessageBox.Show(
-                "Are you sure you want to delete all the history and settings of the Window Activity integration?",
-                "Confirmation",
-                MessageBoxButton.OKCancel,
-                MessageBoxImage.Exclamation);
-
-            if (result == MessageBoxResult.OK)
-            {
-                ViewModel.Instance.ScannedApps.Clear();
-                removed++;
-            }
-            return removed;
-        }
 
         public static int SmartCleanup()
         {
@@ -309,27 +161,277 @@ namespace vrcosc_magicchatbox.Classes
         }
 
 
-        public static void SortScannedAppsByFocusCount()
+        public static int ResetWindowActivity()
         {
-            ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>(
-                ViewModel.Instance.ScannedApps.OrderByDescending(p => p.FocusCount));
+            int removed = 0;
+            var result = MessageBox.Show(
+                "Are you sure you want to delete all the history and settings of the Window Activity integration?",
+                "Confirmation",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Exclamation);
+
+            if (result == MessageBoxResult.OK)
+            {
+                ViewModel.Instance.ScannedApps.Clear();
+                removed++;
+            }
+            return removed;
         }
 
-        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-        private struct SHFILEINFO
+
+
+        public static string GetForegroundProcessName()
         {
-            public IntPtr hIcon;
-            public IntPtr iIcon;
-            public uint dwAttributes;
-            [System.Runtime.InteropServices.MarshalAs(
-                System.Runtime.InteropServices.UnmanagedType.ByValTStr,
-                SizeConst = 260)]
-            public string szDisplayName;
-            [System.Runtime.InteropServices.MarshalAs(
-                System.Runtime.InteropServices.UnmanagedType.ByValTStr,
-                SizeConst = 80)]
-            public string szTypeName;
+            try
+            {
+                const int maxRetries = 3;
+                IntPtr hwnd = IntPtr.Zero;
+                Process process = null;
+                bool errorInhwnd = false;
+                bool errorInProcess = false;
+
+                for (int attempt = 0; attempt < maxRetries; attempt++)
+                {
+                    hwnd = GetForegroundWindow();
+
+                    if (hwnd == IntPtr.Zero)
+                    {
+                        errorInhwnd = true;
+                        continue;
+                    }
+
+                    GetWindowThreadProcessId(hwnd, out uint pid);
+                    process = Process.GetProcesses().FirstOrDefault(p => p.Id == pid);
+
+                    if (process == null)
+                    {
+                        errorInProcess = true;
+                        continue;
+                    }
+
+                    string processName = GetProcessName(hwnd, process, attempt);
+                    string windowTitle = string.Empty;
+
+                    ProcessInfo existingProcessInfo = ViewModel.Instance.ScannedApps.FirstOrDefault(info => info.ProcessName == processName);
+
+                    if (existingProcessInfo == null)
+                    {
+                        windowTitle = GetWindowTitle(hwnd);
+                    }
+                    else
+                    {
+                        if (existingProcessInfo.ShowTitle)
+                        {
+                            windowTitle = GetWindowTitle(hwnd);
+                        }
+                    }
+                    ViewModel.Instance.ErrorInWindowActivity = false;
+                    return ConstructReturnString(existingProcessInfo, processName, windowTitle);
+
+                }
+
+                ViewModel.Instance.ErrorInWindowActivity = true;
+
+                StringBuilder errorMsgBuilder = new StringBuilder($"Couldn't retrieve app title after 3 attempts || HandleID: {hwnd}");
+
+                if (process != null)
+                {
+                    errorMsgBuilder.Append($" {process}");
+                }
+
+                if (errorInhwnd)
+                {
+                    errorMsgBuilder.Append(", Error in fetching the focused app");
+                }
+
+                if (errorInProcess)
+                {
+                    errorMsgBuilder.Append(", Error in collecting process data");
+                }
+
+                string errormsg = errorMsgBuilder.ToString();
+
+
+                Logging.WriteException(new Exception(errormsg), makeVMDump: false, MSGBox: false);
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+                return "Unknown";
+
+            }
+            catch (Exception ex)
+            {
+                ViewModel.Instance.ErrorInWindowActivity = true;
+                string errormsg = $"Error in GetForegroundProcessName: {ex.Message}";
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+
+                if (ViewModel.Instance.ErrorInWindowActivity)
+                {
+                    errormsg += ", error in window activity.";
+                }
+
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+                return "Unknown";
+            }
         }
-;
+
+        private static string GetProcessName(IntPtr hwnd, Process process, int attempts)
+        {
+
+
+            string processName = "Unknown";
+            try
+            {
+                if (process.ProcessName == "ApplicationFrameHost" && ViewModel.Instance.ApplicationHookV2)
+                {
+                    processName = GetNameFromAutomationElement(hwnd);
+                    _usedNewMethod = true;
+                }
+                else
+                {
+                    processName = TryGetFileDescriptionOrProcessName(process);
+                    processName = GetNameFromSHGetFileInfo(process, processName);
+                }
+
+                processName = RemoveExeExtension(processName);
+                return processName;
+            }
+            catch (Exception ex)
+            {
+                ViewModel.Instance.ErrorInWindowActivity = true;
+                string errormsg = $"Error in GetProcessName ({processName}): {ex.Message}";
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+                return processName;
+            }
+            
+        }
+
+        private static string GetNameFromAutomationElement(IntPtr hwnd)
+        {
+
+            try
+            {
+                AutomationElement element = AutomationElement.FromHandle(hwnd);
+                if (element != null)
+                {
+                    return element.Current.Name;
+                }
+                return "Unknown";
+            }
+            catch (Exception ex)
+            {
+                ViewModel.Instance.ErrorInWindowActivity = true;
+                string errormsg = $"Error in GetNameFromAutomationElement (HandleID:{{hwnd}}): {ex.Message}";
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+                return "Unknown";
+            }
+
+
+
+        }
+
+        private static string TryGetFileDescriptionOrProcessName(Process process)
+        {
+            if (ViewModel.Instance.ApplicationHookV2)
+            {
+                try
+                {
+                    _usedNewMethod = true;
+                    return GetFileDescription(process.MainModule.FileName);
+                }
+                catch (System.ComponentModel.Win32Exception ex)
+                {
+                    _usedNewMethod = false;
+                    return process.ProcessName;
+                }
+            }
+            _usedNewMethod = false;
+            return process.ProcessName;
+        }
+
+        private static string GetNameFromSHGetFileInfo(Process process, string processName)
+        {
+            if (string.IsNullOrEmpty(processName) || processName == "Unknown")
+            {
+                SHFILEINFO shinfo = new SHFILEINFO();
+                IntPtr result = SHGetFileInfo(
+                    process.MainModule.FileName,
+                    FILE_ATTRIBUTE_NORMAL,
+                    ref shinfo,
+                    (uint)System.Runtime.InteropServices.Marshal.SizeOf(shinfo),
+                    SHGFI_DISPLAYNAME);
+
+                if (result != IntPtr.Zero)
+                {
+                    return shinfo.szDisplayName;
+                }
+            }
+            return processName;
+        }
+
+        private static string ConstructReturnString(ProcessInfo existingProcessInfo, string processName, string windowTitle)
+        {
+            try
+            {
+                if (existingProcessInfo == null)
+                {
+                    AddNewProcessToViewModel(processName, windowTitle);
+                    return processName;
+                }
+                else
+                {
+                    if (ViewModel.Instance.LastProcessFocused.ProcessName != processName)
+                    {
+                        existingProcessInfo.FocusCount++;
+                        ViewModel.Instance.LastProcessFocused = existingProcessInfo;
+                    }
+
+                    bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
+
+                    if (existingProcessInfo.IsPrivateApp)
+                    {
+                        return "Private App";
+                    }
+                    else if (existingProcessInfo.ApplyCustomAppName)
+                    {
+                        return existingProcessInfo.CustomAppName + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " - " + windowTitle : string.Empty);
+                    }
+                    else
+                    {
+                        return processName + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " - " + windowTitle : string.Empty);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewModel.Instance.ErrorInWindowActivity = true;
+                string errormsg = $"Error in ConstructReturnString: {ex.Message}";
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+                return processName;
+            }
+            
+        }
+
+        private static void AddNewProcessToViewModel(string processName, string windowTitle)
+        {
+            ProcessInfo processInfo = new ProcessInfo
+            {
+                LastTitle = windowTitle,
+                ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
+                ProcessName = processName,
+                UsedNewMethod = _usedNewMethod,
+                ApplyCustomAppName = false,
+                CustomAppName = string.Empty,
+                IsPrivateApp = false,
+                FocusCount = 1
+            };
+
+            ViewModel.Instance.ScannedApps.Add(processInfo);
+            ViewModel.Instance.LastProcessFocused = processInfo;
+        }
+
+
+
     }
 }

@@ -98,7 +98,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             bool MSGBox = true,
             bool exitapp = false)
         {
-            LogController.Error(ex);
+            LogController.Error(ex.ToString());
             if(makeVMDump)
                 ViewModelDump();
 

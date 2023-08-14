@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -175,6 +176,23 @@ namespace vrcosc_magicchatbox.Classes
                return false;
             }
             return true;
+        }
+
+        public static bool IsVRRunning()
+        {
+            try
+            {
+                Process[] pname = Process.GetProcessesByName("vrmonitor");
+                if (pname.Length == 0)
+                    return false;
+                else
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return false;
+            }
         }
 
 
