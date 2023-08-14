@@ -122,7 +122,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         }
 
 
-        public static async void PrepareUpdate()
+        public async void PrepareUpdate()
         {
             try
             {
@@ -215,7 +215,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     Arguments = "-update"
                 };
                 Process.Start(startInfo);
+                MainWindow.FireExitSave();
                 UpdateStatus("Exit");
+
                 // Close the current running MagicChatbox.exe
                 Environment.Exit(0);
             }

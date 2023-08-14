@@ -692,16 +692,28 @@ namespace vrcosc_magicchatbox
         }
 
 
-        private void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)
+        public void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
             {
-                this.Hide();
+                Hide();
+                FireExitSave();
+                System.Environment.Exit(1);
+            } catch(Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
+            }
+        }
+
+        public static void FireExitSave()
+        {
+            try
+            {
                 DataController.ManageSettingsXML(true);
                 DataController.SaveAppList();
                 DataController.SaveMediaSessions();
-                System.Environment.Exit(1);
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
             }
@@ -1082,6 +1094,7 @@ namespace vrcosc_magicchatbox
                 ViewModel.Instance.ChatFeedbackTxt = "Error sending a chat with TTS";
             }
         }
+
 
         public static double ShadowOpacity
         {
