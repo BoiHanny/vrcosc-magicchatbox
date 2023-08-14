@@ -392,7 +392,7 @@ namespace vrcosc_magicchatbox.Classes
                     {
                         return "Private App";
                     }
-                    else if (existingProcessInfo.ApplyCustomAppName)
+                    else if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
                     {
                         return existingProcessInfo.CustomAppName + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " - " + windowTitle : string.Empty);
                     }

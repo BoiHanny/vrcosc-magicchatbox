@@ -122,7 +122,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         }
 
 
-        public async void PrepareUpdate()
+        public static async void PrepareUpdate()
         {
             try
             {
