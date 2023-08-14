@@ -254,7 +254,7 @@ namespace vrcosc_magicchatbox.Classes
 
                 Logging.WriteException(new Exception(errormsg), makeVMDump: false, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
-                return "Unknown";
+                return "'An app'";
 
             }
             catch (Exception ex)
@@ -269,7 +269,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
 
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
-                return "Unknown";
+                return "'Unknown'";
             }
         }
 
@@ -390,15 +390,15 @@ namespace vrcosc_magicchatbox.Classes
 
                     if (existingProcessInfo.IsPrivateApp)
                     {
-                        return "Private App";
+                        return ViewModel.Instance.WindowActivityPrivateName;
                     }
                     else if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
                     {
-                        return existingProcessInfo.CustomAppName + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " - " + windowTitle : string.Empty);
+                        return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " (" + windowTitle + ")" : string.Empty );
                     }
                     else
                     {
-                        return processName + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " - " + windowTitle : string.Empty);
+                        return "'" + processName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " ( " + windowTitle + ")" : string.Empty );
                     }
                 }
             }

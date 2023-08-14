@@ -198,16 +198,16 @@ namespace vrcosc_magicchatbox.Classes
                     x.Append("In VR");
                     if (ViewModel.Instance.IntgrScanForce)
                     {
-                        x.Append(" ᶠᵒᶜᵘˢˢⁱⁿᵍ ⁱⁿ '");
+                        x.Append(" ᶠᵒᶜᵘˢˢⁱⁿᵍ ⁱⁿ ");
                         x.Append(ViewModel.Instance.FocusedWindow);
-                        x.Append("'");
+                        x.Append("");
                     }
                 }
                 else
                 {
-                    x.Append("On desktop ⁱⁿ '");
+                    x.Append("On desktop ⁱⁿ ");
                     x.Append(ViewModel.Instance.FocusedWindow);
-                    x.Append("'");
+                    x.Append("");
                 }
 
                 TryAddToUncomplete(Uncomplete, x.ToString(), "Window");

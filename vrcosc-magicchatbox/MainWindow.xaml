@@ -2427,6 +2427,29 @@
                                             Foreground="#FF240E54"
                                             Text="{Binding MaxShowTitleCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
+                                    <TextBlock
+                                    Width="auto"
+                                    Padding="0,10,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="15"
+                                    Foreground="#FF9983AD"
+                                    Text="Private app will show as:" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox
+                                        x:Name="PrivateAppCustom"
+                                        Width="223"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding WindowActivityPrivateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
                                 </StackPanel>
 
                             </StackPanel>

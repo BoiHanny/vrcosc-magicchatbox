@@ -222,6 +222,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         {"MaxShowTitleCount", (typeof(int), "WindowActivity")},
                         {"LimitTitleOnApp", (typeof(bool), "WindowActivity")},
                         {"TitleOnAppVR", (typeof(bool), "WindowActivity")},
+                        {"WindowActivityPrivateName", (typeof(string), "WindowActivity")},
 
                         {"MediaSession_Timeout", (typeof(int), "MediaLink")},
                         {"MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink")},
