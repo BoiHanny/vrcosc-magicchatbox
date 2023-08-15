@@ -212,7 +212,8 @@ namespace vrcosc_magicchatbox.Classes
                     string processName = GetProcessName(hwnd, process, attempt);
                     string windowTitle = string.Empty;
 
-                    ProcessInfo existingProcessInfo = ViewModel.Instance.ScannedApps.FirstOrDefault(info => info.ProcessName == processName);
+                    ProcessInfo existingProcessInfo = null;
+                    existingProcessInfo = ViewModel.Instance.ScannedApps?.FirstOrDefault(info => info.ProcessName == processName);
 
                     if (existingProcessInfo == null)
                     {
@@ -269,7 +270,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
 
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
-                return "'Unknown'";
+                return "'An app'";
             }
         }
 

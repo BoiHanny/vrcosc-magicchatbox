@@ -877,7 +877,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private string _WindowActivityPrivateName = "Private App";
+        private string _WindowActivityPrivateName = "🔒 App";
         public string WindowActivityPrivateName
         {
             get { return _WindowActivityPrivateName; }
