@@ -120,6 +120,7 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
+            // OSCReader.InitializeOscQueryController();
             // OSCReader.StartListening();
         }
 
@@ -697,6 +698,11 @@ namespace vrcosc_magicchatbox
             try
             {
                 Hide();
+                if(OSCReader.OscQueryController != null)
+                {
+                    OSCReader.OscQueryController.Shutdown();
+                }
+                
                 FireExitSave();
                 System.Environment.Exit(1);
             } catch(Exception ex)
