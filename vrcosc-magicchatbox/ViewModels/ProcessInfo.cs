@@ -13,7 +13,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
 
-        private string? _lastTitle;
+        private string? _lastTitle = "";
         public string? LastTitle
         {
             get { return _lastTitle; }

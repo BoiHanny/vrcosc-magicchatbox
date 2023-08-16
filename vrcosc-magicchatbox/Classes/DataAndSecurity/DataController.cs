@@ -22,179 +22,100 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     {
         private static bool isUpdateCheckRunning = false;
 
-        public static async Task CheckForUpdateAndWait(bool checkagain = false)
-        {
-            Instance.VersionTxt = "Checking for updates...";
-            Instance.VersionTxtColor = "#FBB644";
-            Instance.VersionTxtUnderLine = false;
-            if(checkagain == true)
-            {
-                Task.Delay(1000).Wait();
-            }
-            // Wait until previous check for updates is not running anymore
-            while(isUpdateCheckRunning)
-            {
-                await Task.Delay(500); // Wait for 500 ms before checking again
-            }
-
-            // Lock the check for updates
-            isUpdateCheckRunning = true;
-
-            // Write your code to check for updates here
-            CheckForUpdate();
-
-            // Unlock the check for updates
-            isUpdateCheckRunning = false;
-        }
-
-        // Check for updates
-
-        public static List<Voice> ReadTkTkTTSVoices()
+        private static void CheckForUpdate()
         {
             try
             {
-                string json = System.IO.File.ReadAllText(@"Json\voices.json");
-                List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
+                string token = EncryptionMethods.DecryptString(Instance.ApiStream);
+                string urlLatest = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
+                string urlPreRelease = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases";
+                if (urlLatest != null)
+                {
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
+                        client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
 
-                if(string.IsNullOrEmpty(Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
-                {
-                    Instance.RecentTikTokTTSVoice = "en_us_001";
-                }
-                if(!string.IsNullOrEmpty(Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
-                {
-                    Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == Instance.RecentTikTokTTSVoice);
-                    if(selectedVoice == null)
-                    {
-                    } else
-                    {
-                        Instance.SelectedTikTokTTSVoice = selectedVoice;
+                        // Check the latest release
+                        var responseLatest = client.GetAsync(urlLatest).Result;
+                        var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
+                        dynamic releaseLatest = JsonConvert.DeserializeObject(jsonLatest);
+                        string latestVersion = releaseLatest.tag_name;
+
+                        Instance.LatestReleaseVersion = new Version(
+                            Regex.Replace(latestVersion, "[^0-9.]", string.Empty));
+                        Instance.LatestReleaseURL = releaseLatest.assets[0].browser_download_url; // Store the download URL
+
+                        // Check the latest pre-release
+                        var responsePreRelease = client.GetAsync(urlPreRelease).Result;
+                        var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
+                        JArray releases = JArray.Parse(jsonPreRelease);
+                        string preReleaseVersion = string.Empty;
+                        foreach (var release in releases)
+                        {
+                            if ((bool)release["prerelease"])
+                            {
+                                preReleaseVersion = release["tag_name"].ToString();
+                                break;
+                            }
+                        }
+
+                        // Check if there's a new pre-release and user is joined to alpha channel
+                        if (Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
+                        {
+                            Instance.PreReleaseVersion = new Version(
+                                Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
+                            Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
+                        }
                     }
                 }
-
-                return ConfirmList;
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return null;
             }
-        }
-
-        public static bool PopulateOutputDevices(bool beforeTTS = false)
-        {
-            try
-            {
-                var devicesRen_enumerator = new MMDeviceEnumerator();
-                var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-
-                var deviceNumber = 0;
-
-                if(beforeTTS == true)
-                {
-                    Instance.PlaybackOutputDevices.Clear();
-                }
-
-                foreach(var device in devicesRen)
-                {
-                    Instance.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
-                }
-
-                var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(
-                    DataFlow.Render,
-                    Role.Multimedia);
-                if(Instance.RecentPlayBackOutput == null)
-                {
-                    Instance.SelectedPlaybackOutputDevice = new AudioDevice(
-                        defaultPlaybackOutputDevice.FriendlyName,
-                        defaultPlaybackOutputDevice.ID,
-                        -1);
-                    Instance.RecentPlayBackOutput = Instance.SelectedPlaybackOutputDevice.FriendlyName;
-                } else
-                {
-                    AudioDevice ADevice = Instance.PlaybackOutputDevices
-                        .FirstOrDefault(v => v.FriendlyName == Instance.RecentPlayBackOutput);
-                    if(ADevice == null)
-                    {
-                        Instance.SelectedPlaybackOutputDevice = new AudioDevice(
-                            defaultPlaybackOutputDevice.FriendlyName,
-                            defaultPlaybackOutputDevice.ID,
-                            -1);
-                        Instance.RecentPlayBackOutput = Instance.SelectedPlaybackOutputDevice.FriendlyName;
-                    } else
-                    {
-                        Instance.SelectedPlaybackOutputDevice = ADevice;
-                    }
-                }
-            } catch(Exception ex)
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
-                return false;
+                Instance.VersionTxt = "Can't check updates";
+                Instance.VersionTxtColor = "#F36734";
+                Instance.VersionTxtUnderLine = false;
             }
-            return true;
-        }
-
-
-        public static bool CreateIfMissing(string path)
-        {
-            try
+            finally
             {
-                if(!Directory.Exists(path))
-                {
-                    DirectoryInfo di = Directory.CreateDirectory(path);
-                    return true;
-                }
-                return true;
-            } catch(IOException ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return false;
+                CompareVersions();
             }
         }
 
-
-        public static void ManageSettingsXML(bool saveSettings = false)
+        private static object ConvertToType(Type targetType, string value)
         {
-            if(!CreateIfMissing(Instance.DataPath))
-                return;
-
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlNode rootNode;
-
-            if(saveSettings)
+            switch (targetType)
             {
-                rootNode = xmlDoc.CreateElement("Settings");
-                xmlDoc.AppendChild(rootNode);
-            } else
-            {
-                xmlDoc.Load(Path.Combine(Instance.DataPath, "settings.xml"));
-                rootNode = xmlDoc.SelectSingleNode("Settings");
+                case Type t when t == typeof(bool):
+                    return bool.Parse(value);
+                case Type t when t == typeof(int):
+                    return int.Parse(value);
+                case Type t when t == typeof(string):
+                    return value;
+                case Type t when t == typeof(float):
+                    return float.Parse(value);
+                case Type t when t == typeof(double):
+                    return double.Parse(value);
+                case Type t when t == typeof(Timezone):
+                    return Enum.Parse(typeof(Timezone), value);
+                case Type t when t == typeof(DateTime):
+                    return DateTime.Parse(value);
+                default:
+                    throw new NotSupportedException($"Unsupported type: {targetType}");
             }
+        }
 
-            var settings = InitializeSettingsDictionary();
 
-            foreach(var setting in settings)
+        private static XmlNode GetOrCreateNode(XmlDocument xmlDoc, XmlNode rootNode, string nodeName)
+        {
+            XmlNode node = rootNode.SelectSingleNode(nodeName);
+            if (node == null)
             {
-                try
-                {
-                    PropertyInfo property = Instance.GetType().GetProperty(setting.Key);
-                    XmlNode categoryNode = GetOrCreateNode(xmlDoc, rootNode, setting.Value.category);
-
-                    if(saveSettings)
-                    {
-                        SaveSettingToXML(xmlDoc, categoryNode, setting, property);
-                    } else
-                    {
-                        LoadSettingFromXML(categoryNode, setting, property);
-                    }
-                } catch(Exception ex)
-                {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                }
+                node = xmlDoc.CreateElement(nodeName);
+                rootNode.AppendChild(node);
             }
-
-            if(saveSettings)
-            {
-                xmlDoc.Save(Path.Combine(Instance.DataPath, "settings.xml"));
-            }
+            return node;
         }
 
         private static Dictionary<string, (Type type, string category)> InitializeSettingsDictionary()
@@ -319,16 +240,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             };
         }
 
-
-        private static XmlNode GetOrCreateNode(XmlDocument xmlDoc, XmlNode rootNode, string nodeName)
+        private static void LoadSettingFromXML(
+            XmlNode categoryNode,
+            KeyValuePair<string, (Type type, string category)> setting,
+            PropertyInfo property)
         {
-            XmlNode node = rootNode.SelectSingleNode(nodeName);
-            if(node == null)
+            XmlNode settingNode = categoryNode.SelectSingleNode(setting.Key);
+            if (settingNode != null && !string.IsNullOrEmpty(settingNode.InnerText))
             {
-                node = xmlDoc.CreateElement(nodeName);
-                rootNode.AppendChild(node);
+                object value = ConvertToType(setting.Value.type, settingNode.InnerText);
+                property.SetValue(Instance, value);
             }
-            return node;
         }
 
         private static void SaveSettingToXML(
@@ -338,7 +260,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             PropertyInfo property)
         {
             object value = property.GetValue(Instance);
-            if(value != null && !string.IsNullOrEmpty(value.ToString()))
+            if (value != null && !string.IsNullOrEmpty(value.ToString()))
             {
                 XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
                 settingNode.InnerText = value.ToString();
@@ -346,231 +268,29 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
         }
 
-        private static void LoadSettingFromXML(
-            XmlNode categoryNode,
-            KeyValuePair<string, (Type type, string category)> setting,
-            PropertyInfo property)
+        public static async Task CheckForUpdateAndWait(bool checkagain = false)
         {
-            XmlNode settingNode = categoryNode.SelectSingleNode(setting.Key);
-            if(settingNode != null && !string.IsNullOrEmpty(settingNode.InnerText))
+            Instance.VersionTxt = "Checking for updates...";
+            Instance.VersionTxtColor = "#FBB644";
+            Instance.VersionTxtUnderLine = false;
+            if (checkagain == true)
             {
-                object value = ConvertToType(setting.Value.type, settingNode.InnerText);
-                property.SetValue(Instance, value);
+                Task.Delay(1000).Wait();
             }
-        }
-
-        private static object ConvertToType(Type targetType, string value)
-        {
-            switch(targetType)
+            // Wait until previous check for updates is not running anymore
+            while (isUpdateCheckRunning)
             {
-                case Type t when t == typeof(bool):
-                    return bool.Parse(value);
-                case Type t when t == typeof(int):
-                    return int.Parse(value);
-                case Type t when t == typeof(string):
-                    return value;
-                case Type t when t == typeof(float):
-                    return float.Parse(value);
-                case Type t when t == typeof(double):
-                    return double.Parse(value);
-                case Type t when t == typeof(Timezone):
-                    return Enum.Parse(typeof(Timezone), value);
-                case Type t when t == typeof(DateTime):
-                    return DateTime.Parse(value);
-                default:
-                    throw new NotSupportedException($"Unsupported type: {targetType}");
+                await Task.Delay(500); // Wait for 500 ms before checking again
             }
-        }
 
+            // Lock the check for updates
+            isUpdateCheckRunning = true;
 
-        public static void LoadMediaSessions()
-        {
-            try
-            {
-                if(System.IO.File.Exists(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml")))
-                {
-                    string json = System.IO.File
-                        .ReadAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"));
-                    Instance.SavedSessionSettings = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
-                } else
-                {
-                }
-            } catch(Exception)
-            {
-                Logging.WriteInfo("LastMediaSessions history has never been created, not problem :P");
-            }
-        }
+            // Write your code to check for updates here
+            CheckForUpdate();
 
-        public static void SaveMediaSessions()
-        {
-            try
-            {
-                if(CreateIfMissing(Instance.DataPath) == true)
-                {
-                    string json = JsonConvert.SerializeObject(Instance.SavedSessionSettings);
-                    System.IO.File.WriteAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"), json);
-                }
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
-
-        public static void LoadChatList()
-        {
-            try
-            {
-                if(System.IO.File.Exists(Path.Combine(Instance.DataPath, "LastMessages.xml")))
-                {
-                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"));
-                    Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
-                    foreach(var item in Instance.LastMessages)
-                    {
-                        item.CanLiveEdit = false;
-                    }
-                } else
-                {
-                }
-            } catch(Exception)
-            {
-                Logging.WriteInfo("LastMessages history has never been created, not problem :P");
-            }
-        }
-
-        public static void SaveChatList()
-        {
-            try
-            {
-                if(CreateIfMissing(Instance.DataPath) == true)
-                {
-                    string json = JsonConvert.SerializeObject(Instance.LastMessages);
-                    System.IO.File.WriteAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"), json);
-                }
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
-        public static void LoadAppList()
-        {
-            try
-            {
-                if(System.IO.File.Exists(Path.Combine(Instance.DataPath, "AppHistory.xml")))
-                {
-                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"));
-                    Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
-                } else
-                {
-                }
-            } catch(Exception)
-            {
-                Logging.WriteInfo("AppHistory history has never been created, not problem :P");
-            }
-        }
-
-        public static void SaveAppList()
-        {
-            try
-            {
-                if(CreateIfMissing(Instance.DataPath) == true)
-                {
-                    string json = JsonConvert.SerializeObject(Instance.ScannedApps);
-                    System.IO.File.WriteAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"), json);
-                }
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
-
-        public static void LoadStatusList()
-        {
-            try
-            {
-                if(System.IO.File.Exists(Path.Combine(Instance.DataPath, "StatusList.xml")))
-                {
-                    string json = System.IO.File.ReadAllText(Path.Combine(Instance.DataPath, "StatusList.xml"));
-                    Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
-                } else
-                {
-                    Random random = new Random();
-                    int randomId = random.Next(10, 99999999);
-                    Instance.StatusList
-                        .Add(
-                            new StatusItem
-                            {
-                                CreationDate = DateTime.Now,
-                                IsActive = true,
-                                IsFavorite = true,
-                                msg = "Enjoy 💖",
-                                MSGID = randomId
-                            });
-                    SaveStatusList();
-                }
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
-        private static void CheckForUpdate()
-        {
-            try
-            {
-                string token = EncryptionMethods.DecryptString(Instance.ApiStream);
-                string urlLatest = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
-                string urlPreRelease = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases";
-                if(urlLatest != null)
-                {
-                    using(var client = new HttpClient())
-                    {
-                        client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
-                        client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
-
-                        // Check the latest release
-                        var responseLatest = client.GetAsync(urlLatest).Result;
-                        var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
-                        dynamic releaseLatest = JsonConvert.DeserializeObject(jsonLatest);
-                        string latestVersion = releaseLatest.tag_name;
-
-                        Instance.LatestReleaseVersion = new Version(Regex.Replace(latestVersion, "[^0-9.]", ""));
-                        Instance.LatestReleaseURL = releaseLatest.assets[0].browser_download_url; // Store the download URL
-
-                        // Check the latest pre-release
-                        var responsePreRelease = client.GetAsync(urlPreRelease).Result;
-                        var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
-                        JArray releases = JArray.Parse(jsonPreRelease);
-                        string preReleaseVersion = "";
-                        foreach(var release in releases)
-                        {
-                            if((bool)release["prerelease"])
-                            {
-                                preReleaseVersion = release["tag_name"].ToString();
-                                break;
-                            }
-                        }
-
-                        // Check if there's a new pre-release and user is joined to alpha channel
-                        if(Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
-                        {
-                            Instance.PreReleaseVersion = new Version(Regex.Replace(preReleaseVersion, "[^0-9.]", ""));
-                            Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
-                        }
-                    }
-                }
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
-                Instance.VersionTxt = "Can't check updates";
-                Instance.VersionTxtColor = "#F36734";
-                Instance.VersionTxtUnderLine = false;
-            } finally
-            {
-                CompareVersions();
-            }
+            // Unlock the check for updates
+            isUpdateCheckRunning = false;
         }
 
 
@@ -583,7 +303,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 int compareWithLatestRelease = currentVersion.CompareTo(latestReleaseVersion);
 
-                if(compareWithLatestRelease < 0)
+                if (compareWithLatestRelease < 0)
                 {
                     // If the latest release version is greater than the current version
                     Instance.VersionTxt = "Update now";
@@ -595,12 +315,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     return;
                 }
 
-                if(Instance.JoinedAlphaChannel && Instance.PreReleaseVersion != null)
+                if (Instance.JoinedAlphaChannel && Instance.PreReleaseVersion != null)
                 {
                     var preReleaseVersion = Instance.PreReleaseVersion.VersionNumber;
                     int compareWithPreRelease = currentVersion.CompareTo(preReleaseVersion);
 
-                    if(compareWithPreRelease < 0)
+                    if (compareWithPreRelease < 0)
                     {
                         // If the pre-release version is greater than the current version and the user has joined the alpha channel
                         Instance.VersionTxt = "Install pre-release";
@@ -610,7 +330,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         Instance.CanUpdateLabel = false;
                         Instance.UpdateURL = Instance.PreReleaseURL;
                         return;
-                    } else if(compareWithPreRelease == 0)
+                    }
+                    else if (compareWithPreRelease == 0)
                     {
                         // If the pre-release version is equal to the current version and the user has joined the alpha channel
                         Instance.VersionTxt = "Up-to-date (pre-release)";
@@ -623,7 +344,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
 
                 // Check if a downgrade is needed
-                if(!Instance.JoinedAlphaChannel &&
+                if (!Instance.JoinedAlphaChannel &&
                     Instance.LatestReleaseVersion != null &&
                     currentVersion.CompareTo(Instance.LatestReleaseVersion.VersionNumber) > 0)
                 {
@@ -643,7 +364,343 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Instance.VersionTxtColor = "#FF92CC90";
                 Instance.CanUpdateLabel = false;
                 Instance.CanUpdate = false;
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+
+        public static bool CreateIfMissing(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(path);
+                    return true;
+                }
+                return true;
+            }
+            catch (IOException ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return false;
+            }
+        }
+
+        public static void LoadAppList()
+        {
+            try
+            {
+                if (File.Exists(Path.Combine(Instance.DataPath, "AppHistory.xml")))
+                {
+                    string json = File.ReadAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"));
+                    Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
+                }
+                else
+                {
+                    Logging.WriteInfo("AppHistory history has never been created, not problem :P");
+                    if(Instance.ScannedApps == null)
+                    {
+                        Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                if (Instance.ScannedApps == null)
+                {
+                    Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
+                }
+            }
+        }
+
+
+        public static void LoadChatList()
+        {
+            try
+            {
+                if (File.Exists(Path.Combine(Instance.DataPath, "LastMessages.xml")))
+                {
+                    string json = File.ReadAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"));
+                    Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                    foreach (var item in Instance.LastMessages)
+                    {
+                        item.CanLiveEdit = false;
+                    }
+                }
+                else
+                {
+                    Logging.WriteInfo("LastMessages history has never been created, not problem :P");
+                    if(Instance.LastMessages == null)
+                    {
+                        Instance.LastMessages = new ObservableCollection<ChatItem>();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                if (Instance.ScannedApps == null)
+                {
+                    Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
+                }
+            }
+        }
+
+
+        public static void LoadMediaSessions()
+        {
+            try
+            {
+                if (File.Exists(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml")))
+                {
+                    string json = File
+                        .ReadAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"));
+                    Instance.SavedSessionSettings = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
+                }
+                else
+                {
+                    Logging.WriteInfo("LastMediaSessions history has never been created, not problem :P");
+                    if(Instance.SavedSessionSettings == null)
+                    {
+                        Instance.SavedSessionSettings = new List<MediaSessionSettings>();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                if (Instance.ScannedApps == null)
+                {
+                    Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
+                }
+            }
+        }
+
+
+        public static void LoadStatusList()
+        {
+            try
+            {
+                if (File.Exists(Path.Combine(Instance.DataPath, "StatusList.xml")))
+                {
+                    string json = File.ReadAllText(Path.Combine(Instance.DataPath, "StatusList.xml"));
+                    Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
+                }
+                else
+                {
+                    Random random = new Random();
+                    int randomId = random.Next(10, 99999999);
+                    Instance.StatusList
+                        .Add(
+                            new StatusItem
+                            {
+                                CreationDate = DateTime.Now,
+                                IsActive = true,
+                                IsFavorite = true,
+                                msg = "Enjoy 💖",
+                                MSGID = randomId
+                            });
+                    SaveStatusList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                if (Instance.StatusList == null)
+                {
+                    Instance.StatusList = new ObservableCollection<StatusItem>();
+                }
+            }
+        }
+
+
+        public static void ManageSettingsXML(bool saveSettings = false)
+        {
+            if (!CreateIfMissing(Instance.DataPath))
+                return;
+
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlNode rootNode;
+
+            if (saveSettings)
+            {
+                rootNode = xmlDoc.CreateElement("Settings");
+                xmlDoc.AppendChild(rootNode);
+            }
+            else
+            {
+                xmlDoc.Load(Path.Combine(Instance.DataPath, "settings.xml"));
+                rootNode = xmlDoc.SelectSingleNode("Settings");
+            }
+
+            var settings = InitializeSettingsDictionary();
+
+            foreach (var setting in settings)
+            {
+                try
+                {
+                    PropertyInfo property = Instance.GetType().GetProperty(setting.Key);
+                    XmlNode categoryNode = GetOrCreateNode(xmlDoc, rootNode, setting.Value.category);
+
+                    if (saveSettings)
+                    {
+                        SaveSettingToXML(xmlDoc, categoryNode, setting, property);
+                    }
+                    else
+                    {
+                        LoadSettingFromXML(categoryNode, setting, property);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                }
+            }
+
+            if (saveSettings)
+            {
+                xmlDoc.Save(Path.Combine(Instance.DataPath, "settings.xml"));
+            }
+        }
+
+        public static bool PopulateOutputDevices(bool beforeTTS = false)
+        {
+            try
+            {
+                var devicesRen_enumerator = new MMDeviceEnumerator();
+                var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+                var deviceNumber = 0;
+
+                if (beforeTTS == true)
+                {
+                    Instance.PlaybackOutputDevices.Clear();
+                }
+
+                foreach (var device in devicesRen)
+                {
+                    Instance.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
+                }
+
+                var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(
+                    DataFlow.Render,
+                    Role.Multimedia);
+                if (Instance.RecentPlayBackOutput == null)
+                {
+                    Instance.SelectedPlaybackOutputDevice = new AudioDevice(
+                        defaultPlaybackOutputDevice.FriendlyName,
+                        defaultPlaybackOutputDevice.ID,
+                        -1);
+                    Instance.RecentPlayBackOutput = Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                }
+                else
+                {
+                    AudioDevice ADevice = Instance.PlaybackOutputDevices
+                        .FirstOrDefault(v => v.FriendlyName == Instance.RecentPlayBackOutput);
+                    if (ADevice == null)
+                    {
+                        Instance.SelectedPlaybackOutputDevice = new AudioDevice(
+                            defaultPlaybackOutputDevice.FriendlyName,
+                            defaultPlaybackOutputDevice.ID,
+                            -1);
+                        Instance.RecentPlayBackOutput = Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                    }
+                    else
+                    {
+                        Instance.SelectedPlaybackOutputDevice = ADevice;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                return false;
+            }
+            return true;
+        }
+
+        // Check for updates
+
+        public static List<Voice> ReadTkTkTTSVoices()
+        {
+            try
+            {
+                string json = File.ReadAllText(@"Json\voices.json");
+                List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
+
+                if (string.IsNullOrEmpty(Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                {
+                    Instance.RecentTikTokTTSVoice = "en_us_001";
+                }
+                if (!string.IsNullOrEmpty(Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
+                {
+                    Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == Instance.RecentTikTokTTSVoice);
+                    if (selectedVoice == null)
+                    {
+                    }
+                    else
+                    {
+                        Instance.SelectedTikTokTTSVoice = selectedVoice;
+                    }
+                }
+
+                return ConfirmList;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return null;
+            }
+        }
+
+        public static void SaveAppList()
+        {
+            try
+            {
+                if (CreateIfMissing(Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(Instance.ScannedApps);
+                    File.WriteAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"), json);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+        public static void SaveChatList()
+        {
+            try
+            {
+                if (CreateIfMissing(Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(Instance.LastMessages);
+                    File.WriteAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"), json);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+        public static void SaveMediaSessions()
+        {
+            try
+            {
+                if (CreateIfMissing(Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(Instance.SavedSessionSettings);
+                    File.WriteAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"), json);
+                }
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }

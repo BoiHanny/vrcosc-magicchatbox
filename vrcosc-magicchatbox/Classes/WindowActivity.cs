@@ -43,7 +43,7 @@ namespace vrcosc_magicchatbox.Classes
                     return FormatWindowTitle(sb.ToString());
                 }
 
-                return string.Empty;
+                return "";
             }
             catch (Exception ex)
             {
@@ -51,7 +51,7 @@ namespace vrcosc_magicchatbox.Classes
                 string errormsg = $"Error in GetWindowTitle: {ex.Message}";
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
-                return string.Empty;
+                return "";
             }
 
         }
@@ -210,7 +210,7 @@ namespace vrcosc_magicchatbox.Classes
                     }
 
                     string processName = GetProcessName(hwnd, process, attempt);
-                    string windowTitle = string.Empty;
+                    string windowTitle = "";
 
                     ProcessInfo existingProcessInfo = null;
                     existingProcessInfo = ViewModel.Instance.ScannedApps?.FirstOrDefault(info => info.ProcessName == processName);
@@ -377,7 +377,7 @@ namespace vrcosc_magicchatbox.Classes
                 if (existingProcessInfo == null)
                 {
                     AddNewProcessToViewModel(processName, windowTitle);
-                    return processName;
+                    return $"'{processName}'";
                 }
                 else
                 {
@@ -416,20 +416,31 @@ namespace vrcosc_magicchatbox.Classes
 
         private static void AddNewProcessToViewModel(string processName, string windowTitle)
         {
-            ProcessInfo processInfo = new ProcessInfo
+            try
             {
-                LastTitle = windowTitle,
-                ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
-                ProcessName = processName,
-                UsedNewMethod = _usedNewMethod,
-                ApplyCustomAppName = false,
-                CustomAppName = string.Empty,
-                IsPrivateApp = false,
-                FocusCount = 1
-            };
+                ProcessInfo processInfo = new ProcessInfo
+                {
+                    LastTitle = windowTitle,
+                    ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
+                    ProcessName = processName,
+                    UsedNewMethod = _usedNewMethod,
+                    ApplyCustomAppName = false,
+                    CustomAppName = "",
+                    IsPrivateApp = false,
+                    FocusCount = 1
+                };
 
-            ViewModel.Instance.ScannedApps.Add(processInfo);
-            ViewModel.Instance.LastProcessFocused = processInfo;
+                ViewModel.Instance.ScannedApps.Add(processInfo);
+                ViewModel.Instance.LastProcessFocused = processInfo;
+            }
+            catch (Exception ex)
+            {
+                ViewModel.Instance.ErrorInWindowActivity = true;
+                string errormsg = $"Error in AddNewProcessToViewModel: {ex.Message}";
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            }
+
         }
 
 

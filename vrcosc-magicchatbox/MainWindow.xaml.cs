@@ -698,10 +698,10 @@ namespace vrcosc_magicchatbox
             try
             {
                 Hide();
-                if(OSCReader.OscQueryController != null)
-                {
-                    OSCReader.OscQueryController.Shutdown();
-                }
+                //if(OSCReader.OscQueryController != null)
+                //{
+                //    OSCReader.OscQueryController.Shutdown();
+                //}
                 
                 FireExitSave();
                 System.Environment.Exit(1);
