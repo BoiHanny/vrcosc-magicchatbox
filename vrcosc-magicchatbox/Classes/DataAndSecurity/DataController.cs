@@ -397,6 +397,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (File.Exists(Path.Combine(Instance.DataPath, "AppHistory.xml")))
                 {
                     string json = File.ReadAllText(Path.Combine(Instance.DataPath, "AppHistory.xml"));
+                    if(json.ToLower().Equals("null"))
+                    {
+                        Logging.WriteInfo("AppHistory history is null, not problem :P");
+                        Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
+                        return;
+                    }
                     Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
                 }
                 else
@@ -426,6 +432,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (File.Exists(Path.Combine(Instance.DataPath, "LastMessages.xml")))
                 {
                     string json = File.ReadAllText(Path.Combine(Instance.DataPath, "LastMessages.xml"));
+                    if (json.ToLower().Equals("null"))
+                    {
+                        Logging.WriteInfo("LastMessages history is null, not problem :P");
+                        Instance.LastMessages = new ObservableCollection<ChatItem>();
+                        return;
+                    }
                     Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
                     foreach (var item in Instance.LastMessages)
                     {
@@ -460,6 +472,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     string json = File
                         .ReadAllText(Path.Combine(Instance.DataPath, "LastMediaLinkSessions.xml"));
+                    if (json.ToLower().Equals("null"))
+                    {
+                           Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
+                        Instance.SavedSessionSettings = new List<MediaSessionSettings>();
+                        return;
+                    }    
                     Instance.SavedSessionSettings = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
                 }
                 else
@@ -489,6 +507,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (File.Exists(Path.Combine(Instance.DataPath, "StatusList.xml")))
                 {
                     string json = File.ReadAllText(Path.Combine(Instance.DataPath, "StatusList.xml"));
+                    if (json.ToLower().Equals("null"))
+                    {
+                        Logging.WriteInfo("StatusList history is null, not problem :P");
+                        Instance.StatusList = new ObservableCollection<StatusItem>();
+                        return;
+                    }
                     Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
                 }
                 else
