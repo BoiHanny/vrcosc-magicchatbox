@@ -126,7 +126,7 @@
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="5.2.0" />
+    <PackageReference Include="NLog" Version="5.2.3" />
     <PackageReference Include="VRChat.OSCQuery" Version="0.0.6" />
   </ItemGroup>
 
