@@ -2311,15 +2311,15 @@
                             </Grid.RowDefinitions>
                             <StackPanel>
                                 <TextBlock
-                                        Width="auto"
-                                        Padding="0,10,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="PaleVioletRed"
-                                        Text="{Binding ErrorInWindowActivityMsg, UpdateSourceTrigger=PropertyChanged}"
-                                        TextWrapping="Wrap"
-                                        Visibility="{Binding ErrorInWindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    Width="auto"
+                                    Padding="0,10,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="15"
+                                    Foreground="PaleVioletRed"
+                                    Text="{Binding ErrorInWindowActivityMsg, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{Binding ErrorInWindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                 <CheckBox
                                     x:Name="enhancedapp_checkbox"
                                     Height="20"
@@ -2428,26 +2428,26 @@
                                             Text="{Binding MaxShowTitleCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                     <TextBlock
-                                    Width="auto"
-                                    Padding="0,10,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="#FF9983AD"
-                                    Text="Private app will show as:" />
+                                        Width="auto"
+                                        Padding="0,10,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Private app will show as:" />
                                     <StackPanel Orientation="Horizontal">
                                         <TextBox
-                                        x:Name="PrivateAppCustom"
-                                        Width="223"
-                                        Height="26"
-                                        Margin="0,3,0,0"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding WindowActivityPrivateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            x:Name="PrivateAppCustom"
+                                            Width="223"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WindowActivityPrivateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
 
                                 </StackPanel>
@@ -3590,10 +3590,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid
-                        Grid.Row="4"
-                        Opacity="{Binding HeartRate_Opacity}"
-                        Visibility="Visible">
+                    <Grid Grid.Row="4" Visibility="Collapsed">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"

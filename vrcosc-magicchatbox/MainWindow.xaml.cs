@@ -851,7 +851,7 @@ namespace vrcosc_magicchatbox
                 var item = button.Tag as ChatItem;
                 if((bool)button.IsChecked)
                 {
-                    item.MsgReplace = item.Msg + " ";
+                    item.MsgReplace = item.Msg.EndsWith(" ")? item.Msg : item.Msg + " ";
 
                     var parent = VisualTreeHelper.GetParent(button);
                     while(!(parent is ContentPresenter))
@@ -879,6 +879,19 @@ namespace vrcosc_magicchatbox
                                 lastsendchat.MainMsg = item.MsgReplace;
                                 lastsendchat.Msg = item.MsgReplace;
                                 lastsendchat.CanLiveEditRun = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (item != null && lastsendchat != null)
+                        {
+                            if (lastsendchat.Msg != item.MsgReplace)
+                            {
+                                lastsendchat.MainMsg = item.MsgReplace;
+                                lastsendchat.Msg = item.MsgReplace;
+                                lastsendchat.CanLiveEditRun = false;
+                                
                             }
                         }
                     }
