@@ -1,4 +1,5 @@
 ﻿using NLog;
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes;
@@ -63,8 +64,8 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Setting up your concert - choosing the best audio devices!", 80);
             await Task.Run(() => DataController.PopulateOutputDevices());
 
-            loadingWindow.UpdateProgress("Dialing GitHub... Looking for shiny new updates!", 90);
-            await Task.Run(() => DataController.CheckForUpdateAndWait());
+
+
 
             if (ViewModel.Instance.IntgrScanMediaLink)
                 loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 95);

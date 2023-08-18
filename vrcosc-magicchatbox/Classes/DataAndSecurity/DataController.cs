@@ -195,6 +195,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 { "Topmost", (typeof(bool), "Window") },
                 { "JoinedAlphaChannel", (typeof(bool), "Update") },
+                { "CheckUpdateOnStartup", (typeof(bool), "Update") },
 
                 { "TTSTikTokEnabled", (typeof(bool), "TTS") },
                 { "TTSCutOff", (typeof(bool), "TTS") },
@@ -275,21 +276,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             Instance.VersionTxtUnderLine = false;
             if (checkagain == true)
             {
-                Task.Delay(1000).Wait();
+                await Task.Delay(1000);
             }
-            // Wait until previous check for updates is not running anymore
             while (isUpdateCheckRunning)
             {
-                await Task.Delay(500); // Wait for 500 ms before checking again
+                await Task.Delay(500);
             }
 
-            // Lock the check for updates
             isUpdateCheckRunning = true;
 
-            // Write your code to check for updates here
-            CheckForUpdate();
+            await Task.Run(() => CheckForUpdate());
 
-            // Unlock the check for updates
             isUpdateCheckRunning = false;
         }
 

@@ -120,8 +120,33 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
+            Task.Run(CheckForUpdates);
             // OSCReader.InitializeOscQueryController();
             // OSCReader.StartListening();
+        }
+
+        private async Task CheckForUpdates()
+        {
+            if (ViewModel.Instance.CheckUpdateOnStartup)
+            {
+                var updateCheckTask = DataController.CheckForUpdateAndWait();
+                var delayTask = Task.Delay(TimeSpan.FromSeconds(10));
+
+                var completedTask = await Task.WhenAny(updateCheckTask, delayTask);
+
+                if (completedTask == delayTask)
+                {
+                    ViewModel.Instance.VersionTxt = "Check update timeout";
+                    ViewModel.Instance.VersionTxtColor = "#F36734";
+                    ViewModel.Instance.VersionTxtUnderLine = false;
+                }
+            }
+            else
+            {
+                ViewModel.Instance.VersionTxt = "Check for updates";
+                ViewModel.Instance.VersionTxtColor = "#2FD9FF";
+                ViewModel.Instance.VersionTxtUnderLine = false;
+            }
         }
 
         public static event EventHandler ShadowOpacityChanged;
@@ -504,7 +529,14 @@ namespace vrcosc_magicchatbox
         }
 
         private async Task ManualUpdateCheckAsync()
-        { await Task.Run(() => DataController.CheckForUpdateAndWait(true)); }
+        {
+            var updateCheckTask = DataController.CheckForUpdateAndWait(true);
+            var delayTask = Task.Delay(TimeSpan.FromSeconds(8));
+
+            await Task.WhenAny(updateCheckTask, delayTask);
+        }
+
+
 
         private void MasterSwitch_Click(object sender, RoutedEventArgs e)
         {

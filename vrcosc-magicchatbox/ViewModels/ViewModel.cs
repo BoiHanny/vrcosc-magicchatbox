@@ -659,10 +659,19 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _JoinedAlphaChannel = value;
-                Task.Run(() => DataController.CheckForUpdateAndWait());
+
+                var updateCheckTask = DataController.CheckForUpdateAndWait();
+                var delayTask = Task.Delay(TimeSpan.FromSeconds(10));
+
+                Task.Run(async () =>
+                {
+                    await Task.WhenAny(updateCheckTask, delayTask);
+                });
+
                 NotifyPropertyChanged(nameof(JoinedAlphaChannel));
             }
         }
+
 
         public bool KeepUpdatingChat
         {
@@ -877,6 +886,16 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _CheckUpdateOnStartup = true;
+        public bool CheckUpdateOnStartup
+        {
+            get { return _CheckUpdateOnStartup; }
+            set
+            {
+                _CheckUpdateOnStartup = value;
+                NotifyPropertyChanged(nameof(CheckUpdateOnStartup));
+            }
+        }
         private string _WindowActivityPrivateName = "🔒 App";
         public string WindowActivityPrivateName
         {
