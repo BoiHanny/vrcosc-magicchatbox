@@ -203,18 +203,66 @@ namespace vrcosc_magicchatbox.Classes
                     ViewModel.Instance.PulsoidAccessErrorTxt = "";
                 });
                 return json["data"]["heart_rate"].Value<int>();
-                
+
+            }
+            catch (HttpRequestException httpEx)
+            {
+                string errorMessage = httpEx.Message; // Default to the exception's message
+
+                switch (httpEx.StatusCode)
+                {
+                    case System.Net.HttpStatusCode.Forbidden:
+                        errorMessage = "Your Pulsoid access token is invalid or your subscription has expired. Please check your subscription status and token.";
+                        break;
+                    case System.Net.HttpStatusCode.PreconditionFailed:
+                        errorMessage = "Connection successful, but no heart rate device detected. Ensure a device is connected to your account and has sent values.";
+                        break;
+                    case System.Net.HttpStatusCode.NotFound:
+                        errorMessage = "Endpoint not found. Please check if the Pulsoid API URL has changed.";
+                        break;
+                    case System.Net.HttpStatusCode.InternalServerError:
+                        errorMessage = "The Pulsoid server encountered an error. Please try again later.";
+                        break;
+                    case System.Net.HttpStatusCode.RequestTimeout:
+                        errorMessage = "Request timed out. Please check your internet connection.";
+                        break;
+                    case System.Net.HttpStatusCode.BadGateway:
+                        errorMessage = "Pulsoid server is currently experiencing issues. Please try again later.";
+                        break;
+                    case System.Net.HttpStatusCode.ServiceUnavailable:
+                        errorMessage = "Pulsoid service is currently unavailable. Please wait a moment and try again.";
+                        break;
+                    case System.Net.HttpStatusCode.Unauthorized:
+                        errorMessage = "Unauthorized access. Please check your credentials or token.";
+                        break;
+                    case System.Net.HttpStatusCode.BadRequest:
+                        errorMessage = "Bad request. Ensure you're sending the correct data to Pulsoid.";
+                        break;
+                    case System.Net.HttpStatusCode.TooManyRequests:
+                        errorMessage = "You've sent too many requests in a short time. Please wait for a while and try again.";
+                        break;
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.PulsoidAccessError = true;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = errorMessage;
+                });
+                Logging.WriteException(httpEx, makeVMDump: false, MSGBox: false);
+                return -1;
             }
             catch (Exception ex)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ViewModel.Instance.PulsoidAccessError = true;
-                ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
-                    });
+                    ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                });
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return -1; // Return an error code or handle the error as needed
+                return -1;
             }
+
+
         }
 
 
