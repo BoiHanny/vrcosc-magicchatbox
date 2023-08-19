@@ -2159,6 +2159,18 @@
                                     Toggle VRChat voice with 'V'
                                 </CheckBox>
                                 <CheckBox
+                                    x:Name="CheckUpdateOnStartup"
+                                    Height="21"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding CheckUpdateOnStartup, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}">
+                                    Auto check for updates on startup (recommended)
+                                </CheckBox>
+                                <CheckBox
                                     x:Name="ToggleJoinedApha"
                                     Height="21"
                                     Margin="0,0,0,15"
@@ -2178,18 +2190,7 @@
                                             Color="{Binding VersionTxtColor}" />
                                     </CheckBox.Effect>
                                 </CheckBox>
-                                <CheckBox
-                                    x:Name="CheckUpdateOnStartup"
-                                    Height="21"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding CheckUpdateOnStartup, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Auto check for updates on startup (recommended)
-                                </CheckBox>
+
                                 <StackPanel Orientation="Horizontal">
                                     <Button
                                         x:Name="ResetFavorites"
