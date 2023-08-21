@@ -123,6 +123,7 @@
   <ItemGroup>
     <PackageReference Include="AutoClosingMessageBox" Version="1.0.0.5" />
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.0" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.2" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
