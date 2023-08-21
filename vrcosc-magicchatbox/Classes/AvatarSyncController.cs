@@ -16,10 +16,8 @@ namespace vrcosc_magicchatbox.Classes
                 if(osctask.Name == "AvatarChange")
                 {
                     OSCParameter parameter = OSCParameters.GetParameter("AvatarChange");
-                    OSCAvatar oSCAvatar = new OSCAvatar(parameter.GetLatestValue().ToString());
-                    
-                }
-            
+                    OSCAvatar oSCAvatar = new OSCAvatar(parameter.GetLatestValue().ToString());           
+                }     
             }
             else
             {

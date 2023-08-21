@@ -10,18 +10,7 @@ namespace vrcosc_magicchatbox.Classes
     public class OSCReader
     {
         private static UDPListener listener;
-        //public static OscQueryController OscQueryController;
 
-        //public static void InitializeOscQueryController()
-        //{
-        //    OscQueryController = new OscQueryController();
-
-        //    // Example of adding an endpoint to all senders
-        //    OscQueryController.AddEndpointToAllSenders("/path/to/endpoint", "type", "description");
-
-        //    // Start discovering services
-        //    OscQueryController.DiscoverServices();
-        //}
         public static void StartListening()
         {
             if (listener != null)

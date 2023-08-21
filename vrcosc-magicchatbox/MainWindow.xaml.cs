@@ -121,7 +121,6 @@ namespace vrcosc_magicchatbox
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
             Task.Run(CheckForUpdates);
-            // OSCReader.InitializeOscQueryController();
             // OSCReader.StartListening();
         }
 
@@ -589,7 +588,7 @@ namespace vrcosc_magicchatbox
                 ViewModel.Instance.ChatTopBarTxt = string.Empty;
             }
 
-            OSCSender.TypingIndicatorAsync(true);
+            OSCSender.SendTypingIndicatorAsync();
         }
 
         private void NewFavText_TextChanged(object sender, TextChangedEventArgs e)
