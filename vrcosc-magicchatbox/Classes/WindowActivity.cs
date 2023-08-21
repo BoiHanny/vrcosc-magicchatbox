@@ -101,10 +101,11 @@ namespace vrcosc_magicchatbox.Classes
             bool showTitle1stCheck = ViewModel.Instance.WindowActivityTitleScan
                                     && existingProcessInfo.ShowTitle
                                     && !string.IsNullOrEmpty(windowTitle);
-            if (ViewModel.Instance.TitleOnAppVR && ViewModel.Instance.IsVRRunning)
+            if (!ViewModel.Instance.TitleOnAppVR && ViewModel.Instance.IsVRRunning)
             {
                 showTitle1stCheck = false;
             }
+
             return showTitle1stCheck;
         }
 
