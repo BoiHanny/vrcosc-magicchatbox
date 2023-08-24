@@ -105,7 +105,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             StatsComponentType.CPU,
             StatsComponentType.GPU,
-            StatsComponentType.VRAM,
+            //StatsComponentType.VRAM,
             //StatsComponentType.RAM,
             //StatsComponentType.FPS
         };
@@ -143,7 +143,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 lines.Add(currentLine.TrimEnd());
             }
-
+            ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
             return string.Join("\v", lines);
         }
 

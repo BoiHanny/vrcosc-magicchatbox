@@ -181,6 +181,15 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
+        public static void AddComponentStat(List<string> Uncomplete)
+        {
+            if(ViewModel.Instance.IntgrComponentStats && !string.IsNullOrEmpty(ViewModel.Instance.ComponentStatCombined))
+            {
+                string? x = ViewModel.Instance.ComponentStatCombined;
+                TryAddToUncomplete(Uncomplete, x, "ComponentStat");
+            }
+        }
+
 
         // this function will build the window activity message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddWindowActivity(List<string> Uncomplete)
@@ -248,6 +257,14 @@ namespace vrcosc_magicchatbox.Classes
                 },
 
                 {
+                    () => ViewModel.Instance.IntgrComponentStats_VR && 
+                    ViewModel.Instance.IsVRRunning || 
+                    ViewModel.Instance.IntgrComponentStats_DESKTOP && 
+                    !ViewModel.Instance.IsVRRunning, 
+                    AddComponentStat
+                },
+
+                {
                     () => ViewModel.Instance.IntgrCurrentTime_VR &&
                     ViewModel.Instance.IsVRRunning ||
                     ViewModel.Instance.IntgrCurrentTime_DESKTOP &&
@@ -278,6 +295,7 @@ namespace vrcosc_magicchatbox.Classes
                 ViewModel.Instance.Char_Limit = "Hidden";
                 SetOpacity("Spotify", "1");
                 SetOpacity("HeartRate", "1");
+                SetOpacity("ComponentStat", "1");
                 SetOpacity("Window", "1");
                 SetOpacity("Time", "1");
                 SetOpacity("MediaLink", "1");
@@ -299,23 +317,11 @@ namespace vrcosc_magicchatbox.Classes
             // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
             if (ViewModel.Instance.SeperateWithENTERS)
             {
-                var sb = new StringBuilder();
-                foreach (var item in Uncomplete)
-                {
-                    sb.Append(item);
-                    sb.Append("\v");
-                }
-                Complete_msg = sb.ToString();
+                Complete_msg = string.Join("\v", Uncomplete);
             }
             else
             {
-                var sb = new StringBuilder();
-                foreach (var item in Uncomplete)
-                {
-                    sb.Append(item);
-                    sb.Append(" ┆ ");
-                }
-                Complete_msg = sb.ToString();
+                Complete_msg = string.Join(" ┆ ", Uncomplete);
             }
 
 
@@ -469,6 +475,9 @@ namespace vrcosc_magicchatbox.Classes
                     break;
                 case "HeartRate":
                     ViewModel.Instance.HeartRate_Opacity = opacity;
+                    break;
+                case "ComponentStat":
+                    ViewModel.Instance.ComponentStat_Opacity = opacity;
                     break;
                 case "MediaLink":
                     ViewModel.Instance.MediaLink_Opacity = opacity;

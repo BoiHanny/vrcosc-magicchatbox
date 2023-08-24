@@ -1051,13 +1051,21 @@ namespace vrcosc_magicchatbox
                 {
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 }
-                if (ViewModel.Instance.IntgrComponentStats == true)
+                if (ViewModel.Instance.IntgrComponentStats && ViewModel.Instance.IntgrComponentStats_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrComponentStats_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning)
                 {
-                    if(SystemStats.CurrentSystem == null)
+
+                    if (SystemStats.CurrentSystem == null)
                     {
+                        ViewModel.Instance.SyncComponentStatsList();
                         SystemStats.StartMonitoringComponents();
                     }
-                    ViewModel.Instance.SyncComponentStatsList();
+                    else
+                    {
+                        ViewModel.Instance.SyncComponentStatsList();
+                    }
                     bool UpdateStatsCompleted = SystemStats.UpdateStats();
                     if(UpdateStatsCompleted)
                     {
@@ -1078,7 +1086,6 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
                 ViewModel.Instance.ChatFeedbackTxt = string.Empty;
                 OSCController.BuildOSC();
-                ViewModel.Instance.OSCtoSent = ViewModel.Instance.ComponentStatCombined;
                 OSCSender.SendOSCMessage(false);
             } catch(Exception ex)
             {

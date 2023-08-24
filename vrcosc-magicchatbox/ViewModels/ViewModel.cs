@@ -1251,6 +1251,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private string _ComponentStat_Opacity = "1";
+        public string ComponentStat_Opacity
+        {
+            get { return _ComponentStat_Opacity; }
+            set
+            {
+                _ComponentStat_Opacity = value;
+                NotifyPropertyChanged(nameof(ComponentStat_Opacity));
+            }
+        }
+
         private bool _AutoSetDaylight = true;
 
         public bool AutoSetDaylight

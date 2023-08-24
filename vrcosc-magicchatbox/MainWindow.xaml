@@ -3295,8 +3295,8 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="2" Opacity="{Binding Window_Opacity}">
-                        <Border
+                    <Grid Opacity="{Binding Window_Opacity}" Grid.Row="2" >
+                        <Border 
                             Margin="6"
                             Background="DarkSlateBlue"
                             CornerRadius="5">
@@ -3603,7 +3603,7 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="4" Visibility="Visible">
+                    <Grid Opacity="{Binding ComponentStat_Opacity}" Grid.Row="4" Visibility="Visible">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -3628,8 +3628,6 @@
                                     Padding="0"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_HeartRate"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Style="{StaticResource CircleButton}">
                                     <Image

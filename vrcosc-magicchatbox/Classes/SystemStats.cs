@@ -28,6 +28,7 @@ namespace vrcosc_magicchatbox.Classes
         public static void StopMonitoringComponents()
         {
             CurrentSystem.Close();
+            CurrentSystem = null;
         }
 
         private static DateTimeOffset GetDateTimeWithZone(bool autoSetDaylight, bool timeShowTimeZone, DateTimeOffset localDateTime, TimeZoneInfo timeZoneInfo, out TimeSpan timeZoneOffset)
