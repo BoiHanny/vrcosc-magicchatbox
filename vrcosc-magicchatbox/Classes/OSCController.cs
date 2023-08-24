@@ -42,11 +42,6 @@ namespace vrcosc_magicchatbox.Classes
                         : ViewModel.Instance.CurrentTime;
                     TryAddToUncomplete(Uncomplete, x, "Time");
                 }
-                else
-                {
-                    // Handle the situation when ViewModel.Instance.CurrentTime is null.
-                    // For example, you might want to log an error message or throw an exception.
-                }
             }
         }
 
@@ -71,7 +66,7 @@ namespace vrcosc_magicchatbox.Classes
                 else
                 {
                     string x = (ViewModel.Instance.ShowBPMSuffix
-                        ? ViewModel.Instance.HeartRate + "bpm"
+                        ? ViewModel.Instance.HeartRate + " bpm"
                         : "💖 " + ViewModel.Instance.HeartRate);
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
@@ -163,9 +158,10 @@ namespace vrcosc_magicchatbox.Classes
                         }
                         else
                         {
-                            // Insert the code for handling the PlayingSongTitle Length being 0. 
-                            // This includes creating a new window and showing the information message.
-                            // ...
+                            x = ViewModel.Instance.PauseIconMusic == true && ViewModel.Instance.PrefixIconMusic == true
+                                ? "⏸"
+                                : "Music paused";
+                            TryAddToUncomplete(Uncomplete, x, "Spotify");
                         }
                     }
                 }

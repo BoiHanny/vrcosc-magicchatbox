@@ -88,6 +88,8 @@ namespace vrcosc_magicchatbox
             return IntPtr.Zero;
         }
 
+
+
         private void OnStartResize()
         {
             WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
@@ -121,6 +123,7 @@ namespace vrcosc_magicchatbox
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
             Task.Run(CheckForUpdates);
+            
             // OSCReader.StartListening();
         }
 
@@ -1050,6 +1053,10 @@ namespace vrcosc_magicchatbox
                 }
                 if (ViewModel.Instance.IntgrComponentStats == true)
                 {
+                    if(SystemStats.CurrentSystem == null)
+                    {
+                        SystemStats.StartMonitoringComponents();
+                    }
                     ViewModel.Instance.SyncComponentStatsList();
                     bool UpdateStatsCompleted = SystemStats.UpdateStats();
                     if(UpdateStatsCompleted)
@@ -1058,12 +1065,20 @@ namespace vrcosc_magicchatbox
                     }
 
                 }
+                else
+                {
+                    if(SystemStats.CurrentSystem != null)
+                    {
+                        SystemStats.StopMonitoringComponents();
+                    }
+                }
 
                 ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning();
                 if(ViewModel.Instance.IntgrScanWindowTime == true)
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
                 ViewModel.Instance.ChatFeedbackTxt = string.Empty;
                 OSCController.BuildOSC();
+                ViewModel.Instance.OSCtoSent = ViewModel.Instance.ComponentStatCombined;
                 OSCSender.SendOSCMessage(false);
             } catch(Exception ex)
             {

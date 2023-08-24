@@ -3603,13 +3603,11 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="4" Visibility="Collapsed">
+                    <Grid Grid.Row="4" Visibility="Visible">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
-                            CornerRadius="5"
-                            IsEnabled="False"
-                            Opacity="0.5">
+                            CornerRadius="5">
                             <Border.Effect>
                                 <DropShadowEffect
                                     BlurRadius="5"
