@@ -118,6 +118,27 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             return node;
         }
 
+        private const string FileName = "ComponentStats.json";
+
+        public static void SaveComponentStats()
+        {
+            var statsList = ViewModel.Instance.ComponentStatsList;
+            var jsonData = JsonConvert.SerializeObject(statsList);
+            File.WriteAllText(FileName, jsonData);
+        }
+
+        public static void LoadComponentStats()
+        {
+            if (File.Exists(FileName))
+            {
+                var jsonData = File.ReadAllText(FileName);
+                ObservableCollection<ComponentStatsItem> statsList =
+                    JsonConvert.DeserializeObject<ObservableCollection<ComponentStatsItem>>(jsonData) ??
+                    new ObservableCollection<ComponentStatsItem>();
+                ViewModel.Instance.UpdateComponentStatsList(statsList);
+            }
+        }
+
         private static Dictionary<string, (Type type, string category)> InitializeSettingsDictionary()
         {
             return new Dictionary<string, (Type type, string category)>

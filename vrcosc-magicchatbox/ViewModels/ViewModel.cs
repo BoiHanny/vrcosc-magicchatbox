@@ -27,6 +27,15 @@ namespace vrcosc_magicchatbox.ViewModels
         private ObservableCollection<ComponentStatsItem> _componentStatsListPrivate = new ObservableCollection<ComponentStatsItem>();
         public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList => new ReadOnlyObservableCollection<ComponentStatsItem>(_componentStatsListPrivate);
 
+        public void UpdateComponentStatsList(ObservableCollection<ComponentStatsItem> newList)
+        {
+            _componentStatsListPrivate.Clear();
+            foreach (var item in newList)
+            {
+                _componentStatsListPrivate.Add(item);
+            }
+        }
+
 
         private bool _BlankEgg = false;
 
@@ -125,6 +134,10 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrComponentStats = value;
+                if (value || !_statsManager.started)
+                {
+                    _statsManager.StartModule();
+                }
                 NotifyPropertyChanged(nameof(IntgrComponentStats));
             }
         }
@@ -146,6 +159,77 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _TTSOnResendChat = false;
         public Dictionary<string, Action<bool>> SettingsMap;
+
+        public bool IsCPUEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.CPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.CPU);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.CPU);
+                }
+                NotifyPropertyChanged(nameof(IsCPUEnabled));
+            }
+        }
+
+        public bool IsGPUEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.GPU);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.GPU);
+                }
+                NotifyPropertyChanged(nameof(IsGPUEnabled));
+            }
+        }
+
+        public bool IsRAMEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.RAM);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.RAM);
+                }
+                NotifyPropertyChanged(nameof(IsRAMEnabled));
+            }
+        }
+
+        public bool IsVRAMEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.VRAM);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.VRAM);
+                }
+                NotifyPropertyChanged(nameof(IsVRAMEnabled));
+            }
+        }
+
+
+
 
         public ViewModel()
         {

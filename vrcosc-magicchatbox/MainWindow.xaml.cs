@@ -123,8 +123,7 @@ namespace vrcosc_magicchatbox
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             scantick();
             Task.Run(CheckForUpdates);
-            
-            // OSCReader.StartListening();
+           
         }
 
         private async Task CheckForUpdates()
@@ -732,12 +731,8 @@ namespace vrcosc_magicchatbox
             try
             {
                 Hide();
-                //if(OSCReader.OscQueryController != null)
-                //{
-                //    OSCReader.OscQueryController.Shutdown();
-                //}
-                
                 FireExitSave();
+                
                 System.Environment.Exit(1);
             } catch(Exception ex)
             {
@@ -752,6 +747,7 @@ namespace vrcosc_magicchatbox
                 DataController.ManageSettingsXML(true);
                 DataController.SaveAppList();
                 DataController.SaveMediaSessions();
+                ViewModel.Instance._statsManager.SaveComponentStats();
             }
             catch (Exception ex)
             {

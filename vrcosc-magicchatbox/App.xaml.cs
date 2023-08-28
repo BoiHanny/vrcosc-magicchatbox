@@ -40,36 +40,37 @@ namespace vrcosc_magicchatbox
             }
 
 
-            loadingWindow.UpdateProgress("Waking up the logging module... Rise and shine!", 10);
+            loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 10);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
 
-            loadingWindow.UpdateProgress("Digging through your old settings... Let's hope there's no dust!", 20);
+            loadingWindow.UpdateProgress("Sifting through your ancient settings... Indiana Jones, is that you?", 20);
             await Task.Run(() => DataController.ManageSettingsXML());
 
-            loadingWindow.UpdateProgress("Collecting all those juicy status items!", 30);
+            loadingWindow.UpdateProgress("Gathering status items like a squirrel with nuts!", 30);
             await Task.Run(() => DataController.LoadStatusList());
 
-            loadingWindow.UpdateProgress("Hunting down the last session's chat messages... Gotcha!", 40);
+            loadingWindow.UpdateProgress("Detective on the hunt for last session's chat messages... Elementary, my dear Watson!", 40);
             await Task.Run(() => DataController.LoadChatList());
 
-            loadingWindow.UpdateProgress("Seaking hard to locate the last MediaLink's settings... WHOAAH!", 50);
+            loadingWindow.UpdateProgress("Going on a treasure hunt for MediaLink settings... Ahoy, Captain!", 50);
             await Task.Run(() => DataController.LoadMediaSessions());
 
-            loadingWindow.UpdateProgress("Picking out your recent apps for the window integration!", 60);
+            loadingWindow.UpdateProgress("Selecting recent apps for window integration, like picking the A-Team!", 60);
             await Task.Run(() => DataController.LoadAppList());
 
-            loadingWindow.UpdateProgress("Tuning up the TTS voices. Get ready to hear!", 70);
+            if (ViewModel.Instance.IntgrComponentStats)
+            {
+                loadingWindow.UpdateProgress("Lighting up ComponentStats like it's the 4th of July. Ka-boom!", 65);
+                await Task.Run(() => ViewModel.Instance._statsManager.StartModule());
+            }
+
+            loadingWindow.UpdateProgress("Warming up the TTS voices. Ready for the vocal Olympics!", 70);
             ViewModel.Instance.TikTokTTSVoices = await Task.Run(() => DataController.ReadTkTkTTSVoices());
 
-            loadingWindow.UpdateProgress("Setting up your concert - choosing the best audio devices!", 80);
+            loadingWindow.UpdateProgress("Selecting your audio devices like a DJ choosing beats. Drop the bass!", 80);
             await Task.Run(() => DataController.PopulateOutputDevices());
 
-
-
-
-            if (ViewModel.Instance.IntgrScanMediaLink)
-                loadingWindow.UpdateProgress("Revving up the MediaLink engines... Ready for some action!", 95);
-            //await Task.Run(() => MediaLinkController.Start());
+            loadingWindow.UpdateProgress("Turbocharging MediaLink engines... Fast & Furious: Data Drift!", 95);
             MediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
 
             MainWindow mainWindow = new MainWindow();
