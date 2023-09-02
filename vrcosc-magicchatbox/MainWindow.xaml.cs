@@ -751,7 +751,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false, exitapp: true);
             }
         }
 
