@@ -563,51 +563,65 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static void ManageSettingsXML(bool saveSettings = false)
         {
-            if (!CreateIfMissing(Instance.DataPath))
-                return;
-
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlNode rootNode;
-
-            if (saveSettings)
+            try
             {
-                rootNode = xmlDoc.CreateElement("Settings");
-                xmlDoc.AppendChild(rootNode);
-            }
-            else
-            {
-                xmlDoc.Load(Path.Combine(Instance.DataPath, "settings.xml"));
-                rootNode = xmlDoc.SelectSingleNode("Settings");
-            }
+                string datapath = Path.Combine(Instance.DataPath, "settings.xml");
+                if (!CreateIfMissing(Instance.DataPath))
+                    return;
 
-            var settings = InitializeSettingsDictionary();
+                XmlDocument xmlDoc = new XmlDocument();
+                XmlNode rootNode;
 
-            foreach (var setting in settings)
-            {
-                try
+                if (saveSettings)
                 {
-                    PropertyInfo property = Instance.GetType().GetProperty(setting.Key);
-                    XmlNode categoryNode = GetOrCreateNode(xmlDoc, rootNode, setting.Value.category);
-
-                    if (saveSettings)
+                    rootNode = xmlDoc.CreateElement("Settings");
+                    xmlDoc.AppendChild(rootNode);
+                }
+                else
+                {
+                    if (!File.Exists(datapath))
                     {
-                        SaveSettingToXML(xmlDoc, categoryNode, setting, property);
+                        return;
                     }
-                    else
+
+                    xmlDoc.Load(datapath);
+                    rootNode = xmlDoc.SelectSingleNode("Settings");
+                }
+
+                var settings = InitializeSettingsDictionary();
+
+                foreach (var setting in settings)
+                {
+                    try
                     {
-                        LoadSettingFromXML(categoryNode, setting, property);
+                        PropertyInfo property = Instance.GetType().GetProperty(setting.Key);
+                        XmlNode categoryNode = GetOrCreateNode(xmlDoc, rootNode, setting.Value.category);
+
+                        if (saveSettings)
+                        {
+                            SaveSettingToXML(xmlDoc, categoryNode, setting, property);
+                        }
+                        else
+                        {
+                            LoadSettingFromXML(categoryNode, setting, property);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                     }
                 }
-                catch (Exception ex)
+
+                if (saveSettings)
                 {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                    xmlDoc.Save(datapath);
                 }
             }
-
-            if (saveSettings)
+            catch (Exception ex)
             {
-                xmlDoc.Save(Path.Combine(Instance.DataPath, "settings.xml"));
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+            
         }
 
         public static bool PopulateOutputDevices(bool beforeTTS = false)

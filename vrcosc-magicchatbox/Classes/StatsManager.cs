@@ -29,6 +29,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
+                if(_componentStats == null || _componentStats.Count == 0) return;
                 var jsonData = JsonConvert.SerializeObject(_componentStats);
                 File.WriteAllText(FileName, jsonData);
             }
