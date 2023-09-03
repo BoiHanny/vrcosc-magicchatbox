@@ -254,6 +254,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "Settings_Status", (typeof(bool), "OptionsTabState") },
                 { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
                 { "Settings_Time", (typeof(bool), "OptionsTabState") },
+                { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },
                 { "Settings_Chatting", (typeof(bool), "OptionsTabState") },
                 { "Settings_TTS", (typeof(bool), "OptionsTabState") },
                 { "Settings_MediaLink", (typeof(bool), "OptionsTabState") },

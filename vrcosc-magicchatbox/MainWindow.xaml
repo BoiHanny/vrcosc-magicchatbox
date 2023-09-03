@@ -1041,6 +1041,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -1514,6 +1515,39 @@
                                 FontSize="15"
                                 FontWeight="Bold"
                                 Foreground="#BDAEE2"
+                                IsChecked="{Binding Settings_ComponentStats, Mode=TwoWay}"
+                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                Tag="Component stats options"
+                                TextOptions.TextRenderingMode="ClearType" />
+                        </Grid>
+
+
+                        <Grid
+                            x:Name="Settings_ComponentStats_Grid"
+                            Grid.Row="1"
+                            Height="Auto"
+                            Margin="34,10,0,0"
+                            Visibility="{Binding Settings_ComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                    <Grid Grid.Row="4" Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Background>
+                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="#FF3A3053" />
+                                <GradientStop Offset="1" Color="#FF40365B" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Grid Grid.Row="0">
+                            <ToggleButton
+                                Width="Auto"
+                                Height="30"
+                                HorizontalAlignment="Left"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="#BDAEE2"
                                 IsChecked="{Binding Settings_Chatting, Mode=TwoWay}"
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                 Tag="Chatting options"
@@ -1724,7 +1758,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="4" Margin="0,5,0,0">
+                    <Grid Grid.Row="5" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1832,7 +1866,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="5" Margin="0,5,0,0">
+                    <Grid Grid.Row="6" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1974,7 +2008,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="6" Margin="0,5,0,0">
+                    <Grid Grid.Row="7" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2232,7 +2266,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="7"
+                        Grid.Row="8"
                         Margin="0,5,0,0"
                         Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Grid.RowDefinitions>
@@ -2283,7 +2317,7 @@
                             </CheckBox>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="8" Margin="0,5,0,10">
+                    <Grid Grid.Row="9" Margin="0,5,0,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -3637,6 +3671,8 @@
                                         Padding="0"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_ComponentStats"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Style="{StaticResource CircleButton}">
                                         <Image
@@ -3779,8 +3815,11 @@
                                     Background="#230E52"
                                     CornerRadius="0,0,5,5"
                                     Visibility="{Binding ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                                    <Border CornerRadius="5" Margin="5" Background="#391E72">
-                                        <StackPanel  Margin="4,4" Orientation="Horizontal">
+                                    <Border
+                                        Margin="5"
+                                        Background="#391E72"
+                                        CornerRadius="5">
+                                        <StackPanel Margin="4,4" Orientation="Horizontal">
 
                                             <CheckBox
                                                 Height="23"

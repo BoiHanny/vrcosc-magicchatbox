@@ -272,6 +272,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
                 { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
                 { nameof(Settings_Chatting), value => Settings_Chatting = value },
+                { nameof(Settings_ComponentStats), value => Settings_ComponentStats = value },
                 { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
                 { nameof(Settings_TTS), value => Settings_TTS = value },
                 { nameof(Settings_Time), value => Settings_Time = value },
@@ -1443,6 +1444,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Settings_Chatting = value;
                 NotifyPropertyChanged(nameof(Settings_Chatting));
+            }
+        }
+
+
+        private bool _Settings_ComponentStats = false;
+        public bool Settings_ComponentStats
+        {
+            get { return _Settings_ComponentStats; }
+            set
+            {
+                _Settings_ComponentStats = value;
+                NotifyPropertyChanged(nameof(Settings_ComponentStats));
             }
         }
 
