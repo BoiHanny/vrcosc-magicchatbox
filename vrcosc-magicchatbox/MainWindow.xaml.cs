@@ -17,6 +17,7 @@ using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace vrcosc_magicchatbox
 {
@@ -1045,9 +1046,10 @@ namespace vrcosc_magicchatbox
             }
         }
 
+        private DateTime lastOSCMessageTime = DateTime.MinValue;
+
         public async void scantick(bool firstrun = false)
         {
-            long TickEnter = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             if (isProcessing)
             {
                 return;
@@ -1057,38 +1059,43 @@ namespace vrcosc_magicchatbox
 
             try
             {
-                try
+                if (DateTime.Now >= _nextRun || firstrun)
                 {
-                    long nextRunTicks = _nextRun.Ticks / TimeSpan.TicksPerMillisecond;
-
-                    long bufferMilliseconds = 100;
-
-                    if (TickEnter >= (nextRunTicks - bufferMilliseconds) || firstrun)
+                    if (backgroundCheck.Interval != TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000))
                     {
-                        if (backgroundCheck.Interval != TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000))
-                        {
-                            backgroundCheck.Stop();
-                            backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
-                            backgroundCheck.Start();
-                            _nextRun = DateTime.Now.Add(backgroundCheck.Interval);
-                            return;
-                        }
-
-                        // Run the scan
-                        await scantickLogicAsync();
-
-                        // Calculate next run time based on whatever interval you have
+                        backgroundCheck.Stop();
+                        backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
+                        backgroundCheck.Start();
                         _nextRun = DateTime.Now.Add(backgroundCheck.Interval);
+                        return;
+                    }
+
+                    scantickLogicAsync();
+
+                    OSCController.BuildOSC();
+                    long nowMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                    long lastMessageMs = lastOSCMessageTime.Ticks / TimeSpan.TicksPerMillisecond;
+                    long allowedOverlapMs = 100; // 0.1 second
+
+                    if ((nowMs - lastMessageMs + allowedOverlapMs) >= ViewModel.Instance.ScanningInterval * 1000)
+                    {
+                        OSCSender.SendOSCMessage(false);
+                        lastOSCMessageTime = DateTime.Now;
                     }
                     else
                     {
-                        Logging.WriteInfo($"Skipped scan tick because: {TickEnter}ms is within range of allowed time: {nextRunTicks}ms");
+                        TimeSpan nextAllowedTime = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
+                        DateTime nextAllowedDateTime = lastOSCMessageTime.Add(nextAllowedTime);
+                        Logging.WriteInfo($"OSC message rate-limited, NOW: {DateTime.Now} ALLOWED AFTER: {nextAllowedDateTime}");
                     }
+
+                    // Calculate next run time based on whatever interval you have
+                    _nextRun = DateTime.Now.Add(backgroundCheck.Interval);
                 }
-                catch (Exception ex)
-                {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
             finally
             {
@@ -1097,45 +1104,41 @@ namespace vrcosc_magicchatbox
         }
 
 
-
-
         public async Task scantickLogicAsync()
         {
             try
             {
-                var tasks = new List<Task>();
+                var tasks = new List<Task>
+        {
+            Task.Run(() => ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning())
+        };
 
-                tasks.Add(Task.Run(() => ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning()));
-
-                if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
+                if (ViewModel.Instance.IntgrScanSpotify_OLD)
                 {
                     tasks.Add(Task.Run(() => ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong()));
                     tasks.Add(Task.Run(() => ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning()));
                 }
 
-                if (ViewModel.Instance.IntgrScanWindowActivity == true)
+                if (ViewModel.Instance.IntgrScanWindowActivity)
                 {
                     tasks.Add(Task.Run(() => ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName()));
                 }
 
                 tasks.Add(Task.Run(() => SystemStats.TickAndUpdate()));
 
-                if (ViewModel.Instance.IntgrScanWindowTime == true)
+                if (ViewModel.Instance.IntgrScanWindowTime)
                 {
                     tasks.Add(Task.Run(() => ViewModel.Instance.CurrentTime = SystemStats.GetTime()));
                 }
 
-                Task.WhenAll(tasks);
-
-                ViewModel.Instance.ChatFeedbackTxt = string.Empty;
-                OSCController.BuildOSC();
-                OSCSender.SendOSCMessage(false);
+                await Task.WhenAll(tasks);
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
 
 
 
