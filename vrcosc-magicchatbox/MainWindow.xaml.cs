@@ -38,6 +38,8 @@ namespace vrcosc_magicchatbox
         private System.Timers.Timer ChatUpdateTimer;
         private System.Timers.Timer pauseTimer;
         public float samplingTime = 1;
+        private DateTime _nextRun = DateTime.Now;
+        private bool isProcessing = false;
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -106,24 +108,23 @@ namespace vrcosc_magicchatbox
         {
             InitializeComponent();
             Closing += SaveDataToDisk;
-            DispatcherTimer backgroundCheck = new DispatcherTimer();
 
-
-
-            backgroundCheck = new DispatcherTimer();
             backgroundCheck.Tick += Timer;
-
-            // Here we set the interval by multiplying ScanInterval by 1000 to get milliseconds
             backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
-
             backgroundCheck.Start();
 
+            // Asynchronous Initialization
+            Task initTask = InitializeAsync();
+
+        }
+
+        public async Task InitializeAsync()
+        {
             SelectTTS();
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
-            scantick();
+            Task.Run(() => scantick(true));
             Task.Run(CheckForUpdates);
-           
         }
 
         private async Task CheckForUpdates()
@@ -157,12 +158,12 @@ namespace vrcosc_magicchatbox
             Random random = new Random();
             int randomId = random.Next(10, 99999999);
             bool IsActive = false;
-            if(ViewModel.Instance.StatusList.Count() == 0)
+            if (ViewModel.Instance.StatusList.Count() == 0)
             {
                 IsActive = true;
             }
 
-            if(ViewModel.Instance.NewStatusItemTxt.Count() > 0 && ViewModel.Instance.NewStatusItemTxt.Count() < 141)
+            if (ViewModel.Instance.NewStatusItemTxt.Count() > 0 && ViewModel.Instance.NewStatusItemTxt.Count() < 141)
             {
                 ViewModel.Instance.StatusList
                     .Add(
@@ -176,7 +177,7 @@ namespace vrcosc_magicchatbox
                         });
                 ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(
                     ViewModel.Instance.StatusList.OrderByDescending(x => x.CreationDate));
-                if(ViewModel.Instance.NewStatusItemTxt.ToLower() == "sr4 series" ||
+                if (ViewModel.Instance.NewStatusItemTxt.ToLower() == "sr4 series" ||
                     ViewModel.Instance.NewStatusItemTxt.ToLower() == "boihanny")
                 {
                     ViewModel.Instance.Egg_Dev = true;
@@ -205,9 +206,9 @@ namespace vrcosc_magicchatbox
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
         {
             string chat = ViewModel.Instance.NewChattingTxt;
-            if(chat.Length > 0 && chat.Length <= 141 && ViewModel.Instance.MasterSwitch)
+            if (chat.Length > 0 && chat.Length <= 141 && ViewModel.Instance.MasterSwitch)
             {
-                foreach(ChatItem Chatitem in ViewModel.Instance.LastMessages)
+                foreach (ChatItem Chatitem in ViewModel.Instance.LastMessages)
                 {
                     Chatitem.CanLiveEdit = false;
                     Chatitem.CanLiveEditRun = false;
@@ -220,9 +221,9 @@ namespace vrcosc_magicchatbox
                     : 0;
                 OSCSender.SendOSCMessage(ViewModel.Instance.ChatFX, smalldelay);
                 DataController.SaveChatList();
-                if(ViewModel.Instance.TTSTikTokEnabled == true)
+                if (ViewModel.Instance.TTSTikTokEnabled == true)
                 {
-                    if(DataAndSecurity.DataController.PopulateOutputDevices(true))
+                    if (DataAndSecurity.DataController.PopulateOutputDevices(true))
                     {
                         ViewModel.Instance.ChatFeedbackTxt = "Requesting TTS...";
                         TTSGOAsync(chat);
@@ -245,7 +246,7 @@ namespace vrcosc_magicchatbox
                 var item = button.Tag as StatusItem;
                 item.editMsg = string.Empty;
                 item.IsEditing = false;
-            } catch(Exception)
+            } catch (Exception)
             {
             }
         }
@@ -255,7 +256,7 @@ namespace vrcosc_magicchatbox
             var Button = sender as Button;
             ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
 
-            if(!string.IsNullOrEmpty(lastsendchat.MainMsg))
+            if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
             {
                 lastsendchat.CanLiveEditRun = false;
                 lastsendchat.Msg = lastsendchat.MainMsg;
@@ -271,12 +272,12 @@ namespace vrcosc_magicchatbox
             lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
             try
             {
-                if(ViewModel.Instance.KeepUpdatingChat && lastsendchat != null)
+                if (ViewModel.Instance.KeepUpdatingChat && lastsendchat != null)
                 {
-                    if(lastsendchat.Msg.Length > 0 && lastsendchat.Msg.Length <= 141 && ViewModel.Instance.MasterSwitch)
+                    if (lastsendchat.Msg.Length > 0 && lastsendchat.Msg.Length <= 141 && ViewModel.Instance.MasterSwitch)
                     {
                         string Complete_msg = null;
-                        if(ViewModel.Instance.PrefixChat == true)
+                        if (ViewModel.Instance.PrefixChat == true)
                         {
                             Complete_msg = "💬 " + lastsendchat.Msg;
                         } else
@@ -288,7 +289,7 @@ namespace vrcosc_magicchatbox
                     }
                 } else
                 {
-                    foreach(var item in ViewModel.Instance.LastMessages)
+                    foreach (var item in ViewModel.Instance.LastMessages)
                     {
                         item.CanLiveEdit = false;
                         item.CanLiveEditRun = false;
@@ -296,7 +297,7 @@ namespace vrcosc_magicchatbox
                         item.IsRunning = false;
                     }
                 }
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
@@ -314,7 +315,7 @@ namespace vrcosc_magicchatbox
         private void ClearnupKeepSettings_Click(object sender, RoutedEventArgs e)
         {
             int ItemRemoved = WindowActivity.CleanAndKeepAppsWithSettings();
-            if(ItemRemoved > 0)
+            if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
             } else
@@ -329,7 +330,7 @@ namespace vrcosc_magicchatbox
             {
                 var button = sender as Button;
                 var item = button.Tag as StatusItem;
-                if(item.msg.ToLower() == "sr4 series" || item.msg.ToLower() == "boihanny")
+                if (item.msg.ToLower() == "sr4 series" || item.msg.ToLower() == "boihanny")
                 {
                     ViewModel.Instance.Egg_Dev = false;
                     MessageBox.Show(
@@ -340,7 +341,7 @@ namespace vrcosc_magicchatbox
                 }
                 ViewModel.Instance.StatusList.Remove(item);
                 ViewModel.SaveStatusList();
-            } catch(Exception)
+            } catch (Exception)
             {
             }
         }
@@ -350,7 +351,7 @@ namespace vrcosc_magicchatbox
 
         private void Drag_area_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if(e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
         }
 
@@ -360,12 +361,12 @@ namespace vrcosc_magicchatbox
             {
                 var button = sender as ToggleButton;
                 var item = button.Tag as StatusItem;
-                if((bool)button.IsChecked)
+                if ((bool)button.IsChecked)
                 {
                     item.editMsg = item.msg;
                     // Find the TextBox in the same container as the ToggleButton
                     var parent = VisualTreeHelper.GetParent(button);
-                    while(!(parent is ContentPresenter))
+                    while (!(parent is ContentPresenter))
                     {
                         parent = VisualTreeHelper.GetParent(parent);
                     }
@@ -377,7 +378,7 @@ namespace vrcosc_magicchatbox
                     editTextBox.CaretIndex = editTextBox.Text.Length;
                 } else
                 {
-                    if(item.editMsg.Count() < 145 && !string.IsNullOrEmpty(item.editMsg))
+                    if (item.editMsg.Count() < 145 && !string.IsNullOrEmpty(item.editMsg))
                     {
                         item.msg = item.editMsg;
                         item.IsEditing = false;
@@ -385,7 +386,7 @@ namespace vrcosc_magicchatbox
                         item.LastEdited = DateTime.Now;
                     }
                 }
-            } catch(Exception)
+            } catch (Exception)
             {
             }
         }
@@ -395,18 +396,18 @@ namespace vrcosc_magicchatbox
             var textbox = sender as TextBox;
             ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
 
-            if(ViewModel.Instance.RealTimeChatEdit)
+            if (ViewModel.Instance.RealTimeChatEdit)
             {
-                if(e.Key == Key.Enter)
+                if (e.Key == Key.Enter)
                 {
                     lastsendchat.CanLiveEditRun = false;
                     lastsendchat.MainMsg = textbox.Text;
                     NewChattingTxt.Focus();
                     NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
                 }
-                if(e.Key == Key.Escape)
+                if (e.Key == Key.Escape)
                 {
-                    if(!string.IsNullOrEmpty(lastsendchat.MainMsg))
+                    if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
                     {
                         lastsendchat.CanLiveEditRun = false;
                         lastsendchat.Msg = lastsendchat.MainMsg;
@@ -416,11 +417,11 @@ namespace vrcosc_magicchatbox
                 }
             } else
             {
-                if(e.Key == Key.Enter)
+                if (e.Key == Key.Enter)
                 {
-                    if(textbox != null && lastsendchat != null)
+                    if (textbox != null && lastsendchat != null)
                     {
-                        if(lastsendchat.Msg != textbox.Text)
+                        if (lastsendchat.Msg != textbox.Text)
                         {
                             lastsendchat.MainMsg = textbox.Text;
                             lastsendchat.Msg = textbox.Text;
@@ -430,9 +431,9 @@ namespace vrcosc_magicchatbox
                         }
                     }
                 }
-                if(e.Key == Key.Escape)
+                if (e.Key == Key.Escape)
                 {
-                    if(!string.IsNullOrEmpty(lastsendchat.MainMsg))
+                    if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
                     {
                         lastsendchat.CanLiveEditRun = false;
                         lastsendchat.Msg = lastsendchat.MainMsg;
@@ -445,14 +446,14 @@ namespace vrcosc_magicchatbox
 
         private void EditChatTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(ViewModel.Instance.RealTimeChatEdit)
+            if (ViewModel.Instance.RealTimeChatEdit)
             {
                 var textbox = sender as TextBox;
                 ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
 
-                if(textbox != null && lastsendchat != null)
+                if (textbox != null && lastsendchat != null)
                 {
-                    if(lastsendchat.Msg != textbox.Text)
+                    if (lastsendchat.Msg != textbox.Text)
                     {
                         lastsendchat.Msg = textbox.Text;
                     }
@@ -464,15 +465,15 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                if(e.Key == Key.Enter)
+                if (e.Key == Key.Enter)
                 {
                     AddFav_Click(sender, e);
                 }
-                if(e.Key == Key.Escape)
+                if (e.Key == Key.Escape)
                 {
                     ViewModel.Instance.NewStatusItemTxt = string.Empty;
                 }
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
@@ -485,7 +486,7 @@ namespace vrcosc_magicchatbox
 
         private void GitHubChanges_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if(ViewModel.Instance.tagURL == null)
+            if (ViewModel.Instance.tagURL == null)
             {
                 Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
             } else
@@ -523,7 +524,7 @@ namespace vrcosc_magicchatbox
             {
                 Logging.ViewModelDump();
                 Process.Start("explorer.exe", ViewModel.Instance.LogPath);
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex);
             }
@@ -541,7 +542,7 @@ namespace vrcosc_magicchatbox
 
         private void MasterSwitch_Click(object sender, RoutedEventArgs e)
         {
-            if(ViewModel.Instance.MasterSwitch == true)
+            if (ViewModel.Instance.MasterSwitch == true)
             {
                 backgroundCheck.Start();
             } else
@@ -560,7 +561,7 @@ namespace vrcosc_magicchatbox
 
         private void NewChattingTxt_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter)
             {
                 ButtonChattingTxt_Click(sender, e);
             }
@@ -575,12 +576,12 @@ namespace vrcosc_magicchatbox
             var textBox = sender as TextBox;
             int count = textBox.Text.Count();
             ViewModel.Instance.ChatBoxCount = $"{count.ToString()}/140";
-            if(count > 140)
+            if (count > 140)
             {
                 int overmax = count - 140;
                 ViewModel.Instance.ChatBoxColor = "#FFFF9393";
                 ViewModel.Instance.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}.";
-            } else if(count == 0)
+            } else if (count == 0)
             {
                 ViewModel.Instance.ChatBoxColor = "#FF504767";
                 ViewModel.Instance.ChatTopBarTxt = string.Empty;
@@ -598,19 +599,19 @@ namespace vrcosc_magicchatbox
             var textBox = sender as TextBox;
             int count = textBox.Text.Count();
             ViewModel.Instance.StatusBoxCount = $"{count.ToString()}/140";
-            if(count > 140)
+            if (count > 140)
             {
                 int overmax = count - 140;
                 ViewModel.Instance.StatusBoxColor = "#FFFF9393";
                 ViewModel.Instance.StatusTopBarTxt = $"You're soaring past the 140 char limit by {overmax}. Reign in that message!";
-            } else if(count == 0)
+            } else if (count == 0)
             {
                 ViewModel.Instance.StatusBoxColor = "#FF504767";
                 ViewModel.Instance.StatusTopBarTxt = string.Empty;
             } else
             {
                 ViewModel.Instance.StatusBoxColor = "#FF2C2148";
-                if(count > 22)
+                if (count > 22)
                 {
                     ViewModel.Instance.StatusTopBarTxt = $"Buckle up! Keep it tight to 20-25 or integrations may suffer.";
                 } else
@@ -622,7 +623,7 @@ namespace vrcosc_magicchatbox
 
         private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if(ViewModel.Instance.CanUpdate)
+            if (ViewModel.Instance.CanUpdate)
             {
                 ViewModel.Instance.CanUpdate = false;
                 ViewModel.Instance.CanUpdateLabel = false;
@@ -639,9 +640,9 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                if(DataController.CreateIfMissing(ViewModel.Instance.DataPath))
+                if (DataController.CreateIfMissing(ViewModel.Instance.DataPath))
                     Process.Start("explorer.exe", ViewModel.Instance.DataPath);
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex);
             }
@@ -651,9 +652,9 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                if(DataController.CreateIfMissing(ViewModel.Instance.LogPath))
+                if (DataController.CreateIfMissing(ViewModel.Instance.LogPath))
                     Process.Start("explorer.exe", ViewModel.Instance.LogPath);
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex);
             }
@@ -671,7 +672,7 @@ namespace vrcosc_magicchatbox
                         () =>
                         {
                             ViewModel.Instance.ScanPauseCountDown = ViewModel.Instance.ScanPauseCountDown;
-                            if(lastsendchat != null)
+                            if (lastsendchat != null)
                             {
                                 lastsendchat.CanLiveEdit = ViewModel.Instance.ChatLiveEdit;
                                 lastsendchat.LiveEditButtonTxt = ViewModel.Instance.RealTimeChatEdit
@@ -680,12 +681,12 @@ namespace vrcosc_magicchatbox
                             }
                         });
 
-                if(ViewModel.Instance.ScanPauseCountDown <= 0 || !ViewModel.Instance.ScanPause)
+                if (ViewModel.Instance.ScanPauseCountDown <= 0 || !ViewModel.Instance.ScanPause)
                 {
                     ViewModel.Instance.ScanPause = false;
                     pauseTimer.Stop();
                     pauseTimer = null;
-                    if(ViewModel.Instance.ScanPauseCountDown != 0)
+                    if (ViewModel.Instance.ScanPauseCountDown != 0)
                     {
                         ViewModel.Instance.ScanPauseCountDown = 0;
                     }
@@ -694,7 +695,7 @@ namespace vrcosc_magicchatbox
                     OSCSender.SendOSCMessage(false);
                     Timer(null, null);
                 }
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
@@ -706,7 +707,7 @@ namespace vrcosc_magicchatbox
         private void ResetFavorites_Click(object sender, RoutedEventArgs e)
         {
             string xml = System.IO.Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml");
-            if(File.Exists(xml))
+            if (File.Exists(xml))
             {
                 File.Delete(xml);
             }
@@ -719,7 +720,7 @@ namespace vrcosc_magicchatbox
         private void ResetWindowActivity_Click(object sender, RoutedEventArgs e)
         {
             int ItemRemoved = WindowActivity.ResetWindowActivity();
-            if(ItemRemoved > 0)
+            if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = "All apps from history";
             }
@@ -732,9 +733,9 @@ namespace vrcosc_magicchatbox
             {
                 Hide();
                 FireExitSave();
-                
+
                 System.Environment.Exit(1);
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
             }
@@ -758,7 +759,7 @@ namespace vrcosc_magicchatbox
         private void SmartClearnup_Click(object sender, RoutedEventArgs e)
         {
             int ItemRemoved = WindowActivity.SmartCleanup();
-            if(ItemRemoved > 0)
+            if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
             } else
@@ -806,7 +807,7 @@ namespace vrcosc_magicchatbox
                 : 0;
             OSCSender.SendOSCMessage(false, smalldelay);
             Timer(null, null);
-            foreach(var token in _activeCancellationTokens)
+            foreach (var token in _activeCancellationTokens)
             {
                 token.Cancel();
             }
@@ -814,10 +815,10 @@ namespace vrcosc_magicchatbox
 
         private void TikTokTTSVoices_combo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(sender is ComboBox comboBox)
+            if (sender is ComboBox comboBox)
             {
                 var selectedVoice = comboBox.SelectedItem as Voice;
-                if(selectedVoice != null)
+                if (selectedVoice != null)
                 {
                     ViewModel.Instance.SelectedTikTokTTSVoice = selectedVoice;
                     ViewModel.Instance.RecentTikTokTTSVoice = selectedVoice.ApiName;
@@ -829,21 +830,21 @@ namespace vrcosc_magicchatbox
         {
             bool ChatItemActive = ViewModel.Instance.LastMessages.Any(x => x.IsRunning);
 
-            if(ViewModel.Instance.ScanPause && ChatItemActive)
+            if (ViewModel.Instance.ScanPause && ChatItemActive)
             {
-                if(pauseTimer == null)
+                if (pauseTimer == null)
                 {
                     ViewModel.Instance.CountDownUI = false;
                     pauseTimer = new System.Timers.Timer();
                     pauseTimer.Interval = 1000;
                     pauseTimer.Elapsed += PauseTimer_Tick;
                     pauseTimer.Start();
-                    if(ViewModel.Instance.KeepUpdatingChat)
+                    if (ViewModel.Instance.KeepUpdatingChat)
                     {
-                        if(ChatUpdateTimer == null)
+                        if (ChatUpdateTimer == null)
                         {
                             ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
-                            if(lastsendchat != null)
+                            if (lastsendchat != null)
                             {
                                 lastsendchat.LiveEditButtonTxt = "Sending...";
                             }
@@ -856,12 +857,12 @@ namespace vrcosc_magicchatbox
                 }
             } else
             {
-                if(pauseTimer != null)
+                if (pauseTimer != null)
                 {
                     pauseTimer.Stop();
                     pauseTimer = null;
                 }
-                if(ChatUpdateTimer != null)
+                if (ChatUpdateTimer != null)
                 {
                     ChatUpdateTimer.Stop();
                     ChatUpdateTimer = null;
@@ -879,12 +880,12 @@ namespace vrcosc_magicchatbox
                 ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
                 var button = sender as ToggleButton;
                 var item = button.Tag as ChatItem;
-                if((bool)button.IsChecked)
+                if ((bool)button.IsChecked)
                 {
-                    item.MsgReplace = item.Msg.EndsWith(" ")? item.Msg : item.Msg + " ";
+                    item.MsgReplace = item.Msg.EndsWith(" ") ? item.Msg : item.Msg + " ";
 
                     var parent = VisualTreeHelper.GetParent(button);
-                    while(!(parent is ContentPresenter))
+                    while (!(parent is ContentPresenter))
                     {
                         parent = VisualTreeHelper.GetParent(parent);
                     }
@@ -921,7 +922,7 @@ namespace vrcosc_magicchatbox
                                 lastsendchat.MainMsg = item.MsgReplace;
                                 lastsendchat.Msg = item.MsgReplace;
                                 lastsendchat.CanLiveEditRun = false;
-                                
+
                             }
                         }
                     }
@@ -929,7 +930,7 @@ namespace vrcosc_magicchatbox
                     NewChattingTxt.Focus();
                     NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
                 }
-            } catch(Exception)
+            } catch (Exception)
             {
             }
         }
@@ -939,7 +940,7 @@ namespace vrcosc_magicchatbox
 
         private void Update_Click(object sender, RoutedEventArgs e)
         {
-            if(ViewModel.Instance.ScanPause != true)
+            if (!ViewModel.Instance.ScanPause)
             {
                 OSCController.BuildOSC();
             }
@@ -952,19 +953,19 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.MenuItem_1_Visibility = "Hidden";
             ViewModel.Instance.MenuItem_2_Visibility = "Hidden";
             ViewModel.Instance.MenuItem_3_Visibility = "Hidden";
-            if(ViewModel.Instance.CurrentMenuItem == 0)
+            if (ViewModel.Instance.CurrentMenuItem == 0)
             {
                 ViewModel.Instance.MenuItem_0_Visibility = "Visible";
                 return;
-            } else if(ViewModel.Instance.CurrentMenuItem == 1)
+            } else if (ViewModel.Instance.CurrentMenuItem == 1)
             {
                 ViewModel.Instance.MenuItem_1_Visibility = "Visible";
                 return;
-            } else if(ViewModel.Instance.CurrentMenuItem == 2)
+            } else if (ViewModel.Instance.CurrentMenuItem == 2)
             {
                 ViewModel.Instance.MenuItem_2_Visibility = "Visible";
                 return;
-            } else if(ViewModel.Instance.CurrentMenuItem == 3)
+            } else if (ViewModel.Instance.CurrentMenuItem == 3)
             {
                 ViewModel.Instance.MenuItem_3_Visibility = "Visible";
                 return;
@@ -979,14 +980,14 @@ namespace vrcosc_magicchatbox
             {
                 var button = sender as Button;
                 var item = button.Tag as ChatItem;
-                if(ViewModel.Instance.MasterSwitch == false)
+                if (ViewModel.Instance.MasterSwitch == false)
                 {
                     ViewModel.Instance.ChatFeedbackTxt = "Sent to VRChat is off";
                     return;
                 }
-                if(button != null)
+                if (button != null)
                 {
-                    foreach(ChatItem Chatitem in ViewModel.Instance.LastMessages)
+                    foreach (ChatItem Chatitem in ViewModel.Instance.LastMessages)
                     {
                         Chatitem.CanLiveEdit = false;
                         Chatitem.CanLiveEditRun = false;
@@ -1003,7 +1004,7 @@ namespace vrcosc_magicchatbox
                     int smalldelay = ViewModel.Instance.ChatAddSmallDelay
                         ? (int)(ViewModel.Instance.ChatAddSmallDelayTIME * 1000)
                         : 0;
-                    if(ViewModel.Instance.ChatFX && ViewModel.Instance.ChatSendAgainFX)
+                    if (ViewModel.Instance.ChatFX && ViewModel.Instance.ChatSendAgainFX)
                     {
                         OSCSender.SendOSCMessage(false, smalldelay);
                     } else
@@ -1012,9 +1013,9 @@ namespace vrcosc_magicchatbox
                     }
                     ViewModel.Instance.NewChattingTxt = savedtxt;
 
-                    if(ViewModel.Instance.TTSTikTokEnabled == true && ViewModel.Instance.TTSOnResendChat)
+                    if (ViewModel.Instance.TTSTikTokEnabled == true && ViewModel.Instance.TTSOnResendChat)
                     {
-                        if(DataAndSecurity.DataController.PopulateOutputDevices(true))
+                        if (DataAndSecurity.DataController.PopulateOutputDevices(true))
                         {
                             ViewModel.Instance.ChatFeedbackTxt = "Requesting TTS...";
                             MainWindow.TTSGOAsync(item.Msg, true);
@@ -1028,64 +1029,105 @@ namespace vrcosc_magicchatbox
                     }
                     Timer(null, null);
                 }
-            } catch(Exception ex)
+            } catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
             }
         }
 
-        public void scantick()
+        public async void scantick(bool firstrun = false)
+        {
+            long TickEnter = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            if (isProcessing)
+            {
+                return;
+            }
+
+            isProcessing = true;
+
+            try
+            {
+                try
+                {
+                    long nextRunTicks = _nextRun.Ticks / TimeSpan.TicksPerMillisecond;
+
+                    long bufferMilliseconds = 100;
+
+                    if (TickEnter >= (nextRunTicks - bufferMilliseconds) || firstrun)
+                    {
+                        if (backgroundCheck.Interval != TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000))
+                        {
+                            backgroundCheck.Stop();
+                            backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
+                            backgroundCheck.Start();
+                            _nextRun = DateTime.Now.Add(backgroundCheck.Interval);
+                            return;
+                        }
+
+                        // Run the scan
+                        await scantickLogicAsync();
+
+                        // Calculate next run time based on whatever interval you have
+                        _nextRun = DateTime.Now.Add(backgroundCheck.Interval);
+                    }
+                    else
+                    {
+                        Logging.WriteInfo($"Skipped scan tick because: {TickEnter}ms is within range of allowed time: {nextRunTicks}ms");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                }
+            }
+            finally
+            {
+                isProcessing = false;
+            }
+        }
+
+
+
+
+        public async Task scantickLogicAsync()
         {
             try
             {
-                ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning();
+                var tasks = new List<Task>();
+
+                tasks.Add(Task.Run(() => ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning()));
+
                 if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
                 {
-                    ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
-                    ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
+                    tasks.Add(Task.Run(() => ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong()));
+                    tasks.Add(Task.Run(() => ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning()));
                 }
-                if(ViewModel.Instance.IntgrScanWindowActivity == true )
+
+                if (ViewModel.Instance.IntgrScanWindowActivity == true)
                 {
-                    ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
+                    tasks.Add(Task.Run(() => ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName()));
                 }
-                if (ViewModel.Instance.IntgrComponentStats && ViewModel.Instance.IntgrComponentStats_VR &&
-                    ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrComponentStats &&
-                    ViewModel.Instance.IntgrComponentStats_DESKTOP &&
-                    !ViewModel.Instance.IsVRRunning)
+
+                tasks.Add(Task.Run(() => SystemStats.TickAndUpdate()));
+
+                if (ViewModel.Instance.IntgrScanWindowTime == true)
                 {
-
-                    if (SystemStats.CurrentSystem == null)
-                    {
-
-                        SystemStats.StartMonitoringComponents();
-                    }
-                    ViewModel.Instance.SyncComponentStatsList();
-
-                    bool UpdateStatsCompleted = SystemStats.UpdateStats();
-
-                    if(UpdateStatsCompleted)
-                    {
-                        ViewModel.Instance.ComponentStatCombined = ViewModel.Instance._statsManager.GenerateStatsDescription();
-                    }
-
+                    tasks.Add(Task.Run(() => ViewModel.Instance.CurrentTime = SystemStats.GetTime()));
                 }
-                else
-                {
-                    if(SystemStats.CurrentSystem != null)
-                    {
-                        SystemStats.StopMonitoringComponents();
-                    }
-                }
-                if(ViewModel.Instance.IntgrScanWindowTime == true)
-                    ViewModel.Instance.CurrentTime = SystemStats.GetTime();
+
+                Task.WhenAll(tasks);
+
                 ViewModel.Instance.ChatFeedbackTxt = string.Empty;
                 OSCController.BuildOSC();
                 OSCSender.SendOSCMessage(false);
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
+
 
         public void SelectTTS()
         {

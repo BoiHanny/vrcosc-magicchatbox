@@ -37,6 +37,17 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _ComponentStatsRunning = false;
+        public bool ComponentStatsRunning
+        {
+            get { return _ComponentStatsRunning; }
+            set
+            {
+                _ComponentStatsRunning = value;
+                NotifyPropertyChanged(nameof(ComponentStatsRunning));
+            }
+        }
+
         private bool _BlankEgg = false;
 
 
@@ -956,7 +967,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _HeartRate_Opacity = "1";
         private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
-
         private int _OSCPOrtIN = 9001;
 
         public void SyncComponentStatsList()

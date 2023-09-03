@@ -6,6 +6,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using static vrcosc_magicchatbox.ViewModels.ViewModel;
 using LibreHardwareMonitor.Hardware;
+using System.Threading.Tasks;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -17,20 +18,45 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                CurrentSystem = new Computer()
-                {
-                    IsCpuEnabled = true,
-                    IsGpuEnabled = true,
-                    IsMemoryEnabled = true,
-                };
+                CurrentSystem = new Computer() { IsCpuEnabled = true, IsGpuEnabled = true, IsMemoryEnabled = true, };
 
                 CurrentSystem.Open();
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
-            
+        }
+
+        public static void TickAndUpdate()
+        {
+            if(Instance.IntgrComponentStats &&
+                Instance.IntgrComponentStats_VR &&
+                Instance.IsVRRunning ||
+                Instance.IntgrComponentStats &&
+                Instance.IntgrComponentStats_DESKTOP &&
+                !Instance.IsVRRunning)
+            {
+                Instance.ComponentStatsRunning = true;
+                if (CurrentSystem == null)
+                {
+                    StartMonitoringComponents();
+                }
+                Instance.SyncComponentStatsList();
+
+                bool UpdateStatsCompleted = UpdateStats();
+
+                if(UpdateStatsCompleted)
+                {
+                    Instance.ComponentStatCombined = Instance._statsManager.GenerateStatsDescription();
+                }
+            } else
+            {
+                Instance.ComponentStatsRunning = false;
+                if (CurrentSystem != null)
+                {
+                    StopMonitoringComponents();
+                }
+            }
         }
 
         public static void StopMonitoringComponents()
@@ -39,37 +65,39 @@ namespace vrcosc_magicchatbox.Classes
             {
                 CurrentSystem.Close();
                 CurrentSystem = null;
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
-
         }
 
-        private static DateTimeOffset GetDateTimeWithZone(bool autoSetDaylight, bool timeShowTimeZone, DateTimeOffset localDateTime, TimeZoneInfo timeZoneInfo, out TimeSpan timeZoneOffset)
+        private static DateTimeOffset GetDateTimeWithZone(
+            bool autoSetDaylight,
+            bool timeShowTimeZone,
+            DateTimeOffset localDateTime,
+            TimeZoneInfo timeZoneInfo,
+            out TimeSpan timeZoneOffset)
         {
             DateTimeOffset dateTimeWithZone;
 
-            if (autoSetDaylight)
+            if(autoSetDaylight)
             {
-                if (timeShowTimeZone)
+                if(timeShowTimeZone)
                 {
                     timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
                     dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
-                }
-                else
+                } else
                 {
                     timeZoneOffset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
                     dateTimeWithZone = localDateTime;
                 }
-            }
-            else
+            } else
             {
                 timeZoneOffset = timeZoneInfo.BaseUtcOffset;
-                if (ViewModel.Instance.UseDaylightSavingTime)
+                if(ViewModel.Instance.UseDaylightSavingTime)
                 {
-                    TimeSpan adjustment = timeZoneInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta ?? TimeSpan.Zero;
+                    TimeSpan adjustment = timeZoneInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta ??
+                        TimeSpan.Zero;
                     timeZoneOffset = timeZoneOffset.Add(adjustment);
                 }
                 dateTimeWithZone = localDateTime.ToOffset(timeZoneOffset);
@@ -77,16 +105,19 @@ namespace vrcosc_magicchatbox.Classes
             return dateTimeWithZone;
         }
 
-        private static string GetFormattedTime(DateTimeOffset dateTimeWithZone, bool time24H, bool timeShowTimeZone, string timeZoneDisplay)
+        private static string GetFormattedTime(
+            DateTimeOffset dateTimeWithZone,
+            bool time24H,
+            bool timeShowTimeZone,
+            string timeZoneDisplay)
         {
             CultureInfo userCulture = CultureInfo.CurrentCulture;
             string timeFormat = time24H ? "HH:mm" : "hh:mm tt";
 
-            if (timeShowTimeZone)
+            if(timeShowTimeZone)
             {
                 return dateTimeWithZone.ToString($"{timeFormat}{timeZoneDisplay}", userCulture);
-            }
-            else
+            } else
             {
                 return dateTimeWithZone.ToString(timeFormat, CultureInfo.InvariantCulture).ToUpper();
             }
@@ -100,7 +131,7 @@ namespace vrcosc_magicchatbox.Classes
                 TimeZoneInfo timeZoneInfo;
                 string timezoneLabel = null;
 
-                switch (ViewModel.Instance.SelectedTimeZone)
+                switch(ViewModel.Instance.SelectedTimeZone)
                 {
                     case Timezone.UTC:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("UTC");
@@ -133,16 +164,20 @@ namespace vrcosc_magicchatbox.Classes
                 }
 
                 TimeSpan timeZoneOffset;
-                var dateTimeWithZone = GetDateTimeWithZone(ViewModel.Instance.AutoSetDaylight,
-                                                            ViewModel.Instance.TimeShowTimeZone,
-                                                            localDateTime,
-                                                            timeZoneInfo,
-                                                            out timeZoneOffset);
+                var dateTimeWithZone = GetDateTimeWithZone(
+                    ViewModel.Instance.AutoSetDaylight,
+                    ViewModel.Instance.TimeShowTimeZone,
+                    localDateTime,
+                    timeZoneInfo,
+                    out timeZoneOffset);
 
                 string timeZoneDisplay = $" ({timezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "-" : "+")}{timeZoneOffset.Hours.ToString("00")})";
-                return GetFormattedTime(dateTimeWithZone, ViewModel.Instance.Time24H, ViewModel.Instance.TimeShowTimeZone, timeZoneDisplay);
-            }
-            catch (Exception ex)
+                return GetFormattedTime(
+                    dateTimeWithZone,
+                    ViewModel.Instance.Time24H,
+                    ViewModel.Instance.TimeShowTimeZone,
+                    timeZoneDisplay);
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "00:00 XX";
@@ -156,13 +191,11 @@ namespace vrcosc_magicchatbox.Classes
             {
                 // Fetches the ComponentStatsItem for the given type.
                 ComponentStatsItem GetStatsItem(StatsComponentType type)
-                {
-                    return ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type);
-                }
+                { return ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type); }
 
                 // CPU stats
                 var cpuStatItem = GetStatsItem(StatsComponentType.CPU);
-                if (cpuStatItem != null && cpuStatItem.IsEnabled)
+                if(cpuStatItem != null && cpuStatItem.IsEnabled)
                 {
                     string cpuValue = FetchCPUStat();
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.CPU, cpuValue);
@@ -171,7 +204,7 @@ namespace vrcosc_magicchatbox.Classes
 
                 // GPU stats
                 var gpuStatItem = GetStatsItem(StatsComponentType.GPU);
-                if (gpuStatItem != null && gpuStatItem.IsEnabled)
+                if(gpuStatItem != null && gpuStatItem.IsEnabled)
                 {
                     string gpuValue = FetchGPUStat();
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.GPU, gpuValue);
@@ -180,7 +213,7 @@ namespace vrcosc_magicchatbox.Classes
 
                 // RAM stats
                 var ramStatItem = GetStatsItem(StatsComponentType.RAM);
-                if (ramStatItem != null && ramStatItem.IsEnabled)
+                if(ramStatItem != null && ramStatItem.IsEnabled)
                 {
                     var (usedMemory, totalMemory) = FetchRAMStats();
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.RAM, usedMemory);
@@ -189,7 +222,7 @@ namespace vrcosc_magicchatbox.Classes
 
                 // VRAM stats
                 var vramStatItem = GetStatsItem(StatsComponentType.VRAM);
-                if (vramStatItem != null && vramStatItem.IsEnabled)
+                if(vramStatItem != null && vramStatItem.IsEnabled)
                 {
                     string vramValue = FetchVRAMStat();
                     string vramValueMax = FetchVRAMMaxStat();
@@ -199,16 +232,14 @@ namespace vrcosc_magicchatbox.Classes
 
                 // FPS stats
                 var fpsStatItem = GetStatsItem(StatsComponentType.FPS);
-                if (fpsStatItem != null && fpsStatItem.IsEnabled)
+                if(fpsStatItem != null && fpsStatItem.IsEnabled)
                 {
                     string fpsValue = FetchFPSStat();
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.FPS, fpsValue);
                 }
-            }
-            catch (Exception)
+            } catch(Exception)
             {
-
-               return false;
+                return false;
             }
             return true;
         }
@@ -218,12 +249,11 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
                 Process[] pname = Process.GetProcessesByName("vrmonitor");
-                if (pname.Length == 0)
+                if(pname.Length == 0)
                     return false;
                 else
                     return true;
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return false;
@@ -236,23 +266,22 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
                 var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
-                if (cpuHardware != null)
+                if(cpuHardware != null)
                 {
                     cpuHardware.Update();
-                    var loadSensor = cpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name == "CPU Total");
-                    if (loadSensor != null)
+                    var loadSensor = cpuHardware.Sensors
+                        .FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name == "CPU Total");
+                    if(loadSensor != null)
                     {
                         return $"{loadSensor.Value:F1}";
                     }
                 }
                 return "N/A";
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "N/A";
             }
-            
         }
 
 
@@ -263,37 +292,31 @@ namespace vrcosc_magicchatbox.Classes
                 LibreHardwareMonitor.Hardware.Hardware GetDedicatedGPU(HardwareType type)
                 {
                     return CurrentSystem.Hardware
-                           .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
+                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
                            as LibreHardwareMonitor.Hardware.Hardware;
                 }
 
-                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia)
-                               ?? GetDedicatedGPU(HardwareType.GpuAmd)
-                               ?? CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
+                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia) ??
+                    GetDedicatedGPU(HardwareType.GpuAmd) ??
+                    CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
 
-                if (gpuHardware != null)
+                if(gpuHardware != null)
                 {
                     gpuHardware.Update();
-                    var loadSensor = gpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name == "GPU Core");
-                    if (loadSensor != null)
+                    var loadSensor = gpuHardware.Sensors
+                        .FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name == "GPU Core");
+                    if(loadSensor != null)
                     {
                         return $"{loadSensor.Value:F1}";
                     }
                 }
                 return "N/A";
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "N/A";
             }
-            
         }
-
-
-
-
-
 
 
         private static string FetchVRAMStat()
@@ -303,32 +326,31 @@ namespace vrcosc_magicchatbox.Classes
                 LibreHardwareMonitor.Hardware.Hardware GetDedicatedGPU(HardwareType type)
                 {
                     return CurrentSystem.Hardware
-                           .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
+                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
                            as LibreHardwareMonitor.Hardware.Hardware;
                 }
 
-                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia)
-                               ?? GetDedicatedGPU(HardwareType.GpuAmd)
-                               ?? CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
+                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia) ??
+                    GetDedicatedGPU(HardwareType.GpuAmd) ??
+                    CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
 
-                if (gpuHardware != null)
+                if(gpuHardware != null)
                 {
                     gpuHardware.Update();
-                    var usedVRAMSensor = gpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name == "GPU Memory Used");
-                    if (usedVRAMSensor != null)
+                    var usedVRAMSensor = gpuHardware.Sensors
+                        .FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name == "GPU Memory Used");
+                    if(usedVRAMSensor != null)
                     {
                         double vramInGB = (double)usedVRAMSensor.Value / 1024; // Convert MB to GB
                         return $"{vramInGB:F1}";
                     }
                 }
                 return "N/A";
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "N/A";
             }
-            
         }
 
         private static string FetchVRAMMaxStat()
@@ -338,32 +360,31 @@ namespace vrcosc_magicchatbox.Classes
                 LibreHardwareMonitor.Hardware.Hardware GetDedicatedGPU(HardwareType type)
                 {
                     return CurrentSystem.Hardware
-                           .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
+                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
                            as LibreHardwareMonitor.Hardware.Hardware;
                 }
 
-                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia)
-                               ?? GetDedicatedGPU(HardwareType.GpuAmd)
-                               ?? CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
+                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia) ??
+                    GetDedicatedGPU(HardwareType.GpuAmd) ??
+                    CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
 
-                if (gpuHardware != null)
+                if(gpuHardware != null)
                 {
                     gpuHardware.Update();
-                    var totalVRAMSensor = gpuHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name == "GPU Memory Total");
-                    if (totalVRAMSensor != null)
+                    var totalVRAMSensor = gpuHardware.Sensors
+                        .FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name == "GPU Memory Total");
+                    if(totalVRAMSensor != null)
                     {
                         double vramMaxInGB = (double)totalVRAMSensor.Value / 1024; // Convert MB to GB
                         return $"{vramMaxInGB:F1}";
                     }
                 }
                 return "N/A";
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "N/A";
             }
-            
         }
 
         private static (string UsedMemory, string MaxMemory) FetchRAMStats()
@@ -371,17 +392,19 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
                 var ramHardware = CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Memory);
-                if (ramHardware != null)
+                if(ramHardware != null)
                 {
                     ramHardware.Update();
 
                     // Fetch the 'Memory Available' sensor value
-                    var availableMemorySensor = ramHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Data && s.Name == "Memory Available");
+                    var availableMemorySensor = ramHardware.Sensors
+                        .FirstOrDefault(s => s.SensorType == SensorType.Data && s.Name == "Memory Available");
 
                     // Fetch the 'Memory Used' sensor value
-                    var usedMemorySensor = ramHardware.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Data && s.Name == "Memory Used");
+                    var usedMemorySensor = ramHardware.Sensors
+                        .FirstOrDefault(s => s.SensorType == SensorType.Data && s.Name == "Memory Used");
 
-                    if (availableMemorySensor != null && usedMemorySensor != null)
+                    if(availableMemorySensor != null && usedMemorySensor != null)
                     {
                         // Calculate the total memory (in GB)
                         var totalMemory = availableMemorySensor.Value + usedMemorySensor.Value;
@@ -389,13 +412,11 @@ namespace vrcosc_magicchatbox.Classes
                     }
                 }
                 return ("N/A", "N/A");
-            }
-            catch (Exception ex)
+            } catch(Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return ("N/A", "N/A");
             }
-            
         }
 
         private static string FetchFPSStat()
@@ -403,17 +424,5 @@ namespace vrcosc_magicchatbox.Classes
             // Replace with actual FPS fetching logic.
             return "88";
         }
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

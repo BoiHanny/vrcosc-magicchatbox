@@ -3682,7 +3682,7 @@
                                                 Foreground="#ABA4B8"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="Last update:"
-                                                Visibility="{Binding IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                Visibility="{Binding ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 <TextBlock.Effect>
                                                     <DropShadowEffect
                                                         BlurRadius="10"
@@ -3693,14 +3693,14 @@
                                             </TextBlock>
                                             <TextBlock
                                                 Grid.Row="0"
-                                                Margin="3,9,0,0"
+                                                Margin="3,10,0,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Comfortaa Light"
                                                 FontSize="11"
                                                 Foreground="#ABA4B8"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="{Binding ComponentStatsLastUpdate, StringFormat='{}{0:T}'}"
-                                                Visibility="{Binding IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                Visibility="{Binding ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 <TextBlock.Effect>
                                                     <DropShadowEffect
                                                         BlurRadius="10"
@@ -3777,7 +3777,7 @@
                                     Height="auto"
                                     Background="#230E52"
                                     CornerRadius="0,0,5,5"
-                                    Visibility="{Binding IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                    Visibility="{Binding ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
                                     <Border CornerRadius="5" Margin="5" Background="#391E72">
                                         <StackPanel  Margin="4,4" Orientation="Horizontal">
 

@@ -183,7 +183,7 @@ namespace vrcosc_magicchatbox.Classes
 
         public static void AddComponentStat(List<string> Uncomplete)
         {
-            if(ViewModel.Instance.IntgrComponentStats && !string.IsNullOrEmpty(ViewModel.Instance.ComponentStatCombined))
+            if(ViewModel.Instance.IntgrComponentStats && !string.IsNullOrEmpty(ViewModel.Instance.ComponentStatCombined) && ViewModel.Instance.ComponentStatsRunning)
             {
                 string? x = ViewModel.Instance.ComponentStatCombined;
                 TryAddToUncomplete(Uncomplete, x, "ComponentStat");
