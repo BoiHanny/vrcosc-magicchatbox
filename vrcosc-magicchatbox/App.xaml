@@ -595,7 +595,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
 
         <Style x:Key="SubtractButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual2}" />

@@ -1038,7 +1038,8 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                if(ViewModel.Instance.IntgrScanSpotify_OLD == true)
+                ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning();
+                if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
                 {
                     ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong();
                     ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning();
@@ -1048,21 +1049,20 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName();
                 }
                 if (ViewModel.Instance.IntgrComponentStats && ViewModel.Instance.IntgrComponentStats_VR &&
-                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrComponentStats &&
                     ViewModel.Instance.IntgrComponentStats_DESKTOP &&
                     !ViewModel.Instance.IsVRRunning)
                 {
 
                     if (SystemStats.CurrentSystem == null)
                     {
-                        ViewModel.Instance.SyncComponentStatsList();
+
                         SystemStats.StartMonitoringComponents();
                     }
-                    else
-                    {
-                        ViewModel.Instance.SyncComponentStatsList();
-                    }
+                    ViewModel.Instance.SyncComponentStatsList();
+
                     bool UpdateStatsCompleted = SystemStats.UpdateStats();
+
                     if(UpdateStatsCompleted)
                     {
                         ViewModel.Instance.ComponentStatCombined = ViewModel.Instance._statsManager.GenerateStatsDescription();
@@ -1076,8 +1076,6 @@ namespace vrcosc_magicchatbox
                         SystemStats.StopMonitoringComponents();
                     }
                 }
-
-                ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning();
                 if(ViewModel.Instance.IntgrScanWindowTime == true)
                     ViewModel.Instance.CurrentTime = SystemStats.GetTime();
                 ViewModel.Instance.ChatFeedbackTxt = string.Empty;

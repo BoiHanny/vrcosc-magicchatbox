@@ -82,7 +82,7 @@ namespace vrcosc_magicchatbox.Classes
                             unit = "﹪";
                             break;
                         case StatsComponentType.GPU:
-                            unit = "﹪"; // assuming GPU also uses percentage
+                            unit = "﹪";
                             break;
                         case StatsComponentType.RAM:
                             unit = "ᵍᵇ";
@@ -107,8 +107,6 @@ namespace vrcosc_magicchatbox.Classes
                         unit
                     );
 
-                    // Determine whether to show the unit for each type
-                    // For example, if you don't want to show units for FPS, do:
                     if (type == StatsComponentType.FPS)
                     {
                         component.ShowUnit = false;
