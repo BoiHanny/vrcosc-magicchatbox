@@ -253,17 +253,22 @@ namespace vrcosc_magicchatbox
 
         private void CancelEditChatbutton_Click(object sender, RoutedEventArgs e)
         {
-            var Button = sender as Button;
-            ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
-
-            if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
+            try
             {
-                lastsendchat.CanLiveEditRun = false;
-                lastsendchat.Msg = lastsendchat.MainMsg;
+                var Button = sender as Button;
+                ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
+
+                if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
+                {
+                    lastsendchat.CancelLiveEdit = true;
+                    lastsendchat.CanLiveEditRun = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
 
-            NewChattingTxt.Focus();
-            NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
         }
 
         private void ChatUpdateTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
@@ -409,10 +414,8 @@ namespace vrcosc_magicchatbox
                 {
                     if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
                     {
+                        lastsendchat.CancelLiveEdit = true;
                         lastsendchat.CanLiveEditRun = false;
-                        lastsendchat.Msg = lastsendchat.MainMsg;
-                        NewChattingTxt.Focus();
-                        NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
                     }
                 }
             } else
@@ -435,10 +438,8 @@ namespace vrcosc_magicchatbox
                 {
                     if (!string.IsNullOrEmpty(lastsendchat.MainMsg))
                     {
+                        lastsendchat.CancelLiveEdit = true;
                         lastsendchat.CanLiveEditRun = false;
-                        lastsendchat.Msg = lastsendchat.MainMsg;
-                        NewChattingTxt.Focus();
-                        NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
                     }
                 }
             }
@@ -905,11 +906,16 @@ namespace vrcosc_magicchatbox
                     {
                         if (item != null && lastsendchat != null)
                         {
-                            if (lastsendchat.Msg != item.MsgReplace)
+                            if (lastsendchat.Msg != item.MsgReplace && !lastsendchat.CancelLiveEdit)
                             {
                                 lastsendchat.MainMsg = item.MsgReplace;
                                 lastsendchat.Msg = item.MsgReplace;
                                 lastsendchat.CanLiveEditRun = false;
+                            }
+                            else if (lastsendchat.CancelLiveEdit)
+                            {
+                                lastsendchat.Msg = lastsendchat.MainMsg;
+                                lastsendchat.CancelLiveEdit = false;
                             }
                         }
                     }
@@ -917,15 +923,19 @@ namespace vrcosc_magicchatbox
                     {
                         if (item != null && lastsendchat != null)
                         {
-                            if (lastsendchat.Msg != item.MsgReplace)
+                            if (lastsendchat.Msg != item.MsgReplace && !lastsendchat.CancelLiveEdit)
                             {
                                 lastsendchat.MainMsg = item.MsgReplace;
                                 lastsendchat.Msg = item.MsgReplace;
                                 lastsendchat.CanLiveEditRun = false;
-
+                            }
+                            else if(lastsendchat.CancelLiveEdit)
+                            {
+                                lastsendchat.CancelLiveEdit = false;
                             }
                         }
                     }
+                    
                     item.Opacity = item.Opacity_backup;
                     NewChattingTxt.Focus();
                     NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;

@@ -3051,6 +3051,7 @@
                                                         HorizontalAlignment="Right"
                                                         Click="OnSendAgain"
                                                         Content="Resend"
+                                                        IsEnabled="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
                                                         Style="{DynamicResource Status_Button_style}"
                                                         Tag="{Binding}" />
                                                     <Button

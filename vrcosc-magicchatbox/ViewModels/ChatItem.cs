@@ -24,6 +24,17 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _CancelLiveEdit = false;
+        public bool CancelLiveEdit
+        {
+            get { return _CancelLiveEdit; }
+            set
+            {
+                _CancelLiveEdit = value;
+                NotifyPropertyChanged(nameof(CancelLiveEdit));
+            }
+        }
+
 
         public string Opacity
         {
