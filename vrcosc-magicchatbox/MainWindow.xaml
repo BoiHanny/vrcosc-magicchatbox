@@ -29,6 +29,10 @@
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
+    <Window.DataContext>
+        <vm:ViewModel />
+    </Window.DataContext>
+
     <i:Interaction.Behaviors>
         <local:CustomKeyBinding Key="V" Command="{Binding ToggleVoiceCommand}" />
     </i:Interaction.Behaviors>
