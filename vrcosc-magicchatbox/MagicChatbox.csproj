@@ -134,10 +134,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PulsoidOAuthLib\PulsoidOAuthLib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="CoreOSC">
       <HintPath>..\..\..\..\..\..\Temp\CoreOSC.dll</HintPath>
     </Reference>

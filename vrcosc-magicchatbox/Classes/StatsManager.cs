@@ -66,7 +66,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 Logging.WriteException(ex);
             }
-            
+
         }
 
         private void InitializeDefaultStats()
@@ -120,7 +120,7 @@ namespace vrcosc_magicchatbox.Classes
             {
                 Logging.WriteException(ex);
             }
-           
+
         }
 
 
