@@ -936,7 +936,7 @@ namespace vrcosc_magicchatbox
                             }
                         }
                     }
-                    
+
                     item.Opacity = item.Opacity_backup;
                     NewChattingTxt.Focus();
                     NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
@@ -1229,5 +1229,43 @@ namespace vrcosc_magicchatbox
                 }
             }
         }
+
+        private void ConnectWithPulsoid_Click(object sender, RoutedEventArgs e)
+        {
+            _ = ConnectPulsoidAsync();
+        }
+
+        public async Task ConnectPulsoidAsync()
+        {
+            try
+            {
+                string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                const string clientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
+                const string redirectUri = "http://localhost:7384/";
+                const string scope = "data:heart_rate:read";
+                var authorizationEndpoint = $"https://pulsoid.net/oauth2/authorize?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}";
+
+                var oauthHandler = new PulsoidOAuthHandler();
+                string fragmentString = await oauthHandler.AuthenticateUserAsync(authorizationEndpoint);
+
+                if (string.IsNullOrEmpty(fragmentString)) return;
+
+                var fragment = PulsoidOAuthHandler.ParseQueryString(fragmentString);
+                string accessToken;
+
+                if (fragment.TryGetValue("access_token", out accessToken) && !string.IsNullOrEmpty(accessToken))
+                {
+                    if (await oauthHandler.ValidateTokenAsync(accessToken))
+                    {
+                        ViewModel.Instance.PulsoidAccessTokenOAuth = accessToken;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
     }
 }

@@ -1,19 +1,26 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using System.IO;
+using System.Web;
+using System.Threading;
+using System.Linq;
+using System.ComponentModel;
+using vrcosc_magicchatbox.ViewModels;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
+using Newtonsoft.Json.Linq;
+using vrcosc_magicchatbox.DataAndSecurity;
+
+
 
 namespace vrcosc_magicchatbox.Classes
 {
-    public class HeartRateConnector
+    public class PulsoidConnector
     {
 
         private CancellationTokenSource? _cts;
@@ -37,6 +44,13 @@ namespace vrcosc_magicchatbox.Classes
             double slope = sumXY / sumXX;
             return slope;
         }
+
+        public static void UpdateFormattedHeartRateText()
+        {
+            ViewModel.Instance.FormattedLowHeartRateText = DataController.TransformToSuperscript(ViewModel.Instance.LowHeartRateText);
+            ViewModel.Instance.FormattedHighHeartRateText = DataController.TransformToSuperscript(ViewModel.Instance.HighHeartRateText);
+        }
+
 
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -62,6 +76,7 @@ namespace vrcosc_magicchatbox.Classes
             }
 
             _cts = new CancellationTokenSource();
+            UpdateFormattedHeartRateText();
             Task.Run(async () => await HeartRateMonitoringLoopAsync(_cts.Token), _cts.Token);
         }
 
@@ -133,6 +148,28 @@ namespace vrcosc_magicchatbox.Classes
                             }
                         }
 
+                        if (ViewModel.Instance.MagicHeartRateIcons)
+                        {
+                            // Always cycle through heart icons
+                            ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
+                            ViewModel.Instance.CurrentHeartIconIndex = (ViewModel.Instance.CurrentHeartIconIndex + 1) % ViewModel.Instance.HeartIcons.Count;
+
+                            // Append additional icons based on heart rate, if the toggle is enabled
+                            if (ViewModel.Instance.ShowTemperatureIcons)
+                            {
+                                if (heartRate < ViewModel.Instance.LowTemperatureThreshold)
+                                {
+                                    ViewModel.Instance.HeartRateIcon += ViewModel.Instance.FormattedLowHeartRateText;
+                                }
+                                else if (heartRate >= ViewModel.Instance.HighTemperatureThreshold)
+                                {
+                                    ViewModel.Instance.HeartRateIcon += ViewModel.Instance.FormattedHighHeartRateText;
+                                }
+                            }
+                        }
+
+
+
                         if (ViewModel.Instance.HeartRate != heartRate)
                         {
                             ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
@@ -165,11 +202,6 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-
-
-
-
-
         private void StopMonitoringHeartRateAsync()
         {
             if (_cts != null)
@@ -183,7 +215,17 @@ namespace vrcosc_magicchatbox.Classes
         public static async Task<int> GetHeartRateViaHttpAsync()
         {
 
-            string accessToken = ViewModel.Instance.PulsoidAccessToken;
+            string accessToken = ViewModel.Instance.PulsoidAccessTokenOAuth;
+            if(string.IsNullOrEmpty(accessToken))
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.PulsoidAccessError = true;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = "No Pulsoid access token found. Please connect with the Pulsoid Authentication server";
+                });
+                return -1;
+            }
+
             string url = "https://dev.pulsoid.net/api/v1/data/heart_rate/latest";
 
             try
@@ -267,4 +309,89 @@ namespace vrcosc_magicchatbox.Classes
 
 
     }
+
+
+    public class PulsoidOAuthHandler
+    {
+        private readonly HttpClient httpClient;
+        private const string ValidationEndpoint = "https://dev.pulsoid.net/api/v1/token/validate";
+        private const string RedirectUri = "http://localhost:7384/";
+        private const string SecondListener = "http://localhost:7385/";
+
+        public PulsoidOAuthHandler()
+        {
+            httpClient = new HttpClient();
+        }
+
+        public async Task<string> AuthenticateUserAsync(string authorizationEndpoint)
+        {
+            string token = null;
+
+            using (var secondListener = new HttpListener { Prefixes = { SecondListener } })
+            {
+                secondListener.Start();
+
+                using (var httpListener = new HttpListener { Prefixes = { RedirectUri } })
+                {
+                    httpListener.Start();
+                    Process.Start(new ProcessStartInfo { FileName = authorizationEndpoint, UseShellExecute = true });
+
+                    // Intercept OAuth2 redirect and return HTML/JS page
+                    var context1 = await httpListener.GetContextAsync();
+                    await SendBrowserCloseResponseAsync(context1.Response);
+
+                    // Second listener to get the fragment
+                    var context2 = await secondListener.GetContextAsync();
+                    var reader = new StreamReader(context2.Request.InputStream);
+                    token = reader.ReadToEnd();
+                }
+
+                secondListener.Stop();
+            }
+
+            return token;
+        }
+
+        public async Task<bool> ValidateTokenAsync(string accessToken)
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await httpClient.GetAsync(ValidationEndpoint);
+
+            return response.IsSuccessStatusCode;
+        }
+
+        private async Task SendBrowserCloseResponseAsync(HttpListenerResponse response)
+        {
+            const string responseString = @"
+    <html>
+        <head>
+            <script type='text/javascript'>
+                var fragment = window.location.hash.substring(1);
+                var xhttp = new XMLHttpRequest();
+                xhttp.open('POST', 'http://localhost:7385/', true);
+                xhttp.send(fragment);
+
+                // Redirect to Pulsoid integrations page
+                window.location.replace('https://pulsoid.net/ui/integrations');
+            </script>
+        </head>
+        <body></body>
+    </html>";
+
+
+            var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+            response.ContentLength64 = buffer.Length;
+            await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+            response.OutputStream.Close();
+        }
+
+
+        public static Dictionary<string, string> ParseQueryString(string queryString)
+        {
+            var nvc = HttpUtility.ParseQueryString(queryString);
+            return nvc.AllKeys.ToDictionary(k => k, k => nvc[k]);
+        }
+    }
+
+
 }

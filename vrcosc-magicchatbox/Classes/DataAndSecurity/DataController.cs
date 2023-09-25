@@ -22,6 +22,25 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     {
         private static bool isUpdateCheckRunning = false;
 
+        private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
+        {
+            {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
+            {'f', "ᶠ"}, {'g', "ᵍ"}, {'h', "ʰ"}, {'i', "ⁱ"}, {'j', "ʲ"},
+            {'k', "ᵏ"}, {'l', "ˡ"}, {'m', "ᵐ"}, {'n', "ⁿ"}, {'o', "ᵒ"},
+            {'p', "ᵖ"}, {'q', "ᑫ"}, {'r', "ʳ"}, {'s', "ˢ"}, {'t', "ᵗ"},
+            {'u', "ᵘ"}, {'v', "ᵛ"}, {'w', "ʷ"}, {'x', "ˣ"}, {'y', "ʸ"},
+            {'z', "ᶻ"}
+        };
+
+        public static string TransformToSuperscript(string input)
+        {
+            return new string(input
+                .Where(char.IsLetter)
+                .Select(c => SuperscriptMapping.ContainsKey(c) ? SuperscriptMapping[c] : c.ToString())
+                .SelectMany(s => s)
+                .ToArray());
+        }
+
         private static void CheckForUpdate()
         {
             try
@@ -236,19 +255,19 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "BlankEgg", (typeof(bool), "DEV") },
                 { "Egg_Dev", (typeof(bool), "DEV") },
 
-                { "PulsoidAccessToken", (typeof(string), "HeartRateConnector") },
-                { "HeartRateScanInterval_v1", (typeof(int), "HeartRateConnector") },
-                { "HeartRate", (typeof(int), "HeartRateConnector") },
-                { "HeartRateLastUpdate", (typeof(DateTime), "HeartRateConnector") },
-                { "ShowBPMSuffix", (typeof(bool), "HeartRateConnector") },
-                { "ApplyHeartRateAdjustment", (typeof(bool), "HeartRateConnector") },
-                { "HeartRateAdjustment", (typeof(int), "HeartRateConnector") },
-                { "SmoothHeartRate_v1", (typeof(bool), "HeartRateConnector") },
-                { "SmoothHeartRateTimeSpan", (typeof(int), "HeartRateConnector") },
-                { "HeartRateTrendIndicatorSensitivity", (typeof(double), "HeartRateConnector") },
-                { "ShowHeartRateTrendIndicator", (typeof(bool), "HeartRateConnector") },
-                { "HeartRateTrendIndicatorSampleRate", (typeof(int), "HeartRateConnector") },
-                { "HeartRateTitle", (typeof(bool), "HeartRateConnector") },
+                { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
+                { "HeartRateScanInterval_v1", (typeof(int), "PulsoidConnector") },
+                { "HeartRate", (typeof(int), "PulsoidConnector") },
+                { "HeartRateLastUpdate", (typeof(DateTime), "PulsoidConnector") },
+                { "ShowBPMSuffix", (typeof(bool), "PulsoidConnector") },
+                { "ApplyHeartRateAdjustment", (typeof(bool), "PulsoidConnector") },
+                { "HeartRateAdjustment", (typeof(int), "PulsoidConnector") },
+                { "SmoothHeartRate_v1", (typeof(bool), "PulsoidConnector") },
+                { "SmoothHeartRateTimeSpan", (typeof(int), "PulsoidConnector") },
+                { "HeartRateTrendIndicatorSensitivity", (typeof(double), "PulsoidConnector") },
+                { "ShowHeartRateTrendIndicator", (typeof(bool), "PulsoidConnector") },
+                { "HeartRateTrendIndicatorSampleRate", (typeof(int), "PulsoidConnector") },
+                { "HeartRateTitle", (typeof(bool), "PulsoidConnector") },
 
 
                 { "Settings_Status", (typeof(bool), "OptionsTabState") },
@@ -496,7 +515,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                            Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
                         Instance.SavedSessionSettings = new List<MediaSessionSettings>();
                         return;
-                    }    
+                    }
                     Instance.SavedSessionSettings = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
                 }
                 else
@@ -622,7 +641,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
-            
+
         }
 
         public static bool PopulateOutputDevices(bool beforeTTS = false)

@@ -51,12 +51,16 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
+                // Pick the correct heart icon
+                string heartIcon = ViewModel.Instance.MagicHeartRateIcons ? ViewModel.Instance.HeartRateIcon : "💖";
+
                 if (ViewModel.Instance.HeartRateTitle)
                 {
                     string hrTitle = "Heart rate" + (ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ");
                     string x = (ViewModel.Instance.ShowBPMSuffix
                         ? ViewModel.Instance.HeartRate + " bpm"
-                        : (ViewModel.Instance.SeperateWithENTERS ? "💖 " : string.Empty) + ViewModel.Instance.HeartRate);
+                        : (ViewModel.Instance.SeperateWithENTERS ? heartIcon + " " : string.Empty) + ViewModel.Instance.HeartRate);
+
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
                         x = x + ViewModel.Instance.HeartRateTrendIndicator;
@@ -67,7 +71,8 @@ namespace vrcosc_magicchatbox.Classes
                 {
                     string x = (ViewModel.Instance.ShowBPMSuffix
                         ? ViewModel.Instance.HeartRate + " bpm"
-                        : "💖 " + ViewModel.Instance.HeartRate);
+                        : heartIcon + " " + ViewModel.Instance.HeartRate);
+
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
                         x = x + ViewModel.Instance.HeartRateTrendIndicator;
@@ -76,6 +81,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
             }
         }
+
 
         public static void AddMediaLink(List<string> Uncomplete)
         {

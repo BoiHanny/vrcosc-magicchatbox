@@ -1119,6 +1119,7 @@
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                 Tag="Heart monitoring options"
                                 TextOptions.TextRenderingMode="ClearType" />
+
                             <TextBlock
                                 x:Name="LearnMoreAboutHeartbtn"
                                 Width="auto"
@@ -1159,7 +1160,7 @@
                                         BorderThickness="0"
                                         FontSize="15"
                                         Foreground="#FF240E54"
-                                        Text="{Binding PulsoidAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        Text="{Binding PulsoidAccessTokenOAuth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Width="400"
                                         Padding="10,0,0,0"
@@ -1206,6 +1207,7 @@
                                     Unchecked="Update_Click">
                                     Heart rate adjustment
                                 </CheckBox>
+                                <Button Height="auto" Width="200" Content="WOW" x:Name="ConnectWithPulsoid" Click="ConnectWithPulsoid_Click" />
                                 <StackPanel Margin="0,-5,0,0" Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <TextBlock
                                         Grid.Column="0"

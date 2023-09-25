@@ -8,34 +8,34 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
     internal static class EncryptionMethods
     {
 
-        //public static string EncryptString(string plainText)
-        //{
-        //    byte[] iv = new byte[16];
-        //    byte[] array;
+        public static string EncryptString(string plainText)
+        {
+            byte[] iv = new byte[16];
+            byte[] array;
 
-        //    using (Aes aes = Aes.Create())
-        //    {
-        //        aes.Key = Encoding.UTF8.GetBytes(ViewModel.Instance.aesKey);
-        //        aes.IV = iv;
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(ViewModel.Instance.aesKey);
+                aes.IV = iv;
 
-        //        ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
-        //        using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream())
-        //        {
-        //            using (CryptoStream cryptoStream = new CryptoStream((System.IO.Stream)memoryStream, encryptor, CryptoStreamMode.Write))
-        //            {
-        //                using (System.IO.StreamWriter streamWriter = new System.IO.StreamWriter((System.IO.Stream)cryptoStream))
-        //                {
-        //                    streamWriter.Write(plainText);
-        //                }
+                using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream())
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream((System.IO.Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (System.IO.StreamWriter streamWriter = new System.IO.StreamWriter((System.IO.Stream)cryptoStream))
+                        {
+                            streamWriter.Write(plainText);
+                        }
 
-        //                array = memoryStream.ToArray();
-        //            }
-        //        }
-        //    }
+                        array = memoryStream.ToArray();
+                    }
+                }
+            }
 
-        //    return Convert.ToBase64String(array);
-        //}
+            return Convert.ToBase64String(array);
+        }
 
         public static string DecryptString(string cipherText)
         {
@@ -70,6 +70,27 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 return null;
             }
 
+        }
+
+        public static bool TryProcessToken(ref string source, ref string destination, bool isEncryption)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(source))
+                {
+                    destination = null;
+                    return true;
+                }
+
+                destination = isEncryption ? EncryptString(source) : DecryptString(source);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                destination = null;
+                return false;
+            }
         }
     }
 }

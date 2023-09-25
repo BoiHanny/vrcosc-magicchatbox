@@ -36,7 +36,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
         private bool _ComponentStatsRunning = false;
         public bool ComponentStatsRunning
         {
@@ -68,7 +67,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _Egg_Dev = false;
 
-        private HeartRateConnector _heartRateConnector;
+        private PulsoidConnector _heartRateConnector;
 
 
         private bool _HeartRateTitle = false;
@@ -124,7 +123,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        
+
 
 
         private bool _IntgrComponentStats_DESKTOP = false;
@@ -280,8 +279,8 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_Status), value => Settings_Status = value }
             };
 
-            _heartRateConnector = new HeartRateConnector();
-            
+            _heartRateConnector = new PulsoidConnector();
+
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
             _dynamicOSCData = new ExpandoObject();
         }
@@ -908,7 +907,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        #region Properties     
+        #region Properties
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private ObservableCollection<ChatItem> _LastMessages = new ObservableCollection<ChatItem>();
         private string _aesKey = "g5X5pFei6G8W6UwK6UaA6YhC6U8W6ZbP";
@@ -977,7 +976,7 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _componentStatsListPrivate.Add(stat);
             }
- 
+
         }
 
 
@@ -1595,17 +1594,175 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private string _PulsoidAccessToken;
+        private string _PulsoidAccessTokenOAuthEncrypted = string.Empty;
+        private string _PulsoidAccessTokenOAuth;
 
-        public string PulsoidAccessToken
+        public string PulsoidAccessTokenOAuthEncrypted
         {
-            get { return _PulsoidAccessToken; }
+            get { return _PulsoidAccessTokenOAuthEncrypted; }
             set
             {
-                _PulsoidAccessToken = value;
-                NotifyPropertyChanged(nameof(PulsoidAccessToken));
+                if (_PulsoidAccessTokenOAuthEncrypted != value)
+                {
+                    _PulsoidAccessTokenOAuthEncrypted = value;
+                    EncryptionMethods.TryProcessToken(ref _PulsoidAccessTokenOAuthEncrypted, ref _PulsoidAccessTokenOAuth, false);
+                    NotifyPropertyChanged(nameof(PulsoidAccessTokenOAuthEncrypted));
+                }
             }
         }
+
+        public string PulsoidAccessTokenOAuth
+        {
+            get { return _PulsoidAccessTokenOAuth; }
+            set
+            {
+                if (_PulsoidAccessTokenOAuth != value)
+                {
+                    _PulsoidAccessTokenOAuth = value;
+                    EncryptionMethods.TryProcessToken(ref _PulsoidAccessTokenOAuth, ref _PulsoidAccessTokenOAuthEncrypted, true);
+                    NotifyPropertyChanged(nameof(PulsoidAccessTokenOAuth));
+                }
+            }
+        }
+
+
+
+        public int CurrentHeartIconIndex = 0; // Index to keep track of the current heart icon
+        public readonly List<string> HeartIcons = new List<string> { "❤️", "💓", "💖", "💗", "💙", "💚", "💛", "💜" };
+
+        private int _lowTemperatureThreshold = 60;
+        public int LowTemperatureThreshold
+        {
+            get { return _lowTemperatureThreshold; }
+            set
+            {
+                if (_lowTemperatureThreshold != value)
+                {
+                    _lowTemperatureThreshold = value;
+                    NotifyPropertyChanged(nameof(LowTemperatureThreshold));
+                }
+            }
+        }
+
+        private int _highTemperatureThreshold = 100;
+        public int HighTemperatureThreshold
+        {
+            get { return _highTemperatureThreshold; }
+            set
+            {
+                if (_highTemperatureThreshold != value)
+                {
+                    _highTemperatureThreshold = value;
+                    NotifyPropertyChanged(nameof(HighTemperatureThreshold));
+                }
+            }
+        }
+
+        private bool _showTemperatureIcons = true;
+        public bool ShowTemperatureIcons
+        {
+            get { return _showTemperatureIcons; }
+            set
+            {
+                if (_showTemperatureIcons != value)
+                {
+                    _showTemperatureIcons = value;
+                    NotifyPropertyChanged(nameof(ShowTemperatureIcons));
+                }
+            }
+        }
+
+        private string _lowHeartRateText = "low";
+        public string LowHeartRateText
+        {
+            get { return _lowHeartRateText; }
+            set
+            {
+                if (_lowHeartRateText != value)
+                {
+                    _lowHeartRateText = value;
+                    PulsoidConnector.UpdateFormattedHeartRateText();
+                    NotifyPropertyChanged(nameof(LowHeartRateText));
+                }
+            }
+        }
+
+        private string _highHeartRateText = "high";
+        public string HighHeartRateText
+        {
+            get { return _highHeartRateText; }
+            set
+            {
+                if (_highHeartRateText != value)
+                {
+                    _highHeartRateText = value;
+                    PulsoidConnector.UpdateFormattedHeartRateText();
+                    NotifyPropertyChanged(nameof(HighHeartRateText));
+                }
+            }
+        }
+
+        private string _formattedLowHeartRateText;
+        public string FormattedLowHeartRateText
+        {
+            get { return _formattedLowHeartRateText; }
+            set
+            {
+                if (_formattedLowHeartRateText != value)
+                {
+                    _formattedLowHeartRateText = value;
+                    NotifyPropertyChanged(nameof(FormattedLowHeartRateText));
+                }
+            }
+        }
+
+        private string _formattedHighHeartRateText;
+        public string FormattedHighHeartRateText
+        {
+            get { return _formattedHighHeartRateText; }
+            set
+            {
+                if (_formattedHighHeartRateText != value)
+                {
+                    _formattedHighHeartRateText = value;
+                    NotifyPropertyChanged(nameof(FormattedHighHeartRateText));
+                }
+            }
+        }
+
+
+        private bool _MagicHeartRateIcons = true;
+
+        public bool MagicHeartRateIcons
+        {
+            get { return _MagicHeartRateIcons; }
+            set
+            {
+                if (_MagicHeartRateIcons != value)
+                {
+                    _MagicHeartRateIcons = value;
+                    NotifyPropertyChanged(nameof(MagicHeartRateIcons));
+                }
+            }
+        }
+
+
+        private string _HeartRateIcon = "❤️";
+
+        public string HeartRateIcon
+        {
+            get { return _HeartRateIcon; }
+            set
+            {
+                if (_HeartRateIcon != value)
+                {
+                    _HeartRateIcon = value;
+                    NotifyPropertyChanged(nameof(HeartRateIcon));
+                }
+            }
+        }
+
+
 
 
         private bool _timeShowTimeZone = false;
