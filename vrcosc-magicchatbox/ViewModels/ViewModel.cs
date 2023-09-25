@@ -20,33 +20,6 @@ namespace vrcosc_magicchatbox.ViewModels
     {
         public static readonly ViewModel Instance = new ViewModel();
 
-        public readonly StatsManager _statsManager = new StatsManager();
-
-        private readonly object _lock = new object();
-
-        private ObservableCollection<ComponentStatsItem> _componentStatsListPrivate = new ObservableCollection<ComponentStatsItem>();
-        public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList => new ReadOnlyObservableCollection<ComponentStatsItem>(_componentStatsListPrivate);
-
-        public void UpdateComponentStatsList(ObservableCollection<ComponentStatsItem> newList)
-        {
-            _componentStatsListPrivate.Clear();
-            foreach (var item in newList)
-            {
-                _componentStatsListPrivate.Add(item);
-            }
-        }
-
-        private bool _ComponentStatsRunning = false;
-        public bool ComponentStatsRunning
-        {
-            get { return _ComponentStatsRunning; }
-            set
-            {
-                _ComponentStatsRunning = value;
-                NotifyPropertyChanged(nameof(ComponentStatsRunning));
-            }
-        }
-
         private bool _BlankEgg = false;
 
 
@@ -62,6 +35,10 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private double _ChattingUpdateRate = 3;
 
+        private ObservableCollection<ComponentStatsItem> _componentStatsListPrivate = new ObservableCollection<ComponentStatsItem>();
+
+        private bool _ComponentStatsRunning = false;
+
 
         private bool _DisableMediaLink = false;
 
@@ -71,6 +48,16 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _HeartRateTitle = false;
+
+        private bool _IntgrComponentStats = false;
+
+
+
+
+        private bool _IntgrComponentStats_DESKTOP = false;
+
+
+        private bool _IntgrComponentStats_VR = true;
 
         private bool _IntgrCurrentTime_DESKTOP = false;
 
@@ -85,6 +72,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _IntgrMediaLink_VR = true;
+
+        private bool _IntgrScanForce = true;
 
 
         private bool _IntgrScanMediaLink = true;
@@ -108,49 +97,10 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _KeepUpdatingChat = true;
 
+        private readonly object _lock = new object();
+
 
         private bool _MediaSession_AutoSwitch = true;
-
-
-        private bool _IntgrComponentStats_VR = true;
-        public bool IntgrComponentStats_VR
-        {
-            get { return _IntgrComponentStats_VR; }
-            set
-            {
-                _IntgrComponentStats_VR = value;
-                NotifyPropertyChanged(nameof(IntgrComponentStats_VR));
-            }
-        }
-
-
-
-
-        private bool _IntgrComponentStats_DESKTOP = false;
-        public bool IntgrComponentStats_DESKTOP
-        {
-            get { return _IntgrComponentStats_DESKTOP; }
-            set
-            {
-                _IntgrComponentStats_DESKTOP = value;
-                NotifyPropertyChanged(nameof(IntgrComponentStats_DESKTOP));
-            }
-        }
-
-        private bool _IntgrComponentStats = false;
-        public bool IntgrComponentStats
-        {
-            get { return _IntgrComponentStats; }
-            set
-            {
-                _IntgrComponentStats = value;
-                if (value || !_statsManager.started)
-                {
-                    _statsManager.StartModule();
-                }
-                NotifyPropertyChanged(nameof(IntgrComponentStats));
-            }
-        }
 
         private bool _MediaSession_AutoSwitchSpawn = true;
 
@@ -158,6 +108,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private int _MediaSession_Timeout = 3;
 
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
+
+        private ObservableCollection<OSCAvatar> _OSCAvatarDatabase = new ObservableCollection<OSCAvatar>();
 
 
         private bool _RealTimeChatEdit = true;
@@ -168,75 +120,9 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _TTSOnResendChat = false;
+
+        public readonly StatsManager _statsManager = new StatsManager();
         public Dictionary<string, Action<bool>> SettingsMap;
-
-        public bool IsCPUEnabled
-        {
-            get => _statsManager.IsStatEnabled(StatsComponentType.CPU);
-            set
-            {
-                if (value)
-                {
-                    _statsManager.ActivateStat(StatsComponentType.CPU);
-                }
-                else
-                {
-                    _statsManager.DeactivateStat(StatsComponentType.CPU);
-                }
-                NotifyPropertyChanged(nameof(IsCPUEnabled));
-            }
-        }
-
-        public bool IsGPUEnabled
-        {
-            get => _statsManager.IsStatEnabled(StatsComponentType.GPU);
-            set
-            {
-                if (value)
-                {
-                    _statsManager.ActivateStat(StatsComponentType.GPU);
-                }
-                else
-                {
-                    _statsManager.DeactivateStat(StatsComponentType.GPU);
-                }
-                NotifyPropertyChanged(nameof(IsGPUEnabled));
-            }
-        }
-
-        public bool IsRAMEnabled
-        {
-            get => _statsManager.IsStatEnabled(StatsComponentType.RAM);
-            set
-            {
-                if (value)
-                {
-                    _statsManager.ActivateStat(StatsComponentType.RAM);
-                }
-                else
-                {
-                    _statsManager.DeactivateStat(StatsComponentType.RAM);
-                }
-                NotifyPropertyChanged(nameof(IsRAMEnabled));
-            }
-        }
-
-        public bool IsVRAMEnabled
-        {
-            get => _statsManager.IsStatEnabled(StatsComponentType.VRAM);
-            set
-            {
-                if (value)
-                {
-                    _statsManager.ActivateStat(StatsComponentType.VRAM);
-                }
-                else
-                {
-                    _statsManager.DeactivateStat(StatsComponentType.VRAM);
-                }
-                NotifyPropertyChanged(nameof(IsVRAMEnabled));
-            }
-        }
 
 
 
@@ -285,92 +171,18 @@ namespace vrcosc_magicchatbox.ViewModels
             _dynamicOSCData = new ExpandoObject();
         }
 
-        private void ToggleVoice()
+        private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if(Instance.ToggleVoiceWithV)
-                OSCSender.ToggleVoice(true);
+            Resort();
         }
 
-        private void UpdateToggleVoiceText()
-        { ToggleVoiceText = ToggleVoiceWithV ? "Toggle voice (V)" : "Toggle voice"; }
 
-        public void ActivateSetting(string settingName)
-        {
-            if(SettingsMap.ContainsKey(settingName))
-            {
-                foreach(var setting in SettingsMap)
-                {
-                    setting.Value(setting.Key == settingName);
-                }
-                MainWindow.ChangeMenuItem(3);
-            }
-        }
 
-        public static void ActivateStatus(object parameter)
+        private void Resort()
         {
-            try
+            if (_currentSortProperty != default)
             {
-                var item = parameter as StatusItem;
-                foreach(var i in ViewModel.Instance.StatusList)
-                {
-                    if(i == item)
-                    {
-                        i.IsActive = true;
-                        i.LastUsed = DateTime.Now;
-                    } else
-                    {
-                        i.IsActive = false;
-                    }
-                }
-                SaveStatusList();
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
-            }
-        }
-
-        public static bool CreateIfMissing(string path)
-        {
-            try
-            {
-                if(!Directory.Exists(path))
-                {
-                    DirectoryInfo di = Directory.CreateDirectory(path);
-                    return true;
-                }
-                return true;
-            } catch(IOException ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return false;
-            }
-        }
-
-        public static void SaveStatusList()
-        {
-            try
-            {
-                if(CreateIfMissing(ViewModel.Instance.DataPath) == true)
-                {
-                    string json = JsonConvert.SerializeObject(ViewModel.Instance.StatusList);
-                    File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"), json);
-                }
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
-        public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if(e.PropertyName == "FocusCount")
-            {
-                Application.Current.Dispatcher
-                    .Invoke(
-                        () =>
-                        {
-                            CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
-                        });
+                UpdateSortedApps();
             }
         }
 
@@ -394,40 +206,10 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void ToggleVoice()
         {
-            Resort();
-        }
-
-        public void SortScannedApps(SortProperty sortProperty)
-        {
-            if (!_sortDirection.ContainsKey(sortProperty))
-            {
-                Logging.WriteException(new Exception($"No sortDirection: {sortProperty}"), makeVMDump: false, MSGBox: false);
-                return;
-            }
-            try
-            {
-                _currentSortProperty = sortProperty;
-                var isAscending = _sortDirection[sortProperty];
-                _sortDirection[sortProperty] = !isAscending;
-                UpdateSortedApps();
-                NotifyPropertyChanged(nameof(ScannedApps));
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-            }
-        }
-
-
-
-        private void Resort()
-        {
-            if (_currentSortProperty != default)
-            {
-                UpdateSortedApps();
-            }
+            if (Instance.ToggleVoiceWithV)
+                OSCSender.ToggleVoice(true);
         }
 
         private void UpdateSortedApps()
@@ -499,6 +281,123 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private void UpdateToggleVoiceText()
+        { ToggleVoiceText = ToggleVoiceWithV ? "Toggle voice (V)" : "Toggle voice"; }
+
+        public void ActivateSetting(string settingName)
+        {
+            if (SettingsMap.ContainsKey(settingName))
+            {
+                foreach (var setting in SettingsMap)
+                {
+                    setting.Value(setting.Key == settingName);
+                }
+                MainWindow.ChangeMenuItem(3);
+            }
+        }
+
+        public static void ActivateStatus(object parameter)
+        {
+            try
+            {
+                var item = parameter as StatusItem;
+                foreach (var i in ViewModel.Instance.StatusList)
+                {
+                    if (i == item)
+                    {
+                        i.IsActive = true;
+                        i.LastUsed = DateTime.Now;
+                    }
+                    else
+                    {
+                        i.IsActive = false;
+                    }
+                }
+                SaveStatusList();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+            }
+        }
+
+        public static bool CreateIfMissing(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(path);
+                    return true;
+                }
+                return true;
+            }
+            catch (IOException ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return false;
+            }
+        }
+
+        public static void SaveStatusList()
+        {
+            try
+            {
+                if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
+                {
+                    string json = JsonConvert.SerializeObject(ViewModel.Instance.StatusList);
+                    File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"), json);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+        public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "FocusCount")
+            {
+                Application.Current.Dispatcher
+                    .Invoke(
+                        () =>
+                        {
+                            CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
+                        });
+            }
+        }
+
+        public void SortScannedApps(SortProperty sortProperty)
+        {
+            if (!_sortDirection.ContainsKey(sortProperty))
+            {
+                Logging.WriteException(new Exception($"No sortDirection: {sortProperty}"), makeVMDump: false, MSGBox: false);
+                return;
+            }
+            try
+            {
+                _currentSortProperty = sortProperty;
+                var isAscending = _sortDirection[sortProperty];
+                _sortDirection[sortProperty] = !isAscending;
+                UpdateSortedApps();
+                NotifyPropertyChanged(nameof(ScannedApps));
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            }
+        }
+
+        public void UpdateComponentStatsList(ObservableCollection<ComponentStatsItem> newList)
+        {
+            _componentStatsListPrivate.Clear();
+            foreach (var item in newList)
+            {
+                _componentStatsListPrivate.Add(item);
+            }
+        }
+
 
 
 
@@ -527,10 +426,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _ChatAddSmallDelayTIME; }
             set
             {
-                if(value < 0.1)
+                if (value < 0.1)
                 {
                     _ChatAddSmallDelayTIME = 0.1;
-                } else if(value > 2)
+                }
+                else if (value > 2)
                 {
                     _ChatAddSmallDelayTIME = 2;
                 }
@@ -564,16 +464,27 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _ChattingUpdateRate; }
             set
             {
-                if(value < 2)
+                if (value < 2)
                 {
                     _ChattingUpdateRate = 2;
-                } else if(value > 10)
+                }
+                else if (value > 10)
                 {
                     _ChattingUpdateRate = 10;
                 }
 
                 _ChattingUpdateRate = Math.Round(value, 1);
                 NotifyPropertyChanged(nameof(ChattingUpdateRate));
+            }
+        }
+        public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList => new ReadOnlyObservableCollection<ComponentStatsItem>(_componentStatsListPrivate);
+        public bool ComponentStatsRunning
+        {
+            get { return _ComponentStatsRunning; }
+            set
+            {
+                _ComponentStatsRunning = value;
+                NotifyPropertyChanged(nameof(ComponentStatsRunning));
             }
         }
 
@@ -583,10 +494,11 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _DisableMediaLink = value;
-                if(_DisableMediaLink)
+                if (_DisableMediaLink)
                 {
                     IntgrScanMediaLink = false;
-                } else
+                }
+                else
                 {
                     IntgrScanSpotify_OLD = false;
                 }
@@ -611,6 +523,37 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _HeartRateTitle = value;
                 NotifyPropertyChanged(nameof(HeartRateTitle));
+            }
+        }
+        public bool IntgrComponentStats
+        {
+            get { return _IntgrComponentStats; }
+            set
+            {
+                _IntgrComponentStats = value;
+                if (value || !_statsManager.started)
+                {
+                    _statsManager.StartModule();
+                }
+                NotifyPropertyChanged(nameof(IntgrComponentStats));
+            }
+        }
+        public bool IntgrComponentStats_DESKTOP
+        {
+            get { return _IntgrComponentStats_DESKTOP; }
+            set
+            {
+                _IntgrComponentStats_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrComponentStats_DESKTOP));
+            }
+        }
+        public bool IntgrComponentStats_VR
+        {
+            get { return _IntgrComponentStats_VR; }
+            set
+            {
+                _IntgrComponentStats_VR = value;
+                NotifyPropertyChanged(nameof(IntgrComponentStats_VR));
             }
         }
 
@@ -673,6 +616,15 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(IntgrMediaLink_VR));
             }
         }
+        public bool IntgrScanForce
+        {
+            get { return _IntgrScanForce; }
+            set
+            {
+                _IntgrScanForce = value;
+                NotifyPropertyChanged(nameof(IntgrScanForce));
+            }
+        }
 
         public bool IntgrScanMediaLink
         {
@@ -680,7 +632,7 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrScanMediaLink = value;
-                if(_IntgrScanMediaLink)
+                if (_IntgrScanMediaLink)
                 {
                     IntgrScanSpotify_OLD = false;
                 }
@@ -748,6 +700,74 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool IsCPUEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.CPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.CPU);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.CPU);
+                }
+                NotifyPropertyChanged(nameof(IsCPUEnabled));
+            }
+        }
+
+        public bool IsGPUEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.GPU);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.GPU);
+                }
+                NotifyPropertyChanged(nameof(IsGPUEnabled));
+            }
+        }
+
+        public bool IsRAMEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.RAM);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.RAM);
+                }
+                NotifyPropertyChanged(nameof(IsRAMEnabled));
+            }
+        }
+
+        public bool IsVRAMEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStat(StatsComponentType.VRAM);
+                }
+                else
+                {
+                    _statsManager.DeactivateStat(StatsComponentType.VRAM);
+                }
+                NotifyPropertyChanged(nameof(IsVRAMEnabled));
+            }
+        }
+
         public bool JoinedAlphaChannel
         {
             get { return _JoinedAlphaChannel; }
@@ -774,7 +794,7 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _KeepUpdatingChat = value;
-                if(!value)
+                if (!value)
                 {
                     ViewModel.Instance.ChatLiveEdit = false;
                 }
@@ -819,6 +839,15 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _MediaSessions = value;
                 NotifyPropertyChanged(nameof(MediaSessions));
+            }
+        }
+        public ObservableCollection<OSCAvatar> OSCAvatarDatabase
+        {
+            get { return _OSCAvatarDatabase; }
+            set
+            {
+                _OSCAvatarDatabase = value;
+                NotifyPropertyChanged(nameof(OSCAvatarDatabase));
             }
         }
 
@@ -884,28 +913,6 @@ namespace vrcosc_magicchatbox.ViewModels
         public RelayCommand<string> ActivateSettingCommand { get; }
         #endregion
 
-
-        private bool _IntgrScanForce = true;
-        public bool IntgrScanForce
-        {
-            get { return _IntgrScanForce; }
-            set
-            {
-                _IntgrScanForce = value;
-                NotifyPropertyChanged(nameof(IntgrScanForce));
-            }
-        }
-
-        private ObservableCollection<OSCAvatar> _OSCAvatarDatabase = new ObservableCollection<OSCAvatar>();
-        public ObservableCollection<OSCAvatar> OSCAvatarDatabase
-        {
-            get { return _OSCAvatarDatabase; }
-            set
-            {
-                _OSCAvatarDatabase = value;
-                NotifyPropertyChanged(nameof(OSCAvatarDatabase));
-            }
-        }
 
         #region Properties
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
@@ -1627,8 +1634,9 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
 
-        public int CurrentHeartIconIndex = 0; // Index to keep track of the current heart icon
-        public readonly List<string> HeartIcons = new List<string> { "❤️", "💓", "💖", "💗", "💙", "💚", "💛", "💜" };
+        public int CurrentHeartIconIndex = 0;
+
+        public readonly List<string> HeartIcons = new List<string> { "❤️", "💖", "💗", "💙", "💚", "💛", "💜" };
 
         private int _lowTemperatureThreshold = 60;
         public int LowTemperatureThreshold
@@ -1658,16 +1666,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _showTemperatureIcons = true;
-        public bool ShowTemperatureIcons
+        private bool _showTemperatureText = true;
+        public bool ShowTemperatureText
         {
-            get { return _showTemperatureIcons; }
+            get { return _showTemperatureText; }
             set
             {
-                if (_showTemperatureIcons != value)
+                if (_showTemperatureText != value)
                 {
-                    _showTemperatureIcons = value;
-                    NotifyPropertyChanged(nameof(ShowTemperatureIcons));
+                    _showTemperatureText = value;
+                    NotifyPropertyChanged(nameof(ShowTemperatureText));
                 }
             }
         }
@@ -2754,7 +2762,7 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrScanSpotify = value;
-                if(_IntgrScanSpotify)
+                if (_IntgrScanSpotify)
                 {
                     IntgrScanMediaLink = false;
                 }
@@ -2770,13 +2778,15 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _ScanningInterval; }
             set
             {
-                if(value < 1.6)
+                if (value < 1.6)
                 {
                     _ScanningInterval = 1.6;
-                } else if(value > 10)
+                }
+                else if (value > 10)
                 {
                     _ScanningInterval = 10;
-                } else
+                }
+                else
                 {
                     _ScanningInterval = Math.Round(value, 1);
                 }

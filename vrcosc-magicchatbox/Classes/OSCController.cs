@@ -52,7 +52,7 @@ namespace vrcosc_magicchatbox.Classes
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
                 // Pick the correct heart icon
-                string heartIcon = ViewModel.Instance.MagicHeartRateIcons ? ViewModel.Instance.HeartRateIcon : "💖";
+                string heartIcon = ViewModel.Instance.MagicHeartRateIcons || ViewModel.Instance.ShowTemperatureText ? ViewModel.Instance.HeartRateIcon : "💖";
 
                 if (ViewModel.Instance.HeartRateTitle)
                 {

@@ -152,19 +152,19 @@ namespace vrcosc_magicchatbox.Classes
                         {
                             // Always cycle through heart icons
                             ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
-                            ViewModel.Instance.CurrentHeartIconIndex = (ViewModel.Instance.CurrentHeartIconIndex + 1) % ViewModel.Instance.HeartIcons.Count;
+                            ViewModel.Instance.CurrentHeartIconIndex = (ViewModel.Instance.CurrentHeartIconIndex + 1) % ViewModel.Instance.HeartIcons.Count; 
+                        }
 
-                            // Append additional icons based on heart rate, if the toggle is enabled
-                            if (ViewModel.Instance.ShowTemperatureIcons)
+                        // Append additional icons based on heart rate, if the toggle is enabled
+                        if (ViewModel.Instance.ShowTemperatureText)
+                        {
+                            if (heartRate < ViewModel.Instance.LowTemperatureThreshold)
                             {
-                                if (heartRate < ViewModel.Instance.LowTemperatureThreshold)
-                                {
-                                    ViewModel.Instance.HeartRateIcon += ViewModel.Instance.FormattedLowHeartRateText;
-                                }
-                                else if (heartRate >= ViewModel.Instance.HighTemperatureThreshold)
-                                {
-                                    ViewModel.Instance.HeartRateIcon += ViewModel.Instance.FormattedHighHeartRateText;
-                                }
+                                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedLowHeartRateText;
+                            }
+                            else if (heartRate >= ViewModel.Instance.HighTemperatureThreshold)
+                            {
+                                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedHighHeartRateText;
                             }
                         }
 
