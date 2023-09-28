@@ -215,6 +215,51 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style x:Key="DisconnectPulsoid" TargetType="{x:Type Button}">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
+                <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Padding" Value="1" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border
+                                x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                SnapsToDevicePixels="true">
+                                <ContentPresenter
+                                    x:Name="contentPresenter"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Focusable="False"
+                                    RecognizesAccessKey="True"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#A32222" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#A32222" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="Background" Value="#BD4444" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#BD4444" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style x:Key="CancelEditbutton" TargetType="{x:Type Button}">
                 <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
                 <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
@@ -1117,13 +1162,13 @@
                                 Foreground="#BDAEE2"
                                 IsChecked="{Binding Settings_HeartRate, Mode=TwoWay}"
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
-                                Tag="Heart monitoring options"
+                                Tag="Pulsoid heart rate options"
                                 TextOptions.TextRenderingMode="ClearType" />
 
                             <TextBlock
                                 x:Name="LearnMoreAboutHeartbtn"
                                 Width="auto"
-                                Margin="208,0,0,0"
+                                Margin="205,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Cursor="Hand"
@@ -1138,329 +1183,458 @@
                             Grid.Row="1"
                             Height="Auto"
                             Margin="34,10,0,0"
+                            d:Visibility="Visible"
                             Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
-                                <TextBlock
-                                    Width="auto"
-                                    Padding="0,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="#FF9983AD"
-                                    Text="Pulsoid access token" />
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBox
-                                        x:Name="PulsoidAccessToken"
-                                        Width="223"
-                                        Height="26"
-                                        Margin="0,3,0,0"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding PulsoidAccessTokenOAuth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <Button
-                                        x:Name="ConnectWithPulsoid"
-                                        Width="auto"
-                                        Height="auto"
-                                        Margin="3"
-                                        Padding="5"
-                                        Click="ConnectWithPulsoid_Click"
-                                        Content="Connect" />
-                                    <TextBlock
-                                        Width="400"
-                                        Padding="10,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="PaleVioletRed"
-                                        Text="{Binding PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
-                                        TextWrapping="Wrap"
-                                        Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="0,10,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="#FF9983AD"
-                                    Text="Pulsoid request rate in sec" />
-                                <TextBox
-                                    x:Name="heartRateScanInt"
-                                    Width="40"
-                                    Height="26"
-                                    Margin="0,3,0,10"
-                                    Padding="5,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding HeartRateScanInterval_v1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <CheckBox
-                                    x:Name="ApplyHeartRateAdjustment_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding ApplyHeartRateAdjustment, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Heart rate adjustment
-                                </CheckBox>
-
-                                <StackPanel Margin="0,-5,0,0" Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="#FF9983AD"
-                                        Text="Heart rate adjustment in BPM" />
-                                    <TextBox
-                                        x:Name="HeartRateAdjustment"
-                                        Width="40"
-                                        Height="26"
-                                        Margin="0,3,0,15"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <CheckBox
-                                        x:Name="ShowTemperatureText_checkbox"
-                                        Margin="0,0,0,15"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="18"
-                                        Foreground="#FFB9B5C1"
-                                        IsChecked="{Binding ShowTemperatureText, Mode=TwoWay}"
-                                        Style="{DynamicResource SettingsCheckbox}">
-                                        Show temperature status
-                                    </CheckBox>
-                                    <StackPanel Visibility="{Binding ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBox
-                                                x:Name="LowTemperatureThreshold"
-                                                Width="40"
-                                                Height="26"
-                                                Margin="0,0,0,0"
-                                                Padding="5,0,0,0"
-                                                HorizontalAlignment="Left"
-                                                VerticalContentAlignment="Center"
-                                                Background="#FF7B7195"
-                                                BorderThickness="0"
-                                                FontSize="15"
-                                                Foreground="#FF240E54"
-                                                Text="{Binding LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            <TextBox
-                                                x:Name="LowHeartRateText"
-                                                Width="223"
-                                                Height="26"
-                                                Margin="5,0,0,0"
-                                                Padding="5,0,0,0"
-                                                HorizontalAlignment="Left"
-                                                VerticalContentAlignment="Center"
-                                                Background="#FF7B7195"
-                                                BorderThickness="0"
-                                                FontSize="15"
-                                                Foreground="#FF240E54"
-                                                Text="{Binding LowHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,5,0,15" Orientation="Horizontal">
-                                            <TextBox
-                                                x:Name="HighTemperatureThreshold"
-                                                Width="40"
-                                                Height="26"
-                                                Margin="0,0,0,0"
-                                                Padding="5,0,0,0"
-                                                HorizontalAlignment="Left"
-                                                VerticalContentAlignment="Center"
-                                                Background="#FF7B7195"
-                                                BorderThickness="0"
-                                                FontSize="15"
-                                                Foreground="#FF240E54"
-                                                Text="{Binding HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            <TextBox
-                                                x:Name="HighwHeartRateText"
-                                                Width="223"
-                                                Height="26"
-                                                Margin="5,0,0,0"
-                                                Padding="5,0,0,0"
-                                                HorizontalAlignment="Left"
-                                                VerticalContentAlignment="Center"
-                                                Background="#FF7B7195"
-                                                BorderThickness="0"
-                                                FontSize="15"
-                                                Foreground="#FF240E54"
-                                                Text="{Binding HighHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        </StackPanel>
-                                    </StackPanel>
-
-
-                                    <!--  ShowTemperatureText  -->
-
-
-                                    <!--  MagicHeartRateIcons  -->
-                                    <CheckBox
-                                        x:Name="MagicHeartRateIcons_checkbox"
-                                        Margin="0,0,0,15"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="18"
-                                        Foreground="#FFB9B5C1"
-                                        IsChecked="{Binding MagicHeartRateIcons, Mode=TwoWay}"
-                                        Style="{DynamicResource SettingsCheckbox}">
-                                        Change heart rate icons every scan
-                                    </CheckBox>
-                                </StackPanel>
-                                <CheckBox
-                                    x:Name="ShowBPMSuffix_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding ShowBPMSuffix, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Show BPM instead of 💖
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="HeartRateTitle_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding HeartRateTitle, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Show heart rate title
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="SmoothHeartRate_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding SmoothHeartRate_v1, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Smooth heart rate
-                                </CheckBox>
-                                <StackPanel Margin="0,-5,0,0" Visibility="{Binding SmoothHeartRate_v1, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="#FF9983AD"
-                                        Text="Smooth amound in seconds" />
-                                    <TextBox
-                                        x:Name="SmoothHeartRate_INT"
-                                        Width="40"
-                                        Height="26"
-                                        Margin="0,3,0,10"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-                                <CheckBox
-                                    x:Name="ShowHeartRateTrendIndicator"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding ShowHeartRateTrendIndicator, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Heart rate trend indicator ⤴️ ⤵️
-                                </CheckBox>
-                                <StackPanel Margin="0,-5,0,0" Visibility="{Binding ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="#FF9983AD"
-                                        Text="Use last amount heart rate scans to identify trends" />
-                                    <TextBox
-                                        x:Name="HeartRateTrendIndicatorSampleRate_INT"
-                                        Width="40"
-                                        Height="26"
-                                        Margin="0,3,0,10"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                                    <TextBlock
-                                        Width="auto"
-                                        Padding="0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="#FF9983AD"
-                                        Text="Trend sensitivity" />
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
                                     <StackPanel Orientation="Horizontal">
-
-                                        <TextBlock
+                                        <Button
+                                            x:Name="ConnectWithPulsoid"
                                             Width="auto"
-                                            Padding="2,5,5,5"
+                                            Height="30"
+                                            Padding="5"
+                                            Click="ConnectWithPulsoid_Click"
+                                            Style="{StaticResource Status_Button_style}"
+                                            Visibility="{Binding PulsoidAuthConnected, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Width="21"
+                                                            Height="18"
+                                                            Margin="0,0,3,0"
+                                                            Source="/Img/Icons/Pulsoid.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Text="Connect with Pulsoid" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button
+                                            x:Name="ConnectedWithPulsoid"
+                                            Width="auto"
+                                            Height="30"
+                                            Padding="5"
+                                            d:Visibility="Visible"
+                                            Click="ConnectWithPulsoid_Click"
+                                            Style="{StaticResource Status_Button_style}"
+                                            Visibility="{Binding PulsoidAuthConnected, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            Margin="2,0,5,0"
+                                                            VerticalAlignment="Center"
+                                                            Source="/Img/Icons/yes.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Text="Connected with Pulsoid" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button
+                                            x:Name="DisconnectPulsoid"
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Width="20"
+                                            Height="30"
+                                            Margin="-5,0,0,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            d:Visibility="Visible"
+                                            Background="#8A0000"
+                                            BorderThickness="0"
+                                            Click="DisconnectPulsoid_Click"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource DisconnectPulsoid}"
+                                            Visibility="{Binding PulsoidAuthConnected, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Grid>
+                                                <Image
+                                                    Width="15"
+                                                    Height="15"
+                                                    RenderOptions.BitmapScalingMode="Linear"
+                                                    Source="/Img/Icons/Cross_v1_ico.png" />
+                                            </Grid>
+                                        </Button>
+                                        <TextBlock
+                                            Width="400"
+                                            Padding="10,0,0,0"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            Foreground="#FF7D7397"
-                                            Text="Quick" />
-                                        <Slider
-                                            x:Name="HeartRateTrendIndicatorSensitivitySlider"
-                                            Width="134.5"
-                                            Height="12"
-                                            Margin="2.2,0,4.5,0"
-                                            Maximum="1"
-                                            Minimum="0"
-                                            Style="{StaticResource CustomSlider}"
-                                            Value="{Binding Path=HeartRateTrendIndicatorSensitivity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBlock
-                                            Width="auto"
-                                            Padding="5,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            Foreground="#FF7D7397"
-                                            Text="Slow" />
+                                            FontSize="15"
+                                            Foreground="PaleVioletRed"
+                                            Text="{Binding PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
-                                </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="ShowHeartRateTrendIndicator"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding ShowHeartRateTrendIndicator, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Trend suffix indicators ⤴️ ⤵️
+                                        </CheckBox>
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,10"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Use last" />
+                                                <TextBox
+                                                    x:Name="HeartRateTrendIndicatorSampleRate_INT"
+                                                    Width="auto"
+                                                    MinWidth="20"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="heart rate scans to identify trends." />
+                                            </StackPanel>
+
+
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Trend sensitivity" />
+                                            <StackPanel Orientation="Horizontal">
+
+                                                <TextBlock
+                                                    Width="auto"
+                                                    Padding="2,5,5,5"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="13"
+                                                    Foreground="#FF7D7397"
+                                                    Text="Quick" />
+                                                <Slider
+                                                    x:Name="HeartRateTrendIndicatorSensitivitySlider"
+                                                    Width="134.5"
+                                                    Height="12"
+                                                    Margin="2.2,0,4.5,0"
+                                                    Maximum="1"
+                                                    Minimum="0"
+                                                    Style="{StaticResource CustomSlider}"
+                                                    Value="{Binding Path=HeartRateTrendIndicatorSensitivity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    Width="auto"
+                                                    Padding="5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="13"
+                                                    Foreground="#FF7D7397"
+                                                    Text="Slow" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="SmoothHeartRate_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding SmoothHeartRate_v1, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Smooth heart rate
+                                        </CheckBox>
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding SmoothHeartRate_v1, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Use last" />
+                                                <TextBox
+                                                    x:Name="SmoothHeartRate_INT"
+                                                    Width="auto"
+                                                    MinWidth="20"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="heart rate scans to show smooth heart rate changes." />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="ShowTemperatureText_checkbox"
+                                            Margin="0,0,0,0"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding ShowTemperatureText, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Show temperature status
+                                        </CheckBox>
+                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    Padding="0,0,9,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Lower than" />
+                                                <TextBox
+                                                    x:Name="LowTemperatureThreshold"
+                                                    Width="35"
+                                                    Height="auto"
+                                                    Margin="0,0,0,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextAlignment="Center" />
+                                                <TextBlock
+                                                    Padding="5,0,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="show" />
+                                                <TextBox
+                                                    x:Name="LowHeartRateText"
+                                                    Height="auto"
+                                                    MinWidth="60"
+                                                    Padding="3,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding LowHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="0,5,0,5" Orientation="Horizontal">
+                                                <TextBlock
+                                                    Padding="0,0,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Higher than" />
+                                                <TextBox
+                                                    x:Name="HighTemperatureThreshold"
+                                                    Width="35"
+                                                    Height="auto"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextAlignment="Center" />
+                                                <TextBlock
+                                                    Padding="5,0,4,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="show" />
+                                                <TextBox
+                                                    x:Name="HighwHeartRateText"
+                                                    Height="auto"
+                                                    MinWidth="60"
+                                                    Margin="0,0,0,0"
+                                                    Padding="3,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HighHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="ApplyHeartRateAdjustment_checkbox"
+                                            Height="20"
+                                            Margin="0,0,0,0"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding ApplyHeartRateAdjustment, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Heart rate adjustment
+                                        </CheckBox>
+
+                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Adjust heart-rate by" />
+                                                <TextBox
+                                                    x:Name="HeartRateAdjustment"
+                                                    Width="auto"
+                                                    MinWidth="20"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="BPM" />
+                                            </StackPanel>
+
+
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="MagicHeartRateIcons_checkbox"
+                                            Margin="0,0,0,0"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding MagicHeartRateIcons, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Auto change heart rate prefix icons
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="ShowBPMSuffix_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding ShowBPMSuffix, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Show BPM suffix instead of prefix icons 💖
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="HeartRateTitle_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding HeartRateTitle, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Show heart-rate title
+                                        </CheckBox>
+
+                                    </StackPanel>
+                                </Border>
+
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -3286,7 +3460,7 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="16"
                                 Foreground="#FF9983AD"
-                                Text="Some intergrations can't be showed because a limit on characters">
+                                Text="Some integrations can't be showed because a limit on characters">
                                 <TextBlock.Effect>
                                     <DropShadowEffect
                                         BlurRadius="10"
@@ -3590,7 +3764,7 @@
                                 </Grid.ColumnDefinitions>
                                 <Button
                                     Grid.Column="1"
-                                    Margin="95,11,0,0"
+                                    Margin="162,11,0,0"
                                     Padding="0"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
@@ -3624,7 +3798,7 @@
                                             FontSize="20"
                                             Foreground="White"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                            Text="Heart rate">
+                                            Text="Pulsoid heart rate">
                                             <TextBlock.Effect>
                                                 <DropShadowEffect
                                                     BlurRadius="10"
@@ -3633,42 +3807,60 @@
                                                     Color="#251153" />
                                             </TextBlock.Effect>
                                         </TextBlock>
-                                        <TextBlock
+                                        <StackPanel
                                             Grid.Row="0"
                                             Margin="140,9,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="12"
-                                            Foreground="#ABA4B8"
-                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                            Text="Last update:"
-                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <TextBlock.Effect>
-                                                <DropShadowEffect
-                                                    BlurRadius="10"
-                                                    Opacity="0.5"
-                                                    ShadowDepth="0"
-                                                    Color="#251153" />
-                                            </TextBlock.Effect>
-                                        </TextBlock>
-                                        <TextBlock
+                                            VerticalAlignment="Center">
+                                            <TextBlock
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="12"
+                                                Foreground="PaleVioletRed"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="Something went wrong, check settings"
+                                                Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                        <StackPanel
                                             Grid.Row="0"
-                                            Margin="3,9,0,0"
+                                            Margin="0,9,0,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="11"
-                                            Foreground="#ABA4B8"
-                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                            Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
-                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <TextBlock.Effect>
-                                                <DropShadowEffect
-                                                    BlurRadius="10"
-                                                    Opacity="0.5"
-                                                    ShadowDepth="0"
-                                                    Color="#251153" />
-                                            </TextBlock.Effect>
-                                        </TextBlock>
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="12"
+                                                Foreground="#ABA4B8"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="Last update:"
+                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="0.5"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                            <TextBlock
+                                                Padding="3,0,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="11"
+                                                Foreground="#ABA4B8"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                                Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="0.5"
+                                                        ShadowDepth="0"
+                                                        Color="#251153" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+
+                                        </StackPanel>
+
                                     </StackPanel>
                                     <TextBlock
                                         Grid.Row="1"
@@ -3678,7 +3870,7 @@
                                         FontSize="13"
                                         Foreground="LightGray"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="With this integration, you can display your heart rate in real-time. Currently compatible with Pulsoid"
+                                        Text="With this integration, you can display your heart rate in real-time. Only compatible with Pulsoid"
                                         TextWrapping="Wrap">
                                         <TextBlock.Effect>
                                             <DropShadowEffect
@@ -3717,7 +3909,7 @@
                                     Grid.Column="1"
                                     Width="60"
                                     Height="19"
-                                    Margin="125,13,0,0"
+                                    Margin="192,13,0,0"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
                                     Content="DESKTOP"
@@ -3727,7 +3919,7 @@
                                     Grid.Column="1"
                                     Width="30"
                                     Height="19"
-                                    Margin="190,13,0,0"
+                                    Margin="257,13,0,0"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
                                     Content="VR"

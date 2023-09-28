@@ -1245,7 +1245,8 @@ namespace vrcosc_magicchatbox
                 const string scope = "data:heart_rate:read";
                 var authorizationEndpoint = $"https://pulsoid.net/oauth2/authorize?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}";
 
-                var oauthHandler = new PulsoidOAuthHandler();
+                var oauthHandler = PulsoidOAuthHandler.Instance;
+                oauthHandler.StartListeners();
                 string fragmentString = await oauthHandler.AuthenticateUserAsync(authorizationEndpoint);
 
                 if (string.IsNullOrEmpty(fragmentString)) return;
@@ -1257,6 +1258,7 @@ namespace vrcosc_magicchatbox
                 {
                     if (await oauthHandler.ValidateTokenAsync(accessToken))
                     {
+                        ViewModel.Instance.PulsoidAuthConnected = true;
                         ViewModel.Instance.PulsoidAccessTokenOAuth = accessToken;
                     }
                 }
@@ -1265,7 +1267,16 @@ namespace vrcosc_magicchatbox
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
+            finally
+            {
+                PulsoidOAuthHandler.Instance.StopListeners();
+            }
         }
 
+        private void DisconnectPulsoid_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.PulsoidAccessTokenOAuth = string.Empty;
+            ViewModel.Instance.PulsoidAuthConnected = false;
+        }
     }
 }

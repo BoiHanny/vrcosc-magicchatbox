@@ -680,6 +680,22 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _PulsoidAuthConnected = false;
+
+        public bool PulsoidAuthConnected
+        {
+            get { return _PulsoidAuthConnected; }
+            set
+            {
+                if (_PulsoidAuthConnected != value)
+                {
+                    _PulsoidAuthConnected = value;
+                    NotifyPropertyChanged(nameof(PulsoidAuthConnected));
+                }
+            }
+        }
+
         public bool IntgrWindowActivity_DESKTOP
         {
             get { return _IntgrWindowActivity_DESKTOP; }
@@ -1680,7 +1696,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private string _lowHeartRateText = "low";
+        private string _lowHeartRateText = "sleepy";
         public string LowHeartRateText
         {
             get { return _lowHeartRateText; }
@@ -1695,7 +1711,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private string _highHeartRateText = "high";
+        private string _highHeartRateText = "hot";
         public string HighHeartRateText
         {
             get { return _highHeartRateText; }

@@ -228,7 +228,7 @@ namespace vrcosc_magicchatbox.Classes
 
 
         // this function is for building the final OSC message to be sent to VRChat and it will set the opacity of the controls in the UI based on the length of the message
-        // it will also set the OSCtoSent property in the ViewModel to the final OSC message 
+        // it will also set the OSCtoSent property in the ViewModel to the final OSC message
         public static void BuildOSC()
         {
             //  Create a list of strings to hold the OSC message
@@ -256,17 +256,17 @@ namespace vrcosc_magicchatbox.Classes
 
                 {
                     () => ViewModel.Instance.IntgrHeartRate_VR &&
-                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IsVRRunning && ViewModel.Instance.PulsoidAuthConnected ||
                     ViewModel.Instance.IntgrHeartRate_DESKTOP &&
-                    !ViewModel.Instance.IsVRRunning,
+                    !ViewModel.Instance.IsVRRunning && ViewModel.Instance.PulsoidAuthConnected,
                     AddHeartRate
                 },
 
                 {
-                    () => ViewModel.Instance.IntgrComponentStats_VR && 
-                    ViewModel.Instance.IsVRRunning || 
-                    ViewModel.Instance.IntgrComponentStats_DESKTOP && 
-                    !ViewModel.Instance.IsVRRunning, 
+                    () => ViewModel.Instance.IntgrComponentStats_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrComponentStats_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
                     AddComponentStat
                 },
 

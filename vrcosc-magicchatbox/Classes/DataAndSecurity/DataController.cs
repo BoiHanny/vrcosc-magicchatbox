@@ -268,6 +268,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "ShowHeartRateTrendIndicator", (typeof(bool), "PulsoidConnector") },
                 { "HeartRateTrendIndicatorSampleRate", (typeof(int), "PulsoidConnector") },
                 { "HeartRateTitle", (typeof(bool), "PulsoidConnector") },
+                { "PulsoidAuthConnected", (typeof(bool), "PulsoidConnector") },
 
                 { "LowTemperatureThreshold", (typeof(int), "PulsoidConnector") },
                 { "HighTemperatureThreshold", (typeof(int), "PulsoidConnector") },
