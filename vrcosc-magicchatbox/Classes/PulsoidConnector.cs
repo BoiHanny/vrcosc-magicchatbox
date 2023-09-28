@@ -221,7 +221,7 @@ namespace vrcosc_magicchatbox.Classes
                     Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
 
-                int scanInterval = ViewModel.Instance.HeartRateScanInterval_v1 > 0 ? ViewModel.Instance.HeartRateScanInterval_v1 : 5;
+                int scanInterval = ViewModel.Instance.HeartRateScanInterval_v2 > 0 ? ViewModel.Instance.HeartRateScanInterval_v2 : 5;
                 TimeSpan elapsedTime = DateTime.UtcNow - startTime;
                 TimeSpan remainingDelay = TimeSpan.FromSeconds(scanInterval) - elapsedTime;
 
