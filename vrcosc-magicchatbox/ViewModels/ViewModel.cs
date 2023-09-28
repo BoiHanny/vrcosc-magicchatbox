@@ -40,6 +40,17 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _ComponentStatsRunning = false;
 
 
+        private int _MainWindowBlurEffect = 0;
+        public int MainWindowBlurEffect
+        {
+            get { return _MainWindowBlurEffect; }
+            set
+            {
+                _MainWindowBlurEffect = value;
+                NotifyPropertyChanged(nameof(MainWindowBlurEffect));
+            }
+        }
+
         private bool _DisableMediaLink = false;
 
         private bool _Egg_Dev = false;

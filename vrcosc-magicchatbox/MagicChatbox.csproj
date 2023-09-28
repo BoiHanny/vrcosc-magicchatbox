@@ -64,6 +64,7 @@
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
     <None Remove="Img\Icons\yes.png" />
+    <None Remove="Img\MagicOSC_icon.png" />
     <None Remove="Json\voices.json" />
     <None Remove="NLog.config" />
   </ItemGroup>
@@ -120,6 +121,7 @@
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\yes.png" />
+    <Resource Include="Img\MagicOSC_icon.png" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

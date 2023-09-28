@@ -5,6 +5,7 @@ using System.Windows;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox
@@ -38,7 +39,6 @@ namespace vrcosc_magicchatbox
                     return;
                 }
             }
-
 
             loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 10);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));

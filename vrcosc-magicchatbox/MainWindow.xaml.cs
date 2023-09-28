@@ -16,6 +16,7 @@ using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
@@ -1278,5 +1279,23 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.PulsoidAccessTokenOAuth = string.Empty;
             ViewModel.Instance.PulsoidAuthConnected = false;
         }
+
+        private void ManualPulsoidAuthBtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            var dialog = new ManualPulsoidAuth();
+            dialog.DataContext = ViewModel.Instance;
+
+            // Set the owner of the dialog to the current window
+            dialog.Owner = this;
+
+            // Ensure the dialog is centered on the owner window
+            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            ViewModel.Instance.MainWindowBlurEffect = 5;
+            dialog.ShowDialog();
+            ViewModel.Instance.MainWindowBlurEffect = 0;
+            Focus();
+        }
+
+
     }
 }

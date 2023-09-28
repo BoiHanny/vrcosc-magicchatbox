@@ -368,6 +368,12 @@
         Background="#FF240E55"
         BorderBrush="#FF240E55"
         BorderThickness="1">
+        <Border.Effect>
+            <BlurEffect
+                d:Radius="0"
+                KernelType="Gaussian"
+                Radius="{Binding MainWindowBlurEffect}" />
+        </Border.Effect>
         <Grid Background="#FF3B3054">
             <Grid.RowDefinitions>
                 <RowDefinition Height="55" />
@@ -1634,7 +1640,25 @@
 
                                     </StackPanel>
                                 </Border>
-
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5"
+                                    Opacity="0.8"
+                                    Visibility="{Binding PulsoidAuthConnected, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            x:Name="ManualPulsoidAuthBtn"
+                                            Padding="0,0,9,0"
+                                            VerticalAlignment="Center"
+                                            Cursor="Hand"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            MouseUp="ManualPulsoidAuthBtn_MouseUp"
+                                            Text="Manual web authorization" />
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -3897,6 +3921,7 @@
                                             Color="#251153" />
                                     </Image.Effect>
                                 </Image>
+
                                 <CheckBox
                                     Name="HR_Switch"
                                     Grid.Column="2"
