@@ -190,6 +190,21 @@ namespace vrcosc_magicchatbox.Classes
             return item?.ComponentValueMax;
         }
 
+        public bool IsStatMaxValueShown(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.ShowMaxValue ?? false;
+        }
+
+        public void ToggleStatMaxValueShown(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.ShowMaxValue = !item.ShowMaxValue;
+            }
+        }
+
 
         private static readonly StatsComponentType[] StatDisplayOrder =
         {

@@ -6,7 +6,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using static vrcosc_magicchatbox.ViewModels.ViewModel;
 using LibreHardwareMonitor.Hardware;
-using System.Threading.Tasks;
+using static vrcosc_magicchatbox.ViewModels.InternalEnums;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -55,6 +55,7 @@ namespace vrcosc_magicchatbox.Classes
                 if (CurrentSystem != null)
                 {
                     StopMonitoringComponents();
+
                 }
             }
         }
@@ -63,6 +64,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
+                Instance.SyncComponentStatsList();
                 CurrentSystem.Close();
                 CurrentSystem = null;
             } catch(Exception ex)
@@ -198,8 +200,8 @@ namespace vrcosc_magicchatbox.Classes
                 if(cpuStatItem != null && cpuStatItem.IsEnabled)
                 {
                     string cpuValue = FetchCPUStat();
+                    if(!cpuValue.Contains("N/A"))
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.CPU, cpuValue);
-                    //ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.CPU, "100 %");
                 }
 
                 // GPU stats
@@ -207,8 +209,8 @@ namespace vrcosc_magicchatbox.Classes
                 if(gpuStatItem != null && gpuStatItem.IsEnabled)
                 {
                     string gpuValue = FetchGPUStat();
+                    if(!gpuValue.Contains("N/A"))
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.GPU, gpuValue);
-                    //ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.GPU, "100 %");
                 }
 
                 // RAM stats
@@ -216,7 +218,9 @@ namespace vrcosc_magicchatbox.Classes
                 if(ramStatItem != null && ramStatItem.IsEnabled)
                 {
                     var (usedMemory, totalMemory) = FetchRAMStats();
+                    if(!usedMemory.Contains("N/A"))
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.RAM, usedMemory);
+                     if(!totalMemory.Contains("N/A"))
                     ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.RAM, totalMemory);
                 }
 
@@ -226,7 +230,9 @@ namespace vrcosc_magicchatbox.Classes
                 {
                     string vramValue = FetchVRAMStat();
                     string vramValueMax = FetchVRAMMaxStat();
+                    if(!vramValue.Contains("N/A"))
                     ViewModel.Instance.UpdateComponentStat(StatsComponentType.VRAM, vramValue);
+                    if(!vramValueMax.Contains("N/A"))
                     ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.VRAM, vramValueMax);
                 }
 
@@ -260,24 +266,45 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
+        private static Hardware GetDedicatedGPU()
+        {
+            foreach (var type in new[] { HardwareType.GpuNvidia, HardwareType.GpuAmd })
+            {
+                var hardware = CurrentSystem.Hardware
+                    .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
+                    as Hardware;
 
-        private static string FetchCPUStat()
+                if (hardware != null) return hardware;
+            }
+            return CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel)
+                as Hardware;
+        }
+
+        private static string FetchStat(
+            HardwareType hardwareType,
+            SensorType sensorType,
+            string sensorName,
+            Func<double, double> transform = null,
+            Func<IHardware, bool> hardwarePredicate = null)
         {
             try
             {
-                var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
-                if(cpuHardware != null)
-                {
-                    cpuHardware.Update();
-                    var loadSensor = cpuHardware.Sensors
-                        .FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name == "CPU Total");
-                    if(loadSensor != null)
-                    {
-                        return $"{loadSensor.Value:F1}";
-                    }
-                }
-                return "N/A";
-            } catch(Exception ex)
+                IHardware hardware = hardwarePredicate == null
+                    ? CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == hardwareType)
+                    : CurrentSystem.Hardware.FirstOrDefault(hardwarePredicate);
+
+                if (hardware == null) return "N/A";
+
+                hardware.Update();
+                var sensor = hardware.Sensors
+                    .FirstOrDefault(s => s.SensorType == sensorType && s.Name == sensorName);
+
+                if (sensor?.Value == null) return "N/A";
+
+                var value = transform == null ? sensor.Value.Value : transform(sensor.Value.Value);
+                return $"{value:F1}";
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return "N/A";
@@ -285,139 +312,36 @@ namespace vrcosc_magicchatbox.Classes
         }
 
 
-        private static string FetchGPUStat()
-        {
-            try
-            {
-                LibreHardwareMonitor.Hardware.Hardware GetDedicatedGPU(HardwareType type)
-                {
-                    return CurrentSystem.Hardware
-                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
-                           as LibreHardwareMonitor.Hardware.Hardware;
-                }
-
-                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia) ??
-                    GetDedicatedGPU(HardwareType.GpuAmd) ??
-                    CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
-
-                if(gpuHardware != null)
-                {
-                    gpuHardware.Update();
-                    var loadSensor = gpuHardware.Sensors
-                        .FirstOrDefault(s => s.SensorType == SensorType.Load && s.Name == "GPU Core");
-                    if(loadSensor != null)
-                    {
-                        return $"{loadSensor.Value:F1}";
-                    }
-                }
-                return "N/A";
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return "N/A";
-            }
-        }
 
 
-        private static string FetchVRAMStat()
-        {
-            try
-            {
-                LibreHardwareMonitor.Hardware.Hardware GetDedicatedGPU(HardwareType type)
-                {
-                    return CurrentSystem.Hardware
-                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
-                           as LibreHardwareMonitor.Hardware.Hardware;
-                }
+        private static string FetchCPUStat() =>
+            FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total");
 
-                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia) ??
-                    GetDedicatedGPU(HardwareType.GpuAmd) ??
-                    CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
+        private static string FetchGPUStat() =>
+            FetchStat(HardwareType.GpuNvidia, SensorType.Load, "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU());
 
-                if(gpuHardware != null)
-                {
-                    gpuHardware.Update();
-                    var usedVRAMSensor = gpuHardware.Sensors
-                        .FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name == "GPU Memory Used");
-                    if(usedVRAMSensor != null)
-                    {
-                        double vramInGB = (double)usedVRAMSensor.Value / 1024; // Convert MB to GB
-                        return $"{vramInGB:F1}";
-                    }
-                }
-                return "N/A";
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return "N/A";
-            }
-        }
+        private static string FetchVRAMStat() =>
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU());
 
-        private static string FetchVRAMMaxStat()
-        {
-            try
-            {
-                LibreHardwareMonitor.Hardware.Hardware GetDedicatedGPU(HardwareType type)
-                {
-                    return CurrentSystem.Hardware
-                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
-                           as LibreHardwareMonitor.Hardware.Hardware;
-                }
-
-                var gpuHardware = GetDedicatedGPU(HardwareType.GpuNvidia) ??
-                    GetDedicatedGPU(HardwareType.GpuAmd) ??
-                    CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel) as LibreHardwareMonitor.Hardware.Hardware;
-
-                if(gpuHardware != null)
-                {
-                    gpuHardware.Update();
-                    var totalVRAMSensor = gpuHardware.Sensors
-                        .FirstOrDefault(s => s.SensorType == SensorType.SmallData && s.Name == "GPU Memory Total");
-                    if(totalVRAMSensor != null)
-                    {
-                        double vramMaxInGB = (double)totalVRAMSensor.Value / 1024; // Convert MB to GB
-                        return $"{vramMaxInGB:F1}";
-                    }
-                }
-                return "N/A";
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return "N/A";
-            }
-        }
+        private static string FetchVRAMMaxStat() =>
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU());
 
         private static (string UsedMemory, string MaxMemory) FetchRAMStats()
         {
-            try
+            string usedMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Used");
+            string availableMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Available");
+
+            if (double.TryParse(usedMemory, out double usedMemoryVal) && double.TryParse(availableMemory, out double availableMemoryVal))
             {
-                var ramHardware = CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Memory);
-                if(ramHardware != null)
-                {
-                    ramHardware.Update();
-
-                    // Fetch the 'Memory Available' sensor value
-                    var availableMemorySensor = ramHardware.Sensors
-                        .FirstOrDefault(s => s.SensorType == SensorType.Data && s.Name == "Memory Available");
-
-                    // Fetch the 'Memory Used' sensor value
-                    var usedMemorySensor = ramHardware.Sensors
-                        .FirstOrDefault(s => s.SensorType == SensorType.Data && s.Name == "Memory Used");
-
-                    if(availableMemorySensor != null && usedMemorySensor != null)
-                    {
-                        // Calculate the total memory (in GB)
-                        var totalMemory = availableMemorySensor.Value + usedMemorySensor.Value;
-                        return ($"{usedMemorySensor.Value:F1}", $"{totalMemory:F1}");
-                    }
-                }
-                return ("N/A", "N/A");
-            } catch(Exception ex)
-            {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                return ("N/A", "N/A");
+                double totalMemory = usedMemoryVal + availableMemoryVal;
+                return ($"{usedMemoryVal:F1}", $"{totalMemory:F1}");
             }
+
+            return ("N/A", "N/A");
         }
+
+
+
 
         private static string FetchFPSStat()
         {

@@ -13,6 +13,7 @@ using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
+using static vrcosc_magicchatbox.ViewModels.InternalEnums;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -744,6 +745,23 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool IsGPUMaxValueShown
+        {
+            get => _statsManager.IsStatMaxValueShown(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ToggleStatMaxValueShown(StatsComponentType.GPU);
+                }
+                else
+                {
+                    _statsManager.ToggleStatMaxValueShown(StatsComponentType.GPU);
+                }
+                NotifyPropertyChanged(nameof(IsGPUMaxValueShown));
+            }
+        }
+
         public bool IsGPUEnabled
         {
             get => _statsManager.IsStatEnabled(StatsComponentType.GPU);
@@ -1190,15 +1208,7 @@ namespace vrcosc_magicchatbox.ViewModels
             { SortProperty.FocusCount, true }
         };
 
-        public enum SortProperty
-        {
-            ProcessName,
-            UsedNewMethod,
-            ApplyCustomAppName,
-            IsPrivateApp,
-            FocusCount,
-            ShowInfo
-        }
+
 
 
 
@@ -1553,15 +1563,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public enum Timezone
-        {
-            UTC,
-            EST,
-            CST,
-            PST,
-            CET,
-            AEST
-        }
+
 
 
         private int _HeartRate;

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using static vrcosc_magicchatbox.ViewModels.InternalEnums;
 using static vrcosc_magicchatbox.ViewModels.ViewModel;
 using Version = vrcosc_magicchatbox.ViewModels.Version;
 
