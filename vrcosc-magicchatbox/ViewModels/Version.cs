@@ -2,10 +2,6 @@
 {
     public class Version
     {
-        public string VersionNumber { get; set; }
-        public string ReleaseDate { get; set; }
-        public string ReleaseNotes { get; set; }
-
         public Version(string version)
         {
             VersionNumber = version;
@@ -13,5 +9,10 @@
             ReleaseNotes = "";
         }
 
+        public string ReleaseDate { get; set; }
+
+        public string ReleaseNotes { get; set; }
+
+        public string VersionNumber { get; set; }
     }
 }

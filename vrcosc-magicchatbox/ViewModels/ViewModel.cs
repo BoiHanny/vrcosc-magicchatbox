@@ -13,7 +13,6 @@ using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
-using static vrcosc_magicchatbox.ViewModels.InternalEnums;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -556,6 +555,10 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrComponentStats_DESKTOP = value;
+                if (value || !_statsManager.started)
+                {
+                    _statsManager.StartModule();
+                }
                 NotifyPropertyChanged(nameof(IntgrComponentStats_DESKTOP));
             }
         }
@@ -565,6 +568,10 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _IntgrComponentStats_VR = value;
+                if (value || !_statsManager.started)
+                {
+                    _statsManager.StartModule();
+                }
                 NotifyPropertyChanged(nameof(IntgrComponentStats_VR));
             }
         }
@@ -578,6 +585,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(IntgrCurrentTime_DESKTOP));
             }
         }
+
 
         public bool IntgrCurrentTime_VR
         {
@@ -735,13 +743,49 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 if (value)
                 {
-                    _statsManager.ActivateStat(StatsComponentType.CPU);
+                    _statsManager.ActivateStateState(StatsComponentType.CPU, true);
                 }
                 else
                 {
-                    _statsManager.DeactivateStat(StatsComponentType.CPU);
+                    _statsManager.ActivateStateState(StatsComponentType.CPU, false);
                 }
                 NotifyPropertyChanged(nameof(IsCPUEnabled));
+            }
+        }
+
+
+
+        public bool isVRAMMaxValueShown
+        {
+            get => _statsManager.IsStatMaxValueShown(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetStatMaxValueShown(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetStatMaxValueShown(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(isVRAMMaxValueShown));
+            }
+        }
+
+        public bool isRAMMaxValueShown
+        {
+            get => _statsManager.IsStatMaxValueShown(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetStatMaxValueShown(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetStatMaxValueShown(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(isRAMMaxValueShown));
             }
         }
 
@@ -752,13 +796,31 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 if (value)
                 {
-                    _statsManager.ToggleStatMaxValueShown(StatsComponentType.GPU);
+                    _statsManager.SetStatMaxValueShown(StatsComponentType.GPU, true);
                 }
                 else
                 {
-                    _statsManager.ToggleStatMaxValueShown(StatsComponentType.GPU);
+                    _statsManager.SetStatMaxValueShown(StatsComponentType.GPU, false);
                 }
                 NotifyPropertyChanged(nameof(IsGPUMaxValueShown));
+            }
+        }
+
+
+        public bool IsRAMEnabled
+        {
+            get => _statsManager.IsStatEnabled(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.ActivateStateState(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.ActivateStateState(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(IsRAMEnabled));
             }
         }
 
@@ -769,30 +831,81 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 if (value)
                 {
-                    _statsManager.ActivateStat(StatsComponentType.GPU);
+                    _statsManager.ActivateStateState(StatsComponentType.GPU, true);
                 }
                 else
                 {
-                    _statsManager.DeactivateStat(StatsComponentType.GPU);
+                    _statsManager.ActivateStateState(StatsComponentType.GPU, false);
                 }
                 NotifyPropertyChanged(nameof(IsGPUEnabled));
             }
         }
 
-        public bool IsRAMEnabled
+        public bool isCPUAvailable
         {
-            get => _statsManager.IsStatEnabled(StatsComponentType.RAM);
+            get => _statsManager.IsStatAvailable(StatsComponentType.CPU);
             set
             {
                 if (value)
                 {
-                    _statsManager.ActivateStat(StatsComponentType.RAM);
+                    _statsManager.SetStatAvailable(StatsComponentType.CPU, true);
                 }
                 else
                 {
-                    _statsManager.DeactivateStat(StatsComponentType.RAM);
+                    _statsManager.SetStatAvailable(StatsComponentType.CPU, false);
                 }
-                NotifyPropertyChanged(nameof(IsRAMEnabled));
+                NotifyPropertyChanged(nameof(isCPUAvailable));
+            }
+        }
+
+        public bool isGPUAvailable
+        {
+            get => _statsManager.IsStatAvailable(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetStatAvailable(StatsComponentType.GPU, true);
+                }
+                else
+                {
+                    _statsManager.SetStatAvailable(StatsComponentType.GPU, false);
+                }
+                NotifyPropertyChanged(nameof(isGPUAvailable));
+            }
+        }
+
+        public bool isRAMAvailable
+        {
+            get => _statsManager.IsStatAvailable(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetStatAvailable(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetStatAvailable(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(isRAMAvailable));
+            }
+        }
+
+        public bool isVRAMAvailable
+        {
+            get => _statsManager.IsStatAvailable(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetStatAvailable(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetStatAvailable(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(isVRAMAvailable));
             }
         }
 
@@ -803,13 +916,382 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 if (value)
                 {
-                    _statsManager.ActivateStat(StatsComponentType.VRAM);
+                    _statsManager.ActivateStateState(StatsComponentType.VRAM, true);
                 }
                 else
                 {
-                    _statsManager.DeactivateStat(StatsComponentType.VRAM);
+                    _statsManager.ActivateStateState(StatsComponentType.VRAM, false);
                 }
                 NotifyPropertyChanged(nameof(IsVRAMEnabled));
+            }
+        }
+
+        public string CPUHardwareName
+        {
+            get => _statsManager.GetHardwareName(StatsComponentType.CPU);
+        }
+
+        public string RAMHardwareName
+        {
+            get => _statsManager.GetHardwareName(StatsComponentType.RAM);
+
+        }
+
+        public string GPUHardwareName
+        {
+            get => _statsManager.GetHardwareName(StatsComponentType.GPU);
+        }
+
+        public string CPUCustomHardwareName
+        {
+            get => _statsManager.GetCustomHardwareName(StatsComponentType.CPU);
+            set
+            {
+                _statsManager.SetCustomHardwareName(StatsComponentType.CPU, value);
+                NotifyPropertyChanged(nameof(CPUCustomHardwareName));
+            }
+        }
+
+        public string RAMCustomHardwareName
+        {
+            get => _statsManager.GetCustomHardwareName(StatsComponentType.RAM);
+            set
+            {
+                _statsManager.SetCustomHardwareName(StatsComponentType.RAM, value);
+                NotifyPropertyChanged(nameof(RAMCustomHardwareName));
+            }
+        }
+
+        public string GPUCustomHardwareName
+        {
+            get => _statsManager.GetCustomHardwareName(StatsComponentType.GPU);
+            set
+            {
+                _statsManager.SetCustomHardwareName(StatsComponentType.GPU, value);
+                NotifyPropertyChanged(nameof(GPUCustomHardwareName));
+            }
+        }
+
+        public string VRAMCustomHardwareName
+        {
+            get => _statsManager.GetCustomHardwareName(StatsComponentType.VRAM);
+            set
+            {
+                _statsManager.SetCustomHardwareName(StatsComponentType.VRAM, value);
+                NotifyPropertyChanged(nameof(VRAMCustomHardwareName));
+            }
+        }
+
+        public bool CPU_EnableHardwareTitle
+        {
+            get => _statsManager.GetHardwareTitleState(StatsComponentType.CPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.CPU, true);
+                }
+                else
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.CPU, false);
+                }
+                NotifyPropertyChanged(nameof(CPU_EnableHardwareTitle));
+            }
+        }
+
+        public bool RAM_EnableHardwareTitle
+        {
+            get => _statsManager.GetHardwareTitleState(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(RAM_EnableHardwareTitle));
+            }
+        }
+
+        public bool GPU_EnableHardwareTitle
+        {
+            get => _statsManager.GetHardwareTitleState(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.GPU, true);
+                }
+                else
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.GPU, false);
+                }
+                NotifyPropertyChanged(nameof(GPU_EnableHardwareTitle));
+            }
+        }
+
+        public bool VRAM_EnableHardwareTitle
+        {
+            get => _statsManager.GetHardwareTitleState(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetHardwareTitle(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(VRAM_EnableHardwareTitle));
+            }
+        }
+
+        public bool CPU_PrefixHardwareTitle
+        {
+            get => _statsManager.GetShowReplaceWithHardwareName(StatsComponentType.CPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.CPU, true);
+                }
+                else
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.CPU, false);
+                }
+                NotifyPropertyChanged(nameof(CPU_PrefixHardwareTitle));
+            }
+        }
+
+        public bool RAM_PrefixHardwareTitle
+        {
+            get => _statsManager.GetShowReplaceWithHardwareName(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(RAM_PrefixHardwareTitle));
+            }
+        }
+
+
+
+        public bool GPU_PrefixHardwareTitle
+        {
+            get => _statsManager.GetShowReplaceWithHardwareName(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.GPU, true);
+                }
+                else
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.GPU, false);
+                }
+                NotifyPropertyChanged(nameof(GPU_PrefixHardwareTitle));
+            }
+        }
+
+        public bool VRAM_PrefixHardwareTitle
+        {
+            get => _statsManager.GetShowReplaceWithHardwareName(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetReplaceWithHardwareName(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(VRAM_PrefixHardwareTitle));
+            }
+        }
+
+        public bool CPU_NumberTrailingZeros
+        {
+            get => _statsManager.GetRemoveNumberTrailing(StatsComponentType.CPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.CPU, true);
+                }
+                else
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.CPU, false);
+                }
+                NotifyPropertyChanged(nameof(CPU_NumberTrailingZeros));
+            }
+        }
+
+        public bool RAM_NumberTrailingZeros
+        {
+            get => _statsManager.GetRemoveNumberTrailing(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(RAM_NumberTrailingZeros));
+            }
+        }
+
+        public bool GPU_NumberTrailingZeros
+        {
+            get => _statsManager.GetRemoveNumberTrailing(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.GPU, true);
+                }
+                else
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.GPU, false);
+                }
+                NotifyPropertyChanged(nameof(GPU_NumberTrailingZeros));
+            }
+        }
+
+        public bool VRAM_NumberTrailingZeros
+        {
+            get => _statsManager.GetRemoveNumberTrailing(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetRemoveNumberTrailing(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(VRAM_NumberTrailingZeros));
+            }
+        }
+
+        public bool CPU_SmallName
+        {
+            get => _statsManager.GetShowSmallName(StatsComponentType.CPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.CPU, true);
+                }
+                else
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.CPU, false);
+                }
+                NotifyPropertyChanged(nameof(CPU_SmallName));
+            }
+        }
+
+        public string VRAMHardwareName
+        {
+            get => _statsManager.GetHardwareName(StatsComponentType.VRAM);
+        }
+
+        public bool RAM_SmallName
+        {
+            get => _statsManager.GetShowSmallName(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(RAM_SmallName));
+            }
+        }
+
+        public bool GPU_SmallName
+        {
+            get => _statsManager.GetShowSmallName(StatsComponentType.GPU);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.GPU, true);
+                }
+                else
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.GPU, false);
+                }
+                NotifyPropertyChanged(nameof(GPU_SmallName));
+            }
+        }
+
+        public bool VRAM_SmallName
+        {
+            get => _statsManager.GetShowSmallName(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetShowSmallName(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(VRAM_SmallName));
+            }
+        }
+
+        public bool VRAM_ShowMaxValue
+        {
+            get => _statsManager.GetShowMaxValue(StatsComponentType.VRAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowMaxValue(StatsComponentType.VRAM, true);
+                }
+                else
+                {
+                    _statsManager.SetShowMaxValue(StatsComponentType.VRAM, false);
+                }
+                NotifyPropertyChanged(nameof(VRAM_ShowMaxValue));
+            }
+        }
+
+        public bool RAM_ShowMaxValue
+        {
+            get => _statsManager.GetShowMaxValue(StatsComponentType.RAM);
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowMaxValue(StatsComponentType.RAM, true);
+                }
+                else
+                {
+                    _statsManager.SetShowMaxValue(StatsComponentType.RAM, false);
+                }
+                NotifyPropertyChanged(nameof(RAM_ShowMaxValue));
             }
         }
 
@@ -1075,80 +1557,9 @@ namespace vrcosc_magicchatbox.ViewModels
             return _statsManager.GetStatValue(type);
         }
 
-        public void ToggleComponentEnabledStatus(StatsComponentType type)
-        {
-            _statsManager.ToggleStatEnabledStatus(type);
-        }
-
         public void SetComponentStatMaxValue(StatsComponentType type, string maxValue)
         {
             _statsManager.SetStatMaxValue(type, maxValue);
-        }
-
-        public string GetComponentStatMaxValue(StatsComponentType type)
-        {
-            return _statsManager.GetStatMaxValue(type);
-        }
-
-
-
-        private bool _StatsComponent_CPU = true;
-        public bool StatsComponent_CPU
-        {
-            get { return _StatsComponent_CPU; }
-            set
-            {
-                _StatsComponent_CPU = value;
-                NotifyPropertyChanged(nameof(StatsComponent_CPU));
-            }
-        }
-
-        private bool _StatsComponent_GPU = true;
-        public bool StatsComponent_GPU
-        {
-            get { return _StatsComponent_GPU; }
-            set
-            {
-                _StatsComponent_GPU = value;
-                NotifyPropertyChanged(nameof(StatsComponent_GPU));
-            }
-        }
-
-        private bool _StatsComponent_FPS = true;
-        public bool StatsComponent_FPS
-        {
-            get { return _StatsComponent_FPS; }
-            set
-            {
-                _StatsComponent_FPS = value;
-                NotifyPropertyChanged(nameof(StatsComponent_FPS));
-            }
-        }
-
-
-
-
-        private bool _StatsComponent_VRAM = true;
-        public bool StatsComponent_VRAM
-        {
-            get { return _StatsComponent_VRAM; }
-            set
-            {
-                _StatsComponent_VRAM = value;
-                NotifyPropertyChanged(nameof(StatsComponent_VRAM));
-            }
-        }
-
-
-        private bool _StatsComponent_RAM = true;
-        public bool StatsComponent_RAM
-        {
-            get { return _StatsComponent_RAM; }
-            set
-            {
-                _StatsComponent_RAM = value;
-                NotifyPropertyChanged(nameof(StatsComponent_RAM));
-            }
         }
 
         public int OSCPOrtIN
@@ -2942,7 +3353,7 @@ namespace vrcosc_magicchatbox.ViewModels
         #region PropChangedEvent
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void NotifyPropertyChanged(string name)
+        public void NotifyPropertyChanged(string name)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name)); }
         #endregion
     }

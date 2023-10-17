@@ -11,17 +11,16 @@ namespace vrcosc_magicchatbox.Classes
     {
         public static void RunSync(OSCParameter osctask)
         {
-            if(osctask.IsBuiltIn == true)
-            { 
-                if(osctask.Name == "AvatarChange")
+            if (osctask.IsBuiltIn == true)
+            {
+                if (osctask.Name == "AvatarChange")
                 {
                     OSCParameter parameter = OSCParameters.GetParameter("AvatarChange");
-                    OSCAvatar oSCAvatar = new OSCAvatar(parameter.GetLatestValue().ToString());           
-                }     
+                    OSCAvatar oSCAvatar = new OSCAvatar(parameter.GetLatestValue().ToString());
+                }
             }
             else
             {
-                
             }
         }
     }

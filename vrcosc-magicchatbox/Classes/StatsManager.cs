@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -17,6 +19,10 @@ namespace vrcosc_magicchatbox.Classes
 
         public void StartModule()
         {
+            if(ViewModel.Instance.IntgrComponentStats && ViewModel.Instance.IntgrComponentStats_VR &&
+                    ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrComponentStats &&
+                    ViewModel.Instance.IntgrComponentStats_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning)
             LoadComponentStats();
         }
 
@@ -40,11 +46,27 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
+        public bool GetShowMaxValue(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.ShowMaxValue ?? false;
+        }
+
+        public void SetShowMaxValue(StatsComponentType type, bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.ShowMaxValue = state;
+            }
+        }
+
+
         public void LoadComponentStats()
         {
             try
             {
-                FileName = Path.Combine(ViewModel.Instance.DataPath, "ComponentStats.json");
+                FileName = Path.Combine(ViewModel.Instance.DataPath, "ComponentStatsV1.json");
                 if (File.Exists(FileName))
                 {
                     var jsonData = File.ReadAllText(FileName);
@@ -60,6 +82,12 @@ namespace vrcosc_magicchatbox.Classes
                 else
                 {
                     InitializeDefaultStats();
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        MainWindow.FireExitSave();
+                        RestartApplication();
+                    });
+
                 }
             }
             catch (Exception ex)
@@ -111,16 +139,45 @@ namespace vrcosc_magicchatbox.Classes
                     {
                         component.ShowUnit = false;
                     }
-
+                    if(type == StatsComponentType.VRAM || type == StatsComponentType.RAM)
+                    {
+                        component.RemoveNumberTrailing = false;
+                        component.IsEnabled = false;
+                    }
                     _componentStats.Add(component);
                 }
-                started = true;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    started = true;
+                });
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex);
             }
 
+        }
+
+        private void RestartApplication()
+        {
+            // Obtain the full path of the current application
+            string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            // Create a new process to start the application again
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(appPath)
+            {
+                UseShellExecute = true  // Required to restart as admin if the app is run as admin
+            };
+
+            // Define a delayed action to start the new process
+            System.Threading.Timer timer = new System.Threading.Timer((state) =>
+            {
+                // Start the new process
+                System.Diagnostics.Process.Start(psi);
+            }, null, 2000, System.Threading.Timeout.Infinite);  // 2-second delay
+
+            // Shut down the current application
+            Application.Current.Shutdown();
         }
 
 
@@ -133,6 +190,36 @@ namespace vrcosc_magicchatbox.Classes
             {
                 item.ComponentValue = newValue;
                 item.LastUpdated = DateTime.Now;
+            }
+        }
+
+        public bool IsStatAvailable(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.Available ?? false;
+        }
+
+        public void SetStatAvailable(StatsComponentType type, bool available)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.Available = available;
+            }
+        }
+
+        public bool GetShowSmallName(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.ShowSmallName ?? false;
+        }
+
+        public void SetShowSmallName(StatsComponentType type, bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.ShowSmallName = state;
             }
         }
 
@@ -160,21 +247,78 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-        public void ActivateStat(StatsComponentType type)
+        public void ActivateStateState(StatsComponentType type, bool state)
         {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
             if(item != null)
             {
-                item.IsEnabled = true;
+                item.IsEnabled = state;
             }
         }
 
-        public void DeactivateStat(StatsComponentType type)
+        public string GetHardwareName(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.HardwareFriendlyName;
+        }
+
+        public void SetHardwareTitle(StatsComponentType type, bool state)
         {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
             if(item != null)
             {
-                item.IsEnabled = false;
+                item.ShowPrefixHardwareTitle = state;
+            }
+        }
+
+        public bool GetHardwareTitleState(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.ShowPrefixHardwareTitle ?? false;
+        }
+
+        public string GetCustomHardwareName(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.CustomHardwarenameValue;
+        }
+
+        public void SetCustomHardwareName(StatsComponentType type, string name)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.CustomHardwarenameValue = name;
+            }
+        }
+
+        public bool GetShowReplaceWithHardwareName(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.ReplaceWithHardwareName ?? false;
+        }
+
+        public void SetReplaceWithHardwareName(StatsComponentType type, bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.ReplaceWithHardwareName = state;
+            }
+        }
+
+        public bool GetRemoveNumberTrailing(StatsComponentType type)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            return item?.RemoveNumberTrailing ?? false;
+        }
+
+        public void SetRemoveNumberTrailing(StatsComponentType type, bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
+            if(item != null)
+            {
+                item.RemoveNumberTrailing = state;
             }
         }
 
@@ -196,12 +340,12 @@ namespace vrcosc_magicchatbox.Classes
             return item?.ShowMaxValue ?? false;
         }
 
-        public void ToggleStatMaxValueShown(StatsComponentType type)
+        public void SetStatMaxValueShown(StatsComponentType type, bool state)
         {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
             if(item != null)
             {
-                item.ShowMaxValue = !item.ShowMaxValue;
+                item.ShowMaxValue = state;
             }
         }
 
@@ -224,7 +368,7 @@ namespace vrcosc_magicchatbox.Classes
 
             var componentsList = StatDisplayOrder
                 .Select(type => _componentStats.FirstOrDefault(stat => stat.ComponentType == type))
-                .Where(stat => stat != null && stat.IsEnabled)
+                .Where(stat => stat != null && stat.IsEnabled && stat.Available)
                 .Select(stat => stat.GetDescription())
                 .ToList();
 

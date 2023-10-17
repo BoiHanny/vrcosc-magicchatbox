@@ -5,13 +5,41 @@ namespace vrcosc_magicchatbox.ViewModels
 {
     public class StatusItem : INotifyPropertyChanged
     {
-
         private DateTime _CreationDate;
-        private DateTime _LastUsed;
-        private int _MSGID;
-        private string _msg = "";
-        private bool _IsFavorite;
+
+
+        private string _editMsg = "";
         private bool _IsActive;
+
+
+        private bool _IsEditing = false;
+        private bool _IsFavorite;
+
+
+        private DateTime _LastEdited;
+        private DateTime _LastUsed;
+        private string _msg = "";
+        private int _MSGID;
+
+        public DateTime CreationDate
+        {
+            get { return _CreationDate; }
+            set
+            {
+                _CreationDate = value;
+                NotifyPropertyChanged(nameof(CreationDate));
+            }
+        }
+
+        public string editMsg
+        {
+            get { return _editMsg; }
+            set
+            {
+                _editMsg = value;
+                NotifyPropertyChanged(nameof(editMsg));
+            }
+        }
 
         public bool IsActive
         {
@@ -23,8 +51,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private bool _IsEditing = false;
         public bool IsEditing
         {
             get { return _IsEditing; }
@@ -45,6 +71,36 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public DateTime LastEdited
+        {
+            get
+            {
+                if(_LastEdited == null)
+                {
+                    return _CreationDate;
+                } else
+                {
+                    return _LastEdited;
+                }
+            }
+
+            set
+            {
+                _LastEdited = value;
+                NotifyPropertyChanged(nameof(LastEdited));
+            }
+        }
+
+        public DateTime LastUsed
+        {
+            get { return _LastUsed; }
+            set
+            {
+                _LastUsed = value;
+                NotifyPropertyChanged(nameof(LastUsed));
+            }
+        }
+
         public string msg
         {
             get { return _msg; }
@@ -52,18 +108,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _msg = value;
                 NotifyPropertyChanged(nameof(msg));
-            }
-        }
-
-
-        private string _editMsg = "";
-        public string editMsg
-        {
-            get { return _editMsg; }
-            set
-            {
-                _editMsg = value;
-                NotifyPropertyChanged(nameof(editMsg));
             }
         }
 
@@ -78,56 +122,12 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private DateTime _LastEdited;
-
-        public DateTime LastEdited
-        {
-            get
-            {
-                if (_LastEdited == null)
-                {
-                    return _CreationDate;
-                }
-                else
-                {
-                    return _LastEdited;
-                }
-            }
-
-            set
-            {
-                _LastEdited = value;
-                NotifyPropertyChanged(nameof(LastEdited));
-            }
-        }
-
-        public DateTime CreationDate
-        {
-            get { return _CreationDate; }
-            set
-            {
-                _CreationDate = value;
-                NotifyPropertyChanged(nameof(CreationDate));
-            }
-        }
-
-        public DateTime LastUsed
-        {
-            get { return _LastUsed; }
-            set
-            {
-                _LastUsed = value;
-                NotifyPropertyChanged(nameof(LastUsed));
-            }
-        }
-
-
-
         #region PropChangedEvent
         public event PropertyChangedEventHandler? PropertyChanged;
+
         public void NotifyPropertyChanged(string name)
         {
-            if (PropertyChanged != null)
+            if(PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(name));
         }
         #endregion

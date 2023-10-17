@@ -7,8 +7,6 @@ using System.Reflection;
 using System.Windows.Forms;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using static vrcosc_magicchatbox.ViewModels.InternalEnums;
-using static vrcosc_magicchatbox.ViewModels.ViewModel;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {

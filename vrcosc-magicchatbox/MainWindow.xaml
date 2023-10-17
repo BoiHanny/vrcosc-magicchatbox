@@ -375,6 +375,15 @@
                 Radius="{Binding MainWindowBlurEffect}" />
         </Border.Effect>
         <Grid Background="#FF3B3054">
+            <Grid.Effect>
+                <DropShadowEffect
+                    BlurRadius="5"
+                    Direction="500"
+                    Opacity="1"
+                    RenderingBias="Performance"
+                    ShadowDepth="15"
+                    Color="DarkBlue" />
+            </Grid.Effect>
             <Grid.RowDefinitions>
                 <RowDefinition Height="55" />
                 <RowDefinition Height="*" />
@@ -385,221 +394,7 @@
                 <ColumnDefinition Width="220" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.ColumnSpan="2" Background="#FF2D1267">
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="143" />
-                    <ColumnDefinition Width="123" />
-                    <ColumnDefinition Width="123" />
-                    <ColumnDefinition Width="122" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Border>
-                    <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
-                        <TextBlock
-                            Grid.Column="0"
-                            Padding="0,12,0,0"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="16"
-                            Foreground="White"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="MagicChatbox">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Direction="315"
-                                    Opacity="1"
-                                    ShadowDepth="0"
-                                    Color="Black" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                        <TextBlock
-                            Grid.Column="0"
-                            Padding="20,12,0,0"
-                            HorizontalAlignment="left"
-                            VerticalAlignment="top"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="10"
-                            Foreground="MediumPurple"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="VRC OSC">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Direction="315"
-                                    Opacity="1"
-                                    ShadowDepth="0"
-                                    Color="Black" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                    </Grid>
-                </Border>
-
-                <Grid
-                    Grid.Column="1"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_0"
-                        Margin="0,0,0,0"
-                        Background="#FF240E55"
-                        BorderThickness="0"
-                        Click="MenuButton_0_Click"
-                        Content="Integrations"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="#FFAEA7ED"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding MenuItem_0_Visibility}" />
-                </Grid>
-                <Grid
-                    Grid.Column="2"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_1"
-                        Margin="0,0,0,0"
-                        Background="#FF240E55"
-                        BorderThickness="0"
-                        Click="MenuButton_1_Click"
-                        Content="Status"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="#FFAEA7ED"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding MenuItem_1_Visibility}" />
-                </Grid>
-                <Grid
-                    Grid.Column="3"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_2"
-                        Margin="0,0,0,0"
-                        Background="#FF240E55"
-                        BorderThickness="0"
-                        Click="MenuButton_2_Click"
-                        Content="Chatting"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="#FFAEA7ED"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding MenuItem_2_Visibility}" />
-                </Grid>
-                <Grid
-                    Grid.Column="4"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_3"
-                        Margin="0,0,0,0"
-                        Background="#FF240E55"
-                        BorderThickness="0"
-                        Click="MenuButton_3_Click"
-                        Content="Options"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="#FFAEA7ED"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding MenuItem_3_Visibility}" />
-                </Grid>
-
-                <Grid Grid.Column="6" HorizontalAlignment="Right">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
-                        <ColumnDefinition Width="45" />
-                        <ColumnDefinition Width="45" />
-                    </Grid.ColumnDefinitions>
-                    <Button
-                        Name="Button_close"
-                        Grid.Column="2"
-                        Width="45"
-                        Height="22"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Background="#004D0606"
-                        BorderThickness="0"
-                        Click="Button_close_Click"
-                        Cursor="Hand"
-                        Style="{DynamicResource CloseButtonStyle}"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Image Margin="2" Source="img/icons/Close_ico.png" />
-                    </Button>
-                    <Button
-                        Name="Button_minimize"
-                        Grid.Column="1"
-                        Width="45"
-                        Height="22"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Background="#00473C89"
-                        BorderThickness="0"
-                        Click="Button_minimize_Click"
-                        Cursor="Hand"
-                        Style="{DynamicResource SubtractButtonStyle}"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Image Margin="2" Source="img/icons/subtract_ico.png" />
-                    </Button>
-                    <Grid Grid.Column="0" WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel
-                            Margin="0,0,5,0"
-                            Background="#FF3B2075"
-                            Orientation="Vertical">
-                            <TextBlock
-                                Margin="0,5,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="12"
-                                Foreground="#FFB3B0B9"
-                                Text="Sent to VRChat" />
-                            <CheckBox
-                                Name="MasterSwitch"
-                                Width="62"
-                                Margin="0,5,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Click="MasterSwitch_Click"
-                                IsChecked="{Binding MasterSwitch, Mode=TwoWay}"
-                                Opacity="0.90"
-                                Style="{DynamicResource Switch}" />
-                        </StackPanel>
-
-                    </Grid>
-                </Grid>
-
-            </Grid>
             <Grid
                 Grid.Row="1"
                 Background="#FF3B3054"
@@ -1189,7 +984,7 @@
                             Grid.Row="1"
                             Height="Auto"
                             Margin="34,10,0,0"
-                            d:Visibility="Visible"
+                            d:Visibility="Collapsed"
                             Visibility="{Binding Settings_HeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
                                 <Border
@@ -1793,7 +1588,10 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="3" Margin="0,5,0,0">
+                    <Grid
+                        x:Name="CompLayer"
+                        Grid.Row="3"
+                        Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1819,12 +1617,465 @@
                         </Grid>
 
 
-                        <Grid
+                        <StackPanel
                             x:Name="Settings_ComponentStats_Grid"
                             Grid.Row="1"
                             Height="Auto"
                             Margin="34,10,0,0"
-                            Visibility="{Binding Settings_ComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            d:Visibility="Visible"
+                            Visibility="{Binding Settings_ComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <Border
+                                Margin="0,0,0,5"
+                                Background="#FF3B3054"
+                                CornerRadius="5,0,0,5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="5,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="#BDAEE2"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding CPUHardwareName, StringFormat='CPU: {0}'}">
+
+
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Direction="0"
+                                                Opacity="0.9"
+                                                ShadowDepth="0"
+                                                Color="#63A8F9" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <CheckBox
+                                        x:Name="CPU_SmallName_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Stylized uppercase letters"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding CPU_SmallName, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="CPU_EnableHardwareTitle_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Display model name instead of 'CPU'"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding CPU_EnableHardwareTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the CPU usage label will display the model name of the CPU (e.g., 'Intel Core i7') instead of just 'CPU'." />
+                                    <CheckBox
+                                        x:Name="CPU_NumberTrailingZeros_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Round off CPU usage percentage"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding CPU_NumberTrailingZeros, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When enabled, the CPU usage percentage will be rounded off to the nearest whole number (e.g., displays as '7%' instead of '7.2%')."
+                                        Unchecked="Update_Click" />
+                                    <StackPanel Margin="5" IsEnabled="{Binding CPU_EnableHardwareTitle}">
+                                        <CheckBox
+                                            x:Name="CPU_PrefixHardwareTitle_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            Content="Set custom CPU model name"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding CPU_PrefixHardwareTitle, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            ToolTip="Specify your custom model name for the CPU. Note: This option requires 'Display model name instead of 'CPU'' to be enabled."
+                                            Unchecked="Update_Click" />
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding CPU_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Custom hardware name" />
+                                                <TextBox
+                                                    x:Name="CPUCustomHardwareName"
+                                                    Width="auto"
+                                                    MinWidth="50"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding CPUCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border
+                                Margin="0,0,0,5"
+                                Background="#FF3B3054"
+                                CornerRadius="5,0,0,5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="5,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="#BDAEE2"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding GPUHardwareName, StringFormat='GPU: {0}'}">
+
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Direction="0"
+                                                Opacity="0.9"
+                                                ShadowDepth="0"
+                                                Color="#63A8F9" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <CheckBox
+                                        x:Name="GPU_SmallName_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Stylized uppercase letters"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding GPU_SmallName, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="GPU_EnableHardwareTitle_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Display model name instead of 'GPU'"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding GPU_EnableHardwareTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the GPU usage label will display the model name of the GPU (e.g., 'NVIDIA RTX 4090') instead of just 'GPU'." />
+                                    <CheckBox
+                                        x:Name="GPU_NumberTrailingZeros_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Round off CPU usage percentage"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding GPU_NumberTrailingZeros, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When enabled, the GPU usage percentage will be rounded off to the nearest whole number (e.g., displays as '7%' instead of '7.2%')."
+                                        Unchecked="Update_Click" />
+                                    <StackPanel Margin="5" IsEnabled="{Binding GPU_EnableHardwareTitle}">
+                                        <CheckBox
+                                            x:Name="GPU_PrefixHardwareTitle_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            Content="Set custom GPU model name"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding GPU_PrefixHardwareTitle, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            ToolTip="Specify your custom model name for the GPU. Note: This option requires 'Display model name instead of 'GPU'' to be enabled."
+                                            Unchecked="Update_Click" />
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding GPU_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Custom hardware name" />
+                                                <TextBox
+                                                    x:Name="GPUCustomHardwareName"
+                                                    Width="auto"
+                                                    MinWidth="50"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding GPUCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border
+                                Margin="0,0,0,5"
+                                Background="#FF3B3054"
+                                CornerRadius="5,0,0,5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="5,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="#BDAEE2"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding VRAMHardwareName, StringFormat='VRAM: {0}'}">
+
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Direction="0"
+                                                Opacity="0.9"
+                                                ShadowDepth="0"
+                                                Color="#63A8F9" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <CheckBox
+                                        x:Name="VRAM_SmallName_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Stylized uppercase letters"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding VRAM_SmallName, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="VRAM_EnableHardwareTitle_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Display model name instead of 'VRAM'"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding VRAM_EnableHardwareTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
+                                    <CheckBox
+                                        x:Name="VRAM_ShowMaxValue_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show max VRAM capacity"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding VRAM_ShowMaxValue, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
+                                    <CheckBox
+                                        x:Name="VRAM_NumberTrailingZeros_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Round off GPU VRAM usage in GBs"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding VRAM_NumberTrailingZeros, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When enabled, the VRAM usage will be rounded off to the nearest whole number (e.g., displays as '6 GB' instead of '5.7 GB')."
+                                        Unchecked="Update_Click" />
+                                    <StackPanel Margin="5" IsEnabled="{Binding VRAM_EnableHardwareTitle}">
+                                        <CheckBox
+                                            x:Name="VRAM_PrefixHardwareTitle_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            Content="Set custom VRAM name"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding VRAM_PrefixHardwareTitle, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            ToolTip="Specify your custom model name for your GPU. Note: This option requires 'Display model name instead of 'VRAM'' to be enabled."
+                                            Unchecked="Update_Click" />
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding VRAM_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Custom hardware name" />
+                                                <TextBox
+                                                    x:Name="VRAMCustomHardwareName"
+                                                    Width="auto"
+                                                    MinWidth="50"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding VRAMCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border
+                                Margin="0,0,0,5"
+                                Background="#FF3B3054"
+                                CornerRadius="5,0,0,5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="5,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="#BDAEE2"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding RAMHardwareName, StringFormat='RAM: {0}'}">
+
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Direction="0"
+                                                Opacity="0.9"
+                                                ShadowDepth="0"
+                                                Color="#63A8F9" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <CheckBox
+                                        x:Name="RAM_SmallName_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Stylized uppercase letters"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding RAM_SmallName, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="RAM_EnableHardwareTitle_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Display model name instead of 'RAM'"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding RAM_EnableHardwareTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the RAM usage label will display the model name of ur RAM." />
+                                    <CheckBox
+                                        x:Name="RAM_ShowMaxValue_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show max RAM capacity"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding RAM_ShowMaxValue, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
+                                    <CheckBox
+                                        x:Name="RAM_NumberTrailingZeros_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Round off RAM usage in GBs"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding RAM_NumberTrailingZeros, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When enabled, the GPU usage percentage will be rounded off to the nearest whole number (e.g., displays as '7%' instead of '7.2%')."
+                                        Unchecked="Update_Click" />
+                                    <StackPanel Margin="5" IsEnabled="{Binding RAM_EnableHardwareTitle}">
+                                        <CheckBox
+                                            x:Name="RAM_PrefixHardwareTitle_checkbox"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            Content="Set custom GPU model name"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding RAM_PrefixHardwareTitle, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            ToolTip="Specify your custom model name for your RAM. Note: This option requires 'Display model name instead of 'RAM'' to be enabled."
+                                            Unchecked="Update_Click" />
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding RAM_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Custom hardware name" />
+                                                <TextBox
+                                                    x:Name="RAMCustomHardwareName"
+                                                    Width="auto"
+                                                    MinWidth="50"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding RAMCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </Grid>
                     <Grid Grid.Row="4" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
@@ -4152,14 +4403,14 @@
                                             <CheckBox
                                                 Height="23"
                                                 Margin="3,0"
-                                                Content="RAM"
-                                                IsChecked="{Binding IsRAMEnabled, Mode=TwoWay}"
+                                                Content="VRAM"
+                                                IsChecked="{Binding IsVRAMEnabled, Mode=TwoWay}"
                                                 Style="{StaticResource GlowyToggleButtonMediaLink}" />
                                             <CheckBox
                                                 Height="23"
                                                 Margin="3,0"
-                                                Content="VRAM"
-                                                IsChecked="{Binding IsVRAMEnabled, Mode=TwoWay}"
+                                                Content="RAM"
+                                                IsChecked="{Binding IsRAMEnabled, Mode=TwoWay}"
                                                 Style="{StaticResource GlowyToggleButtonMediaLink}" />
 
                                         </StackPanel>
@@ -4729,6 +4980,230 @@
                     </Grid>
                 </Grid>
             </ScrollViewer>
+            <Grid Grid.ColumnSpan="2" Background="#FF2D1267">
+
+                <Grid.Effect>
+                    <DropShadowEffect
+                        BlurRadius="12"
+                        Direction="-120"
+                        Opacity="0.2"
+                        RenderingBias="Performance"
+                        ShadowDepth="5"
+                        Color="black" />
+                </Grid.Effect>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="143" />
+                    <ColumnDefinition Width="123" />
+                    <ColumnDefinition Width="123" />
+                    <ColumnDefinition Width="122" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Border>
+                    <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
+                        <TextBlock
+                            Grid.Column="0"
+                            Padding="0,12,0,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="16"
+                            Foreground="White"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="MagicChatbox">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="315"
+                                    Opacity="1"
+                                    ShadowDepth="0"
+                                    Color="Black" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock
+                            Grid.Column="0"
+                            Padding="20,12,0,0"
+                            HorizontalAlignment="left"
+                            VerticalAlignment="top"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="10"
+                            Foreground="MediumPurple"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="VRC OSC">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="315"
+                                    Opacity="1"
+                                    ShadowDepth="0"
+                                    Color="Black" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <Grid
+                    Grid.Column="1"
+                    Margin="3,0,3,0"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button
+                        Name="MenuButton_0"
+                        Margin="0,0,0,0"
+                        Background="#FF240E55"
+                        BorderThickness="0"
+                        Click="MenuButton_0_Click"
+                        Content="Integrations"
+                        Cursor="Hand"
+                        FontFamily="Comfortaa Light"
+                        FontSize="18"
+                        FontWeight="Normal"
+                        Foreground="White"
+                        Style="{DynamicResource MenuItemStyle}" />
+                    <Border
+                        Height="4"
+                        VerticalAlignment="Top"
+                        Background="#FFAEA7ED"
+                        IsHitTestVisible="False"
+                        Visibility="{Binding MenuItem_0_Visibility}" />
+                </Grid>
+                <Grid
+                    Grid.Column="2"
+                    Margin="3,0,3,0"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button
+                        Name="MenuButton_1"
+                        Margin="0,0,0,0"
+                        Background="#FF240E55"
+                        BorderThickness="0"
+                        Click="MenuButton_1_Click"
+                        Content="Status"
+                        Cursor="Hand"
+                        FontFamily="Comfortaa Light"
+                        FontSize="18"
+                        FontWeight="Normal"
+                        Foreground="White"
+                        Style="{DynamicResource MenuItemStyle}" />
+                    <Border
+                        Height="4"
+                        VerticalAlignment="Top"
+                        Background="#FFAEA7ED"
+                        IsHitTestVisible="False"
+                        Visibility="{Binding MenuItem_1_Visibility}" />
+                </Grid>
+                <Grid
+                    Grid.Column="3"
+                    Margin="3,0,3,0"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button
+                        Name="MenuButton_2"
+                        Margin="0,0,0,0"
+                        Background="#FF240E55"
+                        BorderThickness="0"
+                        Click="MenuButton_2_Click"
+                        Content="Chatting"
+                        Cursor="Hand"
+                        FontFamily="Comfortaa Light"
+                        FontSize="18"
+                        FontWeight="Normal"
+                        Foreground="White"
+                        Style="{DynamicResource MenuItemStyle}" />
+                    <Border
+                        Height="4"
+                        VerticalAlignment="Top"
+                        Background="#FFAEA7ED"
+                        IsHitTestVisible="False"
+                        Visibility="{Binding MenuItem_2_Visibility}" />
+                </Grid>
+                <Grid
+                    Grid.Column="4"
+                    Margin="3,0,3,0"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button
+                        Name="MenuButton_3"
+                        Margin="0,0,0,0"
+                        Background="#FF240E55"
+                        BorderThickness="0"
+                        Click="MenuButton_3_Click"
+                        Content="Options"
+                        Cursor="Hand"
+                        FontFamily="Comfortaa Light"
+                        FontSize="18"
+                        FontWeight="Normal"
+                        Foreground="White"
+                        Style="{DynamicResource MenuItemStyle}" />
+                    <Border
+                        Height="4"
+                        VerticalAlignment="Top"
+                        Background="#FFAEA7ED"
+                        IsHitTestVisible="False"
+                        Visibility="{Binding MenuItem_3_Visibility}" />
+                </Grid>
+
+                <Grid Grid.Column="6" HorizontalAlignment="Right">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130" />
+                        <ColumnDefinition Width="45" />
+                        <ColumnDefinition Width="45" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Name="Button_close"
+                        Grid.Column="2"
+                        Width="45"
+                        Height="22"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Background="#004D0606"
+                        BorderThickness="0"
+                        Click="Button_close_Click"
+                        Cursor="Hand"
+                        Style="{DynamicResource CloseButtonStyle}"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Image Margin="2" Source="img/icons/Close_ico.png" />
+                    </Button>
+                    <Button
+                        Name="Button_minimize"
+                        Grid.Column="1"
+                        Width="45"
+                        Height="22"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Background="#00473C89"
+                        BorderThickness="0"
+                        Click="Button_minimize_Click"
+                        Cursor="Hand"
+                        Style="{DynamicResource SubtractButtonStyle}"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Image Margin="2" Source="img/icons/subtract_ico.png" />
+                    </Button>
+                    <Grid Grid.Column="0" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <StackPanel
+                            Margin="0,0,5,0"
+                            Background="#FF3B2075"
+                            Orientation="Vertical">
+                            <TextBlock
+                                Margin="0,5,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="#FFB3B0B9"
+                                Text="Sent to VRChat" />
+                            <CheckBox
+                                Name="MasterSwitch"
+                                Width="62"
+                                Margin="0,5,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="MasterSwitch_Click"
+                                IsChecked="{Binding MasterSwitch, Mode=TwoWay}"
+                                Opacity="0.90"
+                                Style="{DynamicResource Switch}" />
+                        </StackPanel>
+
+                    </Grid>
+                </Grid>
+
+            </Grid>
             <Grid
                 Grid.Row="1"
                 Grid.Column="1"
@@ -4738,7 +5213,15 @@
                     <RowDefinition Height="30" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-
+                <Grid.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="-100"
+                        Opacity="0.1"
+                        RenderingBias="Performance"
+                        ShadowDepth="15"
+                        Color="DarkBlue" />
+                </Grid.Effect>
                 <TextBlock
                     Grid.Column="0"
                     HorizontalAlignment="Center"
@@ -5048,6 +5531,7 @@
                     </StackPanel>
 
                 </StackPanel>
+
                 <Grid
                     Grid.Row="3"
                     Height="45"
@@ -5180,6 +5664,7 @@
                 </Button>
 
             </Grid>
+
         </Grid>
     </Border>
 </Window>

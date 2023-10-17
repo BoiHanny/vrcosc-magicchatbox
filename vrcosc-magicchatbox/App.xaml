@@ -999,62 +999,88 @@
         <SolidColorBrush x:Key="OptionMark.Disabled.Background1" Color="#FFE6E6E6" />
         <SolidColorBrush x:Key="OptionMark.Disabled.Border1" Color="#FFBCBCBC" />
         <SolidColorBrush x:Key="OptionMark.Disabled.Glyph1" Color="#FF707070" />
+
         <Style x:Key="SettingsCheckbox" TargetType="{x:Type CheckBox}">
             <Setter Property="SnapsToDevicePixels" Value="False" />
             <Setter Property="OverridesDefaultStyle" Value="true" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-            <Setter Property="BorderBrush" Value="SkyBlue" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
-                        <BulletDecorator Background="Transparent">
-                            <BulletDecorator.Bullet>
-                                <Border
-                                    x:Name="Border"
-                                    Width="20"
-                                    Height="20"
-                                    Background="#FF7D7397"
-                                    BorderBrush="#FF7D7397"
-                                    BorderThickness="1"
-                                    ClipToBounds="True">
-                                    <Path
-                                        x:Name="CheckMark"
-                                        Width="12"
-                                        Height="12"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Data="M27.903015,0L32,4.0970465 12.369019,23.728029 11.685974,24.520998 0,14.441042 3.7819824,10.054994 11.330017,16.567019z"
-                                        Fill="#FF240E54"
-                                        Stretch="Fill"
-                                        Stroke="#FF240E54"
-                                        StrokeEndLineCap="Round"
-                                        StrokeStartLineCap="Round"
-                                        StrokeThickness="1" />
-                                </Border>
-                            </BulletDecorator.Bullet>
-                            <ContentPresenter
-                                Margin="10,0,0,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                RecognizesAccessKey="True" />
-                        </BulletDecorator>
+                        <Border Background="Transparent">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Direction="0"
+                                    Opacity="0.8"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="black" />
+                            </Border.Effect>
+                            <BulletDecorator x:Name="BulletDecoratorRoot">
+                                <BulletDecorator.Bullet>
+                                    <Border
+                                        x:Name="Border"
+                                        Width="20"
+                                        Height="20"
+                                        Background="#FF7D7397"
+                                        BorderBrush="#FF7D7397"
+                                        BorderThickness="1"
+                                        ClipToBounds="True">
+                                        <Path
+                                            x:Name="CheckMark"
+                                            Width="12"
+                                            Height="12"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Data="M27.903015,0L32,4.0970465 12.369019,23.728029 11.685974,24.520998 0,14.441042 3.7819824,10.054994 11.330017,16.567019z"
+                                            Fill="#FF240E54"
+                                            Stretch="Fill"
+                                            Stroke="#FF240E54"
+                                            StrokeEndLineCap="Round"
+                                            StrokeStartLineCap="Round"
+                                            StrokeThickness="1" />
+                                    </Border>
+                                </BulletDecorator.Bullet>
+                                <ContentPresenter
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    RecognizesAccessKey="True" />
+                            </BulletDecorator>
+                        </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="false">
                                 <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed" />
                             </Trigger>
                             <Trigger Property="IsFocused" Value="true">
                                 <Setter Property="BorderBrush" Value="White" />
+                                <Setter TargetName="Border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="1"
+                                            ShadowDepth="0"
+                                            Color="SkyBlue" />
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="BorderBrush" Value="Gray" />
-                                <Setter TargetName="CheckMark" Property="Stroke" Value="Gray" />
+                                <Setter Property="BorderBrush" Value="#FFA9A9A9" />
+                                <Setter TargetName="CheckMark" Property="Fill" Value="#FFD3D3D3" />
+                                <Setter TargetName="CheckMark" Property="Stroke" Value="#FFD3D3D3" />
+                                <Setter TargetName="Border" Property="Effect" Value="{x:Null}" />
+                                <Setter TargetName="BulletDecoratorRoot" Property="Opacity" Value="0.6" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+
+
         <SolidColorBrush x:Key="Slider.Track.Color" Color="#827D92" />
         <SolidColorBrush x:Key="Slider.Track.FilledColor" Color="#7C7295" />
         <SolidColorBrush x:Key="Slider.Static.Thumb" Color="#ABA3B7" />

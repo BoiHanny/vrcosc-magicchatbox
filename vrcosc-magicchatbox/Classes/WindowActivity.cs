@@ -304,7 +304,7 @@ namespace vrcosc_magicchatbox.Classes
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return processName;
             }
-            
+
         }
 
         private static string GetNameFromAutomationElement(IntPtr hwnd)
@@ -412,27 +412,29 @@ namespace vrcosc_magicchatbox.Classes
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return processName;
             }
-            
+
         }
 
         private static void AddNewProcessToViewModel(string processName, string windowTitle)
         {
             try
             {
-                ProcessInfo processInfo = new ProcessInfo
-                {
-                    LastTitle = windowTitle,
-                    ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
-                    ProcessName = processName,
-                    UsedNewMethod = _usedNewMethod,
-                    ApplyCustomAppName = false,
-                    CustomAppName = "",
-                    IsPrivateApp = false,
-                    FocusCount = 1
-                };
+                Application.Current.Dispatcher.Invoke(() => {
+                    ProcessInfo processInfo = new ProcessInfo
+                    {
+                        LastTitle = windowTitle,
+                        ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
+                        ProcessName = processName,
+                        UsedNewMethod = _usedNewMethod,
+                        ApplyCustomAppName = false,
+                        CustomAppName = "",
+                        IsPrivateApp = false,
+                        FocusCount = 1
+                    };
 
-                ViewModel.Instance.ScannedApps.Add(processInfo);
-                ViewModel.Instance.LastProcessFocused = processInfo;
+                    ViewModel.Instance.ScannedApps.Add(processInfo);
+                    ViewModel.Instance.LastProcessFocused = processInfo;
+                });
             }
             catch (Exception ex)
             {
@@ -441,8 +443,8 @@ namespace vrcosc_magicchatbox.Classes
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
             }
-
         }
+
 
 
 

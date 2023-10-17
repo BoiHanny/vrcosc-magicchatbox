@@ -4,58 +4,23 @@ namespace vrcosc_magicchatbox.ViewModels
 {
     public class ProcessInfo : INotifyPropertyChanged
     {
-        private string _processName;
-        private bool _usedNewMethod;
         private bool _applyCustomAppName;
         private string _customAppName;
-        private bool _isPrivateApp;
         private int _focusCount;
-
+        private bool _isPrivateApp;
 
 
         private string? _lastTitle = "";
-        public string? LastTitle
-        {
-            get { return _lastTitle; }
-            set
-            {
-                _lastTitle = value;
-                NotifyPropertyChanged(nameof(LastTitle));
-            }
-        }
+        private string _processName;
 
 
         private bool _ShowTitle = false;
-        public bool ShowTitle
-        {
-            get { return _ShowTitle; }
-            set
-            {
-                _ShowTitle = value;
-                NotifyPropertyChanged(nameof(ShowTitle));
-            }
-        }
+        private bool _usedNewMethod;
 
-        public string ProcessName
-        {
-            get { return _processName; }
-            set
-            {
-                _processName = value;
-                NotifyPropertyChanged(nameof(ProcessName));
-            }
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
 
-
-        public bool UsedNewMethod
-        {
-            get { return _usedNewMethod; }
-            set
-            {
-                _usedNewMethod = value;
-                NotifyPropertyChanged(nameof(UsedNewMethod));
-            }
-        }
+        private void NotifyPropertyChanged(string propertyName)
+        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
         public bool ApplyCustomAppName
         {
@@ -77,16 +42,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public bool IsPrivateApp
-        {
-            get { return _isPrivateApp; }
-            set
-            {
-                _isPrivateApp = value;
-                NotifyPropertyChanged(nameof(IsPrivateApp));
-            }
-        }
-
         public int FocusCount
         {
             get { return _focusCount; }
@@ -97,11 +52,55 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(string propertyName)
+        public bool IsPrivateApp
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            get { return _isPrivateApp; }
+            set
+            {
+                _isPrivateApp = value;
+                NotifyPropertyChanged(nameof(IsPrivateApp));
+            }
+        }
+
+        public string? LastTitle
+        {
+            get { return _lastTitle; }
+            set
+            {
+                _lastTitle = value;
+                NotifyPropertyChanged(nameof(LastTitle));
+            }
+        }
+
+        public string ProcessName
+        {
+            get { return _processName; }
+            set
+            {
+                _processName = value;
+                NotifyPropertyChanged(nameof(ProcessName));
+            }
+        }
+
+        public bool ShowTitle
+        {
+            get { return _ShowTitle; }
+            set
+            {
+                _ShowTitle = value;
+                NotifyPropertyChanged(nameof(ShowTitle));
+            }
+        }
+
+
+        public bool UsedNewMethod
+        {
+            get { return _usedNewMethod; }
+            set
+            {
+                _usedNewMethod = value;
+                NotifyPropertyChanged(nameof(UsedNewMethod));
+            }
         }
     }
-
 }

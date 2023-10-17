@@ -48,9 +48,6 @@ namespace vrcosc_magicchatbox.Classes
                 return "Oop, an exception did happen...";
             }
         }
-
-
-
         public static bool SpotifyIsRunning()
         {
             try
@@ -71,6 +68,5 @@ namespace vrcosc_magicchatbox.Classes
             }
 
         }
-
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -18,7 +19,6 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace vrcosc_magicchatbox
 {
@@ -1234,6 +1234,7 @@ namespace vrcosc_magicchatbox
         private void ConnectWithPulsoid_Click(object sender, RoutedEventArgs e)
         {
             _ = ConnectPulsoidAsync();
+
         }
 
         public async Task ConnectPulsoidAsync()

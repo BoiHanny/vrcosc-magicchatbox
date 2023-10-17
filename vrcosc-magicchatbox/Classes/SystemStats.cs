@@ -4,9 +4,8 @@ using System.Globalization;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using static vrcosc_magicchatbox.ViewModels.ViewModel;
 using LibreHardwareMonitor.Hardware;
-using static vrcosc_magicchatbox.ViewModels.InternalEnums;
+using vrcosc_magicchatbox.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes
 {
@@ -29,42 +28,58 @@ namespace vrcosc_magicchatbox.Classes
 
         public static void TickAndUpdate()
         {
-            if(Instance.IntgrComponentStats &&
-                Instance.IntgrComponentStats_VR &&
-                Instance.IsVRRunning ||
-                Instance.IntgrComponentStats &&
-                Instance.IntgrComponentStats_DESKTOP &&
-                !Instance.IsVRRunning)
+            if (ShouldUpdateComponentStats())
             {
-                Instance.ComponentStatsRunning = true;
-                if (CurrentSystem == null)
-                {
-                    StartMonitoringComponents();
-                }
-                Instance.SyncComponentStatsList();
-
-                bool UpdateStatsCompleted = UpdateStats();
-
-                if(UpdateStatsCompleted)
-                {
-                    Instance.ComponentStatCombined = Instance._statsManager.GenerateStatsDescription();
-                }
-            } else
+                PerformUpdateActions();
+            }
+            else
             {
-                Instance.ComponentStatsRunning = false;
-                if (CurrentSystem != null)
-                {
-                    StopMonitoringComponents();
-
-                }
+                PerformStopActions();
             }
         }
+
+        private static bool ShouldUpdateComponentStats()
+        {
+            var vm = ViewModel.Instance;
+            return (vm.IntgrComponentStats && vm.IntgrComponentStats_VR && vm.IsVRRunning) ||
+                   (vm.IntgrComponentStats && vm.IntgrComponentStats_DESKTOP && !vm.IsVRRunning);
+        }
+
+        private static void PerformUpdateActions()
+        {
+            var vm = ViewModel.Instance;
+            vm.ComponentStatsRunning = true;
+
+            if (CurrentSystem == null)
+            {
+                StartMonitoringComponents();
+            }
+
+            vm.SyncComponentStatsList();
+
+            if (UpdateStats())
+            {
+                vm.ComponentStatCombined = vm._statsManager.GenerateStatsDescription();
+            }
+        }
+
+        private static void PerformStopActions()
+        {
+            var vm = ViewModel.Instance;
+            vm.ComponentStatsRunning = false;
+
+            if (CurrentSystem != null)
+            {
+                StopMonitoringComponents();
+            }
+        }
+
 
         public static void StopMonitoringComponents()
         {
             try
             {
-                Instance.SyncComponentStatsList();
+                ViewModel.Instance.SyncComponentStatsList();
                 CurrentSystem.Close();
                 CurrentSystem = null;
             } catch(Exception ex)
@@ -191,64 +206,70 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                // Fetches the ComponentStatsItem for the given type.
-                ComponentStatsItem GetStatsItem(StatsComponentType type)
-                { return ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type); }
-
-                // CPU stats
-                var cpuStatItem = GetStatsItem(StatsComponentType.CPU);
-                if(cpuStatItem != null && cpuStatItem.IsEnabled)
+                void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)
                 {
-                    string cpuValue = FetchCPUStat();
-                    if(!cpuValue.Contains("N/A"))
-                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.CPU, cpuValue);
+                    var statItem = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type);
+                    if (statItem == null || !statItem.IsEnabled) return;
+
+                    string value = fetchStat();
+                    string maxValue = fetchMaxStat?.Invoke();
+
+                    if (!value.Contains("N/A"))
+                    {
+                        ViewModel.Instance.UpdateComponentStat(type, value);
+                        SetAvailability(type, true);
+                    }
+                    else
+                    {
+                        SetAvailability(type, false);
+                    }
+
+                    if (maxValue != null && !maxValue.Contains("N/A"))
+                    {
+                        ViewModel.Instance.SetComponentStatMaxValue(type, maxValue);
+                        SetAvailability(type, true);
+                    }
+                    else if (maxValue != null)
+                    {
+                        SetAvailability(type, false);
+                    }
                 }
 
-                // GPU stats
-                var gpuStatItem = GetStatsItem(StatsComponentType.GPU);
-                if(gpuStatItem != null && gpuStatItem.IsEnabled)
+                void SetAvailability(StatsComponentType type, bool value)
                 {
-                    string gpuValue = FetchGPUStat();
-                    if(!gpuValue.Contains("N/A"))
-                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.GPU, gpuValue);
+                    switch (type)
+                    {
+                        case StatsComponentType.CPU:
+                            ViewModel.Instance.isCPUAvailable = value;
+                            break;
+                        case StatsComponentType.GPU:
+                            ViewModel.Instance.isGPUAvailable = value;
+                            break;
+                        case StatsComponentType.RAM:
+                            ViewModel.Instance.isRAMAvailable = value;
+                            break;
+                        case StatsComponentType.VRAM:
+                            ViewModel.Instance.isVRAMAvailable = value;
+                            break;
+                            // Add other types here as needed.
+                    }
                 }
 
-                // RAM stats
-                var ramStatItem = GetStatsItem(StatsComponentType.RAM);
-                if(ramStatItem != null && ramStatItem.IsEnabled)
-                {
-                    var (usedMemory, totalMemory) = FetchRAMStats();
-                    if(!usedMemory.Contains("N/A"))
-                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.RAM, usedMemory);
-                     if(!totalMemory.Contains("N/A"))
-                    ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.RAM, totalMemory);
-                }
-
-                // VRAM stats
-                var vramStatItem = GetStatsItem(StatsComponentType.VRAM);
-                if(vramStatItem != null && vramStatItem.IsEnabled)
-                {
-                    string vramValue = FetchVRAMStat();
-                    string vramValueMax = FetchVRAMMaxStat();
-                    if(!vramValue.Contains("N/A"))
-                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.VRAM, vramValue);
-                    if(!vramValueMax.Contains("N/A"))
-                    ViewModel.Instance.SetComponentStatMaxValue(StatsComponentType.VRAM, vramValueMax);
-                }
-
-                // FPS stats
-                var fpsStatItem = GetStatsItem(StatsComponentType.FPS);
-                if(fpsStatItem != null && fpsStatItem.IsEnabled)
-                {
-                    string fpsValue = FetchFPSStat();
-                    ViewModel.Instance.UpdateComponentStat(StatsComponentType.FPS, fpsValue);
-                }
-            } catch(Exception)
+                UpdateComponentStats(StatsComponentType.CPU, FetchCPUStat);
+                UpdateComponentStats(StatsComponentType.GPU, FetchGPUStat);
+                UpdateComponentStats(StatsComponentType.RAM, () => FetchRAMStats().UsedMemory, () => FetchRAMStats().MaxMemory);
+                UpdateComponentStats(StatsComponentType.VRAM, FetchVRAMStat, FetchVRAMMaxStat);
+                UpdateComponentStats(StatsComponentType.FPS, FetchFPSStat);
+            }
+            catch (Exception ex)
             {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return false;
             }
             return true;
         }
+
+
 
         public static bool IsVRRunning()
         {
@@ -268,16 +289,25 @@ namespace vrcosc_magicchatbox.Classes
 
         private static Hardware GetDedicatedGPU()
         {
-            foreach (var type in new[] { HardwareType.GpuNvidia, HardwareType.GpuAmd })
+            try
             {
-                var hardware = CurrentSystem.Hardware
-                    .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
-                    as Hardware;
+                foreach (var type in new[] { HardwareType.GpuNvidia, HardwareType.GpuAmd })
+                {
+                    var hardware = CurrentSystem.Hardware
+                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
+                        as Hardware;
 
-                if (hardware != null) return hardware;
+                    if (hardware != null) return hardware;
+                }
+                return CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel)
+                    as Hardware;
             }
-            return CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel)
-                as Hardware;
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return null;
+            }
+
         }
 
         private static string FetchStat(
@@ -285,8 +315,25 @@ namespace vrcosc_magicchatbox.Classes
             SensorType sensorType,
             string sensorName,
             Func<double, double> transform = null,
-            Func<IHardware, bool> hardwarePredicate = null)
+            Func<IHardware, bool> hardwarePredicate = null,
+            StatsComponentType statsComponentType = StatsComponentType.Unknown)
         {
+            if (hardwareType == default || sensorType == default || string.IsNullOrWhiteSpace(sensorName))
+            {
+                return "N/A";
+            }
+
+            if (statsComponentType == StatsComponentType.Unknown)
+            {
+                return "N/A";
+            }
+
+            ComponentStatsItem current = null;
+            if (statsComponentType != StatsComponentType.Unknown)
+            {
+                current = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == statsComponentType);
+            }
+
             try
             {
                 IHardware hardware = hardwarePredicate == null
@@ -299,10 +346,29 @@ namespace vrcosc_magicchatbox.Classes
                 var sensor = hardware.Sensors
                     .FirstOrDefault(s => s.SensorType == sensorType && s.Name == sensorName);
 
+                if(current.HardwareFriendlyName != hardware.Name)
+                {
+                    current.HardwareFriendlyName = hardware.Name;
+                    if(!current.ReplaceWithHardwareName)
+                        current.HardwareFriendlyNameSmall = DataController.TransformToSuperscript(hardware.Name);
+                }
+                if(current.ReplaceWithHardwareName || string.IsNullOrEmpty(current.HardwareFriendlyNameSmall))
+                {
+                    current.CustomHardwarenameValueSmall = DataController.TransformToSuperscript(current.CustomHardwarenameValue);
+                }
+
                 if (sensor?.Value == null) return "N/A";
 
                 var value = transform == null ? sensor.Value.Value : transform(sensor.Value.Value);
-                return $"{value:F1}";
+
+                if (current?.RemoveNumberTrailing == true)
+                {
+                    return ((int)value).ToString();
+                }
+                else
+                {
+                    return $"{value:F1}";
+                }
             }
             catch (Exception ex)
             {
@@ -311,37 +377,41 @@ namespace vrcosc_magicchatbox.Classes
             }
         }
 
-
-
-
         private static string FetchCPUStat() =>
-            FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total");
+            FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total", statsComponentType:StatsComponentType.CPU);
 
         private static string FetchGPUStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.Load, "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU());
+            FetchStat(HardwareType.GpuNvidia, SensorType.Load, "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
 
         private static string FetchVRAMStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU());
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
 
         private static string FetchVRAMMaxStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU());
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType:StatsComponentType.VRAM);
 
         private static (string UsedMemory, string MaxMemory) FetchRAMStats()
         {
-            string usedMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Used");
-            string availableMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Available");
+            string usedMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Used", statsComponentType: StatsComponentType.RAM);
+            string availableMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Available", statsComponentType: StatsComponentType.RAM);
+
+            var current = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
 
             if (double.TryParse(usedMemory, out double usedMemoryVal) && double.TryParse(availableMemory, out double availableMemoryVal))
             {
                 double totalMemory = usedMemoryVal + availableMemoryVal;
-                return ($"{usedMemoryVal:F1}", $"{totalMemory:F1}");
+
+                if (current?.RemoveNumberTrailing == true)
+                {
+                    return ($"{(int)usedMemoryVal}", $"{(int)totalMemory}");
+                }
+                else
+                {
+                    return ($"{usedMemoryVal:F1}", $"{totalMemory:F1}");
+                }
             }
 
             return ("N/A", "N/A");
         }
-
-
-
 
         private static string FetchFPSStat()
         {
