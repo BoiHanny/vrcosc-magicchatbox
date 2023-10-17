@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
@@ -158,27 +159,30 @@ namespace vrcosc_magicchatbox.Classes
 
         }
 
-        private void RestartApplication()
+        private async void RestartApplication()
         {
             // Obtain the full path of the current application
-            string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string dllPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            // Replace .dll with .exe to get the path to the executable
+            string exePath = dllPath.Replace(".dll", ".exe");
 
             // Create a new process to start the application again
-            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(appPath)
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(exePath)
             {
-                UseShellExecute = true  // Required to restart as admin if the app is run as admin
+                UseShellExecute = false 
             };
 
-            // Define a delayed action to start the new process
-            System.Threading.Timer timer = new System.Threading.Timer((state) =>
-            {
-                // Start the new process
-                System.Diagnostics.Process.Start(psi);
-            }, null, 2000, System.Threading.Timeout.Infinite);  // 2-second delay
+            // Start the new process
+            System.Diagnostics.Process.Start(psi);
+
+            // Wait for a short delay
+            await Task.Delay(500); 
 
             // Shut down the current application
             Application.Current.Shutdown();
         }
+
 
 
 
