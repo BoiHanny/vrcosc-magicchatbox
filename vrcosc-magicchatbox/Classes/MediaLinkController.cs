@@ -209,12 +209,68 @@ namespace vrcosc_magicchatbox.Classes
                 mediaManager.OnFocusedSessionChanged -= MediaManager_OnFocusedSessionChanged;
                 mediaManager.OnAnyPlaybackStateChanged -= MediaManager_OnAnyPlaybackStateChanged;
                 mediaManager.OnAnyMediaPropertyChanged -= MediaManager_OnAnyMediaPropertyChanged;
+                mediaManager.OnAnyTimelinePropertyChanged -= MediaManager_OnAnyTimelinePropertyChanged;
 
                 mediaManager.Dispose();
                 ViewModel.Instance.MediaSessions.Clear();
                 mediaManager = null;
             }
         }
+
+        public static void MediaManager_OnAnyTimelinePropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionTimelineProperties args)
+        {
+            var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
+
+            if (sessionInfo != null)
+            {
+                if (args.StartTime != TimeSpan.Zero || args.Position != TimeSpan.Zero)
+                {
+                    sessionInfo.FullTime = args.EndTime - args.StartTime;
+                    sessionInfo.CurrentTime = args.Position;
+                    sessionInfo.TimePeekEnabled = true;
+                }
+                else
+                {
+                    sessionInfo.TimePeekEnabled = false;
+                }
+            }
+        }
+
+        public static void MediaManager_PlayPauseAsync(MediaSessionInfo sessionInfo)
+        {
+            MediaSession S = sessionInfo.Session;
+
+            if (S == null)
+                return;
+
+            S?.ControlSession.TryTogglePlayPauseAsync();
+        }
+
+        public static void MediaManager_NextAsync(MediaSessionInfo sessionInfo)
+        {
+            MediaSession S = sessionInfo.Session;
+
+            if (S == null)
+                return;
+
+            S?.ControlSession.TrySkipNextAsync();
+        }
+
+        public static async Task MediaManager_PreviousAsync(MediaSessionInfo sessionInfo)
+        {
+            MediaSession S = sessionInfo.Session;
+
+            if (S == null)
+                return;
+            S?.ControlSession.TrySkipPreviousAsync();
+            if(sessionInfo.CurrentTime > TimeSpan.FromSeconds(2))
+            {
+                S?.ControlSession.TrySkipPreviousAsync();
+            }
+
+        }
+
+
 
         public static void SessionRestore(MediaSessionInfo session)
         {
@@ -254,6 +310,7 @@ namespace vrcosc_magicchatbox.Classes
                 mediaManager.OnFocusedSessionChanged += MediaManager_OnFocusedSessionChanged;
                 mediaManager.OnAnyPlaybackStateChanged += MediaManager_OnAnyPlaybackStateChanged;
                 mediaManager.OnAnyMediaPropertyChanged += MediaManager_OnAnyMediaPropertyChanged;
+                mediaManager.OnAnyTimelinePropertyChanged += MediaManager_OnAnyTimelinePropertyChanged;
                 mediaManager.Start();
             } catch(Exception ex)
             {

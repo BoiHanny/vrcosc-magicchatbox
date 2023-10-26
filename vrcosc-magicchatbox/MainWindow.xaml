@@ -39,6 +39,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+            <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
@@ -4936,8 +4937,86 @@
                                                                 IsChecked="{Binding ShowTitle}"
                                                                 Style="{DynamicResource GlowyToggleButtonMediaLink}"
                                                                 Unchecked="Update_Click" />
+                                                            <Button
+                                                                x:Name="MediaSessionPausePlay"
+                                                                Width="auto"
+                                                                Height="25"
+                                                                Margin="3,0"
+                                                                VerticalAlignment="Center"
+                                                                Click="MediaSessionPausePlay_Click"
+                                                                Content="X"
+                                                                Tag="{Binding}" />
+                                                            <StackPanel Width="200" VerticalAlignment="Center">
+                                                                <Border Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                                                    <ProgressBar
+                                                                        Margin="15,0,0,0"
+                                                                        BorderThickness="5"
+                                                                        Effect="{Binding TimePeekEnabled, Converter={StaticResource BoolToBlurEffectConverter}}"
+                                                                        Style="{StaticResource MediaPlayerProgress}"
+                                                                        Value="{Binding TimePosition, Mode=OneWay}" />
+                                                                </Border>
+                                                                <Grid Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                                                    <Grid>
+                                                                        <ProgressBar
+                                                                            Margin="15,0,0,0"
+                                                                            BorderThickness="5"
+                                                                            Style="{StaticResource MediaPlayerProgress}"
+                                                                            Visibility="{Binding TimePeekEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}"
 
+                                                                            Value="69" />
+                                                                        <Grid.Effect>
+                                                                            <BlurEffect Radius="10" />
+                                                                        </Grid.Effect>
+                                                                    </Grid>
+                                                                    <TextBox
+                                                                        Padding="0,2,0,0"
+                                                                        d:Text="LIVE"
+                                                                        AllowDrop="False"
+                                                                        Background="Transparent"
+                                                                        BorderThickness="0"
+                                                                        Focusable="False"
+                                                                        FontFamily="Albert Sans Thin"
+                                                                        FontSize="17"
+                                                                        FontWeight="Bold"
+                                                                        Foreground="#26FFFE"
+                                                                        IsHitTestVisible="False"
+                                                                        IsReadOnly="True"
+                                                                        Opacity="0.8"
+                                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                                        Text="LIVE"
+                                                                        TextAlignment="Center">
+                                                                        <TextBox.Effect>
+                                                                            <DropShadowEffect
+                                                                                BlurRadius="25"
+                                                                                Opacity="1"
+                                                                                RenderingBias="Performance"
+                                                                                ShadowDepth="0"
+                                                                                Color="LightGreen" />
+                                                                        </TextBox.Effect>
+                                                                    </TextBox>
+                                                                </Grid>
+
+                                                            </StackPanel>
+                                                            <Button
+                                                                x:Name="MediaSessionNext"
+                                                                Width="auto"
+                                                                Height="25"
+                                                                Margin="3,0"
+                                                                VerticalAlignment="Center"
+                                                                Click="MediaSessionNext_Click"
+                                                                Content="X"
+                                                                Tag="{Binding}" />
+                                                            <Button
+                                                                x:Name="MediaSessionPrevious"
+                                                                Width="auto"
+                                                                Height="25"
+                                                                Margin="3,0"
+                                                                VerticalAlignment="Center"
+                                                                Click="MediaSessionPrevious_Click"
+                                                                Content="X"
+                                                                Tag="{Binding}" />
                                                         </StackPanel>
+
                                                         <StackPanel />
                                                         <StackPanel
                                                             Grid.Column="2"
@@ -4945,6 +5024,7 @@
                                                             HorizontalAlignment="Right"
                                                             VerticalAlignment="Center"
                                                             Orientation="Horizontal">
+
                                                             <CheckBox
                                                                 Height="25"
                                                                 Margin="0,0,3,0"
@@ -4963,6 +5043,7 @@
                                                                 IsChecked="{Binding KeepSaved}"
                                                                 Style="{DynamicResource GlowyToggleButtonMediaLinkWithImage}"
                                                                 Unchecked="Update_Click" />
+
                                                         </StackPanel>
 
                                                     </Grid>

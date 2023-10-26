@@ -6,7 +6,6 @@
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Application.Resources>
-
         <Style x:Key="CircleButton" TargetType="Button">
             <Setter Property="Background" Value="#3D217A" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -853,6 +852,34 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="GlowyButtonMediaLink" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="#26A3FE" />
+            <Setter Property="Foreground" Value="#240F53" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Border
+                                x:Name="buttonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                 />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#14092D" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="#41AEFC" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style TargetType="{x:Type ProgressBar}">
             <Setter Property="MinHeight" Value="6" />
@@ -872,6 +899,37 @@
                                         Fill="#2D1267"
                                         RadiusX="4"
                                         RadiusY="4" />
+                                </Border>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsIndeterminate" Value="True">
+                                <Setter TargetName="PART_Indicator" Property="Visibility" Value="Hidden" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="MediaPlayerProgress" TargetType="{x:Type ProgressBar}">
+            <Setter Property="MinHeight" Value="6" />
+            <Setter Property="MaxHeight" Value="6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ProgressBar}">
+                        <Grid>
+                            <Border
+                                Background="#230E52"
+                                BorderThickness="0"
+                                CornerRadius="4">
+                                <Border x:Name="PART_Track" ClipToBounds="True">
+                                    <Rectangle
+                                        x:Name="PART_Indicator"
+                                        HorizontalAlignment="Left"
+                                        Fill="#26A3FE"
+                                        RadiusX="5"
+                                        RadiusY="5" />
+
                                 </Border>
                             </Border>
                         </Grid>

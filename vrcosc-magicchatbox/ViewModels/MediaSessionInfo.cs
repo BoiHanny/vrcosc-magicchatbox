@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -8,6 +9,7 @@ using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
+    [DebuggerDisplay("{FriendlyAppName} - {TimePeekEnabled} - {TimePosition}/{CurrentTime}/{FullTime} live:{IsLiveTime}")]
     public class MediaSessionInfo : INotifyPropertyChanged
     {
         private bool _AutoSwitch = ViewModel.Instance.MediaSession_AutoSwitchSpawn;
@@ -135,6 +137,70 @@ namespace vrcosc_magicchatbox.ViewModels
                 _IsVideo = value;
                 NotifyPropertyChanged(nameof(IsVideo));
                 SaveOrDeleteSettings();
+            }
+        }
+
+        private bool _TimePeekEnabled = false;
+
+        public bool TimePeekEnabled
+        {
+            get { return _TimePeekEnabled; }
+            set
+            {
+                if (_TimePeekEnabled != value)
+                {
+                    _TimePeekEnabled = value;
+                    NotifyPropertyChanged(nameof(TimePeekEnabled));
+                }
+            }
+        }
+
+
+
+        public bool IsLiveTime
+        {
+            get { return FullTime >= TimeSpan.FromHours(14); }
+        }
+        public int TimePosition
+        {
+            get
+            {
+                if (FullTime.TotalMilliseconds == 0) return 0;
+                return (int)((CurrentTime.TotalMilliseconds / FullTime.TotalMilliseconds) * 100);
+            }
+        }
+
+
+        private TimeSpan _CurrentTime = new TimeSpan(0, 0, 0);
+
+        public TimeSpan CurrentTime
+        {
+            get { return _CurrentTime; }
+            set
+            {
+                if (_CurrentTime != value)
+                {
+                    _CurrentTime = value;
+                    NotifyPropertyChanged(nameof(CurrentTime));
+                    NotifyPropertyChanged(nameof(TimePosition));
+                }
+            }
+        }
+
+
+        private TimeSpan _FullTime = new TimeSpan(0, 0, 0);
+
+        public TimeSpan FullTime
+        {
+            get { return _FullTime; }
+            set
+            {
+                if (_FullTime != value)
+                {
+                    _FullTime = value;
+                    NotifyPropertyChanged(nameof(FullTime));
+                    NotifyPropertyChanged(nameof(TimePosition));
+                }
             }
         }
 

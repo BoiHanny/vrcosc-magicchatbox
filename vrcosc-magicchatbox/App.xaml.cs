@@ -12,7 +12,7 @@ namespace vrcosc_magicchatbox
 {
     public partial class App : Application
     {
-        public MediaLinkController MediaController { get; private set; }
+        public static MediaLinkController ApplicationMediaController { get; private set; }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -71,7 +71,7 @@ namespace vrcosc_magicchatbox
             await Task.Run(() => DataController.PopulateOutputDevices());
 
             loadingWindow.UpdateProgress("Turbocharging MediaLink engines... Fast & Furious: Data Drift!", 95);
-            MediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
+            ApplicationMediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
 
             MainWindow mainWindow = new MainWindow();
             mainWindow.DataContext = ViewModel.Instance;
