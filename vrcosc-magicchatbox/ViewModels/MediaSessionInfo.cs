@@ -32,7 +32,27 @@ namespace vrcosc_magicchatbox.ViewModels
         public string AlbumArtist = "Album-Artist";
         public string AlbumTitle = "Album-Title";
         public string Artist = "Artist";
-        public GlobalSystemMediaTransportControlsSessionPlaybackStatus PlaybackStatus = GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+
+
+        private GlobalSystemMediaTransportControlsSessionPlaybackStatus _PlaybackStatus = GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+        public GlobalSystemMediaTransportControlsSessionPlaybackStatus PlaybackStatus
+        {
+            get { return _PlaybackStatus; }
+            set
+            {
+                _PlaybackStatus = value;
+                NotifyPropertyChanged(nameof(PlaybackStatus));
+                NotifyPropertyChanged(nameof(PlayingNow));
+            }
+        }
+
+
+        public bool PlayingNow
+        {
+            get { return PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing; }
+           
+        }
+
         public string Title = "Title";
 
         public event PropertyChangedEventHandler PropertyChanged;

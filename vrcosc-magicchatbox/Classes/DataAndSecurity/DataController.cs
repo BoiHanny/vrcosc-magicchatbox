@@ -23,7 +23,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
 {
-    {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
+    {'/', "·"}, {':', "'"}, {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
     {'f', "ᶠ"}, {'g', "ᵍ"}, {'h', "ʰ"}, {'i', "ⁱ"}, {'j', "ʲ"},
     {'k', "ᵏ"}, {'l', "ˡ"}, {'m', "ᵐ"}, {'n', "ⁿ"}, {'o', "ᵒ"},
     {'p', "ᵖ"}, {'q', "ᵒ"}, {'r', "ʳ"}, {'s', "ˢ"}, {'t', "ᵗ"},
@@ -40,11 +40,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 return string.Empty;
             }
             return new string(input.ToLowerInvariant()
-                .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c))
+                .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '/' || c == ':')
                 .Select(c => char.IsWhiteSpace(c) ? " " : (SuperscriptMapping.ContainsKey(c) ? SuperscriptMapping[c] : c.ToString()))
                 .SelectMany(s => s)
                 .ToArray());
         }
+
 
 
 
@@ -221,6 +222,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink") },
                 { "MediaSession_AutoSwitch", (typeof(bool), "MediaLink") },
                 { "DisableMediaLink", (typeof(bool), "MediaLink") },
+                { "MediaLinkShowTime", (typeof(bool), "MediaLink") },
 
                 { "ScanningInterval", (typeof(double), "Scanning") },
                 { "ScanPauseTimeout", (typeof(int), "Scanning") },

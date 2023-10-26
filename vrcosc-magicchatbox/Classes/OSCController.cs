@@ -1,10 +1,12 @@
-﻿using System;
+﻿using ABI.System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
@@ -123,6 +125,11 @@ namespace vrcosc_magicchatbox.Classes
                                 x = ViewModel.Instance.PrefixIconMusic
                                     ? $"{prefix} '{mediaLinkTitle}'"
                                     : $"{mediaAction} '{mediaLinkTitle}'";
+                            }
+
+                            if(ViewModel.Instance.MediaLinkShowTime && !mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
+                            {
+                                x = x + DataController.TransformToSuperscript($" {FormatTimeSpan(mediaSession.CurrentTime)} l {FormatTimeSpan(mediaSession.FullTime)}");
                             }
                         }
 
@@ -315,7 +322,7 @@ namespace vrcosc_magicchatbox.Classes
                     }
                 }
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
@@ -434,7 +441,7 @@ namespace vrcosc_magicchatbox.Classes
                     }
                 }
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
@@ -462,6 +469,20 @@ namespace vrcosc_magicchatbox.Classes
             }
 
             return mediaLinkTitle.Length > 0 ? mediaLinkTitle.ToString() : string.Empty;
+        }
+
+        public static string FormatTimeSpan(System.TimeSpan timeSpan)
+        {
+            string formattedTime;
+            if (timeSpan.Hours > 0)
+            {
+                formattedTime = $"{timeSpan.Hours}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
+            }
+            else
+            {
+                formattedTime = $"{timeSpan.Minutes}:{timeSpan.Seconds:D2}";
+            }
+            return formattedTime;
         }
 
 

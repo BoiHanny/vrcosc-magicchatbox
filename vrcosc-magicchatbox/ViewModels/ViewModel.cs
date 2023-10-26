@@ -2288,6 +2288,18 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _MediaLinkShowTime = true;
+        public bool MediaLinkShowTime
+        {
+            get { return _MediaLinkShowTime; }
+            set
+            {
+                _MediaLinkShowTime = value;
+                NotifyPropertyChanged(nameof(MediaLinkShowTime));
+            }
+        }
+
+
         private bool _ApplicationHookV2 = true;
 
         public bool ApplicationHookV2

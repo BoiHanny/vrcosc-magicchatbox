@@ -2531,6 +2531,21 @@
                                     Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     Turn autoswitch on when new session detected
                                 </CheckBox>
+                                <CheckBox
+                                    x:Name="MediaSession_ShowSongtime_checkbox"
+                                    Height="20"
+                                    Margin="0,0,0,10"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding MediaLinkShowTime, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click"
+                                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    Show song time of media session
+                                </CheckBox>
                                 <TextBlock
                                     Grid.Column="0"
                                     Padding="0,0,0,0"
@@ -4938,18 +4953,36 @@
                                                                 Style="{DynamicResource GlowyToggleButtonMediaLink}"
                                                                 Unchecked="Update_Click" />
                                                             <Button
-                                                                x:Name="MediaSessionPausePlay"
-                                                                Width="auto"
+                                                                x:Name="MediaSessionPlay"
+                                                                Width="25"
                                                                 Height="25"
                                                                 Margin="3,0"
                                                                 VerticalAlignment="Center"
                                                                 Click="MediaSessionPausePlay_Click"
-                                                                Content="X"
-                                                                Tag="{Binding}" />
-                                                            <StackPanel Width="200" VerticalAlignment="Center">
+                                                                Content="▶"
+                                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                                Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                                Tag="{Binding}"
+                                                                Visibility="{Binding PlayingNow, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                                            <Button
+                                                                x:Name="MediaSessionPause"
+                                                                Width="25"
+                                                                Height="25"
+                                                                Margin="3,0"
+                                                                VerticalAlignment="Center"
+                                                                Click="MediaSessionPausePlay_Click"
+                                                                Content="⏸"
+                                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                                Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                                Tag="{Binding}"
+                                                                Visibility="{Binding PlayingNow, Converter={StaticResource InverseBoolToHiddenConverter}}" />
+                                                            <StackPanel
+                                                                Width="200"
+                                                                Margin="5,0,5,0"
+                                                                VerticalAlignment="Center">
                                                                 <Border Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                                                     <ProgressBar
-                                                                        Margin="15,0,0,0"
+                                                                        Margin="0,0,0,0"
                                                                         BorderThickness="5"
                                                                         Effect="{Binding TimePeekEnabled, Converter={StaticResource BoolToBlurEffectConverter}}"
                                                                         Style="{StaticResource MediaPlayerProgress}"
@@ -4958,11 +4991,10 @@
                                                                 <Grid Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToHiddenConverter}}">
                                                                     <Grid>
                                                                         <ProgressBar
-                                                                            Margin="15,0,0,0"
+                                                                            Margin="0,0,0,0"
                                                                             BorderThickness="5"
                                                                             Style="{StaticResource MediaPlayerProgress}"
                                                                             Visibility="{Binding TimePeekEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}"
-
                                                                             Value="69" />
                                                                         <Grid.Effect>
                                                                             <BlurEffect Radius="10" />
@@ -4998,23 +5030,28 @@
 
                                                             </StackPanel>
                                                             <Button
-                                                                x:Name="MediaSessionNext"
-                                                                Width="auto"
-                                                                Height="25"
-                                                                Margin="3,0"
-                                                                VerticalAlignment="Center"
-                                                                Click="MediaSessionNext_Click"
-                                                                Content="X"
-                                                                Tag="{Binding}" />
-                                                            <Button
                                                                 x:Name="MediaSessionPrevious"
-                                                                Width="auto"
+                                                                Width="25"
                                                                 Height="25"
                                                                 Margin="3,0"
                                                                 VerticalAlignment="Center"
                                                                 Click="MediaSessionPrevious_Click"
-                                                                Content="X"
+                                                                Content="⏮"
+                                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                                Style="{StaticResource GlowyButtonMediaLinkWithText}"
                                                                 Tag="{Binding}" />
+                                                            <Button
+                                                                x:Name="MediaSessionNext"
+                                                                Width="25"
+                                                                Height="25"
+                                                                Margin="3,0"
+                                                                VerticalAlignment="Center"
+                                                                Click="MediaSessionNext_Click"
+                                                                Content="⏭"
+                                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                                Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                                Tag="{Binding}" />
+
                                                         </StackPanel>
 
                                                         <StackPanel />

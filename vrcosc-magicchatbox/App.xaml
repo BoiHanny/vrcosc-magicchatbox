@@ -852,9 +852,12 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="GlowyButtonMediaLink" TargetType="{x:Type Button}">
+        <Style x:Key="GlowyButtonMediaLinkWithText" TargetType="{x:Type Button}">
             <Setter Property="Background" Value="#26A3FE" />
             <Setter Property="Foreground" Value="#240F53" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -863,23 +866,40 @@
                                 x:Name="buttonBorder"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="4"
-                                 />
+                                Effect="{TemplateBinding Effect}">
+                                <ContentPresenter
+                                    Margin="0,2,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Content="{TemplateBinding Content}"
+                                    TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Border>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#14092D" />
-                            </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True" />
-                                </MultiTrigger.Conditions>
                                 <Setter Property="Background" Value="#41AEFC" />
-                            </MultiTrigger>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#26A3FE" />
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect
+                        BlurRadius="3"
+                        ShadowDepth="0"
+                        Color="#B9CAF7" />
+                </Setter.Value>
+            </Setter>
         </Style>
+
+
+
+
+
 
         <Style TargetType="{x:Type ProgressBar}">
             <Setter Property="MinHeight" Value="6" />
@@ -921,7 +941,7 @@
                             <Border
                                 Background="#230E52"
                                 BorderThickness="0"
-                                CornerRadius="4">
+                                CornerRadius="5">
                                 <Border x:Name="PART_Track" ClipToBounds="True">
                                     <Rectangle
                                         x:Name="PART_Indicator"
