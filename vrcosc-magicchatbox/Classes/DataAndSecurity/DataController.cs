@@ -210,6 +210,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 { "CurrentMenuItem", (typeof(int), "Menu") },
 
+                { "ComponentStatsGPU3DHook", (typeof(bool), "ComponentStats") },
+
                 { "IntgrScanForce", (typeof(bool), "WindowActivity") },
                 { "AutoShowTitleOnNewApp", (typeof(bool), "WindowActivity") },
                 { "WindowActivityTitleScan", (typeof(bool), "WindowActivity") },

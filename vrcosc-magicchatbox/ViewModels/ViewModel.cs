@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NAudio.Wave;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -1311,6 +1312,22 @@ namespace vrcosc_magicchatbox.ViewModels
                 });
 
                 NotifyPropertyChanged(nameof(JoinedAlphaChannel));
+            }
+        }
+
+
+        private bool _ComponentStatsGPU3DHook = true;
+
+        public bool ComponentStatsGPU3DHook
+        {
+            get { return _ComponentStatsGPU3DHook; }
+            set
+            {
+                if (_ComponentStatsGPU3DHook != value)
+                {
+                    _ComponentStatsGPU3DHook = value;
+                    NotifyPropertyChanged(nameof(ComponentStatsGPU3DHook));
+                }
             }
         }
 

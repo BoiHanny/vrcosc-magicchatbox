@@ -1770,6 +1770,19 @@
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="" />
                                     <CheckBox
+                                        x:Name="GPU_Core3DHook_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Utilization is based on the 3D usage"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatsGPU3DHook, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
                                         x:Name="GPU_EnableHardwareTitle_checkbox"
                                         Height="20"
                                         Margin="5,5"

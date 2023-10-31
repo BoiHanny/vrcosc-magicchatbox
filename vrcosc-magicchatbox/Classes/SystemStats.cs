@@ -381,7 +381,7 @@ namespace vrcosc_magicchatbox.Classes
             FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total", statsComponentType:StatsComponentType.CPU);
 
         private static string FetchGPUStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.Load, "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
+            FetchStat(HardwareType.GpuNvidia, SensorType.Load, ViewModel.Instance.ComponentStatsGPU3DHook? "D3D 3D" : "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
 
         private static string FetchVRAMStat() =>
             FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
