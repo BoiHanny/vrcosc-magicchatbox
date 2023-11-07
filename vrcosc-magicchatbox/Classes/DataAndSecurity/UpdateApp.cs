@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.VisualBasic.FileIO;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -34,15 +35,15 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
             try
             {
-                // Delete the content of currentAppPath
+                // Move the content of currentAppPath to the Recycle Bin
                 foreach (FileInfo file in currentAppDirectory.GetFiles())
                 {
-                    file.Delete();
+                    FileSystem.DeleteFile(file.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
                 }
 
                 foreach (DirectoryInfo dir in currentAppDirectory.GetDirectories())
                 {
-                    dir.Delete(true);
+                    FileSystem.DeleteDirectory(dir.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
                 }
             }
             catch (Exception ex)
