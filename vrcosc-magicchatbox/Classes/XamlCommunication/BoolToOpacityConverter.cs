@@ -10,16 +10,11 @@ namespace vrcosc_magicchatbox.Classes
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool boolValue = (bool)value;
-            DoubleAnimation animation = new DoubleAnimation
+            if (value is bool boolValue)
             {
-                From = boolValue ? 0 : 1,
-                To = boolValue ? 1 : 0,
-                Duration = new Duration(TimeSpan.FromMilliseconds(500)),
-                BeginTime = TimeSpan.FromMilliseconds(0) // Set the delay before the animation starts
-            };
-
-            return animation;
+                return boolValue ? 1.0 : 0.4;
+            }
+            return 1.0;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

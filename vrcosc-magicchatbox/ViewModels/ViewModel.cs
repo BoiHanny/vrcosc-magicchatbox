@@ -1527,7 +1527,41 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _componentStatsListPrivate.Add(stat);
             }
-
+            NotifyPropertiesChanged(new string[]
+            {
+                nameof(GPUHardwareName),
+                nameof(RAMHardwareName),
+                nameof(CPUHardwareName),
+                nameof(VRAMHardwareName),
+                nameof(IsCPUEnabled),
+                nameof(IsGPUEnabled),
+                nameof(IsRAMEnabled),
+                nameof(IsVRAMEnabled),
+                nameof(isCPUAvailable),
+                nameof(isGPUAvailable),
+                nameof(isRAMAvailable),
+                nameof(isVRAMAvailable),
+                nameof(CPUCustomHardwareName),
+                nameof(GPUCustomHardwareName),
+                nameof(RAMCustomHardwareName),
+                nameof(VRAMCustomHardwareName),
+                nameof(CPU_EnableHardwareTitle),
+                nameof(GPU_EnableHardwareTitle),
+                nameof(RAM_EnableHardwareTitle),
+                nameof(VRAM_EnableHardwareTitle),
+                nameof(CPU_PrefixHardwareTitle),
+                nameof(GPU_PrefixHardwareTitle),
+                nameof(RAM_PrefixHardwareTitle),
+                nameof(VRAM_PrefixHardwareTitle),
+                nameof(CPU_NumberTrailingZeros),
+                nameof(GPU_NumberTrailingZeros),
+                nameof(RAM_NumberTrailingZeros),
+                nameof(VRAM_NumberTrailingZeros),
+                nameof(CPU_SmallName),
+                nameof(GPU_SmallName),
+                nameof(RAM_SmallName),
+                nameof(VRAM_SmallName)
+            });
         }
 
 
@@ -3384,6 +3418,14 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void NotifyPropertyChanged(string name)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name)); }
+
+        private void NotifyPropertiesChanged(string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                NotifyPropertyChanged(propertyName);
+            }
+        }
         #endregion
     }
 }

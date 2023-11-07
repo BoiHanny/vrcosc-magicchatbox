@@ -80,6 +80,7 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
                 ViewModel.Instance.SyncComponentStatsList();
+                ViewModel.Instance._statsManager.SaveComponentStats();
                 CurrentSystem.Close();
                 CurrentSystem = null;
             } catch(Exception ex)
@@ -251,7 +252,6 @@ namespace vrcosc_magicchatbox.Classes
                         case StatsComponentType.VRAM:
                             ViewModel.Instance.isVRAMAvailable = value;
                             break;
-                            // Add other types here as needed.
                     }
                 }
 
