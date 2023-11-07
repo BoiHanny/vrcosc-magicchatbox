@@ -275,12 +275,13 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                Process[] pname = Process.GetProcessesByName("vrmonitor");
-                if(pname.Length == 0)
-                    return false;
-                else
-                    return true;
-            } catch(Exception ex)
+                bool isSteamVRRunning = Process.GetProcessesByName("vrmonitor").Length > 0;
+
+                bool isOculusRunning = Process.GetProcessesByName("OVRServer_x64").Length > 0;
+
+                return isSteamVRRunning || isOculusRunning;
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 return false;
