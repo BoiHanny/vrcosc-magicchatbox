@@ -1316,7 +1316,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _ComponentStatsGPU3DHook = true;
+        private bool _ComponentStatsGPU3DHook = false;
 
         public bool ComponentStatsGPU3DHook
         {
