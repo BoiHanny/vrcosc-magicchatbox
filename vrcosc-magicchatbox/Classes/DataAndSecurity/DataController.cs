@@ -451,12 +451,20 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml")))
+                if (ViewModel.Instance == null)
                 {
-                    string json = File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml"));
-                    if(json.ToLower().Equals("null"))
+                    Logging.WriteInfo("ViewModel is null, not a problem :P");
+                    return;
+                }
+
+                string appHistoryPath = Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml");
+
+                if (File.Exists(appHistoryPath))
+                {
+                    string json = File.ReadAllText(appHistoryPath);
+                    if (json.ToLower().Equals("null"))
                     {
-                        Logging.WriteInfo("AppHistory history is null, not problem :P");
+                        Logging.WriteInfo("AppHistory history is null, not a problem :P");
                         ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
                         return;
                     }
@@ -464,8 +472,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 }
                 else
                 {
-                    Logging.WriteInfo("AppHistory history has never been created, not problem :P");
-                    if(ViewModel.Instance.ScannedApps == null)
+                    Logging.WriteInfo("AppHistory history has never been created, not a problem :P");
+
+                    if (ViewModel.Instance.ScannedApps == null)
                     {
                         ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
                     }
@@ -474,7 +483,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                if (ViewModel.Instance.ScannedApps == null)
+
+                if (ViewModel.Instance?.ScannedApps == null)
                 {
                     ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
                 }
@@ -482,10 +492,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         }
 
 
+
         public static void LoadChatList()
         {
             try
             {
+                if (ViewModel.Instance == null)
+                {
+                    Logging.WriteInfo("ViewModel is null, not a problem :P");
+                    return;
+                }
+
                 if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml")))
                 {
                     string json = File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"));
@@ -525,6 +542,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
+                if (ViewModel.Instance == null)
+                {
+                    Logging.WriteInfo("ViewModel is null, not a problem :P");
+                    return;
+                }
+
                 if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "LastMediaLinkSessions.xml")))
                 {
                     string json = File
@@ -561,6 +584,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
+                if (ViewModel.Instance == null)
+                {
+                    Logging.WriteInfo("ViewModel is null, not a problem :P");
+                    return;
+                }
+
                 if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml")))
                 {
                     string json = File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"));
@@ -604,6 +633,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
+                if (ViewModel.Instance == null)
+                {
+                    Logging.WriteException(new Exception("ViewModel is null, please restart the program."), exitapp:true);
+                }
+
                 string datapath = Path.Combine(ViewModel.Instance.DataPath, "settings.xml");
                 if (!CreateIfMissing(ViewModel.Instance.DataPath))
                     return;

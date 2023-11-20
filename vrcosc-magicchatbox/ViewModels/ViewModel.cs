@@ -2323,7 +2323,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(DeletedAppslabel));
             }
         }
-        private ObservableCollection<ProcessInfo> _scannedApps = new ObservableCollection<ProcessInfo>();
+        private ObservableCollection<ProcessInfo> _scannedApps = new();
         public ObservableCollection<ProcessInfo> ScannedApps
         {
             get { return _scannedApps; }

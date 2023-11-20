@@ -205,8 +205,6 @@ namespace vrcosc_magicchatbox.Classes
 
         public static bool UpdateStats()
         {
-            try
-            {
                 void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)
                 {
                     var statItem = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type);
@@ -254,7 +252,8 @@ namespace vrcosc_magicchatbox.Classes
                             break;
                     }
                 }
-
+            try
+            {
                 UpdateComponentStats(StatsComponentType.CPU, FetchCPUStat);
                 UpdateComponentStats(StatsComponentType.GPU, FetchGPUStat);
                 UpdateComponentStats(StatsComponentType.RAM, () => FetchRAMStats().UsedMemory, () => FetchRAMStats().MaxMemory);
