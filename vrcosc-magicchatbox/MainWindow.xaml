@@ -890,6 +890,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -1586,7 +1587,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="2" Margin="0,5,0,0">
+                    <Grid Grid.Row="3" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1618,7 +1619,7 @@
                             <StackPanel>
 
                                 <Border
-                                    Margin="0,0,0,5"
+                                    Margin="0,5,0,10"
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Orientation="Horizontal">
@@ -2235,6 +2236,192 @@
                                 FontSize="15"
                                 FontWeight="Bold"
                                 Foreground="#BDAEE2"
+                                IsChecked="{Binding Settings_NetworkStatistics, Mode=TwoWay}"
+                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                Tag="NetworkStatistics options"
+                                TextOptions.TextRenderingMode="ClearType" />
+                        </Grid>
+                        <Grid
+                            Grid.Row="1"
+                            Height="Auto"
+                            Margin="34,0,0,0"
+                            Visibility="{Binding Settings_NetworkStatistics, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowCurrentDown_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowCurrentDown, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show current download speed
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowCurrentUp_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowCurrentUp, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show current upload speed
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowMaxDown_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowMaxDown, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show max download speed
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowMaxUp_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowMaxUp, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show max upload speed
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowTotalDown_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowTotalDown, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show total download
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowTotalUp_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowTotalUp, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show total upload
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_ShowNetworkUtilization_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_ShowNetworkUtilization, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show network utilization
+                                    </CheckBox>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_StyledCharacters_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_StyledCharacters, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Stylized characters
+                                    </CheckBox>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                    <Grid Grid.Row="6" Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Background>
+                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="#FF3A3053" />
+                                <GradientStop Offset="1" Color="#FF40365B" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Grid Grid.Row="0">
+                            <ToggleButton
+                                Width="Auto"
+                                Height="30"
+                                HorizontalAlignment="Left"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="#BDAEE2"
                                 IsChecked="{Binding Settings_Chatting, Mode=TwoWay}"
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                 Tag="Chatting options"
@@ -2445,7 +2632,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="6" Margin="0,5,0,0">
+                    <Grid Grid.Row="7" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2553,7 +2740,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="7" Margin="0,5,0,0">
+                    <Grid Grid.Row="8" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2710,7 +2897,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="8" Margin="0,5,0,0">
+                    <Grid Grid.Row="9" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2968,7 +3155,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="9"
+                        Grid.Row="10"
                         Margin="0,5,0,0"
                         Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Grid.RowDefinitions>
@@ -3019,7 +3206,7 @@
                             </CheckBox>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="10" Margin="0,5,0,10">
+                    <Grid Grid.Row="11" Margin="0,5,0,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -4645,7 +4832,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Time"
+                                        CommandParameter="Settings_NetworkStatistics"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Style="{StaticResource CircleButton}">
                                         <Image

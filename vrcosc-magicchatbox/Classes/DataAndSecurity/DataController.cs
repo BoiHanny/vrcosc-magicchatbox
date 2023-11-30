@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using Version = vrcosc_magicchatbox.ViewModels.Models.Version;
@@ -21,6 +22,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     public static class DataController
     {
         private static bool isUpdateCheckRunning = false;
+
+        public static NetworkStatisticsModule networkStatisticsModule = null;
 
         private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
 {
@@ -227,6 +230,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 { "CurrentMenuItem", (typeof(int), "Menu") },
 
+                { "NetworkStats_ShowCurrentDown", (typeof(bool), "NetworkStatistics") },
+                { "NetworkStats_ShowCurrentUp", (typeof(bool), "NetworkStatistics") },
+                { "NetworkStats_ShowMaxDown", (typeof(bool), "NetworkStatistics") },
+                { "NetworkStats_ShowMaxUp", (typeof(bool), "NetworkStatistics") },
+                { "NetworkStats_ShowTotalDown", (typeof(bool), "NetworkStatistics") },
+                { "NetworkStats_ShowTotalUp", (typeof(bool), "NetworkStatistics") },
+                { "NetworkStats_ShowNetworkUtilization", (typeof(bool), "NetworkStatistics") },
+
                 { "OpenAIAccessTokenEncrypted", (typeof(string), "OpenAI") },
                 { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
 
@@ -314,6 +325,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
                 { "Settings_Time", (typeof(bool), "OptionsTabState") },
                 { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },
+                { "Settings_NetworkStatistics", (typeof(bool), "OptionsTabState") },
                 { "Settings_Chatting", (typeof(bool), "OptionsTabState") },
                 { "Settings_TTS", (typeof(bool), "OptionsTabState") },
                 { "Settings_MediaLink", (typeof(bool), "OptionsTabState") },

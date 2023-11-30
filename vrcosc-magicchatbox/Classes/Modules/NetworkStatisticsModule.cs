@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Timers;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
@@ -14,6 +15,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
     public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
     {
         private Timer _updateTimer;
+        public bool IsInitialized { get; private set; }
+        public double interval { get; set; } = 1000;
         private double _currentDownloadSpeedMbps;
         private double _currentUploadSpeedMbps;
         private double _maxDownloadSpeedMbps;
@@ -29,10 +32,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (ShouldStartMonitoring())
                 {
+                    if (!IsInitialized)
+                    {
+                        InitializeNetworkStatsAsync();
+                        IsInitialized = true;
+                    }
                     StartModule();
                 }
                 else
                 {
+                    if (!IsInitialized)
+                    {
+                        InitializeNetworkStatsAsync();
+                        IsInitialized = true;
+                    }
                     StopModule();
                 }
             }
@@ -103,10 +116,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public NetworkStatisticsModule(double interval)
         {
-            InitializeNetworkStats(interval);
+               this.interval = interval;
             ViewModel.Instance.PropertyChanged += PropertyChangedHandler;
             if (ShouldStartMonitoring())
+            {
+                if(!IsInitialized)
+                {
+                    InitializeNetworkStatsAsync();
+                    IsInitialized = true;
+                }
                 StartModule();
+            }
+                
         }
 
         public void StartModule()
@@ -130,14 +151,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
             OnTimedEvent(null, null);
         }
 
-        private void InitializeNetworkStats(double interval)
+        private async Task InitializeNetworkStatsAsync()
         {
             // Attempt to initialize performance counters with an active network interface
-            if (!InitializePerformanceCounters())
+            await Task.Run(() =>
+            {
+                if (!InitializePerformanceCounters())
             {
                 // If initialization fails, subscribe to the NetworkAddressChanged event to retry when the network status changes
                 NetworkChange.NetworkAddressChanged += OnNetworkAddressChanged;
             }
+                });
 
             // Initialize and start the update timer
             _updateTimer = new Timer(interval)
@@ -294,7 +318,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Up: ")}{FormatData(TotalUploadedMB)}");
 
             if (ViewModel.Instance.NetworkStats_ShowNetworkUtilization)
-                networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Utilization: ")}{NetworkUtilization:N2} %");
+                networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network utilization: ")}{NetworkUtilization:N2} %");
 
 
             foreach (var description in networkStatsDescriptions)

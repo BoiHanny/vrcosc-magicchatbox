@@ -173,6 +173,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
                 { nameof(Settings_Chatting), value => Settings_Chatting = value },
                 { nameof(Settings_ComponentStats), value => Settings_ComponentStats = value },
+                { nameof(Settings_NetworkStatistics), value => Settings_NetworkStatistics = value },
                 { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
                 { nameof(Settings_TTS), value => Settings_TTS = value },
                 { nameof(Settings_Time), value => Settings_Time = value },
@@ -1395,6 +1396,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _OSCAvatarDatabase = value;
                 NotifyPropertyChanged(nameof(OSCAvatarDatabase));
+            }
+        }
+
+
+        private bool _Settings_NetworkStatistics = false;
+        public bool Settings_NetworkStatistics
+        {
+            get { return _Settings_NetworkStatistics; }
+            set
+            {
+                _Settings_NetworkStatistics = value;
+                NotifyPropertyChanged(nameof(Settings_NetworkStatistics));
             }
         }
 

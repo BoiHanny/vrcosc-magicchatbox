@@ -66,6 +66,9 @@ namespace vrcosc_magicchatbox
                 await Task.Run(() => ViewModel.Instance._statsManager.StartModule());
             }
 
+            loadingWindow.UpdateProgress("Initializing Network Statistics Module", 66);
+            await Task.Run(() => DataController.networkStatisticsModule = new NetworkStatisticsModule(1000));
+
             loadingWindow.UpdateProgress("Initializing OpenAI like a rocket launch. 3... 2... 1... Blast off!", 70);
             await Task.Run(() => OpenAIModule.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID));
 

@@ -51,12 +51,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             if (ViewModel.Instance.IntgrNetworkStatistics == true)
             {
-                if(MainWindow.networkStatsModule == null)
+                if(DataController.networkStatisticsModule == null)
                 {
                     return;
                 }
                 // create x string based on the values in MainWindow.networkStatsModule make it all look nice and pretty
-                string x = MainWindow.networkStatsModule.GenerateDescription();
+                string x = DataController.networkStatisticsModule.GenerateDescription();
                 TryAddToUncomplete(Uncomplete, x, "NetworkStatistics");
             }
         }
