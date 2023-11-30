@@ -2093,7 +2093,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         private string _PulsoidAccessTokenOAuthEncrypted = string.Empty;
-        private string _PulsoidAccessTokenOAuth;
+        private string _PulsoidAccessTokenOAuth; 
 
         public string PulsoidAccessTokenOAuthEncrypted
         {
@@ -2123,6 +2123,113 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private string _OpenAIAccessTokenEncrypted = string.Empty;
+        private string _OpenAIAccessToken;
+
+        public string OpenAIAccessTokenEncrypted
+        {
+            get { return _OpenAIAccessTokenEncrypted; }
+            set
+            {
+                if (_OpenAIAccessTokenEncrypted != value)
+                {
+                    _OpenAIAccessTokenEncrypted = value;
+                    EncryptionMethods.TryProcessToken(ref _OpenAIAccessTokenEncrypted, ref _OpenAIAccessToken, false);
+                    NotifyPropertyChanged(nameof(OpenAIAccessTokenEncrypted));
+                }
+            }
+        }
+
+        public string OpenAIAccessToken
+        {
+            get { return _OpenAIAccessToken; }
+            set
+            {
+                if (_OpenAIAccessToken != value)
+                {
+                    _OpenAIAccessToken = value;
+                    EncryptionMethods.TryProcessToken(ref _OpenAIAccessToken, ref _OpenAIAccessTokenEncrypted, true);
+                    NotifyPropertyChanged(nameof(OpenAIAccessToken));
+                }
+            }
+        }
+
+        private bool _OpenAIConnected = false;
+        public bool OpenAIConnected
+        {
+            get { return _OpenAIConnected; }
+            set
+            {
+                _OpenAIConnected = value;
+                NotifyPropertyChanged(nameof(OpenAIConnected));
+            }
+        }
+
+
+        private string _OpenAIAccessErrorTxt;
+        public string OpenAIAccessErrorTxt
+        {
+            get { return _OpenAIAccessErrorTxt; }
+            set
+            {
+                _OpenAIAccessErrorTxt = value;
+                NotifyPropertyChanged(nameof(OpenAIAccessErrorTxt));
+            }
+        }
+
+
+        private bool _OpenAIAccessError = false;
+        public bool OpenAIAccessError
+        {
+            get { return _OpenAIAccessError; }
+            set
+            {
+                _OpenAIAccessError = value;
+                NotifyPropertyChanged(nameof(OpenAIAccessError));
+            }
+        }
+
+        private string _OpenAIOrganizationIDEncrypted = string.Empty;
+        private string _OpenAIOrganizationID;
+        public string OpenAIOrganizationID
+        {
+            get { return _OpenAIOrganizationID; }
+            set
+            {
+                if (_OpenAIOrganizationID != value)
+                {
+                    _OpenAIOrganizationID = value;
+                    EncryptionMethods.TryProcessToken(ref _OpenAIOrganizationID, ref _OpenAIOrganizationIDEncrypted, true);
+                    NotifyPropertyChanged(nameof(OpenAIOrganizationID));
+                }
+            }
+        }
+
+
+        private bool _Settings_OpenAI = false;
+        public bool Settings_OpenAI
+        {
+            get { return _Settings_OpenAI; }
+            set
+            {
+                _Settings_OpenAI = value;
+                NotifyPropertyChanged(nameof(Settings_OpenAI));
+            }
+        }
+
+        public string OpenAIOrganizationIDEncrypted
+        {
+            get { return _OpenAIOrganizationIDEncrypted; }
+            set
+            {
+                if (_OpenAIOrganizationIDEncrypted != value)
+                {
+                    _OpenAIOrganizationIDEncrypted = value;
+                    EncryptionMethods.TryProcessToken(ref _OpenAIOrganizationIDEncrypted, ref _OpenAIOrganizationID, false);
+                    NotifyPropertyChanged(nameof(OpenAIOrganizationIDEncrypted));
+                }
+            }
+        }
 
 
         public int CurrentHeartIconIndex = 0;

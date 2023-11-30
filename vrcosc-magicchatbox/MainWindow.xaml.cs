@@ -1323,16 +1323,16 @@ namespace vrcosc_magicchatbox
 
         private void ManualPulsoidAuthBtn_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            var dialog = new ManualPulsoidAuth();
-            dialog.DataContext = ViewModel.Instance;
+            var PulsoidAuthdialog = new ManualPulsoidAuth();
+            PulsoidAuthdialog.DataContext = ViewModel.Instance;
 
             // Set the owner of the dialog to the current window
-            dialog.Owner = this;
+            PulsoidAuthdialog.Owner = this;
 
             // Ensure the dialog is centered on the owner window
-            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            PulsoidAuthdialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             ViewModel.Instance.MainWindowBlurEffect = 5;
-            dialog.ShowDialog();
+            PulsoidAuthdialog.ShowDialog();
             ViewModel.Instance.MainWindowBlurEffect = 0;
             Focus();
         }
@@ -1362,6 +1362,32 @@ namespace vrcosc_magicchatbox
             {
                 MediaLinkController.MediaManager_PreviousAsync(mediaSession);
             }
+        }
+
+        private void ConnectWithOpenAI_Click(object sender, RoutedEventArgs e)
+        {
+            var OpenAIAuthdialog = new OpenAIAuth();
+            OpenAIAuthdialog.DataContext = ViewModel.Instance;
+
+            // Set the owner of the dialog to the current window
+            OpenAIAuthdialog.Owner = this;
+
+            // Ensure the dialog is centered on the owner window
+            OpenAIAuthdialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            ViewModel.Instance.MainWindowBlurEffect = 5;
+            OpenAIAuthdialog.ShowDialog();
+            ViewModel.Instance.MainWindowBlurEffect = 0;
+            Focus();
+        }
+
+        private void DisconnectOpenAI_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.OpenAIAccessToken = string.Empty;
+            ViewModel.Instance.OpenAIOrganizationID = string.Empty;
+            ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
+            ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
+            ViewModel.Instance.OpenAIConnected = false;
+
         }
     }
 }

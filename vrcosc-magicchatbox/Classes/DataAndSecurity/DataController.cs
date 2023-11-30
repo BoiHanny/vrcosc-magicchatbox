@@ -210,6 +210,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 { "CurrentMenuItem", (typeof(int), "Menu") },
 
+                { "OpenAIAccessTokenEncrypted", (typeof(string), "OpenAI") },
+                { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
+
                 { "ComponentStatsGPU3DHook", (typeof(bool), "ComponentStats") },
 
                 { "IntgrScanForce", (typeof(bool), "WindowActivity") },
@@ -290,6 +293,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "MagicHeartRateIcons", (typeof(bool), "PulsoidConnector") },
 
                 { "Settings_Status", (typeof(bool), "OptionsTabState") },
+                { "Settings_OpenAI", (typeof(bool), "OptionsTabState") },
                 { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
                 { "Settings_Time", (typeof(bool), "OptionsTabState") },
                 { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },

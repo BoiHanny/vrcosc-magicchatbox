@@ -893,6 +893,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -1589,9 +1590,137 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
+                    <Grid Grid.Row="2" Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Background>
+                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="#FF3A3053" />
+                                <GradientStop Offset="1" Color="#FF40365B" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Grid Grid.Row="0">
+                            <ToggleButton
+                                Width="Auto"
+                                Height="30"
+                                HorizontalAlignment="Left"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="#BDAEE2"
+                                IsChecked="{Binding Settings_OpenAI, Mode=TwoWay}"
+                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                Tag="OpenAI options"
+                                TextOptions.TextRenderingMode="ClearType" />
+                        </Grid>
+                        <Grid
+                            Grid.Row="1"
+                            Height="Auto"
+                            Margin="34,0,0,0"
+                            Visibility="{Binding Settings_OpenAI, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button
+                                            x:Name="ConnectWithOpenAI"
+                                            Width="auto"
+                                            Height="30"
+                                            Padding="5"
+                                            Click="ConnectWithOpenAI_Click"
+                                            Style="{StaticResource Status_Button_style}"
+                                            Visibility="{Binding OpenAIConnected, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Width="21"
+                                                            Height="18"
+                                                            Margin="0,0,3,0"
+                                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                                            Source="/Img/Icons/OpenAI.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Text="Connect with OpenAI" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button
+                                            x:Name="ConnectedWithOpenAI"
+                                            Width="185"
+                                            Height="30"
+                                            Padding="5"
+                                            HorizontalAlignment="Left"
+                                            d:Visibility="Visible"
+                                            Style="{StaticResource Status_Button_style}"
+                                            Visibility="{Binding OpenAIConnected, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            Margin="2,0,5,0"
+                                                            VerticalAlignment="Center"
+                                                            Source="/Img/Icons/yes.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Text="Connected with OpenAI" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button
+                                            x:Name="DisconnectOpenAI"
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Width="20"
+                                            Height="30"
+                                            Margin="-5,0,0,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            d:Visibility="Visible"
+                                            Background="#8A0000"
+                                            BorderThickness="0"
+                                            Click="DisconnectOpenAI_Click"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource DisconnectPulsoid}"
+                                            Visibility="{Binding OpenAIConnected, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Grid>
+                                                <Image
+                                                    Width="15"
+                                                    Height="15"
+                                                    RenderOptions.BitmapScalingMode="Linear"
+                                                    Source="/Img/Icons/Cross_v1_ico.png" />
+                                            </Grid>
+                                        </Button>
+                                        <TextBlock
+                                            Width="400"
+                                            Padding="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="PaleVioletRed"
+                                            Text="{Binding OpenAIAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding OpenAIAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
                     <Grid
                         x:Name="CompLayer"
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -2091,7 +2220,7 @@
                             </Border>
                         </StackPanel>
                     </Grid>
-                    <Grid Grid.Row="4" Margin="0,5,0,0">
+                    <Grid Grid.Row="5" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2320,7 +2449,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="5" Margin="0,5,0,0">
+                    <Grid Grid.Row="6" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2428,7 +2557,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="6" Margin="0,5,0,0">
+                    <Grid Grid.Row="7" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2585,7 +2714,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="7" Margin="0,5,0,0">
+                    <Grid Grid.Row="8" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2843,7 +2972,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="8"
+                        Grid.Row="9"
                         Margin="0,5,0,0"
                         Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Grid.RowDefinitions>
@@ -2894,7 +3023,7 @@
                             </CheckBox>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="9" Margin="0,5,0,10">
+                    <Grid Grid.Row="10" Margin="0,5,0,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
