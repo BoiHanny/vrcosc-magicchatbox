@@ -1491,8 +1491,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _Time24H = false;
         private string _OSCtoSent = string.Empty;
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
-        private Version _AppVersion = new(DataController.GetApplicationVersion());
-        private Version _GitHubVersion;
+        private Models.Version _AppVersion = new(DataController.GetApplicationVersion());
+        private Models.Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
         private string _VersionTxtColor = "#FF8F80B9";
         private string _StatusBoxCount = "0/140";
@@ -2623,9 +2623,9 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private Version _LatestReleaseVersion;
+        private Models.Version _LatestReleaseVersion;
 
-        public Version LatestReleaseVersion
+        public Models.Version LatestReleaseVersion
         {
             get { return _LatestReleaseVersion; }
             set
@@ -2661,9 +2661,9 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private Version _PreReleaseVersion;
+        private Models.Version _PreReleaseVersion;
 
-        public Version PreReleaseVersion
+        public Models.Version PreReleaseVersion
         {
             get { return _PreReleaseVersion; }
             set
@@ -3439,7 +3439,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public Version AppVersion
+        public Models.Version AppVersion
         {
             get { return _AppVersion; }
             set
@@ -3449,7 +3449,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public Version GitHubVersion
+        public Models.Version GitHubVersion
         {
             get { return _GitHubVersion; }
             set
@@ -3459,6 +3459,187 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private string _NetworkStats_Opacity = "1";
+
+        public string NetworkStats_Opacity
+        {
+            get { return _NetworkStats_Opacity; }
+            set
+            {
+                if (_NetworkStats_Opacity != value)
+                {
+                    _NetworkStats_Opacity = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_Opacity));
+                }
+            }
+        }
+
+
+        private bool _IntgrNetworkStatistics = false;
+
+        public bool IntgrNetworkStatistics
+        {
+            get { return _IntgrNetworkStatistics; }
+            set
+            {
+                if (_IntgrNetworkStatistics != value)
+                {
+                    _IntgrNetworkStatistics = value;
+                    NotifyPropertyChanged(nameof(IntgrNetworkStatistics));
+                }
+            }
+        }
+
+
+        private bool _IntgrNetworkStatistics_VR = false;
+
+        public bool IntgrNetworkStatistics_VR
+        {
+            get { return _IntgrNetworkStatistics_VR; }
+            set
+            {
+                if (_IntgrNetworkStatistics_VR != value)
+                {
+                    _IntgrNetworkStatistics_VR = value;
+                    NotifyPropertyChanged(nameof(IntgrNetworkStatistics_VR));
+                }
+            }
+        }
+
+
+        private bool _IntgrNetworkStatistics_DESKTOP = true;
+
+        public bool IntgrNetworkStatistics_DESKTOP
+        {
+            get { return _IntgrNetworkStatistics_DESKTOP; }
+            set
+            {
+                if (_IntgrNetworkStatistics_DESKTOP != value)
+                {
+                    _IntgrNetworkStatistics_DESKTOP = value;
+                    NotifyPropertyChanged(nameof(IntgrNetworkStatistics_DESKTOP));
+                }
+            }
+        }
+
+
+        private bool _NetworkStats_ShowCurrentDown = true;
+
+        public bool NetworkStats_ShowCurrentDown
+        {
+            get { return _NetworkStats_ShowCurrentDown; }
+            set
+            {
+                if (_NetworkStats_ShowCurrentDown != value)
+                {
+                    _NetworkStats_ShowCurrentDown = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowCurrentDown));
+                }
+            }
+        }
+
+
+        private bool _NetworkStats_ShowCurrentUp = false;
+
+        public bool NetworkStats_ShowCurrentUp
+        {
+            get { return _NetworkStats_ShowCurrentUp; }
+            set
+            {
+                if (_NetworkStats_ShowCurrentUp != value)
+                {
+                    _NetworkStats_ShowCurrentUp = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowCurrentUp));
+                }
+            }
+        }
+
+        private bool _NetworkStats_ShowMaxUp = false;
+        public bool NetworkStats_ShowMaxUp
+        {
+            get { return _NetworkStats_ShowMaxUp; }
+            set
+            {
+                if (_NetworkStats_ShowMaxUp != value)
+                {
+                    _NetworkStats_ShowMaxUp = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowMaxUp));
+                }
+            }
+        }
+
+        private bool _NetworkStats_ShowMaxDown = false;
+        public bool NetworkStats_ShowMaxDown
+        {
+            get { return _NetworkStats_ShowMaxDown; }
+            set
+            {
+                if (_NetworkStats_ShowMaxDown != value)
+                {
+                    _NetworkStats_ShowMaxDown = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowMaxDown));
+                }
+            }
+        }
+
+        private bool _NetworkStats_ShowTotalUp = false;
+        public bool NetworkStats_ShowTotalUp
+        {
+            get { return _NetworkStats_ShowTotalUp; }
+            set
+            {
+                if (_NetworkStats_ShowTotalUp != value)
+                {
+                    _NetworkStats_ShowTotalUp = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowTotalUp));
+                }
+            }
+        }
+
+        private bool _NetworkStats_ShowTotalDown = false;
+        public bool NetworkStats_ShowTotalDown
+        {
+            get { return _NetworkStats_ShowTotalDown; }
+            set
+            {
+                if (_NetworkStats_ShowTotalDown != value)
+                {
+                    _NetworkStats_ShowTotalDown = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowTotalDown));
+                }
+            }
+        }
+
+        private bool _NetworkStats_ShowNetworkUtilization = true;
+        public bool NetworkStats_ShowNetworkUtilization
+        {
+            get { return _NetworkStats_ShowNetworkUtilization; }
+            set
+            {
+                if (_NetworkStats_ShowNetworkUtilization != value)
+                {
+                    _NetworkStats_ShowNetworkUtilization = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_ShowNetworkUtilization));
+                }
+            }
+        }
+
+
+        private bool _NetworkStats_StyledCharacters = true;
+
+        public bool NetworkStats_StyledCharacters
+        {
+            get { return _NetworkStats_StyledCharacters; }
+            set
+            {
+                if (_NetworkStats_StyledCharacters != value)
+                {
+                    _NetworkStats_StyledCharacters = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_StyledCharacters));
+                }
+            }
+        }
 
         public bool IsVRRunning
         {

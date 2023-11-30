@@ -31,7 +31,7 @@
     <Window.DataContext>
         <vm:ViewModel />
     </Window.DataContext>
-    
+
     <Window.Resources>
         <ResourceDictionary>
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
@@ -3868,6 +3868,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" MaxHeight="85" />
                         <RowDefinition Height="auto" MaxHeight="85" />
+                        <RowDefinition Height="auto" MaxHeight="85" />
                         <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
@@ -4578,7 +4579,137 @@
                         </Border>
 
                     </Grid>
-                    <Grid Grid.Row="5" Opacity="{Binding Time_Opacity}">
+                    <Grid Grid.Row="5" Opacity="{Binding NetworkStats_Opacity}">
+                        <Border
+                            Margin="6"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid Height="72">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="100" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="0,8,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Network ˢᵗᵃᵗˢ">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Opacity="1"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="0,0,0,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="With this integration, you can display your network stats to everyone."
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Opacity="0.5"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <Button
+                                        Margin="117,11,0,0"
+                                        Padding="0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Time"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </Grid>
+
+                                <Image
+                                    Grid.Column="0"
+                                    Margin="12"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Source="/Img/Icons/NetworkStats_ico.png">
+                                    <Image.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="25"
+                                            Opacity="0.4"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Image.Effect>
+                                </Image>
+                                <CheckBox
+                                    Name="NetworkStatistics_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrNetworkStatistics, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="60"
+                                    Height="19"
+                                    Margin="147,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="DESKTOP"
+                                    IsChecked="{Binding IntgrNetworkStatistics_DESKTOP, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="30"
+                                    Height="19"
+                                    Margin="212,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="VR"
+                                    IsChecked="{Binding IntgrNetworkStatistics_VR, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}" />
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <Grid Grid.Row="6" Opacity="{Binding Time_Opacity}">
                         <Border
                             Margin="6"
                             Background="DarkSlateBlue"
@@ -4708,7 +4839,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="6"
+                        Grid.Row="7"
                         Opacity="{Binding Spotify_Opacity}"
                         Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border
@@ -4807,7 +4938,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="7"
+                        Grid.Row="8"
                         Opacity="{Binding MediaLink_Opacity}"
                         Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border

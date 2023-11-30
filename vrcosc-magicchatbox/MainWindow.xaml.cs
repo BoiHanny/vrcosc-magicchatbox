@@ -36,6 +36,7 @@ namespace vrcosc_magicchatbox
             typeof(MainWindow),
             new PropertyMetadata(0.0));
 
+        public static NetworkStatisticsModule networkStatsModule = null;
         DispatcherTimer backgroundCheck = new DispatcherTimer();
         private System.Timers.Timer ChatUpdateTimer;
         private System.Timers.Timer pauseTimer;
@@ -52,6 +53,8 @@ namespace vrcosc_magicchatbox
 
             this.StateChanged += MainWindow_StateChanged;
         }
+
+
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
@@ -117,7 +120,7 @@ namespace vrcosc_magicchatbox
 
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
-
+            networkStatsModule = new NetworkStatisticsModule(1000);
         }
 
         public async Task InitializeAsync()

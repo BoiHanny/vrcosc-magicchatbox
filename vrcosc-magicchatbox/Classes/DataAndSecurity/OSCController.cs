@@ -47,6 +47,20 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
+        public static void AddNetworkStatistics(List<string> Uncomplete)
+        {
+            if (ViewModel.Instance.IntgrNetworkStatistics == true)
+            {
+                if(MainWindow.networkStatsModule == null)
+                {
+                    return;
+                }
+                // create x string based on the values in MainWindow.networkStatsModule make it all look nice and pretty
+                string x = MainWindow.networkStatsModule.GenerateDescription();
+                TryAddToUncomplete(Uncomplete, x, "NetworkStatistics");
+            }
+        }
+
 
         // this function will build the heart rate message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddHeartRate(List<string> Uncomplete)
@@ -278,6 +292,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 },
 
                 {
+                     () => ViewModel.Instance.IntgrNetworkStatistics_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrNetworkStatistics_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddNetworkStatistics
+                },
+
+                {
                     () => ViewModel.Instance.IntgrCurrentTime_VR &&
                     ViewModel.Instance.IsVRRunning ||
                     ViewModel.Instance.IntgrCurrentTime_DESKTOP &&
@@ -309,6 +331,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 SetOpacity("Spotify", "1");
                 SetOpacity("HeartRate", "1");
                 SetOpacity("ComponentStat", "1");
+                SetOpacity("NetworkStatistics", "1");
                 SetOpacity("Window", "1");
                 SetOpacity("Time", "1");
                 SetOpacity("MediaLink", "1");
@@ -505,6 +528,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     break;
                 case "ComponentStat":
                     ViewModel.Instance.ComponentStat_Opacity = opacity;
+                    break;
+                case "NetworkStatistics":
+                    ViewModel.Instance.NetworkStats_Opacity = opacity;
                     break;
                 case "MediaLink":
                     ViewModel.Instance.MediaLink_Opacity = opacity;

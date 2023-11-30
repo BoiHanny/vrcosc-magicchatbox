@@ -31,7 +31,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     {'u', "ᵘ"}, {'v', "ᵛ"}, {'w', "ʷ"}, {'x', "ˣ"}, {'y', "ʸ"},
     {'z', "ᶻ"}, {'0', "⁰"}, {'1', "¹"}, {'2', "²"}, {'3', "³"},
     {'4', "⁴"}, {'5', "⁵"}, {'6', "⁶"}, {'7', "⁷"}, {'8', "⁸"},
-    {'9', "⁹"}
+    {'9', "⁹"}, {',', "'"}, {'.', "'"} , {'%', "⁒"}
 };
 
         public static string GetApplicationVersion()
@@ -57,7 +57,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 return string.Empty;
             }
             return new string(input.ToLowerInvariant()
-                .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '/' || c == ':')
+                .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '/' || c == ':' || c == ',' || c == '.' || c == '%')
                 .Select(c => char.IsWhiteSpace(c) ? " " : (SuperscriptMapping.ContainsKey(c) ? SuperscriptMapping[c] : c.ToString()))
                 .SelectMany(s => s)
                 .ToArray());
@@ -190,12 +190,16 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "IntgrScanWindowTime", (typeof(bool), "Integrations") },
                 { "ApplicationHookV2", (typeof(bool), "Integrations") },
                 { "IntgrHeartRate", (typeof(bool), "Integrations") },
+                { "IntgrNetworkStatistics", (typeof(bool), "Integrations") },
                 { "IntgrScanMediaLink", (typeof(bool), "Integrations") },
                 { "IntgrComponentStats", (typeof(bool), "Integrations") },
 
 
                 { "IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles") },
                 { "IntgrComponentStats_DESKTOP", (typeof(bool), "IntegrationToggles") },
+
+                { "IntgrNetworkStatistics_VR", (typeof(bool), "IntegrationToggles") },
+                { "IntgrNetworkStatistics_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
                 { "IntgrStatus_VR", (typeof(bool), "IntegrationToggles") },
                 { "IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
