@@ -33,6 +33,22 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     {'9', "⁹"}
 };
 
+        public static string GetApplicationVersion()
+        {
+            try
+            {
+                Assembly assembly = Assembly.GetExecutingAssembly();
+
+                AssemblyName assemblyName = assembly.GetName();
+                return assemblyName.Version.ToString();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return "69.420.666";
+            }
+        }
+
         public static string TransformToSuperscript(string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -45,10 +61,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 .SelectMany(s => s)
                 .ToArray());
         }
-
-
-
-
 
         private static void CheckForUpdate()
         {

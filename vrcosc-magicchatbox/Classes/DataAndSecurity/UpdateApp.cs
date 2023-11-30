@@ -128,7 +128,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             try
             {
                 UpdateStatus($"Requesting update");
-                Thread.Sleep(1500);
                 string tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
                 string zipPath = Path.Combine(tempPath, "update.zip");
                 string unzipPath = Path.Combine(tempPath, "update_unzip");
@@ -141,13 +140,11 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 // Ensure directories exist
                 UpdateStatus("Creating directories");
-                Thread.Sleep(250);
                 DataController.CreateIfMissing(tempPath);
                 DataController.CreateIfMissing(unzipPath);
 
                 // Download the zip file
                 UpdateStatus("Downloading update");
-                Thread.Sleep(300);
                 using (WebClient webClient = new WebClient())
                 {
                     await webClient.DownloadFileTaskAsync(ViewModel.Instance.UpdateURL, zipPath);
@@ -156,7 +153,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 // Extract the contents of the zip file
                 ViewModel.Instance.UpdateStatustxt = "Extracting update";
-                Thread.Sleep(1000);
                 using (ZipArchive archive = ZipFile.OpenRead(zipPath))
                 {
                     int fileCount = archive.Entries.Count;
@@ -171,7 +167,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                             ViewModel.Instance.UpdateStatustxt = $"Creating directory {prosessedFileCount}/{fileCount}";
                             DataController.CreateIfMissing(destinationPath);
                             prosessedFileCount += 1;
-                            Thread.Sleep(200);
                         }
                         else
                         {
@@ -183,14 +178,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                             entry.ExtractToFile(destinationPath, true);
                             prosessedFileCount += 1;
-                            Thread.Sleep(70);
                         }
                     }
 
                 }
 
                 // Create a JSON file with the location path of the current running app
-                Thread.Sleep(700);
                 ViewModel.Instance.UpdateStatustxt = "Saving update location";
                 string currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string jsonFilePath = Path.Combine(ViewModel.Instance.DataPath, "app_location.json");
@@ -210,7 +203,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 // Start MagicChatbox.exe with the -update argument
                 UpdateStatus("Starting MagicChatbox update");
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 ProcessStartInfo startInfo = new ProcessStartInfo(magicChatboxExePath)
                 {
                     Arguments = "-update"
