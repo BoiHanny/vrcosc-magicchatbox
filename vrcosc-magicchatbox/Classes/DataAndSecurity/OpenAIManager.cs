@@ -16,9 +16,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         public bool IsInitialized => OpenAIClient != null;
 
         private OpenAIManager()
-        {
-
-        }
+        {}
 
         public static OpenAIManager Instance => instance.Value;
 
@@ -43,7 +41,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             try
             {
-                var testMessage = new Message(Role.User, "Connection validation, say OK");
+                var testMessage = new Message(Role.User, "say: OK");
 
                 var responseMessage = await OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(messages: new List<Message> { testMessage }, maxTokens:1));
 

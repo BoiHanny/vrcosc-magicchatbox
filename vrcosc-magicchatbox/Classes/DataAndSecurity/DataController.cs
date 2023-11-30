@@ -495,8 +495,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
         }
 
-
-
         public static void LoadChatList()
         {
             try

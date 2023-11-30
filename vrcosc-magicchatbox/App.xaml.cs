@@ -20,6 +20,9 @@ namespace vrcosc_magicchatbox
             var loadingWindow = new StartUp();
             loadingWindow.Show();
 
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException; ; ;
+            DispatcherUnhandledException += App_DispatcherUnhandledException; ; ;
+
             if (e.Args != null && e.Args.Length > 0)
             {
                 if (e.Args[0] == "-update")
@@ -67,7 +70,7 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Initializing OpenAI like a rocket launch. 3... 2... 1... Blast off!", 70);
             await Task.Run(() => OpenAIManager.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID));
 
-            loadingWindow.UpdateProgress("Warming up the TTS voices. Ready for the vocal Olympics!", 70);
+            loadingWindow.UpdateProgress("Warming up the TTS voices. Ready for the vocal Olympics!", 75);
             ViewModel.Instance.TikTokTTSVoices = await Task.Run(() => DataController.ReadTkTkTTSVoices());
 
             loadingWindow.UpdateProgress("Selecting your audio devices like a DJ choosing beats. Drop the bass!", 80);
@@ -78,14 +81,24 @@ namespace vrcosc_magicchatbox
 
             MainWindow mainWindow = new MainWindow();
             mainWindow.DataContext = ViewModel.Instance;
+
+            loadingWindow.UpdateProgress("Setting up the hotkeys... Hotkey, hotkey, hotkey!", 97);
+
+            HotkeyManagement.Instance.Initialize(mainWindow);
             mainWindow.Show();
 
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
-
-
             loadingWindow.Close();
+        }
 
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            Logging.WriteException(e.Exception, makeVMDump: false, MSGBox: true, exitapp:true);
+        }
 
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logging.WriteException(ex: e.ExceptionObject as Exception, makeVMDump: false, MSGBox: true, exitapp: true);
         }
     }
 }

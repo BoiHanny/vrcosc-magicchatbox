@@ -1,6 +1,4 @@
-﻿using NAudio.Midi;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -776,6 +774,7 @@ namespace vrcosc_magicchatbox
                 DataController.ManageSettingsXML(true);
                 DataController.SaveAppList();
                 DataController.SaveMediaSessions();
+                HotkeyManagement.Instance.SaveHotkeyConfigurations();
                 ViewModel.Instance._statsManager.SaveComponentStats();
             }
             catch (Exception ex)
@@ -994,6 +993,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.MenuItem_1_Visibility = "Hidden";
             ViewModel.Instance.MenuItem_2_Visibility = "Hidden";
             ViewModel.Instance.MenuItem_3_Visibility = "Hidden";
+
             if (ViewModel.Instance.CurrentMenuItem == 0)
             {
                 ViewModel.Instance.MenuItem_0_Visibility = "Visible";
@@ -1014,6 +1014,7 @@ namespace vrcosc_magicchatbox
                 ViewModel.Instance.MenuItem_3_Visibility = "Visible";
                 return;
             }
+
             ChangeMenuItem(0);
         }
 
