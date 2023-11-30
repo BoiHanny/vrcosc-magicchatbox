@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace vrcosc_magicchatbox.ViewModels
+namespace vrcosc_magicchatbox.ViewModels.Models
 {
     public class ComponentStatsItem
     {
@@ -48,7 +48,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public string GetFormattedMaxValue()
         {
-            if(ShowMaxValue)
+            if (ShowMaxValue)
             {
                 return ShowUnit
                     ? $"{ComponentValue}/{ComponentValueMax} {Unit}"
@@ -60,19 +60,20 @@ namespace vrcosc_magicchatbox.ViewModels
         public string GetDescription()
         {
             string name = ShowPrefixHardwareTitle
-                ? (ReplaceWithHardwareName && !string.IsNullOrEmpty(CustomHardwarenameValue) && !string.IsNullOrEmpty(CustomHardwarenameValueSmall) ? CustomHardwarenameValue : HardwareFriendlyName)
+                ? ReplaceWithHardwareName && !string.IsNullOrEmpty(CustomHardwarenameValue) && !string.IsNullOrEmpty(CustomHardwarenameValueSmall) ? CustomHardwarenameValue : HardwareFriendlyName
                 : SystemMainName;
 
             string smallName = ShowPrefixHardwareTitle
-                ? (ReplaceWithHardwareName && !string.IsNullOrEmpty(CustomHardwarenameValue) && !string.IsNullOrEmpty(CustomHardwarenameValueSmall)
+                ? ReplaceWithHardwareName && !string.IsNullOrEmpty(CustomHardwarenameValue) && !string.IsNullOrEmpty(CustomHardwarenameValueSmall)
                     ? CustomHardwarenameValueSmall
-                    : HardwareFriendlyNameSmall)
+                    : HardwareFriendlyNameSmall
                 : SystemMailSmallName;
 
-            if(ShowSmallName)
+            if (ShowSmallName)
             {
                 return ShowMaxValue ? $"{smallName} {GetFormattedMaxValue()}" : $"{smallName} {GetFormattedValue()}";
-            } else
+            }
+            else
             {
                 return ShowMaxValue ? $"{name}: {GetFormattedMaxValue()}" : $"{name}: {GetFormattedValue()}";
             }

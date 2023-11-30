@@ -4,10 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
     public static class OSCSender
     {
@@ -112,11 +111,11 @@ namespace vrcosc_magicchatbox.Classes
             isInCooldown = true;
             cooldownTimer.Start();
         }
-    
 
-    private static bool ShouldToggleVoice(bool force)
+
+        private static bool ShouldToggleVoice(bool force)
         {
-            return (ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS) || (!force && ViewModel.Instance.MasterSwitch);
+            return ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS || !force && ViewModel.Instance.MasterSwitch;
         }
 
         private static OscMessage PrepareMessage(bool FX)

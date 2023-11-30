@@ -18,9 +18,9 @@ using vrcosc_magicchatbox.DataAndSecurity;
 
 
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public class PulsoidConnector
+    public class PulsoidModule
     {
 
         private CancellationTokenSource? _cts;
@@ -70,8 +70,8 @@ namespace vrcosc_magicchatbox.Classes
 
         public bool ShouldStartMonitoring()
         {
-            return (ViewModel.Instance.IntgrHeartRate && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_VR) ||
-                   (ViewModel.Instance.IntgrHeartRate && !ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_DESKTOP);
+            return ViewModel.Instance.IntgrHeartRate && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_VR ||
+                   ViewModel.Instance.IntgrHeartRate && !ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_DESKTOP;
         }
 
         public bool IsRelevantPropertyChange(string propertyName)
@@ -114,7 +114,7 @@ namespace vrcosc_magicchatbox.Classes
 
                 try
                 {
-                    if(string.IsNullOrEmpty(ViewModel.Instance.PulsoidAccessTokenOAuth))
+                    if (string.IsNullOrEmpty(ViewModel.Instance.PulsoidAccessTokenOAuth))
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -142,7 +142,7 @@ namespace vrcosc_magicchatbox.Classes
                             _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));
 
                             // Remove old data
-                            while (_heartRates.Count > 0 && (DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.SmoothHeartRateTimeSpan)))
+                            while (_heartRates.Count > 0 && DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.SmoothHeartRateTimeSpan))
                             {
                                 _heartRates.Dequeue();
                             }
@@ -215,8 +215,8 @@ namespace vrcosc_magicchatbox.Classes
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         ViewModel.Instance.PulsoidAccessError = true;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
-                        });
+                        ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                    });
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                     Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 }
@@ -241,7 +241,7 @@ namespace vrcosc_magicchatbox.Classes
         {
 
             string accessToken = ViewModel.Instance.PulsoidAccessTokenOAuth;
-            if(string.IsNullOrEmpty(accessToken))
+            if (string.IsNullOrEmpty(accessToken))
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -279,34 +279,34 @@ namespace vrcosc_magicchatbox.Classes
 
                 switch (httpEx.StatusCode)
                 {
-                    case System.Net.HttpStatusCode.Forbidden:
+                    case HttpStatusCode.Forbidden:
                         errorMessage = "Connection invalid or your subscription has expired. Please check your subscription.";
                         break;
-                    case System.Net.HttpStatusCode.PreconditionFailed:
+                    case HttpStatusCode.PreconditionFailed:
                         errorMessage = "Connection successful, but no heart rate device detected. Ensure a device is connected to your account and has sent values.";
                         break;
-                    case System.Net.HttpStatusCode.NotFound:
+                    case HttpStatusCode.NotFound:
                         errorMessage = "Endpoint not found. Please check if the Pulsoid API URL has changed.";
                         break;
-                    case System.Net.HttpStatusCode.InternalServerError:
+                    case HttpStatusCode.InternalServerError:
                         errorMessage = "The Pulsoid server encountered an error. Please try again later.";
                         break;
-                    case System.Net.HttpStatusCode.RequestTimeout:
+                    case HttpStatusCode.RequestTimeout:
                         errorMessage = "Request timed out. Please check your internet connection.";
                         break;
-                    case System.Net.HttpStatusCode.BadGateway:
+                    case HttpStatusCode.BadGateway:
                         errorMessage = "Pulsoid server is currently experiencing issues. Please try again later.";
                         break;
-                    case System.Net.HttpStatusCode.ServiceUnavailable:
+                    case HttpStatusCode.ServiceUnavailable:
                         errorMessage = "Pulsoid service is currently unavailable. Please wait a moment and try again.";
                         break;
-                    case System.Net.HttpStatusCode.Unauthorized:
+                    case HttpStatusCode.Unauthorized:
                         errorMessage = "Unauthorized access. Try again to connect.";
                         break;
-                    case System.Net.HttpStatusCode.BadRequest:
+                    case HttpStatusCode.BadRequest:
                         errorMessage = "Bad request. Ensure you're sending the correct data to Pulsoid.";
                         break;
-                    case System.Net.HttpStatusCode.TooManyRequests:
+                    case HttpStatusCode.TooManyRequests:
                         errorMessage = "You've sent too many requests in a short time. Please wait for a while and try again.";
                         break;
                 }

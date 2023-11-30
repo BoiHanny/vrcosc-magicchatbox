@@ -9,9 +9,9 @@ using System.Windows.Automation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public static class WindowActivity
+    public static class WindowActivityModule
     {
         // Constants and Structs
         private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
@@ -36,7 +36,7 @@ namespace vrcosc_magicchatbox.Classes
             try
             {
                 int length = GetWindowTextLength(hwnd) + 1;
-                System.Text.StringBuilder sb = new System.Text.StringBuilder(length);
+                StringBuilder sb = new StringBuilder(length);
 
                 if (GetWindowText(hwnd, sb, length) > 0)
                 {
@@ -114,13 +114,13 @@ namespace vrcosc_magicchatbox.Classes
         private static extern int GetWindowTextLength(IntPtr hWnd);
 
         [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
-        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern Int32 GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        private static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
         [System.Runtime.InteropServices.DllImport("shell32.dll")]
         private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
@@ -396,11 +396,11 @@ namespace vrcosc_magicchatbox.Classes
                     }
                     else if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
                     {
-                        return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " (" + windowTitle + ")" : string.Empty );
+                        return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " (" + windowTitle + ")" : string.Empty);
                     }
                     else
                     {
-                        return "'" + processName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " ( " + windowTitle + ")" : string.Empty );
+                        return "'" + processName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " ( " + windowTitle + ")" : string.Empty);
                     }
                 }
             }
@@ -419,7 +419,8 @@ namespace vrcosc_magicchatbox.Classes
         {
             try
             {
-                Application.Current.Dispatcher.Invoke(() => {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
                     ProcessInfo processInfo = new ProcessInfo
                     {
                         LastTitle = windowTitle,

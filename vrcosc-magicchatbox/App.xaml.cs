@@ -2,8 +2,8 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
@@ -12,7 +12,7 @@ namespace vrcosc_magicchatbox
 {
     public partial class App : Application
     {
-        public static MediaLinkController ApplicationMediaController { get; private set; }
+        public static MediaLinkModule ApplicationMediaController { get; private set; }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -68,7 +68,7 @@ namespace vrcosc_magicchatbox
             }
 
             loadingWindow.UpdateProgress("Initializing OpenAI like a rocket launch. 3... 2... 1... Blast off!", 70);
-            await Task.Run(() => OpenAIManager.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID));
+            await Task.Run(() => OpenAIModule.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID));
 
             loadingWindow.UpdateProgress("Warming up the TTS voices. Ready for the vocal Olympics!", 75);
             ViewModel.Instance.TikTokTTSVoices = await Task.Run(() => DataController.ReadTkTkTTSVoices());
@@ -77,7 +77,7 @@ namespace vrcosc_magicchatbox
             await Task.Run(() => DataController.PopulateOutputDevices());
 
             loadingWindow.UpdateProgress("Turbocharging MediaLink engines... Fast & Furious: Data Drift!", 95);
-            ApplicationMediaController = new MediaLinkController(ViewModel.Instance.IntgrScanMediaLink);
+            ApplicationMediaController = new MediaLinkModule(ViewModel.Instance.IntgrScanMediaLink);
 
             MainWindow mainWindow = new MainWindow();
             mainWindow.DataContext = ViewModel.Instance;

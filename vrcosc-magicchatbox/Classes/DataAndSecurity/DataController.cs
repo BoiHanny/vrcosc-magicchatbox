@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
-using Version = vrcosc_magicchatbox.ViewModels.Version;
+using vrcosc_magicchatbox.ViewModels.Models;
+using Version = vrcosc_magicchatbox.ViewModels.Models.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
 {

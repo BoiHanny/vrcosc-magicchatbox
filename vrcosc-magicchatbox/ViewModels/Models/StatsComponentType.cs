@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace vrcosc_magicchatbox.ViewModels
+namespace vrcosc_magicchatbox.ViewModels.Models
 {
     public static class StatsComponentTypeExtensions
     {
         public static string GetSmallName(this StatsComponentType type)
         {
-            switch(type)
+            switch (type)
             {
                 case StatsComponentType.CPU:
                     return "ᶜᵖᵘ";

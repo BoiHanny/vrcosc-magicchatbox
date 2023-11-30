@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace vrcosc_magicchatbox.ViewModels
+namespace vrcosc_magicchatbox.ViewModels.Models
 {
     public class OSCAvatar
     {
-        string avatarID { get; set; }   
+        string avatarID { get; set; }
         string avatarName { get; set; } = string.Empty;
 
         DateTime firstDetected { get; set; }

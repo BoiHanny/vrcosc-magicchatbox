@@ -4,9 +4,9 @@ using System.Text.RegularExpressions;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public static class SpotifyActivity
+    public static class SpotifyModule
     {
         public static string CurrentPlayingSong()
         {

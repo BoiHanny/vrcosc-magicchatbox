@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.Models;
 using Windows.Media.Control;
 using WindowsMediaController;
 using static WindowsMediaController.MediaManager;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public class MediaLinkController
+    public class MediaLinkModule
     {
         private static MediaSession? currentSession = null;
         private static readonly TimeSpan GracePeriod = TimeSpan.FromSeconds(ViewModel.Instance.MediaSession_Timeout);
@@ -27,26 +28,27 @@ namespace vrcosc_magicchatbox.Classes
 
 
         // this is the main function that will be called when a new media session is opened
-        public MediaLinkController(bool shouldStart)
+        public MediaLinkModule(bool shouldStart)
         {
             ViewModel.Instance.PropertyChanged += ViewModel_PropertyChanged;
-            if(shouldStart)
+            if (shouldStart)
                 Start();
         }
 
         // this function is used to automatically switch to a media session if the user has the auto switch setting enabled and the media session is playing and the media session is set to auto switch
         private static void AutoSwitchMediaSession(MediaSessionInfo sessionInfo)
         {
-            if(ViewModel.Instance.MediaSession_AutoSwitch &&
+            if (ViewModel.Instance.MediaSession_AutoSwitch &&
                 sessionInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing &&
                 sessionInfo.AutoSwitch)
             {
-                foreach(var item in ViewModel.Instance.MediaSessions)
+                foreach (var item in ViewModel.Instance.MediaSessions)
                 {
-                    if(item.Session.Id == sessionInfo.Session.Id)
+                    if (item.Session.Id == sessionInfo.Session.Id)
                     {
                         item.IsActive = true;
-                    } else
+                    }
+                    else
                     {
                         item.IsActive = false;
                     }
@@ -58,10 +60,10 @@ namespace vrcosc_magicchatbox.Classes
         private static void CleanupExpiredSessions()
         {
             var expiredSessions = recentlyClosedSessions
-                .Where(kvp => (DateTime.Now - kvp.Value.Item2) > GracePeriod)
+                .Where(kvp => DateTime.Now - kvp.Value.Item2 > GracePeriod)
                 .ToList();
 
-            foreach(var expiredSession in expiredSessions)
+            foreach (var expiredSession in expiredSessions)
             {
                 recentlyClosedSessions.TryRemove(expiredSession.Key, out _);
             }
@@ -74,7 +76,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
 
-            if(sessionInfo != null)
+            if (sessionInfo != null)
             {
                 sessionInfo.AlbumArtist = args.AlbumArtist;
                 sessionInfo.AlbumTitle = args.AlbumTitle;
@@ -97,12 +99,13 @@ namespace vrcosc_magicchatbox.Classes
             {
                 var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
 
-                if(sessionInfo != null)
+                if (sessionInfo != null)
                 {
                     sessionInfo.PlaybackStatus = args.PlaybackStatus;
                     AutoSwitchMediaSession(sessionInfo);
                 }
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
@@ -114,7 +117,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(session);
 
-            if(sessionInfo != null)
+            if (sessionInfo != null)
             {
                 sessionInfo.TimeoutRestore = true;
                 recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
@@ -129,7 +132,7 @@ namespace vrcosc_magicchatbox.Classes
                 sessionInfoLookup.TryRemove(session, out _);
             }
 
-            if(currentSession == session)
+            if (currentSession == session)
             {
                 currentSession = null;
             }
@@ -142,11 +145,11 @@ namespace vrcosc_magicchatbox.Classes
         {
             MediaSessionInfo sessionInfo = null;
 
-            if(recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
+            if (recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
             {
                 var (recentInfo, closeTime) = recentSessionInfo;
 
-                if((DateTime.Now - closeTime) <= GracePeriod)
+                if (DateTime.Now - closeTime <= GracePeriod)
                 {
                     sessionInfo = recentInfo;
                     sessionInfo.Session = session;
@@ -154,7 +157,7 @@ namespace vrcosc_magicchatbox.Classes
                 }
             }
 
-            if(sessionInfo == null)
+            if (sessionInfo == null)
             {
                 sessionInfo = new MediaSessionInfo { Session = session };
             }
@@ -177,23 +180,24 @@ namespace vrcosc_magicchatbox.Classes
         // this funion will be called when the user changes the setting to enable/disable the media link
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == "IntgrScanMediaLink" ||
+            if (e.PropertyName == "IntgrScanMediaLink" ||
                 e.PropertyName == "IntgrMediaLink_VR" ||
                 e.PropertyName == "IntgrMediaLink_DESKTOP" ||
                 e.PropertyName == "IsVRRunning")
             {
-                if(ViewModel.Instance.IntgrScanMediaLink &&
+                if (ViewModel.Instance.IntgrScanMediaLink &&
                     ViewModel.Instance.IntgrMediaLink_VR &&
                     ViewModel.Instance.IsVRRunning ||
                     ViewModel.Instance.IntgrScanMediaLink &&
                     ViewModel.Instance.IntgrMediaLink_DESKTOP &&
                     !ViewModel.Instance.IsVRRunning)
                 {
-                    if(mediaManager == null)
+                    if (mediaManager == null)
                         Start();
-                } else
+                }
+                else
                 {
-                    if(mediaManager != null)
+                    if (mediaManager != null)
                         Dispose();
                 }
             }
@@ -202,7 +206,7 @@ namespace vrcosc_magicchatbox.Classes
         // this function will stop the media manager and unsubscribe from all the events that we were listening to for media sessions
         public static void Dispose()
         {
-            if(mediaManager != null)
+            if (mediaManager != null)
             {
                 mediaManager.OnAnySessionOpened -= MediaManager_OnAnySessionOpened;
                 mediaManager.OnAnySessionClosed -= MediaManager_OnAnySessionClosed;
@@ -263,7 +267,7 @@ namespace vrcosc_magicchatbox.Classes
             if (S == null)
                 return;
             S?.ControlSession.TrySkipPreviousAsync();
-            if(sessionInfo.CurrentTime > TimeSpan.FromSeconds(2))
+            if (sessionInfo.CurrentTime > TimeSpan.FromSeconds(2))
             {
                 S?.ControlSession.TrySkipPreviousAsync();
             }
@@ -279,7 +283,7 @@ namespace vrcosc_magicchatbox.Classes
             MediaSessionSettings matchingSettings = ViewModel.Instance.SavedSessionSettings
                 .FirstOrDefault(s => s.SessionId == session.Session.Id);
 
-            if(matchingSettings != null)
+            if (matchingSettings != null)
             {
                 // Copy the values from matchingSettings to savedSettings
                 savedSettings.ShowTitle = matchingSettings.ShowTitle;
@@ -288,7 +292,7 @@ namespace vrcosc_magicchatbox.Classes
                 savedSettings.IsVideo = matchingSettings.IsVideo;
                 savedSettings.KeepSaved = matchingSettings.KeepSaved;
 
-                if(savedSettings != null && !session.TimeoutRestore)
+                if (savedSettings != null && !session.TimeoutRestore)
                 {
                     session.ShowTitle = savedSettings.ShowTitle;
                     session.AutoSwitch = savedSettings.AutoSwitch;
@@ -312,7 +316,8 @@ namespace vrcosc_magicchatbox.Classes
                 mediaManager.OnAnyMediaPropertyChanged += MediaManager_OnAnyMediaPropertyChanged;
                 mediaManager.OnAnyTimelinePropertyChanged += MediaManager_OnAnyTimelinePropertyChanged;
                 mediaManager.Start();
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }

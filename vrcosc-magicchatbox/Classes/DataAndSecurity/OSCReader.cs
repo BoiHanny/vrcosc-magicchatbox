@@ -2,10 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
     public class OSCReader
     {
@@ -40,7 +39,7 @@ namespace vrcosc_magicchatbox.Classes
                     {
                         // This is a different built-in parameter
                         parameterName = message.Address;
-                    }    
+                    }
 
                     try
                     {
@@ -51,7 +50,7 @@ namespace vrcosc_magicchatbox.Classes
                         parameter.LogBuilder();
                         if (ViewModel.Instance.AvatarSyncExecute)
                         {
-                            
+
                             sb.Append("BuiltIn OSCParameter !! [")
                             .Append(parameter.Name)
                             .Append("] Type: (")
@@ -61,7 +60,7 @@ namespace vrcosc_magicchatbox.Classes
                             Logging.WriteInfo(sb.ToString());
                             AvatarSyncController.RunSync(OSCParameters.GetParameter(parameterName));
                         }
-                            
+
 
 
 

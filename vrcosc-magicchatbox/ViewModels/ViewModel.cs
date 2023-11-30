@@ -13,7 +13,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -27,7 +29,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _ChatAddSmallDelay = true;
-
 
         private double _ChatAddSmallDelayTIME = 1.4;
 
@@ -58,7 +59,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _Egg_Dev = false;
 
-        private PulsoidConnector _heartRateConnector;
+        private PulsoidModule _heartRateConnector;
 
 
         private bool _HeartRateTitle = false;
@@ -135,7 +136,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _TTSOnResendChat = false;
 
-        public readonly StatsManager _statsManager = new StatsManager();
+        public readonly ComponentStatsModule _statsManager = new ComponentStatsModule();
         public Dictionary<string, Action<bool>> SettingsMap;
 
 
@@ -179,7 +180,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_Status), value => Settings_Status = value }
             };
 
-            _heartRateConnector = new PulsoidConnector();
+            _heartRateConnector = new PulsoidModule();
 
             PropertyChanged += _heartRateConnector.PropertyChangedHandler;
             _dynamicOSCData = new ExpandoObject();
@@ -2289,7 +2290,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 if (_lowHeartRateText != value)
                 {
                     _lowHeartRateText = value;
-                    PulsoidConnector.UpdateFormattedHeartRateText();
+                    PulsoidModule.UpdateFormattedHeartRateText();
                     NotifyPropertyChanged(nameof(LowHeartRateText));
                 }
             }
@@ -2304,7 +2305,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 if (_highHeartRateText != value)
                 {
                     _highHeartRateText = value;
-                    PulsoidConnector.UpdateFormattedHeartRateText();
+                    PulsoidModule.UpdateFormattedHeartRateText();
                     NotifyPropertyChanged(nameof(HighHeartRateText));
                 }
             }

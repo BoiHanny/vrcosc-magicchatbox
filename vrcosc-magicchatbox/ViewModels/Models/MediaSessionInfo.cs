@@ -7,7 +7,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using Windows.Media.Control;
 using static WindowsMediaController.MediaManager;
 
-namespace vrcosc_magicchatbox.ViewModels
+namespace vrcosc_magicchatbox.ViewModels.Models
 {
     [DebuggerDisplay("{FriendlyAppName} - {TimePeekEnabled} - {TimePosition}/{CurrentTime}/{FullTime} live:{IsLiveTime}")]
     public class MediaSessionInfo : INotifyPropertyChanged
@@ -50,7 +50,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public bool PlayingNow
         {
             get { return PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing; }
-           
+
         }
 
         public string Title = "Title";
@@ -59,18 +59,19 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private void SaveOrDeleteSettings()
         {
-            if(_KeepSaved)
+            if (_KeepSaved)
             {
                 var savedSettings = ViewModel.Instance.SavedSessionSettings
                     .FirstOrDefault(s => s.SessionId == Session.Id);
-                if(savedSettings != null)
+                if (savedSettings != null)
                 {
                     savedSettings.ShowTitle = _ShowTitle;
                     savedSettings.AutoSwitch = _AutoSwitch;
                     savedSettings.ShowArtist = _ShowArtist;
                     savedSettings.IsVideo = _IsVideo;
                     savedSettings.KeepSaved = _KeepSaved;
-                } else
+                }
+                else
                 {
                     ViewModel.Instance.SavedSessionSettings
                         .Add(
@@ -84,11 +85,12 @@ namespace vrcosc_magicchatbox.ViewModels
                                 KeepSaved = _KeepSaved
                             });
                 }
-            } else
+            }
+            else
             {
                 var savedSettings = ViewModel.Instance.SavedSessionSettings
                     .FirstOrDefault(s => s.SessionId == Session.Id);
-                if(savedSettings != null)
+                if (savedSettings != null)
                 {
                     ViewModel.Instance.SavedSessionSettings.Remove(savedSettings);
                 }
@@ -100,23 +102,25 @@ namespace vrcosc_magicchatbox.ViewModels
             string id = Session.Id;
             try
             {
-                if(!id.Contains('.') && !id.Contains('!') && char.IsUpper(id[0]))
+                if (!id.Contains('.') && !id.Contains('!') && char.IsUpper(id[0]))
                 {
                     FriendlyAppName = id;
-                } else
+                }
+                else
                 {
-                    if(id.Contains('!'))
+                    if (id.Contains('!'))
                     {
                         id = id.Split('!')[1];
                     }
 
-                    if(id.Contains(".exe"))
+                    if (id.Contains(".exe"))
                     {
                         id = Path.GetFileNameWithoutExtension(id);
                     }
                     FriendlyAppName = id;
                 }
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 FriendlyAppName = id;
@@ -186,7 +190,7 @@ namespace vrcosc_magicchatbox.ViewModels
             get
             {
                 if (FullTime.TotalMilliseconds == 0) return 0;
-                return (int)((CurrentTime.TotalMilliseconds / FullTime.TotalMilliseconds) * 100);
+                return (int)(CurrentTime.TotalMilliseconds / FullTime.TotalMilliseconds * 100);
             }
         }
 

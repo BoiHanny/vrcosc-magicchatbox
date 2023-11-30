@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.Models;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
     public class AvatarSyncController
     {

@@ -3,22 +3,23 @@ using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
-namespace vrcosc_magicchatbox.Classes.DataAndSecurity
+namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public class OpenAIManager
+    public class OpenAIModule
     {
-        private static readonly Lazy<OpenAIManager> instance = new Lazy<OpenAIManager>(() => new OpenAIManager());
+        private static readonly Lazy<OpenAIModule> instance = new Lazy<OpenAIModule>(() => new OpenAIModule());
         public OpenAIClient OpenAIClient { get; private set; } = null;
         public bool AuthChecked { get; private set; } = false;
 
         public bool IsInitialized => OpenAIClient != null;
 
-        private OpenAIManager()
-        {}
+        private OpenAIModule()
+        { }
 
-        public static OpenAIManager Instance => instance.Value;
+        public static OpenAIModule Instance => instance.Value;
 
         public async Task InitializeClient(string apiKey, string organizationID)
         {
@@ -43,16 +44,16 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 var testMessage = new Message(Role.User, "say: OK");
 
-                var responseMessage = await OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(messages: new List<Message> { testMessage }, maxTokens:1));
+                var responseMessage = await OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(messages: new List<Message> { testMessage }, maxTokens: 1));
 
                 AuthChecked = responseMessage != null;
 
-                if(!AuthChecked)
+                if (!AuthChecked)
                 {
                     ReportTestConnectionError(new Exception("OpenAI connection test failed"));
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 AuthChecked = false;
                 ReportTestConnectionError(ex);
@@ -63,32 +64,32 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         private void ReportTestConnectionError(Exception ex)
         {
 
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-                ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
-                ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
-                ViewModel.Instance.OpenAIAccessToken = string.Empty;
-                ViewModel.Instance.OpenAIOrganizationID = string.Empty;
-                ViewModel.Instance.OpenAIConnected = false;
-                ViewModel.Instance.OpenAIAccessError = true;
-                ViewModel.Instance.OpenAIAccessErrorTxt = CreateCustomOpenAIAccessErrorTxt(ex);
-                OpenAIClient = null;
+            Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
+            ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
+            ViewModel.Instance.OpenAIAccessToken = string.Empty;
+            ViewModel.Instance.OpenAIOrganizationID = string.Empty;
+            ViewModel.Instance.OpenAIConnected = false;
+            ViewModel.Instance.OpenAIAccessError = true;
+            ViewModel.Instance.OpenAIAccessErrorTxt = CreateCustomOpenAIAccessErrorTxt(ex);
+            OpenAIClient = null;
         }
 
         private string CreateCustomOpenAIAccessErrorTxt(Exception ex)
         {
-            if(ex.Message.Contains("Incorrect API"))
+            if (ex.Message.Contains("Incorrect API"))
             {
                 return "Invalid API key";
             }
-            else if(ex.Message.Contains("No such organization"))
+            else if (ex.Message.Contains("No such organization"))
             {
                 return "Invalid organization ID";
             }
-            else if(ex.Message.Contains("500"))
+            else if (ex.Message.Contains("500"))
             {
                 return "Internal server error, try again later";
             }
-            else if(ex.Message.Contains("503"))
+            else if (ex.Message.Contains("503"))
             {
                 return "Service unavailable, try again later";
             }

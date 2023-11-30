@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Classes.Modules;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {

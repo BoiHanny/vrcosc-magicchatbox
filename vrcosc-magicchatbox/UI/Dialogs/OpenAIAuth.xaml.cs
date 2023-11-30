@@ -5,6 +5,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json.Linq;
+using vrcosc_magicchatbox.Classes.Modules;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -132,7 +133,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         {
             ViewModel.Instance.OpenAIAccessToken = OpenAIToken.Password;
             ViewModel.Instance.OpenAIOrganizationID = OrganizationID.Password;
-            OpenAIManager.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID);
+            OpenAIModule.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID);
             this.Close();
         }
 

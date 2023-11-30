@@ -13,11 +13,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shell;
 using System.Windows.Threading;
-using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox
 {
@@ -325,7 +326,7 @@ namespace vrcosc_magicchatbox
 
         private void ClearnupKeepSettings_Click(object sender, RoutedEventArgs e)
         {
-            int ItemRemoved = WindowActivity.CleanAndKeepAppsWithSettings();
+            int ItemRemoved = WindowActivityModule.CleanAndKeepAppsWithSettings();
             if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
@@ -744,7 +745,7 @@ namespace vrcosc_magicchatbox
 
         private void ResetWindowActivity_Click(object sender, RoutedEventArgs e)
         {
-            int ItemRemoved = WindowActivity.ResetWindowActivity();
+            int ItemRemoved = WindowActivityModule.ResetWindowActivity();
             if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = "All apps from history";
@@ -785,7 +786,7 @@ namespace vrcosc_magicchatbox
 
         private void SmartClearnup_Click(object sender, RoutedEventArgs e)
         {
-            int ItemRemoved = WindowActivity.SmartCleanup();
+            int ItemRemoved = WindowActivityModule.SmartCleanup();
             if (ItemRemoved > 0)
             {
                 ViewModel.Instance.DeletedAppslabel = $"Removed {ItemRemoved} apps from history";
@@ -1153,13 +1154,13 @@ namespace vrcosc_magicchatbox
 
                 if (ViewModel.Instance.IntgrScanSpotify_OLD)
                 {
-                    tasks.Add(Task.Run(() => ViewModel.Instance.PlayingSongTitle = SpotifyActivity.CurrentPlayingSong()));
-                    tasks.Add(Task.Run(() => ViewModel.Instance.SpotifyActive = SpotifyActivity.SpotifyIsRunning()));
+                    tasks.Add(Task.Run(() => ViewModel.Instance.PlayingSongTitle = SpotifyModule.CurrentPlayingSong()));
+                    tasks.Add(Task.Run(() => ViewModel.Instance.SpotifyActive = SpotifyModule.SpotifyIsRunning()));
                 }
 
                 if (ViewModel.Instance.IntgrScanWindowActivity)
                 {
-                    tasks.Add(Task.Run(() => ViewModel.Instance.FocusedWindow = WindowActivity.GetForegroundProcessName()));
+                    tasks.Add(Task.Run(() => ViewModel.Instance.FocusedWindow = WindowActivityModule.GetForegroundProcessName()));
                 }
 
                 tasks.Add(Task.Run(() => SystemStats.TickAndUpdate()));
@@ -1220,13 +1221,13 @@ namespace vrcosc_magicchatbox
                 }
 
 
-                byte[] audioFromApi = await TTSController.GetAudioBytesFromTikTokAPI(chat);
+                byte[] audioFromApi = await TTSModule.GetAudioBytesFromTikTokAPI(chat);
                 if (audioFromApi != null)
                 {
                     var cancellationTokenSource = new CancellationTokenSource();
                     _activeCancellationTokens.Add(cancellationTokenSource);
                     ViewModel.Instance.ChatFeedbackTxt = "TTS is playing...";
-                    await TTSController.PlayTikTokAudioAsSpeech(
+                    await TTSModule.PlayTikTokAudioAsSpeech(
                         cancellationTokenSource.Token,
                         audioFromApi,
                         ViewModel.Instance.SelectedPlaybackOutputDevice.DeviceNumber);
@@ -1343,7 +1344,7 @@ namespace vrcosc_magicchatbox
             MediaSessionInfo? mediaSession = sender is Button button ? button.Tag as MediaSessionInfo : null;
             if(mediaSession != null)
             {
-                MediaLinkController.MediaManager_PlayPauseAsync(mediaSession);
+                MediaLinkModule.MediaManager_PlayPauseAsync(mediaSession);
             }
         }
 
@@ -1352,7 +1353,7 @@ namespace vrcosc_magicchatbox
             MediaSessionInfo? mediaSession = sender is Button button ? button.Tag as MediaSessionInfo : null;
             if (mediaSession != null)
             {
-                MediaLinkController.MediaManager_NextAsync(mediaSession);
+                MediaLinkModule.MediaManager_NextAsync(mediaSession);
             }
         }
 
@@ -1361,7 +1362,7 @@ namespace vrcosc_magicchatbox
             MediaSessionInfo? mediaSession = sender is Button button ? button.Tag as MediaSessionInfo : null;
             if (mediaSession != null)
             {
-                MediaLinkController.MediaManager_PreviousAsync(mediaSession);
+                MediaLinkModule.MediaManager_PreviousAsync(mediaSession);
             }
         }
 

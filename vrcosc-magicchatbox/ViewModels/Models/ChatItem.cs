@@ -5,7 +5,7 @@ using System.Windows.Input;
 using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
-namespace vrcosc_magicchatbox.ViewModels
+namespace vrcosc_magicchatbox.ViewModels.Models
 {
     public class ChatItem : INotifyPropertyChanged
     {
@@ -38,12 +38,13 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             try
             {
-                if(parameter is string text)
+                if (parameter is string text)
                 {
                     Clipboard.SetDataObject(text);
                     ViewModel.Instance.ChatFeedbackTxt = "Message copied";
                 }
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
             }

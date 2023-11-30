@@ -5,11 +5,11 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.Models;
 
-namespace vrcosc_magicchatbox.Classes
+namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
     public static class OSCController
     {
@@ -59,9 +59,9 @@ namespace vrcosc_magicchatbox.Classes
                 if (ViewModel.Instance.HeartRateTitle)
                 {
                     string hrTitle = "Heart rate" + (ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ");
-                    string x = (ViewModel.Instance.ShowBPMSuffix
+                    string x = ViewModel.Instance.ShowBPMSuffix
                         ? ViewModel.Instance.HeartRate + " bpm"
-                        : (ViewModel.Instance.SeperateWithENTERS ? heartIcon + " " : string.Empty) + ViewModel.Instance.HeartRate);
+                        : (ViewModel.Instance.SeperateWithENTERS ? heartIcon + " " : string.Empty) + ViewModel.Instance.HeartRate;
 
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
@@ -71,9 +71,9 @@ namespace vrcosc_magicchatbox.Classes
                 }
                 else
                 {
-                    string x = (ViewModel.Instance.ShowBPMSuffix
+                    string x = ViewModel.Instance.ShowBPMSuffix
                         ? ViewModel.Instance.HeartRate + " bpm"
-                        : heartIcon + " " + ViewModel.Instance.HeartRate);
+                        : heartIcon + " " + ViewModel.Instance.HeartRate;
 
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
@@ -127,7 +127,7 @@ namespace vrcosc_magicchatbox.Classes
                                     : $"{mediaAction} '{mediaLinkTitle}'";
                             }
 
-                            if(ViewModel.Instance.MediaLinkShowTime && !mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
+                            if (ViewModel.Instance.MediaLinkShowTime && !mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
                             {
                                 x = x + DataController.TransformToSuperscript($" {FormatTimeSpan(mediaSession.CurrentTime)} l {FormatTimeSpan(mediaSession.FullTime)}");
                             }
@@ -196,7 +196,7 @@ namespace vrcosc_magicchatbox.Classes
 
         public static void AddComponentStat(List<string> Uncomplete)
         {
-            if(ViewModel.Instance.IntgrComponentStats && !string.IsNullOrEmpty(ViewModel.Instance.ComponentStatCombined) && ViewModel.Instance.ComponentStatsRunning)
+            if (ViewModel.Instance.IntgrComponentStats && !string.IsNullOrEmpty(ViewModel.Instance.ComponentStatCombined) && ViewModel.Instance.ComponentStatsRunning)
             {
                 string? x = ViewModel.Instance.ComponentStatCombined;
                 TryAddToUncomplete(Uncomplete, x, "ComponentStat");
@@ -357,7 +357,7 @@ namespace vrcosc_magicchatbox.Classes
         public static int CalculateOSCMsgLength(List<string> content, string add)
         {
             List<string> list = new List<string>(content) { add };
-            string joinedString = String.Join(" | ", list);
+            string joinedString = string.Join(" | ", list);
             return joinedString.Length;
         }
 
