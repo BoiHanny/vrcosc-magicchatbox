@@ -757,8 +757,9 @@
                             </TextBox>
 
                             <TextBlock
-                                Margin="0,0,7,0"
-                                Padding="0,3,70,0"
+                                Width="auto"
+                                Margin="0,0,78,0"
+                                Padding="0,3,0,0"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
@@ -767,8 +768,9 @@
                                 Text="{Binding StatusBoxCount}" />
 
                             <TextBlock
+                                Width="630"
                                 Height="40"
-                                Margin="-15,0,0,0"
+                                Margin="-15,0,70,0"
                                 Padding="8,9,5,0"
                                 VerticalAlignment="Center"
                                 FontSize="15"
