@@ -38,13 +38,18 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 };
 
         public static string GetApplicationVersion()
+
         {
             try
             {
                 Assembly assembly = Assembly.GetExecutingAssembly();
-
                 AssemblyName assemblyName = assembly.GetName();
-                return assemblyName.Version.ToString();
+                string version = assemblyName.Version.ToString();
+                if (version.EndsWith(".0"))
+                {
+                    version = version.Substring(0, version.LastIndexOf('.'));
+                }
+                return version;
             }
             catch (Exception ex)
             {
