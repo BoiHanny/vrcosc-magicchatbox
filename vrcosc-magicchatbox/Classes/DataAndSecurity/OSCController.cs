@@ -57,6 +57,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
                 // create x string based on the values in MainWindow.networkStatsModule make it all look nice and pretty
                 string x = DataController.networkStatisticsModule.GenerateDescription();
+                if(string.IsNullOrEmpty(x))
+                {
+                    return;
+                }
                 TryAddToUncomplete(Uncomplete, x, "NetworkStatistics");
             }
         }

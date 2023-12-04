@@ -320,29 +320,58 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (ViewModel.Instance.NetworkStats_ShowNetworkUtilization)
                 networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network utilization: ")}{NetworkUtilization:N2} %");
 
+            if(networkStatsDescriptions.Count == 0)
+            {
+                return "";
+            }
 
             foreach (var description in networkStatsDescriptions)
             {
-                if (currentLine.Length + description.Length > maxLineWidth)
+                // Skip any descriptions that are null or whitespace.
+                if (string.IsNullOrWhiteSpace(description))
                 {
-                    lines.Add(currentLine.TrimEnd());
-                    currentLine = "";
+                    continue;
                 }
 
+                // If adding the next description would exceed the max line width,
+                // or if the description is the only item and should be displayed alone,
+                // add currentLine to lines and reset it.
+                if (currentLine.Length + description.Length > maxLineWidth || (currentLine.Length == 0 && description.Length <= maxLineWidth))
+                {
+                    if (currentLine.Length > 0)
+                    {
+                        lines.Add(currentLine.TrimEnd());
+                        currentLine = "";
+                    }
+
+                    // If the description is short enough and currentLine is empty,
+                    // add it directly to lines instead of appending to currentLine.
+                    if (description.Length <= maxLineWidth)
+                    {
+                        lines.Add(description);
+                        continue;
+                    }
+                }
+
+                // If currentLine is not empty, append the separator before adding the new description.
                 if (currentLine.Length > 0)
                 {
                     currentLine += separator;
                 }
 
-                currentLine +=  description;
+                // Append the current description to currentLine.
+                currentLine += description;
             }
 
+            // After processing all descriptions, if there's any content left in currentLine,
+            // add it to lines.
             if (currentLine.Length > 0)
             {
                 lines.Add(currentLine.TrimEnd());
             }
 
             return string.Join("\v", lines);
+
         }
 
         private string FormatSpeed(double speedMbps)
