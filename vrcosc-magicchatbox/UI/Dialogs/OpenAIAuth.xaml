@@ -117,9 +117,9 @@
                     x:Name="ConnectWithOpenAI"
                     Width="250"
                     Height="50"
-                    Margin="15"
+                    Margin="225,140,225,0"
                     Padding="5"
-                    VerticalAlignment="Bottom"
+                    VerticalAlignment="Top"
                     Click="ConnectWithOpenAI_Click"
                     Style="{StaticResource Status_Button_style}">
                     <Button.ContentTemplate>
