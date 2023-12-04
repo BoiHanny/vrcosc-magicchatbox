@@ -87,7 +87,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
                 catch (HotkeyAlreadyRegisteredException ex)
                 {
-                    MessageBox.Show($"The hotkey {kvp.Value.Modifiers} + {kvp.Value.Key} is already registered by another application. Please choose a different hotkey.", "Hotkey Registration Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"The hotkey {kvp.Value.Modifiers} + {kvp.Value.Key} is already registered by another application.", "Hotkey Registration Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 catch (Exception ex)
                 {
