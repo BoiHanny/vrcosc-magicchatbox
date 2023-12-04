@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using Windows.Media.Control;
 using static WindowsMediaController.MediaManager;
@@ -14,6 +15,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
     {
         private bool _AutoSwitch = ViewModel.Instance.MediaSession_AutoSwitchSpawn;
 
+        private Timer _updateTimer;
 
         private bool _IsActive;
 
@@ -25,6 +27,13 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private bool _ShowTitle = true;
 
+        private void UpdateCurrentTime(object state)
+        {
+            if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TimePosition)));
+            }
+        }
 
         private bool _TimeoutRestore = false;
         private MediaSession session;
@@ -41,6 +50,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             set
             {
                 _PlaybackStatus = value;
+                _lastUpdateTime = DateTime.Now;
                 NotifyPropertyChanged(nameof(PlaybackStatus));
                 NotifyPropertyChanged(nameof(PlayingNow));
             }
@@ -179,6 +189,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
+        private DateTime _lastUpdateTime;
 
 
         public bool IsLiveTime
@@ -195,22 +206,33 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         }
 
 
+
         private TimeSpan _CurrentTime = new TimeSpan(0, 0, 0);
 
         public TimeSpan CurrentTime
         {
-            get { return _CurrentTime; }
+            get
+            {
+                if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                {
+                    var elapsedTime = DateTime.Now - _lastUpdateTime;
+                    return _CurrentTime + elapsedTime;
+                }
+                return _CurrentTime;
+            }
             set
             {
-                if (_CurrentTime != value)
-                {
-                    _CurrentTime = value;
-                    NotifyPropertyChanged(nameof(CurrentTime));
-                    NotifyPropertyChanged(nameof(TimePosition));
-                }
+                _CurrentTime = value;
+                _lastUpdateTime = DateTime.Now;
+                NotifyPropertyChanged(nameof(CurrentTime));
+                NotifyPropertyChanged(nameof(TimePosition));
             }
         }
 
+        public MediaSessionInfo()
+        {
+            _updateTimer = new Timer(UpdateCurrentTime, null, 0, 1000); 
+        }
 
         private TimeSpan _FullTime = new TimeSpan(0, 0, 0);
 
@@ -280,6 +302,8 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 NotifyPropertyChanged(nameof(TimeoutRestore));
             }
         }
+
+        
     }
 
     public class MediaSessionSettings

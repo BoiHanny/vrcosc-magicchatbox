@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NAudio.Wave;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using Windows.Media.Control;
 using WindowsMediaController;
+using static vrcosc_magicchatbox.ViewModels.Models.MediaSessionInfo;
 using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.Modules
@@ -91,25 +93,42 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         // this function will be called when the user changes the playback state of a media session
-        private static void MediaManager_OnAnyPlaybackStateChanged(
-            MediaSession sender,
-            GlobalSystemMediaTransportControlsSessionPlaybackInfo args)
+        private static void MediaManager_OnAnyPlaybackStateChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo args)
         {
             try
             {
                 var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
-
                 if (sessionInfo != null)
                 {
+                    // Update the playback status.
                     sessionInfo.PlaybackStatus = args.PlaybackStatus;
+
+                    // If necessary, update the CurrentTime.
+                    // This depends on how you decide to handle time updates. 
+                    // For example, you might reset the CurrentTime when playback stops.
+                    if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped)
+                    {
+                        sessionInfo.CurrentTime = TimeSpan.Zero;
+                    }
+
+                    // If the session is playing, you might want to adjust CurrentTime based on other properties.
+                    // This part is optional and depends on your specific requirements.
+                    if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                    {
+                        // Potentially update CurrentTime based on args (if needed)
+                    }
+
+                    // Handle any additional logic such as auto-switching media session.
                     AutoSwitchMediaSession(sessionInfo);
                 }
             }
             catch (Exception ex)
             {
+                // Log the exception as per your logging mechanism.
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
             }
         }
+
 
 
         // this function will be called when the user closes a media session, we temporarily store the session info in a dictionary so we can restore it if the user reopens the session within a certain time period
@@ -273,6 +292,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
         }
+
 
 
 
