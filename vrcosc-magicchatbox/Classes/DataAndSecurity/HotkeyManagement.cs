@@ -64,18 +64,38 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void AddKeyBinding(string name, Key key, ModifierKeys modifiers, Action action)
         {
-            var hotkeyInfo = new HotkeyInfo(key, modifiers);
-            hotkeyInfo.SetAction(action);
-            _hotkeyActions[name] = hotkeyInfo;
+            try
+            {
+
+            }
+            catch (Exception)
+            {
+                var hotkeyInfo = new HotkeyInfo(key, modifiers);
+                hotkeyInfo.SetAction(action);
+                _hotkeyActions[name] = hotkeyInfo;
+            }
+
         }
 
         private void RegisterAllGlobalHotkeys()
         {
             foreach (var kvp in _hotkeyActions)
             {
-                HotkeyManager.Current.AddOrReplace(kvp.Key, kvp.Value.Key, kvp.Value.Modifiers, OnGlobalHotkeyPressed);
+                try
+                {
+                    HotkeyManager.Current.AddOrReplace(kvp.Key, kvp.Value.Key, kvp.Value.Modifiers, OnGlobalHotkeyPressed);
+                }
+                catch (HotkeyAlreadyRegisteredException ex)
+                {
+                    MessageBox.Show($"The hotkey {kvp.Value.Modifiers} + {kvp.Value.Key} is already registered by another application. Please choose a different hotkey.", "Hotkey Registration Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, MSGBox: true);
+                }
             }
         }
+
 
         public void SaveHotkeyConfigurations()
         {
@@ -85,22 +105,44 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void LoadHotkeyConfigurations()
         {
-            var json = File.ReadAllText(HotkeyConfigFile);
-            _hotkeyActions = JsonConvert.DeserializeObject<Dictionary<string, HotkeyInfo>>(json);
-
-            _hotkeyActions["ToggleVoiceGlobal"].SetAction(ToggleVoice);
+            try
+            {
+                var json = File.ReadAllText(HotkeyConfigFile);
+                _hotkeyActions = JsonConvert.DeserializeObject<Dictionary<string, HotkeyInfo>>(json);
+                _hotkeyActions["ToggleVoiceGlobal"].SetAction(ToggleVoice);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: true);
+            }
         }
 
         private void OnGlobalHotkeyPressed(object sender, HotkeyEventArgs e)
         {
-            if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
+            try
             {
-                hotkeyInfo.Action?.Invoke();
+                if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
+                {
+                    hotkeyInfo.Action?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: true);
             }
         }
 
         private static void SetupLocalHotkey(Window window)
         {
+            try
+            {
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
             window.KeyDown += (sender, e) =>
             {
                 if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.None)
