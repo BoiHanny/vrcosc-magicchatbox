@@ -18,7 +18,10 @@ namespace vrcosc_magicchatbox.ViewModels
         CST,
         PST,
         CET,
-        AEST
+        AEST,
+        GMT, 
+        IST, 
+        JST
     }
 
     public enum OSCParameterType

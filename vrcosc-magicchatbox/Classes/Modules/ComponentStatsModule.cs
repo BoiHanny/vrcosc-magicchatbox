@@ -579,9 +579,21 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. Australia Standard Time");
                         timezoneLabel = "AEST";
                         break;
+                    case Timezone.GMT:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+                        timezoneLabel = "GMT";
+                        break;
+                    case Timezone.IST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+                        timezoneLabel = "IST";
+                        break;
+                    case Timezone.JST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+                        timezoneLabel = "JST";
+                        break;
                     default:
                         timeZoneInfo = TimeZoneInfo.Local;
-                        timezoneLabel = "??";
+                        timezoneLabel = "Local";
                         break;
                 }
 
@@ -593,7 +605,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     timeZoneInfo,
                     out timeZoneOffset);
 
-                string timeZoneDisplay = $" ({timezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "-" : "+")}{timeZoneOffset.Hours.ToString("00")})";
+                string timeZoneDisplay = $" ({timezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "" : "+")}{timeZoneOffset.Hours.ToString("00")})";
                 return GetFormattedTime(
                     dateTimeWithZone,
                     ViewModel.Instance.Time24H,

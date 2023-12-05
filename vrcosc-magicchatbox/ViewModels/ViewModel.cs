@@ -165,6 +165,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 { Timezone.PST, "Pacific Standard Time (PST)" },
                 { Timezone.CET, "European Central Time (CET)" },
                 { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
+                { Timezone.GMT, "Greenwich Mean Time (GMT)" },
+                { Timezone.IST, "India Standard Time (IST)" },
+                { Timezone.JST, "Japan Standard Time (JST)" },
             };
 
             SettingsMap = new Dictionary<string, Action<bool>>
