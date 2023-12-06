@@ -1,7 +1,10 @@
-﻿using OpenAI;
+﻿using NAudio.Wave;
+using OpenAI;
+using OpenAI.Audio;
 using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
@@ -10,6 +13,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public class OpenAIModule
     {
+
+
         private static readonly Lazy<OpenAIModule> instance = new Lazy<OpenAIModule>(() => new OpenAIModule());
         public OpenAIClient OpenAIClient { get; private set; } = null;
         public bool AuthChecked { get; private set; } = false;
@@ -58,6 +63,24 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 AuthChecked = false;
                 ReportTestConnectionError(ex);
             }
+        }
+
+        public async Task<string> TranscribeAudioToText(string audioFilePath)
+        {
+            // Ensure the OpenAI client is initialized
+            if (OpenAIClient == null)
+            {
+                throw new InvalidOperationException("OpenAI client is not initialized.");
+            }
+
+            // Create a request for audio transcription
+            var request = new AudioTranscriptionRequest(Path.GetFullPath(audioFilePath), language: "en");
+
+            // Call the AudioEndpoint to transcribe the audio
+            var response = await OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(request);
+
+            // The response is expected to be a string containing the transcription
+            return response; // Directly return the response
         }
 
 

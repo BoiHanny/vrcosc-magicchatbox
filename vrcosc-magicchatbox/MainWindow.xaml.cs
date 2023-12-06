@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenAI;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -119,7 +120,7 @@ namespace vrcosc_magicchatbox
 
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
-            
+            OpenAIModule.Instance.TranscribeAudioToText(@"C:\Users\hv\Downloads\harvard.wav");
         }
 
         public async Task InitializeAsync()
