@@ -24,6 +24,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private double _networkUtilization;
         private double _totalDownloadedMB;
         private double _totalUploadedMB;
+        public int ErrorCount = 0;
 
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -176,60 +177,80 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private bool InitializePerformanceCounters()
         {
-            // Dispose of existing counters
-            downloadCounter?.Dispose();
-            uploadCounter?.Dispose();
-
-            // Attempt to select an active network interface
-            NetworkInterface activeNetworkInterface = GetActiveNetworkInterface();
-
-            if (activeNetworkInterface != null)
+            try
             {
-                // Get the correct instance name for the PerformanceCounter
-                string instanceName = GetInstanceNameForPerformanceCounter(activeNetworkInterface);
-                if (instanceName == null)
+                // Dispose of existing counters
+                downloadCounter?.Dispose();
+                uploadCounter?.Dispose();
+
+                // Attempt to select an active network interface
+                NetworkInterface activeNetworkInterface = GetActiveNetworkInterface();
+
+                if (activeNetworkInterface != null)
                 {
-                    // Handle the case where no matching instance name is found
-                    // For example, log this issue and use a default instance name or skip setting up counters
-                    return false;
+                    // Get the correct instance name for the PerformanceCounter
+                    string instanceName = GetInstanceNameForPerformanceCounter(activeNetworkInterface);
+                    if (instanceName == null)
+                    {
+                        // Handle the case where no matching instance name is found
+                        // For example, log this issue and use a default instance name or skip setting up counters
+                        return false;
+                    }
+
+                    // Initialize Performance Counters for the selected network interface
+                    downloadCounter = new PerformanceCounter("Network Interface", "Bytes Received/sec", instanceName);
+                    uploadCounter = new PerformanceCounter("Network Interface", "Bytes Sent/sec", instanceName);
+
+                    // Update maximum speeds based on the active network interface
+                    MaxDownloadSpeedMbps = activeNetworkInterface.Speed / 8e6; // Convert from bits to Megabytes
+                    MaxUploadSpeedMbps = activeNetworkInterface.Speed / 8e6; // Convert from bits to Megabytes
+
+                    return true; // Initialization succeeded
                 }
 
-                // Initialize Performance Counters for the selected network interface
-                downloadCounter = new PerformanceCounter("Network Interface", "Bytes Received/sec", instanceName);
-                uploadCounter = new PerformanceCounter("Network Interface", "Bytes Sent/sec", instanceName);
-
-                // Update maximum speeds based on the active network interface
-                MaxDownloadSpeedMbps = activeNetworkInterface.Speed / 8e6; // Convert from bits to Megabytes
-                MaxUploadSpeedMbps = activeNetworkInterface.Speed / 8e6; // Convert from bits to Megabytes
-
-                return true; // Initialization succeeded
+                return false; // No active network interface was found
             }
-
-            return false; // No active network interface was found
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ErrorCount++;
+                return false;  
+            }
+            
         }
 
         private string GetInstanceNameForPerformanceCounter(NetworkInterface networkInterface)
         {
-            // Get the performance counter category for network interfaces
-            var category = new PerformanceCounterCategory("Network Interface");
-            // Get all instance names for the network interface category
-            string[] instanceNames = category.GetInstanceNames();
-
-            // Normalize network interface description to match performance counter naming conventions
-            string normalizedInterfaceName = NormalizeInterfaceName(networkInterface.Description);
-
-            // Try to find a performance counter instance name that matches the normalized network interface name
-            foreach (string instanceName in instanceNames)
+            try
             {
-                // Use the normalized name for matching
-                if (instanceName.Equals(normalizedInterfaceName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return instanceName; // Found a matching instance name
-                }
-            }
+                // Get the performance counter category for network interfaces
+                var category = new PerformanceCounterCategory("Network Interface");
+                // Get all instance names for the network interface category
+                string[] instanceNames = category.GetInstanceNames();
 
-            // If no match is found, return null or handle as appropriate for your application
-            return null; // or throw new InvalidOperationException if that is your preferred behavior
+                // Normalize network interface description to match performance counter naming conventions
+                string normalizedInterfaceName = NormalizeInterfaceName(networkInterface.Description);
+
+                // Try to find a performance counter instance name that matches the normalized network interface name
+                foreach (string instanceName in instanceNames)
+                {
+                    // Use the normalized name for matching
+                    if (instanceName.Equals(normalizedInterfaceName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return instanceName; // Found a matching instance name
+                    }
+                }
+
+                // If no match is found, return null or handle as appropriate for your application
+                return null; // or throw new InvalidOperationException if that is your preferred behavior
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ErrorCount++;
+                return null;
+            }
+            
         }
 
         private string NormalizeInterfaceName(string interfaceName)
@@ -247,23 +268,33 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private NetworkInterface GetActiveNetworkInterface()
         {
-            // Retrieve all network interfaces
-            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-
-            // Select the first active network interface that is up and has an IPv4 address and is not a loopback or tunnel
-            foreach (var ni in networkInterfaces)
+            try
             {
-                if (ni.OperationalStatus == OperationalStatus.Up &&
-                    // more that 0 less that 10000 (10Gbps)
-                    ni.Speed > 0 && ni.Speed < 10000000000 &&
-                    ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-                    ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
-                    ni.GetIPProperties().UnicastAddresses.Count > 0) // Check for an IPv4 address
+                // Retrieve all network interfaces
+                NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+                // Select the first active network interface that is up and has an IPv4 address and is not a loopback or tunnel
+                foreach (var ni in networkInterfaces)
                 {
-                    return ni;
+                    if (ni.OperationalStatus == OperationalStatus.Up &&
+                        // more that 0 less that 10000 (10Gbps)
+                        ni.Speed > 0 && ni.Speed < 10000000000 &&
+                        ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                        ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
+                        ni.GetIPProperties().UnicastAddresses.Count > 0) // Check for an IPv4 address
+                    {
+                        return ni;
+                    }
                 }
+                return null; // No active network interface found
             }
-            return null; // No active network interface found
+            catch (Exception ex)
+            {
+                ErrorCount++;
+                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                return null;
+            }
+            
         }
 
 
@@ -438,6 +469,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                ErrorCount++;
+                if(ErrorCount > 3)
+                {
+                    ViewModel.Instance.IntgrNetworkStatistics = false;
+                    ErrorCount = 0;
+                }
             }
         }
 
