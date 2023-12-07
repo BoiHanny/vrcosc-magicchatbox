@@ -319,6 +319,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 },
 
                 {
+                    () => ViewModel.Instance.IntgrSoundpad_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrSoundpad_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddSoundpad
+                },
+
+                {
                     () => ViewModel.Instance.IntgrMediaLink_VR &&
                     ViewModel.Instance.IsVRRunning ||
                     ViewModel.Instance.IntgrMediaLink_DESKTOP &&
@@ -336,6 +344,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 SetOpacity("ComponentStat", "1");
                 SetOpacity("NetworkStatistics", "1");
                 SetOpacity("Window", "1");
+                SetOpacity("Soundpad", "1");
                 SetOpacity("Time", "1");
                 SetOpacity("MediaLink", "1");
 
@@ -378,6 +387,25 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
             }
         }
+
+        private static void AddSoundpad(List<string> list)
+        {
+            if(ViewModel.Instance.IntgrSoundpad)
+            {
+                string playingSong = $"{DataController.soundpadModule.GetPlayingSong()}";
+
+                if (string.IsNullOrEmpty(DataController.soundpadModule.GetPlayingSong()))
+                {
+                    return;
+                }
+
+                string x = ViewModel.Instance.PrefixIconSoundpad == true
+                    ? "🎶 " + $"'{playingSong}'"
+                    : $"'{playingSong}'";
+                TryAddToUncomplete(list, x, "Soundpad");
+            }
+        }
+
         // this function calculates the length of the OSC message to be sent to VRChat and returns it as an int
         // it takes a list of strings and a string to add to the list as parameters
         public static int CalculateOSCMsgLength(List<string> content, string add)
@@ -534,6 +562,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     break;
                 case "NetworkStatistics":
                     ViewModel.Instance.NetworkStats_Opacity = opacity;
+                    break;
+                case "Soundpad":
+                    ViewModel.Instance.Soundpad_Opacity = opacity;
                     break;
                 case "MediaLink":
                     ViewModel.Instance.MediaLink_Opacity = opacity;

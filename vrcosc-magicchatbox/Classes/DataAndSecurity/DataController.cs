@@ -25,6 +25,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static NetworkStatisticsModule networkStatisticsModule = null;
 
+        public static SoundpadModule soundpadModule = null;
+
         private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
 {
     {'/', "·"}, {':', "'"}, {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
@@ -201,6 +203,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "IntgrNetworkStatistics", (typeof(bool), "Integrations") },
                 { "IntgrScanMediaLink", (typeof(bool), "Integrations") },
                 { "IntgrComponentStats", (typeof(bool), "Integrations") },
+                { "IntgrSoundpad", (typeof(bool), "Integrations") },
 
 
                 { "IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles") },
@@ -226,6 +229,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 { "IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles") },
                 { "IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
+
+                { "IntgrSoundpad_DESKTOP", (typeof(bool), "IntegrationToggles") },
+                { "IntgrSoundpad_VR", (typeof(bool), "IntegrationToggles") },
+
                 { "Time24H", (typeof(bool), "Time") },
                 { "PrefixTime", (typeof(bool), "Time") },
                 { "TimeShowTimeZone", (typeof(bool), "Time") },
@@ -268,6 +275,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "PrefixIconMusic", (typeof(bool), "Icons") },
                 { "PauseIconMusic", (typeof(bool), "Icons") },
                 { "PrefixIconStatus", (typeof(bool), "Icons") },
+                { "PrefixIconSoundpad", (typeof(bool), "Icons") },
 
                 { "PrefixChat", (typeof(bool), "Chat") },
                 { "ChatFX", (typeof(bool), "Chat") },

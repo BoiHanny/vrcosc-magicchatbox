@@ -41,4 +41,12 @@ namespace vrcosc_magicchatbox.ViewModels
         FPS,
         Unknown
     }
+
+    public enum soundpadState
+    {
+        Playing,
+        Paused,
+        Stopped,
+        NotRunning
+    }
 }
