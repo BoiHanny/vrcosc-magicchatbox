@@ -1,5 +1,4 @@
-﻿using NAudio.Wave;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +9,6 @@ using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using Windows.Media.Control;
 using WindowsMediaController;
-using static vrcosc_magicchatbox.ViewModels.Models.MediaSessionInfo;
 using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.Modules
@@ -104,7 +102,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     sessionInfo.PlaybackStatus = args.PlaybackStatus;
 
                     // If necessary, update the CurrentTime.
-                    // This depends on how you decide to handle time updates. 
+                    // This depends on how you decide to handle time updates.
                     // For example, you might reset the CurrentTime when playback stops.
                     if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped)
                     {

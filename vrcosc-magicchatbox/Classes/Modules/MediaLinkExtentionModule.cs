@@ -8,6 +8,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public static class SpotifyModule
     {
+        // this function gets the application name of the current active window
         public static string CurrentPlayingSong()
         {
             try

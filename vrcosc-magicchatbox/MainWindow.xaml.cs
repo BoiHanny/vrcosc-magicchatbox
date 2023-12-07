@@ -27,6 +27,7 @@ namespace vrcosc_magicchatbox
     {
 
         private const int WM_ENTERSIZEMOVE = 0x0231;
+        SoundpadModule SoundpadModule = null;
         private const int WM_EXITSIZEMOVE = 0x0232;
         private ResizeMode previousResizeMode = ResizeMode.CanResize;
         private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
@@ -120,9 +121,8 @@ namespace vrcosc_magicchatbox
 
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
-            OpenAIModule.Instance.TranscribeAudioToText(@"C:\Users\hv\Downloads\harvard.wav");
         }
-
+        
         public async Task InitializeAsync()
         {
             SelectTTS();
