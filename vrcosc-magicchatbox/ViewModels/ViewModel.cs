@@ -875,6 +875,152 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool ComponentStatCPUTempVisible
+        {
+            get => _statsManager.GetShowCPUTemperature();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowCPUTemperature(true);
+                }
+                else
+                {
+                    _statsManager.SetShowCPUTemperature(false);
+                }
+                NotifyPropertyChanged(nameof(ComponentStatCPUTempVisible));
+            }
+        }
+
+        public bool ComponentStatGPUTempVisible
+        {
+            get => _statsManager.GetShowGPUTemperature();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowGPUTemperature(true);
+                }
+                else
+                {
+                    _statsManager.SetShowGPUTemperature(false);
+                }
+                NotifyPropertyChanged(nameof(ComponentStatGPUTempVisible));
+            }
+        }
+
+        public bool ComponentStatCPUWattageVisible
+        {
+            get => _statsManager.GetShowCPUWattage();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowCPUWattage(true);
+                }
+                else
+                {
+                    _statsManager.SetShowCPUWattage(false);
+                }
+                NotifyPropertyChanged(nameof(ComponentStatCPUWattageVisible));
+            }
+        }
+
+        public bool ComponentStatGPUWattageVisible
+        {
+            get => _statsManager.GetShowGPUWattage();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowGPUWattage(true);
+                }
+                else
+                {
+                    _statsManager.SetShowGPUWattage(false);
+                }
+                NotifyPropertyChanged(nameof(ComponentStatGPUWattageVisible));
+            }
+        }
+        public string TemperatureUnit
+        {
+            get
+            {
+                if (IsTemperatureSwitchEnabled)
+                {
+                    // Switch between "F" and "C" based on the interval
+                    return (DateTime.Now.Second / TemperatureDisplaySwitchInterval) % 2 == 0 ? "F" : "C";
+                }
+                // When switching is off, return the static unit
+                return IsFahrenheit ? "F" : "C";
+            }
+        }
+
+
+        private bool _IsTemperatureSwitchEnabled = true;
+
+        public bool IsTemperatureSwitchEnabled
+        {
+            get { return _IsTemperatureSwitchEnabled; }
+            set
+            {
+                if (_IsTemperatureSwitchEnabled != value)
+                {
+                    _IsTemperatureSwitchEnabled = value;
+                    NotifyPropertyChanged(nameof(IsTemperatureSwitchEnabled));
+                }
+            }
+        }
+
+
+        private bool _UseEmojisForTempAndPower = false;
+
+        public bool UseEmojisForTempAndPower
+        {
+            get { return _UseEmojisForTempAndPower; }
+            set
+            {
+                if (_UseEmojisForTempAndPower != value)
+                {
+                    _UseEmojisForTempAndPower = value;
+                    NotifyPropertyChanged(nameof(UseEmojisForTempAndPower));
+                }
+            }
+        }
+
+
+        private int _TemperatureDisplaySwitchInterval = 5;
+
+        public int TemperatureDisplaySwitchInterval
+        {
+            get { return _TemperatureDisplaySwitchInterval; }
+            set
+            {
+                if (_TemperatureDisplaySwitchInterval != value)
+                {
+                    _TemperatureDisplaySwitchInterval = value;
+                    NotifyPropertyChanged(nameof(TemperatureDisplaySwitchInterval));
+                }
+            }
+        }
+
+
+        private bool _IsFahrenheit = false;
+
+        public bool IsFahrenheit
+        {
+            get { return _IsFahrenheit; }
+            set
+            {
+                if (_IsFahrenheit != value)
+                {
+                    _IsFahrenheit = value;
+                    NotifyPropertyChanged(nameof(IsFahrenheit));
+                }
+            }
+        }
+
+
         public bool IsGPUAvailable
         {
             get => _statsManager.IsStatAvailable(StatsComponentType.GPU);

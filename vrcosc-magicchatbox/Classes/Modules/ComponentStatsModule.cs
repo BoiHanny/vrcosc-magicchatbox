@@ -264,6 +264,66 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        public void SetShowCPUWattage(bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
+            if (item != null)
+            {
+                item.ShowWattage = state;
+            }
+        }
+
+        public bool GetShowCPUWattage()
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
+            return item?.ShowWattage ?? false;
+        }
+
+        public void SetShowGPUWattage(bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
+            if (item != null)
+            {
+                item.ShowWattage = state;
+            }
+        }
+
+        public bool GetShowGPUWattage()
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
+            return item?.ShowWattage ?? false;
+        }
+
+        public void SetShowCPUTemperature(bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
+            if (item != null)
+            {
+                item.ShowTemperature = state;
+            }
+        }
+
+        public bool GetShowCPUTemperature()
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
+            return item?.ShowTemperature ?? false;
+        }
+
+        public void SetShowGPUTemperature(bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
+            if (item != null)
+            {
+                item.ShowTemperature = state;
+            }
+        }
+
+        public bool GetShowGPUTemperature()
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
+            return item?.ShowTemperature ?? false;
+        }
+
         public string GetStatValue(StatsComponentType type)
         {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
@@ -403,46 +463,68 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public string GenerateStatsDescription()
         {
             const int maxLineWidth = 30;
-            var separator = "┆";
+            var separator = " | ";
             List<string> lines = new List<string>();
             string currentLine = "";
 
-            var componentsList = StatDisplayOrder
-                .Select(type => _componentStats.FirstOrDefault(stat => stat.ComponentType == type))
-                .Where(stat => stat != null && stat.IsEnabled && stat.Available)
-                .Select(stat => stat.GetDescription())
-                .ToList();
-
-            foreach (var component in componentsList)
+            foreach (var type in StatDisplayOrder)
             {
-                if (currentLine.Length + component.Length > maxLineWidth)
+                var stat = _componentStats.FirstOrDefault(s => s.ComponentType == type && s.IsEnabled && s.Available);
+                if (stat != null)
                 {
-                    lines.Add(currentLine.TrimEnd());
-                    currentLine = "";
-                }
+                    string componentDescription = stat.GetDescription();
+                    string additionalInfo = "";
 
-                if (currentLine.Length > 0)
-                {
-                    currentLine += separator;
-                }
+                    if (stat.ComponentType == StatsComponentType.CPU && (stat.ShowTemperature || stat.ShowWattage))
+                    {
+                        var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
+                        if (cpuHardware != null)
+                        {
+                            string cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : string.Empty;
+                            string cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : string.Empty;
+                            additionalInfo = $"{(stat.ShowTemperature ? $"{cpuTemp}" : "")}{(stat.ShowTemperature && stat.ShowWattage ? " " : "")}{(stat.ShowWattage ? $"{cpuPower}" : "")}";
+                        }
+                    }
+                    else if (stat.ComponentType == StatsComponentType.GPU && (stat.ShowTemperature || stat.ShowWattage))
+                    {
+                        var gpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.GpuNvidia || hw.HardwareType == HardwareType.GpuAmd || hw.HardwareType == HardwareType.GpuIntel);
+                        if (gpuHardware != null)
+                        {
+                            string gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : string.Empty;
+                            string gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : string.Empty;
+                            additionalInfo = $"{(stat.ShowTemperature ? $"{gpuTemp}" : "")}{(stat.ShowTemperature && stat.ShowWattage ? " " : "")}{(stat.ShowWattage ? $"{gpuPower}" : "")}";
+                        }
+                    }
 
-                currentLine += component;
+                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrEmpty(additionalInfo) ? "" : $"{additionalInfo}")}";
+
+                    if (currentLine.Length + fullComponentInfo.Length > maxLineWidth)
+                    {
+                        lines.Add(currentLine.TrimEnd());
+                        currentLine = "";
+                    }
+
+                    if (!string.IsNullOrEmpty(currentLine))
+                    {
+                        currentLine += separator;
+                    }
+
+                    currentLine += fullComponentInfo;
+                }
             }
 
             if (currentLine.Length > 0)
             {
                 lines.Add(currentLine.TrimEnd());
             }
+
             ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
-            return string.Join("\v", lines);
+            return string.Join("\n", lines);
         }
 
 
 
-    }
 
-    public class SystemStats
-    {
         public static Computer CurrentSystem;
 
         public static void StartMonitoringComponents()
@@ -831,9 +913,63 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        private string FetchTemperatureStat(IHardware hardware, ComponentStatsItem item)
+        {
+            foreach (var sensor in hardware.Sensors)
+            {
+                if (sensor.SensorType == SensorType.Temperature &&
+                    (sensor.Name.Contains("Package", StringComparison.InvariantCultureIgnoreCase) ||
+                     sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    double temperatureCelsius = sensor.Value ?? 0.0;
+                    string unit = ViewModel.Instance.TemperatureUnit;
+                    double temperature = unit == "F" ? temperatureCelsius * 9 / 5 + 32 : temperatureCelsius;
+                    string unitSymbol = unit == "F" ? "°F" : "°C";
+
+                    string tempText = ViewModel.Instance.UseEmojisForTempAndPower ? "♨️" : "temp";
+                    if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
+                    {
+                        tempText = DataController.TransformToSuperscript(tempText);
+                    }
+
+                    return $"{tempText} {temperature:F1}{DataController.TransformToSuperscript(unitSymbol)}";
+                }
+            }
+            return "N/A";
+        }
+
+
+
+
+        private string FetchPowerStat(IHardware hardware, ComponentStatsItem item)
+        {
+            foreach (var sensor in hardware.Sensors)
+            {
+                if (sensor.SensorType == SensorType.Power &&
+                    (sensor.Name.Contains("Package", StringComparison.InvariantCultureIgnoreCase) ||
+                     sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    double power = sensor.Value ?? 0.0;
+                    string powerUnit = "W";
+
+                    string powerText = ViewModel.Instance.UseEmojisForTempAndPower ? "⚡" : "power";
+                    if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
+                    {
+                        powerText = DataController.TransformToSuperscript(powerText);
+                    }
+
+                    return $"{powerText} {power:F1}{DataController.TransformToSuperscript(powerUnit)}";
+                }
+            }
+            return "N/A";
+        }
+
+
+
+
+
         private static string FetchCPUStat() =>
             FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total", statsComponentType: StatsComponentType.CPU);
-
         private static string FetchGPUStat() =>
             FetchStat(HardwareType.GpuNvidia, SensorType.Load, ViewModel.Instance.ComponentStatsGPU3DHook ? "D3D 3D" : "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
 

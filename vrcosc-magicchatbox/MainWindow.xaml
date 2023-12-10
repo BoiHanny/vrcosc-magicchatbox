@@ -1758,7 +1758,34 @@
                                 Margin="0,0,0,5"
                                 Background="#FF3B3054"
                                 CornerRadius="5,0,0,5">
+
                                 <StackPanel>
+                                    <CheckBox
+                                        x:Name="IsTemperatureSwitchEnabled_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Autoswitch temperature units"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding IsTemperatureSwitchEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="UseEmojisForTempAndPower_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Use emojis for temperature and power"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding UseEmojisForTempAndPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
                                     <TextBlock
                                         Grid.Row="0"
                                         Margin="5,5"
@@ -1780,6 +1807,32 @@
                                         </TextBlock.Effect>
                                     </TextBlock>
                                     <CheckBox
+                                        x:Name="ComponentStatCPUWattageVisible_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show CPU wattage"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatCPUWattageVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="ComponentStatCPUTempVisible_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show CPU temperature"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatCPUTempVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
                                         x:Name="CPU_SmallName_checkbox"
                                         Height="20"
                                         Margin="5,5"
@@ -1792,6 +1845,7 @@
                                         IsChecked="{Binding CPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="" />
+
                                     <CheckBox
                                         x:Name="CPU_EnableHardwareTitle_checkbox"
                                         Height="20"
@@ -1885,6 +1939,32 @@
                                                 Color="#63A8F9" />
                                         </TextBlock.Effect>
                                     </TextBlock>
+                                    <CheckBox
+                                        x:Name="ComponentStatGPUWattageVisible_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show GPU wattage"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatGPUWattageVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="ComponentStatGPUTempVisible_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show GPU temperature"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatGPUTempVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
                                     <CheckBox
                                         x:Name="GPU_SmallName_checkbox"
                                         Height="20"
@@ -5205,12 +5285,12 @@
                                     <Button
                                         Margin="98,11,0,0"
                                         Padding="0"
-                                        Opacity="0.2"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Command="{Binding ActivateSettingCommand}"
                                         CommandParameter="Settings_MediaLink"
                                         IsEnabled="False"
+                                        Opacity="0.2"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Style="{StaticResource CircleButton}">
                                         <Image

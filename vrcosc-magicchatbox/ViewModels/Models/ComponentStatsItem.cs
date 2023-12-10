@@ -28,6 +28,10 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public string Unit { get; set; }
 
+        public bool ShowTemperature { get; set; } = true;
+
+        public bool ShowWattage { get; set; } = false;
+
         public bool ShowUnit { get; set; } = true;
 
         public string ComponentValue { get; set; }

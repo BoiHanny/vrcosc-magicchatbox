@@ -254,6 +254,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
 
                 { "ComponentStatsGPU3DHook", (typeof(bool), "ComponentStats") },
+                { "UseEmojisForTempAndPower", (typeof(bool), "ComponentStats") },
+                { "IsTemperatureSwitchEnabled", (typeof(bool), "ComponentStats") },
 
                 { "IntgrScanForce", (typeof(bool), "WindowActivity") },
                 { "AutoShowTitleOnNewApp", (typeof(bool), "WindowActivity") },

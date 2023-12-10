@@ -1152,7 +1152,7 @@ namespace vrcosc_magicchatbox
             {
                 var tasks = new List<Task>
         {
-            Task.Run(() => ViewModel.Instance.IsVRRunning = SystemStats.IsVRRunning())
+            Task.Run(() => ViewModel.Instance.IsVRRunning = ComponentStatsModule.IsVRRunning())
         };
 
                 if (ViewModel.Instance.IntgrScanSpotify_OLD)
@@ -1166,11 +1166,11 @@ namespace vrcosc_magicchatbox
                     tasks.Add(Task.Run(() => ViewModel.Instance.FocusedWindow = WindowActivityModule.GetForegroundProcessName()));
                 }
 
-                tasks.Add(Task.Run(() => SystemStats.TickAndUpdate()));
+                tasks.Add(Task.Run(() => ComponentStatsModule.TickAndUpdate()));
 
                 if (ViewModel.Instance.IntgrScanWindowTime)
                 {
-                    tasks.Add(Task.Run(() => ViewModel.Instance.CurrentTime = SystemStats.GetTime()));
+                    tasks.Add(Task.Run(() => ViewModel.Instance.CurrentTime = ComponentStatsModule.GetTime()));
                 }
 
                 await Task.WhenAll(tasks);
