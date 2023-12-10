@@ -1579,6 +1579,9 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _OSCIP = "127.0.0.1";
         private string _Char_Limit = "Hidden";
         private string _Spotify_Opacity = "1";
+
+        private string _Soundpad_Opacity = "1";
+
         private string _Status_Opacity = "1";
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
@@ -3702,6 +3705,62 @@ namespace vrcosc_magicchatbox.ViewModels
                     _NetworkStats_StyledCharacters = value;
                     NotifyPropertyChanged(nameof(NetworkStats_StyledCharacters));
                 }
+            }
+        }
+
+
+        private bool _PrefixIconSoundpad = true;
+        public bool PrefixIconSoundpad
+        {
+            get { return _PrefixIconSoundpad; }
+            set
+            {
+                _PrefixIconSoundpad = value;
+                NotifyPropertyChanged(nameof(PrefixIconSoundpad));
+            }
+        }
+
+
+        private bool _IntgrSoundpad_DESKTOP = true;
+        public bool IntgrSoundpad_DESKTOP
+        {
+            get { return _IntgrSoundpad_DESKTOP; }
+            set
+            {
+                _IntgrSoundpad_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrSoundpad_DESKTOP));
+            }
+        }
+
+        private bool _IntgrSoundpad_VR = false;
+        public bool IntgrSoundpad_VR
+        {
+            get { return _IntgrSoundpad_VR; }
+            set
+            {
+                _IntgrSoundpad_VR = value;
+                NotifyPropertyChanged(nameof(IntgrSoundpad_VR));
+            }
+        }
+
+        public string Soundpad_Opacity
+        {
+            get { return _Soundpad_Opacity; }
+            set
+            {
+                _Soundpad_Opacity = value;
+                NotifyPropertyChanged(nameof(Soundpad_Opacity));
+            }
+        }
+
+        private bool _IntgrSoundpad = false;
+        public bool IntgrSoundpad
+        {
+            get { return _IntgrSoundpad; }
+            set
+            {
+                _IntgrSoundpad = value;
+                NotifyPropertyChanged(nameof(IntgrSoundpad));
             }
         }
 

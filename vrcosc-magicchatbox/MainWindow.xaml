@@ -893,6 +893,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -5159,8 +5160,115 @@
                         </Border>
 
                     </Grid>
+                    <Grid Grid.Row="7" Opacity="{Binding Soundpad_Opacity}">
+                        <Border
+                            Margin="6"
+                            Background="DarkSlateBlue"
+                            CornerRadius="5">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid Height="72">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="100" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Margin="0,8,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="Soundpad" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="0,0,0,5"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        Text="With this integration, you can show soundpad audio clips that are playing, it will hide when nothing is playing or when paused."
+                                        TextWrapping="Wrap" />
+                                    <Button
+                                        Margin="98,11,0,0"
+                                        Padding="0"
+                                        Opacity="0.2"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_MediaLink"
+                                        IsEnabled="False"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                    </Button>
+                                </Grid>
+
+                                <Image
+                                    Grid.Column="0"
+                                    Margin="15"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/Soundpad.png">
+                                    <Image.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="25"
+                                            Opacity="0.4"
+                                            ShadowDepth="0"
+                                            Color="#251153" />
+                                    </Image.Effect>
+                                </Image>
+                                <CheckBox
+                                    Name="Soundpad_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrSoundpad, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="60"
+                                    Height="19"
+                                    Margin="128,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="DESKTOP"
+                                    IsChecked="{Binding IntgrSoundpad_DESKTOP, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}" />
+                                <ToggleButton
+                                    Grid.Column="1"
+                                    Width="30"
+                                    Height="19"
+                                    Margin="193,13,0,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Content="VR"
+                                    IsChecked="{Binding IntgrSoundpad_VR, Mode=TwoWay}"
+                                    Style="{StaticResource GlowyToggleButton}" />
+                            </Grid>
+                        </Border>
+
+                    </Grid>
                     <Grid
-                        Grid.Row="8"
+                        Grid.Row="9"
                         Opacity="{Binding MediaLink_Opacity}"
                         Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border
