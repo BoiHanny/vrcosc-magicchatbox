@@ -207,6 +207,39 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return item?.Available ?? false;
         }
 
+        public string GetWhitchComponentsAreNotAvailableString()
+        {
+            List<string> notAvailableComponents = new List<string>();
+            foreach (var item in _componentStats)
+            {
+                if (!item.Available && item.IsEnabled)
+                {
+                    notAvailableComponents.Add(item.ComponentType.ToString());
+                }
+            }
+
+            if (notAvailableComponents.Count == 0)
+            {
+                return ""; // or return some default message if you prefer
+            }
+
+            string result = "😞 " + string.Join(", ", notAvailableComponents) + " stats may not be available on your system...";
+            return result;
+        }
+
+
+        public bool IsThereAComponentThatIsNotAvailable()
+        {
+            foreach (var item in _componentStats)
+            {
+                if (!item.Available && item.IsEnabled)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void SetStatAvailable(StatsComponentType type, bool available)
         {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
@@ -659,7 +692,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         ViewModel.Instance.isCPUAvailable = value;
                         break;
                     case StatsComponentType.GPU:
-                        ViewModel.Instance.isGPUAvailable = value;
+                        ViewModel.Instance.IsGPUAvailable = value;
                         break;
                     case StatsComponentType.RAM:
                         ViewModel.Instance.isRAMAvailable = value;

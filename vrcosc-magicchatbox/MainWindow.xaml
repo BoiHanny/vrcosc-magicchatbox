@@ -4669,6 +4669,7 @@
                                                         Color="#251153" />
                                                 </TextBlock.Effect>
                                             </TextBlock>
+
                                         </StackPanel>
                                         <TextBlock
                                             Grid.Row="1"
@@ -4771,6 +4772,26 @@
                                                 IsChecked="{Binding IsRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Opacity="{Binding isRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
                                                 Style="{StaticResource GlowyToggleButtonMediaLink}" />
+
+                                            <TextBlock
+                                                Margin="7,0,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="12"
+                                                Foreground="#9B7FD9"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="{Binding ComponentStatsError, UpdateSourceTrigger=PropertyChanged}"
+                                                TextWrapping="Wrap"
+                                                Visibility="{Binding IsThereAComponentThatIsNotAvailable, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="10"
+                                                        Opacity="1"
+                                                        ShadowDepth="0"
+                                                        Color="#8B2FFA" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+
                                         </StackPanel>
                                     </Border>
 

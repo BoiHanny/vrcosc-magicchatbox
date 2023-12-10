@@ -758,6 +758,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.ActivateStateState(StatsComponentType.CPU, false);
                 }
                 NotifyPropertyChanged(nameof(IsCPUEnabled));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -811,6 +813,7 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.SetStatMaxValueShown(StatsComponentType.GPU, false);
                 }
                 NotifyPropertyChanged(nameof(IsGPUMaxValueShown));
+
             }
         }
 
@@ -829,6 +832,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.ActivateStateState(StatsComponentType.RAM, false);
                 }
                 NotifyPropertyChanged(nameof(IsRAMEnabled));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -846,6 +851,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.ActivateStateState(StatsComponentType.GPU, false);
                 }
                 NotifyPropertyChanged(nameof(IsGPUEnabled));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -863,10 +870,12 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.SetStatAvailable(StatsComponentType.CPU, false);
                 }
                 NotifyPropertyChanged(nameof(isCPUAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
-        public bool isGPUAvailable
+        public bool IsGPUAvailable
         {
             get => _statsManager.IsStatAvailable(StatsComponentType.GPU);
             set
@@ -879,7 +888,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     _statsManager.SetStatAvailable(StatsComponentType.GPU, false);
                 }
-                NotifyPropertyChanged(nameof(isGPUAvailable));
+                NotifyPropertyChanged(nameof(IsGPUAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -897,6 +908,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.SetStatAvailable(StatsComponentType.RAM, false);
                 }
                 NotifyPropertyChanged(nameof(isRAMAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -914,6 +927,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.SetStatAvailable(StatsComponentType.VRAM, false);
                 }
                 NotifyPropertyChanged(nameof(isVRAMAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -931,6 +946,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.ActivateStateState(StatsComponentType.VRAM, false);
                 }
                 NotifyPropertyChanged(nameof(IsVRAMEnabled));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
 
@@ -1334,8 +1351,11 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     _ComponentStatsGPU3DHook = value;
                     NotifyPropertyChanged(nameof(ComponentStatsGPU3DHook));
+                    NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                    NotifyPropertyChanged(nameof(ComponentStatsError));
                 }
             }
+
         }
 
 
@@ -1472,6 +1492,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool IsThereAComponentThatIsNotAvailable
+        {
+            get { return _statsManager.IsThereAComponentThatIsNotAvailable(); }
+        }
+
+        public string ComponentStatsError
+        {
+            get { return _statsManager.GetWhitchComponentsAreNotAvailableString(); }
+        }
+
+
+
         #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }
 
@@ -1573,7 +1605,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 nameof(IsRAMEnabled),
                 nameof(IsVRAMEnabled),
                 nameof(isCPUAvailable),
-                nameof(isGPUAvailable),
+                nameof(IsGPUAvailable),
                 nameof(isRAMAvailable),
                 nameof(isVRAMAvailable),
                 nameof(CPUCustomHardwareName),
