@@ -1456,6 +1456,22 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _CountOculusSystemAsVR = false;
+
+        public bool CountOculusSystemAsVR
+        {
+            get { return _CountOculusSystemAsVR; }
+            set
+            {
+                if (_CountOculusSystemAsVR != value)
+                {
+                    _CountOculusSystemAsVR = value;
+                    NotifyPropertyChanged(nameof(CountOculusSystemAsVR));
+                }
+            }
+        }
+
         #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }
 

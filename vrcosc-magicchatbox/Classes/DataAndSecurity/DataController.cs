@@ -281,6 +281,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 { "SeperateWithENTERS", (typeof(bool), "Custom") },
 
+                { "CountOculusSystemAsVR", (typeof(bool), "System") },
                 { "Topmost", (typeof(bool), "Window") },
                 { "JoinedAlphaChannel", (typeof(bool), "Update") },
                 { "CheckUpdateOnStartup", (typeof(bool), "Update") },
