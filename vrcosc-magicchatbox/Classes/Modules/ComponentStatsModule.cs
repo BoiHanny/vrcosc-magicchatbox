@@ -140,6 +140,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         unit
                     );
 
+                    if(type == StatsComponentType.CPU)
+                    {
+                        component.ShowWattage = false;
+                        component.ShowTemperature = true;
+                    }
+
+                    if (type == StatsComponentType.GPU)
+                    {
+                        component.ShowWattage = true;
+                        component.ShowTemperature = false;
+                    }
+
                     if (type == StatsComponentType.FPS)
                     {
                         component.ShowUnit = false;

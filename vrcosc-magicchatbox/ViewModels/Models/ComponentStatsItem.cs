@@ -28,9 +28,9 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public string Unit { get; set; }
 
-        public bool ShowTemperature { get; set; } = true;
+        public bool ShowTemperature { get; set; }
 
-        public bool ShowWattage { get; set; } = false;
+        public bool ShowWattage { get; set; }
 
         public bool ShowUnit { get; set; } = true;
 
