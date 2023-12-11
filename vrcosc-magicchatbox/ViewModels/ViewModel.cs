@@ -57,6 +57,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _DisableMediaLink = false;
 
+
         private bool _Egg_Dev = false;
 
         private PulsoidModule _heartRateConnector;
