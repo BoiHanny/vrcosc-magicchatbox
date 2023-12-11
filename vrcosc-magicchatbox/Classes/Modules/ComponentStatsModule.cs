@@ -486,29 +486,25 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     string componentDescription = stat.GetDescription();
                     string additionalInfo = "";
+                    string cpuTemp = "", cpuPower = "", gpuTemp = "", gpuPower = "";
 
-                    if (stat.ComponentType == StatsComponentType.CPU && (stat.ShowTemperature || stat.ShowWattage))
+                    var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
+                    var gpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.GpuNvidia || hw.HardwareType == HardwareType.GpuAmd || hw.HardwareType == HardwareType.GpuIntel);
+
+                    if (stat.ComponentType == StatsComponentType.CPU && cpuHardware != null)
                     {
-                        var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
-                        if (cpuHardware != null)
-                        {
-                            string cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : string.Empty;
-                            string cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : string.Empty;
-                            additionalInfo = $"{(stat.ShowTemperature ? $"{cpuTemp}" : "")}{(stat.ShowTemperature && stat.ShowWattage ? " " : "")}{(stat.ShowWattage ? $"{cpuPower}" : "")}";
-                        }
+                        cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : "";
+                        cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : "";
+                        additionalInfo = $"{(cpuTemp != "N/A" ? cpuTemp : "")}{(cpuTemp != "N/A" && cpuPower != "N/A" ? " " : "")}{(cpuPower != "N/A" ? cpuPower : "")}";
                     }
-                    else if (stat.ComponentType == StatsComponentType.GPU && (stat.ShowTemperature || stat.ShowWattage))
+                    else if (stat.ComponentType == StatsComponentType.GPU && gpuHardware != null)
                     {
-                        var gpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.GpuNvidia || hw.HardwareType == HardwareType.GpuAmd || hw.HardwareType == HardwareType.GpuIntel);
-                        if (gpuHardware != null)
-                        {
-                            string gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : string.Empty;
-                            string gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : string.Empty;
-                            additionalInfo = $"{(stat.ShowTemperature ? $"{gpuTemp}" : "")}{(stat.ShowTemperature && stat.ShowWattage ? " " : "")}{(stat.ShowWattage ? $"{gpuPower}" : "")}";
-                        }
+                        gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
+                        gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
+                        additionalInfo = $"{(gpuTemp != "N/A" ? gpuTemp : "")}{(gpuTemp != "N/A" && gpuPower != "N/A" ? " " : "")}{(gpuPower != "N/A" ? gpuPower : "")}";
                     }
 
-                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrEmpty(additionalInfo) ? "" : $"{additionalInfo}")}";
+                    string fullComponentInfo = $"{componentDescription}{(additionalInfo != "" ? $" {additionalInfo}" : "")}";
 
                     if (currentLine.Length + fullComponentInfo.Length > maxLineWidth)
                     {
@@ -533,6 +529,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
             return string.Join("\n", lines);
         }
+
 
 
 
@@ -925,6 +922,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+
+
         private string FetchTemperatureStat(IHardware hardware, ComponentStatsItem item)
         {
             foreach (var sensor in hardware.Sensors)
@@ -936,22 +935,25 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     double temperatureCelsius = sensor.Value ?? 0.0;
                     string unit = ViewModel.Instance.TemperatureUnit;
                     double temperature = unit == "F" ? temperatureCelsius * 9 / 5 + 32 : temperatureCelsius;
-                    string unitSymbol = unit == "F" ? "°F" : "°C";
 
+                    if (item.RemoveNumberTrailing)
+                    {
+                        temperature = Math.Round(temperature);
+                    }
+
+                    string unitSymbol = unit == "F" ? "°F" : "°C";
                     string tempText = ViewModel.Instance.UseEmojisForTempAndPower ? "♨️" : "temp";
                     if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
                     {
                         tempText = DataController.TransformToSuperscript(tempText);
                     }
 
-                    return $"{tempText} {temperature:F1}{DataController.TransformToSuperscript(unitSymbol)}";
+                    string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+                    return $"{tempText} {formattedTemperature}{DataController.TransformToSuperscript(unitSymbol)}";
                 }
             }
             return "N/A";
         }
-
-
-
 
         private string FetchPowerStat(IHardware hardware, ComponentStatsItem item)
         {
@@ -962,19 +964,26 @@ namespace vrcosc_magicchatbox.Classes.Modules
                      sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
                 {
                     double power = sensor.Value ?? 0.0;
-                    string powerUnit = "W";
 
+                    if (item.RemoveNumberTrailing)
+                    {
+                        power = Math.Round(power);
+                    }
+
+                    string powerUnit = "W";
                     string powerText = ViewModel.Instance.UseEmojisForTempAndPower ? "⚡" : "power";
                     if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
                     {
                         powerText = DataController.TransformToSuperscript(powerText);
                     }
 
-                    return $"{powerText} {power:F1}{DataController.TransformToSuperscript(powerUnit)}";
+                    string formattedPower = item.RemoveNumberTrailing ? $"{(int)power}" : $"{power:F1}";
+                    return $"{powerText} {formattedPower}{DataController.TransformToSuperscript(powerUnit)}";
                 }
             }
             return "N/A";
         }
+
 
 
 
