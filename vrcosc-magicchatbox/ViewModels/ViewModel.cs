@@ -710,6 +710,85 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private int _StatusIndex = 0;
+
+        public int StatusIndex
+        {
+            get { return _StatusIndex; }
+            set
+            {
+                if (_StatusIndex != value)
+                {
+                    _StatusIndex = value;
+                    NotifyPropertyChanged(nameof(StatusIndex));
+                }
+            }
+        }
+
+
+        private int _SwitchStatusInterval = 3;
+
+        public int SwitchStatusInterval
+        {
+            get { return _SwitchStatusInterval; }
+            set
+            {
+                if (_SwitchStatusInterval != value)
+                {
+                    _SwitchStatusInterval = value;
+                    NotifyPropertyChanged(nameof(SwitchStatusInterval));
+                }
+            }
+        }
+
+        private DateTime _LastSwitchCycle = DateTime.Now;
+
+        public DateTime LastSwitchCycle
+        {
+            get { return _LastSwitchCycle; }
+            set
+            {
+                if (_LastSwitchCycle != value)
+                {
+                    _LastSwitchCycle = value;
+                    NotifyPropertyChanged(nameof(LastSwitchCycle));
+                }
+            }
+        }
+
+
+        private bool _IsRandomCycling = true;
+
+        public bool IsRandomCycling
+        {
+            get { return _IsRandomCycling; }
+            set
+            {
+                if (_IsRandomCycling != value)
+                {
+                    _IsRandomCycling = value;
+                    NotifyPropertyChanged(nameof(IsRandomCycling));
+                }
+            }
+        }
+
+
+        private bool _CycleStatus = true;
+
+        public bool CycleStatus
+        {
+            get { return _CycleStatus; }
+            set
+            {
+                if (_CycleStatus != value)
+                {
+                    _CycleStatus = value;
+                    NotifyPropertyChanged(nameof(CycleStatus));
+                }
+            }
+        }
+
+
         private bool _PulsoidAuthConnected = false;
 
         public bool PulsoidAuthConnected

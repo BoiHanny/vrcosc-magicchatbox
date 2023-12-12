@@ -204,10 +204,20 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             if (ViewModel.Instance.IntgrStatus == true && ViewModel.Instance.StatusList.Count() != 0)
             {
+                // check if there is any item with UseInCycle set to true in the list
+                if (ViewModel.Instance.StatusList.Count(item => item.UseInCycle) > 1 && ViewModel.Instance.CycleStatus)
+                {
+                    CycleStatus();
+                }
+
+
                 string? x = ViewModel.Instance.PrefixIconStatus == true
                     ? "💬 " + ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg
                     : ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
-                TryAddToUncomplete(Uncomplete, x, "Window");
+                if (x != null)
+                {
+                    TryAddToUncomplete(Uncomplete, x, "Status");
+                }
             }
         }
 
@@ -248,6 +258,36 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 TryAddToUncomplete(Uncomplete, x.ToString(), "Window");
             }
         }
+
+        public static void CycleStatus()
+        {
+            var cycleItems = ViewModel.Instance.StatusList.Where(item => item.UseInCycle).ToList();
+            if (cycleItems.Count == 0) return;
+
+            var elapsedTime = (DateTime.Now - ViewModel.Instance.LastSwitchCycle).TotalSeconds;
+
+            if (elapsedTime >= ViewModel.Instance.SwitchStatusInterval)
+            {
+                cycleItems.ForEach(item => item.IsActive = false);
+
+                if (ViewModel.Instance.IsRandomCycling)
+                {
+                    // Random selection
+                    Random rnd = new Random();
+                    int randomIndex = rnd.Next(cycleItems.Count);
+                    cycleItems[randomIndex].IsActive = true;
+                }
+                else
+                {
+                    // Sequential selection
+                    ViewModel.Instance.StatusIndex = (ViewModel.Instance.StatusIndex + 1) % cycleItems.Count;
+                    cycleItems[ViewModel.Instance.StatusIndex].IsActive = true;
+                }
+
+                ViewModel.Instance.LastSwitchCycle = DateTime.Now;
+            }
+        }
+
 
 
 
@@ -545,6 +585,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             switch (controlName)
             {
+                case "Status":
+                    ViewModel.Instance.Status_Opacity = opacity;
+                    break;
                 case "Window":
                     ViewModel.Instance.Window_Opacity = opacity;
                     break;
@@ -578,8 +621,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         // this function will add a string to a list of strings if the total length of the list is less than 144 characters
         public static void TryAddToUncomplete(List<string> uncomplete, string x, string controlToChange)
         {
-            if (CalculateOSCMsgLength(uncomplete, x) < 144)
+            if (CalculateOSCMsgLength(uncomplete, x) < 144 && !string.IsNullOrEmpty(x))
             {
+
                 uncomplete.Add(x);
             }
             else

@@ -314,6 +314,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "BlankEgg", (typeof(bool), "DEV") },
                 { "Egg_Dev", (typeof(bool), "DEV") },
 
+                { "SwitchStatusInterval", (typeof(int), "StatusSetting") },
+                { "IsRandomCycling", (typeof(bool), "StatusSetting") },
+                { "CycleStatus", (typeof(bool), "StatusSetting") },
+
+
                 { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
                 { "HeartRateScanInterval_v2", (typeof(int), "PulsoidConnector") },
                 { "HeartRate", (typeof(int), "PulsoidConnector") },
@@ -652,16 +657,29 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     Random random = new Random();
                     int randomId = random.Next(10, 99999999);
-                    ViewModel.Instance.StatusList
-                        .Add(
-                            new StatusItem
-                            {
-                                CreationDate = DateTime.Now,
-                                IsActive = true,
-                                IsFavorite = true,
-                                msg = "Enjoy 💖",
-                                MSGID = randomId
-                            });
+                    ViewModel.Instance.StatusList.Add(new StatusItem
+                    {
+                        CreationDate = DateTime.Now,
+                        IsActive = true,
+                        msg = "Enjoy 💖",
+                        MSGID = randomId
+                    });
+
+                    ViewModel.Instance.StatusList.Add(new StatusItem
+                    {
+                        CreationDate = DateTime.Now,
+                        IsActive = false,
+                        msg = "Below you can create your own status",
+                        MSGID = randomId
+                    });
+
+                    ViewModel.Instance.StatusList.Add(new StatusItem
+                    {
+                        CreationDate = DateTime.Now,
+                        IsActive = false,
+                        msg = "Activate it by clicking the power icon",
+                        MSGID = randomId
+                    });
                     ViewModel.SaveStatusList();
                 }
             }

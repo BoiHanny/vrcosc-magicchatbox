@@ -122,7 +122,7 @@ namespace vrcosc_magicchatbox
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
         }
-        
+
         public async Task InitializeAsync()
         {
             SelectTTS();
@@ -820,7 +820,7 @@ namespace vrcosc_magicchatbox
         private void SortFav_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(
-                ViewModel.Instance.StatusList.OrderByDescending(x => x.IsFavorite).ThenBy(x => x.LastUsed));
+                ViewModel.Instance.StatusList.OrderByDescending(x => x.UseInCycle).ThenBy(x => x.LastUsed));
         }
 
         private void SortUsed_Click(object sender, RoutedEventArgs e)

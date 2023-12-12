@@ -21,6 +21,23 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _msg = "";
         private int _MSGID;
 
+
+        private bool _UseInCycle = false;
+
+        public bool UseInCycle
+        {
+            get { return _UseInCycle; }
+            set
+            {
+                if (_UseInCycle != value)
+                {
+                    _UseInCycle = value;
+                    NotifyPropertyChanged(nameof(UseInCycle));
+                }
+            }
+        }
+
+
         public DateTime CreationDate
         {
             get { return _CreationDate; }

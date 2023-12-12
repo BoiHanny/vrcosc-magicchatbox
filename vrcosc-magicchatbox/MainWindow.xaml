@@ -681,10 +681,10 @@
                                                         <Image.Style>
                                                             <Style>
                                                                 <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="True">
                                                                         <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png" />
                                                                     </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="False">
+                                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="False">
                                                                         <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
@@ -694,7 +694,7 @@
                                                     <CheckBox
                                                         Width="35"
                                                         Height="35"
-                                                        IsChecked="{Binding IsFavorite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        IsChecked="{Binding UseInCycle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                         Opacity="0" />
                                                 </Grid>
                                             </Button>
@@ -839,37 +839,68 @@
                         Orientation="Horizontal">
                         <Button
                             x:Name="SortUsed"
-                            Width="100"
+                            Width="auto"
                             Height="25"
-                            Margin="5,0,5,0"
+                            Margin="3,0,3,0"
+                            Padding="5,0"
                             Click="SortUsed_Click"
                             Content="Recently used"
                             Style="{DynamicResource Status_Button_style}" />
                         <Button
                             x:Name="SortFav"
-                            Width="100"
+                            Width="auto"
                             Height="25"
-                            Margin="5,0,5,0"
+                            Margin="3,0,3,0"
+                            Padding="5,0"
                             Click="SortFav_Click"
-                            Content="My favorites"
+                            Content="My 💛 cycles"
                             Style="{DynamicResource Status_Button_style}" />
                         <Button
                             x:Name="SortDate"
-                            Width="100"
+                            Width="auto"
                             Height="25"
-                            Margin="5,0,5,0"
+                            Margin="3,0,3,0"
+                            Padding="5,0"
                             Click="SortDate_Click"
                             Content="Creation date"
                             Style="{DynamicResource Status_Button_style}" />
                         <Button
                             x:Name="SortEdited"
-                            Width="100"
+                            Width="auto"
                             Height="25"
-                            Margin="5,0,5,0"
+                            Margin="3,0,3,0"
+                            Padding="5,0"
                             Click="SortEdited_Click"
                             Content="Edit date"
                             Style="{DynamicResource Status_Button_style}" />
+
+                        <ToggleButton
+                            Width="85"
+                            Height="25"
+                            Margin="3,0,3,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Content="Auto 💛 cycle"
+                            IsChecked="{Binding CycleStatus, Mode=TwoWay}"
+                            Style="{StaticResource GlowyToggleButton}" />
+                        <Button
+                            x:Name="Settings"
+                            Width="auto"
+                            Margin="3,0,3,0"
+                            Command="{Binding ActivateSettingCommand}"
+                            CommandParameter="Settings_Status"
+                            Opacity="0.6"
+                            Style="{DynamicResource LINK_Button_style}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Width="18"
+                                    Height="18"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/Next_ico.png" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
+
                 </Grid>
             </Grid>
 
@@ -919,6 +950,7 @@
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                 Tag="Status options"
                                 TextOptions.TextRenderingMode="ClearType" />
+
                         </Grid>
 
 
@@ -928,20 +960,113 @@
                             Height="Auto"
                             Margin="34,10,0,0"
                             Visibility="{Binding Settings_Status, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <CheckBox
-                                x:Name="StatusIconPrefix_checkbox"
-                                Height="20"
-                                Margin="0,0,0,15"
-                                BorderBrush="#FF2D1265"
-                                Checked="Update_Click"
-                                FontFamily="Comfortaa Light"
-                                FontSize="18"
-                                Foreground="#FFB9B5C1"
-                                IsChecked="{Binding PrefixIconStatus, Mode=TwoWay}"
-                                Style="{DynamicResource SettingsCheckbox}"
-                                Unchecked="Update_Click">
-                                Add 💬 as prefix for the personal status
-                            </CheckBox>
+                            <StackPanel Margin="5">
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+
+                                    <CheckBox
+                                        x:Name="StatusIconPrefix_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding PrefixIconStatus, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Add 💬 as prefix for the personal status
+                                    </CheckBox>
+
+
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="CycleStatus_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding CycleStatus, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Cycle status items that are marked with 💛
+                                    </CheckBox>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5"
+                                    Visibility="{Binding CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+                                    <CheckBox
+                                        x:Name="IsRandomCycling_checkbox"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding IsRandomCycling, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Cycle status items in random order
+                                    </CheckBox>
+
+
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5"
+                                    Visibility="{Binding CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <StackPanel Margin="5" Orientation="Horizontal">
+                                        <TextBlock
+                                            Padding="0,0,9,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Cycle to the next every" />
+                                        <TextBox
+                                            x:Name="SwitchStatusInterval"
+                                            Width="auto"
+                                            Height="auto"
+                                            Margin="0,0,0,0"
+                                            Padding="5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding SwitchStatusInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            TextAlignment="Center" />
+                                        <TextBlock
+                                            Padding="5,0,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="seconds" />
+
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
                         </Grid>
                     </Grid>
                     <Grid Grid.Row="1" Margin="0,5,0,0">
