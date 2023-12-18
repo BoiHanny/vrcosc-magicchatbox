@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.8.650</Version>
+	<Version>0.8.660</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -20,16 +20,19 @@
     <Optimize>True</Optimize>
     <WarningLevel>4</WarningLevel>
     <DebugType>none</DebugType>
+	  <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>False</Optimize>
     <WarningLevel>4</WarningLevel>
+	  <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Beta|AnyCPU'">
     <Optimize>False</Optimize>
     <WarningLevel>4</WarningLevel>
+	  <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 
   <ItemGroup>
