@@ -21,17 +21,55 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public WhisperModule()
         {
+            // Initialize waveIn with a specific device or the default device
             waveIn = new WaveInEvent
             {
-                WaveFormat = new WaveFormat(16000, 1) // Sample rate and channel configuration
+                WaveFormat = new WaveFormat(16000, 1), // Sample rate and channel configuration
+                DeviceNumber = GetDefaultAudioDeviceNumber() // Gets the default audio device number
             };
             waveIn.DataAvailable += OnDataAvailable;
         }
 
+        private int GetDefaultAudioDeviceNumber()
+        {
+            // This method attempts to find a valid audio input device
+            for (int n = 0; n < WaveIn.DeviceCount; n++)
+            {
+                var deviceInfo = WaveIn.GetCapabilities(n);
+                // You can add more checks here if necessary, e.g., device name
+                if (deviceInfo.Channels > 0) // Check if the device has at least one channel
+                {
+                    return n; // Return the device number of the first valid device found
+                }
+            }
+
+            return -1; // Return -1 if no valid devices are found
+        }
+
         public void StartRecording()
         {
-            waveIn.StartRecording();
+            try
+            {
+                // Before starting recording, check if the device number is valid
+                if (waveIn.DeviceNumber < 0 || waveIn.DeviceNumber >= WaveIn.DeviceCount)
+                {
+                    throw new InvalidOperationException("No valid audio input device found.");
+                }
+
+                waveIn.StartRecording();
+            }
+            catch (NAudio.MmException ex)
+            {
+                Console.WriteLine($"Error starting recording: {ex.Message}");
+                // Handle the error accordingly, maybe prompt the user to check their audio device
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                // Handle other types of exceptions
+            }
         }
+
 
         public void StopRecording()
         {
@@ -68,7 +106,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 try
                 {
                     var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(request);
-                    TranscriptionReceived?.Invoke(response); // Notify subscribers
+                    TranscriptionReceived?.Invoke(response);
                 }
                 catch (Exception ex)
                 {

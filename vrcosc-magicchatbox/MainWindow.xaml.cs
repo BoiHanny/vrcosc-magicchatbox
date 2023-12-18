@@ -110,6 +110,8 @@ namespace vrcosc_magicchatbox
             windowChrome.GlassFrameThickness = new Thickness(1);
         }
 
+        //new WhisperModule whisperModule;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -121,6 +123,9 @@ namespace vrcosc_magicchatbox
 
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
+            //whisperModule = new WhisperModule();
+           // whisperModule.StartRecording();
+
         }
 
         public async Task InitializeAsync()
