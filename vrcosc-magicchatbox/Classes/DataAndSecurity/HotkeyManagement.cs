@@ -51,7 +51,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             else
             {
-                AddKeyBinding("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+                AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
             }
         }
 
@@ -99,9 +99,43 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         public void SaveHotkeyConfigurations()
         {
-            var json = JsonConvert.SerializeObject(_hotkeyActions, Formatting.Indented);
-            File.WriteAllText(HotkeyConfigFile, json);
+            // Create a temporary dictionary to hold serializable data.
+            var serializableHotkeyActions = new Dictionary<string, object>();
+
+            foreach (var entry in _hotkeyActions)
+            {
+                // Create a serializable anonymous object containing only the serializable properties.
+                var hotkeyInfo = new
+                {
+                    Key = entry.Value.Key,
+                    Modifiers = entry.Value.Modifiers
+                };
+                serializableHotkeyActions.Add(entry.Key, hotkeyInfo);
+            }
+
+            try
+            {
+                // Serialize the temporary dictionary to JSON.
+                var json = JsonConvert.SerializeObject(serializableHotkeyActions, Formatting.Indented);
+                File.WriteAllText(HotkeyConfigFile, json);
+            }
+            catch (IOException ex)
+            {
+                // Handle I/O exceptions (e.g., file access issues).
+                Logging.WriteException(ex, MSGBox: true);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // Handle security exceptions.
+                Logging.WriteException(ex, MSGBox: true);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions.
+                Logging.WriteException(ex, MSGBox: true);
+            }
         }
+
 
         private void LoadHotkeyConfigurations()
         {
@@ -109,13 +143,52 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 var json = File.ReadAllText(HotkeyConfigFile);
                 _hotkeyActions = JsonConvert.DeserializeObject<Dictionary<string, HotkeyInfo>>(json);
-                _hotkeyActions["ToggleVoiceGlobal"].SetAction(ToggleVoice);
+
+                // Make sure the default hotkey is always present.
+                if (!_hotkeyActions.ContainsKey("ToggleVoiceGlobal"))
+                {
+                    AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+                }
+                else
+                {
+                    _hotkeyActions["ToggleVoiceGlobal"].SetAction(ToggleVoice);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If there's any error, log it and set up the default hotkey.
+                Logging.WriteException(ex, MSGBox: true);
+                AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+            }
+        }
+
+        private void AddDefaultHotkey(string name, Key key, ModifierKeys modifiers, Action action)
+        {
+            var hotkeyInfo = new HotkeyInfo(key, modifiers);
+            hotkeyInfo.SetAction(action);
+            _hotkeyActions[name] = hotkeyInfo;
+
+            // Attempt to register the hotkey immediately.
+            RegisterGlobalHotkey(name, hotkeyInfo);
+        }
+
+        private void RegisterGlobalHotkey(string name, HotkeyInfo hotkeyInfo)
+        {
+            try
+            {
+                HotkeyManager.Current.AddOrReplace(name, hotkeyInfo.Key, hotkeyInfo.Modifiers, OnGlobalHotkeyPressed);
+            }
+            catch (HotkeyAlreadyRegisteredException ex)
+            {
+                MessageBox.Show($"The hotkey {hotkeyInfo.Modifiers} + {hotkeyInfo.Key} is already registered by another application.", "Hotkey Registration Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: true);
             }
         }
+
+
 
         private void OnGlobalHotkeyPressed(object sender, HotkeyEventArgs e)
         {

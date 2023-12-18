@@ -272,7 +272,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
             if (elapsedTime >= TimeSpan.FromSeconds(ViewModel.Instance.SwitchStatusInterval))
             {
-                cycleItems.ForEach(item => item.IsActive = false);
+                // Reset all status items to inactive before setting the next one to active
+                ViewModel.Instance.StatusList.All(item => { item.IsActive = false; return true; });
 
                 try
                 {
