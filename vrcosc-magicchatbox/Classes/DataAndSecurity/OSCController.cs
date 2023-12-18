@@ -204,8 +204,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             if (ViewModel.Instance.IntgrStatus == true && ViewModel.Instance.StatusList.Count() != 0)
             {
-                // check if there is any item with UseInCycle set to true in the list
-                if (ViewModel.Instance.StatusList.Count(item => item.UseInCycle) > 1 && ViewModel.Instance.CycleStatus)
+                // Cycle status if enabled
+                if (ViewModel.Instance.CycleStatus)
                 {
                     CycleStatus();
                 }
@@ -261,32 +261,43 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         public static void CycleStatus()
         {
+            if (ViewModel.Instance == null) return;
+
+            if (ViewModel.Instance.StatusList == null || !ViewModel.Instance.StatusList.Any()) return;
+
             var cycleItems = ViewModel.Instance.StatusList.Where(item => item.UseInCycle).ToList();
             if (cycleItems.Count == 0) return;
 
-            var elapsedTime = (DateTime.Now - ViewModel.Instance.LastSwitchCycle).TotalSeconds;
+            TimeSpan elapsedTime = DateTime.Now - ViewModel.Instance.LastSwitchCycle;
 
-            if (elapsedTime >= ViewModel.Instance.SwitchStatusInterval)
+            if (elapsedTime >= TimeSpan.FromSeconds(ViewModel.Instance.SwitchStatusInterval))
             {
                 cycleItems.ForEach(item => item.IsActive = false);
 
-                if (ViewModel.Instance.IsRandomCycling)
+                try
                 {
-                    // Random selection
-                    Random rnd = new Random();
-                    int randomIndex = rnd.Next(cycleItems.Count);
-                    cycleItems[randomIndex].IsActive = true;
-                }
-                else
-                {
-                    // Sequential selection
-                    ViewModel.Instance.StatusIndex = (ViewModel.Instance.StatusIndex + 1) % cycleItems.Count;
-                    cycleItems[ViewModel.Instance.StatusIndex].IsActive = true;
-                }
+                    if (ViewModel.Instance.IsRandomCycling)
+                    {
+                        Random rnd = new Random();
+                        int randomIndex = rnd.Next(cycleItems.Count);
+                        cycleItems[randomIndex].IsActive = true;
+                    }
+                    else
+                    {
+                        // Improved Sequential selection
+                        ViewModel.Instance.StatusIndex = (ViewModel.Instance.StatusIndex + 1) % cycleItems.Count;
+                        cycleItems[ViewModel.Instance.StatusIndex].IsActive = true;
+                    }
 
-                ViewModel.Instance.LastSwitchCycle = DateTime.Now;
+                    ViewModel.Instance.LastSwitchCycle = DateTime.Now;
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                }
             }
         }
+
 
 
 
