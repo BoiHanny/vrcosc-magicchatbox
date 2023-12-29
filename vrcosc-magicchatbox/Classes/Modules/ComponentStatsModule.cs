@@ -489,8 +489,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     string cpuTemp = "", cpuPower = "", gpuTemp = "", gpuPower = "";
 
                     var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
-
-                    // get the dedicated GPU hardware in current system
                     var gpuHardware = GetDedicatedGPU();
 
                     if (stat.ComponentType == StatsComponentType.CPU && cpuHardware != null)
@@ -938,6 +936,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private string FetchTemperatureStat(IHardware hardware, ComponentStatsItem item)
         {
+
             foreach (var sensor in hardware.Sensors)
             {
                 if (sensor.SensorType == SensorType.Temperature &&
@@ -945,6 +944,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                      sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
                 {
                     double temperatureCelsius = sensor.Value ?? 0.0;
+
+                    if (temperatureCelsius == 0)
+                    {
+                        return "N/A";
+                    }
+
                     string unit = ViewModel.Instance.TemperatureUnit;
                     double temperature = unit == "F" ? temperatureCelsius * 9 / 5 + 32 : temperatureCelsius;
 
@@ -976,6 +981,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
                      sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
                 {
                     double power = sensor.Value ?? 0.0;
+
+                    if (power == 0)
+                    {
+                        return "N/A";
+                    }
 
                     if (item.RemoveNumberTrailing)
                     {

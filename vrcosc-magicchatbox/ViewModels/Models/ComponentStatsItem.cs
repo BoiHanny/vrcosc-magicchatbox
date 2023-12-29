@@ -55,7 +55,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             if (ShowMaxValue)
             {
                 return ShowUnit
-                    ? $"{ComponentValue}/{ComponentValueMax} {Unit}"
+                    ? $"{ComponentValue}/{ComponentValueMax}{Unit}"
                     : $"{ComponentValue}/{ComponentValueMax}";
             }
             return GetFormattedValue();
