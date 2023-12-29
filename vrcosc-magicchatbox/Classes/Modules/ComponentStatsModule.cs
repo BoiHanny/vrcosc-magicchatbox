@@ -489,46 +489,58 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     string cpuTemp = "", cpuPower = "", gpuTemp = "", gpuPower = "";
 
                     var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
-                    var gpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.GpuNvidia || hw.HardwareType == HardwareType.GpuAmd || hw.HardwareType == HardwareType.GpuIntel);
+
+                    // get the dedicated GPU hardware in current system
+                    var gpuHardware = GetDedicatedGPU();
 
                     if (stat.ComponentType == StatsComponentType.CPU && cpuHardware != null)
                     {
                         cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : "";
                         cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : "";
-                        additionalInfo = $"{(cpuTemp != "N/A" ? cpuTemp : "")}{(cpuTemp != "N/A" && cpuPower != "N/A" ? " " : "")}{(cpuPower != "N/A" ? cpuPower : "")}";
+                        additionalInfo = $"{(cpuTemp != "N/A" && cpuTemp != "0" ? cpuTemp + " " : "")}{(cpuPower != "N/A" && cpuPower != "0" ? cpuPower : "")}";
                     }
                     else if (stat.ComponentType == StatsComponentType.GPU && gpuHardware != null)
                     {
                         gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
                         gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
-                        additionalInfo = $"{(gpuTemp != "N/A" ? gpuTemp : "")}{(gpuTemp != "N/A" && gpuPower != "N/A" ? " " : "")}{(gpuPower != "N/A" ? gpuPower : "")}";
+                        additionalInfo = $"{(gpuTemp != "N/A" && gpuTemp != "0" ? gpuTemp + " " : "")}{(gpuPower != "N/A" && gpuPower != "0" ? gpuPower : "")}";
                     }
 
-                    string fullComponentInfo = $"{componentDescription}{(additionalInfo != "" ? $" {additionalInfo}" : "")}";
+                    // Build the full component info and trim any excess whitespace from the end
+                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $" {additionalInfo}")} ";
 
-                    if (currentLine.Length + fullComponentInfo.Length > maxLineWidth)
+                    // If adding the new component info exceeds the max line width, add the current line to the list and start a new line
+                    if (currentLine.Length + fullComponentInfo.Length + separator.Length > maxLineWidth)
                     {
-                        lines.Add(currentLine.TrimEnd());
-                        currentLine = "";
+                        lines.Add(currentLine);
+                        currentLine = fullComponentInfo; // Start the new line with the full component info
                     }
-
-                    if (!string.IsNullOrEmpty(currentLine))
+                    else
                     {
-                        currentLine += separator;
+                        // If currentLine is not empty, add a separator before appending the new component info
+                        if (!string.IsNullOrEmpty(currentLine))
+                        {
+                            currentLine += separator;
+                        }
+                        currentLine += fullComponentInfo;
                     }
-
-                    currentLine += fullComponentInfo;
                 }
             }
 
-            if (currentLine.Length > 0)
+            // Add any remaining content in currentLine to the lines list
+            if (!string.IsNullOrWhiteSpace(currentLine))
             {
                 lines.Add(currentLine.TrimEnd());
             }
 
+            // Update the ViewModel with the last time the component stats were updated
             ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
+
+            // Join all the lines into a single string separated by newline characters
             return string.Join("\n", lines);
         }
+
+
 
 
 
