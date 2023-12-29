@@ -143,13 +143,13 @@
     <PackageReference Include="AutoClosingMessageBox" Version="1.0.0.5" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.2" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.3-pre260" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.3-pre261" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
     <PackageReference Include="NLog" Version="5.2.7" />
-    <PackageReference Include="OpenAI-DotNet" Version="7.4.4" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.5.0" />
   </ItemGroup>
 
   <ItemGroup>
