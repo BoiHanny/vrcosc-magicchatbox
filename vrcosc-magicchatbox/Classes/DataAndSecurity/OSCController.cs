@@ -210,13 +210,20 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     CycleStatus();
                 }
 
-
-                string? x = ViewModel.Instance.PrefixIconStatus == true
-                    ? "💬 " + ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg
-                    : ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true)?.msg;
-                if (x != null)
+                var activeItem = ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true);
+                if (activeItem != null)
                 {
-                    TryAddToUncomplete(Uncomplete, x, "Status");
+                    // Update LastUsed property for the active item
+                    activeItem.LastUsed = DateTime.Now;
+
+                    string? x = ViewModel.Instance.PrefixIconStatus == true
+                        ? "💬 " + activeItem.msg
+                        : activeItem.msg;
+
+                    if (x != null)
+                    {
+                        TryAddToUncomplete(Uncomplete, x, "Status");
+                    }
                 }
             }
         }
@@ -279,9 +286,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     if (ViewModel.Instance.IsRandomCycling)
                     {
-                        Random rnd = new Random();
-                        int randomIndex = rnd.Next(cycleItems.Count);
-                        cycleItems[randomIndex].IsActive = true;
+                        // Calculate weights for each cycle item
+                        var weights = cycleItems.Select(item =>
+                            (DateTime.Now - item.LastUsed).TotalSeconds).ToList();
+
+                        // Select a random index based on weights
+                        int selectedIndex = WeightedRandomIndex(weights);
+
+                        cycleItems[selectedIndex].IsActive = true;
                     }
                     else
                     {
@@ -299,9 +311,21 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
+        private static int WeightedRandomIndex(List<double> weights)
+        {
+            Random rnd = new Random();
+            double totalWeight = weights.Sum();
+            double randomPoint = rnd.NextDouble() * totalWeight;
 
+            for (int i = 0; i < weights.Count; i++)
+            {
+                if (randomPoint < weights[i])
+                    return i;
+                randomPoint -= weights[i];
+            }
 
-
+            return weights.Count - 1;
+        }
 
         // this function is for building the final OSC message to be sent to VRChat and it will set the opacity of the controls in the UI based on the length of the message
         // it will also set the OSCtoSent property in the ViewModel to the final OSC message
