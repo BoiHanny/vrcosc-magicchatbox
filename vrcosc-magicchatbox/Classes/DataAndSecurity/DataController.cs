@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -516,34 +517,34 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (File.Exists(appHistoryPath))
                 {
                     string json = File.ReadAllText(appHistoryPath);
-                    if (json.ToLower().Equals("null"))
+                    if (!string.IsNullOrWhiteSpace(json))
                     {
-                        Logging.WriteInfo("AppHistory history is null, not a problem :P");
-                        ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
-                        return;
+                        var scannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            ViewModel.Instance.ScannedApps = scannedApps ?? new ObservableCollection<ProcessInfo>();
+                        });
                     }
-                    ViewModel.Instance.ScannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
                 }
                 else
                 {
                     Logging.WriteInfo("AppHistory history has never been created, not a problem :P");
-
-                    if (ViewModel.Instance.ScannedApps == null)
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
-                    }
+                        ViewModel.Instance.ScannedApps ??= new ObservableCollection<ProcessInfo>();
+                    });
                 }
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
-
-                if (ViewModel.Instance?.ScannedApps == null)
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
-                }
+                    ViewModel.Instance.ScannedApps ??= new ObservableCollection<ProcessInfo>();
+                });
             }
         }
+
 
         public static void LoadChatList()
         {
