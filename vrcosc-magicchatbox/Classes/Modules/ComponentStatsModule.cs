@@ -140,7 +140,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         unit
                     );
 
-                    if(type == StatsComponentType.CPU)
+                    if (type == StatsComponentType.CPU)
                     {
                         component.ShowWattage = false;
                         component.ShowTemperature = true;
@@ -474,8 +474,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string GenerateStatsDescription()
         {
-            const int maxLineWidth = 25;
-            var separator = " | ";
             List<string> lines = new List<string>();
             string currentLine = "";
 
@@ -504,40 +502,24 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         additionalInfo = $"{(gpuTemp != "N/A" && gpuTemp != "0" ? gpuTemp + " " : "")}{(gpuPower != "N/A" && gpuPower != "0" ? gpuPower : "")}";
                     }
 
-                    // Build the full component info and trim any excess whitespace from the end
-                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $" {additionalInfo}")}";
 
-                    // If adding the new component info exceeds the max line width, add the current line to the list and start a new line
-                    if (currentLine.Length + fullComponentInfo.Length + separator.Length > maxLineWidth)
-                    {
-                        lines.Add(currentLine);
-                        currentLine = fullComponentInfo; // Start the new line with the full component info
-                    }
-                    else
-                    {
-                        // If currentLine is not empty, add a separator before appending the new component info
-                        if (!string.IsNullOrEmpty(currentLine))
-                        {
-                            currentLine += separator;
-                        }
-                        currentLine += fullComponentInfo;
-                    }
+                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $"{additionalInfo}")}";
+
+                    
+                    lines.Add(currentLine);
+                    currentLine = fullComponentInfo; 
+                    
                 }
             }
 
-            
-            if (!string.IsNullOrEmpty(currentLine))
+            if (!string.IsNullOrWhiteSpace(currentLine))
             {
-                lines.Add(separator + currentLine);
+                lines.Add(currentLine.TrimEnd());
             }
 
-            lines.RemoveAll(string.IsNullOrWhiteSpace);
-
-            // Update the ViewModel with the last time the component stats were updated
             ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
 
-            // Join all the lines into a single string separated by newline characters
-            return string.Join("\n", lines);
+            return string.Join(" ¦ ", lines);
         }
 
 
@@ -566,7 +548,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             if (ShouldUpdateComponentStats())
             {
-                PerformUpdateActions(); 
+                PerformUpdateActions();
             }
             else
             {
