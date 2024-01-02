@@ -522,7 +522,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         var scannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            ViewModel.Instance.ScannedApps = scannedApps ?? new ObservableCollection<ProcessInfo>();
+                            ViewModel.Instance.ScannedApps = scannedApps ?? new();
                         });
                     }
                 }
@@ -531,7 +531,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     Logging.WriteInfo("AppHistory history has never been created, not a problem :P");
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ViewModel.Instance.ScannedApps ??= new ObservableCollection<ProcessInfo>();
+                        ViewModel.Instance.ScannedApps = new();
                     });
                 }
             }
@@ -540,7 +540,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ViewModel.Instance.ScannedApps ??= new ObservableCollection<ProcessInfo>();
+                    ViewModel.Instance.ScannedApps = new();
                 });
             }
         }
@@ -562,7 +562,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     if (json.ToLower().Equals("null"))
                     {
                         Logging.WriteInfo("LastMessages history is null, not problem :P");
-                        ViewModel.Instance.LastMessages = new ObservableCollection<ChatItem>();
+                        ViewModel.Instance.LastMessages = new();
                         return;
                     }
                     ViewModel.Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
@@ -576,7 +576,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     Logging.WriteInfo("LastMessages history has never been created, not problem :P");
                     if(ViewModel.Instance.LastMessages == null)
                     {
-                        ViewModel.Instance.LastMessages = new ObservableCollection<ChatItem>();
+                        ViewModel.Instance.LastMessages = new();
                     }
                 }
             }
@@ -585,7 +585,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
                 if (ViewModel.Instance.ScannedApps == null)
                 {
-                    ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
+                    ViewModel.Instance.ScannedApps = new();
                 }
             }
         }
@@ -860,6 +860,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
                 {
                     string json = JsonConvert.SerializeObject(ViewModel.Instance.ScannedApps);
+
+                    if (string.IsNullOrEmpty(json))
+                    {
+                        return;
+                    }
+
                     File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "AppHistory.xml"), json);
                 }
             }
@@ -876,6 +882,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
                 {
                     string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
+
+                    if (string.IsNullOrEmpty(json))
+                    {
+                        return;
+                    }
+
                     File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"), json);
                 }
             }
@@ -892,6 +904,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
                 {
                     string json = JsonConvert.SerializeObject(ViewModel.Instance.SavedSessionSettings);
+
+                    if (string.IsNullOrEmpty(json))
+                    {
+                        return;
+                    }
+
                     File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMediaLinkSessions.xml"), json);
                 }
             }
