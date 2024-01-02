@@ -1737,6 +1737,8 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+
+
         public string ComponentStatsError
         {
             get { return _statsManager.GetWhitchComponentsAreNotAvailableString(); }
@@ -2208,6 +2210,30 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _SecOSCPort = value;
                 NotifyPropertyChanged(nameof(SecOSCPort));
+            }
+        }
+
+
+        private int _thirdOSCPort = 9003;
+        public int ThirdOSCPort
+        {
+            get { return _thirdOSCPort; }
+            set
+            {
+                _thirdOSCPort = value;
+                NotifyPropertyChanged(nameof(ThirdOSCPort));
+            }
+        }
+
+
+        private bool _thirdOSC = false;
+        public bool ThirdOSC
+        {
+            get { return _thirdOSC; }
+            set
+            {
+                _thirdOSC = value;
+                NotifyPropertyChanged(nameof(ThirdOSC));
             }
         }
 

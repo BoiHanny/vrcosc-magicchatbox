@@ -23,6 +23,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private static UDPSender _oscSender;
         private static UDPSender _secOscSender;
+        private static UDPSender _thirdOscSender;
 
         private static UDPSender OscSender
         {
@@ -47,6 +48,19 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     _secOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.SecOSCPort);
                 }
                 return _secOscSender;
+            }
+        }
+
+        private static UDPSender ThirdOscSender
+        {
+            get
+            {
+                if (_thirdOscSender == null || ViewModel.Instance.OSCIP != _thirdOscSender.Address || ViewModel.Instance.ThirdOSCPort != _thirdOscSender.Port)
+                {
+                    _thirdOscSender?.Close();
+                    _thirdOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.ThirdOSCPort);
+                }
+                return _thirdOscSender;
             }
         }
 
@@ -78,6 +92,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     SecOscSender.Send(new OscMessage(CHATBOX_TYPING, true));
                 }
+                if (ViewModel.Instance.ThirdOSC) // Added condition for third sender
+                {
+                    ThirdOscSender.Send(new OscMessage(CHATBOX_TYPING, true));
+                }
             });
         }
 
@@ -91,6 +109,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 if (ViewModel.Instance.SecOSC)
                 {
                     SecOscSender.Send(new OscMessage(CHATBOX_TYPING, false));
+                }
+                if (ViewModel.Instance.ThirdOSC) // Added condition for third sender
+                {
+                    ThirdOscSender.Send(new OscMessage(CHATBOX_TYPING, false));
                 }
             });
         }
@@ -145,6 +167,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     SecOscSender.Send(message);
                 }
+                if (ViewModel.Instance.ThirdOSC)
+                {
+                    ThirdOscSender.Send(message);
+                }
             });
         }
 
@@ -155,6 +181,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 OscSender.Send(new OscMessage(INPUT_VOICE, 1));
                 if (ViewModel.Instance.SecOSC)
                     SecOscSender.Send(new OscMessage(INPUT_VOICE, 1));
+                if (ViewModel.Instance.ThirdOSC)
+                    ThirdOscSender.Send(new OscMessage(INPUT_VOICE, 1));
 
                 ViewModel.Instance.TTSBtnShadow = true;
                 Thread.Sleep(100);
@@ -162,6 +190,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 OscSender.Send(new OscMessage(INPUT_VOICE, 0));
                 if (ViewModel.Instance.SecOSC)
                     SecOscSender.Send(new OscMessage(INPUT_VOICE, 0));
+                if (ViewModel.Instance.ThirdOSC)
+                    ThirdOscSender.Send(new OscMessage(INPUT_VOICE, 0));
 
                 ViewModel.Instance.TTSBtnShadow = false;
             });

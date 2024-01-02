@@ -3243,18 +3243,6 @@
                                     Style="{DynamicResource SettingsCheckbox}">
                                     2nd VRChat output
                                 </CheckBox>
-                                <CheckBox
-                                    x:Name="CountOculusSystemAsVR_checkbox"
-                                    Height="21"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding CountOculusSystemAsVR, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Count Oculus System as VR running (experimental)
-                                </CheckBox>
                                 <StackPanel Margin="0,0,0,15" Visibility="{Binding SecOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <TextBlock
                                         Grid.Column="0"
@@ -3278,6 +3266,54 @@
                                         Foreground="#FF240E54"
                                         Text="{Binding SecOSCPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
+                                <CheckBox
+                                    x:Name="ThirdOSC_checkbox"
+                                    Height="21"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding ThirdOSC, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}">
+                                    3nd VRChat output
+                                </CheckBox>
+                                <StackPanel Margin="0,0,0,15" Visibility="{Binding ThirdOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Padding="0,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="3nd VRChat port (outgoing)" />
+                                    <TextBox
+                                        x:Name="ThirdOSCPort"
+                                        Width="100"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding ThirdOSCPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <CheckBox
+                                    x:Name="CountOculusSystemAsVR_checkbox"
+                                    Height="21"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding CountOculusSystemAsVR, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}">
+                                    Count Oculus System as VR running (experimental)
+                                </CheckBox>
+
                                 <CheckBox
                                     x:Name="WindowOnTop_checkbox"
                                     Height="21"
@@ -5012,9 +5048,9 @@
                                                 <Button
                                                     x:Name="RestartApplicationAsAdmin"
                                                     Height="30"
-                                                    Click="RestartApplicationAsAdmin_Click"
                                                     Margin="3"
                                                     VerticalAlignment="Top"
+                                                    Click="RestartApplicationAsAdmin_Click"
                                                     Opacity="0.7"
                                                     Style="{StaticResource Status_Button_style}">
                                                     <Button.ContentTemplate>
