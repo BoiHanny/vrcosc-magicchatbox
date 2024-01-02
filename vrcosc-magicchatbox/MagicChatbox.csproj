@@ -46,10 +46,12 @@
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Discord.png" />
     <None Remove="Img\Icons\Edit_ico.png" />
+    <None Remove="Img\Icons\error.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
     <None Remove="Img\Icons\GitHub.png" />
     <None Remove="Img\Icons\HeartRate_ico.png" />
     <None Remove="Img\Icons\Load_ico.png" />
+    <None Remove="Img\Icons\Log.png" />
     <None Remove="Img\Icons\MagicChatbox_ico.png" />
     <None Remove="Img\Icons\MediaLink_ico.png" />
     <None Remove="Img\Icons\Min_ico.png" />
@@ -93,11 +95,13 @@
     </Resource>
     <Resource Include="Img\Icons\Discord.png" />
     <Resource Include="Img\Icons\Edit_ico.png" />
+    <Resource Include="Img\Icons\error.png" />
     <Resource Include="Img\Icons\Favorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\GitHub.png" />
     <Resource Include="Img\Icons\Load_ico.png" />
+    <Resource Include="Img\Icons\Log.png" />
     <Resource Include="Img\Icons\MagicChatbox_ico.png" />
     <Resource Include="Img\Icons\MediaLink_ico.png" />
     <Resource Include="Img\Icons\Min_ico.png" />
@@ -140,15 +144,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoClosingMessageBox" Version="1.0.0.5" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.2" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.3-pre261" />
+    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.3" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.3" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
-    <PackageReference Include="NLog" Version="5.2.7" />
+    <PackageReference Include="NLog" Version="5.2.8" />
     <PackageReference Include="OpenAI-DotNet" Version="7.5.0" />
   </ItemGroup>
 
@@ -169,6 +172,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Update="UI\Dialogs\ApplicationError.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Dialogs\OpenAIAuth.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -186,6 +192,12 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="UI\Dialogs\ApplicationError.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
 </Project>

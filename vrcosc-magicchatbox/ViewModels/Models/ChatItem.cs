@@ -46,7 +46,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 

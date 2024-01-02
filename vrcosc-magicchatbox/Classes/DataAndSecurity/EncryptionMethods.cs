@@ -66,7 +66,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             catch (Exception ex)
             {
 
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return null;
             }
 
@@ -87,7 +87,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 destination = null;
                 return false;
             }

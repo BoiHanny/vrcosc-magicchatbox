@@ -212,7 +212,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ErrorCount++;
                 return false;  
             }
@@ -223,35 +223,43 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             try
             {
-                // Get the performance counter category for network interfaces
                 var category = new PerformanceCounterCategory("Network Interface");
-                // Get all instance names for the network interface category
                 string[] instanceNames = category.GetInstanceNames();
-
-                // Normalize network interface description to match performance counter naming conventions
                 string normalizedInterfaceName = NormalizeInterfaceName(networkInterface.Description);
 
-                // Try to find a performance counter instance name that matches the normalized network interface name
                 foreach (string instanceName in instanceNames)
                 {
-                    // Use the normalized name for matching
                     if (instanceName.Equals(normalizedInterfaceName, StringComparison.OrdinalIgnoreCase))
                     {
-                        return instanceName; // Found a matching instance name
+                        return instanceName;
                     }
                 }
+                return null;
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Log the exception for debugging purposes
+                Logging.WriteException(ex, MSGBox: false);
+                ErrorCount++;
 
-                // If no match is found, return null or handle as appropriate for your application
-                return null; // or throw new InvalidOperationException if that is your preferred behavior
+                // Notify user or take steps to repair or provide alternative
+                HandlePerformanceCounterError();
+
+                return null;
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ErrorCount++;
                 return null;
             }
-            
         }
+
+        private void HandlePerformanceCounterError()
+        {
+            Logging.WriteException(new Exception("Performance counter error"), MSGBox: false);
+        }
+
 
         private string NormalizeInterfaceName(string interfaceName)
         {
@@ -291,7 +299,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             catch (Exception ex)
             {
                 ErrorCount++;
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return null;
             }
             
@@ -468,7 +476,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ErrorCount++;
                 if(ErrorCount > 3)
                 {
@@ -485,22 +493,41 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
-            if (EqualityComparer<T>.Default.Equals(storage, value))
+            try
             {
+                if (EqualityComparer<T>.Default.Equals(storage, value))
+                {
+                    return false;
+                }
+                storage = value;
+                OnPropertyChanged(propertyName);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Logging.WriteException(ex);
                 return false;
             }
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
         }
+
 
         public void Dispose()
         {
-            _updateTimer?.Stop();
-            _updateTimer?.Dispose();
-            downloadCounter?.Dispose();
-            uploadCounter?.Dispose();
-            NetworkChange.NetworkAddressChanged -= OnNetworkAddressChanged;
+            try
+            {
+                _updateTimer?.Stop();
+                _updateTimer?.Dispose();
+                downloadCounter?.Dispose();
+                uploadCounter?.Dispose();
+                NetworkChange.NetworkAddressChanged -= OnNetworkAddressChanged;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Logging.WriteException(ex);
+            }
         }
+
     }
 }

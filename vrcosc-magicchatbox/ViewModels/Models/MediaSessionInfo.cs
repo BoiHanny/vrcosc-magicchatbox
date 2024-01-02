@@ -132,7 +132,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 FriendlyAppName = id;
             }
         }

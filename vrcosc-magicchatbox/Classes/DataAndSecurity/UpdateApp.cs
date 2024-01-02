@@ -219,7 +219,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 // Handle exceptions
                 UpdateStatus("Update failed, check logs");
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 

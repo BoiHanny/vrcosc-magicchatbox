@@ -44,7 +44,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -64,7 +64,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 

@@ -87,7 +87,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private void ReportTestConnectionError(Exception ex)
         {
 
-            Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+            Logging.WriteException(ex, MSGBox: false);
             ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
             ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
             ViewModel.Instance.OpenAIAccessToken = string.Empty;

@@ -218,7 +218,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
                     });
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                    Logging.WriteException(ex, MSGBox: false);
                 }
 
                 int scanInterval = ViewModel.Instance.HeartRateScanInterval_v2 > 0 ? ViewModel.Instance.HeartRateScanInterval_v2 : 5;
@@ -317,7 +317,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     ViewModel.Instance.PulsoidAuthConnected = false;
                     ViewModel.Instance.PulsoidAccessErrorTxt = errorMessage;
                 });
-                Logging.WriteException(httpEx, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(httpEx, MSGBox: false);
                 return -1;
             }
             catch (Exception ex)
@@ -328,7 +328,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     ViewModel.Instance.PulsoidAuthConnected = false;
                     ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
                 });
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return -1;
             }
 

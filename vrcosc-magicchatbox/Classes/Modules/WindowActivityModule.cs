@@ -49,7 +49,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ViewModel.Instance.ErrorInWindowActivity = true;
                 string errormsg = $"Error in GetWindowTitle: {ex.Message}";
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return "";
             }
@@ -254,7 +254,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 string errormsg = errorMsgBuilder.ToString();
 
 
-                Logging.WriteException(new Exception(errormsg), makeVMDump: false, MSGBox: false);
+                Logging.WriteException(new Exception(errormsg), MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return "'An app'";
 
@@ -263,7 +263,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ViewModel.Instance.ErrorInWindowActivity = true;
                 string errormsg = $"Error in GetForegroundProcessName: {ex.Message}";
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
 
                 if (ViewModel.Instance.ErrorInWindowActivity)
                 {
@@ -300,7 +300,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ViewModel.Instance.ErrorInWindowActivity = true;
                 string errormsg = $"Error in GetProcessName ({processName}): {ex.Message}";
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return processName;
             }
@@ -323,7 +323,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ViewModel.Instance.ErrorInWindowActivity = true;
                 string errormsg = $"Error in GetNameFromAutomationElement (HandleID:{{hwnd}}): {ex.Message}";
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return "Unknown";
             }
@@ -408,7 +408,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ViewModel.Instance.ErrorInWindowActivity = true;
                 string errormsg = $"Error in ConstructReturnString: {ex.Message}";
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
                 return processName;
             }
@@ -441,7 +441,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ViewModel.Instance.ErrorInWindowActivity = true;
                 string errormsg = $"Error in AddNewProcessToViewModel: {ex.Message}";
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
             }
         }

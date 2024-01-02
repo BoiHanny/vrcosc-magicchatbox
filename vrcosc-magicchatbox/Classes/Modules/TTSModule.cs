@@ -43,7 +43,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return audioBytes;
             }
             return audioBytes;
@@ -93,7 +93,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
     }

@@ -278,7 +278,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
 
         }
@@ -319,7 +319,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -497,7 +497,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -539,19 +539,6 @@ namespace vrcosc_magicchatbox
             Process.Start(
                 "explorer",
                 "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Play-TTS-Output-of-MagicChatbox-to-Main-Audio-Device-and-Microphone-in-VRChat-Using-VB-Audio-Cable-(Simple-Setup)");
-        }
-
-        private void MakeDataDump_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Logging.ViewModelDump();
-                Process.Start("explorer.exe", ViewModel.Instance.LogPath);
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex);
-            }
         }
 
         private async Task ManualUpdateCheckAsync()
@@ -731,7 +718,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -772,7 +759,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: true, exitapp: true);
+                Logging.WriteException(ex, MSGBox: true, exitapp: true);
             }
         }
 
@@ -788,7 +775,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false, exitapp: true);
+                Logging.WriteException(ex, MSGBox: false, exitapp: true);
             }
         }
 
@@ -1089,7 +1076,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -1142,7 +1129,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
             finally
             {
@@ -1182,7 +1169,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -1259,7 +1246,7 @@ namespace vrcosc_magicchatbox
             catch (OperationCanceledException ex)
             {
                 ViewModel.Instance.ChatFeedbackTxt = "TTS cancelled";
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
             catch (Exception ex)
             {
@@ -1317,7 +1304,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
             finally
             {

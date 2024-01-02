@@ -3345,14 +3345,6 @@
                                         Content="Reset Status"
                                         Style="{DynamicResource Status_Button_style}" />
                                     <Button
-                                        x:Name="MakeDataDump"
-                                        Width="110"
-                                        Height="25"
-                                        Margin="5,0,5,15"
-                                        Click="MakeDataDump_Click"
-                                        Content="Make data dump"
-                                        Style="{DynamicResource Status_Button_style}" />
-                                    <Button
                                         x:Name="OpenConfigFolder"
                                         Width="120"
                                         Height="25"

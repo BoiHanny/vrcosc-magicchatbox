@@ -40,6 +40,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     {'9', "⁹"}, {',', "'"}, {'.', "'"} , {'%', "⁒"}
 };
 
+
         public static string GetApplicationVersion()
 
         {
@@ -56,7 +57,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return "69.420.666";
             }
         }
@@ -124,7 +125,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 ViewModel.Instance.VersionTxt = "Can't check updates";
                 ViewModel.Instance.VersionTxtColor = "#F36734";
                 ViewModel.Instance.VersionTxtUnderLine = false;
@@ -479,7 +480,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -497,7 +498,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (IOException ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
         }
@@ -537,7 +538,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ViewModel.Instance.ScannedApps = new();
@@ -582,7 +583,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 if (ViewModel.Instance.ScannedApps == null)
                 {
                     ViewModel.Instance.ScannedApps = new();
@@ -624,7 +625,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 if (ViewModel.Instance.ScannedApps == null)
                 {
                     ViewModel.Instance.ScannedApps = new ObservableCollection<ProcessInfo>();
@@ -686,7 +687,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 if (ViewModel.Instance.StatusList == null)
                 {
                     ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
@@ -747,7 +748,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                     catch (Exception ex)
                     {
-                        Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                        Logging.WriteException(ex, MSGBox: false);
                     }
                 }
 
@@ -758,7 +759,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
 
         }
@@ -813,7 +814,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
             return true;
@@ -848,7 +849,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return null;
             }
         }
@@ -871,7 +872,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -893,7 +894,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -915,7 +916,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
     }

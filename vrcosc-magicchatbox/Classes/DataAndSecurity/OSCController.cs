@@ -306,7 +306,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
                 catch (Exception ex)
                 {
-                    Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                    Logging.WriteException(ex, MSGBox: false);
                 }
             }
         }
@@ -435,7 +435,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (System.Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
 
             // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
@@ -573,7 +573,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (System.Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 

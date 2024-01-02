@@ -474,7 +474,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string GenerateStatsDescription()
         {
-            const int maxLineWidth = 30;
+            const int maxLineWidth = 25;
             var separator = " | ";
             List<string> lines = new List<string>();
             string currentLine = "";
@@ -505,7 +505,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
 
                     // Build the full component info and trim any excess whitespace from the end
-                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $" {additionalInfo}")} ";
+                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $" {additionalInfo}")}";
 
                     // If adding the new component info exceeds the max line width, add the current line to the list and start a new line
                     if (currentLine.Length + fullComponentInfo.Length + separator.Length > maxLineWidth)
@@ -525,11 +525,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-            // Add any remaining content in currentLine to the lines list
-            if (!string.IsNullOrWhiteSpace(currentLine))
+            
+            if (!string.IsNullOrEmpty(currentLine))
             {
-                lines.Add(currentLine.TrimEnd());
+                lines.Add(separator + currentLine);
             }
+
+            lines.RemoveAll(string.IsNullOrWhiteSpace);
 
             // Update the ViewModel with the last time the component stats were updated
             ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
@@ -556,7 +558,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -564,7 +566,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             if (ShouldUpdateComponentStats())
             {
-                PerformUpdateActions();
+                PerformUpdateActions(); 
             }
             else
             {
@@ -620,7 +622,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -748,7 +750,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return "00:00 XX";
             }
         }
@@ -813,7 +815,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
             return true;
@@ -837,7 +839,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
         }
@@ -859,7 +861,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return null;
             }
 
@@ -927,7 +929,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return "N/A";
             }
         }

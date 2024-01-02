@@ -123,7 +123,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             catch (Exception ex)
             {
                 // Log the exception as per your logging mechanism.
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -337,7 +337,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
     }

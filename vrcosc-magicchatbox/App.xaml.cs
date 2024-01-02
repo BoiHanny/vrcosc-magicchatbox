@@ -51,6 +51,8 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Gathering status items like a squirrel with nuts!", 30);
             await Task.Run(() => DataController.LoadStatusList());
 
+            //throw new Exception("Ahahahah loser u crashed");
+
             loadingWindow.UpdateProgress("Detective on the hunt for last session's chat messages... Elementary, my dear Watson!", 40);
             await Task.Run(() => DataController.LoadChatList());
 
@@ -98,12 +100,12 @@ namespace vrcosc_magicchatbox
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Logging.WriteException(e.Exception, makeVMDump: false, MSGBox: true, exitapp:true);
+            Logging.WriteException(e.Exception, MSGBox: true, exitapp:true);
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Logging.WriteException(ex: e.ExceptionObject as Exception, makeVMDump: false, MSGBox: true, exitapp: true);
+            Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true);
         }
     }
 }

@@ -337,7 +337,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: true, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -354,7 +354,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
             catch (IOException ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
         }
@@ -371,7 +371,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
@@ -392,7 +392,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             if (!_sortDirection.ContainsKey(sortProperty))
             {
-                Logging.WriteException(new Exception($"No sortDirection: {sortProperty}"), makeVMDump: false, MSGBox: false);
+                Logging.WriteException(new Exception($"No sortDirection: {sortProperty}"), MSGBox: false);
                 return;
             }
             try
@@ -405,7 +405,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 

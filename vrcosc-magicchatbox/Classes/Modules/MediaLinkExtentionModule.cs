@@ -45,7 +45,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return "Oop, an exception did happen...";
             }
         }
@@ -64,7 +64,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, makeVMDump: false, MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
 

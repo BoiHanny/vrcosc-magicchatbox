@@ -137,7 +137,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             catch (System.Exception)
             {
-                Logging.WriteException(new System.Exception("Soundpad not found"), makeVMDump: false, MSGBox: false);
+                Logging.WriteException(new System.Exception("Soundpad not found"), MSGBox: false);
                 return string.Empty;
             }
         }
