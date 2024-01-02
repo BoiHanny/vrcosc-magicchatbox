@@ -2238,6 +2238,30 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _UnmuteSecOutput = false;
+        public bool UnmuteSecOutput
+        {
+            get { return _UnmuteSecOutput; }
+            set
+            {
+                _UnmuteSecOutput = value;
+                NotifyPropertyChanged(nameof(UnmuteSecOutput));
+            }
+        }
+
+        private bool _UnmuteThirdOutput = false;
+
+        public bool UnmuteThirdOutput
+        {
+            get { return _UnmuteThirdOutput; }
+            set
+            {
+                _UnmuteThirdOutput = value;
+                NotifyPropertyChanged(nameof(UnmuteThirdOutput));
+            }
+        }
+
+
         private bool _UseDaylightSavingTime = false;
 
         public bool UseDaylightSavingTime
