@@ -5,6 +5,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -1386,5 +1388,61 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.OpenAIConnected = false;
 
         }
+
+        private void LearnMoreAboutOpenAIbtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start(
+                "explorer",
+                "https://openai.com/policies/terms-of-use");
+        }
+
+        private void RestartApplicationAsAdmin_Click(object sender, RoutedEventArgs e)
+        {
+            FireExitSave();
+            try
+            {
+                AdminRelauncher();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private void AdminRelauncher()
+        {
+            if (!IsRunAsAdmin())
+            {
+                ProcessStartInfo proc = new ProcessStartInfo();
+                proc.UseShellExecute = true;
+                proc.WorkingDirectory = Environment.CurrentDirectory;
+                proc.FileName = Process.GetCurrentProcess().MainModule.FileName;
+
+                proc.Verb = "runas";
+
+                try
+                {
+                    Process.Start(proc);
+
+                    Thread.Sleep(1000);
+
+
+                    Environment.Exit(0);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("This program must be run as an administrator! \n\n" + ex.ToString());
+                }
+            }
+        }
+
+        private bool IsRunAsAdmin()
+        {
+            WindowsIdentity id = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(id);
+
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
     }
 }

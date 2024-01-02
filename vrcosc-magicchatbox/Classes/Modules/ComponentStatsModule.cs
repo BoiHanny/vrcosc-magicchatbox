@@ -239,12 +239,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return result;
         }
 
-
         public bool IsThereAComponentThatIsNotAvailable()
         {
             foreach (var item in _componentStats)
             {
                 if (!item.Available && item.IsEnabled)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsThereAComponentThatIsNotGettingTempOrWattage()
+        {
+            foreach (var item in _componentStats)
+            {
+                if (item.Available && item.IsEnabled && item.ComponentType == StatsComponentType.CPU && (item.cantShowWattage && item.ShowWattage || item.cantShowTemperature && item.ShowTemperature) == true)
+                {
+                    return true;
+                }
+                if (item.Available && item.IsEnabled && item.ComponentType == StatsComponentType.GPU && (item.cantShowWattage && item.ShowWattage || item.cantShowTemperature && item.ShowTemperature) == true)
                 {
                     return true;
                 }
@@ -493,13 +508,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     {
                         cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : "";
                         cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : "";
-                        additionalInfo = $"{(cpuTemp != "N/A" && cpuTemp != "0" ? cpuTemp + " " : "")}{(cpuPower != "N/A" && cpuPower != "0" ? cpuPower : "")}";
+                        additionalInfo = $"{(!stat.cantShowTemperature ? cpuTemp + " " : "")}{(!stat.cantShowWattage ? cpuPower : "")}";
                     }
                     else if (stat.ComponentType == StatsComponentType.GPU && gpuHardware != null)
                     {
                         gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
                         gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
-                        additionalInfo = $"{(gpuTemp != "N/A" && gpuTemp != "0" ? gpuTemp + " " : "")}{(gpuPower != "N/A" && gpuPower != "0" ? gpuPower : "")}";
+                        additionalInfo = $"{(!stat.cantShowTemperature ? gpuTemp + " " : "")}{(!stat.cantShowTemperature ? gpuPower : "")}";
                     }
 
 
@@ -931,6 +946,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                     if (temperatureCelsius == 0)
                     {
+                        item.cantShowTemperature = true;
                         return "N/A";
                     }
 
@@ -950,9 +966,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
 
                     string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+                    item.cantShowTemperature = false;
                     return $"{tempText} {formattedTemperature}{DataController.TransformToSuperscript(unitSymbol)}";
                 }
             }
+            item.cantShowTemperature = true;
             return "N/A";
         }
 
@@ -968,6 +986,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                     if (power == 0)
                     {
+                        item.cantShowWattage = true;
                         return "N/A";
                     }
 
@@ -984,9 +1003,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
 
                     string formattedPower = item.RemoveNumberTrailing ? $"{(int)power}" : $"{power:F1}";
+                    item.cantShowWattage = false;
                     return $"{powerText} {formattedPower}{DataController.TransformToSuperscript(powerUnit)}";
                 }
             }
+            item.cantShowWattage = true;
             return "N/A";
         }
 

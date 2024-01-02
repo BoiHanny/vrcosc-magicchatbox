@@ -845,6 +845,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
 
+
         public bool isVRAMMaxValueShown
         {
             get => _statsManager.IsStatMaxValueShown(StatsComponentType.VRAM);
@@ -913,6 +914,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(IsRAMEnabled));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -932,6 +934,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(IsGPUEnabled));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -951,6 +954,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(isCPUAvailable));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -1116,6 +1120,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(IsGPUAvailable));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -1135,6 +1140,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(isRAMAvailable));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -1154,6 +1160,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(isVRAMAvailable));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -1173,6 +1180,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
                 NotifyPropertyChanged(nameof(IsVRAMEnabled));
                 NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
+                NotifyPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
                 NotifyPropertyChanged(nameof(ComponentStatsError));
             }
         }
@@ -1722,6 +1730,12 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             get { return _statsManager.IsThereAComponentThatIsNotAvailable(); }
         }
+
+        public bool IsThereAComponentThatIsNotGettingTempOrWattage
+        {
+               get { return _statsManager.IsThereAComponentThatIsNotGettingTempOrWattage(); }
+        }
+
 
         public string ComponentStatsError
         {

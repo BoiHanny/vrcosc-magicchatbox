@@ -38,6 +38,7 @@
   <ItemGroup>
     <None Remove="Img\Icons\ActivatedStatus_ico.png" />
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
+    <None Remove="Img\Icons\admin.png" />
     <None Remove="Img\Icons\Close_ico.png" />
     <None Remove="Img\Icons\ComponentStats_ico.png" />
     <None Remove="Img\Icons\Copy_ico.png" />
@@ -83,6 +84,7 @@
     <Resource Include="Img\Icons\ActivateStatus_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\admin.png" />
     <Resource Include="Img\Icons\Close_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>

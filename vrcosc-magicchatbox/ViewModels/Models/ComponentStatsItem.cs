@@ -30,6 +30,10 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public bool ShowTemperature { get; set; }
 
+        public bool cantShowTemperature { get; set; } = false;
+
+        public bool cantShowWattage { get; set; } = false;
+
         public bool ShowWattage { get; set; }
 
         public bool ShowUnit { get; set; } = true;

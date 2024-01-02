@@ -1738,6 +1738,19 @@
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                 Tag="OpenAI options"
                                 TextOptions.TextRenderingMode="ClearType" />
+                            <TextBlock
+                                x:Name="LearnMoreAboutOpenAIbtn"
+                                Width="auto"
+                                Margin="146,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="#FF31B7B4"
+                                MouseUp="LearnMoreAboutOpenAIbtn_MouseUp"
+                                Text="Terms of use"
+                                TextDecorations="Underline" />
                         </Grid>
                         <Grid
                             Grid.Row="1"
@@ -4941,56 +4954,89 @@
                                         Margin="5"
                                         Background="#391E72"
                                         CornerRadius="5">
-                                        <StackPanel Margin="4,4" Orientation="Horizontal">
-                                            <CheckBox
-                                                Height="23"
-                                                Margin="3,0"
-                                                Content="CPU"
-                                                IsChecked="{Binding IsCPUEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Opacity="{Binding isCPUAvailable, Converter={StaticResource BoolToOpacityConverter}}"
-                                                Style="{StaticResource GlowyToggleButtonMediaLink}" />
-                                            <CheckBox
-                                                Height="23"
-                                                Margin="3,0"
-                                                Content="GPU"
-                                                IsChecked="{Binding IsGPUEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Opacity="{Binding IsGPUAvailable, Converter={StaticResource BoolToOpacityConverter}}"
-                                                Style="{StaticResource GlowyToggleButtonMediaLink}" />
-                                            <CheckBox
-                                                Height="23"
-                                                Margin="3,0"
-                                                Content="VRAM"
-                                                IsChecked="{Binding IsVRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Opacity="{Binding isVRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
-                                                Style="{StaticResource GlowyToggleButtonMediaLink}" />
-                                            <CheckBox
-                                                Height="23"
-                                                Margin="3,0"
-                                                Content="RAM"
-                                                IsChecked="{Binding IsRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Opacity="{Binding isRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
-                                                Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                        <Grid>
+                                            <StackPanel Margin="4,4" Orientation="Horizontal">
+                                                <CheckBox
+                                                    Height="23"
+                                                    Margin="3,0"
+                                                    Content="CPU"
+                                                    IsChecked="{Binding IsCPUEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Opacity="{Binding isCPUAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                                    Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                                <CheckBox
+                                                    Height="23"
+                                                    Margin="3,0"
+                                                    Content="GPU"
+                                                    IsChecked="{Binding IsGPUEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Opacity="{Binding IsGPUAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                                    Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                                <CheckBox
+                                                    Height="23"
+                                                    Margin="3,0"
+                                                    Content="VRAM"
+                                                    IsChecked="{Binding IsVRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Opacity="{Binding isVRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                                    Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                                <CheckBox
+                                                    Height="23"
+                                                    Margin="3,0"
+                                                    Content="RAM"
+                                                    IsChecked="{Binding IsRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Opacity="{Binding isRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                                    Style="{StaticResource GlowyToggleButtonMediaLink}" />
 
-                                            <TextBlock
-                                                Margin="7,0,0,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="12"
-                                                Foreground="#9B7FD9"
-                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                                Text="{Binding ComponentStatsError, UpdateSourceTrigger=PropertyChanged}"
-                                                TextWrapping="Wrap"
-                                                Visibility="{Binding IsThereAComponentThatIsNotAvailable, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="10"
-                                                        Opacity="1"
-                                                        ShadowDepth="0"
-                                                        Color="#8B2FFA" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
+                                                <TextBlock
+                                                    Margin="7,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="12"
+                                                    Foreground="#9B7FD9"
+                                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                    Text="{Binding ComponentStatsError, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{Binding IsThereAComponentThatIsNotAvailable, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="10"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="#8B2FFA" />
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
 
-                                        </StackPanel>
+                                            </StackPanel>
+                                            <StackPanel
+                                                HorizontalAlignment="Right"
+                                                Orientation="Horizontal"
+                                                Visibility="{Binding IsThereAComponentThatIsNotGettingTempOrWattage, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <Button
+                                                    x:Name="RestartApplicationAsAdmin"
+                                                    Height="30"
+                                                    Click="RestartApplicationAsAdmin_Click"
+                                                    Margin="3"
+                                                    VerticalAlignment="Top"
+                                                    Opacity="0.7"
+                                                    Style="{StaticResource Status_Button_style}">
+                                                    <Button.ContentTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Image
+                                                                    Height="18"
+                                                                    Margin="4,0,4,0"
+                                                                    Source="/Img/Icons/admin.png" />
+                                                                <TextBlock
+                                                                    Margin="0,-2,5,0"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="15"
+                                                                    Text="Some stats need admin rights" />
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </Button.ContentTemplate>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+
+
                                     </Border>
 
                                 </Border>
