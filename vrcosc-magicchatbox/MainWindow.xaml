@@ -3191,7 +3191,18 @@
                                         FontSize="15"
                                         Foreground="#FF240E54"
                                         Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
+                                    <CheckBox
+                                        x:Name="UnmuteMainOutput_checkbox"
+                                        Height="21"
+                                        Margin="0,0,0,15"
+                                        BorderBrush="#FF2D1265"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding UnmuteMainOutput, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Toggle voice on main output
+                                    </CheckBox>
                                 </StackPanel>
                                 <TextBlock
                                     Width="auto"

@@ -316,6 +316,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "ThirdOSC", (typeof(bool), "OSC") },
                 { "UnmuteThirdOutput", (typeof(bool), "OSC") },
                 { "UnmuteSecOutput", (typeof(bool), "OSC") },
+                { "UnmuteMainOutput", (typeof(bool), "OSC") },
 
 
 

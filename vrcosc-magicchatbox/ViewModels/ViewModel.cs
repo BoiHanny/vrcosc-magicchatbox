@@ -844,6 +844,16 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _UnmuteMainOutput = true;
+        public bool UnmuteMainOutput
+        {
+            get { return _UnmuteMainOutput; }
+            set
+            {
+                _UnmuteMainOutput = value;
+                NotifyPropertyChanged(nameof(UnmuteMainOutput));
+            }
+        }
 
 
         public bool isVRAMMaxValueShown

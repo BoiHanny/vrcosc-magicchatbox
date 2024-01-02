@@ -178,7 +178,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             await Task.Run(() =>
             {
+                if(ViewModel.Instance.UnmuteMainOutput)
                 OscSender.Send(new OscMessage(INPUT_VOICE, 1));
+
                 if (ViewModel.Instance.SecOSC && ViewModel.Instance.UnmuteSecOutput)
                     SecOscSender.Send(new OscMessage(INPUT_VOICE, 1));
                 if (ViewModel.Instance.ThirdOSC && ViewModel.Instance.UnmuteThirdOutput)
@@ -187,7 +189,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 ViewModel.Instance.TTSBtnShadow = true;
                 Thread.Sleep(100);
 
-                OscSender.Send(new OscMessage(INPUT_VOICE, 0));
+                if (ViewModel.Instance.UnmuteMainOutput)
+                    OscSender.Send(new OscMessage(INPUT_VOICE, 0));
                 if (ViewModel.Instance.SecOSC && ViewModel.Instance.UnmuteSecOutput)
                     SecOscSender.Send(new OscMessage(INPUT_VOICE, 0));
                 if (ViewModel.Instance.ThirdOSC && ViewModel.Instance.UnmuteThirdOutput)
