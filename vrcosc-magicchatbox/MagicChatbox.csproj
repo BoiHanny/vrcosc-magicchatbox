@@ -146,7 +146,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.3" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.3" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
@@ -154,7 +153,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
     <PackageReference Include="NLog" Version="5.2.8" />
-    <PackageReference Include="OpenAI-DotNet" Version="7.5.0" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.6.0" />
   </ItemGroup>
 
   <ItemGroup>
