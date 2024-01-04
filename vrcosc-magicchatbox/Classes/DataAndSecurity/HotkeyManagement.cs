@@ -14,7 +14,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
     {
         private static HotkeyManagement _instance;
         private Window _mainWindow;
-        private string HotkeyConfigFile;
+        private readonly string HotkeyConfigFile;
         private Dictionary<string, HotkeyInfo> _hotkeyActions;
 
         [JsonObject(MemberSerialization.OptIn)]
@@ -43,16 +43,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         private HotkeyManagement()
         {
             _hotkeyActions = new Dictionary<string, HotkeyInfo>();
-            HotkeyConfigFile = Path.Combine(ViewModel.Instance.DataPath, "HotkeyConfig.json");
+            HotkeyConfigFile = Path.Combine(ViewModel.Instance.DataPath, "HotkeyConfigV1.json");
 
-            if (File.Exists(HotkeyConfigFile))
-            {
-                LoadHotkeyConfigurations();
-            }
-            else
-            {
-                AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
-            }
+            LoadHotkeyConfigurations(); // Refactored to handle exceptions internally.
         }
 
         public void Initialize(Window mainWindow)
@@ -64,100 +57,63 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void AddKeyBinding(string name, Key key, ModifierKeys modifiers, Action action)
         {
-            try
-            {
-
-            }
-            catch (Exception)
+            if (!_hotkeyActions.ContainsKey(name))
             {
                 var hotkeyInfo = new HotkeyInfo(key, modifiers);
                 hotkeyInfo.SetAction(action);
                 _hotkeyActions[name] = hotkeyInfo;
             }
-
         }
 
         private void RegisterAllGlobalHotkeys()
         {
             foreach (var kvp in _hotkeyActions)
             {
-                try
-                {
-                    HotkeyManager.Current.AddOrReplace(kvp.Key, kvp.Value.Key, kvp.Value.Modifiers, OnGlobalHotkeyPressed);
-                }
-                catch (HotkeyAlreadyRegisteredException ex)
-                {
-                    MessageBox.Show($"The hotkey {kvp.Value.Modifiers} + {kvp.Value.Key} is already registered by another application.", "Hotkey Registration Failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteException(ex, MSGBox: true);
-                }
+                RegisterGlobalHotkey(kvp.Key, kvp.Value);
             }
         }
 
-
         public void SaveHotkeyConfigurations()
         {
-            // Create a temporary dictionary to hold serializable data.
             var serializableHotkeyActions = new Dictionary<string, object>();
-
             foreach (var entry in _hotkeyActions)
             {
-                // Create a serializable anonymous object containing only the serializable properties.
-                var hotkeyInfo = new
-                {
-                    Key = entry.Value.Key,
-                    Modifiers = entry.Value.Modifiers
-                };
+                var hotkeyInfo = new { Key = entry.Value.Key, Modifiers = entry.Value.Modifiers };
                 serializableHotkeyActions.Add(entry.Key, hotkeyInfo);
             }
 
             try
             {
-                // Serialize the temporary dictionary to JSON.
                 var json = JsonConvert.SerializeObject(serializableHotkeyActions, Formatting.Indented);
                 File.WriteAllText(HotkeyConfigFile, json);
             }
-            catch (IOException ex)
-            {
-                // Handle I/O exceptions (e.g., file access issues).
-                Logging.WriteException(ex, MSGBox: true);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                // Handle security exceptions.
-                Logging.WriteException(ex, MSGBox: true);
-            }
             catch (Exception ex)
             {
-                // Handle other exceptions.
-                Logging.WriteException(ex, MSGBox: true);
+                Logging.WriteException(ex: ex, MSGBox: false);
             }
         }
-
 
         private void LoadHotkeyConfigurations()
         {
             try
             {
-                var json = File.ReadAllText(HotkeyConfigFile);
-                _hotkeyActions = JsonConvert.DeserializeObject<Dictionary<string, HotkeyInfo>>(json);
+                if (!File.Exists(HotkeyConfigFile))
+                {
+                    AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+                    SaveHotkeyConfigurations();
+                    return;
+                }
 
-                // Make sure the default hotkey is always present.
+                var json = File.ReadAllText(HotkeyConfigFile);
+                _hotkeyActions = JsonConvert.DeserializeObject<Dictionary<string, HotkeyInfo>>(json) ?? new Dictionary<string, HotkeyInfo>();
                 if (!_hotkeyActions.ContainsKey("ToggleVoiceGlobal"))
                 {
                     AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
                 }
-                else
-                {
-                    _hotkeyActions["ToggleVoiceGlobal"].SetAction(ToggleVoice);
-                }
             }
             catch (Exception ex)
             {
-                // If there's any error, log it and set up the default hotkey.
-                Logging.WriteException(ex, MSGBox: true);
+                Logging.WriteException(ex: ex, MSGBox: false);
                 AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
             }
         }
@@ -167,8 +123,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             var hotkeyInfo = new HotkeyInfo(key, modifiers);
             hotkeyInfo.SetAction(action);
             _hotkeyActions[name] = hotkeyInfo;
-
-            // Attempt to register the hotkey immediately.
             RegisterGlobalHotkey(name, hotkeyInfo);
         }
 
@@ -178,17 +132,15 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 HotkeyManager.Current.AddOrReplace(name, hotkeyInfo.Key, hotkeyInfo.Modifiers, OnGlobalHotkeyPressed);
             }
-            catch (HotkeyAlreadyRegisteredException ex)
+            catch (HotkeyAlreadyRegisteredException)
             {
-                MessageBox.Show($"The hotkey {hotkeyInfo.Modifiers} + {hotkeyInfo.Key} is already registered by another application.", "Hotkey Registration Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true);
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, MSGBox: true);
+                Logging.WriteException(ex: ex, MSGBox: false);
             }
         }
-
-
 
         private void OnGlobalHotkeyPressed(object sender, HotkeyEventArgs e)
         {
@@ -201,21 +153,13 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, MSGBox: true);
+                Logging.WriteException(ex: ex, MSGBox: false);
             }
         }
 
+
         private static void SetupLocalHotkey(Window window)
         {
-            try
-            {
-
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
             window.KeyDown += (sender, e) =>
             {
                 if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.None)
