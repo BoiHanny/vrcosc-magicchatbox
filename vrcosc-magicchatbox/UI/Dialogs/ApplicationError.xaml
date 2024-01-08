@@ -165,24 +165,25 @@
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                 <Button
                     Height="30"
+                    x:Name="Update"
                     Margin="0,15,2,15"
                     Padding="5"
                     VerticalAlignment="Top"
-                    Click="OpenLastLogFile"
+                    Click="Update_Click"
                     Opacity="0.7"
-                    Style="{StaticResource Status_Button_style}">
+                    Style="{StaticResource UpdatedGreenButtonStyle}">
                     <Button.ContentTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <Image
                                     Height="18"
                                     Margin="0,0,4,0"
-                                    Source="/Img/Icons/Log.png" />
+                                    Source="/Img/Icons/Upload.png" />
                                 <TextBlock
                                     Margin="0,-2,5,0"
                                     VerticalAlignment="Center"
                                     FontSize="15"
-                                    Text="Open last log file" />
+                                    Text="Update MagicChatbox with ZIP file" />
                             </StackPanel>
                         </DataTemplate>
                     </Button.ContentTemplate>

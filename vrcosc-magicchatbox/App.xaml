@@ -544,6 +544,58 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="UpdatedGreenButtonStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
+            <Setter Property="Background" Value="#343541" />
+            <Setter Property="BorderBrush" Value="Gray" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3"
+                            SnapsToDevicePixels="true">
+                            <ContentPresenter
+                                x:Name="contentPresenter"
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Focusable="False"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#28A745" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="border" Property="Background" Value="#2D2F36" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#1E7E34" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter TargetName="border" Property="Background" Value="#1C7430" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#19692C" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter TargetName="border" Property="Background" Value="#6C757D" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="#5A6268" />
+                                <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="#ADB5BD" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
         <Style x:Key="Status_Button_style" TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
             <Setter Property="Background" Value="{StaticResource Button.Static.Background3}" />

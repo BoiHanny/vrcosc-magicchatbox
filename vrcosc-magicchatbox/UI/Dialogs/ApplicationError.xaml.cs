@@ -9,6 +9,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -40,22 +41,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         { Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"); }
 
 
-        private void OpenLastLogFile(object sender, RoutedEventArgs e)
-        {
-            string logFolderPath = @"C:\temp\Vrcosc-MagicChatbox";
-            if (Directory.Exists(logFolderPath))
-            {
-                string[] logFiles = Directory.GetFiles(logFolderPath, "*.log");
-                DateTime today = DateTime.Today;
-                string latestLogFile = logFiles.Where(file => File.GetCreationTime(file).Date == today)
-                                              .OrderByDescending(file => File.GetCreationTime(file))
-                                              .FirstOrDefault();
-                if (latestLogFile != null)
-                {
-                    Process.Start("explorer", latestLogFile);
-                }
-            }
-        }
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
@@ -70,5 +55,12 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 Process.Start("explorer", logFolderPath);
             }
         }
+
+        private void Update_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateApp updater = new UpdateApp();
+            updater.SelectCustomZip();
+        }
+
     }
 }

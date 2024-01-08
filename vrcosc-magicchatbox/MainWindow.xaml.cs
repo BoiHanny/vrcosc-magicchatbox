@@ -646,7 +646,8 @@ namespace vrcosc_magicchatbox
             {
                 ViewModel.Instance.CanUpdate = false;
                 ViewModel.Instance.CanUpdateLabel = false;
-                Task.Run(() => UpdateApp.PrepareUpdate());
+                UpdateApp updateApp = new UpdateApp();
+                Task.Run(() => updateApp.PrepareUpdate());
             }
             else
             {
@@ -1444,5 +1445,10 @@ namespace vrcosc_magicchatbox
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
+        private void UpdateByZipFile_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateApp updateApp = new UpdateApp();
+            updateApp.SelectCustomZip();
+        }
     }
 }

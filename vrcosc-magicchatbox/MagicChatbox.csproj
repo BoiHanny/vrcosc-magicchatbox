@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.8.712</Version>
+	<Version>0.8.715</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -70,6 +70,7 @@
     <None Remove="Img\Icons\subtract_ico.png" />
     <None Remove="Img\Icons\SystemTime_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
+    <None Remove="Img\Icons\Upload.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
     <None Remove="Img\Icons\yes.png" />
     <None Remove="Img\MagicOSC_icon.png" />
@@ -130,6 +131,7 @@
     <Resource Include="Img\Icons\Unfavorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Upload.png" />
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
