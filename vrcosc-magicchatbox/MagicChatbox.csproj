@@ -153,7 +153,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
     <PackageReference Include="NLog" Version="5.2.8" />
-    <PackageReference Include="OpenAI-DotNet" Version="7.6.0" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.6.1" />
     <PackageReference Include="OpenVR.NET" Version="0.8.5" />
   </ItemGroup>
 

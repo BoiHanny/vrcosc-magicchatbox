@@ -22,18 +22,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             [JsonProperty] public Key Key { get; private set; }
             [JsonProperty] public ModifierKeys Modifiers { get; private set; }
-            public Action Action { get; private set; }
+            [JsonIgnore] public Action Action { get; private set; }
 
-            [JsonConstructor]
-            public HotkeyInfo(Key key, ModifierKeys modifiers)
+            public HotkeyInfo(Key key, ModifierKeys modifiers, Action action = null)
             {
                 Key = key;
                 Modifiers = modifiers;
-                Action = null;
-            }
-
-            public void SetAction(Action action)
-            {
                 Action = action;
             }
         }
@@ -43,9 +37,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         private HotkeyManagement()
         {
             _hotkeyActions = new Dictionary<string, HotkeyInfo>();
-            HotkeyConfigFile = Path.Combine(ViewModel.Instance.DataPath, "HotkeyConfigV1.json");
-
-            LoadHotkeyConfigurations(); // Refactored to handle exceptions internally.
+            HotkeyConfigFile = Path.Combine(ViewModel.Instance.DataPath, "HotkeyConfiguration.json");
+            LoadHotkeyConfigurations();
         }
 
         public void Initialize(Window mainWindow)
@@ -57,12 +50,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void AddKeyBinding(string name, Key key, ModifierKeys modifiers, Action action)
         {
-            if (!_hotkeyActions.ContainsKey(name))
-            {
-                var hotkeyInfo = new HotkeyInfo(key, modifiers);
-                hotkeyInfo.SetAction(action);
-                _hotkeyActions[name] = hotkeyInfo;
-            }
+            _hotkeyActions[name] = new HotkeyInfo(key, modifiers, action);
         }
 
         private void RegisterAllGlobalHotkeys()
@@ -78,7 +66,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             var serializableHotkeyActions = new Dictionary<string, object>();
             foreach (var entry in _hotkeyActions)
             {
-                var hotkeyInfo = new { Key = entry.Value.Key, Modifiers = entry.Value.Modifiers };
+                var hotkeyInfo = new { Key = entry.Value.Key.ToString(), Modifiers = entry.Value.Modifiers.ToString() };
                 serializableHotkeyActions.Add(entry.Key, hotkeyInfo);
             }
 
@@ -95,36 +83,41 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void LoadHotkeyConfigurations()
         {
-            try
+            if (!File.Exists(HotkeyConfigFile))
             {
-                if (!File.Exists(HotkeyConfigFile))
-                {
-                    AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
-                    SaveHotkeyConfigurations();
-                    return;
-                }
-
-                var json = File.ReadAllText(HotkeyConfigFile);
-                _hotkeyActions = JsonConvert.DeserializeObject<Dictionary<string, HotkeyInfo>>(json) ?? new Dictionary<string, HotkeyInfo>();
-                if (!_hotkeyActions.ContainsKey("ToggleVoiceGlobal"))
-                {
-                    AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
-                }
+                AddDefaultHotkeys();
+                SaveHotkeyConfigurations();
+                return;
             }
-            catch (Exception ex)
+
+            var json = File.ReadAllText(HotkeyConfigFile);
+            var deserialized = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+
+            _hotkeyActions.Clear();
+            foreach (var entry in deserialized)
             {
-                Logging.WriteException(ex: ex, MSGBox: false);
-                AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+                var key = (Key)Enum.Parse(typeof(Key), entry.Value["Key"]);
+                var modifiers = (ModifierKeys)Enum.Parse(typeof(ModifierKeys), entry.Value["Modifiers"]);
+                AddKeyBinding(entry.Key, key, modifiers, GetActionForHotkey(entry.Key));
             }
         }
 
-        private void AddDefaultHotkey(string name, Key key, ModifierKeys modifiers, Action action)
+        private Action GetActionForHotkey(string hotkeyName)
         {
-            var hotkeyInfo = new HotkeyInfo(key, modifiers);
-            hotkeyInfo.SetAction(action);
-            _hotkeyActions[name] = hotkeyInfo;
-            RegisterGlobalHotkey(name, hotkeyInfo);
+            return hotkeyName switch
+            {
+                "ToggleVoiceGlobal" => ToggleVoice,
+                // Add other hotkey actions here
+                _ => null
+            };
         }
+
+        private void AddDefaultHotkeys()
+        {
+            AddKeyBinding("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+            // Add other default hotkeys here
+        }
+
 
         private void RegisterGlobalHotkey(string name, HotkeyInfo hotkeyInfo)
         {
@@ -134,10 +127,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (HotkeyAlreadyRegisteredException)
             {
-                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true);
+                // Handle already registered hotkey case
+                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose:true*);
             }
             catch (Exception ex)
             {
+                // Handle other exceptions
                 Logging.WriteException(ex: ex, MSGBox: false);
             }
         }
@@ -148,12 +143,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
                 {
-                    hotkeyInfo.Action?.Invoke();
+                    Application.Current.Dispatcher.Invoke(hotkeyInfo.Action);
                 }
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex: ex, MSGBox: false);
+                Logging.WriteException(ex, false);
             }
         }
 
