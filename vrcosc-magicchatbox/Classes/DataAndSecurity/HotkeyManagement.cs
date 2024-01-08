@@ -128,7 +128,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             catch (HotkeyAlreadyRegisteredException)
             {
                 // Handle already registered hotkey case
-                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose:true*);
+                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose:true);
             }
             catch (Exception ex)
             {
