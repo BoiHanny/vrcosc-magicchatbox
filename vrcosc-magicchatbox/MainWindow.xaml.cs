@@ -28,6 +28,7 @@ namespace vrcosc_magicchatbox
     public partial class MainWindow : Window
     {
 
+        private object _draggedItem;
         private const int WM_ENTERSIZEMOVE = 0x0231;
         SoundpadModule SoundpadModule = null;
         private const int WM_EXITSIZEMOVE = 0x0232;
@@ -126,7 +127,7 @@ namespace vrcosc_magicchatbox
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
             //whisperModule = new WhisperModule();
-           // whisperModule.StartRecording();
+            // whisperModule.StartRecording();
 
         }
 
@@ -1340,7 +1341,7 @@ namespace vrcosc_magicchatbox
         private void MediaSessionPausePlay_Click(object sender, RoutedEventArgs e)
         {
             MediaSessionInfo? mediaSession = sender is Button button ? button.Tag as MediaSessionInfo : null;
-            if(mediaSession != null)
+            if (mediaSession != null)
             {
                 MediaLinkModule.MediaManager_PlayPauseAsync(mediaSession);
             }
@@ -1449,6 +1450,54 @@ namespace vrcosc_magicchatbox
         {
             UpdateApp updateApp = new UpdateApp();
             updateApp.SelectCustomZip();
+        }
+
+        private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ListBox listBox)
+            {
+                var position = e.GetPosition(listBox);
+                var item = listBox.InputHitTest(position) as FrameworkElement;
+                if (item != null)
+                {
+                    _draggedItem = item.DataContext;
+                    DragDrop.DoDragDrop(listBox, _draggedItem, DragDropEffects.Move);
+                }
+            }
+        }
+
+        private void IntegrationListBox_Drop(object sender, DragEventArgs e)
+        {
+            if (sender is ListBox listBox)
+            {
+                var droppedData = e.Data.GetData(_draggedItem.GetType());
+                var target = listBox.InputHitTest(e.GetPosition(listBox)) as FrameworkElement;
+
+                if (droppedData != null && target != null)
+                {
+                    var targetData = target.DataContext;
+
+                    int removedIdx = listBox.Items.IndexOf(_draggedItem);
+                    int targetIdx = listBox.Items.IndexOf(targetData);
+
+                    if (targetIdx != -1)
+                    {
+                        if (removedIdx < targetIdx)
+                        {
+                            listBox.Items.Insert(targetIdx + 1, _draggedItem);
+                            listBox.Items.RemoveAt(removedIdx);
+                        }
+                        else
+                        {
+                            int insertIdx = removedIdx > targetIdx ? targetIdx : targetIdx + 1;
+                            listBox.Items.RemoveAt(removedIdx);
+                            listBox.Items.Insert(insertIdx, _draggedItem);
+                        }
+                        // Ensure the ListBox updates the visual position of the items
+                        listBox.Items.Refresh();
+                    }
+                }
+            }
         }
     }
 }
