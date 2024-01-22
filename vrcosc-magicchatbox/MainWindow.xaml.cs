@@ -112,62 +112,7 @@ namespace vrcosc_magicchatbox
             windowChrome.GlassFrameThickness = new Thickness(1);
         }
 
-        private ListBoxItem _draggedItem;
 
-        //new WhisperModule whisperModule;
-
-        private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var listBox = sender as ListBox;
-            var point = e.GetPosition(null);
-            var hitTestResult = VisualTreeHelper.HitTest(listBox, point);
-            if (hitTestResult == null) return;
-
-            _draggedItem = FindAncestor<ListBoxItem>((DependencyObject)hitTestResult.VisualHit);
-            if (_draggedItem != null)
-            {
-                DragDrop.DoDragDrop(_draggedItem, _draggedItem.DataContext, DragDropEffects.Move);
-            }
-        }
-
-        private void ListBox_Drop(object sender, DragEventArgs e)
-        {
-            if (_draggedItem == null) return;
-
-            var listBox = sender as ListBox;
-            var droppedData = e.Data.GetData(typeof(string)); // Assuming the DataContext is a string
-            var targetItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
-
-            if (listBox.Items.Contains(droppedData) && targetItem != null)
-            {
-                listBox.Items.Remove(droppedData);
-                listBox.Items.Insert(listBox.Items.IndexOf(targetItem.DataContext), droppedData);
-            }
-
-            _draggedItem = null;
-        }
-
-        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
-        {
-            do
-            {
-                if (current is T)
-                {
-                    return (T)current;
-                }
-                current = VisualTreeHelper.GetParent(current);
-            }
-            while (current != null);
-            return null;
-        }
-
-        public List<string> GetItemsOrder()
-        {
-            return IntegrationsList.Items
-                .OfType<ListBoxItem>()
-                .Select(item => item.Name)
-                .ToList();
-        }
 
 
         public MainWindow()
