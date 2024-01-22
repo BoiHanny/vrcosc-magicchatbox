@@ -6,6 +6,20 @@
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Application.Resources>
+        <DropShadowEffect
+            x:Key="TextBlockShadowEffect"
+            BlurRadius="10"
+            Opacity="1"
+            ShadowDepth="0"
+            Color="#251153" />
+
+        <!--  Image Shadow Effect  -->
+        <DropShadowEffect
+            x:Key="ImageShadowEffect"
+            BlurRadius="25"
+            Opacity="0.4"
+            ShadowDepth="0"
+            Color="#251153" />
         <Style x:Key="CircleButton" TargetType="Button">
             <Setter Property="Background" Value="#3D217A" />
             <Setter Property="BorderBrush" Value="Transparent" />

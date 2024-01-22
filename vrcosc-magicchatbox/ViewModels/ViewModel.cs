@@ -175,6 +175,7 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 { nameof(Settings_WindowActivity), value => Settings_WindowActivity = value },
                 { nameof(Settings_MediaLink), value => Settings_MediaLink = value },
+                { nameof(Settings_OpenAI), value => Settings_OpenAI = value },
                 { nameof(Settings_Chatting), value => Settings_Chatting = value },
                 { nameof(Settings_ComponentStats), value => Settings_ComponentStats = value },
                 { nameof(Settings_NetworkStatistics), value => Settings_NetworkStatistics = value },

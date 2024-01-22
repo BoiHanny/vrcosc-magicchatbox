@@ -8,7 +8,7 @@
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
     Width="1000"
-    Height="800"
+    Height="750"
     MinWidth="1000"
     MinHeight="500"
     VerticalAlignment="Bottom"
@@ -40,6 +40,7 @@
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+            <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -390,90 +391,12 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="220" />
             </Grid.ColumnDefinitions>
-            <ListBox
-                x:Name="IntegrationsList"
-                Grid.Row="1"
-                Grid.Column="0"
-                Background="#FF3B3054"
-                BorderThickness="0"
-                Visibility="{Binding MenuItem_0_Visibility}">
-                <ListBoxItem Name="StatusItem" Opacity="{Binding Status_Opacity}">
-                    <Border
-                        Margin="5"
-                        Background="DarkSlateBlue"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="5"
-                                Direction="-23"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="DarkBlue" />
-                        </Border.Effect>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="600" />
-                            </Grid.ColumnDefinitions>
-                            <Image
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Width="35"
-                                Margin="5"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Source="/Img/Icons/PersonalMsg_ico.png">
-                                <Image.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="25"
-                                        Opacity="0.4"
-                                        ShadowDepth="0"
-                                        Color="#251153" />
-                                </Image.Effect>
-                            </Image>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Personal status"
-                                    TextWrapping="Wrap">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="1"
-                                            ShadowDepth="0"
-                                            Color="#251153" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                                <TextBlock
-                                    Grid.Column="1"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="LightGray"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="With this integration, you can write an epic status that you want to show to everyone in game dsftretert erertertsdfdsf sdfsdfsdf sdfsdddfef"
-                                    TextWrapping="Wrap">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="1"
-                                            ShadowDepth="0"
-                                            Color="#251153" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </StackPanel>
 
-                        </Grid>
-                    </Border>
-                </ListBoxItem>
-            </ListBox>
+
 
             <Grid
                 Grid.Row="1"
+                d:Visibility="Collapsed"
                 Background="#FF3B3054"
                 Visibility="{Binding MenuItem_1_Visibility}">
                 <Grid.RowDefinitions>
@@ -986,6 +909,7 @@
 
             <ScrollViewer
                 Grid.Row="1"
+                d:Visibility="Collapsed"
                 Background="#FF3B3054"
                 Visibility="{Binding MenuItem_3_Visibility}">
 
@@ -4076,6 +4000,7 @@
             </ScrollViewer>
             <Grid
                 Grid.Row="1"
+                d:Visibility="Collapsed"
                 Background="#FF3B3054"
                 Visibility="{Binding MenuItem_2_Visibility}">
                 <Grid.RowDefinitions>
@@ -5175,7 +5100,1549 @@
                 </Button>
 
             </Grid>
+            <ListBox
+                x:Name="IntegrationsList"
+                Grid.Row="1"
+                Grid.Column="0"
+                HorizontalContentAlignment="Stretch"
+                d:Visibility="Visible"
+                Background="Transparent"
+                BorderThickness="0"
+                ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                Visibility="{Binding MenuItem_0_Visibility}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="13,0,18,0" />
+                        <Setter Property="Width" Value="{Binding ActualWidth, ElementName=IntegrationsList}" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBoxItem Name="StatusItem" Opacity="{Binding Status_Opacity}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/PersonalMsg_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Personal status"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrStatus_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Grid.Column="1"
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrStatus_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Status"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
 
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="With this integration, you can write an epic status message that will be displayed in the chatbox.."
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="Status_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrStatus, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="WindowActivityItem" Opacity="{Binding Window_Opacity}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="45"
+                                Margin="1"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/WindowActivity_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Window activity"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrWindowActivity_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrWindowActivity_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="57"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="Force VR"
+                                        IsChecked="{Binding IntgrScanForce, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}"
+                                        Visibility="{Binding IntgrWindowActivity_VR, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_WindowActivity"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="WindowActivity_switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrScanWindowActivity, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="HeartRateItem" Opacity="{Binding HeartRate_Opacity}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/HeartRate_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Pulsoid Heart Rate"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrHeartRate_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrHeartRate_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_HeartRate"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                    <TextBlock
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="12"
+                                        Foreground="PaleVioletRed"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Something went wrong, check settings"
+                                        Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="12"
+                                        Foreground="#ABA4B8"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                        Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="With this integration, you can display your heart rate in real-time. Only compatible with Pulsoid"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="NewHR_Switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrHeartRate, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="ComponentStatsItem" Opacity="{Binding ComponentStat_Opacity}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <Border
+                            Grid.Row="1"
+                            Margin="10,-15,10,5"
+                            d:Visibility="Visible"
+                            Background="#230E52"
+                            CornerRadius="0,0,5,5"
+                            Visibility="{Binding ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Border Margin="5,15,5,5" CornerRadius="5">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                        <GradientStop Color="DarkSlateBlue" />
+                                        <GradientStop Offset="1" Color="#FF302573" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Grid>
+                                    <StackPanel Margin="4,4" Orientation="Horizontal">
+                                        <CheckBox
+                                            Height="23"
+                                            Margin="3,0"
+                                            Content="CPU"
+                                            IsChecked="{Binding IsCPUEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="{Binding isCPUAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                            Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                        <CheckBox
+                                            Height="23"
+                                            Margin="3,0"
+                                            Content="GPU"
+                                            IsChecked="{Binding IsGPUEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="{Binding IsGPUAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                            Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                        <CheckBox
+                                            Height="23"
+                                            Margin="3,0"
+                                            Content="VRAM"
+                                            IsChecked="{Binding IsVRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="{Binding isVRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                            Style="{StaticResource GlowyToggleButtonMediaLink}" />
+                                        <CheckBox
+                                            Height="23"
+                                            Margin="3,0"
+                                            Content="RAM"
+                                            IsChecked="{Binding IsRAMEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="{Binding isRAMAvailable, Converter={StaticResource BoolToOpacityConverter}}"
+                                            Style="{StaticResource GlowyToggleButtonMediaLink}" />
+
+                                        <TextBlock
+                                            Margin="7,0,0,0"
+                                            VerticalAlignment="Center"
+                                            d:Text=":( sorry"
+                                            d:Visibility="Visible"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Foreground="#9B7FD9"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding ComponentStatsError, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding IsThereAComponentThatIsNotAvailable, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#8B2FFA" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+
+                                    </StackPanel>
+                                    <StackPanel
+                                        HorizontalAlignment="Right"
+                                        d:Visibility="Visible"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding IsThereAComponentThatIsNotGettingTempOrWattage, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <Button
+                                            x:Name="RestartApplicationAsAdmin"
+                                            Height="30"
+                                            Margin="3"
+                                            VerticalAlignment="Top"
+                                            Click="RestartApplicationAsAdmin_Click"
+                                            Opacity="0.7"
+                                            Style="{StaticResource Status_Button_style}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Height="18"
+                                                            Margin="4,0,4,0"
+                                                            Source="/Img/Icons/admin.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="15"
+                                                            Text="Some stats need admin rights" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+
+
+                            </Border>
+                        </Border>
+                        <Border
+                            Grid.Row="0"
+                            Margin="5"
+                            CornerRadius="5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="DarkSlateBlue" />
+                                    <GradientStop Offset="1" Color="#FF302573" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid Margin="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <!--  Image  -->
+                                <Image
+                                    Grid.Column="0"
+                                    Width="35"
+                                    Margin="5"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    Source="/Img/Icons/ComponentStats_ico.png" />
+                                <!--  Text Content  -->
+                                <StackPanel
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center">
+                                    <StackPanel
+                                        Margin="0,3,0,0"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="Component ˢᵗᵃᵗˢ"
+                                            TextWrapping="Wrap" />
+                                        <ToggleButton
+                                            Width="60"
+                                            Height="19"
+                                            Margin="10,2,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="DESKTOP"
+                                            IsChecked="{Binding IntgrComponentStats_DESKTOP, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <ToggleButton
+                                            Width="30"
+                                            Height="19"
+                                            Margin="5,2,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="VR"
+                                            IsChecked="{Binding IntgrComponentStats_VR, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_ComponentStats"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                            <Button.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Button.Effect>
+                                        </Button>
+
+                                        <TextBlock
+                                            Margin="5,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Foreground="#ABA4B8"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding ComponentStatsLastUpdate, StringFormat='{}{0:T}'}"
+                                            Visibility="{Binding IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
+                                    <TextBlock
+                                        Margin="0,3,0,0"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="With this integration, you can display your CPU, GPU, RAM, and VRAM usage in real-time."
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Foreground>
+                                            <RadialGradientBrush>
+                                                <GradientStop Color="White" />
+                                                <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                            </RadialGradientBrush>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </StackPanel>
+                                <!--  Toggle Button  -->
+                                <Grid Grid.Column="2">
+                                    <CheckBox
+                                        Name="ComponentStats_Switch"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrComponentStats, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
+                </ListBoxItem>
+                <ListBoxItem Name="NetworkStatsItem" Opacity="{Binding NetworkStats_Opacity}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Offset="0" Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/NetworkStats_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Network ˢᵗᵃᵗˢ"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrNetworkStatistics_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrNetworkStatistics_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_NetworkStatistics"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Display real-time network stats such as download and upload speeds."
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="NetworkStats_switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrNetworkStatistics, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="TimeItem" Opacity="{Binding Time_Opacity}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Offset="0" Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="46"
+                                Margin="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/SystemTime_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Current time"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrCurrentTime_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrCurrentTime_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Time"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Displays local machine time and allows conversion to different time zones."
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="SystemTime_switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="SoundpadItem" Opacity="{Binding Soundpad_Opacity}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/Soundpad.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Soundpad"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrSoundpad_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrSoundpad_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Soundpad"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                    <Run Text="Display audio clips from Soundpad during playback; hidden when paused or inactive." />
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="Soundpad_switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrSoundpad, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+
+                <ListBoxItem
+                    Name="SpotifyItem"
+                    Margin="3"
+                    Opacity="{Binding Spotify_Opacity}"
+                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                Source="/Img/Icons/spotify_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Spotify"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrSpotifyStatus_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrSpotifyStatus_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_MediaLink"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                    <Run Text="Control your Spotify music right from the stream. Display current playing song and artist information." />
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="Spotify_switch"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrScanSpotify_OLD, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+
+                <ListBoxItem
+                    Name="MediaLinkItem"
+                    Margin="3"
+                    Opacity="{Binding MediaLink_Opacity}"
+                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <Border Margin="5" CornerRadius="5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="DarkSlateBlue" />
+                                    <GradientStop Offset="1" Color="#FF302573" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid Margin="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <!--  Image  -->
+                                <Image
+                                    Grid.Column="0"
+                                    Width="35"
+                                    Margin="5"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    Source="/Img/Icons/MediaLink_ico.png" />
+                                <!--  Text Content  -->
+                                <StackPanel
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center">
+                                    <StackPanel
+                                        Margin="0,3,0,0"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="MediaLink"
+                                            TextWrapping="Wrap" />
+                                        <ToggleButton
+                                            Width="60"
+                                            Height="19"
+                                            Margin="10,2,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="DESKTOP"
+                                            IsChecked="{Binding IntgrMediaLink_DESKTOP, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <ToggleButton
+                                            Width="30"
+                                            Height="19"
+                                            Margin="5,2,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="VR"
+                                            IsChecked="{Binding IntgrMediaLink_VR, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_MediaLink"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                            <Button.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Button.Effect>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <TextBlock
+                                        Margin="0,3,0,0"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        Foreground="LightGray"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <!--  Toggle Button  -->
+                                <Grid Grid.Column="2">
+                                    <CheckBox
+                                        Name="MediaLink_switch"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrScanMediaLink, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                        <Border
+                            Grid.Row="1"
+                            Height="auto"
+                            Margin="0,-3,0,0"
+                            Background="Transparent"
+                            CornerRadius="0,0,5,5"
+                            Visibility="{Binding MediaSessions.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <ItemsControl
+                                Height="auto"
+                                Padding="0,0,0,5"
+                                Background="Transparent"
+                                ItemsSource="{Binding MediaSessions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border
+                                            Width="auto"
+                                            Margin="5,5,5,0"
+                                            VerticalAlignment="Stretch"
+                                            Background="#3A1F74"
+                                            CornerRadius="5">
+                                            <Grid Margin="10,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto" MinWidth="60" />
+                                                    <ColumnDefinition Width="auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <!--  RadioButton linked to IsActive  -->
+
+                                                <Border
+                                                    Margin="-10,-5,-5,-5"
+                                                    BorderThickness="3,3,0,3"
+                                                    CornerRadius="4,0,0,4"
+                                                    IsHitTestVisible="False"
+                                                    Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                            <GradientStop Color="#3A1F74" />
+                                                            <GradientStop Offset="1" Color="#230E53" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Border.BorderBrush>
+                                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                            <GradientStop Color="#3A1F74" />
+                                                            <GradientStop Offset="1" Color="#A38ED1" />
+                                                        </LinearGradientBrush>
+                                                    </Border.BorderBrush>
+
+                                                </Border>
+                                                <Border
+                                                    Margin="-10,-5,-5,-5"
+                                                    BorderThickness="3,3,0,3"
+                                                    CornerRadius="4,0,0,4"
+                                                    IsHitTestVisible="False"
+                                                    Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                            <GradientStop Color="#3A1F74" />
+                                                            <GradientStop Offset="1" Color="#2B165C" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Border.BorderBrush>
+                                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                            <GradientStop Color="#3A1F74" />
+                                                            <GradientStop Offset="1" Color="#482D7F" />
+                                                        </LinearGradientBrush>
+                                                    </Border.BorderBrush>
+
+                                                </Border>
+                                                <RadioButton
+                                                    Grid.Column="0"
+                                                    Width="auto"
+                                                    Margin="0,-1,0,0"
+                                                    VerticalAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Checked="Update_Click"
+                                                    Content="{Binding FriendlyAppName}"
+                                                    Cursor="Hand"
+                                                    Foreground="#DBD9DE"
+                                                    GroupName="MediaSessions"
+                                                    IsChecked="{Binding IsActive}"
+                                                    Unchecked="Update_Click">
+
+                                                    <RadioButton.Template>
+                                                        <ControlTemplate TargetType="RadioButton">
+                                                            <ContentPresenter
+                                                                x:Name="contentPresenter"
+                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                                Content="{TemplateBinding Content}"
+                                                                ContentTemplate="{TemplateBinding ContentTemplate}" />
+
+                                                            <ControlTemplate.Triggers>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource Self}}" Value="False" />
+                                                                        <Condition Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter TargetName="contentPresenter" Property="Effect">
+                                                                        <Setter.Value>
+                                                                            <DropShadowEffect
+                                                                                BlurRadius="15"
+                                                                                Opacity="1"
+                                                                                ShadowDepth="0"
+                                                                                Color="White" />
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </MultiDataTrigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </RadioButton.Template>
+                                                </RadioButton>
+
+
+                                                <!--  Label for FriendlyAppName  -->
+
+                                                <!--  CheckBoxes for IsVideo, ShowArtist, ShowTitle  -->
+                                                <StackPanel
+                                                    Grid.Column="1"
+                                                    Margin="7,0,0,0"
+                                                    Orientation="Horizontal">
+                                                    <CheckBox
+                                                        Width="auto"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Checked="Update_Click"
+                                                        Content="VIDEO"
+                                                        IsChecked="{Binding IsVideo}"
+                                                        Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                        Unchecked="Update_Click" />
+                                                    <CheckBox
+                                                        Width="auto"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Checked="Update_Click"
+                                                        Content="ARTIST"
+                                                        IsChecked="{Binding ShowArtist}"
+                                                        Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                        Unchecked="Update_Click" />
+                                                    <CheckBox
+                                                        Width="auto"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Checked="Update_Click"
+                                                        Content="TITLE"
+                                                        IsChecked="{Binding ShowTitle}"
+                                                        Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                        Unchecked="Update_Click" />
+                                                    <Button
+                                                        x:Name="MediaSessionPlay"
+                                                        Width="25"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Click="MediaSessionPausePlay_Click"
+                                                        Content="▶"
+                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                        Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                        Tag="{Binding}"
+                                                        Visibility="{Binding PlayingNow, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                                    <Button
+                                                        x:Name="MediaSessionPause"
+                                                        Width="25"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Click="MediaSessionPausePlay_Click"
+                                                        Content="⏸"
+                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                        Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                        Tag="{Binding}"
+                                                        Visibility="{Binding PlayingNow, Converter={StaticResource InverseBoolToHiddenConverter}}" />
+                                                    <StackPanel
+                                                        Width="200"
+                                                        Margin="5,0,5,0"
+                                                        VerticalAlignment="Center">
+                                                        <Border Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                                            <ProgressBar
+                                                                Margin="0,0,0,0"
+                                                                BorderThickness="5"
+                                                                Effect="{Binding TimePeekEnabled, Converter={StaticResource BoolToBlurEffectConverter}}"
+                                                                Style="{StaticResource MediaPlayerProgress}"
+                                                                Value="{Binding TimePosition, Mode=OneWay}" />
+                                                        </Border>
+                                                        <Grid Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                                            <Grid>
+                                                                <ProgressBar
+                                                                    Margin="0,0,0,0"
+                                                                    BorderThickness="5"
+                                                                    Style="{StaticResource MediaPlayerProgress}"
+                                                                    Visibility="{Binding TimePeekEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}"
+                                                                    Value="69" />
+                                                                <Grid.Effect>
+                                                                    <BlurEffect Radius="10" />
+                                                                </Grid.Effect>
+                                                            </Grid>
+                                                            <TextBox
+                                                                Padding="0,2,0,0"
+                                                                d:Text="LIVE"
+                                                                AllowDrop="False"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Focusable="False"
+                                                                FontFamily="Albert Sans Thin"
+                                                                FontSize="17"
+                                                                FontWeight="Bold"
+                                                                Foreground="#26FFFE"
+                                                                IsHitTestVisible="False"
+                                                                IsReadOnly="True"
+                                                                Opacity="0.8"
+                                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                                Text="LIVE"
+                                                                TextAlignment="Center">
+                                                                <TextBox.Effect>
+                                                                    <DropShadowEffect
+                                                                        BlurRadius="25"
+                                                                        Opacity="1"
+                                                                        RenderingBias="Performance"
+                                                                        ShadowDepth="0"
+                                                                        Color="LightGreen" />
+                                                                </TextBox.Effect>
+                                                            </TextBox>
+                                                        </Grid>
+
+                                                    </StackPanel>
+                                                    <Button
+                                                        x:Name="MediaSessionPrevious"
+                                                        Width="25"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Click="MediaSessionPrevious_Click"
+                                                        Content="⏮"
+                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                        Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                        Tag="{Binding}" />
+                                                    <Button
+                                                        x:Name="MediaSessionNext"
+                                                        Width="25"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Click="MediaSessionNext_Click"
+                                                        Content="⏭"
+                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                        Style="{StaticResource GlowyButtonMediaLinkWithText}"
+                                                        Tag="{Binding}" />
+
+                                                </StackPanel>
+
+                                                <StackPanel />
+                                                <StackPanel
+                                                    Grid.Column="2"
+                                                    Margin="0,0,-6,0"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal">
+
+                                                    <CheckBox
+                                                        Height="25"
+                                                        Margin="0,0,3,0"
+                                                        Checked="Update_Click"
+                                                        Content="AUTOSWITCH ON PLAY"
+                                                        IsChecked="{Binding AutoSwitch}"
+                                                        Style="{DynamicResource GlowyToggleButtonMediaLink}"
+                                                        Unchecked="Update_Click" />
+                                                    <CheckBox
+                                                        Width="25"
+                                                        Height="25"
+                                                        Margin="3,0"
+                                                        VerticalAlignment="Center"
+                                                        Checked="Update_Click"
+                                                        Content=""
+                                                        IsChecked="{Binding KeepSaved}"
+                                                        Style="{DynamicResource GlowyToggleButtonMediaLinkWithImage}"
+                                                        Unchecked="Update_Click" />
+
+                                                </StackPanel>
+
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </Grid>
+
+
+                </ListBoxItem>
+
+
+
+
+
+
+            </ListBox>
         </Grid>
     </Border>
 </Window>
