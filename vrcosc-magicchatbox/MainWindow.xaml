@@ -5112,8 +5112,20 @@
                 Visibility="{Binding MenuItem_0_Visibility}">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="13,0,18,0" />
-                        <Setter Property="Width" Value="{Binding ActualWidth, ElementName=IntegrationsList}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border
+                                        Width="{Binding ActualWidth, ElementName=IntegrationsList}"
+                                        Padding="10,0,19,0"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                        <ContentPresenter />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </ListBox.ItemContainerStyle>
                 <ListBoxItem Name="StatusItem" Opacity="{Binding Status_Opacity}">
@@ -6340,6 +6352,7 @@
                             Grid.Row="1"
                             Height="auto"
                             Margin="0,-3,0,0"
+                            d:Visibility="Visible"
                             Background="Transparent"
                             CornerRadius="0,0,5,5"
                             Visibility="{Binding MediaSessions.Count, Converter={StaticResource CountToVisibilityConverter}}">

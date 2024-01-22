@@ -28,7 +28,6 @@ namespace vrcosc_magicchatbox
     public partial class MainWindow : Window
     {
 
-        private object _draggedItem;
         private const int WM_ENTERSIZEMOVE = 0x0231;
         SoundpadModule SoundpadModule = null;
         private const int WM_EXITSIZEMOVE = 0x0232;
@@ -113,7 +112,63 @@ namespace vrcosc_magicchatbox
             windowChrome.GlassFrameThickness = new Thickness(1);
         }
 
+        private ListBoxItem _draggedItem;
+
         //new WhisperModule whisperModule;
+
+        private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var listBox = sender as ListBox;
+            var point = e.GetPosition(null);
+            var hitTestResult = VisualTreeHelper.HitTest(listBox, point);
+            if (hitTestResult == null) return;
+
+            _draggedItem = FindAncestor<ListBoxItem>((DependencyObject)hitTestResult.VisualHit);
+            if (_draggedItem != null)
+            {
+                DragDrop.DoDragDrop(_draggedItem, _draggedItem.DataContext, DragDropEffects.Move);
+            }
+        }
+
+        private void ListBox_Drop(object sender, DragEventArgs e)
+        {
+            if (_draggedItem == null) return;
+
+            var listBox = sender as ListBox;
+            var droppedData = e.Data.GetData(typeof(string)); // Assuming the DataContext is a string
+            var targetItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+
+            if (listBox.Items.Contains(droppedData) && targetItem != null)
+            {
+                listBox.Items.Remove(droppedData);
+                listBox.Items.Insert(listBox.Items.IndexOf(targetItem.DataContext), droppedData);
+            }
+
+            _draggedItem = null;
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            do
+            {
+                if (current is T)
+                {
+                    return (T)current;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            while (current != null);
+            return null;
+        }
+
+        public List<string> GetItemsOrder()
+        {
+            return IntegrationsList.Items
+                .OfType<ListBoxItem>()
+                .Select(item => item.Name)
+                .ToList();
+        }
+
 
         public MainWindow()
         {
@@ -1452,52 +1507,6 @@ namespace vrcosc_magicchatbox
             updateApp.SelectCustomZip();
         }
 
-        private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is ListBox listBox)
-            {
-                var position = e.GetPosition(listBox);
-                var item = listBox.InputHitTest(position) as FrameworkElement;
-                if (item != null)
-                {
-                    _draggedItem = item.DataContext;
-                    DragDrop.DoDragDrop(listBox, _draggedItem, DragDropEffects.Move);
-                }
-            }
-        }
 
-        private void IntegrationListBox_Drop(object sender, DragEventArgs e)
-        {
-            if (sender is ListBox listBox)
-            {
-                var droppedData = e.Data.GetData(_draggedItem.GetType());
-                var target = listBox.InputHitTest(e.GetPosition(listBox)) as FrameworkElement;
-
-                if (droppedData != null && target != null)
-                {
-                    var targetData = target.DataContext;
-
-                    int removedIdx = listBox.Items.IndexOf(_draggedItem);
-                    int targetIdx = listBox.Items.IndexOf(targetData);
-
-                    if (targetIdx != -1)
-                    {
-                        if (removedIdx < targetIdx)
-                        {
-                            listBox.Items.Insert(targetIdx + 1, _draggedItem);
-                            listBox.Items.RemoveAt(removedIdx);
-                        }
-                        else
-                        {
-                            int insertIdx = removedIdx > targetIdx ? targetIdx : targetIdx + 1;
-                            listBox.Items.RemoveAt(removedIdx);
-                            listBox.Items.Insert(insertIdx, _draggedItem);
-                        }
-                        // Ensure the ListBox updates the visual position of the items
-                        listBox.Items.Refresh();
-                    }
-                }
-            }
-        }
     }
 }
