@@ -5104,10 +5104,11 @@
                 x:Name="IntegrationsList"
                 Grid.Row="1"
                 Grid.Column="0"
-                HorizontalContentAlignment="Stretch"
+                HorizontalAlignment="Stretch"
                 d:Visibility="Visible"
                 Background="Transparent"
                 BorderThickness="0"
+                ScrollViewer.CanContentScroll="False"
                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                 Visibility="{Binding MenuItem_0_Visibility}">
                 <ListBox.ItemContainerStyle>
