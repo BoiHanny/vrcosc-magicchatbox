@@ -83,24 +83,54 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void LoadHotkeyConfigurations()
         {
-            if (!File.Exists(HotkeyConfigFile))
+            try
             {
-                AddDefaultHotkeys();
-                SaveHotkeyConfigurations();
-                return;
+                if (!File.Exists(HotkeyConfigFile))
+                {
+                    AddDefaultHotkeys();
+                    SaveHotkeyConfigurations();
+                    return;
+                }
+
+                var json = File.ReadAllText(HotkeyConfigFile);
+                var deserialized = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                if (deserialized == null)
+                {
+                    // Log an error message stating that the deserialization returned null
+                    Logging.WriteException(new Exception("Failed to deserialize hotkey configurations."), MSGBox: true);
+                    AddDefaultHotkeys();
+                    return;
+                }
+
+                _hotkeyActions.Clear();
+                foreach (var entry in deserialized)
+                {
+                    if (!Enum.TryParse<Key>(entry.Value["Key"], out var key) ||
+                        !Enum.TryParse<ModifierKeys>(entry.Value["Modifiers"], out var modifiers))
+                    {
+                        // Log an error message about the specific hotkey that failed to parse
+                        Logging.WriteException(new Exception($"Failed to parse hotkey configuration for {entry.Key}."), MSGBox: true);
+                        continue;
+                    }
+
+                    var action = GetActionForHotkey(entry.Key);
+                    if (action == null)
+                    {
+                        // Log an error message stating that no action is defined for this hotkey
+                        Logging.WriteException(new Exception($"No action defined for hotkey {entry.Key}."), MSGBox: true);
+                        continue;
+                    }
+
+                    AddKeyBinding(entry.Key, key, modifiers, action);
+                }
             }
-
-            var json = File.ReadAllText(HotkeyConfigFile);
-            var deserialized = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-
-            _hotkeyActions.Clear();
-            foreach (var entry in deserialized)
+            catch (Exception ex)
             {
-                var key = (Key)Enum.Parse(typeof(Key), entry.Value["Key"]);
-                var modifiers = (ModifierKeys)Enum.Parse(typeof(ModifierKeys), entry.Value["Modifiers"]);
-                AddKeyBinding(entry.Key, key, modifiers, GetActionForHotkey(entry.Key));
+                Logging.WriteException(ex, MSGBox: true);
             }
+            
         }
+
 
         private Action GetActionForHotkey(string hotkeyName)
         {
