@@ -7,8 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
-    Width="1000"
-    Height="750"
+    Width="900"
+    Height="675"
     MinWidth="1000"
     MinHeight="500"
     VerticalAlignment="Bottom"
@@ -373,15 +373,7 @@
                 Radius="{Binding MainWindowBlurEffect}" />
         </Border.Effect>
         <Grid HorizontalAlignment="Stretch" Background="#FF3B3054">
-            <Grid.Effect>
-                <DropShadowEffect
-                    BlurRadius="5"
-                    Direction="500"
-                    Opacity="1"
-                    RenderingBias="Performance"
-                    ShadowDepth="15"
-                    Color="DarkBlue" />
-            </Grid.Effect>
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="55" />
                 <RowDefinition Height="*" />
@@ -5282,7 +5274,6 @@
                                 Margin="1"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                
                                 Effect="{StaticResource ImageShadowEffect}"
                                 Source="/Img/Icons/WindowActivity_ico.png" />
                             <!--  Text Content  -->
