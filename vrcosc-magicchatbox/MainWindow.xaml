@@ -4000,7 +4000,7 @@
             </ScrollViewer>
             <Grid
                 Grid.Row="1"
-                d:Visibility="Collapsed"
+                d:Visibility="Visible"
                 Background="#FF3B3054"
                 Visibility="{Binding MenuItem_2_Visibility}">
                 <Grid.RowDefinitions>
@@ -4188,7 +4188,6 @@
                                         Width="745"
                                         Height="auto"
                                         Margin="8,0,0,8"
-                                        Background="DarkSlateBlue"
                                         BorderThickness="0"
                                         CornerRadius="5"
                                         Opacity="{Binding Opacity}">
@@ -4196,10 +4195,10 @@
                                             <Border
                                                 Width="auto"
                                                 Height="auto"
-                                                Background="DarkSlateBlue"
                                                 BorderThickness="0"
                                                 CornerRadius="5"
-                                                Opacity="{Binding Opacity}">
+                                                Opacity="{Binding Opacity}"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <Border.Effect>
                                                     <DropShadowEffect
                                                         BlurRadius="10"
@@ -4209,6 +4208,12 @@
                                                         ShadowDepth="0"
                                                         Color="black" />
                                                 </Border.Effect>
+                                                <Border.Background>
+                                                    <LinearGradientBrush SpreadMethod="Reflect" StartPoint="1,1" EndPoint="1,0">
+                                                        <GradientStop Color="DarkSlateBlue" />
+                                                        <GradientStop Offset="1" Color="#524D75" />
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
                                             </Border>
                                             <Grid
                                                 Width="auto"
@@ -5105,7 +5110,7 @@
                 Grid.Row="1"
                 Grid.Column="0"
                 HorizontalAlignment="Stretch"
-                d:Visibility="Visible"
+                d:Visibility="Hidden"
                 Background="Transparent"
                 BorderThickness="0"
                 ScrollViewer.CanContentScroll="False"
@@ -5277,6 +5282,7 @@
                                 Margin="1"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
+                                
                                 Effect="{StaticResource ImageShadowEffect}"
                                 Source="/Img/Icons/WindowActivity_ico.png" />
                             <!--  Text Content  -->
@@ -5406,6 +5412,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/HeartRate_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
@@ -5660,6 +5667,7 @@
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Source="/Img/Icons/ComponentStats_ico.png" />
                                 <!--  Text Content  -->
                                 <StackPanel
@@ -5790,6 +5798,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/NetworkStats_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
@@ -5906,6 +5915,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/SystemTime_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
@@ -6270,6 +6280,7 @@
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/MediaLink_ico.png" />
                                 <!--  Text Content  -->
                                 <StackPanel
