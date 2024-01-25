@@ -78,6 +78,17 @@
 
 - **Options** tab allows you to customize your experience by enabling/disabling options.
 
+## Star History
+
+<a href="https://star-history.com/#BoiHanny/vrcosc-magicchatbox&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=BoiHanny/vrcosc-magicchatbox&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=BoiHanny/vrcosc-magicchatbox&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=BoiHanny/vrcosc-magicchatbox&type=Date" />
+  </picture>
+</a>
+
+
 ### Contact
 Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love to hear from you! Feel free to reach out to us through one of the following channels:
 
