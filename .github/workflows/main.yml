@@ -41,10 +41,9 @@ jobs:
         Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
 
     - name: Create Release
-      id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.MY_PAT }}  # Replace 'GITHUB_TOKEN' with your secret name
       with:
         tag_name: v${{ steps.get_version.outputs.VERSION }}
         release_name: MagicChatbox Pre-v${{ steps.get_version.outputs.VERSION }}
