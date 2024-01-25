@@ -31,7 +31,7 @@ jobs:
     - name: Extract Version from csproj
       id: get_version
       run: |
-        $csproj = "${{ env.Project_Path }}"
+        $csproj = "vrcosc-magicchatbox\MagicChatbox.csproj"
         $pattern = '<Version>(.*)<\/Version>'
         $content = Get-Content $csproj -Raw
         $match = [regex]::Match($content, $pattern)
@@ -44,12 +44,18 @@ jobs:
           exit 1
         }
       shell: pwsh
+      env:
+        Solution_Name: vrcosc-magicchatbox.sln
+        Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
+
+
 
     - name: Create Zip File
       run: |
         Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
 
     - name: Create Release
+      id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
@@ -75,7 +81,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}  # Use the output from the create_release step
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
         asset_name: MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
         asset_content_type: application/zip
