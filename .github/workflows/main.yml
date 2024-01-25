@@ -31,9 +31,18 @@ jobs:
     - name: Extract Version from csproj
       id: get_version
       run: |
-        $xml = [xml](Get-Content ${{ env.Project_Path }})
-        $version = $xml.Project.PropertyGroup.Version
-        echo "::set-output name=VERSION::$version"
+        $csproj = "${{ env.Project_Path }}"
+        $pattern = '<Version>(.*)<\/Version>'
+        $content = Get-Content $csproj -Raw
+        $match = [regex]::Match($content, $pattern)
+        if ($match.Success -and $match.Groups.Count -gt 1) {
+          $version = $match.Groups[1].Value
+          echo "VERSION=$version" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "::set-output name=VERSION::$version"
+        } else {
+          echo "Error: Version not found in csproj file."
+          exit 1
+        }
       shell: pwsh
 
     - name: Create Zip File
@@ -43,7 +52,7 @@ jobs:
     - name: Create Release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.MY_PAT }}  # Replace 'GITHUB_TOKEN' with your secret name
+        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
         tag_name: v${{ steps.get_version.outputs.VERSION }}
         release_name: MagicChatbox Pre-v${{ steps.get_version.outputs.VERSION }}
@@ -64,9 +73,9 @@ jobs:
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.create_release.outputs.upload_url }}  # Use the output from the create_release step
         asset_path: ./MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
         asset_name: MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
         asset_content_type: application/zip
