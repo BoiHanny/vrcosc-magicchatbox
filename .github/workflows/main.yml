@@ -61,7 +61,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
         tag_name: v${{ steps.get_version.outputs.VERSION }}
-        release_name: MagicChatbox Pre-v${{ steps.get_version.outputs.VERSION }}
+        release_name: v${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: true
         body: |
