@@ -210,7 +210,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     CycleStatus();
                 }
 
-                var activeItem = ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true);
+                StatusItem? activeItem = ViewModel.Instance.StatusList.FirstOrDefault(item => item.IsActive == true);
                 if (activeItem != null)
                 {
                     // Update LastUsed property for the active item
@@ -268,9 +268,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         public static void CycleStatus()
         {
-            if (ViewModel.Instance == null) return;
-
-            if (ViewModel.Instance.StatusList == null || !ViewModel.Instance.StatusList.Any()) return;
+            if (ViewModel.Instance == null || ViewModel.Instance.StatusList == null || !ViewModel.Instance.StatusList.Any())
+                return;
 
             var cycleItems = ViewModel.Instance.StatusList.Where(item => item.UseInCycle).ToList();
             if (cycleItems.Count == 0) return;
@@ -279,28 +278,24 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
             if (elapsedTime >= TimeSpan.FromSeconds(ViewModel.Instance.SwitchStatusInterval))
             {
-                // Reset all status items to inactive before setting the next one to active
-                ViewModel.Instance.StatusList.All(item => { item.IsActive = false; return true; });
+
+                foreach (var item in ViewModel.Instance.StatusList) 
+                {
+                    item.IsActive = false;
+                }
 
                 try
                 {
-                    if (ViewModel.Instance.IsRandomCycling)
+                    var rnd = new Random();
+                    var weights = cycleItems.Select(item =>
                     {
-                        // Calculate weights for each cycle item
-                        var weights = cycleItems.Select(item =>
-                            (DateTime.Now - item.LastUsed).TotalSeconds).ToList();
+                        var timeWeight = (DateTime.Now - item.LastUsed).TotalSeconds;
+                        var randomFactor = rnd.NextDouble(); // Adding randomness
+                        return timeWeight * randomFactor; // Combine time weight with random factor
+                    }).ToList();
 
-                        // Select a random index based on weights
-                        int selectedIndex = WeightedRandomIndex(weights);
-
-                        cycleItems[selectedIndex].IsActive = true;
-                    }
-                    else
-                    {
-                        // Improved Sequential selection
-                        ViewModel.Instance.StatusIndex = (ViewModel.Instance.StatusIndex + 1) % cycleItems.Count;
-                        cycleItems[ViewModel.Instance.StatusIndex].IsActive = true;
-                    }
+                    int selectedIndex = WeightedRandomIndex(weights);
+                    cycleItems[selectedIndex].IsActive = true;
 
                     ViewModel.Instance.LastSwitchCycle = DateTime.Now;
                 }
@@ -310,6 +305,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
             }
         }
+
 
         private static int WeightedRandomIndex(List<double> weights)
         {

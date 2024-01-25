@@ -195,7 +195,7 @@ namespace vrcosc_magicchatbox
                 {
                     ViewModel.Instance.Egg_Dev = true;
                     MessageBox.Show(
-                        "u found the dev egggmoooodeee",
+                        "u found the dev egggmoooodeee go to options",
                         "Egg",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
