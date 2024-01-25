@@ -160,7 +160,7 @@
 
   <ItemGroup>
     <Reference Include="CoreOSC">
-      <HintPath>..\..\..\..\..\..\Temp\CoreOSC.dll</HintPath>
+      <HintPath>libs\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 
