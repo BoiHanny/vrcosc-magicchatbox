@@ -26,7 +26,7 @@ jobs:
       run: dotnet restore ${{ env.Solution_Name }}
 
     - name: Build Solution
-      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
 
     - name: Extract Version from csproj
       id: get_version
@@ -38,7 +38,7 @@ jobs:
 
     - name: Create Zip File
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/win-x64/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
 
     - name: Create Release
       id: create_release
