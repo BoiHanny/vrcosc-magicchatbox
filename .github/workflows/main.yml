@@ -1,0 +1,73 @@
+name: .NET Core Desktop Build and Release
+
+on:
+  push:
+    branches:
+      - 'Pre-Master'
+
+env:
+  Solution_Name: vrcosc-magicchatbox.sln
+  Project_Path: vrcosc-magicchatbox\vrcosc_magicchatbox.csproj
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build Solution
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore
+
+    - name: Extract Version from csproj
+      id: get_version
+      run: |
+        $xml = [xml](Get-Content ${{ env.Project_Path }})
+        $version = $xml.Project.PropertyGroup.Version
+        echo "::set-output name=VERSION::$version"
+      shell: pwsh
+
+    - name: Create Zip File
+      run: |
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/win-x64/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get_version.outputs.VERSION }}
+        release_name: MagicChatbox Pre-v${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: true
+        body: |
+          # MagicChatbox Pre-v${{ steps.get_version.outputs.VERSION }} ![GitHub release (latest by date)](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ steps.get_version.outputs.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic)
+          <!-- BEGIN LATEST DOWNLOAD BUTTON -->
+          # Download the latest version and update in the app.
+          ### Manual Download and Installation
+          1. Download the .zip
+          2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
+          3. Right-click and choose the option 'extract all'.
+          4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
+          5. When extracted, the folder will open.
+          6. Run the file 'MagicChatbox.exe'.
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
