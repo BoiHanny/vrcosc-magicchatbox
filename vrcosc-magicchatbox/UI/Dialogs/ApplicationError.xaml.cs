@@ -25,6 +25,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             CallStack.Text = ex.StackTrace;
             if(autoclose)
                 _ = AutoClose(autoCloseinMiliSeconds);
+            Version.Text = ViewModel.Instance.AppVersion.VersionNumber;
 
         }
 

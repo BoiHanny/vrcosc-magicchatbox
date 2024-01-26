@@ -115,57 +115,75 @@
             </StackPanel.Background>
 
             <TextBlock
+                x:Name="MainError"
                 Margin="10,18,10,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 FontFamily="Comfortaa Light"
-                FontSize="15"
-                Foreground="LightYellow"
+                FontSize="25"
+                FontWeight="DemiBold"
+                Foreground="Yellow"
                 LineHeight="15"
                 RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Text="Main Error"
                 TextAlignment="Center"
                 TextWrapping="Wrap">
-
-
-                <Run
-                    x:Name="MainError"
-                    FontSize="25"
-                    FontWeight="DemiBold"
-                    Foreground="Yellow"
-                    Text="Main Error" />
-                <LineBreak />
-
-                <LineBreak />
-                <Run
-                    x:Name="CallStack"
-                    FontFamily="Calibri"
-                    FontWeight="Light"
-                    Foreground="LightYellow"
-                    Text="Callstack" />
-
-                <LineBreak />
-                <LineBreak />
-                <Run
-                    FontFamily="Calibri"
-                    FontSize="13"
-                    FontStyle="Italic"
-                    FontWeight="Light"
-                    Foreground="PaleVioletRed"
-                    Text="Experiencing issues? Report them on our Discord server or GitHub. Please include a screenshot of this error or send us the latest log file by using the 'Open log folder' button." />
                 <TextBlock.Effect>
                     <DropShadowEffect
-                        BlurRadius="10"
+                        BlurRadius="5"
+                        Direction="315"
                         Opacity="1"
                         ShadowDepth="0"
-                        Color="#251153" />
+                        Color="#FF10178C" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock
+                x:Name="Version"
+                Margin="10,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontFamily="Calibri"
+                FontWeight="Light"
+                Foreground="LightYellow"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Text="Callstack"
+                TextWrapping="Wrap">
+                <TextBlock.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="315"
+                        Opacity="1"
+                        ShadowDepth="0"
+                        Color="#FF10178C" />
+                </TextBlock.Effect>
+            </TextBlock>
+
+            <TextBlock
+                x:Name="CallStack"
+                Margin="10,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontFamily="Calibri"
+                FontWeight="Light"
+                Foreground="LightYellow"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Text="Callstack"
+                TextWrapping="Wrap">
+                <TextBlock.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="315"
+                        Opacity="1"
+                        ShadowDepth="0"
+                        Color="#FF10178C" />
                 </TextBlock.Effect>
             </TextBlock>
 
 
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                 <Button
-                    Height="30"
                     x:Name="Update"
+                    Height="30"
                     Margin="0,15,2,15"
                     Padding="5"
                     VerticalAlignment="Top"

@@ -12,6 +12,7 @@
     MinWidth="1000"
     MinHeight="500"
     VerticalAlignment="Bottom"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel, IsDesignTimeCreatable=True}"
     IsEnabled="{Binding AppIsEnabled, UpdateSourceTrigger=PropertyChanged}"
     Opacity="{Binding AppOpacity, UpdateSourceTrigger=PropertyChanged}"
     Topmost="{Binding Topmost, UpdateSourceTrigger=PropertyChanged}"
