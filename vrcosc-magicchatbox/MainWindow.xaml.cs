@@ -1,11 +1,9 @@
-﻿using OpenAI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1388,6 +1386,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
             ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
             ViewModel.Instance.OpenAIConnected = false;
+            OpenAIModule.Instance.OpenAIClient = null;
 
         }
 
@@ -1451,6 +1450,47 @@ namespace vrcosc_magicchatbox
             UpdateApp updateApp = new UpdateApp();
             updateApp.SelectCustomZip();
         }
+
+        private async void SpellingCheck_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ViewModel.Instance.IntelliChatRequesting = true;
+            });
+            if (string.IsNullOrWhiteSpace(ViewModel.Instance.NewChattingTxt))
+            {
+                ViewModel.Instance.IntelliChatRequesting = false;
+                return;
+            }
+
+
+            try
+            {
+                string checkedText = await IntelliChatModule.PerformSpellingAndGrammarCheckAsync(ViewModel.Instance.NewChattingTxt);
+
+                Dispatcher.Invoke(() =>
+                {
+                    if (string.IsNullOrEmpty(checkedText))
+                    {
+                        ViewModel.Instance.IntelliChatRequesting = false;
+                    }
+                    else
+                    {
+                        ViewModel.Instance.NewChattingTxt = checkedText;
+                        ViewModel.Instance.IntelliChatRequesting = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Logging.WriteException(ex);
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                });
+            }
+        }
+
 
 
     }

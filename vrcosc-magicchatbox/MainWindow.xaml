@@ -12,6 +12,8 @@
     MinWidth="1000"
     MinHeight="500"
     VerticalAlignment="Bottom"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel,
+                                     IsDesignTimeCreatable=True}"
     IsEnabled="{Binding AppIsEnabled, UpdateSourceTrigger=PropertyChanged}"
     Opacity="{Binding AppOpacity, UpdateSourceTrigger=PropertyChanged}"
     Topmost="{Binding Topmost, UpdateSourceTrigger=PropertyChanged}"
@@ -4002,6 +4004,55 @@
                     <RowDefinition Height="40" />
                     <RowDefinition Height="60" />
                 </Grid.RowDefinitions>
+                <Border
+                    Margin="3"
+                    BorderThickness="0"
+                    CornerRadius="5">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <LinearGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                    <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
+                                    <TranslateTransform />
+                                </TransformGroup>
+                            </LinearGradientBrush.RelativeTransform>
+                            <GradientStop Color="#FFC950EF" />
+                            <GradientStop Offset="1" Color="#FFA550EF" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ChatTopBarTxt.Length}" Value="0">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="4"
+                        Padding="4,0,50,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        d:Text="You're soaring past the 140 char limit by {overmax}."
+                        FontFamily="Albert Sans Thin"
+                        FontSize="14"
+                        Foreground="#FFF3E8FF"
+                        Text="{Binding ChatTopBarTxt}">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Border>
 
                 <Grid
                     Grid.Row="4"
@@ -4100,6 +4151,14 @@
                             ShadowDepth="5"
                             Color="#FF7F759A" />
                     </Grid.Effect>
+                    <TextBlock
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        d:Text="Chat feedback"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="16"
+                        Foreground="#FF9983AD"
+                        Text="{Binding ChatFeedbackTxt}" />
                     <StackPanel
                         HorizontalAlignment="Stretch"
                         Orientation="Horizontal"
@@ -4355,30 +4414,45 @@
                             ShadowDepth="5"
                             Color="#FF7F759A" />
                     </Grid.Effect>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock
-                            Grid.Column="0"
-                            Margin="10,0,0,0"
-                            Padding="0,0,50,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="16"
-                            Foreground="#FF9983AD"
-                            Text="{Binding ChatTopBarTxt}" />
+                    <StackPanel
+                        Margin="17,0,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center">
+                        <Button
+                            x:Name="SpellingCheck"
+                            Width="35"
+                            ToolTip="Spelling check by AI"
+                            Height="35"
+                            Click="SpellingCheck_Click"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Style="{DynamicResource LINK_Button_style}"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Width="20" Source="/Img/Icons/SpellingCheck.png" />
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
                     </StackPanel>
                     <TextBlock
-                        Grid.Column="0"
-                        Margin="0,0,16,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         FontFamily="Albert Sans Thin"
                         FontSize="16"
+                        Padding="0,0,15,0"
                         Foreground="#FF9983AD"
-                        Text="{Binding ChatFeedbackTxt}" />
-
+                        Text="Requesting..."
+                        Visibility="{Binding IntelliChatRequesting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
             </Grid>
+
             <Grid Margin="-10,0,0,0" Visibility="{Binding Char_Limit}">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">

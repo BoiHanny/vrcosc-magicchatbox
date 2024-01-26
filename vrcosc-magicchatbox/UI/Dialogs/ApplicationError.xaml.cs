@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Win32;
+using vrcosc_magicchatbox.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -25,6 +26,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             CallStack.Text = ex.StackTrace;
             if(autoclose)
                 _ = AutoClose(autoCloseinMiliSeconds);
+            DataContext = ViewModel.Instance;
 
         }
 
@@ -62,5 +64,29 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             updater.SelectCustomZip();
         }
 
+        private void NewVersion_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (ViewModel.Instance.CanUpdate)
+            {
+                ViewModel.Instance.CanUpdate = false;
+                ViewModel.Instance.CanUpdateLabel = false;
+                UpdateApp updateApp = new UpdateApp();
+                Task.Run(() => updateApp.PrepareUpdate());
+            }
+            else
+            {
+                Process.Start("explorer", "http://github.com/BoiHanny/vrcosc-magicchatbox/releases");
+            }
+        }
+
+        private async Task ManualUpdateCheckAsync()
+        {
+            var updateCheckTask = DataController.CheckForUpdateAndWait(true);
+            var delayTask = Task.Delay(TimeSpan.FromSeconds(8));
+
+            await Task.WhenAny(updateCheckTask, delayTask);
+        }
+
+        private void CheckUpdateBtnn_Click(object sender, RoutedEventArgs e) { ManualUpdateCheckAsync(); }
     }
 }
