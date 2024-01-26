@@ -137,26 +137,84 @@
                         Color="#FF10178C" />
                 </TextBlock.Effect>
             </TextBlock>
-            <TextBlock
-                x:Name="Version"
-                Margin="10,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                FontFamily="Calibri"
-                FontWeight="Light"
-                Foreground="LightYellow"
-                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                Text="Callstack"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <DropShadowEffect
-                        BlurRadius="5"
-                        Direction="315"
-                        Opacity="1"
-                        ShadowDepth="0"
-                        Color="#FF10178C" />
-                </TextBlock.Effect>
-            </TextBlock>
+            <StackPanel Margin="0,5,0,5" HorizontalAlignment="Center" Orientation="Horizontal">
+                <StackPanel.Background>
+                    <LinearGradientBrush MappingMode="Absolute">
+                        <LinearGradientBrush.RelativeTransform>
+                            <TransformGroup>
+                                <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                <SkewTransform CenterX="0.5" CenterY="0.5"/>
+                                <RotateTransform Angle="-20.323" CenterX="0.5" CenterY="0.5"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </LinearGradientBrush.RelativeTransform>
+                        <GradientStop Color="#FF240E54" Offset="0.5"/>
+                        <GradientStop Offset="0.742"/>
+                        <GradientStop Color="#00240E54" Offset="0.039"/>
+                    </LinearGradientBrush>
+                </StackPanel.Background>
+                <Button
+                    Margin="2"
+                    x:Name="CheckUpdateBtnn"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Click="CheckUpdateBtnn_Click"
+                    Style="{StaticResource CircleButton}">
+                    <Image
+                        Width="10"
+                        Height="10"
+                        RenderOptions.BitmapScalingMode="Linear"
+                        Source="/Img/Icons/Load_ico.png" />
+
+                </Button>
+                <TextBlock
+                    Margin="5,0,0,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="15"
+                    Foreground="#9D91D2"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Text="{Binding AppVersion.VersionNumber}">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Opacity="0.9"
+                            ShadowDepth="0"
+                            Color="{Binding VersionTxtColor}" />
+                    </TextBlock.Effect>
+
+                </TextBlock>
+                <TextBlock
+                    Name="NewVersion"
+                    Margin="5,0,0,0"
+                    VerticalAlignment="Center"
+                    Cursor="Hand"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="15"
+                    Foreground="{Binding VersionTxtColor}"
+                    MouseUp="NewVersion_MouseUp"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Text="{Binding VersionTxt}">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding VersionTxtUnderLine}" Value="True">
+                                    <Setter Property="TextDecorations" Value="Underline" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Opacity="0.7"
+                            ShadowDepth="0"
+                            Color="{Binding VersionTxtColor}" />
+                    </TextBlock.Effect>
+                </TextBlock>
+            </StackPanel>
 
             <TextBlock
                 x:Name="CallStack"
