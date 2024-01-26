@@ -137,7 +137,7 @@
                         Color="#FF10178C" />
                 </TextBlock.Effect>
             </TextBlock>
-            <StackPanel Margin="0,5,0,5" HorizontalAlignment="Center" Orientation="Horizontal">
+            <StackPanel Margin="0,5,0,15" HorizontalAlignment="Center" Orientation="Horizontal">
                 <StackPanel.Background>
                     <LinearGradientBrush MappingMode="Absolute">
                         <LinearGradientBrush.RelativeTransform>
@@ -154,7 +154,7 @@
                     </LinearGradientBrush>
                 </StackPanel.Background>
                 <Button
-                    Margin="2"
+                    Margin="2,2,0,2"
                     x:Name="CheckUpdateBtnn"
                     Padding="0"
                     HorizontalAlignment="Left"
@@ -191,7 +191,7 @@
                     VerticalAlignment="Center"
                     Cursor="Hand"
                     FontFamily="Albert Sans Thin"
-                    FontSize="15"
+                    FontSize="12"
                     Foreground="{Binding VersionTxtColor}"
                     MouseUp="NewVersion_MouseUp"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -218,7 +218,8 @@
 
             <TextBlock
                 x:Name="CallStack"
-                Margin="10,0"
+                Margin="15,0"
+                FontSize="15"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 FontFamily="Calibri"

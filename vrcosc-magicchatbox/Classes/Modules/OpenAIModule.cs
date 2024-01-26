@@ -16,7 +16,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
 
         private static readonly Lazy<OpenAIModule> instance = new Lazy<OpenAIModule>(() => new OpenAIModule());
-        public OpenAIClient OpenAIClient { get; private set; } = null;
+        public OpenAIClient OpenAIClient { get; set; } = null;
         public bool AuthChecked { get; private set; } = false;
 
         public bool IsInitialized => OpenAIClient != null;

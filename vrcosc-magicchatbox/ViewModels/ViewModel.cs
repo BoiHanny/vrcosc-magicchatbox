@@ -3296,6 +3296,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _IntelliChatRequesting = false;
+        public bool IntelliChatRequesting
+        {
+            get { return _IntelliChatRequesting; }
+            set
+            {
+                _IntelliChatRequesting = value;
+                NotifyPropertyChanged(nameof(IntelliChatRequesting));
+            }
+        }
+
         public string ChatFeedbackTxt
         {
             get { return _ChatFeedbackTxt; }

@@ -660,7 +660,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         return;
                     }
                     ViewModel.Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
-                // check if we have a status with the msg 'BoiHanny' or 'Gun'
                 if (ViewModel.Instance.StatusList.Any(x => x.msg == "boihanny" || x.msg == "sr4 series"))
                     {
                         ViewModel.Instance.Egg_Dev = true;
