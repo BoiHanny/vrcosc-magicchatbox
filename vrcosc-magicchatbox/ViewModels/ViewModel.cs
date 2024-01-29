@@ -4138,6 +4138,54 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private IntelliChatWritingStyle _IntelliWritingStyle = IntelliChatWritingStyle.Casual;
+        public IntelliChatWritingStyle IntelliWritingStyle
+        {
+            get { return _IntelliWritingStyle; }
+            set
+            {
+                _IntelliWritingStyle = value;
+                NotifyPropertyChanged(nameof(IntelliWritingStyle));
+            }
+        }
+
+
+        private List<SupportedIntelliChatLanguage> _IntelliChatSupportedLang = new List<SupportedIntelliChatLanguage>();
+        public List<SupportedIntelliChatLanguage> IntelliChatSupportedLang
+        {
+            get { return _IntelliChatSupportedLang; }
+            set
+            {
+                _IntelliChatSupportedLang = value;
+                NotifyPropertyChanged(nameof(IntelliChatSupportedLang));
+            }
+        }
+
+
+        private string _IntelliChatTxt = string.Empty;
+        public string IntelliChatTxt
+        {
+            get { return _IntelliChatTxt; }
+            set
+            {
+                _IntelliChatTxt = value;
+                NotifyPropertyChanged(nameof(IntelliChatTxt));
+            }
+        }
+
+
+        private bool _IntelliChatWaitingToAccept = false;
+        public bool IntelliChatWaitingToAccept
+        {
+            get { return _IntelliChatWaitingToAccept; }
+            set
+            {
+                _IntelliChatWaitingToAccept = value;
+                NotifyPropertyChanged(nameof(IntelliChatWaitingToAccept));
+            }
+        }
+
         #endregion
 
         #region PropChangedEvent

@@ -43,6 +43,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             ViewModel.Instance.OpenAIConnected = AuthChecked;
         }
 
+
         private async Task TestConnection()
         {
             try
