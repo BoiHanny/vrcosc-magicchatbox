@@ -1851,6 +1851,77 @@
                                             Visibility="{Binding OpenAIAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                 </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="PerformModerationCheck"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding IntelliChatPerformModeration, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Perform moderation check (will protect you from being banned)
+                                        </CheckBox>
+
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="0,0,9,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Language" />
+
+                                        <CheckBox
+                                            x:Name="AutoDetectLang"
+                                            Height="20"
+                                            Margin="0,5"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding IntelliChatAutoLang, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Automatically detect language (less tokens)
+                                        </CheckBox>
+
+
+
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="0,0,9,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Magic improve" />
+
+
+
+
+
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -4411,6 +4482,7 @@
                         Margin="6,0,7,7"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Bottom"
+                        d:Visibility="Collapsed"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                         Visibility="{Binding IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border Margin="10,0" CornerRadius="5">
@@ -4438,42 +4510,14 @@
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="Auto" MinHeight="40" />
                                 </Grid.RowDefinitions>
-                                <StackPanel
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    Margin="-8,5,0,5"
-                                    Orientation="Horizontal">
-                                    <Button
-                                        x:Name="NotAcceptIntelliChat"
-                                        Width="auto"
-                                        Margin="2"
-                                        Padding="2"
-                                        Click="NotAcceptIntelliChat_Click"
-                                        Style="{DynamicResource Status_Button_style}">
-                                        <Image
-                                            Width="18"
-                                            RenderOptions.BitmapScalingMode="HighQuality"
-                                            Source="/Img/Icons/NotAccept_ico.png" />
-                                    </Button>
-                                    <Button
-                                        x:Name="AcceptIntelliChat"
-                                        Width="auto"
-                                        Margin="2"
-                                        Padding="2"
-                                        Click="AcceptIntelliChat_Click"
-                                        Style="{DynamicResource Status_Button_style}">
-                                        <Image
-                                            Width="18"
-                                            RenderOptions.BitmapScalingMode="HighQuality"
-                                            Source="/Img/Icons/Accept_ico.png" />
-                                    </Button>
-                                </StackPanel>
+
 
                                 <TextBlock
                                     Grid.Row="1"
                                     Grid.Column="0"
                                     Width="auto"
                                     Height="Auto"
+                                    Margin="0,0,95,0"
                                     Padding="15,0,0,15"
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Center"
@@ -4492,6 +4536,7 @@
                                             Color="Black" />
                                     </TextBlock.Effect>
                                 </TextBlock>
+
 
 
                                 <!--  Image  -->
@@ -4592,6 +4637,144 @@
                                     Foreground="#94CCBF"
                                     Opacity="0.3"
                                     Text="Powered by OpenAI" />
+
+                                <StackPanel
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Margin="-70,5,0,5"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        x:Name="AcceptAndSentIntelliChat"
+                                        Width="auto"
+                                        Margin="2"
+                                        Padding="2"
+                                        Click="AcceptAndSentIntelliChat_Click"
+                                        Style="{DynamicResource Status_Button_style}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image
+                                                Width="18"
+                                                Margin="2"
+                                                RenderOptions.BitmapScalingMode="HighQuality"
+                                                Source="/Img/Icons/Accept_ico.png" />
+                                            <TextBlock
+                                                Padding="3,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF8D7DB9"
+                                                Text="Sent" />
+                                        </StackPanel>
+
+                                    </Button>
+                                    <Button
+                                        x:Name="NotAcceptIntelliChat"
+                                        Width="auto"
+                                        Margin="2"
+                                        Padding="2"
+                                        Click="NotAcceptIntelliChat_Click"
+                                        Style="{DynamicResource Status_Button_style}">
+                                        <Image
+                                            Width="18"
+                                            Margin="1"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            Source="/Img/Icons/NotAccept_ico.png" />
+                                    </Button>
+                                    <Button
+                                        x:Name="AcceptIntelliChat"
+                                        Width="auto"
+                                        Margin="2"
+                                        Padding="2"
+                                        Click="AcceptIntelliChat_Click"
+                                        Style="{DynamicResource Status_Button_style}">
+                                        <Image
+                                            Width="18"
+                                            Margin="1"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            Source="/Img/Icons/Accept_ico.png" />
+                                    </Button>
+                                </StackPanel>
+
+                            </Grid>
+
+                        </Border>
+                    </Grid>
+                    <Grid
+                        x:Name="AIErrorResponse"
+                        Grid.Row="1"
+                        Height="auto"
+                        Margin="6,0,7,7"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Bottom"
+                        d:Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Visibility="{Binding IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <Border Margin="10,0" CornerRadius="5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="MediumVioletRed" />
+                                    <GradientStop Offset="1" Color="#403670" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="35"
+                                    Direction="-90"
+                                    Opacity="0.9"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="5"
+                                    Color="MediumVioletRed" />
+                            </Border.Effect>
+                            <Grid Margin="3">
+
+                                <StackPanel
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="15,15,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Foreground="MediumVioletRed"
+                                        Text="{Binding IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="20"
+                                                Opacity="1"
+                                                RenderingBias="Performance"
+                                                ShadowDepth="0"
+                                                Color="Black" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+
+
+                                </StackPanel>
+
+                                <Button
+                                    x:Name="CloseIntelliErrorPanel"
+                                    Width="auto"
+                                    Padding="6"
+                                    HorizontalAlignment="Right"
+                                    Click="CloseIntelliErrorPanel_Click"
+                                    Opacity="0.8"
+                                    Style="{DynamicResource Status_Button_style}">
+                                    <Image
+                                        Width="18"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
+                                        Source="/Img/Icons/NotAccept_ico.png" />
+                                </Button>
+
+
+
+
 
                             </Grid>
 

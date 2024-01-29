@@ -4186,6 +4186,54 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+
+        private bool _IntelliChatError = false;
+        public bool IntelliChatError
+        {
+            get { return _IntelliChatError; }
+            set
+            {
+                _IntelliChatError = value;
+                NotifyPropertyChanged(nameof(IntelliChatError));
+            }
+        }
+
+
+        private string _IntelliChatErrorTxt = string.Empty;
+        public string IntelliChatErrorTxt
+        {
+            get { return _IntelliChatErrorTxt; }
+            set
+            {
+                _IntelliChatErrorTxt = value;
+                NotifyPropertyChanged(nameof(IntelliChatErrorTxt));
+            }
+        }
+
+
+        private bool _IntelliChatPerformModeration = true;
+        public bool IntelliChatPerformModeration
+        {
+            get { return _IntelliChatPerformModeration; }
+            set
+            {
+                _IntelliChatPerformModeration = value;
+                NotifyPropertyChanged(nameof(IntelliChatPerformModeration));
+            }
+        }
+
+
+        private bool _IntelliChatAutoLang = true;
+        public bool IntelliChatAutoLang
+        {
+            get { return _IntelliChatAutoLang; }
+            set
+            {
+                _IntelliChatAutoLang = value;
+                NotifyPropertyChanged(nameof(IntelliChatAutoLang));
+            }
+        }
+
         #endregion
 
         #region PropChangedEvent
