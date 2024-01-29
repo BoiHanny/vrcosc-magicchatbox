@@ -1,4 +1,5 @@
 ﻿using OpenAI.Chat;
+using OpenAI.Moderations;
 using OpenAI;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return string.Empty;
             }
 
+            if(ViewModel.Instance.IntelliChatPerformModeration)
+            {
+                bool moderationResponse = await PerformModerationCheckAsync(text);
+                if(moderationResponse)
+                    return string.Empty;
+            }
+
 
             var messages = new List<Message>
             {
@@ -36,7 +44,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 "Please detect and correct any spelling and grammar errors in the following text:")
             };
 
-            if(languages != null && languages.Any())
+            if(languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
             {
                 messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", languages)}"));
             }
@@ -74,12 +82,19 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return string.Empty;
             }
 
+            if (ViewModel.Instance.IntelliChatPerformModeration)
+            {
+                bool moderationResponse = await PerformModerationCheckAsync(text);
+                if (moderationResponse)
+                    return string.Empty;
+            }
+
             var messages = new List<Message>
             {
                 new Message(Role.System, $"Please rewrite the following sentence in a {writingStyle} style:")
             };
 
-            if(languages != null && languages.Any())
+            if(languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
             {
                 messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", languages)}"));
             }
@@ -110,6 +125,35 @@ namespace vrcosc_magicchatbox.Classes.Modules
             ViewModel.Instance.IntelliChatTxt = string.Empty;
             ViewModel.Instance.IntelliChatWaitingToAccept = false;
         }
+
+        public static async Task<bool> PerformModerationCheckAsync(string checkString)
+        {
+            var moderationResponse = await OpenAIModule.Instance.OpenAIClient.ModerationsEndpoint.CreateModerationAsync(new ModerationsRequest(checkString));
+
+            // Check if the moderationResponse is null, indicating a failure in making the request
+            if (moderationResponse == null)
+            {
+                // Handle the error appropriately
+                // For example, you might log the error or set an error message in the ViewModel
+                ViewModel.Instance.IntelliChatError = true;
+                ViewModel.Instance.IntelliChatErrorTxt = "Error in moderation check.";
+                return false;
+            }
+
+            // Check if there are any violations in the response
+            if (moderationResponse.Results.Any(result => result.Flagged))
+            {
+                ViewModel.Instance.IntelliChatWaitingToAccept = false;
+                ViewModel.Instance.IntelliChatRequesting = false;
+                ViewModel.Instance.IntelliChatError = true;
+                ViewModel.Instance.IntelliChatErrorTxt = "Your message has been temporarily held back due to a moderation check.\nThis is to ensure compliance with OpenAI's guidelines and protect your account.";
+                return true;
+            }
+
+            // If there are no violations, return false
+            return false;
+        }
+
 
 
     }

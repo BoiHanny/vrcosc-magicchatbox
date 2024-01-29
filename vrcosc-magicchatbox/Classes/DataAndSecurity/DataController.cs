@@ -318,7 +318,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "UnmuteSecOutput", (typeof(bool), "OSC") },
                 { "UnmuteMainOutput", (typeof(bool), "OSC") },
 
-
+                { "IntelliChatPerformModeration", (typeof(bool), "IntelliChat") },
 
                 { "BlankEgg", (typeof(bool), "DEV") },
 

@@ -1466,6 +1466,8 @@ namespace vrcosc_magicchatbox
                     else
                     {
                     ViewModel.Instance.IntelliChatTxt = checkedText;
+                    ViewModel.Instance.IntelliChatError = false;
+                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
                     ViewModel.Instance.IntelliChatWaitingToAccept = true;
                     ViewModel.Instance.IntelliChatRequesting = false;
                     }
@@ -1494,6 +1496,8 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.IntelliChatTxt = fixedText;
                     ViewModel.Instance.IntelliChatWaitingToAccept = true;
                     ViewModel.Instance.IntelliChatRequesting = false;
+                    ViewModel.Instance.IntelliChatError = false;
+                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
                 }
             }
             catch (Exception ex)
@@ -1512,7 +1516,18 @@ namespace vrcosc_magicchatbox
         private void AcceptIntelliChat_Click(object sender, RoutedEventArgs e)
         {
             IntelliChatModule.AcceptIntelliChatSuggestion();
+        }
 
+        private void CloseIntelliErrorPanel_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntelliChatError = false;
+            ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
+        }
+
+        private void AcceptAndSentIntelliChat_Click(object sender, RoutedEventArgs e)
+        {
+            IntelliChatModule.AcceptIntelliChatSuggestion();
+            ButtonChattingTxt_Click(sender, e);
         }
     }
 
