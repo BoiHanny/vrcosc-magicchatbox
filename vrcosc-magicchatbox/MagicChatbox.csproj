@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.8.745</Version>
+	<Version>0.8.750</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -157,13 +157,13 @@
 
   <ItemGroup>
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.3" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4-pre267" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4-pre268" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
+    <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
     <PackageReference Include="NLog" Version="5.2.8" />
-    <PackageReference Include="OpenAI-DotNet" Version="7.6.2" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.6.4" />
   </ItemGroup>
 
   <ItemGroup>
