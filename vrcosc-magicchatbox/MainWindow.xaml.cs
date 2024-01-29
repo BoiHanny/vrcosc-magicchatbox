@@ -1508,6 +1508,33 @@ namespace vrcosc_magicchatbox
 
         }
 
+        private async void TranslateChat_click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntelliChatRequesting = true;
+            try
+            {
+                string fixedText = await IntelliChatModule.PerformLanguageTranslationAutoDetectAsync(ViewModel.Instance.NewChattingTxt);
+
+                if (string.IsNullOrEmpty(fixedText))
+                {
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                }
+                else
+                {
+                    ViewModel.Instance.IntelliChatTxt = fixedText;
+                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                    ViewModel.Instance.IntelliChatError = false;
+                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex);
+                ViewModel.Instance.IntelliChatRequesting = false;
+            }
+        }
+
         private void NotAcceptIntelliChat_Click(object sender, RoutedEventArgs e)
         {
             IntelliChatModule.RejectIntelliChatSuggestion();
@@ -1528,6 +1555,60 @@ namespace vrcosc_magicchatbox
         {
             IntelliChatModule.AcceptIntelliChatSuggestion();
             ButtonChattingTxt_Click(sender, e);
+        }
+
+        private async void ConvoStarterChat_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntelliChatRequesting = true;
+            try
+            {
+                string ConvoStarter = await IntelliChatModule.GenerateConversationStarterAsync();
+
+                if (string.IsNullOrEmpty(ConvoStarter))
+                {
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                }
+                else
+                {
+                    ViewModel.Instance.IntelliChatTxt = ConvoStarter;
+                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                    ViewModel.Instance.IntelliChatError = false;
+                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex);
+                ViewModel.Instance.IntelliChatRequesting = false;
+            }
+        }
+
+        private async void ShortenChat_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntelliChatRequesting = true;
+            try
+            {
+                string fixedText = await IntelliChatModule.ShortenTextAsync(ViewModel.Instance.NewChattingTxt);
+
+                if (string.IsNullOrEmpty(fixedText))
+                {
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                }
+                else
+                {
+                    ViewModel.Instance.IntelliChatTxt = fixedText;
+                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                    ViewModel.Instance.IntelliChatError = false;
+                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex);
+                ViewModel.Instance.IntelliChatRequesting = false;
+            }
         }
     }
 
