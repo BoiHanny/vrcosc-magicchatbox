@@ -45,6 +45,7 @@
     <None Remove="Img\Icons\Copy_ico.png" />
     <None Remove="Img\Icons\Cross_ico.png" />
     <None Remove="Img\Icons\Cross_v1_ico.png" />
+    <None Remove="Img\Icons\Cut_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Discord.png" />
     <None Remove="Img\Icons\Edit_ico.png" />
@@ -73,8 +74,10 @@
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
     <None Remove="Img\Icons\SystemTime_ico.png" />
+    <None Remove="Img\Icons\Translate_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\Upload.png" />
+    <None Remove="Img\Icons\Wand_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
     <None Remove="Img\Icons\yes.png" />
     <None Remove="Img\MagicOSC_icon.png" />
@@ -98,6 +101,7 @@
     <Resource Include="Img\Icons\Copy_ico.png" />
     <Resource Include="Img\Icons\Cross_ico.png" />
     <Resource Include="Img\Icons\Cross_v1_ico.png" />
+    <Resource Include="Img\Icons\Cut_ico.png" />
     <Resource Include="Img\Icons\Delete_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -136,10 +140,12 @@
     <Resource Include="Img\Icons\SystemTime_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Translate_ico.png" />
     <Resource Include="Img\Icons\Unfavorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Upload.png" />
+    <Resource Include="Img\Icons\Wand_ico.png" />
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>

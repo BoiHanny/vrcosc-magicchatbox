@@ -41,7 +41,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 new Message(
                 Role.System,
-                "Please detect and correct any spelling and grammar errors in the following text:")
+                "Please detect and correct and return any spelling and grammar errors in the following text:")
             };
 
             if(languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
@@ -112,6 +112,113 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
             }
         }
+
+        public static async Task<string> GenerateConversationStarterAsync()
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+                return "OpenAI not initialized.";
+            }
+
+            var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI. no '";
+
+            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                .GetCompletionAsync(new ChatRequest(new List<Message>
+                {
+            new Message(Role.System, prompt)
+                }, maxTokens: 60));
+
+            return response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
+                ? response.Choices[0].Message.Content.GetString()
+                : "Unable to generate conversation starter.";
+        }
+
+        public static async Task<string> ShortenTextAsync(string text, int retryCount = 0)
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+                return "OpenAI not initialized.";
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                ViewModel.Instance.IntelliChatRequesting = false;
+                return string.Empty;
+            }
+
+            if (ViewModel.Instance.IntelliChatPerformModeration)
+            {
+                bool moderationResponse = await PerformModerationCheckAsync(text);
+                if (moderationResponse)
+                    return string.Empty;
+            }
+
+            string prompt = retryCount == 0
+                ? $"Shorten the following text to 140 characters or less, including spaces: {text}"
+                : $"Please be more concise. Shorten this text to 140 characters or less, including spaces: {text}";
+
+            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                .GetCompletionAsync(new ChatRequest(new List<Message>
+                {
+            new Message(Role.System, prompt)
+                }, maxTokens: 60));
+
+            var shortenedText = response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
+                ? response.Choices[0].Message.Content.GetString()
+                : string.Empty;
+
+            // Check if the response is still over 140 characters and retry if necessary
+            if (shortenedText.Length > 140 && retryCount < 1) // Limiting to one retry
+            {
+                return await ShortenTextAsync(shortenedText, retryCount + 1);
+            }
+            else
+            {
+                return shortenedText.Length <= 140 ? shortenedText : string.Empty;
+            }
+        }
+
+
+
+        public static async Task<string> PerformLanguageTranslationAutoDetectAsync(
+            string text,
+            SupportedIntelliChatLanguage targetLanguage = SupportedIntelliChatLanguage.English)
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+                return string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                ViewModel.Instance.IntelliChatRequesting = false;
+                return string.Empty;
+            }
+
+            if (ViewModel.Instance.IntelliChatPerformModeration)
+            {
+                bool moderationResponse = await PerformModerationCheckAsync(text);
+                if (moderationResponse)
+                    return string.Empty;
+            }
+
+            var messages = new List<Message>
+    {
+        new Message(Role.System, $"Translate this to {targetLanguage}:"),
+        new Message(Role.User, text)
+    };
+
+            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120));
+
+            return response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
+                ? response.Choices[0].Message.Content.GetString()
+                : response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
+        }
+
 
         public static void AcceptIntelliChatSuggestion()
         {

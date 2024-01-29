@@ -37,6 +37,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+            <local:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
             <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
@@ -57,6 +58,17 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style x:Key="CharacterCountTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#94CCBF" />
+                <Setter Property="Opacity" Value="0.3" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IntelliChatTxt.Length, Converter={StaticResource CharacterCountToBoolConverter}}" Value="True">
+                        <Setter Property="Foreground" Value="PaleVioletRed" />
+                        <Setter Property="Opacity" Value="1" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
             <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD" />
             <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070" />
             <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD" />
@@ -4623,6 +4635,37 @@
                                         Foreground="#94CCBF"
                                         Opacity="0.3"
                                         Text="n/a" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="5,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Style="{StaticResource CharacterCountTextStyle}"
+                                        Text="Characters:" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="5,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Style="{StaticResource CharacterCountTextStyle}"
+                                        Text="{Binding IntelliChatTxt.Length, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="0,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Style="{StaticResource CharacterCountTextStyle}"
+                                        Text="/144" />
+
 
                                 </StackPanel>
                                 <TextBlock
@@ -4864,6 +4907,111 @@
                                     Foreground="#FF8D7DB9"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Text="Magic Improve" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
+                            x:Name="TranslateChat"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="TranslateChat_click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Translate anything to English by AI"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="25"
+                                    Margin="3,0,0,0"
+                                    Opacity="0.5"
+                                    Source="/Img/Icons/Translate_ico.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Translate" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
+                            x:Name="ShortenChat"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="ShortenChat_Click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Shorten chat by AI"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="25"
+                                    Margin="3,0,0,0"
+                                    Opacity="0.5"
+                                    Source="/Img/Icons/Cut_ico.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Shorten" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
+                            x:Name="ConvoStarterChat"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="ConvoStarterChat_Click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Start a conversation by AI"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="22"
+                                    Margin="3,0,0,0"
+                                    Opacity="0.5"
+                                    Source="/Img/Icons/Wand_ico.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Convo starter" />
 
                             </StackPanel>
                             <Button.Effect>
