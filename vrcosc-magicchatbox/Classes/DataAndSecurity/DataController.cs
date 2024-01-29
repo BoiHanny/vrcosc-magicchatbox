@@ -660,7 +660,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         return;
                     }
                     ViewModel.Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
-                if (ViewModel.Instance.StatusList.Any(x => x.msg == "boihanny" || x.msg == "sr4 series"))
+                if (ViewModel.Instance.StatusList.Any(x => x.msg.ToLower() == "boihanny" || x.msg.ToLower() == "sr4 series"))
                     {
                         ViewModel.Instance.Egg_Dev = true;
                     }
