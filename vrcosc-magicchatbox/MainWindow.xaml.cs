@@ -1453,45 +1453,68 @@ namespace vrcosc_magicchatbox
 
         private async void SpellingCheck_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.Invoke(() =>
-            {
-                ViewModel.Instance.IntelliChatRequesting = true;
-            });
-            if (string.IsNullOrWhiteSpace(ViewModel.Instance.NewChattingTxt))
-            {
-                ViewModel.Instance.IntelliChatRequesting = false;
-                return;
-            }
-
-
+            ViewModel.Instance.IntelliChatRequesting = true;
             try
             {
                 string checkedText = await IntelliChatModule.PerformSpellingAndGrammarCheckAsync(ViewModel.Instance.NewChattingTxt);
 
-                Dispatcher.Invoke(() =>
-                {
+
                     if (string.IsNullOrEmpty(checkedText))
                     {
                         ViewModel.Instance.IntelliChatRequesting = false;
                     }
                     else
                     {
-                        ViewModel.Instance.NewChattingTxt = checkedText;
-                        ViewModel.Instance.IntelliChatRequesting = false;
+                    ViewModel.Instance.IntelliChatTxt = checkedText;
+                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
+                    ViewModel.Instance.IntelliChatRequesting = false;
                     }
-                });
+
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() =>
-                {
                     Logging.WriteException(ex);
                     ViewModel.Instance.IntelliChatRequesting = false;
-                });
             }
         }
 
+        private async void RebuildChat_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntelliChatRequesting = true;
+            try
+            {
+                string fixedText = await IntelliChatModule.PerformBeautifySentenceAsync(ViewModel.Instance.NewChattingTxt);
 
+                if (string.IsNullOrEmpty(fixedText))
+                {
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                }
+                else
+                {
+                    ViewModel.Instance.IntelliChatTxt = fixedText;
+                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
+                    ViewModel.Instance.IntelliChatRequesting = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex);
+                ViewModel.Instance.IntelliChatRequesting = false;
+            }
 
+        }
+
+        private void NotAcceptIntelliChat_Click(object sender, RoutedEventArgs e)
+        {
+            IntelliChatModule.RejectIntelliChatSuggestion();
+        }
+
+        private void AcceptIntelliChat_Click(object sender, RoutedEventArgs e)
+        {
+            IntelliChatModule.AcceptIntelliChatSuggestion();
+
+        }
     }
+
+    
 }

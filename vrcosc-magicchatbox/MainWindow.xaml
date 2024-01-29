@@ -4220,9 +4220,13 @@
                         Style="{DynamicResource Status_Button_style}" />
                 </Grid>
                 <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
                     <ScrollViewer
                         Name="RecentScroll"
-                        Margin="7,10,0,0"
+                        Margin="7,0,0,0"
                         Visibility="Visible">
                         <ItemsControl
                             HorizontalAlignment="Center"
@@ -4400,6 +4404,199 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+                    <Grid
+                        x:Name="AIResponse"
+                        Grid.Row="1"
+                        Height="auto"
+                        Margin="6,0,7,7"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Bottom"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Visibility="{Binding IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <Border Margin="10,0" CornerRadius="5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="#3E5750" />
+                                    <GradientStop Offset="1" Color="#403670" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="35"
+                                    Direction="-90"
+                                    Opacity="0.5"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="5"
+                                    Color="LightGreen" />
+                            </Border.Effect>
+                            <Grid Margin="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="55" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="Auto" MinHeight="40" />
+                                </Grid.RowDefinitions>
+                                <StackPanel
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Margin="-8,5,0,5"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        x:Name="NotAcceptIntelliChat"
+                                        Width="auto"
+                                        Margin="2"
+                                        Padding="2"
+                                        Click="NotAcceptIntelliChat_Click"
+                                        Style="{DynamicResource Status_Button_style}">
+                                        <Image
+                                            Width="18"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            Source="/Img/Icons/NotAccept_ico.png" />
+                                    </Button>
+                                    <Button
+                                        x:Name="AcceptIntelliChat"
+                                        Width="auto"
+                                        Margin="2"
+                                        Padding="2"
+                                        Click="AcceptIntelliChat_Click"
+                                        Style="{DynamicResource Status_Button_style}">
+                                        <Image
+                                            Width="18"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            Source="/Img/Icons/Accept_ico.png" />
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Width="auto"
+                                    Height="Auto"
+                                    Padding="15,0,0,15"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="15"
+                                    Foreground="AntiqueWhite"
+                                    Text="{Binding IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="20"
+                                            Opacity="1"
+                                            RenderingBias="Performance"
+                                            ShadowDepth="0"
+                                            Color="Black" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+
+
+                                <!--  Image  -->
+                                <Image
+                                    Grid.RowSpan="2"
+                                    Grid.Column="1"
+                                    Width="30"
+                                    Height="auto"
+                                    Margin="5"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    Opacity="0.5"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/OpenAI.png" />
+
+                                <StackPanel Height="auto" Orientation="Horizontal">
+
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="15,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="18"
+                                        Foreground="#94CCBF"
+                                        Text="IntelliChat">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="20"
+                                                Opacity="0.9"
+                                                RenderingBias="Performance"
+                                                ShadowDepth="0"
+                                                Color="Purple" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="5,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#94CCBF"
+                                        Opacity="0.6"
+                                        Text="Tokens:" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="2,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#94CCBF"
+                                        Opacity="0.6"
+                                        Text="n/a" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="5,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#94CCBF"
+                                        Opacity="0.3"
+                                        Text="Today tokens:" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="2,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#94CCBF"
+                                        Opacity="0.3"
+                                        Text="n/a" />
+
+                                </StackPanel>
+                                <TextBlock
+                                    Width="auto"
+                                    Height="Auto"
+                                    Margin="0,0,-10,0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="#94CCBF"
+                                    Opacity="0.3"
+                                    Text="Powered by OpenAI" />
+
+                            </Grid>
+
+                        </Border>
+                    </Grid>
                 </Grid>
                 <Grid
                     Grid.Row="3"
@@ -4415,20 +4612,76 @@
                             Color="#FF7F759A" />
                     </Grid.Effect>
                     <StackPanel
-                        Margin="17,0,0,0"
+                        Margin="13,0,0,0"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Center">
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IntelliChatRequesting}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
                         <Button
                             x:Name="SpellingCheck"
-                            Width="35"
-                            ToolTip="Spelling check by AI"
-                            Height="35"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
                             Click="SpellingCheck_Click"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                             Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Spelling check by AI"
                             WindowChrome.IsHitTestVisibleInChrome="True">
-                            <StackPanel Orientation="Horizontal">
-                                <Image Width="20" Source="/Img/Icons/SpellingCheck.png" />
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="25"
+                                    Margin="3,0,0,0"
+                                    Source="/Img/Icons/SpellingCheck.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    Text="Spel/Grammer check" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
+                            x:Name="RebuildChat"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="RebuildChat_Click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Rebuild chat by AI"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="25"
+                                    Margin="3,0,0,0"
+                                    Source="/Img/Icons/RebuildChat.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Magic Improve" />
+
                             </StackPanel>
                             <Button.Effect>
                                 <DropShadowEffect
@@ -4442,11 +4695,11 @@
                         </Button>
                     </StackPanel>
                     <TextBlock
+                        Padding="0,0,15,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         FontFamily="Albert Sans Thin"
                         FontSize="16"
-                        Padding="0,0,15,0"
                         Foreground="#FF9983AD"
                         Text="Requesting..."
                         Visibility="{Binding IntelliChatRequesting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
@@ -5179,6 +5432,7 @@
                 d:Visibility="Hidden"
                 Background="Transparent"
                 BorderThickness="0"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
                 ScrollViewer.CanContentScroll="False"
                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                 Visibility="{Binding MenuItem_0_Visibility}">
@@ -5320,7 +5574,7 @@
                     </Border>
                 </ListBoxItem>
                 <ListBoxItem Name="WindowActivityItem" Opacity="{Binding Window_Opacity}">
-                    <Border Margin="5" CornerRadius="5">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                 <GradientStop Color="DarkSlateBlue" />
@@ -5349,6 +5603,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Source="/Img/Icons/WindowActivity_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
@@ -5422,7 +5677,6 @@
                                     Effect="{StaticResource TextBlockShadowEffect}"
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     RenderTransformOrigin="0.5,0.5"
                                     Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
                                     TextWrapping="Wrap">
@@ -5448,7 +5702,7 @@
                     </Border>
                 </ListBoxItem>
                 <ListBoxItem Name="HeartRateItem" Opacity="{Binding HeartRate_Opacity}">
-                    <Border Margin="5" CornerRadius="5">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                 <GradientStop Color="DarkSlateBlue" />
@@ -5477,7 +5731,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
+                                RenderOptions.BitmapScalingMode="Linear"
                                 Source="/Img/Icons/HeartRate_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
@@ -5702,7 +5956,7 @@
                         </Border>
                         <Border
                             Grid.Row="0"
-                            Margin="5"
+                            Margin="5,0,5,5"
                             CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
@@ -5834,7 +6088,7 @@
 
                 </ListBoxItem>
                 <ListBoxItem Name="NetworkStatsItem" Opacity="{Binding NetworkStats_Opacity}">
-                    <Border Margin="5" CornerRadius="5">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                 <GradientStop Offset="0" Color="DarkSlateBlue" />
@@ -5863,7 +6117,7 @@
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
+                                RenderOptions.BitmapScalingMode="Fant"
                                 Source="/Img/Icons/NetworkStats_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
@@ -5951,7 +6205,7 @@
                     </Border>
                 </ListBoxItem>
                 <ListBoxItem Name="TimeItem" Opacity="{Binding Time_Opacity}">
-                    <Border Margin="5" CornerRadius="5">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                 <GradientStop Offset="0" Color="DarkSlateBlue" />
@@ -6068,7 +6322,7 @@
                     </Border>
                 </ListBoxItem>
                 <ListBoxItem Name="SoundpadItem" Opacity="{Binding Soundpad_Opacity}">
-                    <Border Margin="5" CornerRadius="5">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                 <GradientStop Color="DarkSlateBlue" />
@@ -6316,7 +6570,7 @@
                             <RowDefinition Height="auto" />
                             <RowDefinition Height="auto" />
                         </Grid.RowDefinitions>
-                        <Border Margin="5" CornerRadius="5">
+                        <Border Margin="5,0,5,5" CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                     <GradientStop Color="DarkSlateBlue" />
