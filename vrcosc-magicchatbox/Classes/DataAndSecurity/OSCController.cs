@@ -279,30 +279,53 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             if (elapsedTime >= TimeSpan.FromSeconds(ViewModel.Instance.SwitchStatusInterval))
             {
 
-                foreach (var item in ViewModel.Instance.StatusList) 
-                {
-                    item.IsActive = false;
-                }
 
-                try
+
+                if(ViewModel.Instance.IsRandomCycling)
                 {
-                    var rnd = new Random();
-                    var weights = cycleItems.Select(item =>
+                    foreach (var item in ViewModel.Instance.StatusList)
                     {
-                        var timeWeight = (DateTime.Now - item.LastUsed).TotalSeconds;
-                        var randomFactor = rnd.NextDouble(); // Adding randomness
-                        return timeWeight * randomFactor; // Combine time weight with random factor
-                    }).ToList();
+                        item.IsActive = false;
+                    }
+                    try
+                    {
+                        var rnd = new Random();
+                        var weights = cycleItems.Select(item =>
+                        {
+                            var timeWeight = (DateTime.Now - item.LastUsed).TotalSeconds;
+                            var randomFactor = rnd.NextDouble(); // Adding randomness
+                            return timeWeight * randomFactor; // Combine time weight with random factor
+                        }).ToList();
 
-                    int selectedIndex = WeightedRandomIndex(weights);
-                    cycleItems[selectedIndex].IsActive = true;
+                        int selectedIndex = WeightedRandomIndex(weights);
+                        cycleItems[selectedIndex].IsActive = true;
 
-                    ViewModel.Instance.LastSwitchCycle = DateTime.Now;
+                        ViewModel.Instance.LastSwitchCycle = DateTime.Now;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteException(ex, MSGBox: false);
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logging.WriteException(ex, MSGBox: false);
+                    var activeItem = cycleItems.FirstOrDefault(item => item.IsActive);
+                    if (activeItem != null)
+                    {
+                        var currentIndex = cycleItems.IndexOf(activeItem);
+                        var nextIndex = currentIndex + 1;
+                        if (nextIndex >= cycleItems.Count)
+                        {
+                            nextIndex = 0;
+                        }
+
+                        activeItem.IsActive = false;
+                        cycleItems[nextIndex].IsActive = true;
+
+                        ViewModel.Instance.LastSwitchCycle = DateTime.Now;
+                    }
                 }
+
             }
         }
 
