@@ -814,7 +814,7 @@ namespace vrcosc_magicchatbox
         private void SortFav_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>(
-                ViewModel.Instance.StatusList.OrderByDescending(x => x.UseInCycle).ThenBy(x => x.LastUsed));
+                ViewModel.Instance.StatusList.OrderByDescending(x => x.UseInCycle).ThenByDescending(x => x.LastUsed));
         }
 
         private void SortUsed_Click(object sender, RoutedEventArgs e)
@@ -1612,5 +1612,5 @@ namespace vrcosc_magicchatbox
         }
     }
 
-    
+
 }
