@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.8.757</Version>
+	<Version>0.8.760</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -169,7 +169,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
     <PackageReference Include="NLog" Version="5.2.8" />
-    <PackageReference Include="OpenAI-DotNet" Version="7.6.4" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.6.5" />
   </ItemGroup>
 
   <ItemGroup>
