@@ -1807,7 +1807,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _CountDownUI = true;
         private bool _Time24H = false;
         private string _OSCtoSent = string.Empty;
-        private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8lO27wztrjMPbb + 8hQ1WPba2dq / iRyYpBEDZ0NuMNKR5GRrF2XdfANLud0zihG / UD + ewVl1p3VLNk1mrNdrdg88rguzi6RJ7T1AA7hyBY + F";
+        private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvcyqYF5tDKdF6kXkBnRFsjygNyZHsoVsPRpN0A11NmwEKllRRsXV1tqnpUzc4+dsV1c4akKFVIfmgIV5IuSC7ojvzLywpcba/JVR7TdRWeLO+";
         private Models.Version _AppVersion = new(DataController.GetApplicationVersion());
         private Models.Version _GitHubVersion;
         private string _VersionTxt = "Check for updates";
