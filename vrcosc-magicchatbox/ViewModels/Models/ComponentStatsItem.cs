@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibreHardwareMonitor.Hardware;
+using System;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
@@ -107,5 +108,12 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             Unit = unit;
             IsEnabled = isenabled;
         }
+
+        public class Gpu
+{
+    public string Name { get; set; }
+    public string Identifier { get; set; }
+    public HardwareType HardwareType { get; set; }
+}
     }
 }

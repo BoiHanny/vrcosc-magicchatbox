@@ -1756,6 +1756,54 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private List<string> _gpuList;
+        private bool _autoSelectGPU = true; // Default to true for automatically selecting the GPU
+        private string _selectedGPU;
+
+        public List<string> GPUList
+        {
+            get => _gpuList;
+            set
+            {
+                _gpuList = value;
+                NotifyPropertyChanged(nameof(GPUList));
+            }
+        }
+
+        public bool AutoSelectGPU
+        {
+            get => _autoSelectGPU;
+            set
+            {
+                _autoSelectGPU = value;
+                NotifyPropertyChanged(nameof(AutoSelectGPU));
+            }
+        }
+
+        public string SelectedGPU
+        {
+            get => _selectedGPU;
+            set
+            {
+                _selectedGPU = value;
+                NotifyPropertyChanged(nameof(SelectedGPU));
+            }
+        }
+
+
+        private bool _ComponentStatsGPU3DVRAMHook = false;
+        public bool ComponentStatsGPU3DVRAMHook
+        {
+            get { return _ComponentStatsGPU3DVRAMHook; }
+            set
+            {
+                _ComponentStatsGPU3DVRAMHook = value;
+                NotifyPropertyChanged(nameof(ComponentStatsGPU3DVRAMHook));
+            }
+        }
+
+
+
 
         #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }

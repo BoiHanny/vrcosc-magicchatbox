@@ -460,7 +460,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
             if (ViewModel.Instance.SeperateWithENTERS)
             {
-                Complete_msg = string.Join("\v", Uncomplete);
+                Complete_msg = string.Join("\n", Uncomplete);
             }
             else
             {

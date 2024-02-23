@@ -489,8 +489,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string GenerateStatsDescription()
         {
-            List<string> lines = new List<string>();
-            string currentLine = "";
+            List<string> descriptions = new List<string>();
 
             foreach (var type in StatDisplayOrder)
             {
@@ -514,28 +513,26 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     {
                         gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
                         gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
-                        additionalInfo = $"{(!stat.cantShowTemperature ? gpuTemp + " " : "")}{(!stat.cantShowTemperature ? gpuPower : "")}";
+                        additionalInfo = $"{(!stat.cantShowTemperature ? gpuTemp + " " : "")}{(!stat.cantShowWattage ? gpuPower : "")}";
                     }
 
+                    // Combine the component description with additional info if any
+                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $" {additionalInfo}")}".Trim();
 
-                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $"{additionalInfo}")}";
-
-                    
-                    lines.Add(currentLine);
-                    currentLine = fullComponentInfo; 
-                    
+                    // Add the full component info to the list of descriptions
+                    if (!string.IsNullOrEmpty(fullComponentInfo))
+                    {
+                        descriptions.Add(fullComponentInfo);
+                    }
                 }
-            }
-
-            if (!string.IsNullOrWhiteSpace(currentLine))
-            {
-                lines.Add(currentLine.TrimEnd());
             }
 
             ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
 
-            return string.Join(" ¦ ", lines);
+            // Join the descriptions with the separator, ensuring no leading separator when there's only one item
+            return string.Join(" ¦ ", descriptions);
         }
+
 
 
 
@@ -778,7 +775,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     ViewModel.Instance.SetComponentStatMaxValue(type, maxValue);
                     SetAvailability(type, true);
                 }
-                else if (maxValue != null)
+                else if (maxValue != null && statItem.ShowMaxValue)
                 {
                     SetAvailability(type, false);
                 }
@@ -845,24 +842,60 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             try
             {
-                foreach (var type in new[] { HardwareType.GpuNvidia, HardwareType.GpuAmd })
+                // Ensure the GPU list in the ViewModel is populated.
+                if (ViewModel.Instance.GPUList == null || !ViewModel.Instance.GPUList.Any())
                 {
-                    var hardware = CurrentSystem.Hardware
-                        .FirstOrDefault(h => h.HardwareType == type && !h.Name.ToLower().Contains("integrated"))
-                        as Hardware;
-
-                    if (hardware != null) return hardware;
+                    ViewModel.Instance.GPUList = CurrentSystem.Hardware
+                        .Where(h => h.HardwareType == HardwareType.GpuNvidia || h.HardwareType == HardwareType.GpuAmd || h.HardwareType == HardwareType.GpuIntel)
+                        .Select(h => h.Name)
+                        .ToList();
                 }
-                return CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel)
-                    as Hardware;
+
+                Hardware selectedHardware = null;
+
+                // Use AutoSelectGPU mechanism if SelectedGPU is not set or AutoSelectGPU is true.
+                if (string.IsNullOrEmpty(ViewModel.Instance.SelectedGPU) || ViewModel.Instance.AutoSelectGPU)
+                {
+                    // Perform auto-selection of GPU based on predefined criteria.
+                    foreach (var type in new[] { HardwareType.GpuNvidia, HardwareType.GpuAmd })
+                    {
+                        selectedHardware = CurrentSystem.Hardware
+                            .FirstOrDefault(h => ViewModel.Instance.GPUList.Contains(h.Name) && h.HardwareType == type && !h.Name.ToLower().Contains("integrated")) as Hardware;
+                        if (selectedHardware != null)
+                        {
+                            ViewModel.Instance.SelectedGPU = selectedHardware.Name; // Update SelectedGPU with the auto-selected GPU name.
+                            break; // Break on finding the first dedicated GPU
+                        }
+                    }
+
+                    // Fallback to integrated GPU if no dedicated GPU is found.
+                    if (selectedHardware == null)
+                    {
+                        selectedHardware = CurrentSystem.Hardware
+                            .FirstOrDefault(h => ViewModel.Instance.GPUList.Contains(h.Name) && h.HardwareType == HardwareType.GpuIntel) as Hardware;
+                        if (selectedHardware != null)
+                        {
+                            ViewModel.Instance.SelectedGPU = selectedHardware.Name; // Update SelectedGPU with the auto-selected GPU name.
+                        }
+                    }
+                }
+                else
+                {
+                    // Attempt to use the manually selected GPU if AutoSelectGPU is false and a GPU is selected.
+                    selectedHardware = CurrentSystem.Hardware
+                        .FirstOrDefault(h => h.Name.Equals(ViewModel.Instance.SelectedGPU, StringComparison.OrdinalIgnoreCase)) as Hardware;
+                }
+
+                return selectedHardware; // Return the selected or auto-selected GPU.
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
-                return null;
+                return null; // Return null in case of any exceptions.
             }
-
         }
+
+
 
         private static string FetchStat(
             HardwareType hardwareType,
@@ -1022,10 +1055,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             FetchStat(HardwareType.GpuNvidia, SensorType.Load, ViewModel.Instance.ComponentStatsGPU3DHook ? "D3D 3D" : "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
 
         private static string FetchVRAMStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook? "D3D Dedicated Memory Used" : "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
 
         private static string FetchVRAMMaxStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook ? "D3D Dedicated Memory Total" : "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
 
         private static (string UsedMemory, string MaxMemory) FetchRAMStats()
         {

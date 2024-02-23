@@ -255,7 +255,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "OpenAIAccessTokenEncrypted", (typeof(string), "OpenAI") },
                 { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
 
-                { "ComponentStatsGPU3DHook", (typeof(bool), "ComponentStats") },
+                { "SelectedGPU", (typeof(string), "ComponentStats") },
+                { "AutoSelectGPU", (typeof(bool), "ComponentStats") },
                 { "UseEmojisForTempAndPower", (typeof(bool), "ComponentStats") },
                 { "IsTemperatureSwitchEnabled", (typeof(bool), "ComponentStats") },
 

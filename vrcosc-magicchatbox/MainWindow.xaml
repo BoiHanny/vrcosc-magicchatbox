@@ -2005,6 +2005,29 @@
                                         IsChecked="{Binding UseEmojisForTempAndPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="" />
+                                    <CheckBox
+                                        x:Name="ComponentStatAutoSelectGPU_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Auto-select GPU"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding AutoSelectGPU, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="This option will automatically select the GPU." />
+                                    <ComboBox
+                                        x:Name="ComponentStatSelectedGPUComboBox"
+                                        Width="186"
+                                        Height="25"
+                                        Margin="5,5"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding GPUList, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                        Opacity="0.3"
+                                        SelectedItem="{Binding SelectedGPU, Mode=TwoWay}"
+                                        Visibility="{Binding AutoSelectGPU, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Grid.Row="0"
                                         Margin="5,5"
@@ -2158,6 +2181,7 @@
                                                 Color="#63A8F9" />
                                         </TextBlock.Effect>
                                     </TextBlock>
+
                                     <CheckBox
                                         x:Name="ComponentStatGPUWattageVisible_checkbox"
                                         Height="20"
@@ -2314,6 +2338,19 @@
                                         FontSize="18"
                                         Foreground="#FFB9B5C1"
                                         IsChecked="{Binding VRAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
+                                        x:Name="ComponentStatsGPU3DVRAMHook_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="VRAM usage is based on the 3D usage"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatsGPU3DVRAMHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="" />
                                     <CheckBox
