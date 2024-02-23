@@ -1756,6 +1756,65 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private List<string> _gpuList;
+        private bool _autoSelectGPU = true; // Default to true for automatically selecting the GPU
+        private string _selectedGPU;
+
+        public List<string> GPUList
+        {
+            get => _gpuList;
+            set
+            {
+                _gpuList = value;
+                NotifyPropertyChanged(nameof(GPUList));
+            }
+        }
+
+        public bool AutoSelectGPU
+        {
+            get => _autoSelectGPU;
+            set
+            {
+                _autoSelectGPU = value;
+                NotifyPropertyChanged(nameof(AutoSelectGPU));
+            }
+        }
+
+        public string SelectedGPU
+        {
+            get => _selectedGPU;
+            set
+            {
+                _selectedGPU = value;
+                NotifyPropertyChanged(nameof(SelectedGPU));
+            }
+        }
+
+
+        private bool _ComponentStatsGPU3DVRAMHook = false;
+        public bool ComponentStatsGPU3DVRAMHook
+        {
+            get { return _ComponentStatsGPU3DVRAMHook; }
+            set
+            {
+                _ComponentStatsGPU3DVRAMHook = value;
+                NotifyPropertyChanged(nameof(ComponentStatsGPU3DVRAMHook));
+            }
+        }
+
+
+        private bool _MagicHeartIconPrefix = true;
+        public bool MagicHeartIconPrefix
+        {
+            get { return _MagicHeartIconPrefix; }
+            set
+            {
+                _MagicHeartIconPrefix = value;
+                NotifyPropertyChanged(nameof(MagicHeartIconPrefix));
+            }
+        }
+
+
 
         #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }
@@ -4231,6 +4290,53 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntelliChatAutoLang = value;
                 NotifyPropertyChanged(nameof(IntelliChatAutoLang));
+            }
+        }
+
+
+        private bool _PulsoidDeviceOnline = true;
+        public bool PulsoidDeviceOnline
+        {
+            get { return _PulsoidDeviceOnline; }
+            set
+            {
+                _PulsoidDeviceOnline = value;
+                NotifyPropertyChanged(nameof(PulsoidDeviceOnline));
+            }
+        }
+
+
+        private string _CurrentHeartRateTitle = "My heartrate";
+        public string CurrentHeartRateTitle
+        {
+            get { return _CurrentHeartRateTitle; }
+            set
+            {
+                _CurrentHeartRateTitle = value;
+                NotifyPropertyChanged(nameof(CurrentHeartRateTitle));
+            }
+        }
+
+        private int _UnchangedHeartRateLimit = 10;
+        public int UnchangedHeartRateLimit
+        {
+            get { return _UnchangedHeartRateLimit; }
+            set
+            {
+                _UnchangedHeartRateLimit = value;
+                NotifyPropertyChanged(nameof(UnchangedHeartRateLimit));
+            }
+        }
+
+
+        private bool _EnableHeartRateOfflineCheck = true;
+        public bool EnableHeartRateOfflineCheck
+        {
+            get { return _EnableHeartRateOfflineCheck; }
+            set
+            {
+                _EnableHeartRateOfflineCheck = value;
+                NotifyPropertyChanged(nameof(EnableHeartRateOfflineCheck));
             }
         }
 

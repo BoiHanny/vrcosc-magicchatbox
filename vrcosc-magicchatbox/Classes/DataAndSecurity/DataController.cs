@@ -255,7 +255,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "OpenAIAccessTokenEncrypted", (typeof(string), "OpenAI") },
                 { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
 
-                { "ComponentStatsGPU3DHook", (typeof(bool), "ComponentStats") },
+                { "SelectedGPU", (typeof(string), "ComponentStats") },
+                { "AutoSelectGPU", (typeof(bool), "ComponentStats") },
                 { "UseEmojisForTempAndPower", (typeof(bool), "ComponentStats") },
                 { "IsTemperatureSwitchEnabled", (typeof(bool), "ComponentStats") },
 
@@ -341,6 +342,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "HeartRateTrendIndicatorSampleRate", (typeof(int), "PulsoidConnector") },
                 { "HeartRateTitle", (typeof(bool), "PulsoidConnector") },
                 { "PulsoidAuthConnected", (typeof(bool), "PulsoidConnector") },
+                { "MagicHeartIconPrefix", (typeof(bool), "PulsoidConnector") },
+                { "CurrentHeartRateTitle", (typeof(string), "PulsoidConnector") },
+                { "EnableHeartRateOfflineCheck ", (typeof(bool), "PulsoidConnector") },
+                { "UnchangedHeartRateLimit ", (typeof(int), "PulsoidConnector") },
 
                 { "LowTemperatureThreshold", (typeof(int), "PulsoidConnector") },
                 { "HighTemperatureThreshold", (typeof(int), "PulsoidConnector") },

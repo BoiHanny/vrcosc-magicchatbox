@@ -70,36 +70,42 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
             {
-                // Pick the correct heart icon
-                string heartIcon = ViewModel.Instance.MagicHeartRateIcons || ViewModel.Instance.ShowTemperatureText ? ViewModel.Instance.HeartRateIcon : "💖";
-
-                if (ViewModel.Instance.HeartRateTitle)
+                if (ViewModel.Instance.EnableHeartRateOfflineCheck && ViewModel.Instance.PulsoidDeviceOnline || !ViewModel.Instance.EnableHeartRateOfflineCheck)
                 {
-                    string hrTitle = "Heart rate" + (ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ");
-                    string x = ViewModel.Instance.ShowBPMSuffix
-                        ? ViewModel.Instance.HeartRate + " bpm"
-                        : (ViewModel.Instance.SeperateWithENTERS ? heartIcon + " " : string.Empty) + ViewModel.Instance.HeartRate;
+                    // Always start with the heart icon if MagicHeartRateIcons or ShowTemperatureText is true
+                    string displayText = ViewModel.Instance.MagicHeartRateIcons || ViewModel.Instance.ShowTemperatureText || ViewModel.Instance.MagicHeartIconPrefix
+                        ? ViewModel.Instance.HeartRateIcon + " "
+                        : string.Empty;
 
+                    // Add the heart rate value
+                    displayText += ViewModel.Instance.HeartRate.ToString();
+
+                    // Optionally append " bpm" suffix if ShowBPMSuffix is true
+                    if (ViewModel.Instance.ShowBPMSuffix)
+                    {
+                        displayText += " bpm";
+                    }
+
+                    // Append the HeartRateTrendIndicator if ShowHeartRateTrendIndicator is true
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
-                        x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                        displayText += $" {ViewModel.Instance.HeartRateTrendIndicator}";
                     }
-                    TryAddToUncomplete(Uncomplete, hrTitle + x, "HeartRate");
-                }
-                else
-                {
-                    string x = ViewModel.Instance.ShowBPMSuffix
-                        ? ViewModel.Instance.HeartRate + " bpm"
-                        : heartIcon + " " + ViewModel.Instance.HeartRate;
 
-                    if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+                    // Add title if HeartRateTitle is true, with a separator based on SeperateWithENTERS
+                    if (ViewModel.Instance.HeartRateTitle)
                     {
-                        x = x + ViewModel.Instance.HeartRateTrendIndicator;
+                        string titleSeparator = ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ";
+                        string hrTitle = ViewModel.Instance.CurrentHeartRateTitle + titleSeparator;
+                        displayText = hrTitle + displayText;
                     }
-                    TryAddToUncomplete(Uncomplete, x, "HeartRate");
+
+                    // Finally, add the constructed string to the Uncomplete list with a tag
+                    TryAddToUncomplete(Uncomplete, displayText, "HeartRate");
                 }
             }
         }
+
 
 
         public static void AddMediaLink(List<string> Uncomplete)
@@ -460,7 +466,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
             if (ViewModel.Instance.SeperateWithENTERS)
             {
-                Complete_msg = string.Join("\v", Uncomplete);
+                Complete_msg = string.Join("\n", Uncomplete);
             }
             else
             {

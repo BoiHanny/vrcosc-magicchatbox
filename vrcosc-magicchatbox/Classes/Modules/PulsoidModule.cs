@@ -15,6 +15,7 @@ using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using Newtonsoft.Json.Linq;
 using vrcosc_magicchatbox.DataAndSecurity;
+using System.Windows.Threading;
 
 
 
@@ -26,6 +27,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private CancellationTokenSource? _cts;
         private readonly Queue<Tuple<DateTime, int>> _heartRates = new();
         private readonly Queue<int> _heartRateHistory = new();
+        private int _previousHeartRate = -1;
+        private int _unchangedHeartRateCount = 0;
 
         private static double CalculateSlope(Queue<int> values)
         {
@@ -126,6 +129,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     int heartRate = await GetHeartRateViaHttpAsync();
                     if (heartRate != -1)
                     {
+                        // Check if the heart rate is the same as the previous reading
+                        if (heartRate == _previousHeartRate)
+                        {
+                            _unchangedHeartRateCount++;
+                        }
+                        else
+                        {
+                            _unchangedHeartRateCount = 0; // Reset if the heart rate has changed
+                            _previousHeartRate = heartRate; // Update previous heart rate
+                        }
+
+                        // Check if we should perform the offline check
+                        if (ViewModel.Instance.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= ViewModel.Instance.UnchangedHeartRateLimit)
+                        {
+
+                            ViewModel.Instance.PulsoidDeviceOnline = false; // Set the device as offline
+                        }
+                        else
+                        {
+                            ViewModel.Instance.PulsoidDeviceOnline = true; // Otherwise, consider it online
+                        }
                         // Apply the adjustment if ApplyHeartRateAdjustment is true
                         if (ViewModel.Instance.ApplyHeartRateAdjustment)
                         {
