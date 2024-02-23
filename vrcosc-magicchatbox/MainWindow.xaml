@@ -1252,7 +1252,8 @@
                                 <Border
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
-                                    CornerRadius="5,0,0,5">
+                                    CornerRadius="5,0,0,5"
+                                    Visibility="{Binding MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="MagicHeartRateIcons_checkbox"
@@ -1271,6 +1272,107 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5"
                                     Visibility="{Binding MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="ShowTemperatureText_checkbox"
+                                            Margin="0,0,0,0"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding ShowTemperatureText, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Show temperature status
+                                        </CheckBox>
+                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    Padding="0,0,9,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Lower than" />
+                                                <TextBox
+                                                    x:Name="LowTemperatureThreshold"
+                                                    Width="35"
+                                                    Height="auto"
+                                                    Margin="0,0,0,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextAlignment="Center" />
+                                                <TextBlock
+                                                    Padding="5,0,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="show" />
+                                                <TextBox
+                                                    x:Name="LowHeartRateText"
+                                                    Height="auto"
+                                                    MinWidth="60"
+                                                    Padding="3,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding LowHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="0,5,0,5" Orientation="Horizontal">
+                                                <TextBlock
+                                                    Padding="0,0,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Higher than" />
+                                                <TextBox
+                                                    x:Name="HighTemperatureThreshold"
+                                                    Width="35"
+                                                    Height="auto"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    TextAlignment="Center" />
+                                                <TextBlock
+                                                    Padding="5,0,4,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="show" />
+                                                <TextBox
+                                                    x:Name="HighwHeartRateText"
+                                                    Height="auto"
+                                                    MinWidth="60"
+                                                    Margin="0,0,0,0"
+                                                    Padding="3,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HighHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="ShowHeartRateTrendIndicator"
@@ -1407,107 +1509,7 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
-                                <Border
-                                    Margin="0,0,0,5"
-                                    Background="#FF3B3054"
-                                    CornerRadius="5,0,0,5">
-                                    <StackPanel Margin="5">
-                                        <CheckBox
-                                            x:Name="ShowTemperatureText_checkbox"
-                                            Margin="0,0,0,0"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="18"
-                                            Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding ShowTemperatureText, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Show temperature status
-                                        </CheckBox>
-                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock
-                                                    Padding="0,0,9,0"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="15"
-                                                    Foreground="#FF9983AD"
-                                                    Text="Lower than" />
-                                                <TextBox
-                                                    x:Name="LowTemperatureThreshold"
-                                                    Width="35"
-                                                    Height="auto"
-                                                    Margin="0,0,0,0"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalContentAlignment="Center"
-                                                    Background="#FF7B7195"
-                                                    BorderThickness="0"
-                                                    FontSize="15"
-                                                    Foreground="#FF240E54"
-                                                    Text="{Binding LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    TextAlignment="Center" />
-                                                <TextBlock
-                                                    Padding="5,0,5,0"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="15"
-                                                    Foreground="#FF9983AD"
-                                                    Text="show" />
-                                                <TextBox
-                                                    x:Name="LowHeartRateText"
-                                                    Height="auto"
-                                                    MinWidth="60"
-                                                    Padding="3,0"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalContentAlignment="Center"
-                                                    Background="#FF7B7195"
-                                                    BorderThickness="0"
-                                                    FontSize="15"
-                                                    Foreground="#FF240E54"
-                                                    Text="{Binding LowHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            </StackPanel>
-                                            <StackPanel Margin="0,5,0,5" Orientation="Horizontal">
-                                                <TextBlock
-                                                    Padding="0,0,5,0"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="15"
-                                                    Foreground="#FF9983AD"
-                                                    Text="Higher than" />
-                                                <TextBox
-                                                    x:Name="HighTemperatureThreshold"
-                                                    Width="35"
-                                                    Height="auto"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalContentAlignment="Center"
-                                                    Background="#FF7B7195"
-                                                    BorderThickness="0"
-                                                    FontSize="15"
-                                                    Foreground="#FF240E54"
-                                                    Text="{Binding HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    TextAlignment="Center" />
-                                                <TextBlock
-                                                    Padding="5,0,4,0"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="15"
-                                                    Foreground="#FF9983AD"
-                                                    Text="show" />
-                                                <TextBox
-                                                    x:Name="HighwHeartRateText"
-                                                    Height="auto"
-                                                    MinWidth="60"
-                                                    Margin="0,0,0,0"
-                                                    Padding="3,0"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalContentAlignment="Center"
-                                                    Background="#FF7B7195"
-                                                    BorderThickness="0"
-                                                    FontSize="15"
-                                                    Foreground="#FF240E54"
-                                                    Text="{Binding HighHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
+
                                 <Border
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"

@@ -224,6 +224,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                                 ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedHighHeartRateText;
                             }
                         }
+                        else
+                        {
+                            ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
+                        }
 
 
 

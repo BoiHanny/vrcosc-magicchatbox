@@ -73,7 +73,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 if (ViewModel.Instance.EnableHeartRateOfflineCheck && ViewModel.Instance.PulsoidDeviceOnline || !ViewModel.Instance.EnableHeartRateOfflineCheck)
                 {
                     // Always start with the heart icon if MagicHeartRateIcons or ShowTemperatureText is true
-                    string displayText = ViewModel.Instance.MagicHeartRateIcons || ViewModel.Instance.ShowTemperatureText || ViewModel.Instance.MagicHeartIconPrefix
+                    string displayText = ViewModel.Instance.MagicHeartIconPrefix
                         ? ViewModel.Instance.HeartRateIcon + " "
                         : string.Empty;
 
