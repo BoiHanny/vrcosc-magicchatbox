@@ -1803,6 +1803,17 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _MagicHeartIconPrefix = true;
+        public bool MagicHeartIconPrefix
+        {
+            get { return _MagicHeartIconPrefix; }
+            set
+            {
+                _MagicHeartIconPrefix = value;
+                NotifyPropertyChanged(nameof(MagicHeartIconPrefix));
+            }
+        }
+
 
 
         #region ICommand's
@@ -4279,6 +4290,53 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntelliChatAutoLang = value;
                 NotifyPropertyChanged(nameof(IntelliChatAutoLang));
+            }
+        }
+
+
+        private bool _PulsoidDeviceOnline = true;
+        public bool PulsoidDeviceOnline
+        {
+            get { return _PulsoidDeviceOnline; }
+            set
+            {
+                _PulsoidDeviceOnline = value;
+                NotifyPropertyChanged(nameof(PulsoidDeviceOnline));
+            }
+        }
+
+
+        private string _CurrentHeartRateTitle = "My heartrate";
+        public string CurrentHeartRateTitle
+        {
+            get { return _CurrentHeartRateTitle; }
+            set
+            {
+                _CurrentHeartRateTitle = value;
+                NotifyPropertyChanged(nameof(CurrentHeartRateTitle));
+            }
+        }
+
+        private int _UnchangedHeartRateLimit = 10;
+        public int UnchangedHeartRateLimit
+        {
+            get { return _UnchangedHeartRateLimit; }
+            set
+            {
+                _UnchangedHeartRateLimit = value;
+                NotifyPropertyChanged(nameof(UnchangedHeartRateLimit));
+            }
+        }
+
+
+        private bool _EnableHeartRateOfflineCheck = true;
+        public bool EnableHeartRateOfflineCheck
+        {
+            get { return _EnableHeartRateOfflineCheck; }
+            set
+            {
+                _EnableHeartRateOfflineCheck = value;
+                NotifyPropertyChanged(nameof(EnableHeartRateOfflineCheck));
             }
         }
 
