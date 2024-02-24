@@ -9,30 +9,205 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using vrcosc_magicchatbox.ViewModels;
 using System.Windows.Threading;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
+    public class IntelliChatModuleSettings
+    {
+        public List<SupportedIntelliChatLanguage> SupportedLanguages { get; set; } = new List<SupportedIntelliChatLanguage>();
+        public List<IntelliChatWritingStyle> SupportedWritingStyles { get; set; } = new List<IntelliChatWritingStyle>();
+        public bool IntelliChatPerformModeration { get; set; } = true;
+        public bool IntelliChatRequesting { get; set; } = false;
+        public bool IntelliChatWaitingToAccept { get; set; } = false;
+        public string IntelliChatTxt { get; set; } = string.Empty;
+        public bool IntelliChatError { get; set; } = false;
+        public string IntelliChatErrorTxt { get; set; } = string.Empty;
+
+        // New fields
+
+        public bool AutolanguageSelection { get; set; } = true;
+        public List<int> SelectedSupportedLanguageIDs { get; set; } = new List<int>();
+        public int SelectedTranslateLanguageID { get; set; }
+        public int SelectedWritingStyleID { get; set; }
+    }
+
+
+
+
+    public class SupportedIntelliChatLanguage
+    {
+        public int ID { get; set; }
+        public string LanguageName { get; set; }
+        public string LanguageDescription { get; set; }
+        public bool IsBuiltIn { get; set; } = false;
+        public bool IsActivated { get; set; }
+    }
+
+    public class IntelliChatWritingStyle
+    {
+        public int ID { get; set; } // Unique identifier for each writing style
+        public string StyleName { get; set; }
+        public string StyleDescription { get; set; }
+        public bool IsBuiltIn { get; set; } = false;
+        public bool IsActivated { get; set; }
+        public double Temperature { get; set; } = 0.7;
+    }
+
     public class IntelliChatModule
     {
+        private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
+        public static IntelliChatModuleSettings Settings = new IntelliChatModuleSettings();
+        private static bool _isInitialized = false;
+
+        public  static IntelliChatWritingStyle SelectedWritingStyle
+        {
+            get
+            {
+                return Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == Settings.SelectedWritingStyleID);
+            }
+        }
+
+        public static SupportedIntelliChatLanguage SelectedTranslateLanguage
+        {
+            get
+            {
+                return Settings.SupportedLanguages.FirstOrDefault(lang => lang.ID == Settings.SelectedTranslateLanguageID);
+            }
+        }
+
+        public static List<SupportedIntelliChatLanguage> SelectedSupportedLanguages
+        {
+            get
+            {
+                return Settings.SupportedLanguages.Where(lang => Settings.SelectedSupportedLanguageIDs.Contains(lang.ID)).ToList();
+            }
+        }
+
+
+        static IntelliChatModule()
+        {
+            Initialize();
+        }
+
+        private static void Initialize()
+        {
+            if (_isInitialized) return;
+
+            LoadSettings();
+            _isInitialized = true;
+        }
+
+        private static void InitializeDefaultSettings()
+        {
+            InitializeDefaultLanguageSettings();
+            InitializeDefaultWritingStyleSettings();
+
+            SaveSettings();
+        }
+
+        public static void LoadSettings()
+        {
+            var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
+            if (File.Exists(filePath))
+            {
+                var jsonData = File.ReadAllText(filePath);
+                Settings = JsonConvert.DeserializeObject<IntelliChatModuleSettings>(jsonData) ?? new IntelliChatModuleSettings();
+            }
+            else
+            {
+                InitializeDefaultSettings();
+            }
+        }
+
+        public static void SaveSettings()
+        {
+            var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
+            var jsonData = JsonConvert.SerializeObject(Settings, Formatting.Indented);
+            File.WriteAllText(filePath, jsonData);
+        }
+
+
+
+        private static void InitializeDefaultLanguageSettings()
+        {
+            var defaultLanguages = new List<SupportedIntelliChatLanguage>
+            {
+                new SupportedIntelliChatLanguage { LanguageName = "English", IsBuiltIn = true, IsActivated = true },
+                new SupportedIntelliChatLanguage { LanguageName = "Spanish", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "French", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "German", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Chinese", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Japanese", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Russian", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Portuguese", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Italian", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Dutch", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Arabic", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Turkish", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Korean", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Hindi", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { LanguageName = "Swedish", IsBuiltIn = true, IsActivated = false },
+            };
+
+            Settings.SupportedLanguages = defaultLanguages;
+        }
+
+        private static void InitializeDefaultWritingStyleSettings()
+        {
+            var defaultStyles = new List<IntelliChatWritingStyle>
+            {
+                new IntelliChatWritingStyle { StyleName = "Casual", StyleDescription = "A casual, everyday writing style", IsBuiltIn = true, IsActivated = true },
+                new IntelliChatWritingStyle { StyleName = "Formal", StyleDescription = "A formal, professional writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Friendly", StyleDescription = "A friendly, approachable writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Professional", StyleDescription = "A professional, business-oriented writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Academic", StyleDescription = "An academic, scholarly writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Creative", StyleDescription = "A creative, imaginative writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Humorous", StyleDescription = "A humorous, funny writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "British", StyleDescription = "A British, UK-specific writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Sarcastic", StyleDescription = "A sarcastic, witty writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Romantic", StyleDescription = "A romantic, lovey-dovey writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Action-Packed", StyleDescription = "An action-packed, adrenaline-fueled writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Mysterious", StyleDescription = "A mysterious, suspenseful writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Sci-Fi", StyleDescription = "A futuristic, sci-fi writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Horror", StyleDescription = "A chilling, horror writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Western", StyleDescription = "A wild west, cowboy writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Fantasy", StyleDescription = "A magical, fantasy writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Superhero", StyleDescription = "A heroic, superhero writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Film Noir", StyleDescription = "A dark, film noir writing style", IsBuiltIn = true, IsActivated = false },
+                new IntelliChatWritingStyle { StyleName = "Comedy", StyleDescription = "A hilarious, comedy writing style", IsBuiltIn = true, IsActivated = false },
+            };
+
+            Settings.SupportedWritingStyles = defaultStyles;
+
+        }
+
+
+
+
+
+
+
         public static async Task<string> PerformSpellingAndGrammarCheckAsync(
             string text,
             List<SupportedIntelliChatLanguage> languages = null)
         {
-            if(!OpenAIModule.Instance.IsInitialized)
+            if (!OpenAIModule.Instance.IsInitialized)
             {
                 ViewModel.Instance.ActivateSetting("Settings_OpenAI");
                 return string.Empty;
             }
-            if(string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(text))
             {
                 ViewModel.Instance.IntelliChatRequesting = false;
                 return string.Empty;
             }
 
-            if(ViewModel.Instance.IntelliChatPerformModeration)
+            if (ViewModel.Instance.IntelliChatPerformModeration)
             {
                 bool moderationResponse = await PerformModerationCheckAsync(text);
-                if(moderationResponse)
+                if (moderationResponse)
                     return string.Empty;
             }
 
@@ -44,7 +219,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 "Please detect and correct and return any spelling and grammar errors in the following text:")
             };
 
-            if(languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
+            if (languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
             {
                 messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", languages)}"));
             }
@@ -55,7 +230,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120));
 
             // Check the type of response.Content and convert to string accordingly
-            if(response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
+            if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
             {
                 return response.Choices[0].Message.Content.GetString();
             } else
@@ -66,17 +241,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
 
-        public static async Task<string> PerformBeautifySentenceAsync(
-            string text,
-            IntelliChatWritingStyle writingStyle = IntelliChatWritingStyle.Casual,
-            List<SupportedIntelliChatLanguage> languages = null)
+        public static async Task<string> PerformBeautifySentenceAsync(string text)
         {
-            if(!OpenAIModule.Instance.IsInitialized)
+            if (!OpenAIModule.Instance.IsInitialized)
             {
                 ViewModel.Instance.ActivateSetting("Settings_OpenAI");
                 return string.Empty;
             }
-            if(string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(text))
             {
                 ViewModel.Instance.IntelliChatRequesting = false;
                 return string.Empty;
@@ -91,20 +263,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             var messages = new List<Message>
             {
-                new Message(Role.System, $"Please rewrite the following sentence in a {writingStyle} style:")
+                new Message(Role.System, $"Please rewrite the following sentence in {SelectedWritingStyle} style:")
             };
 
-            if(languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
+            if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
             {
-                messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", languages)}"));
+                messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", SelectedSupportedLanguages)}"));
             }
 
             messages.Add(new Message(Role.User, text));
 
             var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120));
+                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,temperature: SelectedWritingStyle.Temperature));
 
-            if(response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
+            if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
             {
                 return response.Choices[0].Message.Content.GetString();
             } else
@@ -263,37 +435,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
 
 
-    }
 
-
-    public enum SupportedIntelliChatLanguage
-    {
-        English,
-        Spanish,
-        French,
-        German,
-        Chinese,
-        Japanese,
-        Russian,
-        Portuguese,
-        Italian,
-        Dutch,
-        Arabic,
-        Turkish,
-        Korean,
-        Hindi,
-        Swedish,
-    }
-
-    public enum IntelliChatWritingStyle
-    {
-        Casual,
-        Formal,
-        Friendly,
-        Professional,
-        Academic,
-        Creative,
-        Humorous,
-        British,
     }
 }

@@ -62,6 +62,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private PulsoidModule _heartRateConnector;
 
+        public IntelliChatModule IntelliChatModule;
+
 
         private bool _HeartRateTitle = false;
 
