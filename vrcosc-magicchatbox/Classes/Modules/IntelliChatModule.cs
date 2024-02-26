@@ -1,14 +1,11 @@
 ﻿using OpenAI.Chat;
 using OpenAI.Moderations;
 using OpenAI;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using vrcosc_magicchatbox.ViewModels;
-using System.Windows.Threading;
 using Newtonsoft.Json;
 using System.IO;
 
@@ -39,8 +36,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
     public class SupportedIntelliChatLanguage
     {
         public int ID { get; set; }
-        public string LanguageName { get; set; }
-        public string LanguageDescription { get; set; }
+        public string Language { get; set; }
         public bool IsBuiltIn { get; set; } = false;
         public bool IsActivated { get; set; }
     }
@@ -134,21 +130,21 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             var defaultLanguages = new List<SupportedIntelliChatLanguage>
             {
-                new SupportedIntelliChatLanguage { LanguageName = "English", IsBuiltIn = true, IsActivated = true },
-                new SupportedIntelliChatLanguage { LanguageName = "Spanish", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "French", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "German", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Chinese", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Japanese", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Russian", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Portuguese", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Italian", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Dutch", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Arabic", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Turkish", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Korean", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Hindi", IsBuiltIn = true, IsActivated = false },
-                new SupportedIntelliChatLanguage { LanguageName = "Swedish", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "English", IsBuiltIn = true, IsActivated = true },
+                new SupportedIntelliChatLanguage { Language = "Spanish", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "French", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "German", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Chinese", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Japanese", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Russian", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Portuguese", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Italian", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Dutch", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Arabic", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Turkish", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Korean", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Hindi", IsBuiltIn = true, IsActivated = false },
+                new SupportedIntelliChatLanguage { Language = "Swedish", IsBuiltIn = true, IsActivated = false },
             };
 
             Settings.SupportedLanguages = defaultLanguages;
@@ -189,22 +185,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
 
 
-        public static async Task<string> PerformSpellingAndGrammarCheckAsync(
-            string text,
-            List<SupportedIntelliChatLanguage> languages = null)
+        public static async Task<string> PerformSpellingAndGrammarCheckAsync(string text)
         {
             if (!OpenAIModule.Instance.IsInitialized)
             {
                 ViewModel.Instance.ActivateSetting("Settings_OpenAI");
                 return string.Empty;
             }
-            if (string.IsNullOrWhiteSpace(text))
+            if (!_isInitialized || string.IsNullOrWhiteSpace(text))
             {
                 ViewModel.Instance.IntelliChatRequesting = false;
                 return string.Empty;
             }
 
-            if (ViewModel.Instance.IntelliChatPerformModeration)
+            if (Settings.IntelliChatPerformModeration)
             {
                 bool moderationResponse = await PerformModerationCheckAsync(text);
                 if (moderationResponse)
@@ -219,9 +213,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 "Please detect and correct and return any spelling and grammar errors in the following text:")
             };
 
-            if (languages != null && languages.Any() && !ViewModel.Instance.IntelliChatAutoLang)
+            if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
             {
-                messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", languages)}"));
+                messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", SelectedSupportedLanguages)}"));
             }
 
             messages.Add(new Message(Role.User, text));
@@ -241,29 +235,34 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
 
-        public static async Task<string> PerformBeautifySentenceAsync(string text)
+        public static async Task<string> PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
         {
             if (!OpenAIModule.Instance.IsInitialized)
             {
                 ViewModel.Instance.ActivateSetting("Settings_OpenAI");
                 return string.Empty;
             }
-            if (string.IsNullOrWhiteSpace(text))
+
+            if(!_isInitialized || string.IsNullOrWhiteSpace(text))
             {
                 ViewModel.Instance.IntelliChatRequesting = false;
                 return string.Empty;
             }
 
-            if (ViewModel.Instance.IntelliChatPerformModeration)
+
+            if (Settings.IntelliChatPerformModeration)
             {
                 bool moderationResponse = await PerformModerationCheckAsync(text);
                 if (moderationResponse)
                     return string.Empty;
             }
 
+            // Determine the writing style for beautification
+            IntelliChatWritingStyle writingStyle = intelliChatWritingStyle ?? SelectedWritingStyle;
+
             var messages = new List<Message>
             {
-                new Message(Role.System, $"Please rewrite the following sentence in {SelectedWritingStyle} style:")
+                new Message(Role.System, $"Please rewrite the following sentence in {writingStyle.StyleDescription} style:")
             };
 
             if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
@@ -274,7 +273,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             messages.Add(new Message(Role.User, text));
 
             var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,temperature: SelectedWritingStyle.Temperature));
+                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,temperature: writingStyle.Temperature));
 
             if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
             {
@@ -293,7 +292,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return "OpenAI not initialized.";
             }
 
-            var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI. no '";
+            if (!_isInitialized)
+            {
+                ViewModel.Instance.IntelliChatRequesting = false;
+                return string.Empty;
+            }
+
+            var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI and tech";
 
             var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
                 .GetCompletionAsync(new ChatRequest(new List<Message>
@@ -314,13 +319,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return "OpenAI not initialized.";
             }
 
-            if (string.IsNullOrWhiteSpace(text))
+            if (!_isInitialized || string.IsNullOrWhiteSpace(text))
             {
                 ViewModel.Instance.IntelliChatRequesting = false;
                 return string.Empty;
             }
 
-            if (ViewModel.Instance.IntelliChatPerformModeration)
+            if (Settings.IntelliChatPerformModeration)
             {
                 bool moderationResponse = await PerformModerationCheckAsync(text);
                 if (moderationResponse)
@@ -354,9 +359,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
 
 
-        public static async Task<string> PerformLanguageTranslationAutoDetectAsync(
-            string text,
-            SupportedIntelliChatLanguage targetLanguage = SupportedIntelliChatLanguage.English)
+        public static async Task<string> PerformLanguageTranslationAutoDetectAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
         {
             if (!OpenAIModule.Instance.IsInitialized)
             {
@@ -364,7 +367,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return string.Empty;
             }
 
-            if (string.IsNullOrWhiteSpace(text))
+            if (!_isInitialized || string.IsNullOrWhiteSpace(text))
             {
                 ViewModel.Instance.IntelliChatRequesting = false;
                 return string.Empty;
@@ -377,9 +380,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     return string.Empty;
             }
 
+            // Determine the language for translation
+            SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? SelectedTranslateLanguage;
+
             var messages = new List<Message>
     {
-        new Message(Role.System, $"Translate this to {targetLanguage}:"),
+        new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}:"),
         new Message(Role.User, text)
     };
 
@@ -394,15 +400,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public static void AcceptIntelliChatSuggestion()
         {
-            ViewModel.Instance.NewChattingTxt = ViewModel.Instance.IntelliChatTxt;
-            ViewModel.Instance.IntelliChatTxt = string.Empty;
-            ViewModel.Instance.IntelliChatWaitingToAccept = false;
+            ViewModel.Instance.NewChattingTxt = Settings.IntelliChatTxt;
+            Settings.IntelliChatTxt = string.Empty;
+            Settings.IntelliChatWaitingToAccept = false;
+
+            
         }
 
         public static void RejectIntelliChatSuggestion()
         {
-            ViewModel.Instance.IntelliChatTxt = string.Empty;
-            ViewModel.Instance.IntelliChatWaitingToAccept = false;
+            Settings.IntelliChatTxt = string.Empty;
+            Settings.IntelliChatWaitingToAccept = false;
         }
 
         public static async Task<bool> PerformModerationCheckAsync(string checkString)
@@ -414,18 +422,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 // Handle the error appropriately
                 // For example, you might log the error or set an error message in the ViewModel
-                ViewModel.Instance.IntelliChatError = true;
-                ViewModel.Instance.IntelliChatErrorTxt = "Error in moderation check.";
+                Settings.IntelliChatError = true;
+                Settings.IntelliChatErrorTxt = "Error in moderation check.";
                 return false;
             }
 
             // Check if there are any violations in the response
             if (moderationResponse.Results.Any(result => result.Flagged))
             {
-                ViewModel.Instance.IntelliChatWaitingToAccept = false;
-                ViewModel.Instance.IntelliChatRequesting = false;
-                ViewModel.Instance.IntelliChatError = true;
-                ViewModel.Instance.IntelliChatErrorTxt = "Your message has been temporarily held back due to a moderation check.\nThis is to ensure compliance with OpenAI's guidelines and protect your account.";
+                Settings.IntelliChatWaitingToAccept = false;
+                Settings.IntelliChatRequesting = false;
+                Settings.IntelliChatError = true;
+                Settings.IntelliChatErrorTxt = "Your message has been temporarily held back due to a moderation check.\nThis is to ensure compliance with OpenAI's guidelines and protect your account.";
                 return true;
             }
 
