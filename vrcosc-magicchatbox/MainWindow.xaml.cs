@@ -1453,31 +1453,7 @@ namespace vrcosc_magicchatbox
 
         private async void SpellingCheck_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatRequesting = true;
-            try
-            {
-                string checkedText = await IntelliChatModule.PerformSpellingAndGrammarCheckAsync(ViewModel.Instance.NewChattingTxt);
-
-
-                    if (string.IsNullOrEmpty(checkedText))
-                    {
-                        ViewModel.Instance.IntelliChatRequesting = false;
-                    }
-                    else
-                    {
-                    ViewModel.Instance.IntelliChatTxt = checkedText;
-                    ViewModel.Instance.IntelliChatError = false;
-                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
-                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                    }
-
-            }
-            catch (Exception ex)
-            {
-                    Logging.WriteException(ex);
-                    ViewModel.Instance.IntelliChatRequesting = false;
-            }
+                IntelliChatModule.PerformSpellingAndGrammarCheckAsync(ViewModel.Instance.NewChattingTxt);
         }
 
         private async void RebuildChat_Click(object sender, RoutedEventArgs e)
