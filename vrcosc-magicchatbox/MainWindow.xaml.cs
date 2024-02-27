@@ -1453,138 +1453,49 @@ namespace vrcosc_magicchatbox
 
         private async void SpellingCheck_Click(object sender, RoutedEventArgs e)
         {
-                IntelliChatModule.PerformSpellingAndGrammarCheckAsync(ViewModel.Instance.NewChattingTxt);
+            ViewModel.Instance.IntelliChatModule.PerformSpellingAndGrammarCheckAsync(ViewModel.Instance.NewChattingTxt);
         }
 
         private async void RebuildChat_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatRequesting = true;
-            try
-            {
-                string fixedText = await IntelliChatModule.PerformBeautifySentenceAsync(ViewModel.Instance.NewChattingTxt);
 
-                if (string.IsNullOrEmpty(fixedText))
-                {
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                }
-                else
-                {
-                    ViewModel.Instance.IntelliChatTxt = fixedText;
-                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                    ViewModel.Instance.IntelliChatError = false;
-                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex);
-                ViewModel.Instance.IntelliChatRequesting = false;
-            }
-
+            ViewModel.Instance.IntelliChatModule.PerformBeautifySentenceAsync(ViewModel.Instance.NewChattingTxt);
         }
 
-        private async void TranslateChat_click(object sender, RoutedEventArgs e)
+        private void TranslateChat_click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatRequesting = true;
-            try
-            {
-                string fixedText = await IntelliChatModule.PerformLanguageTranslationAutoDetectAsync(ViewModel.Instance.NewChattingTxt);
-
-                if (string.IsNullOrEmpty(fixedText))
-                {
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                }
-                else
-                {
-                    ViewModel.Instance.IntelliChatTxt = fixedText;
-                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                    ViewModel.Instance.IntelliChatError = false;
-                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex);
-                ViewModel.Instance.IntelliChatRequesting = false;
-            }
+            ViewModel.Instance.IntelliChatModule.PerformLanguageTranslationAsync(ViewModel.Instance.NewChattingTxt);
         }
 
         private void NotAcceptIntelliChat_Click(object sender, RoutedEventArgs e)
         {
-            IntelliChatModule.RejectIntelliChatSuggestion();
+            ViewModel.Instance.IntelliChatModule.RejectIntelliChatSuggestion();
         }
 
         private void AcceptIntelliChat_Click(object sender, RoutedEventArgs e)
         {
-            IntelliChatModule.AcceptIntelliChatSuggestion();
+            ViewModel.Instance.IntelliChatModule.AcceptIntelliChatSuggestion();
         }
 
         private void CloseIntelliErrorPanel_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatError = false;
-            ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
+            ViewModel.Instance.IntelliChatModule.CloseIntelliErrorPanel();
         }
 
         private void AcceptAndSentIntelliChat_Click(object sender, RoutedEventArgs e)
         {
-            IntelliChatModule.AcceptIntelliChatSuggestion();
+            AcceptIntelliChat_Click(sender, e);
             ButtonChattingTxt_Click(sender, e);
         }
 
         private async void ConvoStarterChat_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatRequesting = true;
-            try
-            {
-                string ConvoStarter = await IntelliChatModule.GenerateConversationStarterAsync();
-
-                if (string.IsNullOrEmpty(ConvoStarter))
-                {
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                }
-                else
-                {
-                    ViewModel.Instance.IntelliChatTxt = ConvoStarter;
-                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                    ViewModel.Instance.IntelliChatError = false;
-                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex);
-                ViewModel.Instance.IntelliChatRequesting = false;
-            }
+            ViewModel.Instance.IntelliChatModule.GenerateConversationStarterAsync();
         }
 
         private async void ShortenChat_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatRequesting = true;
-            try
-            {
-                string fixedText = await IntelliChatModule.ShortenTextAsync(ViewModel.Instance.NewChattingTxt);
-
-                if (string.IsNullOrEmpty(fixedText))
-                {
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                }
-                else
-                {
-                    ViewModel.Instance.IntelliChatTxt = fixedText;
-                    ViewModel.Instance.IntelliChatWaitingToAccept = true;
-                    ViewModel.Instance.IntelliChatRequesting = false;
-                    ViewModel.Instance.IntelliChatError = false;
-                    ViewModel.Instance.IntelliChatErrorTxt = string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex);
-                ViewModel.Instance.IntelliChatRequesting = false;
-            }
+            ViewModel.Instance.IntelliChatModule.ShortenTextAsync(ViewModel.Instance.NewChattingTxt);
         }
     }
 

@@ -62,7 +62,17 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private PulsoidModule _heartRateConnector;
 
-        public IntelliChatModule IntelliChatModule;
+
+        private IntelliChatModule _IntelliChatModule;
+        public IntelliChatModule IntelliChatModule
+        {
+            get { return _IntelliChatModule; }
+            set
+            {
+                _IntelliChatModule = value;
+                NotifyPropertyChanged(nameof(IntelliChatModule));
+            }
+        }
 
 
         private bool _HeartRateTitle = false;
@@ -4198,103 +4208,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(SpotifyPaused));
             }
         }
-
-
-        private IntelliChatWritingStyle _IntelliWritingStyle = IntelliChatWritingStyle.Casual;
-        public IntelliChatWritingStyle IntelliWritingStyle
-        {
-            get { return _IntelliWritingStyle; }
-            set
-            {
-                _IntelliWritingStyle = value;
-                NotifyPropertyChanged(nameof(IntelliWritingStyle));
-            }
-        }
-
-
-        private List<SupportedIntelliChatLanguage> _IntelliChatSupportedLang = new List<SupportedIntelliChatLanguage>();
-        public List<SupportedIntelliChatLanguage> IntelliChatSupportedLang
-        {
-            get { return _IntelliChatSupportedLang; }
-            set
-            {
-                _IntelliChatSupportedLang = value;
-                NotifyPropertyChanged(nameof(IntelliChatSupportedLang));
-            }
-        }
-
-
-        private string _IntelliChatTxt = string.Empty;
-        public string IntelliChatTxt
-        {
-            get { return _IntelliChatTxt; }
-            set
-            {
-                _IntelliChatTxt = value;
-                NotifyPropertyChanged(nameof(IntelliChatTxt));
-            }
-        }
-
-
-        private bool _IntelliChatWaitingToAccept = false;
-        public bool IntelliChatWaitingToAccept
-        {
-            get { return _IntelliChatWaitingToAccept; }
-            set
-            {
-                _IntelliChatWaitingToAccept = value;
-                NotifyPropertyChanged(nameof(IntelliChatWaitingToAccept));
-            }
-        }
-
-
-        private bool _IntelliChatError = false;
-        public bool IntelliChatError
-        {
-            get { return _IntelliChatError; }
-            set
-            {
-                _IntelliChatError = value;
-                NotifyPropertyChanged(nameof(IntelliChatError));
-            }
-        }
-
-
-        private string _IntelliChatErrorTxt = string.Empty;
-        public string IntelliChatErrorTxt
-        {
-            get { return _IntelliChatErrorTxt; }
-            set
-            {
-                _IntelliChatErrorTxt = value;
-                NotifyPropertyChanged(nameof(IntelliChatErrorTxt));
-            }
-        }
-
-
-        private bool _IntelliChatPerformModeration = true;
-        public bool IntelliChatPerformModeration
-        {
-            get { return _IntelliChatPerformModeration; }
-            set
-            {
-                _IntelliChatPerformModeration = value;
-                NotifyPropertyChanged(nameof(IntelliChatPerformModeration));
-            }
-        }
-
-
-        private bool _IntelliChatAutoLang = true;
-        public bool IntelliChatAutoLang
-        {
-            get { return _IntelliChatAutoLang; }
-            set
-            {
-                _IntelliChatAutoLang = value;
-                NotifyPropertyChanged(nameof(IntelliChatAutoLang));
-            }
-        }
-
 
         private bool _PulsoidDeviceOnline = true;
         public bool PulsoidDeviceOnline

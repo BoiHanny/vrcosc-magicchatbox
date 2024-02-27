@@ -1,115 +1,154 @@
-﻿using OpenAI.Chat;
-using OpenAI.Moderations;
-using OpenAI;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Text.Json;
-using vrcosc_magicchatbox.ViewModels;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
-using System.IO;
+using OpenAI;
+using OpenAI.Chat;
+using OpenAI.Moderations;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public class IntelliChatModuleSettings
+    public partial class IntelliChatModuleSettings : ObservableObject
     {
-        public List<SupportedIntelliChatLanguage> SupportedLanguages { get; set; } = new List<SupportedIntelliChatLanguage>();
-        public List<IntelliChatWritingStyle> SupportedWritingStyles { get; set; } = new List<IntelliChatWritingStyle>();
-        public bool IntelliChatPerformModeration { get; set; } = true;
-        public bool IntelliChatRequesting { get; set; } = false;
-        public string IntelliChatRequestingText { get; set; } = string.Empty;
-        public bool IntelliChatWaitingToAccept { get; set; } = false;
-        public string IntelliChatTxt { get; set; } = string.Empty;
-        public bool IntelliChatError { get; set; } = false;
-        public string IntelliChatErrorTxt { get; set; } = string.Empty;
-        public bool AutolanguageSelection { get; set; } = true;
-        public List<int> SelectedSupportedLanguageIDs { get; set; } = new List<int>();
-        public int SelectedTranslateLanguageID { get; set; }
-        public int SelectedWritingStyleID { get; set; }
+
+        [ObservableProperty]
+        private bool autolanguageSelection = true;
+
+        [ObservableProperty]
+        private bool intelliChatError = false;
+
+        [ObservableProperty]
+        private string intelliChatErrorTxt = string.Empty;
+
+        [ObservableProperty]
+        private bool intelliChatPerformModeration = true;
+
+        [ObservableProperty]
+        private int intelliChatPerformModerationTimeout = 7;
+
+        [ObservableProperty]
+        private int intelliChatTimeout = 10;
+
+        [ObservableProperty]
+        private string intelliChatTxt = string.Empty;
+
+        [ObservableProperty]
+        private bool intelliChatUILabel = false;
+
+        [ObservableProperty]
+        private string intelliChatUILabelTxt = string.Empty;
+
+        [ObservableProperty]
+        private bool intelliChatWaitingToAccept = false;
+
+        [ObservableProperty]
+        private List<int> selectedSupportedLanguageIDs = new List<int>();
+
+        [ObservableProperty]
+        private int selectedTranslateLanguageID;
+
+        [ObservableProperty]
+        private int selectedWritingStyleID;
+        [ObservableProperty]
+        private List<SupportedIntelliChatLanguage> supportedLanguages = new List<SupportedIntelliChatLanguage>();
+
+        [ObservableProperty]
+        private List<IntelliChatWritingStyle> supportedWritingStyles = new List<IntelliChatWritingStyle>();
     }
-    public class SupportedIntelliChatLanguage
+
+    public partial class SupportedIntelliChatLanguage : ObservableObject
     {
-        public int ID { get; set; }
-        public string Language { get; set; }
-        public bool IsBuiltIn { get; set; } = false;
-        public bool IsActivated { get; set; }
+        [ObservableProperty]
+        private int iD;
+
+        [ObservableProperty]
+        private bool isActivated;
+
+        [ObservableProperty]
+        private bool isBuiltIn = false;
+
+        [ObservableProperty]
+        private string language;
     }
-    public class IntelliChatWritingStyle
+
+    public partial class IntelliChatWritingStyle : ObservableObject
     {
-        public int ID { get; set; }
-        public string StyleName { get; set; }
-        public string StyleDescription { get; set; }
-        public bool IsBuiltIn { get; set; }
-        public bool IsActivated { get; set; }
-        public double Temperature { get; set; }
+        [ObservableProperty]
+        private int iD;
+
+        [ObservableProperty]
+        private bool isActivated;
+
+        [ObservableProperty]
+        private bool isBuiltIn;
+
+        [ObservableProperty]
+        private string styleDescription;
+
+        [ObservableProperty]
+        private string styleName;
+
+        [ObservableProperty]
+        private double temperature;
     }
+
     public class IntelliChatModule
     {
         private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
-        public static IntelliChatModuleSettings Settings = new IntelliChatModuleSettings();
-        private static bool _isInitialized = false;
-        public static IntelliChatWritingStyle SelectedWritingStyle
-        {
-            get
-            {
-                return Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == Settings.SelectedWritingStyleID);
-            }
-        }
-        public static SupportedIntelliChatLanguage SelectedTranslateLanguage
-        {
-            get
-            {
-                return Settings.SupportedLanguages.FirstOrDefault(lang => lang.ID == Settings.SelectedTranslateLanguageID);
-            }
-        }
-        public static List<SupportedIntelliChatLanguage> SelectedSupportedLanguages
-        {
-            get
-            {
-                return Settings.SupportedLanguages.Where(lang => Settings.SelectedSupportedLanguageIDs.Contains(lang.ID)).ToList();
-            }
-        }
 
-        static IntelliChatModule()
+        private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private static bool _isInitialized = false;
+        public static IntelliChatModuleSettings Settings = new IntelliChatModuleSettings();
+
+        public IntelliChatModule()
         {
             Initialize();
         }
 
-        private static void Initialize()
+        private bool EnsureInitialized()
+        {
+            if (!_isInitialized)
+            {
+                UpdateErrorState(true, "IntelliChat not initialized.");
+                return false;
+            }
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                UpdateErrorState(true, "OpenAI client not initialized.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool EnsureInitializedAndNotEmpty(string text)
+        {
+            if (!EnsureInitialized())
+            {
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void Initialize()
         {
             if (_isInitialized) return;
 
             LoadSettings();
             _isInitialized = true;
         }
-        private static void InitializeDefaultSettings()
-        {
-            InitializeDefaultLanguageSettings();
-            InitializeDefaultWritingStyleSettings();
-
-            SaveSettings();
-        }
-        public static void LoadSettings()
-        {
-            var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
-            if (File.Exists(filePath))
-            {
-                var jsonData = File.ReadAllText(filePath);
-                Settings = JsonConvert.DeserializeObject<IntelliChatModuleSettings>(jsonData) ?? new IntelliChatModuleSettings();
-            }
-            else
-            {
-                InitializeDefaultSettings();
-            }
-        }
-        public static void SaveSettings()
-        {
-            var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
-            var jsonData = JsonConvert.SerializeObject(Settings, Formatting.Indented);
-            File.WriteAllText(filePath, jsonData);
-        }
-        private static void InitializeDefaultLanguageSettings()
+        private void InitializeDefaultLanguageSettings()
         {
             var defaultLanguages = new List<SupportedIntelliChatLanguage>
             {
@@ -132,7 +171,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             Settings.SupportedLanguages = defaultLanguages;
         }
-        private static void InitializeDefaultWritingStyleSettings()
+        private void InitializeDefaultSettings()
+        {
+            InitializeDefaultLanguageSettings();
+            InitializeDefaultWritingStyleSettings();
+
+            SaveSettings();
+        }
+        private void InitializeDefaultWritingStyleSettings()
         {
             var defaultStyles = new List<IntelliChatWritingStyle>
     {
@@ -184,7 +230,74 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             Settings.SupportedWritingStyles = defaultStyles;
         }
-        public static void AddWritingStyle(string styleName, string styleDescription, double temperature)
+
+        private static void ProcessError(Exception ex)
+        {
+
+            if (ex is OperationCanceledException)
+            {
+                if (_cancellationTokenSource.IsCancellationRequested)
+                {
+                    // This block is entered either if the operation was manually cancelled
+                    // or if it was cancelled due to a timeout.
+                    // You might want to check if the cancellation was due to a timeout:
+                    if (_cancellationTokenSource.Token.WaitHandle.WaitOne(0))
+                    {
+                        // Handle the timeout-specific logic here
+                        UpdateErrorState(true, "The operation was cancelled due to a timeout.");
+                        return;
+                    }
+                    return;
+
+                }
+            }
+
+            Settings.IntelliChatError = true;
+            Settings.IntelliChatErrorTxt = ex.Message;
+        }
+
+        public void CloseIntelliErrorPanel()
+        {
+            Settings.IntelliChatError = false;
+            Settings.IntelliChatErrorTxt = string.Empty;
+        }
+
+        private void ProcessResponse(ChatResponse? response)
+        {
+            if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
+            {
+                Settings.IntelliChatUILabel = false;
+                Settings.IntelliChatUILabelTxt = string.Empty;
+
+                Settings.IntelliChatTxt = response.Choices[0].Message.Content.GetString();
+                Settings.IntelliChatWaitingToAccept = true;
+
+            }
+            else
+            {
+                Settings.IntelliChatUILabel = false;
+                Settings.IntelliChatUILabelTxt = string.Empty;
+
+                Settings.IntelliChatTxt = response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
+                Settings.IntelliChatWaitingToAccept = true;
+            }
+        }
+
+        private static void UpdateErrorState(bool hasError, string errorMessage)
+        {
+            Settings.IntelliChatError = hasError;
+            Settings.IntelliChatErrorTxt = errorMessage;
+        }
+
+        public void AcceptIntelliChatSuggestion()
+        {
+            ViewModel.Instance.NewChattingTxt = Settings.IntelliChatTxt;
+            Settings.IntelliChatTxt = string.Empty;
+            Settings.IntelliChatWaitingToAccept = false;
+
+
+        }
+        public void AddWritingStyle(string styleName, string styleDescription, double temperature)
         {
             // Find the next available ID starting from 1000 for user-defined styles
             int nextId = Settings.SupportedWritingStyles.DefaultIfEmpty().Max(style => style?.ID ?? 999) + 1;
@@ -210,7 +323,265 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             SaveSettings(); // Save the updated settings
         }
-        public static void RemoveWritingStyle(int styleId)
+
+        public void CancelAllCurrentTasks()
+        {
+            if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+            {
+                _cancellationTokenSource.Cancel();
+            }
+        }
+
+
+
+        public async Task GenerateConversationStarterAsync()
+        {
+            if (!EnsureInitialized())
+            {
+                return;
+            }
+
+            try
+            {
+
+                Settings.IntelliChatUILabel = true;
+                Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
+
+                var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI and tech";
+
+                ResetCancellationToken(Settings.IntelliChatTimeout);
+
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(new List<Message> { new Message(Role.System, prompt) }, maxTokens: 60), _cancellationTokenSource.Token);
+
+                if (response == null)
+                {
+                    throw new InvalidOperationException("The response from OpenAI was empty");
+                }
+                else
+                {
+                    ProcessResponse(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                ProcessError(ex);
+            }
+
+        }
+        public void LoadSettings()
+        {
+            var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
+            if (File.Exists(filePath))
+            {
+                var jsonData = File.ReadAllText(filePath);
+                Settings = JsonConvert.DeserializeObject<IntelliChatModuleSettings>(jsonData) ?? new IntelliChatModuleSettings();
+            }
+            else
+            {
+                InitializeDefaultSettings();
+            }
+        }
+
+        public async Task<bool> ModerationCheckPassedAsync(string text, bool cancelAllTasks = true)
+        {
+            if (cancelAllTasks)
+                CancelAllCurrentTasks();
+
+            if (!Settings.IntelliChatPerformModeration) return true;
+
+            Settings.IntelliChatUILabel = true;
+            Settings.IntelliChatUILabelTxt = "performing moderation check";
+
+            try
+            {
+                ResetCancellationToken(Settings.IntelliChatPerformModerationTimeout);
+
+                var moderationResponse = await OpenAIModule.Instance.OpenAIClient.ModerationsEndpoint.CreateModerationAsync(new ModerationsRequest(text), _cancellationTokenSource.Token);
+
+                if (moderationResponse?.Results.Any(r => r.Flagged) ?? false)
+                {
+                    Settings.IntelliChatUILabel = false;
+
+                    UpdateErrorState(true, "Your message has been temporarily held back due to a moderation check.\nThis is to ensure compliance with OpenAI's guidelines and protect your account.");
+                    return false;
+                }
+                else
+                {
+                    Settings.IntelliChatUILabel = false;
+
+                    UpdateErrorState(false, string.Empty);
+                    return true;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Settings.IntelliChatUILabel = false;
+
+                UpdateErrorState(false, string.Empty);
+                return true;
+            }
+        }
+
+
+        public async Task PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
+
+            if (!EnsureInitializedAndNotEmpty(text))
+            {
+                return;
+            }
+
+            try
+            {
+                if (!await ModerationCheckPassedAsync(text)) return;
+
+                Settings.IntelliChatUILabel = true;
+                Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
+
+                intelliChatWritingStyle = intelliChatWritingStyle ?? SelectedWritingStyle;
+
+                var messages = new List<Message>
+                {
+                    new Message(Role.System, $"Please rewrite the following sentence in {intelliChatWritingStyle.StyleDescription} style:")
+                };
+
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
+                {
+                    messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", SelectedSupportedLanguages)}"));
+                }
+
+                messages.Add(new Message(Role.User, text));
+
+                ResetCancellationToken(Settings.IntelliChatTimeout);
+
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature), _cancellationTokenSource.Token);
+
+                if (response == null)
+                {
+                    throw new InvalidOperationException("The response from OpenAI was empty");
+                }
+
+                ProcessResponse(response);
+            }
+            catch (Exception ex)
+            {
+                ProcessError(ex);
+            }
+
+
+
+        }
+
+
+
+        public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
+        {
+            if (!EnsureInitializedAndNotEmpty(text))
+            {
+                return;
+            }
+
+            try
+            {
+                if (!await ModerationCheckPassedAsync(text)) return;
+
+                SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? SelectedTranslateLanguage;
+
+                var messages = new List<Message>
+                {
+                    new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}:"),
+                    new Message(Role.User, text)
+                };
+
+                ResetCancellationToken(Settings.IntelliChatTimeout);
+
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120), _cancellationTokenSource.Token);
+
+                if (response == null)
+                {
+                    throw new InvalidOperationException("The response from OpenAI was empty");
+                }
+                else
+                {
+                    ProcessResponse(response);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ProcessError(ex);
+            }
+
+
+        }
+
+
+        public async Task PerformSpellingAndGrammarCheckAsync(string text)
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
+            if (!EnsureInitializedAndNotEmpty(text))
+            {
+                return;
+            }
+
+            try
+            {
+                if (!await ModerationCheckPassedAsync(text)) return;
+
+                Settings.IntelliChatUILabel = true;
+                Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
+
+                var messages = new List<Message>
+                {
+                new Message(
+                    Role.System,
+                    "Please detect and correct and return any spelling and grammar errors in the following text:")
+                };
+
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
+                {
+                    messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", SelectedSupportedLanguages)}"));
+                }
+
+                messages.Add(new Message(Role.User, text));
+
+                ResetCancellationToken(Settings.IntelliChatTimeout);
+
+                ChatResponse response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120), _cancellationTokenSource.Token);
+
+                if (response == null)
+                {
+                    throw new InvalidOperationException("The response from OpenAI was empty");
+                }
+                else
+                {
+                    ProcessResponse(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                ProcessError(ex);
+            }
+
+
+        }
+
+        public void RejectIntelliChatSuggestion()
+        {
+            Settings.IntelliChatTxt = string.Empty;
+            Settings.IntelliChatWaitingToAccept = false;
+        }
+        public void RemoveWritingStyle(int styleId)
         {
             var styleToRemove = Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == styleId);
             if (styleToRemove == null)
@@ -227,301 +598,89 @@ namespace vrcosc_magicchatbox.Classes.Modules
             SaveSettings(); // Save the updated settings
         }
 
-        private static void UpdateErrorState(bool hasError, string errorMessage)
+        public void ResetCancellationToken(int timeoutInSeconds)
         {
-            Settings.IntelliChatError = hasError;
-            Settings.IntelliChatErrorTxt = errorMessage;
+            CancelAllCurrentTasks();
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource.CancelAfter(timeoutInSeconds * 1000);
+        }
+        public void SaveSettings()
+        {
+            var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
+            var jsonData = JsonConvert.SerializeObject(Settings, Formatting.Indented);
+            File.WriteAllText(filePath, jsonData);
         }
 
-        private static bool EnsureInitializedAndNotEmpty(string text)
+        public async Task ShortenTextAsync(string text, int retryCount = 0)
         {
-            if (!_isInitialized)
-            {
-                UpdateErrorState(true, "IntelliChat not initialized.");
-                return false;
-            }
-            if(OpenAIModule.Instance.IsInitialized)
-            {
-                UpdateErrorState(true, "OpenAI client not initialized.");
-                return false;
-            }
-            if(string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public static async Task<bool> ModerationCheckAsync(string text)
-        {
-            if (!Settings.IntelliChatPerformModeration)
-            {
-                return true;
-            }
-
-            bool x = EnsureInitializedAndNotEmpty(text);
-            var moderationResponse = await OpenAIModule.Instance.OpenAIClient.ModerationsEndpoint.CreateModerationAsync(new ModerationsRequest(text));
-
-            if (moderationResponse?.Results.Any(r => r.Flagged) ?? false)
-            {
-                UpdateErrorState(true, "Your message has been temporarily held back due to a moderation check.\nThis is to ensure compliance with OpenAI's guidelines and protect your account.");
-            }
-
-            UpdateErrorState(false, "");
-        }
-        
-
-        public static async Task PerformSpellingAndGrammarCheckAsync(string text)
-        {
-            if (!OpenAIModule.Instance.IsInitialized)
-            {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-            }
-            if (!_isInitialized || string.IsNullOrWhiteSpace(text))
+            if (!EnsureInitializedAndNotEmpty(text))
             {
                 return;
             }
 
             try
             {
-                Settings.IntelliChatRequesting = true;
+                if (!await ModerationCheckPassedAsync(text)) return;
 
-                if (Settings.IntelliChatPerformModeration)
-                {
-                    Settings.IntelliChatRequestingText = "performing moderation check";
-                    bool moderationResponse = await PerformModerationCheckAsync(text);
-                        moderationResponse: return;
-                }
+                Settings.IntelliChatUILabel = true;
+                Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+                string prompt = retryCount == 0
+                ? $"Shorten the following text to 140 characters or less, including spaces: {text}"
+                : $"Please be more concise. Shorten this text to 140 characters or less, including spaces: {text}";
 
-                var messages = new List<Message>
-                {
-                new Message(
-                    Role.System,
-                    "Please detect and correct and return any spelling and grammar errors in the following text:")
-                };
-
-                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
-                {
-                    messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", SelectedSupportedLanguages)}"));
-                }
-
-                messages.Add(new Message(Role.User, text));
+                ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120));
+                    .GetCompletionAsync(new ChatRequest(new List<Message>
+                    {
+            new Message(Role.System, prompt)
+                    }, maxTokens: 60), _cancellationTokenSource.Token);
 
-                //catch any errors and throw an exception
-                if (response == null)
+                var shortenedText = response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
+                    ? response.Choices[0].Message.Content.GetString()
+                    : string.Empty;
+
+                // Check if the response is still over 140 characters and retry if necessary
+                if (shortenedText.Length > 140 && retryCount < 2) // Limiting to one retry
                 {
-                    throw new InvalidOperationException("The response from OpenAI was null.");
-                }
-
-                // Check the type of response.Content and convert to string accordingly
-                if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
-                {
-                    Settings.IntelliChatTxt = response.Choices[0].Message.Content.GetString();
-                    Settings.IntelliChatWaitingToAccept = true;
-
+                    await ShortenTextAsync(shortenedText, retryCount + 1);
                 }
                 else
                 {
-                    // If it's not a string, use ToString() to get the JSON-formatted text
-                    Settings.IntelliChatTxt = response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
-                    Settings.IntelliChatWaitingToAccept = true;
+                    ProcessResponse(response);
                 }
             }
             catch (Exception ex)
             {
-                Settings.IntelliChatError = true;
-                Settings.IntelliChatErrorTxt = ex.Message;
+                ProcessError(ex);
             }
 
 
         }
 
-
-        public static async Task<string> PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
+        public List<SupportedIntelliChatLanguage> SelectedSupportedLanguages
         {
-            if (!OpenAIModule.Instance.IsInitialized)
+            get
             {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-                return string.Empty;
-            }
-
-            if(!_isInitialized || string.IsNullOrWhiteSpace(text))
-            {
-                ViewModel.Instance.IntelliChatRequesting = false;
-                return string.Empty;
-            }
-
-
-            if (Settings.IntelliChatPerformModeration)
-            {
-                bool moderationResponse = await PerformModerationCheckAsync(text);
-                if (moderationResponse)
-                    return string.Empty;
-            }
-
-            // Determine the writing style for beautification
-            IntelliChatWritingStyle writingStyle = intelliChatWritingStyle ?? SelectedWritingStyle;
-
-            var messages = new List<Message>
-            {
-                new Message(Role.System, $"Please rewrite the following sentence in {writingStyle.StyleDescription} style:")
-            };
-
-            if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguageIDs.Count > 0)
-            {
-                messages.Add(new Message(Role.System, $"Consider these languages: {string.Join(", ", SelectedSupportedLanguages)}"));
-            }
-
-            messages.Add(new Message(Role.User, text));
-
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,temperature: writingStyle.Temperature));
-
-            if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
-            {
-                return response.Choices[0].Message.Content.GetString();
-            } else
-            {
-                return response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
+                return Settings.SupportedLanguages.Where(lang => Settings.SelectedSupportedLanguageIDs.Contains(lang.ID)).ToList();
             }
         }
-
-        public static async Task<string> GenerateConversationStarterAsync()
+        public SupportedIntelliChatLanguage SelectedTranslateLanguage
         {
-            if (!OpenAIModule.Instance.IsInitialized)
+            get
             {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-                return "OpenAI not initialized.";
+                return Settings.SupportedLanguages.FirstOrDefault(lang => lang.ID == Settings.SelectedTranslateLanguageID);
             }
-
-            if (!_isInitialized)
-            {
-                ViewModel.Instance.IntelliChatRequesting = false;
-                return string.Empty;
-            }
-
-            var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI and tech";
-
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(new List<Message>
-                {
-            new Message(Role.System, prompt)
-                }, maxTokens: 60));
-
-            return response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
-                ? response.Choices[0].Message.Content.GetString()
-                : "Unable to generate conversation starter.";
         }
 
-        public static async Task<string> ShortenTextAsync(string text, int retryCount = 0)
+        public IntelliChatWritingStyle SelectedWritingStyle
         {
-            if (!OpenAIModule.Instance.IsInitialized)
+            get
             {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-                return "OpenAI not initialized.";
-            }
-
-            if (!_isInitialized || string.IsNullOrWhiteSpace(text))
-            {
-                ViewModel.Instance.IntelliChatRequesting = false;
-                return string.Empty;
-            }
-
-            if (Settings.IntelliChatPerformModeration)
-            {
-                bool moderationResponse = await PerformModerationCheckAsync(text);
-                if (moderationResponse)
-                    return string.Empty;
-            }
-
-            string prompt = retryCount == 0
-                ? $"Shorten the following text to 140 characters or less, including spaces: {text}"
-                : $"Please be more concise. Shorten this text to 140 characters or less, including spaces: {text}";
-
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(new List<Message>
-                {
-            new Message(Role.System, prompt)
-                }, maxTokens: 60));
-
-            var shortenedText = response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
-                ? response.Choices[0].Message.Content.GetString()
-                : string.Empty;
-
-            // Check if the response is still over 140 characters and retry if necessary
-            if (shortenedText.Length > 140 && retryCount < 1) // Limiting to one retry
-            {
-                return await ShortenTextAsync(shortenedText, retryCount + 1);
-            }
-            else
-            {
-                return shortenedText.Length <= 140 ? shortenedText : string.Empty;
+                return Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == Settings.SelectedWritingStyleID);
             }
         }
-
-
-
-        public static async Task<string> PerformLanguageTranslationAutoDetectAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
-        {
-            if (!OpenAIModule.Instance.IsInitialized)
-            {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-                return string.Empty;
-            }
-
-            if (!_isInitialized || string.IsNullOrWhiteSpace(text))
-            {
-                ViewModel.Instance.IntelliChatRequesting = false;
-                return string.Empty;
-            }
-
-            if (ViewModel.Instance.IntelliChatPerformModeration)
-            {
-                bool moderationResponse = await PerformModerationCheckAsync(text);
-                if (moderationResponse)
-                    return string.Empty;
-            }
-
-            // Determine the language for translation
-            SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? SelectedTranslateLanguage;
-
-            var messages = new List<Message>
-    {
-        new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}:"),
-        new Message(Role.User, text)
-    };
-
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120));
-
-            return response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
-                ? response.Choices[0].Message.Content.GetString()
-                : response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
-        }
-
-
-        public static void AcceptIntelliChatSuggestion()
-        {
-            ViewModel.Instance.NewChattingTxt = Settings.IntelliChatTxt;
-            Settings.IntelliChatTxt = string.Empty;
-            Settings.IntelliChatWaitingToAccept = false;
-
-
-        }
-
-        public static void RejectIntelliChatSuggestion()
-        {
-            Settings.IntelliChatTxt = string.Empty;
-            Settings.IntelliChatWaitingToAccept = false;
-        }
-
-
-
 
     }
 }

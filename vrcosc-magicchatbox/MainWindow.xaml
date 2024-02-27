@@ -4646,7 +4646,7 @@
                         VerticalAlignment="Bottom"
                         d:Visibility="Collapsed"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Visibility="{Binding IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        Visibility="{Binding IntelliChatModule.Settings.IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border Margin="10,0" CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
@@ -4687,7 +4687,7 @@
                                     FontFamily="Albert Sans Thin"
                                     FontSize="15"
                                     Foreground="AntiqueWhite"
-                                    Text="{Binding IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
+                                    Text="{Binding IntelliChatModule.Settings.IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
                                     TextWrapping="Wrap">
                                     <TextBlock.Effect>
                                         <DropShadowEffect
@@ -4804,7 +4804,7 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="12"
                                         Style="{StaticResource CharacterCountTextStyle}"
-                                        Text="{Binding IntelliChatTxt.Length, UpdateSourceTrigger=PropertyChanged}" />
+                                        Text="{Binding IntelliChatModule.Settings.IntelliChatTxt.Length, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Width="auto"
                                         Height="Auto"
@@ -4900,7 +4900,7 @@
                         VerticalAlignment="Bottom"
                         d:Visibility="Collapsed"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Visibility="{Binding IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        Visibility="{Binding IntelliChatModule.Settings.IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Border Margin="10,0" CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
@@ -4936,7 +4936,7 @@
                                         FontSize="16"
                                         FontWeight="Bold"
                                         Foreground="MediumVioletRed"
-                                        Text="{Binding IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                        Text="{Binding IntelliChatModule.Settings.IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
                                         TextWrapping="Wrap">
                                         <TextBlock.Effect>
                                             <DropShadowEffect
@@ -5182,8 +5182,8 @@
                         FontFamily="Albert Sans Thin"
                         FontSize="16"
                         Foreground="#FF9983AD"
-                        Text="Requesting..."
-                        Visibility="{Binding IntelliChatRequesting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        Text="{Binding IntelliChatModule.Settings.IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                        Visibility="{Binding IntelliChatModule.Settings.IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
             </Grid>
 
