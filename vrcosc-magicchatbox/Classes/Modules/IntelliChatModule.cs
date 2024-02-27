@@ -98,13 +98,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private double temperature;
     }
 
-    public class IntelliChatModule
+    public partial class IntelliChatModule : ObservableObject
     {
         private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
 
         private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private static bool _isInitialized = false;
-        public static IntelliChatModuleSettings Settings = new IntelliChatModuleSettings();
+
+        [ObservableProperty]
+        private IntelliChatModuleSettings settings;
 
         public IntelliChatModule()
         {
@@ -231,7 +233,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             Settings.SupportedWritingStyles = defaultStyles;
         }
 
-        private static void ProcessError(Exception ex)
+        private void ProcessError(Exception ex)
         {
 
             if (ex is OperationCanceledException)
@@ -252,8 +254,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-            Settings.IntelliChatError = true;
-            Settings.IntelliChatErrorTxt = ex.Message;
+            Settings.IntelliChatUILabel = false;
+            Settings.IntelliChatUILabelTxt = string.Empty;
+
+            UpdateErrorState(true, ex.Message);
         }
 
         public void CloseIntelliErrorPanel()
@@ -283,7 +287,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private static void UpdateErrorState(bool hasError, string errorMessage)
+        private void UpdateErrorState(bool hasError, string errorMessage)
         {
             Settings.IntelliChatError = hasError;
             Settings.IntelliChatErrorTxt = errorMessage;
@@ -498,6 +502,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     new Message(Role.User, text)
                 };
 
+                Settings.IntelliChatUILabel = true;
+                Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
+
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
@@ -505,10 +512,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 if (response == null)
                 {
+                    Settings.IntelliChatUILabel = false;
                     throw new InvalidOperationException("The response from OpenAI was empty");
                 }
                 else
                 {
+                    Settings.IntelliChatUILabel = false;
                     ProcessResponse(response);
                 }
 
@@ -626,8 +635,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
                 string prompt = retryCount == 0
-                ? $"Shorten the following text to 140 characters or less, including spaces: {text}"
-                : $"Please be more concise. Shorten this text to 140 characters or less, including spaces: {text}";
+                ? $"Shorten ONLY the following text to 140 characters or less dont add anything, including spaces: {text}"
+                : $"Please be more concise. Shorten ONLY this text to 140 characters or less don't add more into it, including spaces: {text}";
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 

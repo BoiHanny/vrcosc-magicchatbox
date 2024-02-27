@@ -62,7 +62,7 @@
                 <Setter Property="Foreground" Value="#94CCBF" />
                 <Setter Property="Opacity" Value="0.3" />
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding IntelliChatTxt.Length, Converter={StaticResource CharacterCountToBoolConverter}}" Value="True">
+                    <DataTrigger Binding="{Binding IntelliChatModule.Settings.IntelliChatTxt.Length, Converter={StaticResource CharacterCountToBoolConverter}}" Value="True">
                         <Setter Property="Foreground" Value="PaleVioletRed" />
                         <Setter Property="Opacity" Value="1" />
                     </DataTrigger>
@@ -1989,7 +1989,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding IntelliChatPerformModeration, Mode=TwoWay}"
+                                            IsChecked="{Binding IntelliChatModule.Settings.IntelliChatPerformModeration, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Perform moderation check (will protect you from being banned)
                                         </CheckBox>
@@ -2018,7 +2018,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding IntelliChatAutoLang, Mode=TwoWay}"
+                                            IsChecked="{Binding IntelliChatModule.Settings.AutolanguageSelection, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Automatically detect language (less tokens)
                                         </CheckBox>
@@ -2041,9 +2041,13 @@
                                             Foreground="#FF9983AD"
                                             Text="Magic improve" />
 
-
-
-
+                                        <ComboBox
+                                            x:Name="WritingStylesComboBox"
+                                            Margin="5"
+                                            DisplayMemberPath="StyleName"
+                                            ItemsSource="{Binding IntelliChatModule.Settings.SupportedWritingStyles}"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.SelectedWritingStyleID, Mode=TwoWay}"
+                                            SelectedValuePath="ID" />
 
                                     </StackPanel>
                                 </Border>
@@ -4384,16 +4388,30 @@
                             ShadowDepth="5"
                             Color="#FF7F759A" />
                     </Grid.Effect>
-                    <TextBlock
-                        Margin="8,0,0,0"
-                        VerticalAlignment="Center"
-                        d:Text="Chat feedback"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="16"
-                        Foreground="#FF9983AD"
-                        Text="{Binding ChatFeedbackTxt}" />
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            d:Text="Chat feedback"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="16"
+                            Foreground="#FF9983AD"
+                            Text="{Binding ChatFeedbackTxt}"
+                            Visibility="{Binding IntelliChatModule.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Padding="8,0,15,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="16"
+                            Foreground="#FF9983AD"
+                            Text="{Binding IntelliChatModule.Settings.IntelliChatUILabelTxt, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding IntelliChatModule.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                    </StackPanel>
+
                     <StackPanel
-                        HorizontalAlignment="Stretch"
+                        HorizontalAlignment="Right"
                         Orientation="Horizontal"
                         Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
@@ -4402,7 +4420,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontFamily="Albert Sans Thin"
-                            FontSize="16"
+                            FontSize="14"
                             Foreground="#FF9983AD"
                             Text="Visible for " />
                         <TextBlock
@@ -4411,7 +4429,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontFamily="Albert Sans Thin"
-                            FontSize="16"
+                            FontSize="14"
                             Foreground="#FF9983AD"
                             Text="{Binding ScanPauseCountDown, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
@@ -4420,21 +4438,20 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontFamily="Albert Sans Thin"
-                            FontSize="16"
+                            FontSize="14"
                             Foreground="#FF9983AD"
                             Text=" seconds"
                             Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-
+                        <TextBlock
+                            Grid.Column="0"
+                            Margin="5,0,153,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="15"
+                            Foreground="#FF6FD013"
+                            Text="{Binding ActiveChatTxt, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="0,3,153,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="#FF6FD013"
-                        Text="{Binding ActiveChatTxt, UpdateSourceTrigger=PropertyChanged}" />
+
                     <Button
                         x:Name="ClearChat"
                         Width="80"
@@ -5175,15 +5192,7 @@
                             </Button.Effect>
                         </Button>
                     </StackPanel>
-                    <TextBlock
-                        Padding="0,0,15,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="16"
-                        Foreground="#FF9983AD"
-                        Text="{Binding IntelliChatModule.Settings.IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
-                        Visibility="{Binding IntelliChatModule.Settings.IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
                 </Grid>
             </Grid>
 
