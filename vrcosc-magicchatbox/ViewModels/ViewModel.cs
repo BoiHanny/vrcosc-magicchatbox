@@ -1888,7 +1888,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _ChatBoxCount = "0/140";
         private string _ChatBoxColor = "#FF504767";
         private string _CurrentTime = string.Empty;
-        private string _ActiveChatTxt = string.Empty;
         private bool _IntgrStatus = true;
         private bool _IntgrScanWindowActivity = false;
         private bool _IntgrScanWindowTime = true;
@@ -3386,16 +3385,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _ChatFeedbackTxt = value;
                 NotifyPropertyChanged(nameof(ChatFeedbackTxt));
-            }
-        }
-
-        public string ActiveChatTxt
-        {
-            get { return _ActiveChatTxt; }
-            set
-            {
-                _ActiveChatTxt = value;
-                NotifyPropertyChanged(nameof(ActiveChatTxt));
             }
         }
 

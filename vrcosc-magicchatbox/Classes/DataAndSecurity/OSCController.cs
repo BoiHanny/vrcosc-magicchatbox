@@ -20,7 +20,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             ViewModel.Instance.OSCtoSent = string.Empty;
             ViewModel.Instance.OSCmsg_count = 0;
             ViewModel.Instance.OSCmsg_countUI = "0/144";
-            ViewModel.Instance.ActiveChatTxt = string.Empty;
             if (lastsendchat != null)
             {
                 lastsendchat.CanLiveEdit = false;
@@ -546,8 +545,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     ViewModel.Instance.OSCtoSent = Complete_msg;
                     ViewModel.Instance.OSCmsg_count = ViewModel.Instance.OSCtoSent.Length;
                     ViewModel.Instance.OSCmsg_countUI = ViewModel.Instance.OSCtoSent.Length + "/144";
-                    ViewModel.Instance.ActiveChatTxt = "Active";
-
                     if (createItem == true)
                     {
                         Random random = new Random();

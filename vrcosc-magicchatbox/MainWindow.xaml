@@ -1849,7 +1849,7 @@
                                 <GradientStop Offset="1" Color="#FF40365B" />
                             </LinearGradientBrush>
                         </Grid.Background>
-                        <Grid Grid.Row="0">
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
                             <ToggleButton
                                 Width="Auto"
                                 Height="30"
@@ -1864,7 +1864,7 @@
                             <TextBlock
                                 x:Name="LearnMoreAboutOpenAIbtn"
                                 Width="auto"
-                                Margin="146,0,0,0"
+                                Margin="10,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Cursor="Hand"
@@ -1874,7 +1874,21 @@
                                 MouseUp="LearnMoreAboutOpenAIbtn_MouseUp"
                                 Text="Terms of use"
                                 TextDecorations="Underline" />
-                        </Grid>
+                            <TextBlock
+                                x:Name="MyUsageBtn"
+                                Width="auto"
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="#FF31B7B4"
+                                MouseUp="MyUsageBtn_MouseUp"
+                                Text="My usage"
+                                TextDecorations="Underline" />
+
+                        </StackPanel>
                         <Grid
                             Grid.Row="1"
                             Height="Auto"
@@ -1991,8 +2005,67 @@
                                             Foreground="#FFB9B5C1"
                                             IsChecked="{Binding IntelliChatModule.Settings.IntelliChatPerformModeration, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
-                                            Perform moderation check (will protect you from being banned)
+                                            Enable free moderation checks to safeguard your content and OpenAI account
                                         </CheckBox>
+
+                                    </StackPanel>
+                                </Border>
+
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Magic improve" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="With Magic improve, you can transform your chat message in anything you can think of" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,14,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Select your preferred writing style for the quick-access button in the chat window below" />
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <ComboBox
+                                                x:Name="WritingStylesComboBox"
+                                                Width="200"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                DisplayMemberPath="StyleName"
+                                                ItemsSource="{Binding IntelliChatModule.Settings.SupportedWritingStyles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Opacity="0.3"
+                                                SelectedItem="{Binding IntelliChatModule.Settings.SelectedWritingStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="2,2,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="12"
+                                                FontWeight="DemiBold"
+                                                Foreground="#FF9983AD"
+                                                Text="{Binding IntelliChatModule.Settings.SelectedWritingStyle.StyleDescription}" />
+                                        </StackPanel>
+
 
                                     </StackPanel>
                                 </Border>
@@ -2002,55 +2075,62 @@
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
                                         <TextBlock
-                                            Padding="0,0,9,0"
+                                            Padding="2,0,0,0"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="15"
+                                            FontSize="20"
                                             Foreground="#FF9983AD"
-                                            Text="Language" />
+                                            Text="Magic translate" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="With translation, you can pick every language you can think of or that is known by the AI (that a lot!)" />
 
                                         <CheckBox
                                             x:Name="AutoDetectLang"
                                             Height="20"
-                                            Margin="0,5"
+                                            Margin="2,14,0,0"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
                                             IsChecked="{Binding IntelliChatModule.Settings.AutolanguageSelection, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Visibility="Collapsed">
                                             Automatically detect language (less tokens)
                                         </CheckBox>
 
-
-
-                                    </StackPanel>
-                                </Border>
-
-                                <Border
-                                    Margin="0,0,0,5"
-                                    Background="#FF3B3054"
-                                    CornerRadius="5,0,0,5">
-                                    <StackPanel Margin="5">
                                         <TextBlock
-                                            Padding="0,0,9,0"
+                                            Width="auto"
+                                            Padding="2,14,0,0"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="15"
+                                            FontSize="13"
                                             Foreground="#FF9983AD"
-                                            Text="Magic improve" />
+                                            Text="Select your preferred language for the quick-access button in the chat window below" />
 
                                         <ComboBox
-                                            x:Name="WritingStylesComboBox"
-                                            Margin="5"
-                                            DisplayMemberPath="StyleName"
-                                            ItemsSource="{Binding IntelliChatModule.Settings.SupportedWritingStyles}"
-                                            SelectedValue="{Binding IntelliChatModule.Settings.SelectedWritingStyleID, Mode=TwoWay}"
-                                            SelectedValuePath="ID" />
+                                            x:Name="SelectedTranslateLanguageComboBox"
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            DisplayMemberPath="Language"
+                                            ItemsSource="{Binding IntelliChatModule.Settings.SupportedLanguages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="0.3"
+                                            SelectedItem="{Binding IntelliChatModule.Settings.SelectedTranslateLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                                     </StackPanel>
                                 </Border>
+
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -4401,22 +4481,38 @@
                             Padding="8,0,15,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
+                            d:Text="Connecting with OpenAI..."
                             FontFamily="Albert Sans Thin"
                             FontSize="16"
-                            Foreground="#FF9983AD"
                             Text="{Binding IntelliChatModule.Settings.IntelliChatUILabelTxt, UpdateSourceTrigger=PropertyChanged}"
-                            Visibility="{Binding IntelliChatModule.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            Visibility="{Binding IntelliChatModule.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock.Foreground>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <LinearGradientBrush.RelativeTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                            <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                            <RotateTransform Angle="79.54" CenterX="0.5" CenterY="0.5" />
+                                            <TranslateTransform />
+                                        </TransformGroup>
+                                    </LinearGradientBrush.RelativeTransform>
+                                    <GradientStop Color="#FF21C161" />
+                                    <GradientStop Offset="1" Color="#FFC1BEC7" />
+                                </LinearGradientBrush>
+                            </TextBlock.Foreground>
+                        </TextBlock>
 
 
                     </StackPanel>
 
                     <StackPanel
                         HorizontalAlignment="Right"
+                        d:Visibility="Visible"
                         Orientation="Horizontal"
                         Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Grid.Column="0"
-                            Margin="16,0,0,0"
+                            Margin="4,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontFamily="Albert Sans Thin"
@@ -4434,7 +4530,7 @@
                             Text="{Binding ScanPauseCountDown, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Grid.Column="0"
-                            Margin="0,0,0,0"
+                            Margin="0,0,157,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             FontFamily="Albert Sans Thin"
@@ -4442,14 +4538,7 @@
                             Foreground="#FF9983AD"
                             Text=" seconds"
                             Visibility="{Binding CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock
-                            Grid.Column="0"
-                            Margin="5,0,153,0"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="#FF6FD013"
-                            Text="{Binding ActiveChatTxt, UpdateSourceTrigger=PropertyChanged}" />
+
                     </StackPanel>
 
                     <Button
@@ -5093,7 +5182,7 @@
                             Margin="3,0"
                             Click="TranslateChat_click"
                             Style="{DynamicResource LINK_Button_style}"
-                            ToolTip="Translate anything to English by AI"
+                            ToolTip="Translate anything with the help of AI"
                             WindowChrome.IsHitTestVisibleInChrome="True">
                             <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
                                 <Image
@@ -5179,6 +5268,42 @@
                                     Foreground="#FF8D7DB9"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Text="Convo starter" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
+                            x:Name="NextwordPredict"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="NextwordPredict_Click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Predict next word by AI"
+                            Visibility="Collapsed"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="22"
+                                    Margin="3,0,0,0"
+                                    Opacity="0.5"
+                                    Source="/Img/Icons/Wand_ico.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Predict next word" />
 
                             </StackPanel>
                             <Button.Effect>

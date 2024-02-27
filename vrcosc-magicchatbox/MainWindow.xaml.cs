@@ -774,6 +774,7 @@ namespace vrcosc_magicchatbox
                 DataController.SaveMediaSessions();
                 HotkeyManagement.Instance.SaveHotkeyConfigurations();
                 ViewModel.Instance._statsManager.SaveComponentStats();
+                ViewModel.Instance.IntelliChatModule.SaveSettings();
             }
             catch (Exception ex)
             {
@@ -1496,6 +1497,16 @@ namespace vrcosc_magicchatbox
         private async void ShortenChat_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.IntelliChatModule.ShortenTextAsync(ViewModel.Instance.NewChattingTxt);
+        }
+
+        private void MyUsageBtn_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("explorer", "https://platform.openai.com/usage");
+        }
+
+        private void NextwordPredict_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.IntelliChatModule.GenerateCompletionOrPredictionAsync(ViewModel.Instance.NewChattingTxt, true);
         }
     }
 
