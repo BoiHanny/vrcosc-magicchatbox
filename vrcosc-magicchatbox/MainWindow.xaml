@@ -4866,7 +4866,7 @@
                                         FontSize="12"
                                         Foreground="#94CCBF"
                                         Opacity="0.6"
-                                        Text="n/a" />
+                                        Text="{Binding IntelliChatModule.Settings.TokenUsageData.LastRequestTotalTokens, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Width="auto"
                                         Height="Auto"
@@ -4890,7 +4890,7 @@
                                         FontSize="12"
                                         Foreground="#94CCBF"
                                         Opacity="0.3"
-                                        Text="n/a" />
+                                        Text="{Binding IntelliChatModule.Settings.TokenUsageData.TotalDailyTokens, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Width="auto"
                                         Height="Auto"
@@ -7339,7 +7339,10 @@
                                             CornerRadius="5">
                                             <Grid Margin="10,5">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="auto" MinWidth="60" />
+                                                    <ColumnDefinition
+                                                        Width="auto"
+                                                        MinWidth="60"
+                                                        MaxWidth="115" />
                                                     <ColumnDefinition Width="auto" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
@@ -7493,7 +7496,7 @@
                                                         Tag="{Binding}"
                                                         Visibility="{Binding PlayingNow, Converter={StaticResource InverseBoolToHiddenConverter}}" />
                                                     <StackPanel
-                                                        Width="200"
+                                                        Width="170"
                                                         Margin="5,0,5,0"
                                                         VerticalAlignment="Center">
                                                         <Border Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToVisibilityConverter}}">

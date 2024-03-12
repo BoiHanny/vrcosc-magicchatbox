@@ -1,10 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Moderations;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -14,6 +16,91 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
+
+    public partial class ModelTokenUsage : ObservableObject
+    {
+        [ObservableProperty]
+        private string modelName;
+
+        [ObservableProperty]
+        private int promptTokens;
+
+        [ObservableProperty]
+        private int completionTokens;
+
+        public int TotalTokens => PromptTokens + CompletionTokens;
+    }
+
+    public partial class DailyTokenUsage : ObservableObject
+    {
+        public DailyTokenUsage()
+        {
+            Date = DateTime.Today;
+            ModelUsages = new ObservableCollection<ModelTokenUsage>();
+        }
+
+        [ObservableProperty]
+        private DateTime date;
+
+        public ObservableCollection<ModelTokenUsage> ModelUsages { get; set; }
+
+        public int TotalDailyTokens => ModelUsages.Sum(mu => mu.TotalTokens);
+
+        public int TotalDailyRequests => ModelUsages.Count;
+    }
+
+    public class TokenUsageData : ObservableObject
+    {
+        private int _lastRequestTotalTokens;
+
+        public TokenUsageData()
+        {
+            DailyUsages = new ObservableCollection<DailyTokenUsage>();
+        }
+
+        public ObservableCollection<DailyTokenUsage> DailyUsages { get; set; }
+
+        public int TotalDailyTokens => DailyUsages.LastOrDefault()?.TotalDailyTokens ?? 0;
+        public int TotalDailyRequests => DailyUsages.LastOrDefault()?.TotalDailyRequests ?? 0;
+
+        // Expose the last request's total tokens
+        public int LastRequestTotalTokens => _lastRequestTotalTokens;
+
+        public void AddTokenUsage(string modelName, int promptTokens, int completionTokens)
+        {
+            var today = DateTime.Today;
+            var todayUsage = DailyUsages.FirstOrDefault(du => du.Date == today);
+
+            if (todayUsage == null)
+            {
+                todayUsage = new DailyTokenUsage { Date = today };
+                DailyUsages.Add(todayUsage);
+            }
+
+            var modelUsage = todayUsage.ModelUsages.FirstOrDefault(mu => mu.ModelName == modelName);
+            if (modelUsage == null)
+            {
+                modelUsage = new ModelTokenUsage { ModelName = modelName };
+                todayUsage.ModelUsages.Add(modelUsage);
+            }
+
+            modelUsage.PromptTokens += promptTokens;
+            modelUsage.CompletionTokens += completionTokens;
+
+            // Update the last request total tokens
+            _lastRequestTotalTokens = promptTokens + completionTokens;
+
+            // Notify UI about changes
+            OnPropertyChanged(nameof(TotalDailyTokens));
+            OnPropertyChanged(nameof(TotalDailyRequests));
+            OnPropertyChanged(nameof(LastRequestTotalTokens));
+        }
+    }
+
+
+
+
+
     public partial class IntelliChatModuleSettings : ObservableObject
     {
 
@@ -60,6 +147,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         [ObservableProperty]
         private List<IntelliChatWritingStyle> supportedWritingStyles = new List<IntelliChatWritingStyle>();
+
+        [ObservableProperty]
+        private TokenUsageData tokenUsageData = new TokenUsageData();
     }
 
     public partial class SupportedIntelliChatLanguage : ObservableObject
@@ -310,7 +400,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = false;
                 Settings.IntelliChatUILabelTxt = string.Empty;
 
-                Settings.IntelliChatTxt = response.Choices[0].Message.Content.GetString();
+                Settings.IntelliChatTxt = RemoveQuotationMarkAroundResponse(response.Choices[0].Message.Content.GetString());
                 Settings.IntelliChatWaitingToAccept = true;
 
             }
@@ -319,10 +409,34 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = false;
                 Settings.IntelliChatUILabelTxt = string.Empty;
 
-                Settings.IntelliChatTxt = response?.Choices?[0].Message.Content.ToString() ?? string.Empty;
+                Settings.IntelliChatTxt = RemoveQuotationMarkAroundResponse(response?.Choices?[0].Message.Content.ToString() ?? string.Empty);
                 Settings.IntelliChatWaitingToAccept = true;
             }
+            ProcessUsedTokens(response);
         }
+
+        public void ProcessUsedTokens(ChatResponse response)
+        {
+            // Check if the response or its usage data is null
+            if (response == null || response.Usage == null)
+            {
+                // Handle the case where there's no response or usage data
+                Console.WriteLine("No response or usage data available.");
+                return;
+            }
+
+            // Extracting the necessary information
+            string modelName = response.Model; // Get the model name from the response
+            int promptTokens = response.Usage.PromptTokens ?? 0; // Safely handle null with ?? operator
+            int completionTokens = response.Usage.CompletionTokens ?? 0; // Safely handle null with ?? operator
+
+            // Assuming TokenUsageDataInstance is your accessible TokenUsageData instance within the ViewModel
+            // Update the token usage data for the specific model and day with the extracted information
+            Settings.TokenUsageData.AddTokenUsage(modelName, promptTokens, completionTokens);
+        }
+
+
+
 
         private void UpdateErrorState(bool hasError, string errorMessage)
         {
@@ -487,7 +601,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 var messages = new List<Message>
                 {
-                    new Message(Role.System, $"Please rewrite the following sentence in {intelliChatWritingStyle.StyleDescription} style:")
+                    new Message(Role.System, $"Please rewrite and return the following sentence in {intelliChatWritingStyle.StyleDescription} style:")
                 };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
@@ -597,7 +711,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                 new Message(
                     Role.System,
-                    "Please detect and correct and return any spelling and grammar errors in the following text:")
+                    "Please correct any spelling and grammar errors in the following text (return also if correct):")
                 };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
@@ -717,6 +831,26 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
 
+        }
+
+        private string RemoveQuotationMarkAroundResponse(string response)
+        {
+            if (!string.IsNullOrEmpty(response))
+            {
+                if (response.Length >= 2 && response[0] == '"' && response[response.Length - 1] == '"')
+                {
+                    return response.Substring(1, response.Length - 2);
+                }
+                else if (response[0] == '"')
+                {
+                    return response.Substring(1);
+                }
+                else if (response[response.Length - 1] == '"')
+                {
+                    return response.Substring(0, response.Length - 1);
+                }
+            }
+            return response;
         }
 
         public async Task GenerateCompletionOrPredictionAsync(string inputText, bool isNextWordPrediction = false)
