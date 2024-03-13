@@ -252,19 +252,20 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 if (ViewModel.Instance.IsVRRunning)
                 {
-                    x.Append("In VR");
+                    x.Append(ViewModel.Instance.WindowActivityVRTitle);
                     if (ViewModel.Instance.IntgrScanForce)
                     {
-                        x.Append(" ᶠᵒᶜᵘˢˢⁱⁿᵍ ⁱⁿ ");
-                        x.Append(ViewModel.Instance.FocusedWindow);
-                        x.Append("");
+                        x.Append($" {ViewModel.Instance.WindowActivityVRFocusTitle} {ViewModel.Instance.FocusedWindow}");
                     }
                 }
                 else
                 {
-                    x.Append("On desktop ⁱⁿ ");
-                    x.Append(ViewModel.Instance.FocusedWindow);
-                    x.Append("");
+                    x.Append(ViewModel.Instance.WindowActivityDesktopTitle);
+
+                    if (ViewModel.Instance.WindowActivityShowFocusedApp)
+                    {
+                        x.Append($" {ViewModel.Instance.WindowActivityDesktopFocusTitle} {ViewModel.Instance.FocusedWindow}");
+                    }
                 }
 
                 TryAddToUncomplete(Uncomplete, x.ToString(), "Window");

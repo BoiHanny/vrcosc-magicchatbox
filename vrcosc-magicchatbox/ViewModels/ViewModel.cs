@@ -2138,6 +2138,80 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private string _WindowActivityVRTitle = "In VR";
+        public string WindowActivityVRTitle
+        {
+            get { return _WindowActivityVRTitle; }
+            set
+            {
+                _WindowActivityVRTitle = value;
+                NotifyPropertyChanged(nameof(WindowActivityVRTitle));
+            }
+        }
+
+
+        private string _WindowActivityVRFocusTitle = "ᶠᵒᶜᵘˢˢⁱⁿᵍ ⁱⁿ";
+        public string WindowActivityVRFocusTitle
+        {
+            get { return _WindowActivityVRFocusTitle; }
+            set
+            {
+                _WindowActivityVRFocusTitle = value;
+                NotifyPropertyChanged(nameof(WindowActivityVRFocusTitle));
+            }
+        }
+
+
+        private string _WindowActivityDesktopTitle = "On desktop";
+        public string WindowActivityDesktopTitle
+        {
+            get { return _WindowActivityDesktopTitle; }
+            set
+            {
+                _WindowActivityDesktopTitle = value;
+                NotifyPropertyChanged(nameof(WindowActivityDesktopTitle));
+            }
+        }
+
+
+        private string _WindowActivityDesktopFocusTitle = "ⁱⁿ";
+        public string WindowActivityDesktopFocusTitle
+        {
+            get { return _WindowActivityDesktopFocusTitle; }
+            set
+            {
+                _WindowActivityDesktopFocusTitle = value;
+                NotifyPropertyChanged(nameof(WindowActivityDesktopFocusTitle));
+            }
+        }
+
+
+        private string _WindowActivityPrivateNameVR = "🔒 App";
+        public string WindowActivityPrivateNameVR
+        {
+            get { return _WindowActivityPrivateNameVR; }
+            set
+            {
+                _WindowActivityPrivateNameVR = value;
+                NotifyPropertyChanged(nameof(WindowActivityPrivateNameVR));
+            }
+        }
+
+
+
+
+        private bool _WindowActivityShowFocusedApp = true;
+        public bool WindowActivityShowFocusedApp
+        {
+            get { return _WindowActivityShowFocusedApp; }
+            set
+            {
+                _WindowActivityShowFocusedApp = value;
+                NotifyPropertyChanged(nameof(WindowActivityShowFocusedApp));
+            }
+        }
+
+
         private string _ErrorInWindowActivityMsg = "Error without information";
         public string ErrorInWindowActivityMsg
         {

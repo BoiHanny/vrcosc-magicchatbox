@@ -126,12 +126,12 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                     if (id.Contains(".exe"))
                     {
                         id = Path.GetFileNameWithoutExtension(id);
-                    }
-                    FriendlyAppName = id;
-                    if(id.Contains("OperaSoftware.OperaWebBrowser"))
+                    }             
+                    if(id.Contains("OperaSoftware"))
                     {
                         FriendlyAppName = "Opera";
                     }
+                    FriendlyAppName = id;
                 }
             }
             catch (Exception ex)

@@ -392,7 +392,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                     if (existingProcessInfo.IsPrivateApp)
                     {
-                        return ViewModel.Instance.WindowActivityPrivateName;
+                        if(ViewModel.Instance.IsVRRunning)
+                        {
+                            return ViewModel.Instance.WindowActivityPrivateNameVR;
+                        }
+                        else
+                        {
+                            return ViewModel.Instance.WindowActivityPrivateName;
+                        }
+
                     }
                     else if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
                     {

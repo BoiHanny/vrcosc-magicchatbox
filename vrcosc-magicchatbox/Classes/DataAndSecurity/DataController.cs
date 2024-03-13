@@ -325,6 +325,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "IsRandomCycling", (typeof(bool), "StatusSetting") },
                 { "CycleStatus", (typeof(bool), "StatusSetting") },
 
+                { "WindowActivityShowFocusedApp", (typeof(bool), "WindowActivity") },
+                { "WindowActivityDesktopFocusTitle", (typeof(string), "WindowActivity") },
+                { "WindowActivityDesktopTitle", (typeof(string), "WindowActivity") },
+                { "WindowActivityVRFocusTitle", (typeof(string), "WindowActivity") },
+                { "WindowActivityVRTitle", (typeof(string), "WindowActivity") },
+
 
                 { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
                 { "HeartRateScanInterval_v2", (typeof(int), "PulsoidConnector") },
