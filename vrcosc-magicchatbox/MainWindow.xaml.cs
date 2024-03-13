@@ -855,7 +855,7 @@ namespace vrcosc_magicchatbox
 
         private void Timer(object sender, EventArgs e)
         {
-            bool ChatItemActive = ViewModel.Instance.LastMessages.Any(x => x.IsRunning);
+            bool ChatItemActive = ViewModel.Instance.LastMessages != null && ViewModel.Instance.LastMessages.Any(x => x.IsRunning);
 
             if (ViewModel.Instance.ScanPause && ChatItemActive)
             {
@@ -870,15 +870,18 @@ namespace vrcosc_magicchatbox
                     {
                         if (ChatUpdateTimer == null)
                         {
-                            ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
-                            if (lastsendchat != null)
+                            if (ViewModel.Instance.LastMessages != null)
                             {
-                                lastsendchat.LiveEditButtonTxt = "Sending...";
+                                ChatItem? lastsendchat = ViewModel.Instance.LastMessages.FirstOrDefault(x => x.IsRunning);
+                                if (lastsendchat != null)
+                                {
+                                    lastsendchat.LiveEditButtonTxt = "Sending...";
+                                }
+                                ChatUpdateTimer = new System.Timers.Timer();
+                                ChatUpdateTimer.Interval = (int)(ViewModel.Instance.ChattingUpdateRate * 1000);
+                                ChatUpdateTimer.Elapsed += ChatUpdateTimer_Tick;
+                                ChatUpdateTimer.Start();
                             }
-                            ChatUpdateTimer = new System.Timers.Timer();
-                            ChatUpdateTimer.Interval = (int)(ViewModel.Instance.ChattingUpdateRate * 1000);
-                            ChatUpdateTimer.Elapsed += ChatUpdateTimer_Tick;
-                            ChatUpdateTimer.Start();
                         }
                     }
                 }
