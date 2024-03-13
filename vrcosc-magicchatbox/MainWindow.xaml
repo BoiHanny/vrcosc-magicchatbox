@@ -3923,20 +3923,6 @@
                                     Enhanced hook for better app names
                                 </CheckBox>
                                 <CheckBox
-                                    x:Name="IntgrScanForc_checkbox"
-                                    Height="20"
-                                    Margin="0,15,0,0"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding IntgrScanForce, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Show focusing app in VR mode
-                                </CheckBox>
-                                <CheckBox
                                     x:Name="WindowActivityTitleScan_checkbox"
                                     Height="20"
                                     Margin="0,15,0,0"
@@ -4015,27 +4001,134 @@
                                             Foreground="#FF240E54"
                                             Text="{Binding MaxShowTitleCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
+                                    <CheckBox
+                                        x:Name="LimitTitleOnsApp_checkbox"
+                                        Height="20"
+                                        Margin="0,15,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding WindowActivityShowFocusedApp, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show desktop focused app
+                                    </CheckBox>
+                                    <StackPanel Orientation="Horizontal" />
                                     <TextBlock
                                         Width="auto"
                                         Padding="0,10,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
-                                        Text="Private app will show as:" />
+                                        Text="Desktop mode style" />
                                     <StackPanel Orientation="Horizontal">
                                         <TextBox
-                                            x:Name="PrivateAppCustom"
-                                            Width="223"
+                                            x:Name="WindowActivityDesktopTitle"
+                                            Width="auto"
                                             Height="26"
                                             Margin="0,3,0,0"
-                                            Padding="5,0,0,0"
+                                            Padding="5,0,5,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
                                             Background="#FF7B7195"
                                             BorderThickness="0"
                                             FontSize="15"
                                             Foreground="#FF240E54"
-                                            Text="{Binding WindowActivityPrivateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            Text="{Binding WindowActivityDesktopTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox
+                                            x:Name="WindowActivityDesktopFocusTitle"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="5,3,0,0"
+                                            Padding="5,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WindowActivityDesktopFocusTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Visibility="{Binding WindowActivityShowFocusedApp, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox
+                                            x:Name="PrivateAppCustom"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="4,3,0,0"
+                                            Padding="5,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WindowActivityPrivateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Visibility="{Binding WindowActivityShowFocusedApp, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="IntgrScanFsorc_checkbox"
+                                        Height="20"
+                                        Margin="0,15,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding IntgrScanForce, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show VR focused app
+                                    </CheckBox>
+                                    <TextBlock
+                                        Width="auto"
+                                        Padding="0,10,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="VR mode style" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox
+                                            x:Name="WindowActivityVRTitle"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WindowActivityVRTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox
+                                            x:Name="WindowActivityVRFocusTitle"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="5,3,0,0"
+                                            Padding="5,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WindowActivityVRFocusTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Visibility="{Binding IntgrScanForce, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox
+                                            x:Name="PrivateAppCustomVR"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="4,3,0,0"
+                                            Padding="5,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WindowActivityPrivateNameVR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Visibility="{Binding IntgrScanForce, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
 
                                 </StackPanel>
@@ -4084,7 +4177,6 @@
                                     Foreground="#FF9983AD"
                                     Text="{Binding DeletedAppslabel, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
-
                             <Border
                                 Grid.Row="4"
                                 Width="745"
@@ -4182,7 +4274,6 @@
                                         Color="black" />
                                 </Border.Effect>
                             </Border>
-
                             <ItemsControl
                                 Grid.Row="5"
                                 Width="745"
