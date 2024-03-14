@@ -75,6 +75,18 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private WhisperModule _WhisperModule;
+        public WhisperModule WhisperModule
+        {
+            get { return _WhisperModule; }
+            set
+            {
+                _WhisperModule = value;
+                NotifyPropertyChanged(nameof(WhisperModule));
+            }
+        }
+
+
         private bool _HeartRateTitle = false;
 
         private bool _IntgrComponentStats = false;

@@ -1,142 +1,291 @@
 ﻿using NAudio.Wave;
-using OpenAI.Audio;
-using OpenAI;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using OpenAI.Audio;
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.Generic;
+using System.Linq;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
-    //public class WhisperModule : IDisposable
-    //{
-    //    private readonly WaveInEvent waveIn;
-    //    private readonly ConcurrentQueue<byte[]> audioQueue = new ConcurrentQueue<byte[]>();
-    //    private readonly MemoryStream audioBuffer = new MemoryStream();
-    //    private readonly object bufferLock = new object();
-    //    private bool isProcessing;
-    //    private const int BufferThreshold = 10000; // Set a threshold for the buffer size
+    public partial class WhisperModuleSettings : ObservableObject
+    {
+        [ObservableProperty]
+        private List<RecordingDeviceInfo> availableDevices;
 
-    //    public event Action<string> TranscriptionReceived;
+        [ObservableProperty]
+        private int selectedDeviceIndex;
 
-    //    public WhisperModule()
-    //    {
-    //        // Initialize waveIn with a specific device or the default device
-    //        waveIn = new WaveInEvent
-    //        {
-    //            WaveFormat = new WaveFormat(16000, 1), // Sample rate and channel configuration
-    //            DeviceNumber = GetDefaultAudioDeviceNumber() // Gets the default audio device number
-    //        };
-    //        waveIn.DataAvailable += OnDataAvailable;
-    //    }
+        [ObservableProperty]
+        private float noiseGateThreshold = 0.20f;
 
-    //    private int GetDefaultAudioDeviceNumber()
-    //    {
-    //        // This method attempts to find a valid audio input device
-    //        for (int n = 0; n < WaveIn.DeviceCount; n++)
-    //        {
-    //            var deviceInfo = WaveIn.GetCapabilities(n);
-    //            // You can add more checks here if necessary, e.g., device name
-    //            if (deviceInfo.Channels > 0) // Check if the device has at least one channel
-    //            {
-    //                return n; // Return the device number of the first valid device found
-    //            }
-    //        }
+        [ObservableProperty]
+        private bool isNoiseGateOpen = false;
 
-    //        return -1; // Return -1 if no valid devices are found
-    //    }
+        [ObservableProperty]
+        private bool isRecording = false;
 
-    //    public void StartRecording()
-    //    {
-    //        try
-    //        {
-    //            // Before starting recording, check if the device number is valid
-    //            if (waveIn.DeviceNumber < 0 || waveIn.DeviceNumber >= WaveIn.DeviceCount)
-    //            {
-    //                throw new InvalidOperationException("No valid audio input device found.");
-    //            }
+        public WhisperModuleSettings()
+        {
+            RefreshDevices();
+        }
 
-    //            waveIn.StartRecording();
-    //        }
-    //        catch (NAudio.MmException ex)
-    //        {
-    //            Console.WriteLine($"Error starting recording: {ex.Message}");
-    //            // Handle the error accordingly, maybe prompt the user to check their audio device
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            Console.WriteLine($"An unexpected error occurred: {ex.Message}");
-    //            // Handle other types of exceptions
-    //        }
-    //    }
+        public string GetSelectedDeviceName()
+        {
+            if (SelectedDeviceIndex >= 0 && SelectedDeviceIndex < AvailableDevices.Count)
+            {
+                return AvailableDevices[SelectedDeviceIndex].DeviceName;
+            }
+            else
+            {
+                return "No device selected";
+            }
+        }
 
 
-    //    public void StopRecording()
-    //    {
-    //        waveIn.StopRecording();
-    //        ProcessBuffer(); // Ensure any remaining audio is processed
-    //    }
 
-    //    private void OnDataAvailable(object sender, WaveInEventArgs e)
-    //    {
-    //        lock (bufferLock)
-    //        {
-    //            audioBuffer.Write(e.Buffer, 0, e.BytesRecorded);
-    //            if (audioBuffer.Length > BufferThreshold)
-    //            {
-    //                audioQueue.Enqueue(audioBuffer.ToArray());
-    //                audioBuffer.SetLength(0); // Clear the buffer
-    //            }
-    //        }
+        public void RefreshDevices()
+        {
+            AvailableDevices = Enumerable.Range(0, WaveIn.DeviceCount)
+                .Select(n => new RecordingDeviceInfo(n, WaveIn.GetCapabilities(n).ProductName))
+                .ToList();
+            SelectedDeviceIndex = AvailableDevices.Any() ? 0 : -1;
+        }
+    }
 
-    //        if (!isProcessing)
-    //        {
-    //            isProcessing = true;
-    //            Task.Run(() => ProcessQueue());
-    //        }
-    //    }
 
-    //    private async Task ProcessQueue()
-    //    {
-    //        while (audioQueue.TryDequeue(out var buffer))
-    //        {
-    //            using var memoryStream = new MemoryStream(buffer);
-    //            var request = new AudioTranscriptionRequest(memoryStream, "audio.wav");
+    public class RecordingDeviceInfo
+    {
+        public int DeviceIndex { get; }
+        public string DeviceName { get; }
 
-    //            try
-    //            {
-    //                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(request);
-    //                TranscriptionReceived?.Invoke(response);
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                Console.WriteLine($"Error during transcription: {ex.Message}");
-    //            }
-    //        }
+        public RecordingDeviceInfo(int deviceIndex, string deviceName)
+        {
+            DeviceIndex = deviceIndex;
+            DeviceName = deviceName;
+        }
 
-    //        isProcessing = false;
-    //    }
+        public override string ToString()
+        {
+            return $"{DeviceName} (Index: {DeviceIndex})";
+        }
+    }
 
-    //    private void ProcessBuffer()
-    //    {
-    //        if (audioBuffer.Length > 0)
-    //        {
-    //            audioQueue.Enqueue(audioBuffer.ToArray());
-    //            audioBuffer.SetLength(0);
-    //        }
+    public partial class WhisperModule : ObservableObject
+    {
+        private WaveInEvent waveIn;
+        private MemoryStream audioStream = new MemoryStream();
+        private DateTime lastSoundTimestamp = DateTime.Now;
+        private bool isCurrentlySpeaking = false;
+        private DateTime speakingStartedTimestamp = DateTime.Now;
 
-    //        if (!isProcessing && audioQueue.Count > 0)
-    //        {
-    //            isProcessing = true;
-    //            Task.Run(() => ProcessQueue());
-    //        }
-    //    }
+        public event Action<string> TranscriptionReceived;
 
-    //    public void Dispose()
-    //    {
-    //        waveIn.Dispose();
-    //        audioBuffer.Dispose();
-    //    }
-    //}
+        [ObservableProperty]
+        public WhisperModuleSettings settings = new WhisperModuleSettings();
+
+        public WhisperModule()
+        {
+            InitializeWaveIn();
+        }
+
+        private void InitializeWaveIn()
+        {
+            waveIn?.Dispose();
+
+            if (settings.SelectedDeviceIndex == -1)
+            {
+                UpdateUI("No valid audio input device selected.", false);
+                throw new InvalidOperationException("No valid audio input device selected.");
+            }
+
+            waveIn = new WaveInEvent
+            {
+                DeviceNumber = settings.SelectedDeviceIndex,
+                WaveFormat = new WaveFormat(16000, 16, 1), // Suitable for voice recognition
+                BufferMilliseconds = 300 // Adjust for responsiveness vs performance
+            };
+
+            waveIn.DataAvailable += OnDataAvailable;
+            waveIn.RecordingStopped += OnRecordingStopped;
+        }
+
+
+        public void StartRecording()
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
+            if (waveIn == null)
+            {
+                UpdateUI("Starting recording failed: Device not initialized.", false);
+                return;
+            }
+            if(settings.IsRecording) 
+            {
+                UpdateUI("Already recording.", false);
+                return;
+            }
+            UpdateUI("Ready to speak?", true);
+            waveIn.StartRecording();
+            settings.IsRecording = true;
+        }
+
+        public void StopRecording()
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
+            if (waveIn == null)
+            {
+                UpdateUI("Stopping recording failed: Device not initialized.", false);
+                return;
+            }
+            if(settings.IsRecording == false) 
+            {
+                UpdateUI("Not currently recording.", false);
+                return;
+            }
+            waveIn.StopRecording();
+            settings.IsRecording = false;
+            UpdateUI("Recording stopped. Processing last audio...", false);
+            if (audioStream.Length > 0)
+            {
+                ProcessAudioStreamAsync(audioStream);
+            }
+        }
+
+        private void OnDataAvailable(object sender, WaveInEventArgs e)
+        {
+            float maxAmplitude = CalculateMaxAmplitude(e.Buffer, e.BytesRecorded);
+            bool isLoudEnough = maxAmplitude > settings.NoiseGateThreshold;
+
+            settings.IsNoiseGateOpen = isLoudEnough;
+
+            if (isLoudEnough)
+            {
+                if (!isCurrentlySpeaking)
+                {
+                    speakingStartedTimestamp = DateTime.Now; // Mark the start of speaking
+                    isCurrentlySpeaking = true;
+                }
+
+                // Update elapsed speaking time continuously while speaking
+                var speakingDuration = (DateTime.Now - speakingStartedTimestamp).TotalSeconds;
+                UpdateUI($"Speaking detected, recording... (Duration: {speakingDuration:0.0}s)", true);
+
+                audioStream.Write(e.Buffer, 0, e.BytesRecorded);
+                lastSoundTimestamp = DateTime.Now;
+            }
+            else if (isCurrentlySpeaking && DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds > 500)
+            {
+                var speakingDuration = DateTime.Now.Subtract(speakingStartedTimestamp).TotalSeconds;
+                isCurrentlySpeaking = false;
+                UpdateUI($"Processing audio... (Duration: {speakingDuration:0.0}s)", true);
+                ProcessAudioStreamAsync(audioStream);
+                audioStream = new MemoryStream(); // Reset the stream for new data after processing
+            }
+        }
+
+        private async void UpdateUI(string message, bool isVisible)
+        {
+            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabelTxt = message;
+            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = isVisible;
+
+            if (!isVisible)
+            {
+                await Task.Delay(1200); 
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = false;
+                });
+            }
+        }
+
+
+        private float CalculateMaxAmplitude(byte[] buffer, int bytesRecorded)
+        {
+            short[] samples = new short[bytesRecorded / 2];
+            Buffer.BlockCopy(buffer, 0, samples, 0, bytesRecorded);
+            return samples.Max(sample => Math.Abs(sample / 32768f));
+        }
+
+        private async void ProcessAudioStreamAsync(MemoryStream stream)
+        {
+            if (stream.Length == 0)
+            {
+                UpdateUI("No audio detected.", false);
+                return;
+            }
+
+            stream.Position = 0;
+            UpdateUI("Transcribing with OpenAI...", true);
+            string transcription = await TranscribeAudioAsync(stream);
+            if (transcription != null) {
+                TranscriptionReceived?.Invoke(transcription);
+                UpdateUI("Transcription complete.", false);
+            }
+            else
+                {
+                UpdateUI("Error transcribing audio.", false);
+            }
+            
+        }
+
+
+
+        private async Task<string> TranscribeAudioAsync(Stream audioStream)
+        {
+            string tempFilePath = Path.GetTempFileName() + ".wav"; // Adding the .wav extension is crucial
+            try
+            {
+                using (var writer = new WaveFileWriter(tempFilePath, waveIn.WaveFormat))
+                {
+                    await audioStream.CopyToAsync(writer);
+                }
+
+                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath));
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                UpdateUI($"Error transcription: {ex.Message}", false);
+                return null;
+            }
+            finally
+            {
+                if (File.Exists(tempFilePath))
+                {
+                    File.Delete(tempFilePath);
+                }
+            }
+        }
+
+
+        private void OnRecordingStopped(object sender, StoppedEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                Console.WriteLine($"Recording stopped due to error: {e.Exception.Message}");
+            }
+            else
+            {
+                Console.WriteLine("Recording stopped successfully.");
+            }
+        }
+
+        public void Dispose()
+        {
+            waveIn?.Dispose();
+            audioStream?.Dispose();
+            UpdateUI("Disposed resources.", false);
+        }
+    }
 
 }

@@ -389,6 +389,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public async Task GenerateConversationStarterAsync()
         {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
             if (!EnsureInitialized())
             {
                 return;
@@ -672,6 +676,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
         {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
             if (!EnsureInitializedAndNotEmpty(text))
             {
                 return;
@@ -685,7 +693,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 var messages = new List<Message>
                 {
-                    new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}"),
+                    new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}:"),
                     new Message(Role.User, text)
                 };
 

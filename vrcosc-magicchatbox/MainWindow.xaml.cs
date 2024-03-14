@@ -25,7 +25,6 @@ namespace vrcosc_magicchatbox
 {
     public partial class MainWindow : Window
     {
-
         private const int WM_ENTERSIZEMOVE = 0x0231;
         SoundpadModule SoundpadModule = null;
         private const int WM_EXITSIZEMOVE = 0x0232;
@@ -124,10 +123,42 @@ namespace vrcosc_magicchatbox
 
             // Asynchronous Initialization
             Task initTask = InitializeAsync();
-            //whisperModule = new WhisperModule();
-            // whisperModule.StartRecording();
+            ViewModel.Instance.WhisperModule = new WhisperModule();
+            ViewModel.Instance.WhisperModule.TranscriptionReceived += WhisperModule_TranscriptionReceived;
 
         }
+
+        private void WhisperModule_TranscriptionReceived(string newTranscription)
+        {
+            // Add new transcription to the existing text
+            string currentText = ViewModel.Instance.NewChattingTxt + " " + newTranscription;
+
+            // Trim the text to the last 140 characters
+            string trimmedText = TrimToLastMaxCharacters(currentText, 140);
+
+            // Update the ViewModel's property
+            ViewModel.Instance.NewChattingTxt = trimmedText;
+        }
+
+        private string TrimToLastMaxCharacters(string text, int maxCharacters)
+        {
+            // If the text is already within the limit, no need to trim
+            if (text.Length <= maxCharacters) return text;
+
+            // Find the index of the first space, starting from the character at the limit
+            // This ensures we don't start in the middle of a word
+            int firstSpaceIndex = text.IndexOf(' ', text.Length - maxCharacters);
+            if (firstSpaceIndex == -1)
+            {
+                // If there's no space, it means there's a very long word; trim to the limit directly
+                return text.Substring(text.Length - maxCharacters);
+            }
+
+            // Return the substring from the first space to the end of the original text
+            // This trims out the oldest words
+            return text.Substring(firstSpaceIndex).Trim();
+        }
+
 
         public async Task InitializeAsync()
         {
@@ -1510,6 +1541,17 @@ namespace vrcosc_magicchatbox
         private void NextwordPredict_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.IntelliChatModule.GenerateCompletionOrPredictionAsync(ViewModel.Instance.NewChattingTxt, true);
+        }
+
+        private void Record_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.WhisperModule.StartRecording();
+        }
+
+        private void StopRecord_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.WhisperModule.StopRecording();
+
         }
     }
 

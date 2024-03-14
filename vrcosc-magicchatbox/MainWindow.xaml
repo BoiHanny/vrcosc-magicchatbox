@@ -5372,6 +5372,78 @@
                             </Button.Effect>
                         </Button>
                         <Button
+                            x:Name="Record"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="Record_Click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Speech to text using AI"
+                            Visibility="{Binding WhisperModule.Settings.IsRecording, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="22"
+                                    Margin="3,0,0,0"
+                                    Opacity="0.5"
+                                    Source="/Img/Icons/SpeechToText.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Speech to text" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
+                            x:Name="StopRecord"
+                            Width="auto"
+                            Height="34"
+                            Margin="3,0"
+                            Click="StopRecord_Click"
+                            Style="{DynamicResource LINK_Button_style}"
+                            ToolTip="Stop recording"
+                            Visibility="{Binding WhisperModule.Settings.IsRecording, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image
+                                    Width="22"
+                                    Margin="3,0,0,0"
+                                    Opacity="0.5"
+                                    Source="/Img/Icons/SpeechToText.png" />
+                                <TextBlock
+                                    Padding="3,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="#FF8D7DB9"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Stop STT" />
+
+                            </StackPanel>
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Direction="0"
+                                    Opacity="0.3"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="LightGray" />
+                            </Button.Effect>
+                        </Button>
+                        <Button
                             x:Name="NextwordPredict"
                             Width="auto"
                             Height="34"
@@ -5407,6 +5479,7 @@
                                     Color="LightGray" />
                             </Button.Effect>
                         </Button>
+
                     </StackPanel>
 
                 </Grid>
@@ -5808,6 +5881,7 @@
                             Click="ToggleVoicebtn_Click"
                             Content="{Binding ToggleVoiceText}"
                             Style="{DynamicResource Status_Button_style_Shadow}" />
+
                     </StackPanel>
 
 
@@ -5851,6 +5925,7 @@
                         Orientation="Horizontal"
                         Visibility="{Binding MenuItem_2_Visibility}">
                         <StackPanel Visibility="{Binding ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
 
                             <TextBlock
                                 Margin="0,3,5,0"
