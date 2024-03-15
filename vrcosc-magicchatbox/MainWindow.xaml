@@ -2130,7 +2130,135 @@
 
                                     </StackPanel>
                                 </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Speech to text" />
 
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="With speech to text, you can transform your voice into text" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,14,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Select your preferred recording device to use for text to speech" />
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <ComboBox
+                                                x:Name="SelectedDeviceComboBox"
+                                                Width="200"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                DisplayMemberPath="DeviceName"
+                                                ItemsSource="{Binding WhisperModule.Settings.AvailableDevices}"
+                                                Opacity="0.3"
+                                                SelectedValue="{Binding WhisperModule.Settings.SelectedDeviceIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                SelectedValuePath="DeviceIndex" />
+
+                                        </StackPanel>
+                                        <TextBlock
+                                            Width="450"
+                                            Padding="2,14,0,5"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Please disable automatic language detection if you only speak one language and select your preferred language below"
+                                            TextWrapping="Wrap" />
+                                        <CheckBox
+                                            x:Name="SpeechToTextAutoLangDetect"
+                                            Height="20"
+                                            Margin="4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding IntelliChatModule.Settings.AutolanguageSelection, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Automatically detect language
+                                        </CheckBox>
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Select your preferred speech to text language"
+                                            Visibility="{Binding IntelliChatModule.Settings.AutolanguageSelection, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <StackPanel
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding IntelliChatModule.Settings.AutolanguageSelection, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBox
+                                                x:Name="SelectedSpeechToTextLanguageComboBox"
+                                                Width="200"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                ItemsSource="{Binding WhisperModule.Settings.SpeechToTextLanguages}"
+                                                Opacity="0.3"
+                                                SelectedValue="{Binding WhisperModule.Settings.SelectedSpeechToTextLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock
+                                        Width="auto"
+                                        Padding="3,10,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Disable after" />
+                                            <TextBox
+                                            x:Name="SilenceAutoTurnOffDurationINT"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="4,3,3,0"
+                                            Padding="3,0,3,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WhisperModule.Settings.SilenceAutoTurnOffDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="0,10,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="milliseconds of silence" />
+
+
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </Grid>

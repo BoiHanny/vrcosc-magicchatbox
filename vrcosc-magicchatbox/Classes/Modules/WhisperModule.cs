@@ -8,11 +8,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.ViewModels;
+using Newtonsoft.Json;
+using System.Media;
+using System.Reflection;
+using System.Windows;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
     public partial class WhisperModuleSettings : ObservableObject
     {
+        private const string SettingsFileName = "WhisperModuleSettings.json";
+
         [ObservableProperty]
         private List<RecordingDeviceInfo> availableDevices;
 
@@ -28,9 +34,118 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         private bool isRecording = false;
 
+        [ObservableProperty]
+        private List<string> speechToTextLanguages = new List<string>();
+
+        [ObservableProperty]
+        private string selectedSpeechToTextLanguage;
+
+        [ObservableProperty]
+        private bool autoLanguageDetection = true;
+
+        [ObservableProperty]
+        private int silenceAutoTurnOffDuration = 3000;
+
         public WhisperModuleSettings()
         {
             RefreshDevices();
+            RefreshSpeechToTextLanguages();
+        }
+
+        public void SaveSettings()
+        {
+            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+            File.WriteAllText(SettingsFileName, settingsJson);
+        }
+
+        public static WhisperModuleSettings LoadSettings()
+        {
+            if (File.Exists(SettingsFileName))
+            {
+                var settingsJson = File.ReadAllText(SettingsFileName);
+                return JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
+            }
+
+            return new WhisperModuleSettings();
+        }
+
+        private void RefreshSpeechToTextLanguages()
+        {
+            // Ordered by a hypothetical "most commonly used" metric, adjust as needed
+            SpeechToTextLanguages = new List<string>
+        {
+            "English",
+            "Chinese",
+            "Spanish",
+            "Hindi",
+            "Arabic",
+            "Portuguese",
+            "Bengali",
+            "Russian",
+            "Japanese",
+            "French",
+            "German",
+            "Korean",
+            "Italian",
+            "Turkish",
+            "Polish",
+            "Dutch",
+            "Indonesian",
+            "Thai",
+            "Swedish",
+            "Danish",
+            "Norwegian",
+            "Finnish",
+            "Vietnamese",
+            "Czech",
+            "Greek",
+            "Romanian",
+            "Hungarian",
+            "Slovak",
+            "Ukrainian",
+            "Bulgarian",
+            "Croatian",
+            "Serbian",
+            "Lithuanian",
+            "Latvian",
+            "Estonian",
+            "Slovenian",
+            "Hebrew",
+            "Persian",
+            "Armenian",
+            "Azerbaijani",
+            "Kazakh",
+            "Uzbek",
+            "Tajik",
+            "Georgian",
+            "Mongolian",
+            "Afrikaans",
+            "Swahili",
+            "Maori",
+            "Nepali",
+            "Marathi",
+            "Kannada",
+            "Tamil",
+            "Telugu",
+            "Malay",
+            "Malayalam",
+            "Bosnian",
+            "Macedonian",
+            "Albanian",
+            "Filipino",
+            "Tagalog",
+            "Urdu",
+            "Welsh",
+            "Icelandic",
+            "Maltese",
+            "Galician",
+            "Belarusian",
+            "Catalan"
+        };
+
+            // Assuming SelectedSpeechToTextLanguage should be set to the most common language initially
+            if (string.IsNullOrWhiteSpace(SelectedSpeechToTextLanguage))
+                SelectedSpeechToTextLanguage = SpeechToTextLanguages.FirstOrDefault();
         }
 
         public string GetSelectedDeviceName()
@@ -44,6 +159,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return "No device selected";
             }
         }
+
+        
 
 
 
@@ -81,6 +198,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private DateTime lastSoundTimestamp = DateTime.Now;
         private bool isCurrentlySpeaking = false;
         private DateTime speakingStartedTimestamp = DateTime.Now;
+        private bool isProcessingShortPause = false;
 
         public event Action<string> TranscriptionReceived;
 
@@ -89,17 +207,35 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public WhisperModule()
         {
+            Settings = WhisperModuleSettings.LoadSettings();
+            Settings.PropertyChanged += Settings_PropertyChanged;
             InitializeWaveIn();
+        }
+
+        public void OnApplicationClosing()
+        {
+            Settings.SaveSettings();
+        }
+
+        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Settings.SelectedDeviceIndex))
+            {
+                StopRecording();
+                InitializeWaveIn();
+            }
         }
 
         private void InitializeWaveIn()
         {
-            waveIn?.Dispose();
+            waveIn?.Dispose(); // Dispose any existing instance
 
             if (settings.SelectedDeviceIndex == -1)
             {
                 UpdateUI("No valid audio input device selected.", false);
-                throw new InvalidOperationException("No valid audio input device selected.");
+                // Consider handling this scenario without throwing an exception,
+                // perhaps by disabling recording functionality until a valid device is selected.
+                return;
             }
 
             waveIn = new WaveInEvent
@@ -132,6 +268,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             UpdateUI("Ready to speak?", true);
             waveIn.StartRecording();
+            //PlaySound("start.wav");
             settings.IsRecording = true;
         }
 
@@ -158,39 +295,95 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessAudioStreamAsync(audioStream);
             }
+            audioStream = new MemoryStream();
         }
+
+        //private void PlaySound(string soundFileName)
+        //{
+        //    var assembly = Assembly.GetExecutingAssembly();
+        //    string resourceName = assembly.GetName().Name + ".Sounds." + soundFileName;
+
+        //    using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+        //    {
+        //        if (stream == null)
+        //        {
+        //            throw new InvalidOperationException("Could not find resource sound file: " + resourceName);
+        //        }
+
+        //        SoundPlayer player = new SoundPlayer(stream);
+        //        player.Play();
+        //    }
+        //}
+
+
 
         private void OnDataAvailable(object sender, WaveInEventArgs e)
         {
             float maxAmplitude = CalculateMaxAmplitude(e.Buffer, e.BytesRecorded);
-            bool isLoudEnough = maxAmplitude > settings.NoiseGateThreshold;
-
-            settings.IsNoiseGateOpen = isLoudEnough;
+            bool isLoudEnough = maxAmplitude > Settings.NoiseGateThreshold;
+            Settings.IsNoiseGateOpen = isLoudEnough;
 
             if (isLoudEnough)
             {
                 if (!isCurrentlySpeaking)
                 {
-                    speakingStartedTimestamp = DateTime.Now; // Mark the start of speaking
+                    speakingStartedTimestamp = DateTime.Now;
                     isCurrentlySpeaking = true;
                 }
 
-                // Update elapsed speaking time continuously while speaking
                 var speakingDuration = (DateTime.Now - speakingStartedTimestamp).TotalSeconds;
                 UpdateUI($"Speaking detected, recording... (Duration: {speakingDuration:0.0}s)", true);
-
                 audioStream.Write(e.Buffer, 0, e.BytesRecorded);
                 lastSoundTimestamp = DateTime.Now;
             }
-            else if (isCurrentlySpeaking && DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds > 500)
+            else if (isCurrentlySpeaking)
             {
-                var speakingDuration = DateTime.Now.Subtract(speakingStartedTimestamp).TotalSeconds;
-                isCurrentlySpeaking = false;
-                UpdateUI($"Processing audio... (Duration: {speakingDuration:0.0}s)", true);
-                ProcessAudioStreamAsync(audioStream);
-                audioStream = new MemoryStream(); // Reset the stream for new data after processing
+                var silenceDuration = DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds;
+
+                if (silenceDuration > 500 && silenceDuration <= Settings.SilenceAutoTurnOffDuration)
+                {
+                    if (!isProcessingShortPause)
+                    {
+                        isProcessingShortPause = true;
+                        // Offload to a background task since we can't await in this event handler
+                        Task.Run(() => ProcessShortPauseAsync()).ContinueWith(_ =>
+                        {
+                            // Use Dispatcher.Invoke to ensure that the following actions are performed on the UI thread.
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                // Actions to take after processing the short pause, ensuring thread safety for UI operations
+                                isProcessingShortPause = false;
+                                // Any other UI updates or state changes that need to be made safely on the UI thread
+                            });
+                        });
+
+                    }
+                }
+                else if (silenceDuration > Settings.SilenceAutoTurnOffDuration)
+                {
+                    isCurrentlySpeaking = false;
+                    UpdateUI($"Silence detected for more than {Settings.SilenceAutoTurnOffDuration / 1000.0} seconds, stopping recording...", true);
+                    StopRecording();
+                }
             }
         }
+
+        private async Task ProcessShortPauseAsync()
+        {
+            await ProcessAudioStreamAsync(audioStream);
+            // Ensure the continuation logic here is thread-safe, especially if updating the UI
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                isProcessingShortPause = false;
+                audioStream = new MemoryStream(); // Reset for new data
+                lastSoundTimestamp = DateTime.Now; // Reset timestamp
+                                                   // Optionally update the UI or reset flags
+            });
+        }
+
+
+
+
 
         private async void UpdateUI(string message, bool isVisible)
         {
@@ -215,7 +408,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return samples.Max(sample => Math.Abs(sample / 32768f));
         }
 
-        private async void ProcessAudioStreamAsync(MemoryStream stream)
+        private async Task ProcessAudioStreamAsync(MemoryStream stream)
         {
             if (stream.Length == 0)
             {
@@ -249,7 +442,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     await audioStream.CopyToAsync(writer);
                 }
 
-                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath));
+                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.AutoLanguageDetection?null:Settings.SelectedSpeechToTextLanguage));
 
                 return response;
             }

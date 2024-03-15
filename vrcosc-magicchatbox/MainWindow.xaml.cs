@@ -806,6 +806,7 @@ namespace vrcosc_magicchatbox
                 HotkeyManagement.Instance.SaveHotkeyConfigurations();
                 ViewModel.Instance._statsManager.SaveComponentStats();
                 ViewModel.Instance.IntelliChatModule.SaveSettings();
+                ViewModel.Instance.WhisperModule.OnApplicationClosing();
             }
             catch (Exception ex)
             {
@@ -1553,6 +1554,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.WhisperModule.StopRecording();
 
         }
+
     }
 
 

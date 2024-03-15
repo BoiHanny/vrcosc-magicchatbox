@@ -84,6 +84,8 @@
     <None Remove="Img\MagicOSC_icon.png" />
     <None Remove="Json\voices.json" />
     <None Remove="NLog.config" />
+    <None Remove="Sounds\start.wav" />
+    <None Remove="Sounds\stop.wav" />
   </ItemGroup>
 
   <ItemGroup>
@@ -154,6 +156,12 @@
     <Resource Include="Img\Icons\yes.png" />
     <Resource Include="Img\MagicOSC_icon.png" />
     <Resource Include="Img\Icons\NetworkStats_ico.png" />
+    <Resource Include="Sounds\start.wav">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Sounds\stop.wav">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

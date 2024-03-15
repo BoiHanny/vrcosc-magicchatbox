@@ -1153,6 +1153,7 @@
         <Style x:Key="SettingsCheckbox" TargetType="{x:Type CheckBox}">
             <Setter Property="SnapsToDevicePixels" Value="False" />
             <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
