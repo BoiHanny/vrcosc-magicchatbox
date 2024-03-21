@@ -41,7 +41,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private string selectedSpeechToTextLanguage;
 
         [ObservableProperty]
-        private bool autoLanguageDetection = true;
+        private bool autoLanguageDetection = false;
 
         [ObservableProperty]
         private int silenceAutoTurnOffDuration = 3000;
@@ -325,61 +325,61 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             if (isLoudEnough)
             {
-                if (!isCurrentlySpeaking)
-                {
-                    speakingStartedTimestamp = DateTime.Now;
-                    isCurrentlySpeaking = true;
-                }
-
-                var speakingDuration = (DateTime.Now - speakingStartedTimestamp).TotalSeconds;
-                UpdateUI($"Speaking detected, recording... (Duration: {speakingDuration:0.0}s)", true);
-                audioStream.Write(e.Buffer, 0, e.BytesRecorded);
-                lastSoundTimestamp = DateTime.Now;
+                HandleSpeakingState(e);
             }
-            else if (isCurrentlySpeaking)
+            else
             {
-                var silenceDuration = DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds;
-
-                if (silenceDuration > 500 && silenceDuration <= Settings.SilenceAutoTurnOffDuration)
-                {
-                    if (!isProcessingShortPause)
-                    {
-                        isProcessingShortPause = true;
-                        // Offload to a background task since we can't await in this event handler
-                        Task.Run(() => ProcessShortPauseAsync()).ContinueWith(_ =>
-                        {
-                            // Use Dispatcher.Invoke to ensure that the following actions are performed on the UI thread.
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                // Actions to take after processing the short pause, ensuring thread safety for UI operations
-                                isProcessingShortPause = false;
-                                // Any other UI updates or state changes that need to be made safely on the UI thread
-                            });
-                        });
-
-                    }
-                }
-                else if (silenceDuration > Settings.SilenceAutoTurnOffDuration)
-                {
-                    isCurrentlySpeaking = false;
-                    UpdateUI($"Silence detected for more than {Settings.SilenceAutoTurnOffDuration / 1000.0} seconds, stopping recording...", true);
-                    StopRecording();
-                }
+                ProcessSilenceOrShortPause();
             }
         }
 
-        private async Task ProcessShortPauseAsync()
+        private void HandleSpeakingState(WaveInEventArgs e)
         {
-            await ProcessAudioStreamAsync(audioStream);
-            // Ensure the continuation logic here is thread-safe, especially if updating the UI
-            App.Current.Dispatcher.Invoke(() =>
+            if (!isCurrentlySpeaking)
             {
-                isProcessingShortPause = false;
-                audioStream = new MemoryStream(); // Reset for new data
-                lastSoundTimestamp = DateTime.Now; // Reset timestamp
-                                                   // Optionally update the UI or reset flags
-            });
+                speakingStartedTimestamp = DateTime.Now;
+                isCurrentlySpeaking = true;
+                if (audioStream.Length > 0)
+                {
+                    // If there's residual audio from a previous pause, start fresh without losing the continuity
+                    ProcessAudioStreamAsync(audioStream, partial: true);
+                    audioStream = new MemoryStream();
+                }
+            }
+
+            audioStream.Write(e.Buffer, 0, e.BytesRecorded);
+            lastSoundTimestamp = DateTime.Now;
+            var speakingDuration = (DateTime.Now - speakingStartedTimestamp).TotalSeconds;
+            UpdateUI($"Speaking... Duration: {speakingDuration:0.0}s", true);
         }
+
+        private void ProcessSilenceOrShortPause()
+        {
+            var silenceDuration = DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds;
+
+            if (!isCurrentlySpeaking || silenceDuration < 500) return; // Ignore very short silences or if not speaking
+
+            if (silenceDuration <= Settings.SilenceAutoTurnOffDuration)
+            {
+                if (!isProcessingShortPause)
+                {
+                    // Handle short pause: Transcribe partial speech without stopping the recording session
+                    isProcessingShortPause = true;
+                    ProcessAudioStreamAsync(audioStream, partial: true);
+                    audioStream = new MemoryStream(); // Prepare for more speech, ensuring continuity
+                    Task.Delay(500).ContinueWith(_ => isProcessingShortPause = false);
+                }
+            }
+            else if (silenceDuration > Settings.SilenceAutoTurnOffDuration && isCurrentlySpeaking)
+            {
+                // Long silence detected, auto-disable the STT session by stopping recording
+                isCurrentlySpeaking = false;
+                StopRecording(); // Auto-disable the STT session due to prolonged silence
+                audioStream = new MemoryStream(); // Reset for a new session
+                UpdateUI($"Silence detected for more than {Settings.SilenceAutoTurnOffDuration / 1000.0} seconds, auto-disabling STT session...", false);
+            }
+        }
+
 
 
 
@@ -392,7 +392,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             if (!isVisible)
             {
-                await Task.Delay(1200); 
+                ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = true;
+                await Task.Delay(2500); 
                 App.Current.Dispatcher.Invoke(() =>
                 {
                     ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = false;
@@ -408,26 +409,28 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return samples.Max(sample => Math.Abs(sample / 32768f));
         }
 
-        private async Task ProcessAudioStreamAsync(MemoryStream stream)
+        private async Task ProcessAudioStreamAsync(MemoryStream stream, bool partial = false)
         {
-            if (stream.Length == 0)
-            {
-                UpdateUI("No audio detected.", false);
-                return;
-            }
+            if (stream.Length == 0) return;
 
             stream.Position = 0;
-            UpdateUI("Transcribing with OpenAI...", true);
+            UpdateUI(partial ? "Transcribing part of your speech..." : "Transcribing with OpenAI...", true);
             string transcription = await TranscribeAudioAsync(stream);
-            if (transcription != null) {
+            if (!string.IsNullOrEmpty(transcription))
+            {
                 TranscriptionReceived?.Invoke(transcription);
                 UpdateUI("Transcription complete.", false);
             }
             else
-                {
+            {
                 UpdateUI("Error transcribing audio.", false);
             }
-            
+
+            if (!partial)
+            {
+                // Reset the stream only if processing the final segment
+                audioStream = new MemoryStream();
+            }
         }
 
 
@@ -442,7 +445,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     await audioStream.CopyToAsync(writer);
                 }
 
-                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.AutoLanguageDetection?null:Settings.SelectedSpeechToTextLanguage));
+                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.AutoLanguageDetection ? null:Settings.SelectedSpeechToTextLanguage));
 
                 return response;
             }

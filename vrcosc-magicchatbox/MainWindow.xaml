@@ -2195,7 +2195,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding IntelliChatModule.Settings.AutolanguageSelection, Mode=TwoWay}"
+                                            IsChecked="{Binding WhisperModule.Settings.AutoLanguageDetection, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Automatically detect language
                                         </CheckBox>
@@ -2227,25 +2227,25 @@
 
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock
-                                        Width="auto"
-                                        Padding="3,10,0,0"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="#FF9983AD"
-                                        Text="Disable after" />
+                                                Width="auto"
+                                                Padding="3,10,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Disable after" />
                                             <TextBox
-                                            x:Name="SilenceAutoTurnOffDurationINT"
-                                            Width="auto"
-                                            Height="26"
-                                            Margin="4,3,3,0"
-                                            Padding="3,0,3,0"
-                                            HorizontalAlignment="Left"
-                                            VerticalContentAlignment="Center"
-                                            Background="#FF7B7195"
-                                            BorderThickness="0"
-                                            FontSize="15"
-                                            Foreground="#FF240E54"
-                                            Text="{Binding WhisperModule.Settings.SilenceAutoTurnOffDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                x:Name="SilenceAutoTurnOffDurationINT"
+                                                Width="auto"
+                                                Height="26"
+                                                Margin="4,3,3,0"
+                                                Padding="3,0,3,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding WhisperModule.Settings.SilenceAutoTurnOffDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock
                                                 Width="auto"
                                                 Padding="0,10,0,0"
