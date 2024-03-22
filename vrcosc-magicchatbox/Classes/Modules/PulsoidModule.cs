@@ -15,13 +15,52 @@ using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using Newtonsoft.Json.Linq;
 using vrcosc_magicchatbox.DataAndSecurity;
-using System.Windows.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Newtonsoft.Json;
 
 
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public class PulsoidModule
+    public partial class PulsoidModuleSettings : ObservableObject
+    {
+
+        private const string SettingsFileName = "PulsoidModuleSettings.json";
+
+        [ObservableProperty]
+
+        List<PulsoidTrendSymbolSet> pulsoidTrendSymbols = new();
+
+        [ObservableProperty]
+        PulsoidTrendSymbolSet selectedPulsoidTrendSymbol;
+        
+
+        public void SaveSettings()
+        {
+            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+            File.WriteAllText(GetFullSettingsPath(), settingsJson);
+        }
+
+        public static string GetFullSettingsPath()
+        {
+            return Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox"), SettingsFileName);
+        }
+
+        public static PulsoidModuleSettings LoadSettings()
+        {
+            if (File.Exists(GetFullSettingsPath()))
+            {
+                var settingsJson = File.ReadAllText(GetFullSettingsPath());
+                return JsonConvert.DeserializeObject<PulsoidModuleSettings>(settingsJson);
+            }
+
+            return new PulsoidModuleSettings();
+        }
+
+        
+    }
+
+        public partial class PulsoidModule : ObservableObject
     {
 
         private CancellationTokenSource? _cts;
@@ -29,6 +68,46 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly Queue<int> _heartRateHistory = new();
         private int _previousHeartRate = -1;
         private int _unchangedHeartRateCount = 0;
+
+        [ObservableProperty]
+        public PulsoidModuleSettings settings;
+
+        public PulsoidModule()
+        {
+            Settings = PulsoidModuleSettings.LoadSettings();
+
+            RefreshTrendSymbols();
+        }
+
+        public void OnApplicationClosing()
+        {
+            Settings.SaveSettings();
+        }
+
+        public void RefreshTrendSymbols()
+        {
+            Settings.PulsoidTrendSymbols = new List<PulsoidTrendSymbolSet>
+            {
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⤴️", DownwardTrendSymbol = "⤵️" },
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⬆", DownwardTrendSymbol = "⬇" },
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↗", DownwardTrendSymbol = "↘" },
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
+            };
+
+            var symbolExists = Settings.PulsoidTrendSymbols.Any(s => s.CombinedTrendSymbol == Settings.SelectedPulsoidTrendSymbol.CombinedTrendSymbol);
+
+            if (symbolExists)
+            {
+                // If the previously selected symbol exists, select it again
+                Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault(s => s.CombinedTrendSymbol == Settings.SelectedPulsoidTrendSymbol.CombinedTrendSymbol);
+            }
+            else
+            {
+                // If it doesn't exist or if there was no selection, default to the first symbol in the list
+                Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault();
+            }
+        }
 
         private static double CalculateSlope(Queue<int> values)
         {
@@ -48,6 +127,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             double slope = sumXY / sumXX;
             return slope;
         }
+
+
+
+
 
         public static void UpdateFormattedHeartRateText()
         {
@@ -189,14 +272,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
                             // Update the trend indicator
                             if (_heartRateHistory.Count > 1)
                             {
+
                                 double slope = CalculateSlope(_heartRateHistory);
                                 if (slope > ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
                                 {
-                                    ViewModel.Instance.HeartRateTrendIndicator = "⤴️";
+                                    ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
                                 }
                                 else if (slope < -ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
                                 {
-                                    ViewModel.Instance.HeartRateTrendIndicator = "⤵️";
+                                    ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
                                 }
                                 else
                                 {
@@ -366,7 +450,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     }
 
+    public class PulsoidTrendSymbolSet
+    {
+        public string UpwardTrendSymbol { get; set; }
+        public string DownwardTrendSymbol { get; set; }
 
+        public string CombinedTrendSymbol => $"{UpwardTrendSymbol} - {DownwardTrendSymbol}";
+    }
     public class PulsoidOAuthHandler
     {
         private static readonly Lazy<PulsoidOAuthHandler> lazyInstance =

@@ -26,7 +26,6 @@ namespace vrcosc_magicchatbox
     public partial class MainWindow : Window
     {
         private const int WM_ENTERSIZEMOVE = 0x0231;
-        SoundpadModule SoundpadModule = null;
         private const int WM_EXITSIZEMOVE = 0x0232;
         private ResizeMode previousResizeMode = ResizeMode.CanResize;
         private static List<CancellationTokenSource> _activeCancellationTokens = new List<CancellationTokenSource>();
@@ -807,6 +806,7 @@ namespace vrcosc_magicchatbox
                 ViewModel.Instance._statsManager.SaveComponentStats();
                 ViewModel.Instance.IntelliChatModule.SaveSettings();
                 ViewModel.Instance.WhisperModule.OnApplicationClosing();
+                ViewModel.Instance.HeartRateConnector.Settings.SaveSettings();
             }
             catch (Exception ex)
             {

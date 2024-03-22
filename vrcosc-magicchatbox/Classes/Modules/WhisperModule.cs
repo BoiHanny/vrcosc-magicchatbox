@@ -2,19 +2,20 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 using OpenAI.Audio;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json;
-using System.Media;
-using System.Reflection;
-using System.Windows;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
+    public partial class SpeechToTextLanguage : ObservableObject
+    {
+        public string Language { get; set; }
+        public string Code { get; set; }
+    }
     public partial class WhisperModuleSettings : ObservableObject
     {
         private const string SettingsFileName = "WhisperModuleSettings.json";
@@ -26,7 +27,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private int selectedDeviceIndex;
 
         [ObservableProperty]
-        private float noiseGateThreshold = 0.20f;
+        private float noiseGateThreshold = 0.12f;
 
         [ObservableProperty]
         private bool isNoiseGateOpen = false;
@@ -35,145 +36,159 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool isRecording = false;
 
         [ObservableProperty]
-        private List<string> speechToTextLanguages = new List<string>();
+        private List<SpeechToTextLanguage> speechToTextLanguages;
 
         [ObservableProperty]
-        private string selectedSpeechToTextLanguage;
+        private SpeechToTextLanguage selectedSpeechToTextLanguage;
 
         [ObservableProperty]
-        private bool autoLanguageDetection = false;
+        private bool translateToCustomLanguage = false;
 
         [ObservableProperty]
         private int silenceAutoTurnOffDuration = 3000;
 
-        public WhisperModuleSettings()
+        private WhisperModuleSettings()
         {
             RefreshDevices();
             RefreshSpeechToTextLanguages();
         }
 
-        public void SaveSettings()
-        {
-            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            File.WriteAllText(SettingsFileName, settingsJson);
-        }
+
 
         public static WhisperModuleSettings LoadSettings()
         {
-            if (File.Exists(SettingsFileName))
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+            if (File.Exists(path))
             {
-                var settingsJson = File.ReadAllText(SettingsFileName);
-                return JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
+                var settingsJson = File.ReadAllText(path);
+                var settings = JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
+                if (settings != null)
+                {
+                    settings.RefreshDevices(); // Ensure the device list is refreshed upon loading
+                    settings.RefreshSpeechToTextLanguages(); // Refresh languages
+                    return settings;
+                }
+            }
+            return new WhisperModuleSettings();
+        }
+
+        public void SaveSettings()
+        {
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)); // Ensure directory exists
+            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+            File.WriteAllText(path, settingsJson);
+        }
+
+        public void RefreshDevices()
+        {
+            availableDevices = new List<RecordingDeviceInfo>();
+
+            for (int n = 0; n < WaveIn.DeviceCount; n++)
+            {
+                var capabilities = WaveIn.GetCapabilities(n);
+                availableDevices.Add(new RecordingDeviceInfo(n, capabilities.ProductName));
             }
 
-            return new WhisperModuleSettings();
+            // Optionally, reset the selected device if it's no longer available
+            if (selectedDeviceIndex >= availableDevices.Count)
+            {
+                SelectedDeviceIndex = availableDevices.Any() ? 0 : -1;
+            }
         }
 
         private void RefreshSpeechToTextLanguages()
         {
-            // Ordered by a hypothetical "most commonly used" metric, adjust as needed
-            SpeechToTextLanguages = new List<string>
-        {
-            "English",
-            "Chinese",
-            "Spanish",
-            "Hindi",
-            "Arabic",
-            "Portuguese",
-            "Bengali",
-            "Russian",
-            "Japanese",
-            "French",
-            "German",
-            "Korean",
-            "Italian",
-            "Turkish",
-            "Polish",
-            "Dutch",
-            "Indonesian",
-            "Thai",
-            "Swedish",
-            "Danish",
-            "Norwegian",
-            "Finnish",
-            "Vietnamese",
-            "Czech",
-            "Greek",
-            "Romanian",
-            "Hungarian",
-            "Slovak",
-            "Ukrainian",
-            "Bulgarian",
-            "Croatian",
-            "Serbian",
-            "Lithuanian",
-            "Latvian",
-            "Estonian",
-            "Slovenian",
-            "Hebrew",
-            "Persian",
-            "Armenian",
-            "Azerbaijani",
-            "Kazakh",
-            "Uzbek",
-            "Tajik",
-            "Georgian",
-            "Mongolian",
-            "Afrikaans",
-            "Swahili",
-            "Maori",
-            "Nepali",
-            "Marathi",
-            "Kannada",
-            "Tamil",
-            "Telugu",
-            "Malay",
-            "Malayalam",
-            "Bosnian",
-            "Macedonian",
-            "Albanian",
-            "Filipino",
-            "Tagalog",
-            "Urdu",
-            "Welsh",
-            "Icelandic",
-            "Maltese",
-            "Galician",
-            "Belarusian",
-            "Catalan"
-        };
+            var currentSelectedLanguageCode = SelectedSpeechToTextLanguage?.Code;
 
-            // Assuming SelectedSpeechToTextLanguage should be set to the most common language initially
-            if (string.IsNullOrWhiteSpace(SelectedSpeechToTextLanguage))
-                SelectedSpeechToTextLanguage = SpeechToTextLanguages.FirstOrDefault();
-        }
+            SpeechToTextLanguages = new List<SpeechToTextLanguage>
+{
+    new SpeechToTextLanguage { Language = "English", Code = "en" },
+    new SpeechToTextLanguage { Language = "Chinese", Code = "zh" },
+    new SpeechToTextLanguage { Language = "Spanish", Code = "es" },
+    new SpeechToTextLanguage { Language = "Hindi", Code = "hi" },
+    new SpeechToTextLanguage { Language = "Arabic", Code = "ar" },
+    new SpeechToTextLanguage { Language = "Portuguese", Code = "pt" },
+    new SpeechToTextLanguage { Language = "Bengali", Code = "bn" },
+    new SpeechToTextLanguage { Language = "Russian", Code = "ru" },
+    new SpeechToTextLanguage { Language = "Japanese", Code = "ja" },
+    new SpeechToTextLanguage { Language = "French", Code = "fr" },
+    new SpeechToTextLanguage { Language = "German", Code = "de" },
+    new SpeechToTextLanguage { Language = "Korean", Code = "ko" },
+    new SpeechToTextLanguage { Language = "Italian", Code = "it" },
+    new SpeechToTextLanguage { Language = "Turkish", Code = "tr" },
+    new SpeechToTextLanguage { Language = "Polish", Code = "pl" },
+    new SpeechToTextLanguage { Language = "Dutch", Code = "nl" },
+    new SpeechToTextLanguage { Language = "Indonesian", Code = "id" },
+    new SpeechToTextLanguage { Language = "Thai", Code = "th" },
+    new SpeechToTextLanguage { Language = "Swedish", Code = "sv" },
+    new SpeechToTextLanguage { Language = "Danish", Code = "da" },
+    new SpeechToTextLanguage { Language = "Norwegian", Code = "no" },
+    new SpeechToTextLanguage { Language = "Finnish", Code = "fi" },
+    new SpeechToTextLanguage { Language = "Vietnamese", Code = "vi" },
+    new SpeechToTextLanguage { Language = "Czech", Code = "cs" },
+    new SpeechToTextLanguage { Language = "Greek", Code = "el" },
+    new SpeechToTextLanguage { Language = "Romanian", Code = "ro" },
+    new SpeechToTextLanguage { Language = "Hungarian", Code = "hu" },
+    new SpeechToTextLanguage { Language = "Slovak", Code = "sk" },
+    new SpeechToTextLanguage { Language = "Ukrainian", Code = "uk" },
+    new SpeechToTextLanguage { Language = "Bulgarian", Code = "bg" },
+    new SpeechToTextLanguage { Language = "Croatian", Code = "hr" },
+    new SpeechToTextLanguage { Language = "Serbian", Code = "sr" },
+    new SpeechToTextLanguage { Language = "Lithuanian", Code = "lt" },
+    new SpeechToTextLanguage { Language = "Latvian", Code = "lv" },
+    new SpeechToTextLanguage { Language = "Estonian", Code = "et" },
+    new SpeechToTextLanguage { Language = "Slovenian", Code = "sl" },
+    new SpeechToTextLanguage { Language = "Hebrew", Code = "he" },
+    new SpeechToTextLanguage { Language = "Persian", Code = "fa" },
+    new SpeechToTextLanguage { Language = "Armenian", Code = "hy" },
+    new SpeechToTextLanguage { Language = "Azerbaijani", Code = "az" },
+    new SpeechToTextLanguage { Language = "Kazakh", Code = "kk" },
+    new SpeechToTextLanguage { Language = "Uzbek", Code = "uz" },
+    new SpeechToTextLanguage { Language = "Tajik", Code = "tg" },
+    new SpeechToTextLanguage { Language = "Georgian", Code = "ka" },
+    new SpeechToTextLanguage { Language = "Mongolian", Code = "mn" },
+    new SpeechToTextLanguage { Language = "Afrikaans", Code = "af" },
+    new SpeechToTextLanguage { Language = "Swahili", Code = "sw" },
+    new SpeechToTextLanguage { Language = "Maori", Code = "mi" },
+    new SpeechToTextLanguage { Language = "Nepali", Code = "ne" },
+    new SpeechToTextLanguage { Language = "Marathi", Code = "mr" },
+    new SpeechToTextLanguage { Language = "Kannada", Code = "kn" },
+    new SpeechToTextLanguage { Language = "Tamil", Code = "ta" },
+    new SpeechToTextLanguage { Language = "Telugu", Code = "te" },
+    new SpeechToTextLanguage { Language = "Malay", Code = "ms" },
+    new SpeechToTextLanguage { Language = "Malayalam", Code = "ml" },
+    new SpeechToTextLanguage { Language = "Bosnian", Code = "bs" },
+    new SpeechToTextLanguage { Language = "Macedonian", Code = "mk" },
+    new SpeechToTextLanguage { Language = "Albanian", Code = "sq" },
+    new SpeechToTextLanguage { Language = "Filipino", Code = "fil" },
+    new SpeechToTextLanguage { Language = "Tagalog", Code = "tl" },
+    new SpeechToTextLanguage { Language = "Urdu", Code = "ur" },
+    new SpeechToTextLanguage { Language = "Welsh", Code = "cy" },
+    new SpeechToTextLanguage { Language = "Icelandic", Code = "is" },
+    new SpeechToTextLanguage { Language = "Maltese", Code = "mt" },
+    new SpeechToTextLanguage { Language = "Galician", Code = "gl" },
+    new SpeechToTextLanguage { Language = "Belarusian", Code = "be" },
+    new SpeechToTextLanguage { Language = "Catalan", Code = "ca" },
+};
 
-        public string GetSelectedDeviceName()
-        {
-            if (SelectedDeviceIndex >= 0 && SelectedDeviceIndex < AvailableDevices.Count)
+            // Check if the previously selected language still exists in the list
+            var languageExists = SpeechToTextLanguages.Any(lang => lang.Code == currentSelectedLanguageCode);
+
+            if (languageExists)
             {
-                return AvailableDevices[SelectedDeviceIndex].DeviceName;
+                // If the previously selected language exists, select it again
+                SelectedSpeechToTextLanguage = SpeechToTextLanguages.FirstOrDefault(lang => lang.Code == currentSelectedLanguageCode);
             }
             else
             {
-                return "No device selected";
+                // If it doesn't exist or if there was no selection, default to the first language in the list
+                SelectedSpeechToTextLanguage = SpeechToTextLanguages.FirstOrDefault();
             }
-        }
 
-        
-
-
-
-        public void RefreshDevices()
-        {
-            AvailableDevices = Enumerable.Range(0, WaveIn.DeviceCount)
-                .Select(n => new RecordingDeviceInfo(n, WaveIn.GetCapabilities(n).ProductName))
-                .ToList();
-            SelectedDeviceIndex = AvailableDevices.Any() ? 0 : -1;
+            OnPropertyChanged(nameof(SelectedSpeechToTextLanguage));
         }
     }
-
-
     public class RecordingDeviceInfo
     {
         public int DeviceIndex { get; }
@@ -190,7 +205,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return $"{DeviceName} (Index: {DeviceIndex})";
         }
     }
-
     public partial class WhisperModule : ObservableObject
     {
         private WaveInEvent waveIn;
@@ -203,12 +217,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public event Action<string> TranscriptionReceived;
 
         [ObservableProperty]
-        public WhisperModuleSettings settings = new WhisperModuleSettings();
+        public WhisperModuleSettings settings;
 
         public WhisperModule()
         {
-            Settings = WhisperModuleSettings.LoadSettings();
-            Settings.PropertyChanged += Settings_PropertyChanged;
+            settings = WhisperModuleSettings.LoadSettings();
+            settings.PropertyChanged += Settings_PropertyChanged;
             InitializeWaveIn();
         }
 
@@ -445,7 +459,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     await audioStream.CopyToAsync(writer);
                 }
 
-                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.AutoLanguageDetection ? null:Settings.SelectedSpeechToTextLanguage));
+                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.TranslateToCustomLanguage ? Settings.SelectedSpeechToTextLanguage.Code : null));
+
 
                 return response;
             }

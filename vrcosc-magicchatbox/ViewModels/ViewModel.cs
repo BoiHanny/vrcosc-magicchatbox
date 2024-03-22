@@ -60,7 +60,18 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _Egg_Dev = false;
 
-        private PulsoidModule _heartRateConnector;
+
+
+        private PulsoidModule _HeartRateConnector;
+        public PulsoidModule HeartRateConnector
+        {
+            get { return _HeartRateConnector; }
+            set
+            {
+                _HeartRateConnector = value;
+                NotifyPropertyChanged(nameof(HeartRateConnector));
+            }
+        }
 
 
         private IntelliChatModule _IntelliChatModule;
@@ -210,9 +221,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_Status), value => Settings_Status = value }
             };
 
-            _heartRateConnector = new PulsoidModule();
+            HeartRateConnector = new PulsoidModule();
 
-            PropertyChanged += _heartRateConnector.PropertyChangedHandler;
+            PropertyChanged += HeartRateConnector.PropertyChangedHandler;
             _dynamicOSCData = new ExpandoObject();
         }
 
@@ -365,6 +376,8 @@ namespace vrcosc_magicchatbox.ViewModels
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
+
+
 
         public static bool CreateIfMissing(string path)
         {
@@ -3620,6 +3633,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(HeartRateTrendIndicator));
             }
         }
+
+
+
 
 
         private double _HeartRateTrendIndicatorSensitivity = 0.65;
