@@ -180,7 +180,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
     <PackageReference Include="NLog" Version="5.2.8" />
-	  <PackageReference Include="OpenAI-DotNet" Version="7.7.2" />
+	  <PackageReference Include="OpenAI-DotNet" Version="7.7.6" />
   </ItemGroup>
 
   <ItemGroup>
