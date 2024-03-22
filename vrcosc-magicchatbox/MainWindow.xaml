@@ -2278,6 +2278,39 @@
 
                                         </StackPanel>
 
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="4,16,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Adjust the noise gate threshold (testing option coming soon)" />
+
+                                        <StackPanel Margin="4,0,0,7" Orientation="Horizontal">
+                                            <Slider
+                                                x:Name="NoiseGateThreshold"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="1.0"
+                                                Minimum="0.0"
+                                                SmallChange="0.01"
+                                                Style="{StaticResource CustomSlider}"
+                                                TickFrequency="0.01"
+                                                Value="{Binding WhisperModule.Settings.NoiseGateThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF7D7397"
+                                                Text="{Binding WhisperModule.Settings.NoiseGateThreshold, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        </StackPanel>
+
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

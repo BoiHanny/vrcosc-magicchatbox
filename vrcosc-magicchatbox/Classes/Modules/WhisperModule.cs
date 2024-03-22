@@ -189,6 +189,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             OnPropertyChanged(nameof(SelectedSpeechToTextLanguage));
         }
     }
+
+
+
+
     public class RecordingDeviceInfo
     {
         public int DeviceIndex { get; }
@@ -213,8 +217,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool isCurrentlySpeaking = false;
         private DateTime speakingStartedTimestamp = DateTime.Now;
         private bool isProcessingShortPause = false;
+        private TimeSpan speakingDuration = TimeSpan.Zero;
 
         public event Action<string> TranscriptionReceived;
+
+        private void UpdateSpeakingDuration()
+        {
+            if (isCurrentlySpeaking)
+            {
+                speakingDuration = DateTime.Now - speakingStartedTimestamp;
+            }
+        }
 
         [ObservableProperty]
         public WhisperModuleSettings settings;
@@ -256,7 +269,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 DeviceNumber = settings.SelectedDeviceIndex,
                 WaveFormat = new WaveFormat(16000, 16, 1), // Suitable for voice recognition
-                BufferMilliseconds = 300 // Adjust for responsiveness vs performance
+                BufferMilliseconds = 450 // Adjust for responsiveness vs performance
             };
 
             waveIn.DataAvailable += OnDataAvailable;
@@ -309,7 +322,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessAudioStreamAsync(audioStream);
             }
-            audioStream = new MemoryStream();
+            audioStream.SetLength(0); // Clears the stream
+            audioStream.Position = 0; // Resets the position
         }
 
         //private void PlaySound(string soundFileName)
@@ -353,46 +367,53 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 speakingStartedTimestamp = DateTime.Now;
                 isCurrentlySpeaking = true;
+                // Reset the speaking duration when starting to speak
+                speakingDuration = TimeSpan.Zero;
                 if (audioStream.Length > 0)
                 {
-                    // If there's residual audio from a previous pause, start fresh without losing the continuity
                     ProcessAudioStreamAsync(audioStream, partial: true);
-                    audioStream = new MemoryStream();
+                    audioStream.SetLength(0); // Clears the stream
+                    audioStream.Position = 0; // Resets the position
+
                 }
             }
 
             audioStream.Write(e.Buffer, 0, e.BytesRecorded);
             lastSoundTimestamp = DateTime.Now;
-            var speakingDuration = (DateTime.Now - speakingStartedTimestamp).TotalSeconds;
-            UpdateUI($"Speaking... Duration: {speakingDuration:0.0}s", true);
+            UpdateSpeakingDuration();
+            UpdateUI($"Speaking... Duration: {speakingDuration.TotalSeconds:0.0}s", true);
         }
+
 
         private void ProcessSilenceOrShortPause()
         {
             var silenceDuration = DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds;
 
-            if (!isCurrentlySpeaking || silenceDuration < 500) return; // Ignore very short silences or if not speaking
+            if (!isCurrentlySpeaking || silenceDuration < 500) return;
 
-            if (silenceDuration <= Settings.SilenceAutoTurnOffDuration)
+            if (silenceDuration <= Settings.SilenceAutoTurnOffDuration && isCurrentlySpeaking)
             {
                 if (!isProcessingShortPause)
                 {
-                    // Handle short pause: Transcribe partial speech without stopping the recording session
                     isProcessingShortPause = true;
                     ProcessAudioStreamAsync(audioStream, partial: true);
-                    audioStream = new MemoryStream(); // Prepare for more speech, ensuring continuity
+                    audioStream.SetLength(0); // Clears the stream
+                    audioStream.Position = 0; // Resets the position
+                    speakingStartedTimestamp = DateTime.Now; // Reset the start timestamp for speaking
+                    speakingDuration = TimeSpan.Zero; // Reset the speaking duration
                     Task.Delay(500).ContinueWith(_ => isProcessingShortPause = false);
                 }
             }
             else if (silenceDuration > Settings.SilenceAutoTurnOffDuration && isCurrentlySpeaking)
             {
-                // Long silence detected, auto-disable the STT session by stopping recording
                 isCurrentlySpeaking = false;
-                StopRecording(); // Auto-disable the STT session due to prolonged silence
-                audioStream = new MemoryStream(); // Reset for a new session
+                StopRecording();
+                audioStream.SetLength(0); // Clears the stream
+                audioStream.Position = 0; // Resets the position
                 UpdateUI($"Silence detected for more than {Settings.SilenceAutoTurnOffDuration / 1000.0} seconds, auto-disabling STT session...", false);
             }
         }
+
 
 
 
@@ -442,8 +463,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             if (!partial)
             {
-                // Reset the stream only if processing the final segment
-                audioStream = new MemoryStream();
+                audioStream.SetLength(0); // Clears the stream
+                audioStream.Position = 0; // Resets the position
             }
         }
 
