@@ -32,7 +32,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         List<PulsoidTrendSymbolSet> pulsoidTrendSymbols = new();
 
         [ObservableProperty]
-        PulsoidTrendSymbolSet selectedPulsoidTrendSymbol;
+        PulsoidTrendSymbolSet selectedPulsoidTrendSymbol = new();
         
 
         public void SaveSettings()
@@ -447,13 +447,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         }
 
-
-    }
+}
 
     public class PulsoidTrendSymbolSet
     {
-        public string UpwardTrendSymbol { get; set; }
-        public string DownwardTrendSymbol { get; set; }
+        public string UpwardTrendSymbol { get; set; } = "⤴️";
+        public string DownwardTrendSymbol { get; set; } = "⤵️";
 
         public string CombinedTrendSymbol => $"{UpwardTrendSymbol} - {DownwardTrendSymbol}";
     }
