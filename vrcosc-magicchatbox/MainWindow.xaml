@@ -3929,8 +3929,40 @@
                                 </CheckBox>
 
                                 <Button
+                                    x:Name="Rollback"
+                                    Width="auto"
+                                    Height="30"
+                                    Margin="0,0,0,5"
+                                    Padding="5"
+                                    HorizontalAlignment="Left"
+                                    Click="Rollback_Click"
+                                    Opacity="0.7"
+                                    Style="{StaticResource UpdatedGreenButtonStyle}"
+                                    Visibility="{Binding RollBackUpdateAvailable, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image
+                                                    Height="18"
+                                                    Margin="0,0,4,0"
+                                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                                    Source="/Img/Icons/downgrade.png" />
+                                                <TextBlock
+                                                    x:Name="RollBackVersion"
+                                                    Margin="0,-2,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="15"
+                                                    Text="{Binding DataContext.RollBackVersion, StringFormat='Rollback to {0}', RelativeSource={RelativeSource AncestorType={x:Type Window}}, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
+
+                                <Button
                                     x:Name="UpdateByZipFile"
-                                    Width="275"
+                                    Width="auto"
                                     Height="30"
                                     Margin="0,0,0,15"
                                     Padding="5"
@@ -3949,7 +3981,7 @@
                                                     Margin="0,-2,5,0"
                                                     VerticalAlignment="Center"
                                                     FontSize="15"
-                                                    Text="Update MagicChatbox with ZIP file" />
+                                                    Text="Update with ZIP" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </Button.ContentTemplate>

@@ -1555,6 +1555,11 @@ namespace vrcosc_magicchatbox
 
         }
 
+        private void Rollback_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateApp updateApp = new UpdateApp();
+            updateApp.StartRollback();
+        }
     }
 
 

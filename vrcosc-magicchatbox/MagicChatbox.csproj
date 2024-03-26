@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.8.815</Version>
+	<Version>0.8.814</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -48,6 +48,7 @@
     <None Remove="Img\Icons\Cut_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Discord.png" />
+    <None Remove="Img\Icons\downgrade.png" />
     <None Remove="Img\Icons\Edit_ico.png" />
     <None Remove="Img\Icons\error.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
@@ -109,6 +110,7 @@
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Discord.png" />
+    <Resource Include="Img\Icons\downgrade.png" />
     <Resource Include="Img\Icons\Edit_ico.png" />
     <Resource Include="Img\Icons\error.png" />
     <Resource Include="Img\Icons\Favorite_ico.png">

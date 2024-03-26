@@ -27,7 +27,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             if(autoclose)
                 _ = AutoClose(autoCloseinMiliSeconds);
             DataContext = ViewModel.Instance;
-
+            CheckUpdateBtnn_Click(null, null);
         }
 
         private async Task AutoClose(int autoCloseinMiliSeconds)
@@ -88,5 +88,11 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         }
 
         private void CheckUpdateBtnn_Click(object sender, RoutedEventArgs e) { ManualUpdateCheckAsync(); }
+
+        private void rollback_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateApp updater = new UpdateApp();
+            updater.StartRollback();
+        }
     }
 }

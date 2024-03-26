@@ -120,6 +120,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                 Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
                             ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
                         }
+
+                        UpdateApp updater = new UpdateApp();
+                        ViewModel.Instance.RollBackUpdateAvailable = updater.CheckIfBackupExists();
                     }
                 }
             }

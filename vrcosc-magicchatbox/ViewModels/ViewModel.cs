@@ -1852,6 +1852,39 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _RollBackUpdateAvailable = false;
+
+        public bool RollBackUpdateAvailable
+        {
+            get { return _RollBackUpdateAvailable; }
+            set
+            {
+                if (_RollBackUpdateAvailable != value)
+                {
+                    _RollBackUpdateAvailable = value;
+                    NotifyPropertyChanged(nameof(RollBackUpdateAvailable));
+                }
+            }
+        }
+
+
+        private System.Version _RollBackVersion = new System.Version(0, 0, 0, 0);
+
+        public System.Version RollBackVersion
+        {
+            get { return _RollBackVersion; }
+            set
+            {
+                if (_RollBackVersion != value)
+                {
+                    _RollBackVersion = value;
+                    NotifyPropertyChanged(nameof(RollBackVersion));
+                }
+            }
+        }
+
+
+
 
         #region ICommand's
         public ICommand ActivateStatusCommand { get; set; }

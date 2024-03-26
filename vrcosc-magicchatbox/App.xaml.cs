@@ -16,29 +16,42 @@ namespace vrcosc_magicchatbox
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            var loadingWindow = new StartUp();
+            StartUp loadingWindow = new StartUp();
             loadingWindow.Show();
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException; ; ;
             DispatcherUnhandledException += App_DispatcherUnhandledException; ; ;
 
+            UpdateApp updater = new UpdateApp();
+
             if (e.Args != null && e.Args.Length > 0)
             {
-                if (e.Args[0] == "-update")
+                switch (e.Args[0])
                 {
-                    loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
-                    UpdateApp updater = new UpdateApp();
-                    await Task.Run(() => updater.UpdateApplication());
-                    Shutdown();
-                    return;
-                }
-                if (e.Args[0] == "-updateadmin")
-                {
-                    loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
-                    UpdateApp updater = new UpdateApp();
-                    await Task.Run(() => updater.UpdateApplication(true));
-                    Shutdown();
-                    return;
+                    case "-update":
+                        loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
+                        await Task.Run(() => updater.UpdateApplication());
+                        Shutdown();
+                        break;
+                    case "-updateadmin":
+                        loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
+                        await Task.Run(() => updater.UpdateApplication(true));
+                        Shutdown();
+                        break;
+                    case "-rollback":
+                        loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
+                        await Task.Run(() => updater.RollbackApplication(loadingWindow));
+                        Shutdown();
+                        break;
+                    case "-clearbackup":
+                        loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
+                        await Task.Run(() => updater.ClearBackUp());
+                        // Do not return; continue to start the app normally.
+                        break;
+                    default:
+                        loadingWindow.Hide();
+                        Logging.WriteException(new Exception($"Invalid command line argument '{e.Args[0]}'"), MSGBox: true, exitapp: true);
+                        break;
                 }
             }
 
@@ -76,7 +89,7 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Initializing IntelliSense like a psychic. What's on your mind?", 72);
             await Task.Run(() => ViewModel.Instance.IntelliChatModule = new IntelliChatModule());
-            
+
             loadingWindow.UpdateProgress("Warming up the TTS voices. Ready for the vocal Olympics!", 75);
             ViewModel.Instance.TikTokTTSVoices = await Task.Run(() => DataController.ReadTkTkTTSVoices());
 
