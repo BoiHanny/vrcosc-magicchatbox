@@ -658,64 +658,87 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 if (ViewModel.Instance == null)
                 {
-                    Logging.WriteInfo("ViewModel is null, not a problem :P");
+                    Logging.WriteInfo("ViewModel is null.");
                     return;
                 }
 
-                if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml")))
+                string statusListPath = Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml");
+                if (File.Exists(statusListPath))
                 {
-                    string json = File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "StatusList.xml"));
-                    if (json.ToLower().Equals("null"))
-                    {
-                        Logging.WriteInfo("StatusList history is null, not problem :P");
-                        ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
-                        return;
-                    }
-                    ViewModel.Instance.StatusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
-                if (ViewModel.Instance.StatusList.Any(x => x.msg.ToLower() == "boihanny" || x.msg.ToLower() == "sr4 series"))
-                    {
-                        ViewModel.Instance.Egg_Dev = true;
-                    }
+                    string json = File.ReadAllText(statusListPath);
+                    UpdateStatusListFromJson(json);
                 }
                 else
                 {
-                    Random random = new Random();
-                    int randomId = random.Next(10, 99999999);
-                    ViewModel.Instance.StatusList.Add(new StatusItem
-                    {
-                        CreationDate = DateTime.Now,
-                        IsActive = true,
-                        msg = "Enjoy 💖",
-                        MSGID = randomId
-                    });
-
-                    ViewModel.Instance.StatusList.Add(new StatusItem
-                    {
-                        CreationDate = DateTime.Now,
-                        IsActive = false,
-                        msg = "Below you can create your own status",
-                        MSGID = randomId
-                    });
-
-                    ViewModel.Instance.StatusList.Add(new StatusItem
-                    {
-                        CreationDate = DateTime.Now,
-                        IsActive = false,
-                        msg = "Activate it by clicking the power icon",
-                        MSGID = randomId
-                    });
-                    ViewModel.SaveStatusList();
+                    InitializeStatusListWithDefaults();
                 }
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
-                if (ViewModel.Instance.StatusList == null)
-                {
-                    ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
-                }
+                EnsureStatusListInitialized();
             }
         }
+
+        private static void UpdateStatusListFromJson(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json) || json.Trim().Equals("null", StringComparison.OrdinalIgnoreCase))
+            {
+                Logging.WriteInfo("StatusList history is empty or null.");
+                ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
+                return;
+            }
+
+            try
+            {
+                var statusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
+                if (statusList != null)
+                {
+                    ViewModel.Instance.StatusList = statusList;
+                    CheckForSpecialMessages(statusList);
+                }
+            }
+            catch (JsonException jsonEx)
+            {
+                Logging.WriteException(jsonEx, MSGBox:true);
+                ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
+            }
+        }
+
+        private static void CheckForSpecialMessages(ObservableCollection<StatusItem> statusList)
+        {
+            if (statusList.Any(x => x.msg.Equals("boihanny", StringComparison.OrdinalIgnoreCase) ||
+                                    x.msg.Equals("sr4 series", StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewModel.Instance.Egg_Dev = true;
+            }
+        }
+
+        private static void InitializeStatusListWithDefaults()
+        {
+            ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>
+    {
+        new StatusItem { CreationDate = DateTime.Now, IsActive = true, msg = "Enjoy 💖", MSGID = GenerateRandomId() },
+        new StatusItem { CreationDate = DateTime.Now, IsActive = false, msg = "Below you can create your own status", MSGID = GenerateRandomId() },
+        new StatusItem { CreationDate = DateTime.Now, IsActive = false, msg = "Activate it by clicking the power icon", MSGID = GenerateRandomId() }
+    };
+            ViewModel.SaveStatusList();
+        }
+
+        private static void EnsureStatusListInitialized()
+        {
+            if (ViewModel.Instance.StatusList == null)
+            {
+                ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
+            }
+        }
+
+        private static int GenerateRandomId()
+        {
+            Random random = new Random();
+            return random.Next(10, 99999999);
+        }
+
 
 
         public static void ManageSettingsXML(bool saveSettings = false)

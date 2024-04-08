@@ -46,7 +46,6 @@ namespace vrcosc_magicchatbox
                     case "-clearbackup":
                         loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
                         await Task.Run(() => updater.ClearBackUp());
-                        // Do not return; continue to start the app normally.
                         break;
                     default:
                         loadingWindow.Hide();
