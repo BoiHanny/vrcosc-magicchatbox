@@ -586,11 +586,14 @@ namespace vrcosc_magicchatbox
         {
             if (ViewModel.Instance.MasterSwitch == true)
             {
+
                 backgroundCheck.Start();
             }
             else
             {
                 backgroundCheck.Stop();
+                OSCSender.SentClearMessage();
+
             }
         }
 
@@ -784,6 +787,7 @@ namespace vrcosc_magicchatbox
         {
             try
             {
+                OSCSender.SentClearMessage();
                 Hide();
                 FireExitSave();
 

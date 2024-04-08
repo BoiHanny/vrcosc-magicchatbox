@@ -73,6 +73,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             await SendMessageAsync(PrepareMessage(FX), delay);
         }
 
+        public static async void SentClearMessage()
+        {
+            var clearMessage = new OscMessage(CHATBOX_INPUT, "", true, false);
+            await SendMessageAsync(clearMessage, 0);
+        }
+
         public static async Task ToggleVoice(bool force = false)
         {
             if (!ShouldToggleVoice(force))
