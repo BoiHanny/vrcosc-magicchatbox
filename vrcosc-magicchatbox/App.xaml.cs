@@ -117,7 +117,7 @@ namespace vrcosc_magicchatbox
 
         void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
-            Logging.WriteInfo(e.Exception.Message + e.Exception.StackTrace);
+            Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

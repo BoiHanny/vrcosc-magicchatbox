@@ -92,12 +92,19 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         // Check the latest release
                         var responseLatest = client.GetAsync(urlLatest).Result;
                         var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
-                        dynamic releaseLatest = JsonConvert.DeserializeObject(jsonLatest);
-                        string latestVersion = releaseLatest.tag_name;
+                        JObject releaseLatest = JObject.Parse(jsonLatest);
+                        string latestVersion = releaseLatest.Value<string>("tag_name");
 
                         ViewModel.Instance.LatestReleaseVersion = new Version(
                             Regex.Replace(latestVersion, "[^0-9.]", string.Empty));
-                        ViewModel.Instance.LatestReleaseURL = releaseLatest.assets[0].browser_download_url; // Store the download URL
+
+                        // Correctly handling the assets array to get the browser_download_url
+                        JArray assetsLatest = releaseLatest.Value<JArray>("assets");
+                        if (assetsLatest != null && assetsLatest.Count > 0)
+                        {
+                            string downloadUrl = assetsLatest[0].Value<string>("browser_download_url");
+                            ViewModel.Instance.LatestReleaseURL = downloadUrl; // Store the download URL
+                        }
 
                         // Check the latest pre-release
                         var responsePreRelease = client.GetAsync(urlPreRelease).Result;
@@ -106,9 +113,15 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         string preReleaseVersion = string.Empty;
                         foreach (var release in releases)
                         {
-                            if ((bool)release["prerelease"])
+                            if (release.Value<bool>("prerelease"))
                             {
-                                preReleaseVersion = release["tag_name"].ToString();
+                                preReleaseVersion = release.Value<string>("tag_name");
+                                JArray assetsPreRelease = release.Value<JArray>("assets");
+                                if (assetsPreRelease != null && assetsPreRelease.Count > 0)
+                                {
+                                    string preReleaseDownloadUrl = assetsPreRelease[0].Value<string>("browser_download_url");
+                                    ViewModel.Instance.PreReleaseURL = preReleaseDownloadUrl; // Store the download URL
+                                }
                                 break;
                             }
                         }
