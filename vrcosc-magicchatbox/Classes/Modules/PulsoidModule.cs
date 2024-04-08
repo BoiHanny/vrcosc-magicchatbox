@@ -48,19 +48,50 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public static PulsoidModuleSettings LoadSettings()
         {
-            if (File.Exists(GetFullSettingsPath()))
-            {
-                var settingsJson = File.ReadAllText(GetFullSettingsPath());
-                return JsonConvert.DeserializeObject<PulsoidModuleSettings>(settingsJson);
-            }
+            var settingsPath = GetFullSettingsPath();
 
-            return new PulsoidModuleSettings();
+            if (File.Exists(settingsPath))
+            {
+                string settingsJson = File.ReadAllText(settingsPath);
+
+                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+                {
+                    Logging.WriteInfo("he settings JSON file is empty or corrupted.");
+                    return new PulsoidModuleSettings();
+                }
+
+                try
+                {
+                    var settings = JsonConvert.DeserializeObject<PulsoidModuleSettings>(settingsJson);
+
+                    if (settings != null)
+                    {
+                        return settings;
+                    }
+                    else
+                    {
+                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
+                        return new PulsoidModuleSettings();
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
+                    return new PulsoidModuleSettings();
+                }
+            }
+            else
+            {
+                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
+                return new PulsoidModuleSettings();
+            }
         }
 
-        
+
+
     }
 
-        public partial class PulsoidModule : ObservableObject
+    public partial class PulsoidModule : ObservableObject
     {
 
         private CancellationTokenSource? _cts;

@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
@@ -58,19 +60,46 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public static WhisperModuleSettings LoadSettings()
         {
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+
             if (File.Exists(path))
             {
                 var settingsJson = File.ReadAllText(path);
-                var settings = JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
-                if (settings != null)
+
+                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
                 {
-                    settings.RefreshDevices(); // Ensure the device list is refreshed upon loading
-                    settings.RefreshSpeechToTextLanguages(); // Refresh languages
-                    return settings;
+                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
+                    return new WhisperModuleSettings();
+                }
+
+                try
+                {
+                    var settings = JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
+
+                    if (settings != null)
+                    {
+                        settings.RefreshDevices();
+                        settings.RefreshSpeechToTextLanguages();
+                        return settings;
+                    }
+                    else
+                    {
+                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
+                        return new WhisperModuleSettings();
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
+                    return new WhisperModuleSettings();
                 }
             }
-            return new WhisperModuleSettings();
+            else
+            {
+                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
+                return new WhisperModuleSettings();
+            }
         }
+
 
         public void SaveSettings()
         {
