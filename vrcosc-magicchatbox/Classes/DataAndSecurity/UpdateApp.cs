@@ -40,7 +40,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 tempPath = appLocation["tempPath"].ToString();
                 unzipPath = appLocation["unzipPath"].ToString();
                 magicChatboxExePath = appLocation["magicChatboxExePath"].ToString();
-                backupPath = appLocation["backupPath"]?.ToString();
+                backupPath = Path.Combine(dataPath, "backup");
 
 
             }
