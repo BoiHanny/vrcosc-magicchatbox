@@ -1,5 +1,6 @@
 ﻿using NLog;
 using System;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -19,8 +20,9 @@ namespace vrcosc_magicchatbox
             StartUp loadingWindow = new StartUp();
             loadingWindow.Show();
 
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException; ; ;
-            DispatcherUnhandledException += App_DispatcherUnhandledException; ; ;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
             UpdateApp updater = new UpdateApp();
 
@@ -111,6 +113,11 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
             loadingWindow.Close();
+        }
+
+        void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
+        {
+            Logging.WriteInfo(e.Exception.Message + e.Exception.StackTrace);
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
