@@ -15,6 +15,7 @@ using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.UI.Windows;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels
@@ -24,6 +25,8 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ViewModel : INotifyPropertyChanged
     {
         public static readonly ViewModel Instance = new ViewModel();
+
+        public ColorCustomizationViewModel ColorCustomizationViewModel { get; set; } = new ColorCustomizationViewModel();
 
         private bool _BlankEgg = false;
 

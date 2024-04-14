@@ -43,6 +43,7 @@
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+            <local:ColorToBrushConverter x:Key="ColorToBrushConverter" />
             <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
@@ -386,8 +387,7 @@
                 KernelType="Gaussian"
                 Radius="{Binding MainWindowBlurEffect}" />
         </Border.Effect>
-        <Grid HorizontalAlignment="Stretch" Background="#FF3B3054">
-
+        <Grid HorizontalAlignment="Stretch" Background="{Binding ColorCustomizationViewModel.BackgroundColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="55" />
                 <RowDefinition Height="*" />
@@ -5733,7 +5733,7 @@
 
 
 
-            <Grid Grid.ColumnSpan="2" Background="#FF2D1267">
+            <Grid Grid.ColumnSpan="2" Background="{Binding ColorCustomizationViewModel.BackgroundColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                 <Grid.Effect>
                     <DropShadowEffect
@@ -5761,7 +5761,7 @@
                             VerticalAlignment="Center"
                             FontFamily="Albert Sans Thin"
                             FontSize="16"
-                            Foreground="White"
+                            Foreground="{Binding ColorCustomizationViewModel.BackgroundTxtColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                             Text="MagicChatbox">
                             <TextBlock.Effect>
@@ -5770,7 +5770,7 @@
                                     Direction="315"
                                     Opacity="1"
                                     ShadowDepth="0"
-                                    Color="Black" />
+                                    Color="{Binding ColorCustomizationViewModel.BackgroundTxtColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}" />
                             </TextBlock.Effect>
                         </TextBlock>
                         <TextBlock
@@ -5780,7 +5780,7 @@
                             VerticalAlignment="top"
                             FontFamily="Albert Sans Thin"
                             FontSize="10"
-                            Foreground="MediumPurple"
+                            Foreground="{Binding ColorCustomizationViewModel.BackgroundTxtColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                             Text="VRC OSC">
                             <TextBlock.Effect>
@@ -5802,7 +5802,7 @@
                     <Button
                         Name="MenuButton_0"
                         Margin="0,0,0,0"
-                        Background="#FF240E55"
+                        Background="{Binding ColorCustomizationViewModel.SecondaryColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         BorderThickness="0"
                         Click="MenuButton_0_Click"
                         Content="Integrations"
@@ -5810,7 +5810,7 @@
                         FontFamily="Comfortaa Light"
                         FontSize="18"
                         FontWeight="Normal"
-                        Foreground="White"
+                        Foreground="{Binding ColorCustomizationViewModel.SecondarTextColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         Style="{DynamicResource MenuItemStyle}" />
                     <Border
                         Height="4"
@@ -5826,7 +5826,7 @@
                     <Button
                         Name="MenuButton_1"
                         Margin="0,0,0,0"
-                        Background="#FF240E55"
+                        Background="{Binding ColorCustomizationViewModel.SecondaryColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         BorderThickness="0"
                         Click="MenuButton_1_Click"
                         Content="Status"
@@ -5834,7 +5834,7 @@
                         FontFamily="Comfortaa Light"
                         FontSize="18"
                         FontWeight="Normal"
-                        Foreground="White"
+                        Foreground="{Binding ColorCustomizationViewModel.SecondarTextColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         Style="{DynamicResource MenuItemStyle}" />
                     <Border
                         Height="4"
@@ -5850,7 +5850,7 @@
                     <Button
                         Name="MenuButton_2"
                         Margin="0,0,0,0"
-                        Background="#FF240E55"
+                        Background="{Binding ColorCustomizationViewModel.SecondaryColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         BorderThickness="0"
                         Click="MenuButton_2_Click"
                         Content="Chatting"
@@ -5858,7 +5858,7 @@
                         FontFamily="Comfortaa Light"
                         FontSize="18"
                         FontWeight="Normal"
-                        Foreground="White"
+                        Foreground="{Binding ColorCustomizationViewModel.SecondarTextColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         Style="{DynamicResource MenuItemStyle}" />
                     <Border
                         Height="4"
@@ -5874,7 +5874,7 @@
                     <Button
                         Name="MenuButton_3"
                         Margin="0,0,0,0"
-                        Background="#FF240E55"
+                        Background="{Binding ColorCustomizationViewModel.SecondaryColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         BorderThickness="0"
                         Click="MenuButton_3_Click"
                         Content="Options"
@@ -5882,7 +5882,7 @@
                         FontFamily="Comfortaa Light"
                         FontSize="18"
                         FontWeight="Normal"
-                        Foreground="White"
+                        Foreground="{Binding ColorCustomizationViewModel.SecondarTextColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                         Style="{DynamicResource MenuItemStyle}" />
                     <Border
                         Height="4"
@@ -5931,7 +5931,7 @@
                     <Grid Grid.Column="0" WindowChrome.IsHitTestVisibleInChrome="True">
                         <StackPanel
                             Margin="0,0,5,0"
-                            Background="#FF3B2075"
+                            Background="{Binding ColorCustomizationViewModel.SecondaryColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                             Orientation="Vertical">
                             <TextBlock
                                 Margin="0,5,0,0"
@@ -5939,7 +5939,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
                                 FontSize="12"
-                                Foreground="#FFB3B0B9"
+                                Foreground="{Binding ColorCustomizationViewModel.SecondarTextColor, Converter={StaticResource ColorToBrushConverter}, UpdateSourceTrigger=PropertyChanged}"
                                 Text="Sent to VRChat" />
                             <CheckBox
                                 Name="MasterSwitch"
@@ -6453,8 +6453,8 @@
                     <Border Margin="5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
+                                <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -6572,8 +6572,8 @@
                     <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
+                                <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -6700,8 +6700,8 @@
                     <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
+                                <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -6969,8 +6969,8 @@
                             CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                    <GradientStop Color="DarkSlateBlue" />
-                                    <GradientStop Offset="1" Color="#FF302573" />
+                                    <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                    <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.Effect>
@@ -7100,8 +7100,8 @@
                     <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Offset="0" Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
+                                <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -7217,8 +7217,8 @@
                     <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Offset="0" Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
+                                <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -7334,8 +7334,8 @@
                     <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
+                                <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -7582,8 +7582,8 @@
                         <Border Margin="5,0,5,5" CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                    <GradientStop Color="DarkSlateBlue" />
-                                    <GradientStop Offset="1" Color="#FF302573" />
+                                    <GradientStop Color="{Binding ColorCustomizationViewModel.SecondaryColor, UpdateSourceTrigger=PropertyChanged}" />
+                                    <GradientStop Offset="1" Color="{Binding ColorCustomizationViewModel.BackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.Effect>

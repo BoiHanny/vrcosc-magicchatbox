@@ -1,0 +1,119 @@
+﻿<Window
+    x:Class="vrcosc_magicchatbox.UI.Windows.ColorCustomizationWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:vrcosc_magicchatbox.UI.Dialogs"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    Title="Connect With OpenAI"
+    Width="700"
+    Height="500"
+    Background="#41375B"
+    ResizeMode="CanResizeWithGrip"
+    mc:Ignorable="d">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="55"
+            CornerRadius="0"
+            GlassFrameThickness="1"
+            ResizeBorderThickness="8"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform AngleX="-10" CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Offset="1" Color="#FF1A0842" />
+                    <GradientStop Color="#FF240E54" />
+                    <GradientStop Offset="0.539" Color="#FF630FA0" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+        <Grid x:Name="Drag_area" Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="2" Source="/Img/MagicOSC_icon.png" />
+                <TextBlock
+                    Margin="6,1,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="White"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="Black" />
+                    </TextBlock.Effect><Run Language="en-gb" Text="Magical ColorPicker" /></TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid
+                x:Name="FirstPage"
+                Margin="150,192,458,233"
+                d:Visibility="Visible">
+                <xctk:ColorPicker
+                    x:Name="picker"
+                    Width="auto"
+                    Height="25"
+                    AdvancedTabHeader="Go wild here"
+                    AvailableColorsHeader="Basic Colors"
+                    Background="#41375B"
+                    BorderBrush="#FF2552DA"
+                    BorderThickness="0"
+                    ColorMode="ColorPalette"
+                    DisplayColorAndName="True"
+                    DropDownBackground="#3A2F52"
+                    DropDownBorderBrush="#2C1265"
+                    DropDownBorderThickness="1"
+                    Foreground="#7D7397"
+                    HeaderBackground="#7D7397"
+                    Opacity="0.7"
+                    SelectedColor="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}"
+                    TabBackground="#41375B"
+                    TabForeground="#7D7397"
+                    UsingAlphaChannel="False" />
+            </Grid>
+
+        </Grid>
+
+        <Grid Grid.Row="0" HorizontalAlignment="Right">
+            <Button
+                Name="Button_close"
+                Grid.Column="2"
+                Width="40"
+                Height="35"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Background="#004D0606"
+                BorderThickness="0"
+                Click="Button_close_Click"
+                Cursor="Hand"
+                Style="{DynamicResource CloseButtonStyle}"
+                WindowChrome.IsHitTestVisibleInChrome="True">
+                <Image Height="15" Source="/img/icons/Close_ico.png" />
+            </Button>
+        </Grid>
+
+    </Grid>
+</Window>

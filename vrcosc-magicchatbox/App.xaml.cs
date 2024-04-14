@@ -6,6 +6,7 @@ using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.UI.Windows;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox
@@ -55,6 +56,7 @@ namespace vrcosc_magicchatbox
                         break;
                 }
             }
+
 
             loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 10);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
@@ -113,6 +115,9 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
             loadingWindow.Close();
+
+            ColorCustomizationWindow colorCustomizationWindow = new ColorCustomizationWindow();
+            colorCustomizationWindow.Show();
         }
 
         void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
