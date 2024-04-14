@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.ViewModels;
 using Newtonsoft.Json;
-using System.Diagnostics;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes.Modules

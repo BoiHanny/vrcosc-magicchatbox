@@ -50,5 +50,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             if(exitapp)
                 System.Environment.Exit(10);
         }
+
+        public static void WriteDebug(string debug, bool MSGBox = false, bool autoclose = false, bool exitapp = false)
+        {
+            LogController.Debug(debug);
+            if(MSGBox)
+                ShowMSGBox(msgboxtext: debug, autoClose: autoclose);
+            if(exitapp)
+                ShowMSGBox(msgboxtext: "debug did throw application exit", autoClose: autoclose);
+        }
     }
 }

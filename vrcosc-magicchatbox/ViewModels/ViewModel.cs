@@ -73,6 +73,17 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private AfkModule _AfkModule;
+        public AfkModule AfkModule
+        {
+            get { return _AfkModule; }
+            set
+            {
+                _AfkModule = value;
+                NotifyPropertyChanged(nameof(AfkModule));
+            }
+        }
+
 
         private IntelliChatModule _IntelliChatModule;
         public IntelliChatModule IntelliChatModule

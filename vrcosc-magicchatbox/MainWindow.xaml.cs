@@ -125,6 +125,14 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.WhisperModule = new WhisperModule();
             ViewModel.Instance.WhisperModule.TranscriptionReceived += WhisperModule_TranscriptionReceived;
 
+            ViewModel.Instance.AfkModule = new AfkModule();
+            ViewModel.Instance.AfkModule.AfkDetected += AfkModule_AfkDetected;
+
+        }
+
+        private void AfkModule_AfkDetected(object? sender, EventArgs e)
+        {
+            //throw new NotImplementedException();
         }
 
         private void WhisperModule_TranscriptionReceived(string newTranscription)

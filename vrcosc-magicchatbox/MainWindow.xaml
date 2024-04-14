@@ -5940,7 +5940,7 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="12"
                                 Foreground="#FFB3B0B9"
-                                Text="Sent to VRChat" />
+                                Text="{Binding AfkModule.IsAfk,UpdateSourceTrigger=PropertyChanged}"/>
                             <CheckBox
                                 Name="MasterSwitch"
                                 Width="62"
