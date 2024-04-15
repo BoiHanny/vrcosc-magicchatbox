@@ -171,7 +171,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
 
-        private ObservableCollection<OSCAvatar> _OSCAvatarDatabase = new ObservableCollection<OSCAvatar>();
 
 
         private bool _RealTimeChatEdit = true;
@@ -235,7 +234,6 @@ namespace vrcosc_magicchatbox.ViewModels
             HeartRateConnector = new PulsoidModule();
 
             PropertyChanged += HeartRateConnector.PropertyChangedHandler;
-            _dynamicOSCData = new ExpandoObject();
         }
 
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -1705,15 +1703,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(MediaSessions));
             }
         }
-        public ObservableCollection<OSCAvatar> OSCAvatarDatabase
-        {
-            get { return _OSCAvatarDatabase; }
-            set
-            {
-                _OSCAvatarDatabase = value;
-                NotifyPropertyChanged(nameof(OSCAvatarDatabase));
-            }
-        }
 
 
         private bool _Settings_NetworkStatistics = false;
@@ -2131,33 +2120,6 @@ namespace vrcosc_magicchatbox.ViewModels
             { SortProperty.IsPrivateApp, true },
             { SortProperty.FocusCount, true }
         };
-
-
-
-
-
-        private Dictionary<string, OSCParameter> _builtInOSCData = new Dictionary<string, OSCParameter>();
-        private ExpandoObject _dynamicOSCData = new ExpandoObject();
-
-        public Dictionary<string, OSCParameter> BuiltInOSCData
-        {
-            get { return _builtInOSCData; }
-            set
-            {
-                _builtInOSCData = value;
-                NotifyPropertyChanged(nameof(BuiltInOSCData));
-            }
-        }
-
-        public dynamic DynamicOSCData
-        {
-            get { return _dynamicOSCData; }
-            set
-            {
-                _dynamicOSCData = value;
-                NotifyPropertyChanged(nameof(DynamicOSCData));
-            }
-        }
 
         private bool _SeperateWithENTERS = true;
 

@@ -24,14 +24,6 @@ namespace vrcosc_magicchatbox.ViewModels
         JST
     }
 
-    public enum OSCParameterType
-    {
-        Int32,
-        Single,
-        Boolean,
-        String
-    }
-
     public enum StatsComponentType
     {
         GPU,
