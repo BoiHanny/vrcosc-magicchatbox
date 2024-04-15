@@ -818,6 +818,7 @@ namespace vrcosc_magicchatbox
                 ViewModel.Instance._statsManager.SaveComponentStats();
                 ViewModel.Instance.IntelliChatModule.SaveSettings();
                 ViewModel.Instance.WhisperModule.OnApplicationClosing();
+                ViewModel.Instance.AfkModule.OnApplicationClosing();
                 ViewModel.Instance.HeartRateConnector.Settings.SaveSettings();
             }
             catch (Exception ex)

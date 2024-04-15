@@ -207,6 +207,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         // this function will build the status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddStatusMessage(List<string> Uncomplete)
         {
+            if(ViewModel.Instance.AfkModule != null && ViewModel.Instance.AfkModule.IsAfk && ViewModel.Instance.AfkModule.Settings.EnableAfkDetection)
+            {
+                string x = ViewModel.Instance.AfkModule.GenerateAFKString();
+                TryAddToUncomplete(Uncomplete, x, "Status");
+                return;
+            }
             if (ViewModel.Instance.IntgrStatus == true && ViewModel.Instance.StatusList.Count() != 0)
             {
                 // Cycle status if enabled
@@ -367,7 +373,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     () => ViewModel.Instance.IntgrStatus_VR &&
                     ViewModel.Instance.IsVRRunning ||
                     ViewModel.Instance.IntgrStatus_DESKTOP &&
-                    !ViewModel.Instance.IsVRRunning,
+                    !ViewModel.Instance.IsVRRunning || ViewModel.Instance.AfkModule.IsAfk && ViewModel.Instance.AfkModule.Settings.EnableAfkDetection,
                     AddStatusMessage
                 },
 

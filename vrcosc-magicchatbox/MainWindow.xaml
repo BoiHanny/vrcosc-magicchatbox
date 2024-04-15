@@ -1074,6 +1074,179 @@
                                             Text="seconds" />
 
                                     </StackPanel>
+
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="AFK Detection" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="You can show a custom message when you are AFK" />
+
+                                        <CheckBox
+                                            x:Name="EnableAFKDetectCheck"
+                                            Height="20"
+                                            Margin="4,5,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AfkModule.Settings.EnableAfkDetection, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Enable AFK detection
+                                        </CheckBox>
+
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="4,5,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AfkModule.Settings.ActivateInVR, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Enable When in VR
+                                        </CheckBox>
+
+
+                                        <StackPanel Margin="5" Orientation="Horizontal">
+                                            <TextBlock
+                                                Padding="0,0,4,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Timeout time in" />
+                                            <TextBox
+                                                x:Name="TimeoutTime"
+                                                Width="auto"
+                                                Height="auto"
+                                                Margin="0,0,0,0"
+                                                Padding="5,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding AfkModule.Settings.AfkTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                TextAlignment="Center" />
+
+                                            <TextBlock
+                                                Padding="4,0,2,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="seconds" />
+
+                                            <TextBlock
+                                                Margin="0,-5,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="12"
+                                                FontStyle="Italic"
+                                                Foreground="#FF9983AD"
+                                                Text="{Binding AfkModule.FriendlyTimeoutTime, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        </StackPanel>
+
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="4,5,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AfkModule.Settings.ShowPrefixIcon, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Show prefix icon
+                                        </CheckBox>
+
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="4,5,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AfkModule.Settings.ShowAFKTime, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Show how long you are AFK
+                                        </CheckBox>
+                                        <TextBlock
+                                            Padding="4,5,9,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="AFK style" />
+                                        <StackPanel Margin="4,0,0,0" Orientation="Horizontal">
+
+                                            <TextBox
+                                                Width="auto"
+                                                Height="26"
+                                                Margin="0,3,0,0"
+                                                Padding="5,0,5,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding AfkModule.Settings.AfkPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Visibility="{Binding AfkModule.Settings.ShowPrefixIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox
+                                                Width="auto"
+                                                Height="26"
+                                                Margin="5,3,0,0"
+                                                Padding="5,0,5,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding AfkModule.Settings.AfkMessageForTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Visibility="{Binding AfkModule.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox
+                                                Width="auto"
+                                                Height="26"
+                                                Margin="4,3,0,0"
+                                                Padding="5,0,5,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding AfkModule.Settings.AfkMessageWithoutTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Visibility="{Binding AfkModule.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                    </StackPanel>
                                 </Border>
                             </StackPanel>
 
@@ -4229,7 +4402,6 @@
                                         Unchecked="Update_Click">
                                         Show desktop focused app
                                     </CheckBox>
-                                    <StackPanel Orientation="Horizontal" />
                                     <TextBlock
                                         Width="auto"
                                         Padding="0,10,0,0"
@@ -5770,7 +5942,7 @@
                                     Direction="315"
                                     Opacity="1"
                                     ShadowDepth="0"
-                                    Color="Black" />
+                                    Color="LightBlue" />
                             </TextBlock.Effect>
                         </TextBlock>
                         <TextBlock
@@ -5789,7 +5961,7 @@
                                     Direction="315"
                                     Opacity="1"
                                     ShadowDepth="0"
-                                    Color="Black" />
+                                    Color="LightBlue" />
                             </TextBlock.Effect>
                         </TextBlock>
                     </Grid>
@@ -5940,7 +6112,7 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="12"
                                 Foreground="#FFB3B0B9"
-                                Text="{Binding AfkModule.IsAfk,UpdateSourceTrigger=PropertyChanged}"/>
+                                Text="Send to VRChat" />
                             <CheckBox
                                 Name="MasterSwitch"
                                 Width="62"
@@ -5964,7 +6136,9 @@
                 Background="#FF42385D">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
+                    <RowDefinition Height="auto" />
                     <RowDefinition />
+
                 </Grid.RowDefinitions>
                 <Grid.Effect>
                     <DropShadowEffect
@@ -6071,12 +6245,245 @@
 
 
                 </Grid>
+                <Grid
+                    Grid.Row="2"
+                    Height="auto"
+                    Margin="5,2,6,15"
+                    VerticalAlignment="Top"
+                    Visibility="{Binding AfkModule.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <Border CornerRadius="0,0,15,15">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF2E1565" />
+                                <GradientStop Offset="1" Color="#FF523E64" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Column="0">
+                                <StackPanel
+                                    Margin="5,3,0,3"
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Away from keyboard:">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <!--  Default values  -->
+                                                <Setter Property="Foreground" Value="#B49AD1" />
+                                                <Setter Property="Text" Value="Inactive" />
+                                                <Setter Property="Opacity" Value="0.7" />
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect
+                                                            BlurRadius="5"
+                                                            Direction="315"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="Black" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <!--  Change values based on AfkModule.IsAfk  -->
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                        <Setter Property="Foreground" Value="#7DD9AA" />
+                                                        <Setter Property="Text" Value="Active" />
+                                                        <Setter Property="Opacity" Value="0.9" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Direction="315"
+                                                Opacity="1"
+                                                ShadowDepth="0"
+                                                Color="Black" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <TextBlock
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <!--  Default values  -->
+                                                <Setter Property="Foreground" Value="#D38D9C" />
+                                                <Setter Property="Text" Value="Inactive" />
+                                                <Setter Property="Opacity" Value="0.7" />
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect
+                                                            BlurRadius="5"
+                                                            Direction="315"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="Black" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <!--  Change values based on AfkModule.IsAfk  -->
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                        <Setter Property="Foreground" Value="#7DF8AA" />
+                                                        <Setter Property="Text" Value="Active" />
+                                                        <Setter Property="Opacity" Value="1" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
 
+                                </StackPanel>
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <!--  Default values  -->
+                                        <Setter Property="Background" Value="#391E72" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                <Setter Property="Background" Value="#562EAD" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                            </Grid>
+                            <Grid Grid.Row="1">
+                                <StackPanel
+                                    Margin="0,5,0,5"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <!--  Default values  -->
+                                                <Setter Property="Foreground" Value="#B49AD1" />
+                                                <Setter Property="Text" Value="Will be AFK in:" />
+                                                <Setter Property="Opacity" Value="0.7" />
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect
+                                                            BlurRadius="5"
+                                                            Direction="315"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="Black" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <!--  Change values based on AfkModule.IsAfk  -->
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                        <Setter Property="Text" Value="You are AFK for:" />
+                                                        <Setter Property="Opacity" Value="0.9" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Direction="315"
+                                                Opacity="1"
+                                                ShadowDepth="0"
+                                                Color="Black" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <TextBlock
+                                        Padding="3,0,5,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <!--  Default values  -->
+                                                <Setter Property="Foreground" Value="#BEBED3" />
+                                                <Setter Property="Text" Value="{Binding AfkModule.RemainingTimeUntilAFK}" />
+                                                <Setter Property="Opacity" Value="0.7" />
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect
+                                                            BlurRadius="5"
+                                                            Direction="315"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="Black" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <!--  Change values based on AfkModule.IsAfk  -->
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                        <Setter Property="Text" Value="{Binding AfkModule.TimeCurrentlyAFK}" />
+                                                        <Setter Property="Opacity" Value="0.9" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Direction="315"
+                                                Opacity="1"
+                                                ShadowDepth="0"
+                                                Color="Black" />
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <CheckBox
+                                        Width="50"
+                                        Height="18"
+                                        Margin="0,0,0,0"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Checked="Update_Click"
+                                        Content="AFK now"
+                                        IsChecked="{Binding AfkModule.Settings.OverrideAfk}"
+                                        Style="{DynamicResource GlowyToggleButton}"
+                                        Unchecked="Update_Click"
+                                        Visibility="{Binding AfkModule.OverrideButtonVisible, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+
+                            </Grid>
+
+
+                        </Grid>
+                    </Border>
+
+
+
+                </Grid>
 
 
                 <StackPanel
-                    Grid.Row="1"
-                    Margin="0,164,0,0"
+                    Grid.Row="3"
+                    Margin="0,55,0,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Top">
 

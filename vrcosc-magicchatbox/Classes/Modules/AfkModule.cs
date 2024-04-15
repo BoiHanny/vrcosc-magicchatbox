@@ -1,92 +1,111 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using Newtonsoft.Json;
+using vrcosc_magicchatbox.ViewModels;
+using WindowsMediaController;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
     public partial class AfkModuleSettings : ObservableObject
     {
+        public event EventHandler SettingsChanged;
+
+        protected virtual void OnSettingsChanged()
+        {
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        partial void OnEnableAfkDetectionChanged(bool value)
+        {
+            OnSettingsChanged();
+        }
+
+
+        partial void OnAfkTimeoutChanged(int value)
+        {
+            OnSettingsChanged();
+        }
+
         private const string SettingsFileName = "AfkModuleSettings.json";
+        private static readonly string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
 
         [ObservableProperty]
-        private int afkTimeout = 5;
+        private int afkTimeout = 120;
 
         [ObservableProperty]
         private bool enableAfkDetection = true;
 
         [ObservableProperty]
-        private bool detectKeyboardActivity = false;
+        private bool showPrefixIcon = true;
 
         [ObservableProperty]
-        private bool detectMouseActivity = true;
+        private string afkPrefix = "💤";
 
         [ObservableProperty]
-        private string targetApplication = "VRChat.exe";
+        private bool activateInVR = false;
+
+        [ObservableProperty]
+        private bool showAFKTime = true;
+
+        [ObservableProperty]
+        private string afkMessageForTimeStamp = "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ ";
+
+        [ObservableProperty]
+        private string afkMessageWithoutTimeStamp = "ᶜᵘʳʳᵉⁿᵗˡʸ AFK";
 
         [ObservableProperty]
         private bool overrideAfk = false;
 
-
         public static AfkModuleSettings LoadSettings()
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
-
-            if (File.Exists(path))
+            if (File.Exists(SettingsPath))
             {
-                var settingsJson = File.ReadAllText(path);
-
-                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
-                {
-                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
-                    return new AfkModuleSettings();
-                }
-
                 try
                 {
+                    var settingsJson = File.ReadAllText(SettingsPath);
                     var settings = JsonConvert.DeserializeObject<AfkModuleSettings>(settingsJson);
-
-                    if (settings != null)
-                    {
-                        return settings;
-                    }
-                    else
-                    {
-                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
-                        return new AfkModuleSettings();
-                    }
+                    return settings ?? new AfkModuleSettings();
                 }
                 catch (JsonException ex)
                 {
-                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
+                    Console.WriteLine($"Error parsing settings JSON: {ex.Message}");
                     return new AfkModuleSettings();
                 }
             }
             else
             {
-                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
                 return new AfkModuleSettings();
             }
         }
 
         public void SaveSettings()
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)); // Ensure directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath));
             var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            File.WriteAllText(path, settingsJson);
+            File.WriteAllText(SettingsPath, settingsJson);
         }
-
     }
 
     public partial class AfkModule : ObservableObject
     {
-        private DispatcherTimer afkTimer;
+        private readonly DispatcherTimer afkTimer = new DispatcherTimer();
+        private DateTime lastActionTime;
+        private bool overrideAfkStarted = false;
+
+        public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout));
+
+        [ObservableProperty]
+        private string remainingTimeUntilAFK;
+
+        [ObservableProperty]
+        private string timeCurrentlyAFK;
+
+        [ObservableProperty]
+        private bool overrideButtonVisible;
 
         public event EventHandler<EventArgs> AfkDetected;
 
@@ -99,65 +118,176 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public AfkModule()
         {
             Settings = AfkModuleSettings.LoadSettings();
+            Settings.SettingsChanged += Settings_SettingsChanged;
+            ViewModel.Instance.PropertyChanged += ViewModel_PropertyChanged;
+            lastActionTime = DateTime.Now;
             InitializeAfkDetection();
         }
+
+        private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "IsVRRunning")
+            {
+                InitializeAfkDetection();
+            }
+        }
+
+
+        private void Settings_SettingsChanged(object sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(FriendlyTimeoutTime));
+            HandleAfkDetectionToggle();
+        }
+
+        private void HandleAfkDetectionToggle()
+        {
+            if (Settings.EnableAfkDetection)
+            {
+                if (!afkTimer.IsEnabled)
+                {
+                    afkTimer.Interval = TimeSpan.FromSeconds(1); 
+                    afkTimer.Tick += AfkTimer_Tick;
+                    afkTimer.Start();
+                }
+            }
+            else if (afkTimer.IsEnabled)
+            {
+                afkTimer.Stop();
+                ExitAfkMode(); 
+            }
+        }
+
+
+
+        public string GenerateAFKString()
+        {
+            string afkString = "";
+
+            if (Settings.ShowPrefixIcon)
+            {
+                afkString += Settings.AfkPrefix + " ";
+            }
+
+            if (Settings.ShowAFKTime && TimeCurrentlyAFK != null)
+            {
+                afkString += Settings.AfkMessageForTimeStamp + TimeCurrentlyAFK;
+            }
+            else
+            {
+                afkString += Settings.AfkMessageWithoutTimeStamp;
+            }
+
+            return afkString;
+        }
+
 
         private void InitializeAfkDetection()
         {
             if (Settings.EnableAfkDetection)
             {
-                afkTimer = new DispatcherTimer();
-                afkTimer.Interval = TimeSpan.FromSeconds(2);
+                afkTimer.Interval = TimeSpan.FromSeconds(1);
                 afkTimer.Tick += AfkTimer_Tick;
                 afkTimer.Start();
             }
         }
 
+        public void OnApplicationClosing()
+        {
+            Settings?.SaveSettings();
+        }
+
         private void AfkTimer_Tick(object sender, EventArgs e)
         {
-            if (Settings.EnableAfkDetection)
+            uint idleTime = GetIdleTime();
+
+            // Adjust visibility based on override status
+            OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
+
+            if (!Settings.ActivateInVR && ViewModel.Instance.IsVRRunning)
             {
-                uint idleTime = GetIdleTime();
-                if (idleTime >= Settings.AfkTimeout)
+                // If ActivateInVR is turned off and IsVRRunning is true, stop the module and pause
+                if (afkTimer.IsEnabled)
                 {
-                    if (!Settings.OverrideAfk)
-                    {
-                        IsAfk = true;
-                        OnAfkDetected();
-                    }
+                    afkTimer.Stop();
+                    ExitAfkMode();
                 }
-                else
-                {
-                    IsAfk = false;
-                }
+                return;
+            }
+
+            if (Settings.OverrideAfk && !overrideAfkStarted)
+            {
+                EnterAfkMode(true); // Enter AFK due to override
+                overrideAfkStarted = true;
+            }
+            else if (!Settings.OverrideAfk && overrideAfkStarted)
+            {
+                ExitAfkMode();
+                overrideAfkStarted = false;
+            }
+            else if (idleTime >= Settings.AfkTimeout && !IsAfk)
+            {
+                EnterAfkMode(false); // Enter AFK due to inactivity
+            }
+            else if (idleTime < Settings.AfkTimeout && IsAfk && !Settings.OverrideAfk)
+            {
+                ExitAfkMode(); // Exit AFK as user is active again and not overriding
+            }
+            else if (IsAfk)
+            {
+                // Continuously update AFK duration if AFK
+                TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime);
+            }
+            else
+            {
+                // Update the remaining time until AFK
+                RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout - idleTime));
             }
         }
 
-        private uint GetIdleTime()
+        private void EnterAfkMode(bool isOverride)
         {
-            LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
-            lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
-            GetLastInputInfo(ref lastInputInfo);
-
-            return ((uint)Environment.TickCount - lastInputInfo.dwTime) / 1000;
-        }
-
-        private bool IsTargetApplicationFocused()
-        {
-            var foregroundWindow = GetForegroundWindow();
-            if (foregroundWindow != IntPtr.Zero)
+            IsAfk = true;
+            if (isOverride)
             {
-                uint processId;
-                GetWindowThreadProcessId(foregroundWindow, out processId);
-                var process = Process.GetProcessById((int)processId);
-                return process.ProcessName.Equals(settings.TargetApplication, StringComparison.OrdinalIgnoreCase);
+                lastActionTime = DateTime.Now;
             }
-            return false;
-        }
+            else
+            {
+                lastActionTime = DateTime.Now - TimeSpan.FromSeconds(Settings.AfkTimeout);
+                // Hide the override button only when entering AFK due to inactivity
+                OverrideButtonVisible = false;
+            }
 
-        private void OnAfkDetected()
-        {
+            TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime);
             AfkDetected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void ExitAfkMode()
+        {
+            IsAfk = false;
+            lastActionTime = DateTime.Now;
+            TimeCurrentlyAFK = string.Empty;
+            RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout));
+            OverrideButtonVisible = true;
+        }
+
+        private static string FormatDuration(TimeSpan duration)
+        {
+            var parts = new[]
+            {
+                duration.TotalHours >= 1 ? $"{duration.Hours}h" : null,
+                duration.Minutes > 0 ? $"{duration.Minutes}m" : null,
+                $"{duration.Seconds}s"
+            };
+
+            return string.Join(" ", parts.Where(part => part != null));
+        }
+
+        private static uint GetIdleTime()
+        {
+            LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO)) };
+            GetLastInputInfo(ref lastInputInfo);
+            return ((uint)Environment.TickCount - lastInputInfo.dwTime) / 1000;
         }
 
         [DllImport("user32.dll")]
@@ -169,11 +299,5 @@ namespace vrcosc_magicchatbox.Classes.Modules
             public uint cbSize;
             public uint dwTime;
         }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
     }
 }

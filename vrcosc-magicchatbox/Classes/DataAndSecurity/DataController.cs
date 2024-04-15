@@ -90,7 +90,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
 
                         // Check the latest release
-                        var responseLatest = client.GetAsync(urlLatest).Result;
+                        HttpResponseMessage responseLatest = client.GetAsync(urlLatest).Result;
                         var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
                         JObject releaseLatest = JObject.Parse(jsonLatest);
                         string latestVersion = releaseLatest.Value<string>("tag_name");
