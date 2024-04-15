@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -273,15 +274,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private static string FormatDuration(TimeSpan duration)
         {
-            var parts = new[]
-            {
-                duration.TotalHours >= 1 ? $"{duration.Hours}h" : null,
-                duration.Minutes > 0 ? $"{duration.Minutes}m" : null,
-                $"{duration.Seconds}s"
-            };
+            var parts = new List<string>();
 
-            return string.Join(" ", parts.Where(part => part != null));
+            if (duration.TotalHours >= 1)
+            {
+                parts.Add($"{duration.Hours}h");
+            }
+
+            if (duration.Minutes > 0)
+            {
+                parts.Add($"{duration.Minutes}m");
+            }
+
+            
+            if (duration.Seconds > 0 || (duration.Hours == 0 && duration.Minutes == 0))
+            {
+                parts.Add($"{duration.Seconds}s");
+            }
+
+            return string.Join(" ", parts);
         }
+
 
         private static uint GetIdleTime()
         {
