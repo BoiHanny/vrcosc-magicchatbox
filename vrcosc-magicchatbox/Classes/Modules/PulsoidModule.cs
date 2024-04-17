@@ -17,6 +17,8 @@ using Newtonsoft.Json.Linq;
 using vrcosc_magicchatbox.DataAndSecurity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
+using System.Net.WebSockets;
+using System.Text;
 
 
 
@@ -24,7 +26,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public partial class PulsoidModuleSettings : ObservableObject
     {
-
         private const string SettingsFileName = "PulsoidModuleSettings.json";
 
         [ObservableProperty]
@@ -33,7 +34,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         [ObservableProperty]
         PulsoidTrendSymbolSet selectedPulsoidTrendSymbol = new();
-        
+
 
         public void SaveSettings()
         {
@@ -93,12 +94,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public partial class PulsoidModule : ObservableObject
     {
-
-        private CancellationTokenSource? _cts;
+        private ClientWebSocket _webSocket;
+        private CancellationTokenSource _cts;
         private readonly Queue<Tuple<DateTime, int>> _heartRates = new();
         private readonly Queue<int> _heartRateHistory = new();
-        private int _previousHeartRate = -1;
-        private int _unchangedHeartRateCount = 0;
+        private int HeartRateFromSocket = 0;
+        private System.Timers.Timer _processDataTimer;
+
 
         [ObservableProperty]
         public PulsoidModuleSettings settings;
@@ -106,9 +108,22 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public PulsoidModule()
         {
             Settings = PulsoidModuleSettings.LoadSettings();
-
             RefreshTrendSymbols();
+
+            _processDataTimer = new System.Timers.Timer
+            {
+                AutoReset = true,
+                Interval = 1000
+            };
+            _processDataTimer.Elapsed += (sender, e) => Application.Current.Dispatcher.Invoke(ProcessData);
         }
+
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+
+        }
+
+
 
         public void OnApplicationClosing()
         {
@@ -171,6 +186,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(ViewModel.Instance.HeartRateScanInterval_v3))
+            {
+                _processDataTimer.Interval = ViewModel.Instance.HeartRateScanInterval_v3 * 1000;
+                return;
+            }
             if (IsRelevantPropertyChange(e.PropertyName))
             {
                 if (ShouldStartMonitoring())
@@ -185,6 +205,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
 
+
+
         public bool ShouldStartMonitoring()
         {
             return ViewModel.Instance.IntgrHeartRate && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_VR ||
@@ -196,7 +218,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return propertyName == nameof(ViewModel.Instance.IntgrHeartRate) ||
                    propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
                    propertyName == nameof(ViewModel.Instance.IntgrHeartRate_VR) ||
-                   propertyName == nameof(ViewModel.Instance.IntgrHeartRate_DESKTOP);
+                   propertyName == nameof(ViewModel.Instance.IntgrHeartRate_DESKTOP) ||
+                   propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuthEncrypted);
         }
 
 
@@ -208,180 +231,52 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 _cts.Dispose();
                 _cts = null;
             }
-        }
 
-        private void StartMonitoringHeartRateAsync()
-        {
-            if (_cts != null)
+            if (_webSocket != null && _webSocket.State == WebSocketState.Open)
             {
-                return;
+                _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None).Wait();
+                _webSocket.Dispose();
+                _webSocket = null;
             }
 
-            _cts = new CancellationTokenSource();
-            UpdateFormattedHeartRateText();
-            Task.Run(async () => await HeartRateMonitoringLoopAsync(_cts.Token), _cts.Token);
+            if(_processDataTimer.Enabled)
+            _processDataTimer.Stop();
         }
 
-        private async Task HeartRateMonitoringLoopAsync(CancellationToken cancellationToken)
+
+        private async Task ConnectToWebSocketAsync(string accessToken, CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            _webSocket = new ClientWebSocket();
+            _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {accessToken}");
+
+            try
             {
+                await _webSocket.ConnectAsync(new Uri("wss://dev.pulsoid.net/api/v1/data/real_time"), cancellationToken);
 
-                DateTime startTime = DateTime.UtcNow;
-
-                try
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (string.IsNullOrEmpty(ViewModel.Instance.PulsoidAccessTokenOAuth))
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            ViewModel.Instance.PulsoidAuthConnected = false;
-                        });
-                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                        continue;
-                    }
-                    int heartRate = await GetHeartRateViaHttpAsync();
-                    if (heartRate != -1)
-                    {
-                        // Check if the heart rate is the same as the previous reading
-                        if (heartRate == _previousHeartRate)
-                        {
-                            _unchangedHeartRateCount++;
-                        }
-                        else
-                        {
-                            _unchangedHeartRateCount = 0; // Reset if the heart rate has changed
-                            _previousHeartRate = heartRate; // Update previous heart rate
-                        }
+                    ViewModel.Instance.PulsoidAccessError = false;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = "";
+                });
 
-                        // Check if we should perform the offline check
-                        if (ViewModel.Instance.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= ViewModel.Instance.UnchangedHeartRateLimit)
-                        {
+                _processDataTimer.Start();
 
-                            ViewModel.Instance.PulsoidDeviceOnline = false; // Set the device as offline
-                        }
-                        else
-                        {
-                            ViewModel.Instance.PulsoidDeviceOnline = true; // Otherwise, consider it online
-                        }
-                        // Apply the adjustment if ApplyHeartRateAdjustment is true
-                        if (ViewModel.Instance.ApplyHeartRateAdjustment)
-                        {
-                            heartRate += ViewModel.Instance.HeartRateAdjustment;
-                        }
-
-                        // Ensure the adjusted heart rate is not negative
-                        heartRate = Math.Max(0, heartRate);
-
-                        // If SmoothHeartRate_v1 is true, calculate and use average heart rate
-                        if (ViewModel.Instance.SmoothHeartRate_v1)
-                        {
-                            // Record the heart rate with the current time
-                            _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));
-
-                            // Remove old data
-                            while (_heartRates.Count > 0 && DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.SmoothHeartRateTimeSpan))
-                            {
-                                _heartRates.Dequeue();
-                            }
-
-                            // Calculate average heart rate over the defined timespan
-                            heartRate = (int)_heartRates.Average(t => t.Item2);
-                        }
-
-                        // Record the heart rate for trend analysis
-                        if (ViewModel.Instance.ShowHeartRateTrendIndicator)
-                        {
-                            // Only keep the last N heart rates, where N is HeartRateTrendIndicatorSampleRate
-                            if (_heartRateHistory.Count >= ViewModel.Instance.HeartRateTrendIndicatorSampleRate)
-                            {
-                                _heartRateHistory.Dequeue();
-                            }
-
-                            _heartRateHistory.Enqueue(heartRate);
-
-                            // Update the trend indicator
-                            if (_heartRateHistory.Count > 1)
-                            {
-
-                                double slope = CalculateSlope(_heartRateHistory);
-                                if (slope > ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
-                                {
-                                    ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
-                                }
-                                else if (slope < -ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
-                                {
-                                    ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
-                                }
-                                else
-                                {
-                                    ViewModel.Instance.HeartRateTrendIndicator = "";
-                                }
-                            }
-                        }
-
-                        if (ViewModel.Instance.MagicHeartRateIcons)
-                        {
-                            // Always cycle through heart icons
-                            ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
-                            ViewModel.Instance.CurrentHeartIconIndex = (ViewModel.Instance.CurrentHeartIconIndex + 1) % ViewModel.Instance.HeartIcons.Count;
-                        }
-
-                        // Append additional icons based on heart rate, if the toggle is enabled
-                        if (ViewModel.Instance.ShowTemperatureText)
-                        {
-                            if (heartRate < ViewModel.Instance.LowTemperatureThreshold)
-                            {
-                                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedLowHeartRateText;
-                            }
-                            else if (heartRate >= ViewModel.Instance.HighTemperatureThreshold)
-                            {
-                                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedHighHeartRateText;
-                            }
-                        }
-                        else
-                        {
-                            ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
-                        }
-
-
-
-                        if (ViewModel.Instance.HeartRate != heartRate)
-                        {
-                            ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
-                            ViewModel.Instance.HeartRate = heartRate;
-                        }
-                    }
-                }
-                catch (Exception ex)
+                await HeartRateMonitoringLoopAsync(cancellationToken);
+            }
+            catch (WebSocketException ex)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        ViewModel.Instance.PulsoidAccessError = true;
-                        ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
-                    });
-                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-                    Logging.WriteException(ex, MSGBox: false);
-                }
-
-                int scanInterval = ViewModel.Instance.HeartRateScanInterval_v2 > 0 ? ViewModel.Instance.HeartRateScanInterval_v2 : 5;
-                TimeSpan elapsedTime = DateTime.UtcNow - startTime;
-                TimeSpan remainingDelay = TimeSpan.FromSeconds(scanInterval) - elapsedTime;
-
-                if (remainingDelay > TimeSpan.Zero)
-                {
-                    await Task.Delay(remainingDelay, cancellationToken);
-                }
-
-
-
+                    ViewModel.Instance.PulsoidAccessError = true;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                });
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
-
-
-        public static async Task<int> GetHeartRateViaHttpAsync()
+        private async void StartMonitoringHeartRateAsync()
         {
+            if (_cts != null) return;
 
             string accessToken = ViewModel.Instance.PulsoidAccessTokenOAuth;
             if (string.IsNullOrEmpty(accessToken))
@@ -391,94 +286,172 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     ViewModel.Instance.PulsoidAccessError = true;
                     ViewModel.Instance.PulsoidAccessErrorTxt = "No Pulsoid connection found. Please connect with the Pulsoid Authentication server";
                 });
-                return -1;
+                return;
             }
 
-            string url = "https://dev.pulsoid.net/api/v1/data/heart_rate/latest";
-
-            try
-            {
-                using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var response = await httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                JObject json = JObject.Parse(jsonResponse);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    ViewModel.Instance.PulsoidAccessError = false;
-                    ViewModel.Instance.PulsoidAuthConnected = true;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = "";
-                });
-                return json["data"]["heart_rate"].Value<int>();
-
-            }
-            catch (HttpRequestException httpEx)
-            {
-                string errorMessage = httpEx.Message; // Default to the exception's message
-
-                switch (httpEx.StatusCode)
-                {
-                    case HttpStatusCode.Forbidden:
-                        errorMessage = "Connection invalid or your subscription has expired. Please check your subscription.";
-                        break;
-                    case HttpStatusCode.PreconditionFailed:
-                        errorMessage = "Connection successful, but no heart rate device detected. Ensure a device is connected to your account and has sent values.";
-                        break;
-                    case HttpStatusCode.NotFound:
-                        errorMessage = "Endpoint not found. Please check if the Pulsoid API URL has changed.";
-                        break;
-                    case HttpStatusCode.InternalServerError:
-                        errorMessage = "The Pulsoid server encountered an error. Please try again later.";
-                        break;
-                    case HttpStatusCode.RequestTimeout:
-                        errorMessage = "Request timed out. Please check your internet connection.";
-                        break;
-                    case HttpStatusCode.BadGateway:
-                        errorMessage = "Pulsoid server is currently experiencing issues. Please try again later.";
-                        break;
-                    case HttpStatusCode.ServiceUnavailable:
-                        errorMessage = "Pulsoid service is currently unavailable. Please wait a moment and try again.";
-                        break;
-                    case HttpStatusCode.Unauthorized:
-                        errorMessage = "Unauthorized access. Try again to connect.";
-                        break;
-                    case HttpStatusCode.BadRequest:
-                        errorMessage = "Bad request. Ensure you're sending the correct data to Pulsoid.";
-                        break;
-                    case HttpStatusCode.TooManyRequests:
-                        errorMessage = "You've sent too many requests in a short time. Please wait for a while and try again.";
-                        break;
-                }
-
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    ViewModel.Instance.PulsoidAccessError = true;
-                    ViewModel.Instance.PulsoidAuthConnected = false;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = errorMessage;
-                });
-                Logging.WriteException(httpEx, MSGBox: false);
-                return -1;
-            }
-            catch (Exception ex)
+            bool isTokenValid = await PulsoidOAuthHandler.Instance.ValidateTokenAsync(accessToken);
+            if (!isTokenValid)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ViewModel.Instance.PulsoidAccessError = true;
-                    ViewModel.Instance.PulsoidAuthConnected = false;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                    ViewModel.Instance.PulsoidAccessErrorTxt = "Invalid access token. Please reconnect with the Pulsoid Authentication server";
                 });
-                Logging.WriteException(ex, MSGBox: false);
-                return -1;
+                return;
             }
 
+            _cts = new CancellationTokenSource();
+            UpdateFormattedHeartRateText();
+            await ConnectToWebSocketAsync(accessToken, _cts.Token);
 
         }
 
-}
+
+        private int ParseHeartRateFromMessage(string message)
+        {
+            try
+            {
+                var json = JsonConvert.DeserializeObject<dynamic>(message);
+                return json.data.heart_rate;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                return -1;
+            }
+        }
+
+        public void ProcessData()
+        {
+            if(HeartRateFromSocket <= 0)
+            {
+                ViewModel.Instance.PulsoidDeviceOnline = false;
+                return;
+            }
+            else
+                {
+                ViewModel.Instance.PulsoidDeviceOnline = true;
+            }
+
+            int heartRate = HeartRateFromSocket;
+
+
+            // If SmoothHeartRate_v1 is true, calculate and use average heart rate
+            if (ViewModel.Instance.SmoothHeartRate_v1)
+            {
+                // Record the heart rate with the current time
+                _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));
+
+                // Remove old data
+                while (_heartRates.Count > 0 && DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.SmoothHeartRateTimeSpan))
+                {
+                    _heartRates.Dequeue();
+                }
+
+                // Calculate average heart rate over the defined timespan
+                heartRate = (int)_heartRates.Average(t => t.Item2);
+            }
+
+            // Record the heart rate for trend analysis
+            if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+            {
+                // Only keep the last N heart rates, where N is HeartRateTrendIndicatorSampleRate
+                if (_heartRateHistory.Count >= ViewModel.Instance.HeartRateTrendIndicatorSampleRate)
+                {
+                    _heartRateHistory.Dequeue();
+                }
+
+                _heartRateHistory.Enqueue(heartRate);
+
+                // Update the trend indicator
+                if (_heartRateHistory.Count > 1)
+                {
+
+                    double slope = CalculateSlope(_heartRateHistory);
+                    if (slope > ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
+                    {
+                        ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
+                    }
+                    else if (slope < -ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
+                    {
+                        ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
+                    }
+                    else
+                    {
+                        ViewModel.Instance.HeartRateTrendIndicator = "";
+                    }
+                }
+            }
+            // Update the heart rate icon
+            if (ViewModel.Instance.MagicHeartRateIcons)
+            {
+                // Always cycle through heart icons
+                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
+                ViewModel.Instance.CurrentHeartIconIndex = (ViewModel.Instance.CurrentHeartIconIndex + 1) % ViewModel.Instance.HeartIcons.Count;
+            }
+            // Append additional icons based on heart rate, if the toggle is enabled
+            if (ViewModel.Instance.ShowTemperatureText)
+            {
+                if (heartRate < ViewModel.Instance.LowTemperatureThreshold)
+                {
+                    ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedLowHeartRateText;
+                }
+                else if (heartRate >= ViewModel.Instance.HighTemperatureThreshold)
+                {
+                    ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedHighHeartRateText;
+                }
+            }
+            else
+                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
+
+            if (ViewModel.Instance.HeartRate != heartRate)
+            {
+                ViewModel.Instance.HeartRate = heartRate;
+            }
+        }
+
+        private async Task HeartRateMonitoringLoopAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var buffer = new byte[1024];
+
+                while (_webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+                {
+                    var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken);
+                    }
+                    else
+                    {
+                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        int heartRate = ParseHeartRateFromMessage(message);
+                        Debug.WriteLine(heartRate);
+                        if (heartRate != -1)
+                        {
+                            // Apply the adjustment if ApplyHeartRateAdjustment is true
+                            if (ViewModel.Instance.ApplyHeartRateAdjustment)
+                            {
+                                heartRate += ViewModel.Instance.HeartRateAdjustment;
+                            }
+
+                            HeartRateFromSocket = heartRate;
+                            ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+
+        }
+
+
+    }
 
     public class PulsoidTrendSymbolSet
     {

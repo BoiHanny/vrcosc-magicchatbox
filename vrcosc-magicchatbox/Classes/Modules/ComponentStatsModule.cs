@@ -828,8 +828,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     isOculusRunning = Process.GetProcessesByName("OVRServer_x64").Length > 0;
                 }
 
+                bool isVRRunning = isSteamVRRunning || isOculusRunning;
 
-                return isSteamVRRunning || isOculusRunning;
+                // Only set the property if the value has changed
+                if (isVRRunning != ViewModel.Instance.IsVRRunning)
+                {
+                    ViewModel.Instance.IsVRRunning = isVRRunning;
+                }
+
+                return isVRRunning;
             }
             catch (Exception ex)
             {

@@ -349,7 +349,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
 
                 { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
-                { "HeartRateScanInterval_v2", (typeof(int), "PulsoidConnector") },
+                { "HeartRateScanInterval_v3", (typeof(int), "PulsoidConnector") },
                 { "HeartRate", (typeof(int), "PulsoidConnector") },
                 { "HeartRateLastUpdate", (typeof(DateTime), "PulsoidConnector") },
                 { "ShowBPMSuffix", (typeof(bool), "PulsoidConnector") },

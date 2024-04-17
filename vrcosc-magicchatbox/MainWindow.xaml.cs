@@ -1195,7 +1195,7 @@ namespace vrcosc_magicchatbox
             {
                 var tasks = new List<Task>
         {
-            Task.Run(() => ViewModel.Instance.IsVRRunning = ComponentStatsModule.IsVRRunning())
+            Task.Run(() => ComponentStatsModule.IsVRRunning())
         };
 
                 if (ViewModel.Instance.IntgrScanSpotify_OLD)

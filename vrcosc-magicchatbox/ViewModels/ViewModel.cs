@@ -2302,15 +2302,15 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private int _HeartRateScanInterval_v2 = 1;
+        private int _HeartRateScanInterval_v3 = 1;
 
-        public int HeartRateScanInterval_v2
+        public int HeartRateScanInterval_v3
         {
-            get { return _HeartRateScanInterval_v2; }
+            get { return _HeartRateScanInterval_v3; }
             set
             {
-                _HeartRateScanInterval_v2 = value;
-                NotifyPropertyChanged(nameof(HeartRateScanInterval_v2));
+                _HeartRateScanInterval_v3 = value;
+                NotifyPropertyChanged(nameof(HeartRateScanInterval_v3));
             }
         }
 
