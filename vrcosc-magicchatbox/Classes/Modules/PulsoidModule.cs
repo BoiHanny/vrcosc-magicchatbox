@@ -221,7 +221,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                    propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
                    propertyName == nameof(ViewModel.Instance.IntgrHeartRate_VR) ||
                    propertyName == nameof(ViewModel.Instance.IntgrHeartRate_DESKTOP) ||
-                   propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuthEncrypted) || propertyName == nameof(ViewModel.Instance.PulsoidAuthConnected);
+                   propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuthEncrypted) || propertyName == nameof(ViewModel.Instance.PulsoidAuthConnected) || propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuth);
         }
 
 

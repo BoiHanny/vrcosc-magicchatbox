@@ -1349,8 +1349,8 @@ namespace vrcosc_magicchatbox
                 {
                     if (await oauthHandler.ValidateTokenAsync(accessToken))
                     {
-                        ViewModel.Instance.PulsoidAuthConnected = true;
                         ViewModel.Instance.PulsoidAccessTokenOAuth = accessToken;
+                        ViewModel.Instance.PulsoidAuthConnected = true;
 
                     }
                 }
