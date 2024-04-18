@@ -13,7 +13,6 @@ using System.ComponentModel;
 using vrcosc_magicchatbox.ViewModels;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using Newtonsoft.Json.Linq;
 using vrcosc_magicchatbox.DataAndSecurity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
@@ -94,12 +93,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public partial class PulsoidModule : ObservableObject
     {
+        private bool isMonitoringStarted = false;
         private ClientWebSocket _webSocket;
         private CancellationTokenSource _cts;
         private readonly Queue<Tuple<DateTime, int>> _heartRates = new();
         private readonly Queue<int> _heartRateHistory = new();
         private int HeartRateFromSocket = 0;
         private System.Timers.Timer _processDataTimer;
+        private int _previousHeartRate = -1;
+        private int _unchangedHeartRateCount = 0;
 
 
         [ObservableProperty]
@@ -193,7 +195,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             if (IsRelevantPropertyChange(e.PropertyName))
             {
-                if (ShouldStartMonitoring())
+                if (ShouldStartMonitoring() && !isMonitoringStarted)
                 {
                     StartMonitoringHeartRateAsync();
                 }
@@ -219,7 +221,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                    propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
                    propertyName == nameof(ViewModel.Instance.IntgrHeartRate_VR) ||
                    propertyName == nameof(ViewModel.Instance.IntgrHeartRate_DESKTOP) ||
-                   propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuthEncrypted);
+                   propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuthEncrypted) || propertyName == nameof(ViewModel.Instance.PulsoidAuthConnected);
         }
 
 
@@ -239,8 +241,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 _webSocket = null;
             }
 
-            if(_processDataTimer.Enabled)
-            _processDataTimer.Stop();
+            if (_processDataTimer.Enabled)
+                _processDataTimer.Stop();
+
+            isMonitoringStarted = false;
         }
 
 
@@ -274,16 +278,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        public void DisconnectSession()
+            { StopMonitoringHeartRateAsync(); }
+
         private async void StartMonitoringHeartRateAsync()
         {
-            if (_cts != null) return;
+            if (_cts != null || isMonitoringStarted) return;
+
+            isMonitoringStarted = true;
 
             string accessToken = ViewModel.Instance.PulsoidAccessTokenOAuth;
             if (string.IsNullOrEmpty(accessToken))
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    isMonitoringStarted = false;
                     ViewModel.Instance.PulsoidAccessError = true;
+                    TriggerPulsoidAuthConnected(false);
                     ViewModel.Instance.PulsoidAccessErrorTxt = "No Pulsoid connection found. Please connect with the Pulsoid Authentication server";
                 });
                 return;
@@ -294,15 +305,29 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    isMonitoringStarted = false;
                     ViewModel.Instance.PulsoidAccessError = true;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = "Invalid access token. Please reconnect with the Pulsoid Authentication server";
+                    TriggerPulsoidAuthConnected(false);
+                    ViewModel.Instance.PulsoidAccessErrorTxt = "Expired access token. Please reconnect with the Pulsoid Authentication server";
                 });
+
                 return;
             }
 
             _cts = new CancellationTokenSource();
             UpdateFormattedHeartRateText();
             await ConnectToWebSocketAsync(accessToken, _cts.Token);
+
+        }
+
+        public void TriggerPulsoidAuthConnected(bool newValue)
+        {
+            bool currentvalue = ViewModel.Instance.PulsoidAuthConnected;
+            if (newValue == currentvalue) return;
+            else
+            {
+                ViewModel.Instance.PulsoidAuthConnected = newValue;
+            }
 
         }
 
@@ -335,6 +360,28 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             int heartRate = HeartRateFromSocket;
 
+            // New logic to handle unchanged heart rate readings
+            if (heartRate == _previousHeartRate)
+            {
+                _unchangedHeartRateCount++;
+            }
+            else
+            {
+                _unchangedHeartRateCount = 0; // Reset if the heart rate has changed
+                _previousHeartRate = heartRate; // Update previous heart rate
+            }
+
+            // Determine if the Pulsoid device should be considered offline
+            if (ViewModel.Instance.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= ViewModel.Instance.UnchangedHeartRateTimeoutInSec)
+            {
+                ViewModel.Instance.PulsoidDeviceOnline = false; // Set the device as offline
+                return;
+            }
+            else
+            {
+                ViewModel.Instance.PulsoidDeviceOnline = true; // Otherwise, consider it online
+
+            }
 
             // If SmoothHeartRate_v1 is true, calculate and use average heart rate
             if (ViewModel.Instance.SmoothHeartRate_v1)
@@ -416,7 +463,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 var buffer = new byte[1024];
 
-                while (_webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+                while (_webSocket != null && _webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
                     var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
@@ -443,11 +490,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                Logging.WriteException(ex, MSGBox: false);
             }
-
         }
 
 

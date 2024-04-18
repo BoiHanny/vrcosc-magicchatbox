@@ -1329,6 +1329,7 @@ namespace vrcosc_magicchatbox
         {
             try
             {
+                ViewModel.Instance.HeartRateConnector.DisconnectSession();
                 string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                 const string clientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
                 const string redirectUri = "http://localhost:7384/";
@@ -1350,6 +1351,7 @@ namespace vrcosc_magicchatbox
                     {
                         ViewModel.Instance.PulsoidAuthConnected = true;
                         ViewModel.Instance.PulsoidAccessTokenOAuth = accessToken;
+
                     }
                 }
             }
@@ -1367,6 +1369,7 @@ namespace vrcosc_magicchatbox
         {
             ViewModel.Instance.PulsoidAccessTokenOAuth = string.Empty;
             ViewModel.Instance.PulsoidAuthConnected = false;
+            ViewModel.Instance.HeartRateConnector.DisconnectSession();
         }
 
         private void ManualPulsoidAuthBtn_MouseUp(object sender, MouseButtonEventArgs e)

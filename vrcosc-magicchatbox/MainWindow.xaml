@@ -1799,13 +1799,13 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding UnchangedHeartRateLimit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding UnchangedHeartRateTimeoutInSec, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
                                                     FontFamily="Albert Sans Thin"
                                                     FontSize="15"
                                                     Foreground="#FF9983AD"
-                                                    Text="scans, then the heart rate is considered offline." />
+                                                    Text="seconds, then the heart rate is considered offline." />
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>

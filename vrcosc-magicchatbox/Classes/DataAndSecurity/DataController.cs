@@ -365,7 +365,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "MagicHeartIconPrefix", (typeof(bool), "PulsoidConnector") },
                 { "CurrentHeartRateTitle", (typeof(string), "PulsoidConnector") },
                 { "EnableHeartRateOfflineCheck", (typeof(bool), "PulsoidConnector") },
-                { "UnchangedHeartRateLimit", (typeof(int), "PulsoidConnector") },
+                { "UnchangedHeartRateTimeoutInSec", (typeof(int), "PulsoidConnector") },
 
                 { "LowTemperatureThreshold", (typeof(int), "PulsoidConnector") },
                 { "HighTemperatureThreshold", (typeof(int), "PulsoidConnector") },

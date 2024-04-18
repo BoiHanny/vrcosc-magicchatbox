@@ -4329,14 +4329,14 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private int _UnchangedHeartRateLimit = 10;
-        public int UnchangedHeartRateLimit
+        private int _UnchangedHeartRateTimeoutInSec = 30;
+        public int UnchangedHeartRateTimeoutInSec
         {
-            get { return _UnchangedHeartRateLimit; }
+            get { return _UnchangedHeartRateTimeoutInSec; }
             set
             {
-                _UnchangedHeartRateLimit = value;
-                NotifyPropertyChanged(nameof(UnchangedHeartRateLimit));
+                _UnchangedHeartRateTimeoutInSec = value;
+                NotifyPropertyChanged(nameof(UnchangedHeartRateTimeoutInSec));
             }
         }
 
