@@ -1333,7 +1333,7 @@ namespace vrcosc_magicchatbox
                 string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                 const string clientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
                 const string redirectUri = "http://localhost:7384/";
-                const string scope = "data:heart_rate:read,profile:read";
+                const string scope = "data:heart_rate:read,profile:read,data:statistics:read";
                 var authorizationEndpoint = $"https://pulsoid.net/oauth2/authorize?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}";
 
                 var oauthHandler = PulsoidOAuthHandler.Instance;

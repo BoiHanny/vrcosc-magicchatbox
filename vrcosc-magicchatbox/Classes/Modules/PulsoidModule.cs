@@ -18,6 +18,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
 using System.Text;
+using vrcosc_magicchatbox.ViewModels.Models;
 
 
 
@@ -33,6 +34,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         [ObservableProperty]
         PulsoidTrendSymbolSet selectedPulsoidTrendSymbol = new();
+
+        [ObservableProperty]
+        bool showCalories = true;
+
+        [ObservableProperty]
+        bool showMaxHeartRate = true;
+
+        [ObservableProperty]
+        bool showMinHeartRate = true;
 
 
         public void SaveSettings()
@@ -91,6 +101,32 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     }
 
+    enum statisticsTimeRange
+    {
+        [Description("24h")]
+        _24h,
+        [Description("7d")]
+        _7d,
+        [Description("30d")]
+        _30d
+    }
+
+    public class HeartRateData
+    {
+        public DateTime MeasuredAt { get; set; }
+        public int HeartRate { get; set; }
+    }
+
+    public partial class PulsoidStatisticsResponse
+    {
+
+        public int maximum_beats_per_minute { get; set; } = 0;
+        public int minimum_beats_per_minute { get; set; } = 0;
+        public int average_beats_per_minute { get; set; } = 0;
+        public int streamed_duration_in_seconds { get; set; } = 0;
+        public int calories_burned_in_kcal { get; set; } = 0;
+    }
+
     public partial class PulsoidModule : ObservableObject
     {
         private bool isMonitoringStarted = false;
@@ -102,6 +138,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private System.Timers.Timer _processDataTimer;
         private int _previousHeartRate = -1;
         private int _unchangedHeartRateCount = 0;
+        public PulsoidStatisticsResponse PulsoidStatistics;
+        private HttpClient _StatisticsClient = new HttpClient();
+        private readonly object _fetchLock = new object();
+        private bool _isFetchingStatistics = false;
+
 
 
         [ObservableProperty]
@@ -120,10 +161,64 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _processDataTimer.Elapsed += (sender, e) => Application.Current.Dispatcher.Invoke(ProcessData);
         }
 
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async Task FetchPulsoidStatisticsAsync(string accessToken, statisticsTimeRange statisticsTimeRange = statisticsTimeRange._24h)
         {
 
+            lock (_fetchLock)
+            {
+                if (_isFetchingStatistics)
+                {
+                    return;
+                }
+                _isFetchingStatistics = true;
+            }
+
+            try
+            {
+                string timeRangeDescription = statisticsTimeRange.GetDescription();
+                string requestUri = $"https://dev.pulsoid.net/api/v1/statistics?time_range={timeRangeDescription}";
+
+
+                try
+                {
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    request.Headers.Add("User-Agent", "Vrcosc-MagicChatbox");
+                    request.Headers.Add("Accept", "application/json");
+
+                    HttpResponseMessage response = await _StatisticsClient.SendAsync(request);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string errorContent = await response.Content.ReadAsStringAsync();
+                        Debug.WriteLine($"Error fetching Pulsoid statistics: {response.StatusCode}, Content: {errorContent}");
+                        return; 
+                    }
+
+                    string content = await response.Content.ReadAsStringAsync();
+                    PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
+                }
+                catch (HttpRequestException ex)
+                {
+                    Debug.WriteLine($"HttpRequestException: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"General Exception: {ex.Message}");
+                }
+            }
+            finally
+            {
+                // Ensure the flag is reset even if an exception occurs
+                lock (_fetchLock)
+                {
+                    _isFetchingStatistics = false;
+                }
+            }
         }
+
+
+
 
 
 
@@ -359,6 +454,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             int heartRate = HeartRateFromSocket;
+            _ = Task.Run(() => FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth, statisticsTimeRange._24h));
 
             // New logic to handle unchanged heart rate readings
             if (heartRate == _previousHeartRate)

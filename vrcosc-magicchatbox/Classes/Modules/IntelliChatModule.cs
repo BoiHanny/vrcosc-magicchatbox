@@ -634,7 +634,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 var messages = new List<Message>
                 {
-                    new Message(Role.System, $"Rewrite this sentence in {intelliChatWritingStyle.StyleDescription}, same text length")
+                    new Message(Role.System, $"Rewrite this sentence in {intelliChatWritingStyle.StyleDescription}, Try to keep same word count")
                 };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
@@ -654,7 +654,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature, model: "gpt-4"), _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -703,7 +703,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature:0.3), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature:0.3,model: "gpt-4"), _cancellationTokenSource.Token);
 
                 if (response == null)
                 {

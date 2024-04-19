@@ -99,6 +99,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         displayText = hrTitle + displayText;
                     }
 
+                    displayText += ViewModel.Instance.HeartRateConnector.PulsoidStatistics?.calories_burned_in_kcal + " kcal burned";
+
                     // Finally, add the constructed string to the Uncomplete list with a tag
                     TryAddToUncomplete(Uncomplete, displayText, "HeartRate");
                 }
