@@ -85,11 +85,16 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         displayText += " bpm";
                     }
 
+                    if (ViewModel.Instance.HeartRateConnector.Settings.ShowCalories)
+                        displayText += " " + DataController.TransformToSuperscript(ViewModel.Instance.HeartRateConnector.PulsoidStatistics?.calories_burned_in_kcal + " kcal");
+
                     // Append the HeartRateTrendIndicator if ShowHeartRateTrendIndicator is true
                     if (ViewModel.Instance.ShowHeartRateTrendIndicator)
                     {
                         displayText += $" {ViewModel.Instance.HeartRateTrendIndicator}";
                     }
+
+
 
                     // Add title if HeartRateTitle is true, with a separator based on SeperateWithENTERS
                     if (ViewModel.Instance.HeartRateTitle)
@@ -99,7 +104,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         displayText = hrTitle + displayText;
                     }
 
-                    displayText += ViewModel.Instance.HeartRateConnector.PulsoidStatistics?.calories_burned_in_kcal + " kcal burned";
+
 
                     // Finally, add the constructed string to the Uncomplete list with a tag
                     TryAddToUncomplete(Uncomplete, displayText, "HeartRate");

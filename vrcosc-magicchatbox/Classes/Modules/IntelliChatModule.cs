@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using OpenAI;
 using OpenAI.Chat;
@@ -7,6 +6,7 @@ using OpenAI.Moderations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -16,6 +16,74 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
+    [AttributeUsage(AttributeTargets.Field)]
+    public class ModelTypeInfoAttribute : Attribute
+    {
+        public string ModelType { get; }
+
+        public ModelTypeInfoAttribute(string modelType)
+        {
+            ModelType = modelType;
+        }
+    }
+
+    public enum IntelliGPTModel
+    {
+        [Description("gpt-4"), ModelTypeInfo("Chat")]
+        gpt4,
+
+        [Description("gpt-4-32k"), ModelTypeInfo("Chat")]
+        gpt4_32k,
+
+        [Description("gpt-3.5-turbo"), ModelTypeInfo("Chat")]
+        gpt3_5_turbo,
+
+        [Description("gpt-3.5-turbo-16k"), ModelTypeInfo("Chat")]
+        gpt3_5_turbo_16k,
+
+        [Description("text-davinci-003"), ModelTypeInfo("Chat")]
+        davinci,
+
+        [Description("text-davinci-edit-001"), ModelTypeInfo("Edit")]
+        davinciEdit,
+
+        [Description("text-curie-001"), ModelTypeInfo("Chat")]
+        curie,
+
+        [Description("text-babbage-001"), ModelTypeInfo("Chat")]
+        babbage,
+
+        [Description("text-ada-001"), ModelTypeInfo("Chat")]
+        ada,
+
+        [Description("text-embedding-ada-002"), ModelTypeInfo("Embedding")]
+        embedding_Ada_002,
+
+        [Description("text-embedding-3-small"), ModelTypeInfo("Embedding")]
+        embedding_3_Small,
+
+        [Description("text-embedding-3-large"), ModelTypeInfo("Embedding")]
+        embedding_3_Large,
+
+        [Description("whisper-1"), ModelTypeInfo("STT")]
+        whisper1,
+
+        [Description("text-moderation-latest"), ModelTypeInfo("Moderation")]
+        Moderation_Latest,
+
+        [Description("tts-1"), ModelTypeInfo("TTS")]
+        TTS_1,
+
+        [Description("tts-1-hd"), ModelTypeInfo("TTS")]
+        TTS_1HD,
+
+        [Description("dall-e-2"), ModelTypeInfo("Image")]
+        DallE_2,
+
+        [Description("dall-e-3"), ModelTypeInfo("Image")]
+        DallE_3,
+    }
+
 
     public partial class ModelTokenUsage : ObservableObject
     {
@@ -97,12 +165,28 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
     }
 
-
-
-
-
     public partial class IntelliChatModuleSettings : ObservableObject
     {
+        [ObservableProperty]
+        private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt3_5_turbo;
+
+        [ObservableProperty]
+        private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4;
+
+        [ObservableProperty]
+        private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt3_5_turbo;
+
+        [ObservableProperty]
+        private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt3_5_turbo;
+
+        [ObservableProperty]
+        private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4;
+
+        [ObservableProperty]
+        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt3_5_turbo_16k;
+
+        [ObservableProperty]
+        private IntelliGPTModel performModerationCheckModel = IntelliGPTModel.Moderation_Latest;
 
         [ObservableProperty]
         private bool autolanguageSelection = true;
@@ -199,10 +283,57 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         private IntelliChatModuleSettings settings = new IntelliChatModuleSettings();
 
+        public IEnumerable<IntelliGPTModel> AvailableChatModels => Enum.GetValues(typeof(IntelliGPTModel))
+    .Cast<IntelliGPTModel>()
+    .Where(m => GetModelType(m) == "Chat");
+
+        public IEnumerable<IntelliGPTModel> AvailableSTTModels => Enum.GetValues(typeof(IntelliGPTModel))
+    .Cast<IntelliGPTModel>()
+    .Where(m => GetModelType(m) == "STT");
+
+
+        public IEnumerable<IntelliGPTModel> AvailableTTSModels => Enum.GetValues(typeof(IntelliGPTModel))
+    .Cast<IntelliGPTModel>()
+    .Where(m => GetModelType(m) == "TSS");
+
+
         public IntelliChatModule()
         {
             Initialize();
         }
+
+        public static string GetModelDescription(IntelliGPTModel model)
+        {
+            var type = model.GetType();
+            var memberInfo = type.GetMember(model.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+                if (attrs.Length > 0)
+                {
+                    return ((DescriptionAttribute)attrs[0]).Description;
+                }
+            }
+
+            return null; // Or a sensible default
+        }
+
+        public static string GetModelType(IntelliGPTModel model)
+        {
+            var type = model.GetType();
+            var memberInfo = type.GetMember(model.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(ModelTypeInfoAttribute), false);
+                if (attrs.Length > 0)
+                {
+                    return ((ModelTypeInfoAttribute)attrs[0]).ModelType;
+                }
+            }
+
+            return "Unknown"; // Or any default value you see fit
+        }
+
 
         private bool EnsureInitialized()
         {
@@ -570,6 +701,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             EnsureValidSelections();
         }
 
+
         public async Task<bool> ModerationCheckPassedAsync(string text, bool cancelAllTasks = true)
         {
             if (cancelAllTasks)
@@ -584,7 +716,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ResetCancellationToken(Settings.IntelliChatPerformModerationTimeout);
 
-                var moderationResponse = await OpenAIModule.Instance.OpenAIClient.ModerationsEndpoint.CreateModerationAsync(new ModerationsRequest(text), _cancellationTokenSource.Token);
+                var modelName = GetModelDescription(Settings.PerformModerationCheckModel);
+
+                var moderationResponse = await OpenAIModule.Instance.OpenAIClient.ModerationsEndpoint.CreateModerationAsync(new ModerationsRequest(text, modelName), _cancellationTokenSource.Token);
 
                 if (moderationResponse?.Results.Any(r => r.Flagged) ?? false)
                 {
@@ -653,8 +787,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
+                var modelName = GetModelDescription(Settings.PerformBeautifySentenceModel);
+
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature, model: "gpt-4"), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature, model: modelName), _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -700,10 +836,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+                var modelName = GetModelDescription(Settings.PerformLanguageTranslationModel);
+
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature:0.3,model: "gpt-4"), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature:0.3,model: modelName), _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -765,10 +903,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 messages.Add(new Message(Role.User, text));
 
+                var modelName = GetModelDescription(Settings.PerformSpellingCheckModel);
+
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 ChatResponse response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,model: modelName), _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -840,6 +980,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 ? $"Shorten ONLY the following text to 140 characters or less dont add anything, including spaces: {text}"
                 : $"Please be more concise. Shorten ONLY this text to 140 characters or less don't add more into it, including spaces: {text}";
 
+                var modelName = GetModelDescription(Settings.PerformShortenTextModel);
+
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
@@ -907,6 +1049,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = isNextWordPrediction ? "Predicting next word..." : "Generating completion...";
+                var modelName = GetModelDescription(Settings.PerformTextCompletionModel);
 
                 var promptMessage = isNextWordPrediction ? "Predict the next word." : "Complete the following text.";
                 var messages = new List<Message>
@@ -918,7 +1061,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 // Customizing ChatRequest for the task
                 var chatRequest = new ChatRequest(
                     messages: messages,
-                    model: "gpt-3.5-turbo", // Fast and efficient model
+                    model: modelName,
                     maxTokens: isNextWordPrediction ? 1 : 50, // Adjust based on the task
                     temperature: 0.7, // Fine-tune for creativity vs. randomness
                     topP: 1,

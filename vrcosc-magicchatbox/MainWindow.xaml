@@ -43,6 +43,7 @@
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+            <local:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
             <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
@@ -1393,10 +1394,10 @@
                                         </Border>
                                         <TextBlock
                                             Width="400"
-                                            Padding="10,0,0,0"
+                                            Padding="10,4,0,4"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="15"
+                                            FontSize="14"
                                             Foreground="PaleVioletRed"
                                             Text="{Binding PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
                                             TextWrapping="Wrap"
@@ -1419,6 +1420,22 @@
                                             IsChecked="{Binding MagicHeartIconPrefix, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show prefix icon in front of the heart rate
+                                        </CheckBox>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            Margin="0,0,0,0"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding HeartRateConnector.Settings.ShowCalories, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Show calories from Pulsoid
                                         </CheckBox>
                                     </StackPanel>
                                 </Border>
@@ -2259,6 +2276,30 @@
                                                 Text="{Binding IntelliChatModule.Settings.SelectedWritingStyle.StyleDescription}" />
                                         </StackPanel>
 
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformBeautifySentenceModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+
 
                                     </StackPanel>
                                 </Border>
@@ -2320,6 +2361,31 @@
                                             ItemsSource="{Binding IntelliChatModule.Settings.SupportedLanguages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             Opacity="0.3"
                                             SelectedItem="{Binding IntelliChatModule.Settings.SelectedTranslateLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformLanguageTranslationModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
 
                                     </StackPanel>
                                 </Border>
@@ -2483,6 +2549,104 @@
                                                 Text="{Binding WhisperModule.Settings.NoiseGateThreshold, UpdateSourceTrigger=PropertyChanged}" />
 
                                         </StackPanel>
+
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Other AI functions" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Here u can change the model of the IntelliChat AI function" />
+
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Conversation starter OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.GenerateConversationStarterModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Shorten text OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformShortenTextModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Spelling / grammar correction OpenAI Model" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformSpellingCheckModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+
 
                                     </StackPanel>
                                 </Border>

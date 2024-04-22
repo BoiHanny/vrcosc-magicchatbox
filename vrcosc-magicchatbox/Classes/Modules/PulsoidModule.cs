@@ -192,7 +192,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     {
                         string errorContent = await response.Content.ReadAsStringAsync();
                         Debug.WriteLine($"Error fetching Pulsoid statistics: {response.StatusCode}, Content: {errorContent}");
-                        return; 
+                        return;
                     }
 
                     string content = await response.Content.ReadAsStringAsync();
@@ -663,7 +663,22 @@ namespace vrcosc_magicchatbox.Classes.Modules
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             var response = await httpClient.GetAsync("https://dev.pulsoid.net/api/v1/token/validate");
 
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var tokenInfo = JsonConvert.DeserializeObject<TokenInfo>(content);
+
+                var requiredScopes = new[] { "data:heart_rate:read", "profile:read", "data:statistics:read" };
+                return requiredScopes.All(scope => tokenInfo.Scopes.Contains(scope));
+            }
+
+            return false;
+        }
+
+        private class TokenInfo
+        {
+            [JsonProperty("scopes")]
+            public string[] Scopes { get; set; }
         }
 
         private async Task SendBrowserCloseResponseAsync(HttpListenerResponse response)
