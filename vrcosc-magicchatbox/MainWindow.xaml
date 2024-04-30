@@ -2378,7 +2378,7 @@
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
                                             Opacity="0.3"
-                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformLanguageTranslationModel, Mode=TwoWay}">
+                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformLanguageTranslationModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
@@ -5518,6 +5518,30 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="12"
                                         Foreground="#94CCBF"
+                                        Opacity="0.6"
+                                        Text="Model:" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="2,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#94CCBF"
+                                        Opacity="0.6"
+                                        Text="{Binding IntelliChatModule.Settings.TokenUsageData.LastRequestModelName, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Width="auto"
+                                        Height="Auto"
+                                        Padding="5,10,0,15"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#94CCBF"
                                         Opacity="0.3"
                                         Text="Today tokens:" />
                                     <TextBlock
@@ -6001,7 +6025,6 @@
                             Click="NextwordPredict_Click"
                             Style="{DynamicResource LINK_Button_style}"
                             ToolTip="Predict next word by AI"
-                            Visibility="Collapsed"
                             WindowChrome.IsHitTestVisibleInChrome="True">
                             <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
                                 <Image
