@@ -96,6 +96,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
     public class TokenUsageData : ObservableObject
     {
         private int _lastRequestTotalTokens;
+        private string _lastRequestModelName;
 
         public TokenUsageData()
         {
@@ -111,7 +112,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public int LastRequestTotalTokens => _lastRequestTotalTokens;
 
         // Expose the last request's model name
-        public string LastRequestModelName => DailyUsages.LastOrDefault()?.ModelUsages.LastOrDefault()?.ModelName;
+        public string LastRequestModelName => _lastRequestModelName;
 
         public void AddTokenUsage(string modelName, int promptTokens, int completionTokens)
         {
@@ -136,11 +137,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             // Update the last request total tokens
             _lastRequestTotalTokens = promptTokens + completionTokens;
+            _lastRequestModelName = modelName;
 
             // Notify UI about changes
             OnPropertyChanged(nameof(TotalDailyTokens));
             OnPropertyChanged(nameof(TotalDailyRequests));
             OnPropertyChanged(nameof(LastRequestTotalTokens));
+            OnPropertyChanged(nameof(LastRequestModelName));
         }
     }
 
@@ -162,7 +165,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4_turbo;
 
         [ObservableProperty]
-        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt3_5_turbo_16k;
+        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt4_turbo;
 
         [ObservableProperty]
         private IntelliGPTModel performModerationCheckModel = IntelliGPTModel.Moderation_Latest;
@@ -875,7 +878,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                 new Message(
                     Role.System,
-                    "Please correct any spelling and grammar errors in the following text (return also if correct):")
+                    "Please correct any spelling and grammar errors in the following text, always return correct version:")
                 };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
@@ -1043,7 +1046,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 // Apply the selected writing style
                 var writingStyle = Settings.SelectedWritingStyle;
-                var promptMessage = isNextWordPrediction ? "Predict the next word in a natural, contextually relevant way for VRChat." : "Complete the following text in a cool, engaging manner for VRChat.";
+                var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : "Complete the following chat message, max 144 characters";
                 var messages = new List<Message>
         {
             new Message(Role.System, promptMessage +  $"Use a {writingStyle.StyleName} writing style."),

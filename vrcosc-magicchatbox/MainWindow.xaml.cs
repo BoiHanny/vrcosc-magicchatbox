@@ -1557,7 +1557,7 @@ namespace vrcosc_magicchatbox
 
         private void NextwordPredict_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatModule.GenerateCompletionOrPredictionAsync(ViewModel.Instance.NewChattingTxt, false);
+            ViewModel.Instance.IntelliChatModule.GenerateCompletionOrPredictionAsync(ViewModel.Instance.NewChattingTxt, true);
         }
 
         private void Record_Click(object sender, RoutedEventArgs e)

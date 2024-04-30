@@ -2646,6 +2646,29 @@
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
 
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Next word prediction OpenAI Model" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding IntelliChatModule.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding IntelliChatModule.Settings.PerformTextCompletionModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
 
 
                                     </StackPanel>
@@ -6025,6 +6048,7 @@
                             Click="NextwordPredict_Click"
                             Style="{DynamicResource LINK_Button_style}"
                             ToolTip="Predict next word by AI"
+                            Visibility="Collapsed"
                             WindowChrome.IsHitTestVisibleInChrome="True">
                             <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
                                 <Image
