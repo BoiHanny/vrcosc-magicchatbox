@@ -467,7 +467,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     if (compareWithPreRelease < 0)
                     {
                         // If the pre-release version is greater than the current version and the user has joined the alpha channel
-                        ViewModel.Instance.VersionTxt = "Install pre-release";
+                        ViewModel.Instance.VersionTxt = "Try new pre-release";
                         ViewModel.Instance.VersionTxtUnderLine = true;
                         ViewModel.Instance.VersionTxtColor = "#2FD9FF";
                         ViewModel.Instance.CanUpdate = true;
@@ -493,7 +493,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     currentVersion.CompareTo(ViewModel.Instance.LatestReleaseVersion.VersionNumber) > 0)
                 {
                     // If the current version is a pre-release version and the user has opted out of the alpha channel
-                    ViewModel.Instance.VersionTxt = "Downgrade now";
+                    ViewModel.Instance.VersionTxt = "Downgrade version";
                     ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
                     ViewModel.Instance.VersionTxtUnderLine = true;
                     ViewModel.Instance.CanUpdate = true;

@@ -35,35 +35,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [Description("gpt-4-32k"), ModelTypeInfo("Chat")]
         gpt4_32k,
 
+        [Description("gpt-4-turbo"), ModelTypeInfo("Chat")]
+        gpt4_turbo,
+
         [Description("gpt-3.5-turbo"), ModelTypeInfo("Chat")]
         gpt3_5_turbo,
 
         [Description("gpt-3.5-turbo-16k"), ModelTypeInfo("Chat")]
         gpt3_5_turbo_16k,
 
-        [Description("text-davinci-003"), ModelTypeInfo("Chat")]
-        davinci,
-
-        [Description("text-davinci-edit-001"), ModelTypeInfo("Edit")]
-        davinciEdit,
-
-        [Description("text-curie-001"), ModelTypeInfo("Chat")]
-        curie,
-
-        [Description("text-babbage-001"), ModelTypeInfo("Chat")]
-        babbage,
-
-        [Description("text-ada-001"), ModelTypeInfo("Chat")]
-        ada,
+        [Description("gpt-3.5-turbo-instruct"), ModelTypeInfo("Chat")]
+        gpt3_5_turbo_instruct,
 
         [Description("text-embedding-ada-002"), ModelTypeInfo("Embedding")]
         embedding_Ada_002,
-
-        [Description("text-embedding-3-small"), ModelTypeInfo("Embedding")]
-        embedding_3_Small,
-
-        [Description("text-embedding-3-large"), ModelTypeInfo("Embedding")]
-        embedding_3_Large,
 
         [Description("whisper-1"), ModelTypeInfo("STT")]
         whisper1,
@@ -71,17 +56,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [Description("text-moderation-latest"), ModelTypeInfo("Moderation")]
         Moderation_Latest,
 
-        [Description("tts-1"), ModelTypeInfo("TTS")]
-        TTS_1,
-
-        [Description("tts-1-hd"), ModelTypeInfo("TTS")]
-        TTS_1HD,
-
         [Description("dall-e-2"), ModelTypeInfo("Image")]
         DallE_2,
-
-        [Description("dall-e-3"), ModelTypeInfo("Image")]
-        DallE_3,
     }
 
 
@@ -120,6 +96,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
     public class TokenUsageData : ObservableObject
     {
         private int _lastRequestTotalTokens;
+        private string _lastRequestModelName;
 
         public TokenUsageData()
         {
@@ -133,6 +110,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         // Expose the last request's total tokens
         public int LastRequestTotalTokens => _lastRequestTotalTokens;
+
+        // Expose the last request's model name
+        public string LastRequestModelName => _lastRequestModelName;
 
         public void AddTokenUsage(string modelName, int promptTokens, int completionTokens)
         {
@@ -157,11 +137,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             // Update the last request total tokens
             _lastRequestTotalTokens = promptTokens + completionTokens;
+            _lastRequestModelName = modelName;
 
             // Notify UI about changes
             OnPropertyChanged(nameof(TotalDailyTokens));
             OnPropertyChanged(nameof(TotalDailyRequests));
             OnPropertyChanged(nameof(LastRequestTotalTokens));
+            OnPropertyChanged(nameof(LastRequestModelName));
         }
     }
 
@@ -171,7 +153,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt3_5_turbo;
 
         [ObservableProperty]
-        private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4;
+        private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4_turbo;
 
         [ObservableProperty]
         private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt3_5_turbo;
@@ -180,10 +162,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt3_5_turbo;
 
         [ObservableProperty]
-        private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4;
+        private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4_turbo;
 
         [ObservableProperty]
-        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt3_5_turbo_16k;
+        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt4_turbo;
 
         [ObservableProperty]
         private IntelliGPTModel performModerationCheckModel = IntelliGPTModel.Moderation_Latest;
@@ -385,8 +367,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 : null;
 
             Settings.SelectedWritingStyle = selectedStyle ?? Settings.SupportedWritingStyles.FirstOrDefault(style => style.IsBuiltIn);
-
             Settings.SelectedTranslateLanguage = selectedTranslateLanguage ?? Settings.SupportedLanguages.Where(lang => lang.Language.Equals("English", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+            // Check if the selected models are still valid
+            Settings.PerformSpellingCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformSpellingCheckModel) ? Settings.PerformSpellingCheckModel : IntelliGPTModel.gpt3_5_turbo;
+            Settings.GenerateConversationStarterModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.GenerateConversationStarterModel) ? Settings.GenerateConversationStarterModel : IntelliGPTModel.gpt3_5_turbo;
+            Settings.PerformLanguageTranslationModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformLanguageTranslationModel) ? Settings.PerformLanguageTranslationModel : IntelliGPTModel.gpt3_5_turbo;
+            Settings.PerformShortenTextModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformShortenTextModel) ? Settings.PerformShortenTextModel : IntelliGPTModel.gpt3_5_turbo;
+            Settings.PerformBeautifySentenceModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformBeautifySentenceModel) ? Settings.PerformBeautifySentenceModel : IntelliGPTModel.gpt3_5_turbo;
+            Settings.PerformTextCompletionModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformTextCompletionModel) ? Settings.PerformTextCompletionModel : IntelliGPTModel.gpt3_5_turbo;
+            Settings.PerformModerationCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel) ? Settings.PerformModerationCheckModel : IntelliGPTModel.Moderation_Latest;
         }
 
 
@@ -702,6 +692,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
 
+
+
         public async Task<bool> ModerationCheckPassedAsync(string text, bool cancelAllTasks = true)
         {
             if (cancelAllTasks)
@@ -886,7 +878,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                 new Message(
                     Role.System,
-                    "Please correct any spelling and grammar errors in the following text (return also if correct):")
+                    "Please correct any spelling and grammar errors in the following text, always return correct version:")
                 };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
@@ -988,7 +980,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     .GetCompletionAsync(new ChatRequest(new List<Message>
                     {
             new Message(Role.System, prompt)
-                    }, maxTokens: 60), _cancellationTokenSource.Token);
+                    }, maxTokens: 60, model:modelName), _cancellationTokenSource.Token);
 
                 var shortenedText = response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
                     ? response.Choices[0].Message.Content.GetString()
@@ -1051,39 +1043,86 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabelTxt = isNextWordPrediction ? "Predicting next word..." : "Generating completion...";
                 var modelName = GetModelDescription(Settings.PerformTextCompletionModel);
 
-                var promptMessage = isNextWordPrediction ? "Predict the next word." : "Complete the following text.";
+
+                // Apply the selected writing style
+                var writingStyle = Settings.SelectedWritingStyle;
+                var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : "Complete the following chat message, max 144 characters";
                 var messages = new List<Message>
-            {
-                new Message(Role.System, promptMessage),
-                new Message(Role.User, inputText)
-            };
+        {
+            new Message(Role.System, promptMessage +  $"Use a {writingStyle.StyleName} writing style."),
+            new Message(Role.User, inputText)
+        };
 
                 // Customizing ChatRequest for the task
                 var chatRequest = new ChatRequest(
                     messages: messages,
                     model: modelName,
-                    maxTokens: isNextWordPrediction ? 1 : 50, // Adjust based on the task
-                    temperature: 0.7, // Fine-tune for creativity vs. randomness
+                    maxTokens: isNextWordPrediction ? 3 : 100, // Increased max tokens for better context
+                    temperature: writingStyle.Temperature, // Use the temperature from the selected writing style
                     topP: 1,
-                    frequencyPenalty: 0.5, // Adjust as needed
-                    presencePenalty: 0.5 // Adjust as needed
+                    frequencyPenalty: 0.3, // Slightly reduced to encourage more common phrases in VRChat
+                    presencePenalty: 0.2 // Slightly reduced to allow some repetition, mimicking real chat
                 );
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint.GetCompletionAsync(chatRequest);
 
-               if (response == null)
+                if (response?.Choices?.Count > 0)
                 {
-                    throw new InvalidOperationException("The response from OpenAI was empty");
+                    var generatedText = response.Choices[0].Message.Content.GetString();
+
+                    if (!string.IsNullOrEmpty(generatedText))
+                    {
+                        generatedText = generatedText.Trim();
+                    }
+
+                    Settings.IntelliChatTxt = generatedText;
+                    Settings.IntelliChatWaitingToAccept = true;
                 }
                 else
                 {
-                    ProcessResponse(response);
+                    throw new InvalidOperationException("The response from OpenAI was empty or invalid.");
                 }
             }
             catch (Exception ex)
             {
                 ProcessError(ex);
             }
+            finally
+            {
+                Settings.IntelliChatUILabel = false;
+            }
+        }
+
+        private string FormatTextForVRChat(string text)
+        {
+            // Perform any necessary formatting or processing of the text for VRChat
+            // For example, you can add emoji, apply text effects, or limit the length
+
+            // Add some cool emoji
+            text = AddEmojiToText(text);
+
+            // Limit the length to fit nicely in the VRChat chatbox
+            text = LimitTextLength(text, 100);
+
+            return text;
+        }
+
+        private string AddEmojiToText(string text)
+        {
+            // Use regex or other methods to identify places to insert emoji
+            // For example, you can add a smiley face after a joke or a heart after a compliment
+            // Implement your emoji insertion logic here
+
+            return text;
+        }
+
+        private string LimitTextLength(string text, int maxLength)
+        {
+            if (text.Length > maxLength)
+            {
+                text = text.Substring(0, maxLength - 3) + "...";
+            }
+            return text;
         }
 
 

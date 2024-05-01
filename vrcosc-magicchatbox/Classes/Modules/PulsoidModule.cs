@@ -347,6 +347,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             _webSocket = new ClientWebSocket();
             _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {accessToken}");
+            _webSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
 
             try
             {
