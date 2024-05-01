@@ -120,6 +120,8 @@ namespace vrcosc_magicchatbox
             Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
         }
 
+        
+
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             Logging.WriteException(e.Exception, MSGBox: true, exitapp:true);
@@ -127,7 +129,14 @@ namespace vrcosc_magicchatbox
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true);
+            try
+            {
+                Logging.WriteException(e.ExceptionObject as Exception, MSGBox: true, exitapp: true);
+            }
+            catch (Exception ex)
+            {
+                Logging.ShowMSGBox("Fatal error in AppDomain.CurrentDomain_UnhandledException. The application will now exit.", "Fatal Error", Logging.MsgBoxType.Error);
+            }
         }
     }
 }
