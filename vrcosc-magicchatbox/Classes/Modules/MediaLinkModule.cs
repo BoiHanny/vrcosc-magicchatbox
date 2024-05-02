@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -291,6 +292,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         }
 
+        public enum MediaLinkTimeSeekbar
+        {
+            [Description ("Small numbers")]
+            SmallNumbers,
+            [Description("Current time bar with time")]
+            NumbersAndSeekBar,
+            [Description("Current time bar only")]
+            SeekBarOnly,
+            [Description("None")]
+            None
+        }
 
 
 

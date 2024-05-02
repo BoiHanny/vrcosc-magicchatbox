@@ -16,6 +16,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 using Version = vrcosc_magicchatbox.ViewModels.Models.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
@@ -168,6 +169,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     return double.Parse(value);
                 case Type t when t == typeof(Timezone):
                     return Enum.Parse(typeof(Timezone), value);
+                case Type t  when t == typeof(MediaLinkTimeSeekbar):
+                    return Enum.Parse(typeof(MediaLinkTimeSeekbar), value);
                 case Type t when t == typeof(DateTime):
                     return DateTime.Parse(value);
                 default:
@@ -288,7 +291,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 { "MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink") },
                 { "MediaSession_AutoSwitch", (typeof(bool), "MediaLink") },
                 { "DisableMediaLink", (typeof(bool), "MediaLink") },
-                { "MediaLinkShowTime", (typeof(bool), "MediaLink") },
+                { "MediaLinkTimeSeekStyle", (typeof(MediaLinkTimeSeekbar), "MediaLink") },
 
                 { "ScanningInterval", (typeof(double), "Scanning") },
                 { "ScanPauseTimeout", (typeof(int), "Scanning") },

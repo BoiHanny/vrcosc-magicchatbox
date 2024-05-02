@@ -396,7 +396,7 @@
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="225" />
             </Grid.ColumnDefinitions>
 
 
@@ -3934,21 +3934,29 @@
                                     Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     Turn autoswitch on when new session detected
                                 </CheckBox>
-                                <CheckBox
-                                    x:Name="MediaSession_ShowSongtime_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,10"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding MediaLinkShowTime, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Padding="0,0,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="15"
+                                    Foreground="#FF9983AD"
+                                    Text="Seekbar Style"
+                                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                <ComboBox
+                                    Width="200"
+                                    Height="25"
+                                    Margin="2,4"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding AvailableTimeSeekbarStyles}"
+                                    Opacity="0.3"
+                                    SelectedValue="{Binding MediaLinkTimeSeekStyle, Mode=TwoWay}"
                                     Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Show song time of media session
-                                </CheckBox>
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <TextBlock
                                     Grid.Column="0"
                                     Padding="0,0,0,0"
@@ -5243,7 +5251,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border
-                                        Width="745"
+                                        Width="735"
                                         Height="auto"
                                         Margin="8,0,0,8"
                                         BorderThickness="0"
@@ -6279,7 +6287,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="130" />
                         <ColumnDefinition Width="45" />
-                        <ColumnDefinition Width="45" />
+                        <ColumnDefinition Width="50" />
                     </Grid.ColumnDefinitions>
                     <Button
                         Name="Button_close"
@@ -6343,7 +6351,7 @@
             <Grid
                 Grid.Row="1"
                 Grid.Column="1"
-                Width="220"
+                Width="225"
                 Background="#FF42385D">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
@@ -7008,7 +7016,7 @@
                 <Button
                     x:Name="Discord"
                     Width="auto"
-                    Margin="6,3,190,5"
+                    Margin="6,3,195,5"
                     Click="Discord_Click"
                     Opacity="0.6"
                     Style="{DynamicResource LINK_Button_style}">
@@ -7023,7 +7031,7 @@
                 <Button
                     x:Name="Github"
                     Width="auto"
-                    Margin="32,3,164,5"
+                    Margin="32,3,169,5"
                     Click="Github_Click"
                     Opacity="0.4"
                     Style="{DynamicResource LINK_Button_style}">

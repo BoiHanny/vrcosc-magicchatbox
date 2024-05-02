@@ -4,9 +4,12 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
+using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
@@ -156,9 +159,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                                     : $"{mediaAction} '{mediaLinkTitle}'";
                             }
 
-                            if (ViewModel.Instance.MediaLinkShowTime && !mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
+                            if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
                             {
-                                x = x + DataController.TransformToSuperscript($" {FormatTimeSpan(mediaSession.CurrentTime)} l {FormatTimeSpan(mediaSession.FullTime)}");
+                                x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle);
                             }
                         }
 
@@ -172,6 +175,45 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
             }
         }
+
+        private static string CreateTimeStamp(string x, MediaSessionInfo mediaSession, MediaLinkTimeSeekbar style)
+        {
+            TimeSpan currentTime = mediaSession.CurrentTime;
+            TimeSpan fullTime = mediaSession.FullTime;
+
+            if (currentTime.TotalSeconds < 0 || fullTime.TotalSeconds < 0 || currentTime > fullTime)
+            {
+                return x;
+            }
+
+            double percentage = fullTime.TotalSeconds == 0 ? 0 : (currentTime.TotalSeconds / fullTime.TotalSeconds) * 100;
+
+            switch (style)
+            {
+                case MediaLinkTimeSeekbar.NumbersAndSeekBar:
+                    return $"{x}\n{DataController.TransformToSuperscript(FormatTimeSpan(currentTime))} {CreateProgressBar(percentage, 10)} {DataController.TransformToSuperscript(FormatTimeSpan(fullTime))}";
+
+                case MediaLinkTimeSeekbar.SeekBarOnly:
+                    return $"{x}\n{CreateProgressBar(percentage, 13)}";
+
+                case MediaLinkTimeSeekbar.SmallNumbers:
+                    return $"{x} {DataController.TransformToSuperscript(FormatTimeSpan(currentTime) + " l " + FormatTimeSpan(fullTime))}";
+
+                case MediaLinkTimeSeekbar.None:
+                    return x;
+                default:
+                    return x;
+            }
+        }
+
+        private static string CreateProgressBar(double percentage, int totalBlocks)
+        {
+            int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
+            string filledBar = new string('▒', filledBlocks);
+            string emptyBar = new string('░', totalBlocks - filledBlocks);
+            return filledBar + "▓" + emptyBar;
+        }
+
 
 
         // this function will build the spotify status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters

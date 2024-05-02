@@ -16,6 +16,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels.Models;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -2992,16 +2993,25 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _MediaLinkShowTime = true;
-        public bool MediaLinkShowTime
+        private MediaLinkTimeSeekbar _MediaLinkTimeSeekStyle = MediaLinkTimeSeekbar.SmallNumbers;
+
+        public MediaLinkTimeSeekbar MediaLinkTimeSeekStyle
         {
-            get { return _MediaLinkShowTime; }
+            get { return _MediaLinkTimeSeekStyle; }
             set
             {
-                _MediaLinkShowTime = value;
-                NotifyPropertyChanged(nameof(MediaLinkShowTime));
+                if (_MediaLinkTimeSeekStyle != value)
+                {
+                    _MediaLinkTimeSeekStyle = value;
+                    NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyle));
+                }
             }
         }
+
+
+
+
+        public IEnumerable<MediaLinkTimeSeekbar> AvailableTimeSeekbarStyles { get; } = Enum.GetValues(typeof(MediaLinkTimeSeekbar)).Cast<MediaLinkTimeSeekbar>().ToList();
 
 
         private bool _ApplicationHookV2 = true;
