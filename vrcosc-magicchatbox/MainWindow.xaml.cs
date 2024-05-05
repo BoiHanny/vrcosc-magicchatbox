@@ -1576,6 +1576,24 @@ namespace vrcosc_magicchatbox
             UpdateApp updateApp = new UpdateApp();
             updateApp.StartRollback();
         }
+
+        private async void MediaProgressbar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            MediaSessionInfo? mediaSession = sender is ProgressBar progressBar ? progressBar.Tag as MediaSessionInfo : null;
+            ProgressBar progress = sender as ProgressBar;
+
+            if (progress != null)
+            {
+                // Calculate the clicked position based on the mouse position
+                double clickedPosition = e.GetPosition(progress).X / progress.ActualWidth * progress.Maximum;
+
+                if (mediaSession != null)
+                {
+                   await MediaLinkModule.MediaManager_SeekTo(mediaSession, clickedPosition);
+                }
+
+            }
+        }
     }
 
 

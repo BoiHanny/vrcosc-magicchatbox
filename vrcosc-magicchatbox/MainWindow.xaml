@@ -8507,10 +8507,14 @@
                                                         VerticalAlignment="Center">
                                                         <Border Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                                             <ProgressBar
+                                                                x:Name="MediaProgressbar"
                                                                 Margin="0,0,0,0"
                                                                 BorderThickness="5"
+                                                                Cursor="Hand"
                                                                 Effect="{Binding TimePeekEnabled, Converter={StaticResource BoolToBlurEffectConverter}}"
+                                                                MouseLeftButtonDown="MediaProgressbar_MouseLeftButtonDown"
                                                                 Style="{StaticResource MediaPlayerProgress}"
+                                                                Tag="{Binding}"
                                                                 Value="{Binding TimePosition, Mode=OneWay}" />
                                                         </Border>
                                                         <Grid Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToHiddenConverter}}">
