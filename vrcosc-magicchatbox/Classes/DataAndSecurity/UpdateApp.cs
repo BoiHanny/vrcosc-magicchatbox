@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -35,28 +36,49 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             string jsonFilePath = Path.Combine(dataPath, "app_location.json");
             if (File.Exists(jsonFilePath))
             {
-                JObject appLocation = JObject.Parse(File.ReadAllText(jsonFilePath));
-                currentAppPath = appLocation["currentAppPath"].ToString();
-                tempPath = appLocation["tempPath"].ToString();
-                unzipPath = appLocation["unzipPath"].ToString();
-                magicChatboxExePath = appLocation["magicChatboxExePath"].ToString();
-                backupPath = Path.Combine(dataPath, "backup");
+                var settingsJson = File.ReadAllText(jsonFilePath);
 
-
+                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+                {
+                    Logging.WriteInfo("The app_location.json file is empty or corrupted.");
+                    SetDefaultPaths();
+                }
+                else
+                {
+                    try
+                    {
+                        JObject appLocation = JObject.Parse(settingsJson);
+                        currentAppPath = appLocation["currentAppPath"].ToString();
+                        tempPath = appLocation["tempPath"].ToString();
+                        unzipPath = appLocation["unzipPath"].ToString();
+                        magicChatboxExePath = appLocation["magicChatboxExePath"].ToString();
+                        backupPath = Path.Combine(dataPath, "backup");
+                    }
+                    catch (Newtonsoft.Json.JsonReaderException ex)
+                    {
+                        Logging.WriteInfo($"Error parsing app_location.json: {ex.Message}");
+                        SetDefaultPaths();
+                    }
+                }
             }
             else
             {
-                currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
-                unzipPath = Path.Combine(tempPath, "update_unzip");
-                magicChatboxExePath = Path.Combine(unzipPath, "MagicChatbox.exe");
-                backupPath = Path.Combine(dataPath, "backup");
-
+                SetDefaultPaths();
             }
-            if(!Directory.Exists(tempPath))
+
+            if (!Directory.Exists(tempPath))
             {
                 Directory.CreateDirectory(tempPath);
             }
+        }
+
+        private void SetDefaultPaths()
+        {
+            currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
+            unzipPath = Path.Combine(tempPath, "update_unzip");
+            magicChatboxExePath = Path.Combine(unzipPath, "MagicChatbox.exe");
+            backupPath = Path.Combine(dataPath, "backup");
         }
 
         public void UpdateApplication(bool admin = false, string customZipPath = null)
