@@ -30,9 +30,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             Exception? ex = null,
             bool MSGBox = true,
             bool autoclose = false,
-            bool exitapp = false)
+            bool exitapp = false,
+            bool log = true
+            )
         {
-            LogController.Error(ex.ToString());
+            if(log && ex != null)
+                LogController.Error(ex.ToString());
 
             // Check if MSGBox is true AND ex is not null
             if(MSGBox && ex != null)

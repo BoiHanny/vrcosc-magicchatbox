@@ -127,7 +127,7 @@ namespace vrcosc_magicchatbox
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true);
+            Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true,log:false);
         }
     }
 }
