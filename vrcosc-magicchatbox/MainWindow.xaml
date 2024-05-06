@@ -6593,87 +6593,106 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
+                                    <StackPanel
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <!--  Default values  -->
-                                                <Setter Property="Foreground" Value="#B49AD1" />
-                                                <Setter Property="Text" Value="Will be AFK in:" />
-                                                <Setter Property="Opacity" Value="0.7" />
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect
-                                                            BlurRadius="5"
-                                                            Direction="315"
-                                                            Opacity="1"
-                                                            ShadowDepth="0"
-                                                            Color="Black" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <!--  Change values based on AfkModule.IsAfk  -->
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
-                                                        <Setter Property="Text" Value="You are AFK for:" />
-                                                        <Setter Property="Opacity" Value="0.9" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="5"
-                                                Direction="315"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="Black" />
-                                        </TextBlock.Effect>
-                                    </TextBlock>
-                                    <TextBlock
-                                        Padding="3,0,5,0"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding AfkModule.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,1,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <!--  Default values  -->
+                                                    <Setter Property="Foreground" Value="#B49AD1" />
+                                                    <Setter Property="Text" Value="Will be AFK in:" />
+                                                    <Setter Property="Opacity" Value="0.7" />
+                                                    <Setter Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect
+                                                                BlurRadius="5"
+                                                                Direction="315"
+                                                                Opacity="1"
+                                                                ShadowDepth="0"
+                                                                Color="Black" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <!--  Change values based on AfkModule.IsAfk  -->
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                            <Setter Property="Text" Value="You are AFK for:" />
+                                                            <Setter Property="Opacity" Value="0.9" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Direction="315"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="Black" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <TextBlock
+                                            Padding="3,0,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <!--  Default values  -->
+                                                    <Setter Property="Foreground" Value="#BEBED3" />
+                                                    <Setter Property="Text" Value="{Binding AfkModule.RemainingTimeUntilAFK}" />
+                                                    <Setter Property="Opacity" Value="0.7" />
+                                                    <Setter Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect
+                                                                BlurRadius="5"
+                                                                Direction="315"
+                                                                Opacity="1"
+                                                                ShadowDepth="0"
+                                                                Color="Black" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <!--  Change values based on AfkModule.IsAfk  -->
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                            <Setter Property="Text" Value="{Binding AfkModule.TimeCurrentlyAFK}" />
+                                                            <Setter Property="Opacity" Value="0.9" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Direction="315"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="Black" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <StackPanel
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <!--  Default values  -->
-                                                <Setter Property="Foreground" Value="#BEBED3" />
-                                                <Setter Property="Text" Value="{Binding AfkModule.RemainingTimeUntilAFK}" />
-                                                <Setter Property="Opacity" Value="0.7" />
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect
-                                                            BlurRadius="5"
-                                                            Direction="315"
-                                                            Opacity="1"
-                                                            ShadowDepth="0"
-                                                            Color="Black" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <!--  Change values based on AfkModule.IsAfk  -->
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
-                                                        <Setter Property="Text" Value="{Binding AfkModule.TimeCurrentlyAFK}" />
-                                                        <Setter Property="Opacity" Value="0.9" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="5"
-                                                Direction="315"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="Black" />
-                                        </TextBlock.Effect>
-                                    </TextBlock>
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding AfkModule.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="5,0"
+                                            FontSize="12"
+                                            Foreground="#B49AD1"
+                                            Text="Paused, VR active" />
+                                    </StackPanel>
+
+
                                     <CheckBox
                                         Width="50"
                                         Height="18"

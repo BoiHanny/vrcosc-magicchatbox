@@ -106,6 +106,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private string timeCurrentlyAFK;
 
         [ObservableProperty]
+        private bool vRModeLabelActive;
+
+        [ObservableProperty]
         private bool overrideButtonVisible;
 
         public event EventHandler<EventArgs> AfkDetected;
@@ -146,7 +149,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (!afkTimer.IsEnabled)
                 {
-                    afkTimer.Interval = TimeSpan.FromSeconds(1); 
+                    afkTimer.Interval = TimeSpan.FromSeconds(1);
                     afkTimer.Tick += AfkTimer_Tick;
                     afkTimer.Start();
                 }
@@ -154,7 +157,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             else if (afkTimer.IsEnabled)
             {
                 afkTimer.Stop();
-                ExitAfkMode(); 
+                ExitAfkMode();
             }
         }
 
@@ -199,69 +202,94 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void AfkTimer_Tick(object sender, EventArgs e)
         {
-            uint idleTime = GetIdleTime();
 
-            // Adjust visibility based on override status
+
+            // Update the visibility of the override button
             OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
 
-            if (!Settings.ActivateInVR && ViewModel.Instance.IsVRRunning)
+            // Handle VR mode-specific logic
+            if (ViewModel.Instance.IsVRRunning && !Settings.ActivateInVR)
             {
-                // If ActivateInVR is turned off and IsVRRunning is true, stop the module and pause
-                if (afkTimer.IsEnabled)
+                VRModeLabelActive = true; // Indicate VR mode is active, but AFK is not activated in VR
+
+                if(!Settings.OverrideAfk)
                 {
-                    afkTimer.Stop();
-                    ExitAfkMode();
+                    if (IsAfk) // If AFK mode is currently active, exit it since VR mode doesn't allow it
+                    {
+                        ExitAfkMode();
+                    }
+
+                    // Since VR mode is active and AFK activation is not allowed, skip further processing
+                    return;
                 }
-                return;
+            }
+            else
+            {
+                VRModeLabelActive = false; // Ensure VR mode label is deactivated when not needed
             }
 
-            if (Settings.OverrideAfk && !overrideAfkStarted)
+            // Handle override logic
+            if (Settings.OverrideAfk)
             {
-                EnterAfkMode(true); // Enter AFK due to override
-                overrideAfkStarted = true;
+                VRModeLabelActive = false;
+                if (!overrideAfkStarted)
+                {
+                    EnterAfkMode(true, true); // Enter AFK mode with override, reset time
+                    overrideAfkStarted = true;
+                }
             }
-            else if (!Settings.OverrideAfk && overrideAfkStarted)
+            else if (overrideAfkStarted)
             {
-                ExitAfkMode();
+                ExitAfkMode(); // Exit AFK mode when override is deactivated
                 overrideAfkStarted = false;
             }
-            else if (idleTime >= Settings.AfkTimeout && !IsAfk)
+
+            uint idleTime = 0;
+            // Normal AFK detection logic when no override is active
+            if (!Settings.OverrideAfk)
             {
-                EnterAfkMode(false); // Enter AFK due to inactivity
+                idleTime = GetIdleTime();
+
+                if (idleTime >= Settings.AfkTimeout && !IsAfk)
+                {
+                    EnterAfkMode(false, false); // Enter AFK due to inactivity, do not reset time
+                }
+                else if (idleTime < Settings.AfkTimeout && IsAfk)
+                {
+                    ExitAfkMode(); // Exit AFK as user is active again
+                }
             }
-            else if (idleTime < Settings.AfkTimeout && IsAfk && !Settings.OverrideAfk)
+
+            // Update AFK status display
+            if (IsAfk)
             {
-                ExitAfkMode(); // Exit AFK as user is active again and not overriding
-            }
-            else if (IsAfk)
-            {
-                // Continuously update AFK duration if AFK
                 TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime);
             }
             else
             {
-                // Update the remaining time until AFK
                 RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout - idleTime));
             }
         }
 
-        private void EnterAfkMode(bool isOverride)
+
+
+
+
+
+
+
+        private void EnterAfkMode(bool isOverride, bool resetTime)
         {
             IsAfk = true;
-            if (isOverride)
+            if (resetTime)
             {
                 lastActionTime = DateTime.Now;
-            }
-            else
-            {
-                lastActionTime = DateTime.Now - TimeSpan.FromSeconds(Settings.AfkTimeout);
-                // Hide the override button only when entering AFK due to inactivity
-                OverrideButtonVisible = false;
             }
 
             TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime);
             AfkDetected?.Invoke(this, EventArgs.Empty);
         }
+
 
         private void ExitAfkMode()
         {
@@ -286,7 +314,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 parts.Add($"{duration.Minutes}m");
             }
 
-            
+
             if (duration.Seconds > 0 || (duration.Hours == 0 && duration.Minutes == 0))
             {
                 parts.Add($"{duration.Seconds}s");
