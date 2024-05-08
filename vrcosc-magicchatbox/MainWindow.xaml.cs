@@ -173,31 +173,6 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             Task.Run(() => scantick(true));
-            Task.Run(CheckForUpdates);
-        }
-
-        private async Task CheckForUpdates()
-        {
-            if (ViewModel.Instance.CheckUpdateOnStartup)
-            {
-                var updateCheckTask = DataController.CheckForUpdateAndWait();
-                var delayTask = Task.Delay(TimeSpan.FromSeconds(10));
-
-                var completedTask = await Task.WhenAny(updateCheckTask, delayTask);
-
-                if (completedTask == delayTask)
-                {
-                    ViewModel.Instance.VersionTxt = "Check update timeout";
-                    ViewModel.Instance.VersionTxtColor = "#F36734";
-                    ViewModel.Instance.VersionTxtUnderLine = false;
-                }
-            }
-            else
-            {
-                ViewModel.Instance.VersionTxt = "Check for updates";
-                ViewModel.Instance.VersionTxtColor = "#2FD9FF";
-                ViewModel.Instance.VersionTxtUnderLine = false;
-            }
         }
 
         public static event EventHandler ShadowOpacityChanged;

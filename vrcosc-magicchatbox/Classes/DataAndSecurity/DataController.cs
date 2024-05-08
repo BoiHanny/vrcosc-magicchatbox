@@ -76,68 +76,72 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 .ToArray());
         }
 
-        private static void CheckForUpdate()
+        private static async void CheckForUpdate()
         {
             try
             {
-                string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                 string urlLatest = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
                 string urlPreRelease = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases";
-                if (urlLatest != null)
+
+                bool isWithinRateLimit = await CheckRateLimit();
+
+                using (var client = new HttpClient())
                 {
-                    using (var client = new HttpClient())
+                    if (!isWithinRateLimit && !string.IsNullOrEmpty(ViewModel.Instance.ApiStream))
                     {
+                        string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                         client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
-                        client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
-
-                        // Check the latest release
-                        HttpResponseMessage responseLatest = client.GetAsync(urlLatest).Result;
-                        var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
-                        JObject releaseLatest = JObject.Parse(jsonLatest);
-                        string latestVersion = releaseLatest.Value<string>("tag_name");
-
-                        ViewModel.Instance.LatestReleaseVersion = new Version(
-                            Regex.Replace(latestVersion, "[^0-9.]", string.Empty));
-
-                        // Correctly handling the assets array to get the browser_download_url
-                        JArray assetsLatest = releaseLatest.Value<JArray>("assets");
-                        if (assetsLatest != null && assetsLatest.Count > 0)
-                        {
-                            string downloadUrl = assetsLatest[0].Value<string>("browser_download_url");
-                            ViewModel.Instance.LatestReleaseURL = downloadUrl; // Store the download URL
-                        }
-
-                        // Check the latest pre-release
-                        var responsePreRelease = client.GetAsync(urlPreRelease).Result;
-                        var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
-                        JArray releases = JArray.Parse(jsonPreRelease);
-                        string preReleaseVersion = string.Empty;
-                        foreach (var release in releases)
-                        {
-                            if (release.Value<bool>("prerelease"))
-                            {
-                                preReleaseVersion = release.Value<string>("tag_name");
-                                JArray assetsPreRelease = release.Value<JArray>("assets");
-                                if (assetsPreRelease != null && assetsPreRelease.Count > 0)
-                                {
-                                    string preReleaseDownloadUrl = assetsPreRelease[0].Value<string>("browser_download_url");
-                                    ViewModel.Instance.PreReleaseURL = preReleaseDownloadUrl; // Store the download URL
-                                }
-                                break;
-                            }
-                        }
-
-                        // Check if there's a new pre-release and user is joined to alpha channel
-                        if (ViewModel.Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
-                        {
-                            ViewModel.Instance.PreReleaseVersion = new Version(
-                                Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
-                            ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
-                        }
-
-                        UpdateApp updater = new UpdateApp();
-                        ViewModel.Instance.RollBackUpdateAvailable = updater.CheckIfBackupExists();
                     }
+
+                    client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
+
+                    // Check the latest release
+                    HttpResponseMessage responseLatest = client.GetAsync(urlLatest).Result;
+                    var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
+                    JObject releaseLatest = JObject.Parse(jsonLatest);
+                    string latestVersion = releaseLatest.Value<string>("tag_name");
+
+                    ViewModel.Instance.LatestReleaseVersion = new Version(
+                        Regex.Replace(latestVersion, "[^0-9.]", string.Empty));
+
+                    // Correctly handling the assets array to get the browser_download_url
+                    JArray assetsLatest = releaseLatest.Value<JArray>("assets");
+                    if (assetsLatest != null && assetsLatest.Count > 0)
+                    {
+                        string downloadUrl = assetsLatest[0].Value<string>("browser_download_url");
+                        ViewModel.Instance.LatestReleaseURL = downloadUrl; // Store the download URL
+                    }
+
+                    // Check the latest pre-release
+                    var responsePreRelease = client.GetAsync(urlPreRelease).Result;
+                    var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
+                    JArray releases = JArray.Parse(jsonPreRelease);
+                    string preReleaseVersion = string.Empty;
+                    foreach (var release in releases)
+                    {
+                        if (release.Value<bool>("prerelease"))
+                        {
+                            preReleaseVersion = release.Value<string>("tag_name");
+                            JArray assetsPreRelease = release.Value<JArray>("assets");
+                            if (assetsPreRelease != null && assetsPreRelease.Count > 0)
+                            {
+                                string preReleaseDownloadUrl = assetsPreRelease[0].Value<string>("browser_download_url");
+                                ViewModel.Instance.PreReleaseURL = preReleaseDownloadUrl; // Store the download URL
+                            }
+                            break;
+                        }
+                    }
+
+                    // Check if there's a new pre-release and user is joined to alpha channel
+                    if (ViewModel.Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
+                    {
+                        ViewModel.Instance.PreReleaseVersion = new Version(
+                            Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
+                        ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
+                    }
+
+                    UpdateApp updater = new UpdateApp();
+                    ViewModel.Instance.RollBackUpdateAvailable = updater.CheckIfBackupExists();
                 }
             }
             catch (Exception ex)
@@ -151,6 +155,38 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 CompareVersions();
             }
+        }
+
+        private static async Task<bool> CheckRateLimit()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
+
+                    // Check the rate limit status
+                    var rateLimitResponse = await client.GetAsync("https://api.github.com/rate_limit");
+                    var rateLimitData = JsonConvert.DeserializeObject<JObject>(await rateLimitResponse.Content.ReadAsStringAsync());
+
+                    // Check if the rate limit has been exceeded for the requested endpoint
+                    var resources = rateLimitData["resources"];
+                    var coreResource = resources["core"];
+                    var remainingRequests = (int)coreResource["remaining"];
+
+                    if (remainingRequests <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                return false;
+            }
+
+            return true;
         }
 
         private static object ConvertToType(Type targetType, string value)
@@ -169,7 +205,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     return double.Parse(value);
                 case Type t when t == typeof(Timezone):
                     return Enum.Parse(typeof(Timezone), value);
-                case Type t  when t == typeof(MediaLinkTimeSeekbar):
+                case Type t when t == typeof(MediaLinkTimeSeekbar):
                     return Enum.Parse(typeof(MediaLinkTimeSeekbar), value);
                 case Type t when t == typeof(DateTime):
                     return DateTime.Parse(value);
@@ -609,7 +645,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 else
                 {
                     Logging.WriteInfo("LastMessages history has never been created, not problem :P");
-                    if(ViewModel.Instance.LastMessages == null)
+                    if (ViewModel.Instance.LastMessages == null)
                     {
                         ViewModel.Instance.LastMessages = new();
                     }
@@ -642,7 +678,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         .ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMediaLinkSessions.xml"));
                     if (json.ToLower().Equals("null"))
                     {
-                           Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
+                        Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
                         ViewModel.Instance.SavedSessionSettings = new List<MediaSessionSettings>();
                         return;
                     }
@@ -651,7 +687,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 else
                 {
                     Logging.WriteInfo("LastMediaSessions history has never been created, not problem :P");
-                    if(ViewModel.Instance.SavedSessionSettings == null)
+                    if (ViewModel.Instance.SavedSessionSettings == null)
                     {
                         ViewModel.Instance.SavedSessionSettings = new List<MediaSessionSettings>();
                     }
@@ -716,7 +752,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (JsonException jsonEx)
             {
-                Logging.WriteException(jsonEx, MSGBox:true);
+                Logging.WriteException(jsonEx, MSGBox: true);
                 ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
             }
         }
@@ -763,7 +799,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 if (ViewModel.Instance == null)
                 {
-                    Logging.WriteException(new Exception("ViewModel is null, please restart the program."), exitapp:true);
+                    Logging.WriteException(new Exception("ViewModel is null, please restart the program."), exitapp: true);
                 }
 
                 string datapath = Path.Combine(ViewModel.Instance.DataPath, "settings.xml");

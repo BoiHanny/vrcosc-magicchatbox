@@ -4,12 +4,10 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
-using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {

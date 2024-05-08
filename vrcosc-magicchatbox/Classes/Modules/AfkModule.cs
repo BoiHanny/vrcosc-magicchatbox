@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using vrcosc_magicchatbox.ViewModels;
-using WindowsMediaController;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
