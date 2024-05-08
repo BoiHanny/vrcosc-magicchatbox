@@ -4,6 +4,7 @@ using NHotkey.Wpf;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using vrcosc_magicchatbox.ViewModels;
@@ -93,10 +94,19 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
 
                 var json = File.ReadAllText(HotkeyConfigFile);
+
+                // Check if the JSON string is empty, contains only null characters, or is whitespace
+                if (string.IsNullOrWhiteSpace(json) || json.All(c => c == '\0'))
+                {
+                    Logging.WriteException(new Exception("The hotkey configurations file is empty or corrupted."), MSGBox: false);
+                    AddDefaultHotkeys();
+                    SaveHotkeyConfigurations();
+                    return;
+                }
+
                 var deserialized = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
                 if (deserialized == null)
                 {
-                    // Log an error message stating that the deserialization returned null
                     Logging.WriteException(new Exception("Failed to deserialize hotkey configurations."), MSGBox: true);
                     AddDefaultHotkeys();
                     return;
@@ -108,7 +118,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     if (!Enum.TryParse<Key>(entry.Value["Key"], out var key) ||
                         !Enum.TryParse<ModifierKeys>(entry.Value["Modifiers"], out var modifiers))
                     {
-                        // Log an error message about the specific hotkey that failed to parse
                         Logging.WriteException(new Exception($"Failed to parse hotkey configuration for {entry.Key}."), MSGBox: true);
                         continue;
                     }
@@ -116,7 +125,6 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     var action = GetActionForHotkey(entry.Key);
                     if (action == null)
                     {
-                        // Log an error message stating that no action is defined for this hotkey
                         Logging.WriteException(new Exception($"No action defined for hotkey {entry.Key}."), MSGBox: true);
                         continue;
                     }
@@ -128,8 +136,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             {
                 Logging.WriteException(ex, MSGBox: true);
             }
-            
         }
+
 
 
         private Action GetActionForHotkey(string hotkeyName)

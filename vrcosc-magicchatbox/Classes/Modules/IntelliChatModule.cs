@@ -9,9 +9,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules
@@ -415,7 +415,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void ProcessResponse(ChatResponse? response)
         {
-            if (response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String)
+            if (response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String)
             {
                 Settings.IntelliChatUILabel = false;
                 Settings.IntelliChatUILabelTxt = string.Empty;
@@ -680,16 +680,51 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (File.Exists(filePath))
             {
                 var jsonData = File.ReadAllText(filePath);
-                Settings = JsonConvert.DeserializeObject<IntelliChatModuleSettings>(jsonData) ?? new IntelliChatModuleSettings();
+
+                // Check if the JSON data is empty, contains only null characters, or is whitespace
+                if (string.IsNullOrWhiteSpace(jsonData) || jsonData.All(c => c == '\0'))
+                {
+                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
+                    Settings = new IntelliChatModuleSettings();
+                    MergeOrUpdateBuiltInStylesAndLanguages();
+                    EnsureValidSelections();
+                    return;
+                }
+
+                try
+                {
+                    var settings = JsonConvert.DeserializeObject<IntelliChatModuleSettings>(jsonData);
+                    if (settings != null)
+                    {
+                        Settings = settings;
+                        MergeOrUpdateBuiltInStylesAndLanguages();
+                        EnsureValidSelections();
+                    }
+                    else
+                    {
+                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
+                        Settings = new IntelliChatModuleSettings();
+                        MergeOrUpdateBuiltInStylesAndLanguages();
+                        EnsureValidSelections();
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
+                    Settings = new IntelliChatModuleSettings();
+                    MergeOrUpdateBuiltInStylesAndLanguages();
+                    EnsureValidSelections();
+                }
             }
             else
             {
+                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
                 Settings = new IntelliChatModuleSettings();
+                MergeOrUpdateBuiltInStylesAndLanguages();
+                EnsureValidSelections();
             }
-
-            MergeOrUpdateBuiltInStylesAndLanguages();
-            EnsureValidSelections();
         }
+
 
 
 
@@ -982,7 +1017,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             new Message(Role.System, prompt)
                     }, maxTokens: 60, model:modelName), _cancellationTokenSource.Token);
 
-                var shortenedText = response?.Choices?[0].Message.Content.ValueKind == JsonValueKind.String
+                var shortenedText = response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String
                     ? response.Choices[0].Message.Content.GetString()
                     : string.Empty;
 
