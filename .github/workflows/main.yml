@@ -48,11 +48,37 @@ jobs:
         Solution_Name: vrcosc-magicchatbox.sln
         Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
 
-
-
     - name: Create Zip File
       run: |
         Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
+
+    - name: Upload and Scan with VirusTotal
+      id: virustotal_scan
+      run: |
+        $file_path = "./MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
+        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        
+        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{
+          "x-apikey" = $api_key
+        } -Form @{
+          "file" = Get-Item $file_path
+        }
+        
+        $scan_id = $response.data.id
+        echo "::set-output name=SCAN_ID::$scan_id"
+
+    - name: Get VirusTotal Scan Report
+      id: virustotal_report
+      run: |
+        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
+        
+        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/analyses/$scan_id" -Headers @{
+          "x-apikey" = $api_key
+        }
+        
+        $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
+        echo "::set-output name=REPORT_URL::$report_url"
 
     - name: Create Release
       id: create_release
@@ -75,6 +101,9 @@ jobs:
           4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
           5. When extracted, the folder will open.
           6. Run the file 'MagicChatbox.exe'.
+
+          [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ steps.get_version.outputs.VERSION }}/MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip)
+          [![Scan at VirusTotal](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/${{ steps.virustotal_report.outputs.REPORT_URL }}/detection)
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
