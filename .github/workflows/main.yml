@@ -103,7 +103,7 @@ jobs:
           6. Run the file 'MagicChatbox.exe'.
 
           [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ steps.get_version.outputs.VERSION }}/MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip)
-          [![Scan at VirusTotal](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/${{ steps.virustotal_report.outputs.REPORT_URL }}/detection)
+          [![Scanned with VirusTotal](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](${{ steps.virustotal_report.outputs.REPORT_URL }})
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
