@@ -10,129 +10,114 @@
 
 //namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 //{
-//    public partial class VRChatOSCQuerySettings : ObservableObject
-//    {
-
-//        private const string SettingsFileName = "VRChatOSCQuerySettings.json";
-
-//        [ObservableProperty]
-//        string oSCAddress;
-
-//        [ObservableProperty]
-//        int oSCPort;
-
-
-
-//        private VRChatOSCQuerySettings()
+//        public partial class VRChatOSCQuerySettings : ObservableObject
 //        {
-//            LoadSettings();
-//        }
+//            private const string SettingsFileName = "VRChatOSCQuerySettings.json";
 
-//        public static VRChatOSCQuerySettings LoadSettings()
-//        {
-//            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+//            [ObservableProperty]
+//            private string oSCAddress;
 
-//            if (File.Exists(path))
+//            [ObservableProperty]
+//            private int oSCPort;
+
+//            private VRChatOSCQuerySettings()
 //            {
-//                var settingsJson = File.ReadAllText(path);
+//                // Load settings from file during initialization
+//                LoadSettings();
+//            }
 
-//                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+//            // Singleton pattern to ensure a single instance of settings
+//            public static VRChatOSCQuerySettings Instance { get; } = LoadSettings();
+
+//            private static VRChatOSCQuerySettings LoadSettings()
+//            {
+//                var path = GetSettingsFilePath();
+
+//                if (File.Exists(path))
 //                {
-//                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
-//                    return new VRChatOSCQuerySettings();
-//                }
+//                    var settingsJson = File.ReadAllText(path);
 
-//                try
-//                {
-//                    var settings = JsonConvert.DeserializeObject<VRChatOSCQuerySettings>(settingsJson);
-
-//                    if (settings != null)
+//                    if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
 //                    {
-//                        return settings;
+//                        Logging.WriteInfo("The settings JSON file is empty or corrupted.");
+//                        return new VRChatOSCQuerySettings();
 //                    }
-//                    else
+
+//                    try
 //                    {
-//                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
+//                        var settings = JsonConvert.DeserializeObject<VRChatOSCQuerySettings>(settingsJson);
+//                        return settings ?? new VRChatOSCQuerySettings();
+//                    }
+//                    catch (JsonException ex)
+//                    {
+//                        Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
 //                        return new VRChatOSCQuerySettings();
 //                    }
 //                }
-//                catch (JsonException ex)
+//                else
 //                {
-//                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
+//                    Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
 //                    return new VRChatOSCQuerySettings();
 //                }
 //            }
-//            else
+
+//            public void SaveSettings()
 //            {
-//                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
-//                return new VRChatOSCQuerySettings();
+//                var path = GetSettingsFilePath();
+//                Directory.CreateDirectory(Path.GetDirectoryName(path));
+//                var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+//                File.WriteAllText(path, settingsJson);
 //            }
+
+//            private static string GetSettingsFilePath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
 //        }
 
-//        public void SaveSettings()
-//        {
-//            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
-//            Directory.CreateDirectory(Path.GetDirectoryName(path)); // Ensure directory exists
-//            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-//            File.WriteAllText(path, settingsJson);
-//        }
-//    }
 
-//    public partial class VRChatOSCQuery : ObservableObject
+//public partial class VRChatOSCQuery : ObservableObject, IDisposable
 //    {
-//        using System;
-//using System.Collections.Generic;
-//using System.Net;
-//using VRC.OSCQuery;
-
-//public class VRChatOSC : IDisposable
-//    {
-//        private OSCQueryService _oscQueryService;
-//        private Dictionary<string, OSCQueryNode> _avatarParameters = new Dictionary<string, OSCQueryNode>();
+//        private readonly OSCQueryService _oscQueryService;
+//        private readonly Dictionary<string, OSCQueryNode> _avatarParameters = new();
 
 //        public event Action<string, object> OnAvatarParameterChanged;
 
-//        public VRChatOSC()
+//        public VRChatOSCQuery()
 //        {
-//            // Create a new OSCQueryService instance
 //            _oscQueryService = new OSCQueryServiceBuilder()
 //                .WithDefaults()
 //                .WithServiceName("MyOSCService")
 //                .WithLogger(new NullLogger<OSCQueryService>())
 //                .Build();
 
-//            // Subscribe to OSC and OSCQuery service discovery events
 //            _oscQueryService.OnOscServiceAdded += OnOscServiceDiscovered;
 //            _oscQueryService.OnOscQueryServiceAdded += OnOscQueryServiceDiscovered;
 
-//            // Subscribe to avatar change events
-//            _oscQueryService.RootNode.AddNode(new OSCQueryNode("/avatar/change")). += OnAvatarChanged;
+//            var rootNode = _oscQueryService.RootNode;
+//            var avatarChangeNode = new OSCQueryNode("/avatar/change");
+//            avatarChangeNode.OnValueChangedEvent += OnAvatarChanged;
+//            rootNode.AddNode(avatarChangeNode);
 //        }
 
 //        private void OnOscServiceDiscovered(OSCQueryServiceProfile profile)
 //        {
-//            Console.WriteLine($"Discovered OSC service: {profile.Name} at {profile.Address}:{profile.Port}");
+//            Console.WriteLine($"Discovered OSC service: {profile.name} at {profile.address}:{profile.port}");
 //        }
 
 //        private void OnOscQueryServiceDiscovered(OSCQueryServiceProfile profile)
 //        {
-//            Console.WriteLine($"Discovered OSCQuery service: {profile.Name} at {profile.Address}:{profile.Port}");
+//            Console.WriteLine($"Discovered OSCQuery service: {profile.name} at {profile.address}:{profile.port}");
 //        }
 
-//        private void OnAvatarChanged(object sender, ValueChangedEventArgs args)
+//        private async void OnAvatarChanged(object sender, ValueChangedEventArgs args)
 //        {
 //            string avatarId = (string)args.Value;
 //            Console.WriteLine($"Avatar changed to: {avatarId}");
 
-//            // Clear existing avatar parameters
 //            _avatarParameters.Clear();
 
-//            // Get the new avatar's OSC tree
 //            IPAddress ip = _oscQueryService.HostIP;
 //            int port = _oscQueryService.TcpPort;
-//            var oscTree = Extensions.GetOSCTree(ip, port).Result;
+//            var oscTree = await Extensions.GetOSCTree(ip, port);
 
-//            // Find all avatar parameters in the OSC tree
 //            var parameterNodes = oscTree.GetNodeWithPath("/avatar/parameters")?.Contents;
 //            if (parameterNodes != null)
 //            {
