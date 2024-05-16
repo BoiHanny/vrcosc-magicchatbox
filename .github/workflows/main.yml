@@ -17,6 +17,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Ensure full history is checked out
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
@@ -89,26 +91,7 @@ jobs:
 
     - name: Get Commits Since Last Release
       id: get_commits
-      run: |
-        $branch = (git rev-parse --abbrev-ref HEAD)
-        if ($branch -eq "master") {
-          $previousTag = git describe --tags `git rev-list --tags --max-count=1`
-        } else {
-          $previousTag = git describe --tags `git rev-list --tags --max-count=1 --grep=prerelease`
-        }
-        if (-not $previousTag) {
-          $previousTag = $(git rev-list --max-parents=0 HEAD)
-        }
-        $commits = git log $previousTag..HEAD --pretty=format:"%h %s"
-        $formattedCommits = $commits | ForEach-Object {
-          $parts = ($_ -split ' ')
-          $shortCommit = $parts[1..10] -join ' ' + " ... " + $parts[-5..-1] -join ' '
-          $commitHash = $parts[0]
-          "$shortCommit ([commit](https://github.com/BoiHanny/vrcosc-magicchatbox/commit/$commitHash))"
-        }
-        $formattedCommits -join "`n" | Out-File -FilePath commits.md -Encoding utf8
-        echo "::set-output name=COMMITS::$(cat commits.md)"
-      shell: pwsh
+      uses: simbo/changes-since-last-release-action@v1.0.1
 
     - name: Create Release
       id: create_release
@@ -159,7 +142,7 @@ jobs:
           </div>
 
           <ul>
-            ${{ steps.get_commits.outputs.COMMITS }}
+            ${{ steps.get_commits.outputs.log }}
           </ul>
 
           <hr>
@@ -168,9 +151,9 @@ jobs:
             <h2>Contact and Support</h2>
             <p>Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love to hear from you! Feel free to reach out to us through one of the following channels:</p>
             <ul>
-              <li>**Discord:** [![Join us on Discord](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)</li>
-              <li>**GitHub Issues:** [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)</li>
-              <li>**Wiki:** [Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)</li>
+              <li><strong>Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">![Join us on Discord](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)</a></li>
+              <li><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a></li>
+              <li><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a></li>
             </ul>
           </div>
 
