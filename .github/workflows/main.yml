@@ -39,24 +39,20 @@ jobs:
         if ($match.Success -and $match.Groups.Count -gt 1) {
           $version = $match.Groups[1].Value
           echo "VERSION=$version" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "::set-output name=VERSION::$version"
         } else {
           echo "Error: Version not found in csproj file."
           exit 1
         }
       shell: pwsh
-      env:
-        Solution_Name: vrcosc-magicchatbox.sln
-        Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
 
     - name: Create Zip File
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
 
     - name: Upload and Scan with VirusTotal
       id: virustotal_scan
       run: |
-        $file_path = "./MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip"
+        $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
         
         $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{
@@ -86,21 +82,28 @@ jobs:
       run: |
         if ($GITHUB_REF -eq 'refs/heads/master') {
           echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "::set-output name=PRE_RELEASE::false"
         } else {
           echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "::set-output name=PRE_RELEASE::true"
         }
       shell: pwsh
 
     - name: Get Commits Since Last Release
       id: get_commits
       run: |
-        $previousTag = git describe --tags --abbrev=0
-        $commits = git log $previousTag..HEAD --oneline
+        $branch = (git rev-parse --abbrev-ref HEAD)
+        if ($branch -eq "master") {
+          $previousTag = git describe --tags `git rev-list --tags --max-count=1`
+        } else {
+          $previousTag = git describe --tags `git rev-list --tags --max-count=1 --grep=prerelease`
+        }
+        if (-not $previousTag) {
+          $previousTag = $(git rev-list --max-parents=0 HEAD)
+        }
+        $commits = git log $previousTag..HEAD --pretty=format:"%h %s"
         $formattedCommits = $commits | ForEach-Object {
-          $shortCommit = ($_ -split ' ')[1..10] -join ' ' + " ... " + ($_ -split ' ')[-5..-1] -join ' '
-          $commitHash = ($_ -split ' ')[0]
+          $parts = ($_ -split ' ')
+          $shortCommit = $parts[1..10] -join ' ' + " ... " + $parts[-5..-1] -join ' '
+          $commitHash = $parts[0]
           "$shortCommit ([commit](https://github.com/BoiHanny/vrcosc-magicchatbox/commit/$commitHash))"
         }
         $formattedCommits -join "`n" | Out-File -FilePath commits.md -Encoding utf8
@@ -113,21 +116,21 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
-        tag_name: v${{ steps.get_version.outputs.VERSION }}
-        release_name: v${{ steps.get_version.outputs.VERSION }}
+        tag_name: v${{ env.VERSION }}
+        release_name: v${{ env.VERSION }}
         draft: false
-        prerelease: ${{ steps.determine_release_type.outputs.PRE_RELEASE }}
+        prerelease: ${{ env.PRE_RELEASE }}
         body: |
           <div align="center">
-            <h1>MagicChatbox v${{ steps.get_version.outputs.VERSION }}</h1>
-            <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ steps.get_version.outputs.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
+            <h1>MagicChatbox v${{ env.VERSION }}</h1>
+            <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
             
             <p>
-              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ steps.get_version.outputs.VERSION }}/MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip">
+              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
               </a>
               <a href="${{ steps.virustotal_report.outputs.REPORT_URL }}">
-                <img src="https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
+                <img src="https://custom-icon-badges.herokuapp.com/badge/-Virus%20Scan%20Result-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
               </a>
             </p>
           </div>
@@ -163,10 +166,11 @@ jobs:
 
           <div align="center">
             <h2>Contact and Support</h2>
-            <p>If you encounter any issues or have questions, feel free to reach out:</p>
+            <p>Have any questions, suggestions, or feedback regarding MagicChatbox? We'd love to hear from you! Feel free to reach out to us through one of the following channels:</p>
             <ul>
-              <li>GitHub Issues: <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a problem</a></li>
-              <li>Email: <a href="mailto:support@magicchatbox.com">support@magicchatbox.com</a></li>
+              <li>**Discord:** [![Join us on Discord](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)</li>
+              <li>**GitHub Issues:** [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)</li>
+              <li>**Wiki:** [Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)</li>
             </ul>
           </div>
 
@@ -176,6 +180,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_name: MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_path: ./MagicChatbox-${{ env.VERSION }}.zip
+        asset_name: MagicChatbox-${{ env.VERSION }}.zip
         asset_content_type: application/zip
