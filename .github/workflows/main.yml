@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'Pre-Master'
+      - 'master'
 
 env:
   Solution_Name: vrcosc-magicchatbox.sln
@@ -80,6 +81,32 @@ jobs:
         $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
         echo "::set-output name=REPORT_URL::$report_url"
 
+    - name: Determine Release Type
+      id: determine_release_type
+      run: |
+        if ($GITHUB_REF -eq 'refs/heads/master') {
+          echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "::set-output name=PRE_RELEASE::false"
+        } else {
+          echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "::set-output name=PRE_RELEASE::true"
+        }
+      shell: pwsh
+
+    - name: Get Commits Since Last Release
+      id: get_commits
+      run: |
+        $previousTag = git describe --tags --abbrev=0
+        $commits = git log $previousTag..HEAD --oneline
+        $formattedCommits = $commits | ForEach-Object {
+          $shortCommit = ($_ -split ' ')[1..10] -join ' ' + " ... " + ($_ -split ' ')[-5..-1] -join ' '
+          $commitHash = ($_ -split ' ')[0]
+          "$shortCommit ([commit](https://github.com/BoiHanny/vrcosc-magicchatbox/commit/$commitHash))"
+        }
+        $formattedCommits -join "`n" | Out-File -FilePath commits.md -Encoding utf8
+        echo "::set-output name=COMMITS::$(cat commits.md)"
+      shell: pwsh
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -89,21 +116,59 @@ jobs:
         tag_name: v${{ steps.get_version.outputs.VERSION }}
         release_name: v${{ steps.get_version.outputs.VERSION }}
         draft: false
-        prerelease: true
+        prerelease: ${{ steps.determine_release_type.outputs.PRE_RELEASE }}
         body: |
-          # MagicChatbox Pre-v${{ steps.get_version.outputs.VERSION }} ![GitHub release (latest by date)](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ steps.get_version.outputs.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic)
-          <!-- BEGIN LATEST DOWNLOAD BUTTON -->
-          # Download the latest version and update in the app.
-          ### Manual Download and Installation
-          1. Download the .zip
-          2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
-          3. Right-click and choose the option 'extract all'.
-          4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
-          5. When extracted, the folder will open.
-          6. Run the file 'MagicChatbox.exe'.
+          <div align="center">
+            <h1>MagicChatbox v${{ steps.get_version.outputs.VERSION }}</h1>
+            <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ steps.get_version.outputs.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
+            
+            <p>
+              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ steps.get_version.outputs.VERSION }}/MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip">
+                <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
+              </a>
+              <a href="${{ steps.virustotal_report.outputs.REPORT_URL }}">
+                <img src="https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
+              </a>
+            </p>
+          </div>
 
-          [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ steps.get_version.outputs.VERSION }}/MagicChatbox-${{ steps.get_version.outputs.VERSION }}.zip)
-          [![Scanned with VirusTotal](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](${{ steps.virustotal_report.outputs.REPORT_URL }})
+          <hr>
+
+          <div align="center">
+            <h2>Download and Installation</h2>
+            <p>Follow these steps to download and install the latest version of MagicChatbox.</p>
+          </div>
+
+          <ol>
+            <li>Download the .zip file from the link above.</li>
+            <li>Ensure you have <a href="https://dotnet.microsoft.com/en-us/download">.NET 6</a> installed.</li>
+            <li>Right-click on the downloaded .zip file and select <b>Extract All</b>.</li>
+            <li>The extracted content will be in a new folder in your downloads directory (or your chosen location).</li>
+            <li>Open the newly created folder.</li>
+            <li>Run <code>MagicChatbox.exe</code> to start the application.</li>
+          </ol>
+
+          <hr>
+
+          <div align="center">
+            <h2>Release Notes</h2>
+            <p>Details about the changes and improvements in this version.</p>
+          </div>
+
+          <ul>
+            ${{ steps.get_commits.outputs.COMMITS }}
+          </ul>
+
+          <hr>
+
+          <div align="center">
+            <h2>Contact and Support</h2>
+            <p>If you encounter any issues or have questions, feel free to reach out:</p>
+            <ul>
+              <li>GitHub Issues: <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a problem</a></li>
+              <li>Email: <a href="mailto:support@magicchatbox.com">support@magicchatbox.com</a></li>
+            </ul>
+          </div>
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
