@@ -89,9 +89,22 @@ jobs:
         }
       shell: pwsh
 
+    - name: Get Latest Tag
+      id: get_latest_tag
+      uses: actions-ecosystem/action-get-latest-tag@v1
+      with:
+        tag: 'v*'
+
     - name: Get Commits Since Last Release
       id: get_commits
-      uses: simbo/changes-since-last-release-action@v1.0.1
+      run: |
+        latest_tag=${{ steps.get_latest_tag.outputs.tag }}
+        if [ -z "$latest_tag" ]; then
+          latest_tag=$(git rev-list --max-parents=0 HEAD)
+        fi
+        git log $latest_tag..HEAD --oneline > commits.txt
+        commits=$(cat commits.txt)
+        echo "COMMITS=${commits}" >> $GITHUB_ENV
 
     - name: Create Release
       id: create_release
@@ -142,7 +155,7 @@ jobs:
           </div>
 
           <ul>
-            ${{ steps.get_commits.outputs.log }}
+            ${{ env.COMMITS }}
           </ul>
 
           <hr>
