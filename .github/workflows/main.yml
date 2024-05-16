@@ -17,8 +17,6 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0 # Ensure full history is checked out
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
@@ -89,23 +87,6 @@ jobs:
         }
       shell: pwsh
 
-    - name: Get Latest Tag
-      id: get_latest_tag
-      uses: actions-ecosystem/action-get-latest-tag@v1
-      with:
-        tag: 'v*'
-
-    - name: Get Commits Since Last Release
-      id: get_commits
-      run: |
-        latest_tag=${{ steps.get_latest_tag.outputs.tag }}
-        if [ -z "$latest_tag" ]; then
-          latest_tag=$(git rev-list --max-parents=0 HEAD)
-        fi
-        git log $latest_tag..HEAD --oneline > commits.txt
-        commits=$(cat commits.txt)
-        echo "COMMITS=${commits}" >> $GITHUB_ENV
-
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -153,10 +134,6 @@ jobs:
             <h2>Release Notes</h2>
             <p>Details about the changes and improvements in this version.</p>
           </div>
-
-          <ul>
-            ${{ env.COMMITS }}
-          </ul>
 
           <hr>
 
