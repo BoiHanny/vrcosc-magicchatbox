@@ -12,20 +12,27 @@ namespace vrcosc_magicchatbox
 {
     public partial class App : Application
     {
+        // Singleton instance for managing media links within the application
         public static MediaLinkModule ApplicationMediaController { get; private set; }
 
+        // Main entry point for the application
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Show the startup/loading window
             StartUp loadingWindow = new StartUp();
             loadingWindow.Show();
 
+            // Set up global exception handlers
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
+            // Initialize the update application logic
             UpdateApp updater = new UpdateApp();
 
+            // Process command-line arguments
             if (e.Args != null && e.Args.Length > 0)
             {
                 switch (e.Args[0])
@@ -34,17 +41,17 @@ namespace vrcosc_magicchatbox
                         loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
                         await Task.Run(() => updater.UpdateApplication());
                         Shutdown();
-                        break;
+                        return;
                     case "-updateadmin":
                         loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
                         await Task.Run(() => updater.UpdateApplication(true));
                         Shutdown();
-                        break;
+                        return;
                     case "-rollback":
                         loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
                         await Task.Run(() => updater.RollbackApplication(loadingWindow));
                         Shutdown();
-                        break;
+                        return;
                     case "-clearbackup":
                         loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
                         await Task.Run(() => updater.ClearBackUp());
@@ -52,10 +59,48 @@ namespace vrcosc_magicchatbox
                     default:
                         loadingWindow.Hide();
                         Logging.WriteException(new Exception($"Invalid command line argument '{e.Args[0]}'"), MSGBox: true, exitapp: true);
-                        break;
+                        return;
                 }
             }
 
+            // Initialize various components with progress updates
+            await InitializeComponentsWithProgress(loadingWindow);
+
+            // Show the main window
+            MainWindow mainWindow = new MainWindow();
+            mainWindow.DataContext = ViewModel.Instance;
+
+            loadingWindow.UpdateProgress("Setting up the hotkeys... Hotkey, hotkey, hotkey!", 97);
+            HotkeyManagement.Instance.Initialize(mainWindow);
+            mainWindow.Show();
+
+            // Close the loading window once initialization is complete
+            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
+            loadingWindow.Close();
+        }
+
+        // Handle first-chance exceptions (before they are thrown)
+        private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
+        {
+
+            Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+        }
+
+        // Handle unhandled exceptions in the application's dispatcher thread
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            Logging.WriteException(e.Exception, MSGBox: true, exitapp: true);
+        }
+
+        // Handle unhandled exceptions in the application domain
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true, log: false);
+        }
+
+        // Helper method to initialize components with progress updates
+        private async Task InitializeComponentsWithProgress(StartUp loadingWindow)
+        {
             loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 10);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
 
@@ -64,8 +109,6 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Gathering status items like a squirrel with nuts!", 30);
             await Task.Run(() => DataController.LoadStatusList());
-
-            //throw new Exception("Ahahahah loser u crashed");
 
             loadingWindow.UpdateProgress("Detective on the hunt for last session's chat messages... Elementary, my dear Watson!", 40);
             await Task.Run(() => DataController.LoadChatList());
@@ -102,32 +145,6 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Initializing Soundpad Module... Let's get this party started!", 96);
             await Task.Run(() => DataController.soundpadModule = new SoundpadModule(1500));
-
-            MainWindow mainWindow = new MainWindow();
-            mainWindow.DataContext = ViewModel.Instance;
-
-            loadingWindow.UpdateProgress("Setting up the hotkeys... Hotkey, hotkey, hotkey!", 97);
-
-            HotkeyManagement.Instance.Initialize(mainWindow);
-            mainWindow.Show();
-
-            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
-            loadingWindow.Close();
-        }
-
-        void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
-        {
-            Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
-        }
-
-        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
-        {
-            Logging.WriteException(e.Exception, MSGBox: true, exitapp:true);
-        }
-
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true,log:false);
         }
     }
 }

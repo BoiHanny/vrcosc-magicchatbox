@@ -1884,7 +1884,94 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _mediaLinkDisplayTime = true;
+        private int _mediaLinkProgressBarLength = 8;
+        private char _mediaLinkFilledCharacter = '▒';
+        private char _mediaLinkMiddleCharacter = '▓';
+        private char _mediaLinkNonFilledCharacter = '░';
+        private string _mediaLinkTimePrefix = "";
+        private string _mediaLinkTimeSuffix = "";
+        private bool _mediaLinkShowTimeInSuperscript = true;
 
+        public bool MediaLinkDisplayTime
+        {
+            get => _mediaLinkDisplayTime;
+            set
+            {
+                _mediaLinkDisplayTime = value;
+                NotifyPropertyChanged(nameof(MediaLinkDisplayTime));
+            }
+        }
+
+        public int MediaLinkProgressBarLength
+        {
+            get => _mediaLinkProgressBarLength;
+            set
+            {
+                _mediaLinkProgressBarLength = value;
+                NotifyPropertyChanged(nameof(MediaLinkProgressBarLength));
+            }
+        }
+
+        public char MediaLinkFilledCharacter
+        {
+            get => _mediaLinkFilledCharacter;
+            set
+            {
+                _mediaLinkFilledCharacter = value;
+                NotifyPropertyChanged(nameof(MediaLinkFilledCharacter));
+            }
+        }
+
+        public char MediaLinkMiddleCharacter
+        {
+            get => _mediaLinkMiddleCharacter;
+            set
+            {
+                _mediaLinkMiddleCharacter = value;
+                NotifyPropertyChanged(nameof(MediaLinkMiddleCharacter));
+            }
+        }
+
+        public char MediaLinkNonFilledCharacter
+        {
+            get => _mediaLinkNonFilledCharacter;
+            set
+            {
+                _mediaLinkNonFilledCharacter = value;
+                NotifyPropertyChanged(nameof(MediaLinkNonFilledCharacter));
+            }
+        }
+
+        public string MediaLinkTimePrefix
+        {
+            get => _mediaLinkTimePrefix;
+            set
+            {
+                _mediaLinkTimePrefix = value;
+                NotifyPropertyChanged(nameof(MediaLinkTimePrefix));
+            }
+        }
+
+        public string MediaLinkTimeSuffix
+        {
+            get => _mediaLinkTimeSuffix;
+            set
+            {
+                _mediaLinkTimeSuffix = value;
+                NotifyPropertyChanged(nameof(MediaLinkTimeSuffix));
+            }
+        }
+
+        public bool MediaLinkShowTimeInSuperscript
+        {
+            get => _mediaLinkShowTimeInSuperscript;
+            set
+            {
+                _mediaLinkShowTimeInSuperscript = value;
+                NotifyPropertyChanged(nameof(MediaLinkShowTimeInSuperscript));
+            }
+        }
 
 
         #region ICommand's

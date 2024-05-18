@@ -8,6 +8,7 @@ using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
+using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
@@ -186,16 +187,24 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
             double percentage = fullTime.TotalSeconds == 0 ? 0 : (currentTime.TotalSeconds / fullTime.TotalSeconds) * 100;
 
+            string currentTimeString = ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                ? DataController.TransformToSuperscript(FormatTimeSpan(currentTime))
+                : FormatTimeSpan(currentTime);
+
+            string fullTimeString = ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                ? DataController.TransformToSuperscript(FormatTimeSpan(fullTime))
+                : FormatTimeSpan(fullTime);
+
+            string timePrefix = ViewModel.Instance.MediaLinkTimePrefix;
+            string timeSuffix = ViewModel.Instance.MediaLinkTimeSuffix;
+
             switch (style)
             {
                 case MediaLinkTimeSeekbar.NumbersAndSeekBar:
-                    return $"{x}\n{DataController.TransformToSuperscript(FormatTimeSpan(currentTime))} {CreateProgressBar(percentage, 10)} {DataController.TransformToSuperscript(FormatTimeSpan(fullTime))}";
-
-                case MediaLinkTimeSeekbar.SeekBarOnly:
-                    return $"{x}\n{CreateProgressBar(percentage, 13)}";
+                    return $"{x}\n{timePrefix}{currentTimeString}{timeSuffix} {CreateProgressBar(percentage, mediaSession)} {timePrefix}{fullTimeString}{timeSuffix}";
 
                 case MediaLinkTimeSeekbar.SmallNumbers:
-                    return $"{x} {DataController.TransformToSuperscript(FormatTimeSpan(currentTime) + " l " + FormatTimeSpan(fullTime))}";
+                    return $"{x} {timePrefix}{currentTimeString} l {fullTimeString}{timeSuffix}";
 
                 case MediaLinkTimeSeekbar.None:
                     return x;
@@ -204,13 +213,38 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
-        private static string CreateProgressBar(double percentage, int totalBlocks)
+        private static string CreateProgressBar(double percentage, MediaSessionInfo mediaSession)
         {
+            int totalBlocks = ViewModel.Instance.MediaLinkProgressBarLength;
+            string currentTime = ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
+                : FormatTimeSpan(mediaSession.CurrentTime);
+
+            string fullTime = ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.FullTime))
+                : FormatTimeSpan(mediaSession.FullTime);
+
+            // Calculate the length of the time strings
+            int timeStringLength = currentTime.Length + fullTime.Length + 1; // Including the space or separator
+
+            // Adjust the total blocks if necessary
+            if (ViewModel.Instance.MediaLinkDisplayTime && totalBlocks > timeStringLength)
+            {
+                totalBlocks -= timeStringLength;
+            }
+
             int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-            string filledBar = new string('▒', filledBlocks);
-            string emptyBar = new string('░', totalBlocks - filledBlocks);
-            return filledBar + "▓" + emptyBar;
+            char filledChar = ViewModel.Instance.MediaLinkFilledCharacter;
+            char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter;
+            char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter;
+
+            string filledBar = new string(filledChar, filledBlocks);
+            string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
+            return filledBar + middleChar + emptyBar;
         }
+
+
+
 
 
 
