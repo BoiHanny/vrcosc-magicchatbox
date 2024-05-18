@@ -25,10 +25,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Error in ShowMSGBox\n{e.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                HandleLoggingError("Error in ShowMSGBox", e);
                 Environment.Exit(10);
             }
-
         }
 
         // Log an exception and optionally show a message box and/or exit the application
@@ -53,11 +52,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (Exception e)
             {
-                ShowMSGBox(msgboxtext: $"Error in WriteException\n{e.Message}", autoClose: true);
+                HandleLoggingError("Error in WriteException", e);
                 if (exitapp)
                     Environment.Exit(10);
             }
-
         }
 
         // Log an informational message and optionally show a message box and/or exit the application
@@ -73,21 +71,44 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             catch (Exception e)
             {
-                ShowMSGBox(msgboxtext: $"Error in WriteInfo\n{e.Message}", autoClose: true);
+                HandleLoggingError("Error in WriteInfo", e);
                 if (exitapp)
                     Environment.Exit(10);
             }
-
         }
 
         // Log a debug message and optionally show a message box and/or exit the application
         public static void WriteDebug(string debug, bool MSGBox = false, bool autoclose = false, bool exitapp = false)
         {
-            LogController.Debug(debug);
-            if (MSGBox)
-                ShowMSGBox(msgboxtext: debug, autoClose: autoclose);
-            if (exitapp)
-                ShowMSGBox(msgboxtext: "debug did throw application exit", autoClose: autoclose);
+            try
+            {
+                LogController.Debug(debug);
+                if (MSGBox)
+                    ShowMSGBox(msgboxtext: debug, autoClose: autoclose);
+                if (exitapp)
+                    Environment.Exit(10);
+            }
+            catch (Exception e)
+            {
+                HandleLoggingError("Error in WriteDebug", e);
+                if (exitapp)
+                    Environment.Exit(10);
+            }
+        }
+
+        // Centralized method to handle errors during logging
+        private static void HandleLoggingError(string context, Exception e)
+        {
+            try
+            {
+                // Attempt to log the error to NLog
+                LogController.Error($"{context}\n{e.Message}\n{e.StackTrace}");
+            }
+            catch
+            {
+                // If NLog fails, fallback to console logging
+                Console.Error.WriteLine($"{context}\n{e.Message}\n{e.StackTrace}");
+            }
         }
     }
 }
