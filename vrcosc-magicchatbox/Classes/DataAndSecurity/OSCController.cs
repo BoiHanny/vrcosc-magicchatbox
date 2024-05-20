@@ -234,9 +234,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
 
             int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-            char filledChar = ViewModel.Instance.MediaLinkFilledCharacter;
-            char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter;
-            char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter;
+            char filledChar = ViewModel.Instance.MediaLinkFilledCharacter.ToCharArray()[0];
+            char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter.ToCharArray()[0];
+            char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter.ToCharArray()[0];
 
             string filledBar = new string(filledChar, filledBlocks);
             string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);

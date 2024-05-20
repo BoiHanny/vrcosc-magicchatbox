@@ -10,6 +10,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         // Logger instance for the application
         public static readonly Logger LogController = LogManager.GetCurrentClassLogger();
 
+
+
         // Display a message box with error information
         public static void ShowMSGBox(
             int msgboxtimeout = 10000,

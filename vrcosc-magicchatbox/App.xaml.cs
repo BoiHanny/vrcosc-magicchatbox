@@ -101,6 +101,9 @@ namespace vrcosc_magicchatbox
         // Helper method to initialize components with progress updates
         private async Task InitializeComponentsWithProgress(StartUp loadingWindow)
         {
+            loadingWindow.UpdateProgress("Making sure log folder exists... hell yeah, logs!", 5);
+            await Task.Run(() => DataController.CheckLogFolder());
+
             loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 10);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
 

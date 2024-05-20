@@ -425,9 +425,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         // New properties to be added
         { "MediaLinkDisplayTime", (typeof(bool), "MediaLink") },
         { "MediaLinkProgressBarLength", (typeof(int), "MediaLink") },
-        { "MediaLinkFilledCharacter", (typeof(char), "MediaLink") },
-        { "MediaLinkMiddleCharacter", (typeof(char), "MediaLink") },
-        { "MediaLinkNonFilledCharacter", (typeof(char), "MediaLink") },
+        { "MediaLinkFilledCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkMiddleCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkNonFilledCharacter", (typeof(string), "MediaLink") },
         { "MediaLinkTimePrefix", (typeof(string), "MediaLink") },
         { "MediaLinkTimeSuffix", (typeof(string), "MediaLink") },
         { "MediaLinkShowTimeInSuperscript", (typeof(bool), "MediaLink") }
@@ -798,6 +798,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             return random.Next(10, 99999999);
         }
 
+        public static void EnsureLogDirectoryExists(string filePath)
+        {
+            string directory = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
 
 
         public static void ManageSettingsXML(bool saveSettings = false)
@@ -1021,6 +1029,22 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+
+        public static void CheckLogFolder()
+        {
+            try
+            {
+                if (CreateIfMissing(@"C:\temp\Vrcosc-MagicChatbox") == true)
+                {
+                    Logging.WriteInfo("Application started at: " + DateTime.Now);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: true);
             }
         }
     }

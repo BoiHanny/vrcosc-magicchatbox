@@ -1886,9 +1886,9 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _mediaLinkDisplayTime = true;
         private int _mediaLinkProgressBarLength = 8;
-        private char _mediaLinkFilledCharacter = '▒';
-        private char _mediaLinkMiddleCharacter = '▓';
-        private char _mediaLinkNonFilledCharacter = '░';
+        private string _mediaLinkFilledCharacter = "▒";
+        private string _mediaLinkMiddleCharacter = "▓";
+        private string _mediaLinkNonFilledCharacter = "░";
         private string _mediaLinkTimePrefix = "";
         private string _mediaLinkTimeSuffix = "";
         private bool _mediaLinkShowTimeInSuperscript = true;
@@ -1913,7 +1913,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public char MediaLinkFilledCharacter
+        public string MediaLinkFilledCharacter
         {
             get => _mediaLinkFilledCharacter;
             set
@@ -1923,7 +1923,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public char MediaLinkMiddleCharacter
+        public string MediaLinkMiddleCharacter
         {
             get => _mediaLinkMiddleCharacter;
             set
@@ -1933,7 +1933,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public char MediaLinkNonFilledCharacter
+        public string MediaLinkNonFilledCharacter
         {
             get => _mediaLinkNonFilledCharacter;
             set
