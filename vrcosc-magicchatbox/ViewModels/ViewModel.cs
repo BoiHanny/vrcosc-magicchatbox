@@ -4064,6 +4064,22 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
+        private bool _UseSystemCulture = false;
+
+        public bool UseSystemCulture
+        {
+            get { return _UseSystemCulture; }
+            set
+            {
+                if (_UseSystemCulture != value)
+                {
+                    _UseSystemCulture = value;
+                    NotifyPropertyChanged(nameof(UseSystemCulture));
+                }
+            }
+        }
+
+
         public string VersionTxt
         {
             get { return _VersionTxt; }

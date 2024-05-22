@@ -1976,6 +1976,20 @@
                                     24-Hour time format
                                 </CheckBox>
                                 <CheckBox
+                                    x:Name="UseSystemCultureForTime"
+                                    Height="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Content="Use current system culture for formating time"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding UseSystemCulture, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                </CheckBox>
+                                <CheckBox
                                     x:Name="AutoSetDaylight_checkbox"
                                     Height="20"
                                     Margin="0,0,0,15"

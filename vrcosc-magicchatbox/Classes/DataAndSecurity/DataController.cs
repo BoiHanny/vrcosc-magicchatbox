@@ -295,6 +295,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "SelectedTimeZone", (typeof(Timezone), "Time") },
         { "UseDaylightSavingTime", (typeof(bool), "Time") },
         { "AutoSetDaylight", (typeof(bool), "Time") },
+        { "UseSystemCulture", (typeof(bool), "Time") },
 
         { "CurrentMenuItem", (typeof(int), "Menu") },
 

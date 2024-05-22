@@ -667,24 +667,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return dateTimeWithZone;
         }
 
-        private static string GetFormattedTime(
+        public static string GetFormattedTime(
             DateTimeOffset dateTimeWithZone,
             bool time24H,
             bool timeShowTimeZone,
             string timeZoneDisplay)
         {
-            CultureInfo userCulture = CultureInfo.CurrentCulture;
+            CultureInfo userCulture = ViewModel.Instance.UseSystemCulture ? CultureInfo.CurrentCulture : CultureInfo.InvariantCulture;
             string timeFormat = time24H ? "HH:mm" : "hh:mm tt";
+
+            string formattedTime = dateTimeWithZone.ToString(timeFormat, userCulture);
 
             if (timeShowTimeZone)
             {
-                return dateTimeWithZone.ToString($"{timeFormat}{timeZoneDisplay}", userCulture);
+                return formattedTime + timeZoneDisplay;
             }
             else
             {
-                return dateTimeWithZone.ToString(timeFormat, CultureInfo.InvariantCulture).ToUpper();
+                return formattedTime;
             }
         }
+
 
         public static string GetTime()
         {
