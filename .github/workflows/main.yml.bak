@@ -132,11 +132,11 @@ jobs:
             <p>We take your security seriously! Each release of MagicChatbox is scanned with VirusTotal to ensure it's free from harmful software.</p>
             <p>However, please be aware that some antivirus engines might flag the application. This is due to the nature of certain components we use, such as:</p>
             <ul>
-              <p>🔍 **Window Activity** - To show which windows you are currently focused on<p>
-              <p>🔗 **MediaLink Components** - For better multimedia integration<p>
-              <p>📊 **Component Stats** - For performance tracking<p>
-              <p>🌙 **AFK Module** - To detect when you are away from the keyboard<p>
-              <p>🎮 **OSC Controller** - To communicate with VRChat<p>
+              <li>🔍 **Window Activity** - To show which windows you are currently focused on</li>
+              <li>🔗 **MediaLink Components** - For better multimedia integration</li>
+              <li>📊 **Component Stats** - For performance tracking</li>
+              <li>🌙 **AFK Module** - To detect when you are away from the keyboard</li>
+              <li>🎮 **OSC Controller** - To communicate with VRChat</li>
             </ul>
             <p>These features might trigger warnings from lesser-known scanners. Rest assured, we strive to keep our software as secure as possible and any flagged activity is closely monitored to maintain your safety.</p>
             <p>For more details on the scan results, check the VirusTotal report linked above.</p>
@@ -148,9 +148,9 @@ jobs:
             <h2>📞 Need Help? We're Here for You! 📞</h2>
             <p>Have any questions, suggestions, or feedback? Reach out to us through one of the following channels:</p>
             <ul>
-            <p><strong>Our Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">Join now!!!</a><p>
-              <p><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a><p>
-              <p><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a><p>
+              <li><strong>Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">![Join us on Discord](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)</a></li>
+              <li><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a></li>
+              <li><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a></li>
             </ul>
             <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
           </div>
