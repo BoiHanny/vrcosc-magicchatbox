@@ -8,7 +8,7 @@
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.820/MagicChatbox-0.8.820.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.885/MagicChatbox-0.8.885.zip)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/url/642c0ef48d8d05dd56e43c8057a2177eec66fc86ffb090eee6da6989166b6eaf?nocache=1)
 <!-- END LATEST DOWNLOAD BUTTON -->
 
@@ -20,7 +20,7 @@
 
 
 ### Download and Installation
-1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.820/MagicChatbox-0.8.820.zip).
+1. Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.885/MagicChatbox-0.8.885.zip).
 2. Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
 3. Right-click and choose the option 'extract all'.
 4. By default it will create a new folder in your download folder (you can also extract the content to other locations).
