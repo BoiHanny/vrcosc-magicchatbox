@@ -156,11 +156,11 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                                 x = ViewModel.Instance.PrefixIconMusic
                                     ? $"{prefix} '{mediaLinkTitle}'"
                                     : $"{mediaAction} '{mediaLinkTitle}'";
-                            }
 
-                            if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
-                            {
-                                x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle);
+                                if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
+                                {
+                                    x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle);
+                                }
                             }
                         }
 
