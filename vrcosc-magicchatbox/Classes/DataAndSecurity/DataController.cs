@@ -328,6 +328,16 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "MediaSession_AutoSwitch", (typeof(bool), "MediaLink") },
         { "DisableMediaLink", (typeof(bool), "MediaLink") },
         { "MediaLinkTimeSeekStyle", (typeof(MediaLinkTimeSeekbar), "MediaLink") },
+        { "MediaLinkDisplayTime", (typeof(bool), "MediaLink") },
+        { "MediaLinkProgressBarLength", (typeof(int), "MediaLink") },
+        { "MediaLinkFilledCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkMiddleCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkNonFilledCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkTimePrefix", (typeof(string), "MediaLink") },
+        { "MediaLinkTimeSuffix", (typeof(string), "MediaLink") },
+        { "MediaLinkShowTimeInSuperscript", (typeof(bool), "MediaLink") },
+        { "MediaLinkProgressBarOnTop", (typeof(bool), "MediaLink") },
+        { "AutoDowngradeSeekbar", (typeof(bool), "MediaLink") },
 
         { "ScanningInterval", (typeof(double), "Scanning") },
         { "ScanPauseTimeout", (typeof(int), "Scanning") },
@@ -421,17 +431,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "Settings_TTS", (typeof(bool), "OptionsTabState") },
         { "Settings_MediaLink", (typeof(bool), "OptionsTabState") },
         { "Settings_AppOptions", (typeof(bool), "OptionsTabState") },
-        { "Settings_WindowActivity", (typeof(bool), "OptionsTabState") },
+        { "Settings_WindowActivity", (typeof(bool), "OptionsTabState") }
 
-        // New properties to be added
-        { "MediaLinkDisplayTime", (typeof(bool), "MediaLink") },
-        { "MediaLinkProgressBarLength", (typeof(int), "MediaLink") },
-        { "MediaLinkFilledCharacter", (typeof(string), "MediaLink") },
-        { "MediaLinkMiddleCharacter", (typeof(string), "MediaLink") },
-        { "MediaLinkNonFilledCharacter", (typeof(string), "MediaLink") },
-        { "MediaLinkTimePrefix", (typeof(string), "MediaLink") },
-        { "MediaLinkTimeSuffix", (typeof(string), "MediaLink") },
-        { "MediaLinkShowTimeInSuperscript", (typeof(bool), "MediaLink") }
     };
         }
 
@@ -534,18 +535,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                 }
 
-                // Check if a downgrade is needed
-                if (!ViewModel.Instance.JoinedAlphaChannel &&
-                    ViewModel.Instance.LatestReleaseVersion != null &&
-                    currentVersion.CompareTo(ViewModel.Instance.LatestReleaseVersion.VersionNumber) > 0)
+                if (compareWithLatestRelease > 0)
                 {
-                    // If the current version is a pre-release version and the user has opted out of the alpha channel
-                    ViewModel.Instance.VersionTxt = "Downgrade version";
-                    ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
-                    ViewModel.Instance.VersionTxtUnderLine = true;
-                    ViewModel.Instance.CanUpdate = true;
+                    // If the current version is higher than the latest release version
+                    ViewModel.Instance.VersionTxt = "✨ Supporter version ✨";
+                    ViewModel.Instance.VersionTxtColor = "#FFD700"; // Gold color to signify supporter
+                    ViewModel.Instance.VersionTxtUnderLine = false;
+                    ViewModel.Instance.CanUpdate = false;
                     ViewModel.Instance.CanUpdateLabel = false;
-                    ViewModel.Instance.UpdateURL = ViewModel.Instance.LatestReleaseURL;
                     return;
                 }
 
@@ -561,6 +558,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
+
 
 
         public static bool CreateIfMissing(string path)

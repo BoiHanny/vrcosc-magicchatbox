@@ -1893,6 +1893,36 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _mediaLinkTimeSuffix = "";
         private bool _mediaLinkShowTimeInSuperscript = true;
 
+        private bool autoDowngradeSeekbar = true;
+        public bool AutoDowngradeSeekbar
+        {
+            get { return autoDowngradeSeekbar; }
+            set
+            {
+                if (autoDowngradeSeekbar != value)
+                {
+                    autoDowngradeSeekbar = value;
+                    NotifyPropertyChanged(nameof(AutoDowngradeSeekbar));
+                }
+            }
+        }
+
+
+        private bool _mediaLinkProgressBarOnTop = false;
+
+        public bool MediaLinkProgressBarOnTop
+        {
+            get { return _mediaLinkProgressBarOnTop; }
+            set
+            {
+                if (_mediaLinkProgressBarOnTop != value)
+                {
+                    _mediaLinkProgressBarOnTop = value;
+                    NotifyPropertyChanged(nameof(MediaLinkProgressBarOnTop));
+                }
+            }
+        }
+
         public bool MediaLinkDisplayTime
         {
             get => _mediaLinkDisplayTime;
@@ -3079,6 +3109,10 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool MediaLinkTimeSeekStyleIsNumbersAndSeekBar => MediaLinkTimeSeekStyle == MediaLinkTimeSeekbar.NumbersAndSeekBar;
+
+        public bool MediaLinkTimeSeekStyleIsNone => MediaLinkTimeSeekStyle == MediaLinkTimeSeekbar.None;
+
 
         private MediaLinkTimeSeekbar _MediaLinkTimeSeekStyle = MediaLinkTimeSeekbar.SmallNumbers;
 
@@ -3090,6 +3124,8 @@ namespace vrcosc_magicchatbox.ViewModels
                 if (_MediaLinkTimeSeekStyle != value)
                 {
                     _MediaLinkTimeSeekStyle = value;
+                    NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyleIsNumbersAndSeekBar));
+                    NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyleIsNone));
                     NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyle));
                 }
             }

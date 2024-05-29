@@ -332,7 +332,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             [Description ("Small numbers")]
             SmallNumbers,
-            [Description("custom seekbar with time")]
+            [Description("Custom")]
             NumbersAndSeekBar,
             [Description("None")]
             None

@@ -125,10 +125,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 if (mediaSession != null)
                 {
-                    var isPaused = mediaSession.PlaybackStatus ==
-                        Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
-                    var isPlaying = mediaSession.PlaybackStatus ==
-                        Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+                    var isPaused = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+                    var isPlaying = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
                     if (isPaused || isPlaying)
                     {
@@ -159,7 +157,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                                 if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
                                 {
-                                    x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle);
+                                    x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle, Uncomplete);
                                 }
                             }
                         }
@@ -175,7 +173,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
-        private static string CreateTimeStamp(string x, MediaSessionInfo mediaSession, MediaLinkTimeSeekbar style)
+
+
+
+        private static string CreateTimeStamp(string x, MediaSessionInfo mediaSession, MediaLinkTimeSeekbar style, List<string> uncomplete)
         {
             TimeSpan currentTime = mediaSession.CurrentTime;
             TimeSpan fullTime = mediaSession.FullTime;
@@ -186,62 +187,90 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
 
             double percentage = fullTime.TotalSeconds == 0 ? 0 : (currentTime.TotalSeconds / fullTime.TotalSeconds) * 100;
-
-            string currentTimeString = ViewModel.Instance.MediaLinkShowTimeInSuperscript
-                ? DataController.TransformToSuperscript(FormatTimeSpan(currentTime))
-                : FormatTimeSpan(currentTime);
-
-            string fullTimeString = ViewModel.Instance.MediaLinkShowTimeInSuperscript
-                ? DataController.TransformToSuperscript(FormatTimeSpan(fullTime))
-                : FormatTimeSpan(fullTime);
-
-            string timePrefix = ViewModel.Instance.MediaLinkTimePrefix;
-            string timeSuffix = ViewModel.Instance.MediaLinkTimeSuffix;
+            int availableSpace = 140 - CalculateOSCMsgLength(uncomplete, x);
 
             switch (style)
             {
                 case MediaLinkTimeSeekbar.NumbersAndSeekBar:
-                    return $"{x}\n{timePrefix}{currentTimeString}{timeSuffix} {CreateProgressBar(percentage, mediaSession)} {timePrefix}{fullTimeString}{timeSuffix}";
+                    string progressBarContent = CreateProgressBar(percentage, mediaSession, ViewModel.Instance.MediaLinkDisplayTime);
+                    if (!string.IsNullOrWhiteSpace(progressBarContent) && CalculateOSCMsgLength(uncomplete, x + "\n" + progressBarContent) <= 140)
+                    {
+                        return ViewModel.Instance.MediaLinkProgressBarOnTop ? progressBarContent + "\n" + x : x + "\n" + progressBarContent;
+                    }
+                    else if (ViewModel.Instance.AutoDowngradeSeekbar)
+                    {
+                        goto case MediaLinkTimeSeekbar.SmallNumbers;
+                    }
+                    break;
 
                 case MediaLinkTimeSeekbar.SmallNumbers:
-                    return $"{x} {timePrefix}{currentTimeString} l {fullTimeString}{timeSuffix}";
+                    string smallNumbersContent = $"{DataController.TransformToSuperscript(FormatTimeSpan(currentTime))} l {DataController.TransformToSuperscript(FormatTimeSpan(fullTime))}";
+                    if (CalculateOSCMsgLength(uncomplete, x + smallNumbersContent) <= 140)
+                    {
+                        return x + " " + smallNumbersContent;
+                    }
+                    else if (ViewModel.Instance.AutoDowngradeSeekbar)
+                    {
+                        goto case MediaLinkTimeSeekbar.None;
+                    }
+                    break;
 
                 case MediaLinkTimeSeekbar.None:
-                    return x;
                 default:
                     return x;
             }
+
+            return x;
         }
 
-        private static string CreateProgressBar(double percentage, MediaSessionInfo mediaSession)
+
+
+
+        private static string CreateProgressBar(double percentage, MediaSessionInfo mediaSession, bool includeTime)
         {
-            int totalBlocks = ViewModel.Instance.MediaLinkProgressBarLength;
-            string currentTime = ViewModel.Instance.MediaLinkShowTimeInSuperscript
-                ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
-                : FormatTimeSpan(mediaSession.CurrentTime);
-
-            string fullTime = ViewModel.Instance.MediaLinkShowTimeInSuperscript
-                ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.FullTime))
-                : FormatTimeSpan(mediaSession.FullTime);
-
-            // Calculate the length of the time strings
-            int timeStringLength = currentTime.Length + fullTime.Length + 1; // Including the space or separator
-
-            // Adjust the total blocks if necessary
-            if (ViewModel.Instance.MediaLinkDisplayTime && totalBlocks > timeStringLength)
+            try
             {
-                totalBlocks -= timeStringLength;
+                int totalBlocks = ViewModel.Instance.MediaLinkProgressBarLength;
+
+                string currentTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                    ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
+                    : FormatTimeSpan(mediaSession.CurrentTime);
+
+                string fullTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                    ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.FullTime))
+                    : FormatTimeSpan(mediaSession.FullTime);
+
+                string timePrefix = ViewModel.Instance.MediaLinkTimePrefix;
+                string timeSuffix = ViewModel.Instance.MediaLinkTimeSuffix;
+
+                if (ViewModel.Instance.MediaLinkDisplayTime && totalBlocks > 0)
+                {
+                    int timeStringLength = currentTime.Length + fullTime.Length + 1;
+
+                    if (totalBlocks > timeStringLength)
+                    {
+                        totalBlocks -= timeStringLength;
+                    }
+                }
+
+                int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
+                char filledChar = ViewModel.Instance.MediaLinkFilledCharacter.ToCharArray()[0];
+                char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter.ToCharArray()[0];
+                char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter.ToCharArray()[0];
+
+                string filledBar = new string(filledChar, filledBlocks);
+                string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
+                string progressBar = filledBar + middleChar + emptyBar;
+
+                return includeTime ? $"{timePrefix}{currentTime} {progressBar} {fullTime}{timeSuffix}" : progressBar;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
             }
 
-            int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-            char filledChar = ViewModel.Instance.MediaLinkFilledCharacter.ToCharArray()[0];
-            char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter.ToCharArray()[0];
-            char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter.ToCharArray()[0];
-
-            string filledBar = new string(filledChar, filledBlocks);
-            string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
-            return filledBar + middleChar + emptyBar;
         }
+
 
 
 
