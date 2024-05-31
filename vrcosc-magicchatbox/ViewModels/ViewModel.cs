@@ -16,6 +16,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels.Models;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
@@ -1883,7 +1884,124 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _mediaLinkDisplayTime = true;
+        private int _mediaLinkProgressBarLength = 8;
+        private string _mediaLinkFilledCharacter = "▒";
+        private string _mediaLinkMiddleCharacter = "▓";
+        private string _mediaLinkNonFilledCharacter = "░";
+        private string _mediaLinkTimePrefix = "";
+        private string _mediaLinkTimeSuffix = "";
+        private bool _mediaLinkShowTimeInSuperscript = true;
 
+        private bool autoDowngradeSeekbar = true;
+        public bool AutoDowngradeSeekbar
+        {
+            get { return autoDowngradeSeekbar; }
+            set
+            {
+                if (autoDowngradeSeekbar != value)
+                {
+                    autoDowngradeSeekbar = value;
+                    NotifyPropertyChanged(nameof(AutoDowngradeSeekbar));
+                }
+            }
+        }
+
+
+        private bool _mediaLinkProgressBarOnTop = false;
+
+        public bool MediaLinkProgressBarOnTop
+        {
+            get { return _mediaLinkProgressBarOnTop; }
+            set
+            {
+                if (_mediaLinkProgressBarOnTop != value)
+                {
+                    _mediaLinkProgressBarOnTop = value;
+                    NotifyPropertyChanged(nameof(MediaLinkProgressBarOnTop));
+                }
+            }
+        }
+
+        public bool MediaLinkDisplayTime
+        {
+            get => _mediaLinkDisplayTime;
+            set
+            {
+                _mediaLinkDisplayTime = value;
+                NotifyPropertyChanged(nameof(MediaLinkDisplayTime));
+            }
+        }
+
+        public int MediaLinkProgressBarLength
+        {
+            get => _mediaLinkProgressBarLength;
+            set
+            {
+                _mediaLinkProgressBarLength = value;
+                NotifyPropertyChanged(nameof(MediaLinkProgressBarLength));
+            }
+        }
+
+        public string MediaLinkFilledCharacter
+        {
+            get => _mediaLinkFilledCharacter;
+            set
+            {
+                _mediaLinkFilledCharacter = value;
+                NotifyPropertyChanged(nameof(MediaLinkFilledCharacter));
+            }
+        }
+
+        public string MediaLinkMiddleCharacter
+        {
+            get => _mediaLinkMiddleCharacter;
+            set
+            {
+                _mediaLinkMiddleCharacter = value;
+                NotifyPropertyChanged(nameof(MediaLinkMiddleCharacter));
+            }
+        }
+
+        public string MediaLinkNonFilledCharacter
+        {
+            get => _mediaLinkNonFilledCharacter;
+            set
+            {
+                _mediaLinkNonFilledCharacter = value;
+                NotifyPropertyChanged(nameof(MediaLinkNonFilledCharacter));
+            }
+        }
+
+        public string MediaLinkTimePrefix
+        {
+            get => _mediaLinkTimePrefix;
+            set
+            {
+                _mediaLinkTimePrefix = value;
+                NotifyPropertyChanged(nameof(MediaLinkTimePrefix));
+            }
+        }
+
+        public string MediaLinkTimeSuffix
+        {
+            get => _mediaLinkTimeSuffix;
+            set
+            {
+                _mediaLinkTimeSuffix = value;
+                NotifyPropertyChanged(nameof(MediaLinkTimeSuffix));
+            }
+        }
+
+        public bool MediaLinkShowTimeInSuperscript
+        {
+            get => _mediaLinkShowTimeInSuperscript;
+            set
+            {
+                _mediaLinkShowTimeInSuperscript = value;
+                NotifyPropertyChanged(nameof(MediaLinkShowTimeInSuperscript));
+            }
+        }
 
 
         #region ICommand's
@@ -2991,17 +3109,32 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool MediaLinkTimeSeekStyleIsNumbersAndSeekBar => MediaLinkTimeSeekStyle == MediaLinkTimeSeekbar.NumbersAndSeekBar;
 
-        private bool _MediaLinkShowTime = true;
-        public bool MediaLinkShowTime
+        public bool MediaLinkTimeSeekStyleIsNone => MediaLinkTimeSeekStyle == MediaLinkTimeSeekbar.None;
+
+
+        private MediaLinkTimeSeekbar _MediaLinkTimeSeekStyle = MediaLinkTimeSeekbar.SmallNumbers;
+
+        public MediaLinkTimeSeekbar MediaLinkTimeSeekStyle
         {
-            get { return _MediaLinkShowTime; }
+            get { return _MediaLinkTimeSeekStyle; }
             set
             {
-                _MediaLinkShowTime = value;
-                NotifyPropertyChanged(nameof(MediaLinkShowTime));
+                if (_MediaLinkTimeSeekStyle != value)
+                {
+                    _MediaLinkTimeSeekStyle = value;
+                    NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyleIsNumbersAndSeekBar));
+                    NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyleIsNone));
+                    NotifyPropertyChanged(nameof(MediaLinkTimeSeekStyle));
+                }
             }
         }
+
+
+
+
+        public IEnumerable<MediaLinkTimeSeekbar> AvailableTimeSeekbarStyles { get; } = Enum.GetValues(typeof(MediaLinkTimeSeekbar)).Cast<MediaLinkTimeSeekbar>().ToList();
 
 
         private bool _ApplicationHookV2 = true;
@@ -3963,6 +4096,22 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _CurrentTime = value;
                 NotifyPropertyChanged(nameof(CurrentTime));
+            }
+        }
+
+
+        private bool _UseSystemCulture = false;
+
+        public bool UseSystemCulture
+        {
+            get { return _UseSystemCulture; }
+            set
+            {
+                if (_UseSystemCulture != value)
+                {
+                    _UseSystemCulture = value;
+                    NotifyPropertyChanged(nameof(UseSystemCulture));
+                }
             }
         }
 

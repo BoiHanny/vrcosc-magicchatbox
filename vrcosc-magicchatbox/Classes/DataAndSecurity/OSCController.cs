@@ -7,6 +7,8 @@ using System.Text;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
+using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 {
@@ -123,10 +125,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 if (mediaSession != null)
                 {
-                    var isPaused = mediaSession.PlaybackStatus ==
-                        Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
-                    var isPlaying = mediaSession.PlaybackStatus ==
-                        Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+                    var isPaused = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+                    var isPlaying = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
                     if (isPaused || isPlaying)
                     {
@@ -154,11 +154,11 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                                 x = ViewModel.Instance.PrefixIconMusic
                                     ? $"{prefix} '{mediaLinkTitle}'"
                                     : $"{mediaAction} '{mediaLinkTitle}'";
-                            }
 
-                            if (ViewModel.Instance.MediaLinkShowTime && !mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
-                            {
-                                x = x + DataController.TransformToSuperscript($" {FormatTimeSpan(mediaSession.CurrentTime)} l {FormatTimeSpan(mediaSession.FullTime)}");
+                                if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
+                                {
+                                    x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle, Uncomplete);
+                                }
                             }
                         }
 
@@ -172,6 +172,118 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
             }
         }
+
+
+
+
+        private static string CreateTimeStamp(string x, MediaSessionInfo mediaSession, MediaLinkTimeSeekbar style, List<string> uncomplete)
+        {
+            TimeSpan currentTime = mediaSession.CurrentTime;
+            TimeSpan fullTime = mediaSession.FullTime;
+
+            if (currentTime.TotalSeconds < 0 || fullTime.TotalSeconds < 0 || currentTime > fullTime)
+            {
+                return x;
+            }
+
+            double percentage = fullTime.TotalSeconds == 0 ? 0 : (currentTime.TotalSeconds / fullTime.TotalSeconds) * 100;
+            int availableSpace = 140 - CalculateOSCMsgLength(uncomplete, x);
+
+            switch (style)
+            {
+                case MediaLinkTimeSeekbar.NumbersAndSeekBar:
+                    string progressBarContent = CreateProgressBar(percentage, mediaSession, ViewModel.Instance.MediaLinkDisplayTime);
+                    if (!string.IsNullOrWhiteSpace(progressBarContent) && CalculateOSCMsgLength(uncomplete, x + "\n" + progressBarContent) <= 140)
+                    {
+                        return ViewModel.Instance.MediaLinkProgressBarOnTop ? progressBarContent + "\n" + x : x + "\n" + progressBarContent;
+                    }
+                    else if (ViewModel.Instance.AutoDowngradeSeekbar)
+                    {
+                        goto case MediaLinkTimeSeekbar.SmallNumbers;
+                    }
+                    break;
+
+                case MediaLinkTimeSeekbar.SmallNumbers:
+                    string smallNumbersContent = $"{DataController.TransformToSuperscript(FormatTimeSpan(currentTime) + " : " + FormatTimeSpan(fullTime))}";
+                    if (CalculateOSCMsgLength(uncomplete, x + smallNumbersContent) <= 140)
+                    {
+                        return x + " " + smallNumbersContent;
+                    }
+                    else if (ViewModel.Instance.AutoDowngradeSeekbar)
+                    {
+                        goto case MediaLinkTimeSeekbar.None;
+                    }
+                    break;
+
+                case MediaLinkTimeSeekbar.None:
+                default:
+                    return x;
+            }
+
+            return x;
+        }
+
+
+
+
+        private static string CreateProgressBar(double percentage, MediaSessionInfo mediaSession, bool includeTime)
+        {
+            try
+            {
+                int totalBlocks = ViewModel.Instance.MediaLinkProgressBarLength;
+
+                if (string.IsNullOrEmpty(ViewModel.Instance.MediaLinkFilledCharacter) || string.IsNullOrEmpty(ViewModel.Instance.MediaLinkMiddleCharacter) || string.IsNullOrEmpty(ViewModel.Instance.MediaLinkNonFilledCharacter))
+                {
+                    return string.Empty;
+                }
+
+                string currentTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                    ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
+                    : FormatTimeSpan(mediaSession.CurrentTime);
+
+                string fullTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                    ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.FullTime))
+                    : FormatTimeSpan(mediaSession.FullTime);
+
+                string timePrefix = ViewModel.Instance.MediaLinkTimePrefix;
+                string timeSuffix = ViewModel.Instance.MediaLinkTimeSuffix;
+
+                if (ViewModel.Instance.MediaLinkDisplayTime && totalBlocks > 0)
+                {
+                    int timeStringLength = currentTime.Length + fullTime.Length + 1;
+
+                    if (timeStringLength > 8)
+                    {
+                        int blocksToRemove = (timeStringLength - 8 + 3) / 4;
+                        totalBlocks = Math.Max(totalBlocks - blocksToRemove, 0); 
+                    }
+                }
+
+                int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
+
+
+                string filledString = new StringInfo(ViewModel.Instance.MediaLinkFilledCharacter).SubstringByTextElements(0, 1);
+                string middleString = new StringInfo(ViewModel.Instance.MediaLinkMiddleCharacter).SubstringByTextElements(0, 1);
+                string nonFilledString = new StringInfo(ViewModel.Instance.MediaLinkNonFilledCharacter).SubstringByTextElements(0, 1);
+
+                string filledBar = string.Concat(Enumerable.Repeat(filledString, filledBlocks));
+                string emptyBar = string.Concat(Enumerable.Repeat(nonFilledString, totalBlocks - filledBlocks));
+                string progressBar = filledBar + middleString + emptyBar;
+
+                return includeTime ? $"{timePrefix}{currentTime} {progressBar} {fullTime}{timeSuffix}" : progressBar;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
+
+
+
+
+
+
+
 
 
         // this function will build the spotify status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters

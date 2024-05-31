@@ -173,31 +173,6 @@ namespace vrcosc_magicchatbox
             SelectTTSOutput();
             ChangeMenuItem(ViewModel.Instance.CurrentMenuItem);
             Task.Run(() => scantick(true));
-            Task.Run(CheckForUpdates);
-        }
-
-        private async Task CheckForUpdates()
-        {
-            if (ViewModel.Instance.CheckUpdateOnStartup)
-            {
-                var updateCheckTask = DataController.CheckForUpdateAndWait();
-                var delayTask = Task.Delay(TimeSpan.FromSeconds(10));
-
-                var completedTask = await Task.WhenAny(updateCheckTask, delayTask);
-
-                if (completedTask == delayTask)
-                {
-                    ViewModel.Instance.VersionTxt = "Check update timeout";
-                    ViewModel.Instance.VersionTxtColor = "#F36734";
-                    ViewModel.Instance.VersionTxtUnderLine = false;
-                }
-            }
-            else
-            {
-                ViewModel.Instance.VersionTxt = "Check for updates";
-                ViewModel.Instance.VersionTxtColor = "#2FD9FF";
-                ViewModel.Instance.VersionTxtUnderLine = false;
-            }
         }
 
         public static event EventHandler ShadowOpacityChanged;
@@ -1575,6 +1550,24 @@ namespace vrcosc_magicchatbox
         {
             UpdateApp updateApp = new UpdateApp();
             updateApp.StartRollback();
+        }
+
+        private async void MediaProgressbar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            MediaSessionInfo? mediaSession = sender is ProgressBar progressBar ? progressBar.Tag as MediaSessionInfo : null;
+            ProgressBar progress = sender as ProgressBar;
+
+            if (progress != null)
+            {
+                // Calculate the clicked position based on the mouse position
+                double clickedPosition = e.GetPosition(progress).X / progress.ActualWidth * progress.Maximum;
+
+                if (mediaSession != null)
+                {
+                   await MediaLinkModule.MediaManager_SeekTo(mediaSession, clickedPosition);
+                }
+
+            }
         }
     }
 

@@ -72,19 +72,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             try
             {
                 FileName = Path.Combine(ViewModel.Instance.DataPath, "ComponentStatsV1.json");
-                if (File.Exists(FileName))
-                {
-                    var jsonData = File.ReadAllText(FileName);
-                    var loadedStats = JsonConvert.DeserializeObject<List<ComponentStatsItem>>(jsonData);
-                    if (loadedStats != null)
-                    {
-                        _componentStats.Clear();
-                        _componentStats.AddRange(loadedStats);
-                    }
-                    started = true;
-
-                }
-                else
+                if (!File.Exists(FileName))
                 {
                     InitializeDefaultStats();
                     Application.Current.Dispatcher.Invoke(() =>
@@ -92,15 +80,38 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         MainWindow.FireExitSave();
                         RestartApplication();
                     });
+                    return;
+                }
 
+                var jsonData = File.ReadAllText(FileName);
+
+                // Check if the JSON string is empty, contains only null characters, or is whitespace
+                if (string.IsNullOrWhiteSpace(jsonData) || jsonData.All(c => c == '\0'))
+                {
+                    Logging.WriteException(new Exception("The component stats file is empty or corrupted."), MSGBox: false);
+                    InitializeDefaultStats();
+                    return;
+                }
+
+                var loadedStats = JsonConvert.DeserializeObject<List<ComponentStatsItem>>(jsonData);
+                if (loadedStats != null)
+                {
+                    _componentStats.Clear();
+                    _componentStats.AddRange(loadedStats);
+                    started = true;
+                }
+                else
+                {
+                    Logging.WriteException(new Exception("Failed to deserialize component stats."), MSGBox: true);
+                    InitializeDefaultStats();
                 }
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex);
+                Logging.WriteException(ex, MSGBox: true);
             }
-
         }
+
 
         private void InitializeDefaultStats()
         {
@@ -656,24 +667,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return dateTimeWithZone;
         }
 
-        private static string GetFormattedTime(
+        public static string GetFormattedTime(
             DateTimeOffset dateTimeWithZone,
             bool time24H,
             bool timeShowTimeZone,
             string timeZoneDisplay)
         {
-            CultureInfo userCulture = CultureInfo.CurrentCulture;
+            CultureInfo userCulture = ViewModel.Instance.UseSystemCulture ? CultureInfo.CurrentCulture : CultureInfo.InvariantCulture;
             string timeFormat = time24H ? "HH:mm" : "hh:mm tt";
+
+            string formattedTime = dateTimeWithZone.ToString(timeFormat, userCulture);
 
             if (timeShowTimeZone)
             {
-                return dateTimeWithZone.ToString($"{timeFormat}{timeZoneDisplay}", userCulture);
+                return formattedTime + timeZoneDisplay;
             }
             else
             {
-                return dateTimeWithZone.ToString(timeFormat, CultureInfo.InvariantCulture).ToUpper();
+                return formattedTime;
             }
         }
+
 
         public static string GetTime()
         {

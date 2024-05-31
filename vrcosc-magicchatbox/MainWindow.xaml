@@ -396,7 +396,7 @@
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="225" />
             </Grid.ColumnDefinitions>
 
 
@@ -1975,6 +1975,19 @@
                                     Unchecked="Update_Click">
                                     24-Hour time format
                                 </CheckBox>
+                                <CheckBox
+                                    x:Name="UseSystemCultureForTime"
+                                    Height="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    Content="Use current system culture for formating time"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding UseSystemCulture, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click" />
                                 <CheckBox
                                     x:Name="AutoSetDaylight_checkbox"
                                     Height="20"
@@ -3861,116 +3874,370 @@
                             Margin="34,10,0,0"
                             Visibility="{Binding Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
-                                <CheckBox
-                                    x:Name="UseOldSpotify_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding DisableMediaLink, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Use old Spotify integration (deprecated)
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="MusicIconPrefix_checkbox"
-                                    Height="21"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Change 'listening to:' prefix to 🎵
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="PauseIconPrefix_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding PauseIconMusic, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
-                                    Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Show ⏸ when  music is paused
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="MediaSession_AutoSwitch_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding MediaSession_AutoSwitch, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Basic options" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Customize here how you want your media to look like in your chatbox" />
+
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding DisableMediaLink, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Use old Spotify integration (deprecated)
+                                        </CheckBox>
+                                        <CheckBox
+                                            Height="21"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Change 'listening to:' prefix to 🎵
+                                        </CheckBox>
+                                        <CheckBox
+                                            Height="21"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding PauseIconMusic, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click"
+                                            Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            Show ⏸ when  music is paused
+                                        </CheckBox>
+
+
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5"
                                     Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Auto switch when media state is changed (must enable checkbox)
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="MediaSession_AutoSwitchSpawn_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,10"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding MediaSession_AutoSwitchSpawn, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
-                                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Turn autoswitch on when new session detected
-                                </CheckBox>
-                                <CheckBox
-                                    x:Name="MediaSession_ShowSongtime_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,10"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding MediaLinkShowTime, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click"
-                                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    Show song time of media session
-                                </CheckBox>
-                                <TextBlock
-                                    Grid.Column="0"
-                                    Padding="0,0,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="#FF9983AD"
-                                    Text="Forget session after disconnect (in seconds)"
-                                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBox
-                                    x:Name="MediaSession_Timeout_int"
-                                    Width="40"
-                                    Height="26"
-                                    Margin="0,3,0,10"
-                                    Padding="5,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalContentAlignment="Center"
-                                    Background="#FF7B7195"
-                                    BorderThickness="0"
-                                    FontSize="15"
-                                    Foreground="#FF240E54"
-                                    Text="{Binding MediaSession_Timeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="MediaLink behavior" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Here u can adjust the way MadiaLink handles sessions" />
+
+                                        <CheckBox
+                                            x:Name="MediaSession_AutoSwitch_checkbox"
+                                            Height="20"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding MediaSession_AutoSwitch, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Auto switch when media state is changed (must check button on integration page)
+                                        </CheckBox>
+                                        <CheckBox
+                                            x:Name="MediaSession_AutoSwitchSpawn_checkbox"
+                                            Height="20"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding MediaSession_AutoSwitchSpawn, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Turn autoswitch on when new session detected
+                                        </CheckBox>
+
+                                        <StackPanel Margin="3,7" Orientation="Horizontal">
+                                            <TextBlock
+                                                Padding="0,0,5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Forget session" />
+                                            <TextBox
+                                                Width="auto"
+                                                Height="auto"
+                                                Margin="0,0,0,0"
+                                                Padding="5,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding MediaSession_Timeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                TextAlignment="Center" />
+                                            <TextBlock
+                                                Padding="5,0,5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="seconds after disconnect" />
+
+                                        </StackPanel>
+
+
+
+
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Media progress bar" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,2,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Customize how your seek bar looks like" />
+
+
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,5,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Seekbar Style"
+                                            Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        <ComboBox
+                                            Width="130"
+                                            Height="auto"
+                                            Margin="0,3"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding AvailableTimeSeekbarStyles}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding MediaLinkTimeSeekStyle, Mode=TwoWay}"
+                                            Visibility="{Binding DisableMediaLink, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AutoDowngradeSeekbar, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click"
+                                            Visibility="{Binding MediaLinkTimeSeekStyleIsNone, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            Auto-Style Downgrade if not fitting
+                                        </CheckBox>
+
+                                        <StackPanel Visibility="{Binding MediaLinkTimeSeekStyleIsNumbersAndSeekBar, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <CheckBox
+                                                Height="20"
+                                                Margin="3,7"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding MediaLinkDisplayTime, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show current and max song time
+                                            </CheckBox>
+                                            <CheckBox
+                                                Height="20"
+                                                Margin="3,7"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding MediaLinkShowTimeInSuperscript, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show time in stylized small numbers
+                                            </CheckBox>
+                                            <CheckBox
+                                                Height="20"
+                                                Margin="3,7"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding MediaLinkProgressBarOnTop, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Place progress bar above media info
+                                            </CheckBox>
+                                            <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
+                                                <TextBlock
+                                                    Padding="0,5,0,0"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Progress bar length: " />
+                                                <TextBox
+                                                    Width="auto"
+                                                    Height="20"
+                                                    Margin="2,3,0,0"
+                                                    Padding="5,0,5,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding MediaLinkProgressBarLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="0,7,0,0">
+                                                <TextBlock
+                                                    Padding="0,5,0,3"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="18"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Customize Characters" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock
+                                                        Width="auto"
+                                                        Padding="2,0,2,0"
+                                                        VerticalAlignment="Center"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="13"
+                                                        Foreground="#FF9983AD"
+                                                        Text="Filled:" />
+                                                    <TextBox
+                                                        Width="auto"
+                                                        Height="auto"
+                                                        Margin="2,0,3,0"
+                                                        Padding="5,0,5,5"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Background="#FF7B7195"
+                                                        BorderThickness="0"
+                                                        FontSize="19"
+                                                        Foreground="#FF240E54"
+                                                        Text="{Binding MediaLinkFilledCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <TextBlock
+                                                        Width="auto"
+                                                        Padding="2,0,2,0"
+                                                        VerticalAlignment="Center"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="13"
+                                                        Foreground="#FF9983AD"
+                                                        Text="Middle:" />
+                                                    <TextBox
+                                                        Width="auto"
+                                                        Height="auto"
+                                                        Margin="2,0,3,0"
+                                                        Padding="5,0,5,5"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Background="#FF7B7195"
+                                                        BorderThickness="0"
+                                                        FontSize="19"
+                                                        Foreground="#FF240E54"
+                                                        Text="{Binding MediaLinkMiddleCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    <TextBlock
+                                                        Width="auto"
+                                                        Padding="2,0,2,0"
+                                                        VerticalAlignment="Center"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="13"
+                                                        Foreground="#FF9983AD"
+                                                        Text="Non Filled:" />
+                                                    <TextBox
+                                                        Width="auto"
+                                                        Height="auto"
+                                                        Margin="2,0,3,0"
+                                                        Padding="5,0,5,5"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Background="#FF7B7195"
+                                                        BorderThickness="0"
+                                                        FontSize="19"
+                                                        Foreground="#FF240E54"
+                                                        Text="{Binding MediaLinkNonFilledCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+
+
+                                    </StackPanel>
+                                </Border>
+
+
+
                             </StackPanel>
                         </Grid>
 
@@ -4560,7 +4827,7 @@
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
                                             Foreground="#FF9983AD"
-                                            Text="max title lenght" />
+                                            Text="max title length" />
                                         <TextBox
                                             x:Name="MaxShowTitleCount_INT"
                                             Width="40"
@@ -5243,7 +5510,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border
-                                        Width="745"
+                                        Width="735"
                                         Height="auto"
                                         Margin="8,0,0,8"
                                         BorderThickness="0"
@@ -6279,7 +6546,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="130" />
                         <ColumnDefinition Width="45" />
-                        <ColumnDefinition Width="45" />
+                        <ColumnDefinition Width="50" />
                     </Grid.ColumnDefinitions>
                     <Button
                         Name="Button_close"
@@ -6343,7 +6610,7 @@
             <Grid
                 Grid.Row="1"
                 Grid.Column="1"
-                Width="220"
+                Width="225"
                 Background="#FF42385D">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
@@ -6585,87 +6852,106 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
+                                    <StackPanel
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <!--  Default values  -->
-                                                <Setter Property="Foreground" Value="#B49AD1" />
-                                                <Setter Property="Text" Value="Will be AFK in:" />
-                                                <Setter Property="Opacity" Value="0.7" />
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect
-                                                            BlurRadius="5"
-                                                            Direction="315"
-                                                            Opacity="1"
-                                                            ShadowDepth="0"
-                                                            Color="Black" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <!--  Change values based on AfkModule.IsAfk  -->
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
-                                                        <Setter Property="Text" Value="You are AFK for:" />
-                                                        <Setter Property="Opacity" Value="0.9" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="5"
-                                                Direction="315"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="Black" />
-                                        </TextBlock.Effect>
-                                    </TextBlock>
-                                    <TextBlock
-                                        Padding="3,0,5,0"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding AfkModule.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,1,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <!--  Default values  -->
+                                                    <Setter Property="Foreground" Value="#B49AD1" />
+                                                    <Setter Property="Text" Value="Will be AFK in:" />
+                                                    <Setter Property="Opacity" Value="0.7" />
+                                                    <Setter Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect
+                                                                BlurRadius="5"
+                                                                Direction="315"
+                                                                Opacity="1"
+                                                                ShadowDepth="0"
+                                                                Color="Black" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <!--  Change values based on AfkModule.IsAfk  -->
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                            <Setter Property="Text" Value="You are AFK for:" />
+                                                            <Setter Property="Opacity" Value="0.9" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Direction="315"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="Black" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <TextBlock
+                                            Padding="3,0,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <!--  Default values  -->
+                                                    <Setter Property="Foreground" Value="#BEBED3" />
+                                                    <Setter Property="Text" Value="{Binding AfkModule.RemainingTimeUntilAFK}" />
+                                                    <Setter Property="Opacity" Value="0.7" />
+                                                    <Setter Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect
+                                                                BlurRadius="5"
+                                                                Direction="315"
+                                                                Opacity="1"
+                                                                ShadowDepth="0"
+                                                                Color="Black" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <!--  Change values based on AfkModule.IsAfk  -->
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
+                                                            <Setter Property="Text" Value="{Binding AfkModule.TimeCurrentlyAFK}" />
+                                                            <Setter Property="Opacity" Value="0.9" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Direction="315"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="Black" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <StackPanel
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <!--  Default values  -->
-                                                <Setter Property="Foreground" Value="#BEBED3" />
-                                                <Setter Property="Text" Value="{Binding AfkModule.RemainingTimeUntilAFK}" />
-                                                <Setter Property="Opacity" Value="0.7" />
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect
-                                                            BlurRadius="5"
-                                                            Direction="315"
-                                                            Opacity="1"
-                                                            ShadowDepth="0"
-                                                            Color="Black" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <!--  Change values based on AfkModule.IsAfk  -->
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding AfkModule.IsAfk}" Value="True">
-                                                        <Setter Property="Text" Value="{Binding AfkModule.TimeCurrentlyAFK}" />
-                                                        <Setter Property="Opacity" Value="0.9" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="5"
-                                                Direction="315"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="Black" />
-                                        </TextBlock.Effect>
-                                    </TextBlock>
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding AfkModule.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="5,0"
+                                            FontSize="12"
+                                            Foreground="#B49AD1"
+                                            Text="Paused, VR active" />
+                                    </StackPanel>
+
+
                                     <CheckBox
                                         Width="50"
                                         Height="18"
@@ -7008,7 +7294,7 @@
                 <Button
                     x:Name="Discord"
                     Width="auto"
-                    Margin="6,3,190,5"
+                    Margin="6,3,195,5"
                     Click="Discord_Click"
                     Opacity="0.6"
                     Style="{DynamicResource LINK_Button_style}">
@@ -7023,7 +7309,7 @@
                 <Button
                     x:Name="Github"
                     Width="auto"
-                    Margin="32,3,164,5"
+                    Margin="32,3,169,5"
                     Click="Github_Click"
                     Opacity="0.4"
                     Style="{DynamicResource LINK_Button_style}">
@@ -8499,10 +8785,14 @@
                                                         VerticalAlignment="Center">
                                                         <Border Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                                             <ProgressBar
+                                                                x:Name="MediaProgressbar"
                                                                 Margin="0,0,0,0"
                                                                 BorderThickness="5"
+                                                                Cursor="Hand"
                                                                 Effect="{Binding TimePeekEnabled, Converter={StaticResource BoolToBlurEffectConverter}}"
+                                                                MouseLeftButtonDown="MediaProgressbar_MouseLeftButtonDown"
                                                                 Style="{StaticResource MediaPlayerProgress}"
+                                                                Tag="{Binding}"
                                                                 Value="{Binding TimePosition, Mode=OneWay}" />
                                                         </Border>
                                                         <Grid Visibility="{Binding IsLiveTime, Converter={StaticResource InverseBoolToHiddenConverter}}">
@@ -8540,7 +8830,7 @@
                                                                         Opacity="1"
                                                                         RenderingBias="Performance"
                                                                         ShadowDepth="0"
-                                                                        Color="LightGreen" />
+                                                                        Color="#25A0F9" />
                                                                 </TextBox.Effect>
                                                             </TextBox>
                                                         </Grid>

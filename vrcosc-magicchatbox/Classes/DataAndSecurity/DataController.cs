@@ -16,6 +16,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 using Version = vrcosc_magicchatbox.ViewModels.Models.Version;
 
 namespace vrcosc_magicchatbox.DataAndSecurity
@@ -29,16 +30,16 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         public static SoundpadModule soundpadModule = null;
 
         private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
-{
-    {'/', "·"}, {':', "'"}, {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
-    {'f', "ᶠ"}, {'g', "ᵍ"}, {'h', "ʰ"}, {'i', "ⁱ"}, {'j', "ʲ"},
-    {'k', "ᵏ"}, {'l', "ˡ"}, {'m', "ᵐ"}, {'n', "ⁿ"}, {'o', "ᵒ"},
-    {'p', "ᵖ"}, {'q', "ᵒ"}, {'r', "ʳ"}, {'s', "ˢ"}, {'t', "ᵗ"},
-    {'u', "ᵘ"}, {'v', "ᵛ"}, {'w', "ʷ"}, {'x', "ˣ"}, {'y', "ʸ"},
-    {'z', "ᶻ"}, {'0', "⁰"}, {'1', "¹"}, {'2', "²"}, {'3', "³"},
-    {'4', "⁴"}, {'5', "⁵"}, {'6', "⁶"}, {'7', "⁷"}, {'8', "⁸"},
-    {'9', "⁹"}, {',', "'"}, {'.', "'"} , {'%', "⁒"}
-};
+        {
+            {'/', "·"}, {':', "'"}, {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
+            {'f', "ᶠ"}, {'g', "ᵍ"}, {'h', "ʰ"}, {'i', "ⁱ"}, {'j', "ʲ"},
+            {'k', "ᵏ"}, {'l', "ˡ"}, {'m', "ᵐ"}, {'n', "ⁿ"}, {'o', "ᵒ"},
+            {'p', "ᵖ"}, {'q', "ᵒ"}, {'r', "ʳ"}, {'s', "ˢ"}, {'t', "ᵗ"},
+            {'u', "ᵘ"}, {'v', "ᵛ"}, {'w', "ʷ"}, {'x', "ˣ"}, {'y', "ʸ"},
+            {'z', "ᶻ"}, {'0', "⁰"}, {'1', "¹"}, {'2', "²"}, {'3', "³"},
+            {'4', "⁴"}, {'5', "⁵"}, {'6', "⁶"}, {'7', "⁷"}, {'8', "⁸"},
+            {'9', "⁹"}, {',', "'"}, {'.', "'"} , {'%', "⁒"}
+        };
 
 
         public static string GetApplicationVersion()
@@ -75,68 +76,72 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 .ToArray());
         }
 
-        private static void CheckForUpdate()
+        private static async void CheckForUpdate()
         {
             try
             {
-                string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                 string urlLatest = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases/latest";
                 string urlPreRelease = "https://api.github.com/repos/BoiHanny/vrcosc-magicchatbox/releases";
-                if (urlLatest != null)
+
+                bool isWithinRateLimit = await CheckRateLimit();
+
+                using (var client = new HttpClient())
                 {
-                    using (var client = new HttpClient())
+                    if (!isWithinRateLimit && !string.IsNullOrEmpty(ViewModel.Instance.ApiStream))
                     {
+                        string token = EncryptionMethods.DecryptString(ViewModel.Instance.ApiStream);
                         client.DefaultRequestHeaders.Add("Authorization", $"Token {token}");
-                        client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
-
-                        // Check the latest release
-                        HttpResponseMessage responseLatest = client.GetAsync(urlLatest).Result;
-                        var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
-                        JObject releaseLatest = JObject.Parse(jsonLatest);
-                        string latestVersion = releaseLatest.Value<string>("tag_name");
-
-                        ViewModel.Instance.LatestReleaseVersion = new Version(
-                            Regex.Replace(latestVersion, "[^0-9.]", string.Empty));
-
-                        // Correctly handling the assets array to get the browser_download_url
-                        JArray assetsLatest = releaseLatest.Value<JArray>("assets");
-                        if (assetsLatest != null && assetsLatest.Count > 0)
-                        {
-                            string downloadUrl = assetsLatest[0].Value<string>("browser_download_url");
-                            ViewModel.Instance.LatestReleaseURL = downloadUrl; // Store the download URL
-                        }
-
-                        // Check the latest pre-release
-                        var responsePreRelease = client.GetAsync(urlPreRelease).Result;
-                        var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
-                        JArray releases = JArray.Parse(jsonPreRelease);
-                        string preReleaseVersion = string.Empty;
-                        foreach (var release in releases)
-                        {
-                            if (release.Value<bool>("prerelease"))
-                            {
-                                preReleaseVersion = release.Value<string>("tag_name");
-                                JArray assetsPreRelease = release.Value<JArray>("assets");
-                                if (assetsPreRelease != null && assetsPreRelease.Count > 0)
-                                {
-                                    string preReleaseDownloadUrl = assetsPreRelease[0].Value<string>("browser_download_url");
-                                    ViewModel.Instance.PreReleaseURL = preReleaseDownloadUrl; // Store the download URL
-                                }
-                                break;
-                            }
-                        }
-
-                        // Check if there's a new pre-release and user is joined to alpha channel
-                        if (ViewModel.Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
-                        {
-                            ViewModel.Instance.PreReleaseVersion = new Version(
-                                Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
-                            ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
-                        }
-
-                        UpdateApp updater = new UpdateApp();
-                        ViewModel.Instance.RollBackUpdateAvailable = updater.CheckIfBackupExists();
                     }
+
+                    client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
+
+                    // Check the latest release
+                    HttpResponseMessage responseLatest = client.GetAsync(urlLatest).Result;
+                    var jsonLatest = responseLatest.Content.ReadAsStringAsync().Result;
+                    JObject releaseLatest = JObject.Parse(jsonLatest);
+                    string latestVersion = releaseLatest.Value<string>("tag_name");
+
+                    ViewModel.Instance.LatestReleaseVersion = new Version(
+                        Regex.Replace(latestVersion, "[^0-9.]", string.Empty));
+
+                    // Correctly handling the assets array to get the browser_download_url
+                    JArray assetsLatest = releaseLatest.Value<JArray>("assets");
+                    if (assetsLatest != null && assetsLatest.Count > 0)
+                    {
+                        string downloadUrl = assetsLatest[0].Value<string>("browser_download_url");
+                        ViewModel.Instance.LatestReleaseURL = downloadUrl; // Store the download URL
+                    }
+
+                    // Check the latest pre-release
+                    var responsePreRelease = client.GetAsync(urlPreRelease).Result;
+                    var jsonPreRelease = responsePreRelease.Content.ReadAsStringAsync().Result;
+                    JArray releases = JArray.Parse(jsonPreRelease);
+                    string preReleaseVersion = string.Empty;
+                    foreach (var release in releases)
+                    {
+                        if (release.Value<bool>("prerelease"))
+                        {
+                            preReleaseVersion = release.Value<string>("tag_name");
+                            JArray assetsPreRelease = release.Value<JArray>("assets");
+                            if (assetsPreRelease != null && assetsPreRelease.Count > 0)
+                            {
+                                string preReleaseDownloadUrl = assetsPreRelease[0].Value<string>("browser_download_url");
+                                ViewModel.Instance.PreReleaseURL = preReleaseDownloadUrl; // Store the download URL
+                            }
+                            break;
+                        }
+                    }
+
+                    // Check if there's a new pre-release and user is joined to alpha channel
+                    if (ViewModel.Instance.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
+                    {
+                        ViewModel.Instance.PreReleaseVersion = new Version(
+                            Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
+                        ViewModel.Instance.PreReleaseURL = releases[0]["assets"][0]["browser_download_url"].ToString(); // Store the download URL
+                    }
+
+                    UpdateApp updater = new UpdateApp();
+                    ViewModel.Instance.RollBackUpdateAvailable = updater.CheckIfBackupExists();
                 }
             }
             catch (Exception ex)
@@ -150,6 +155,38 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 CompareVersions();
             }
+        }
+
+        private static async Task<bool> CheckRateLimit()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "vrcosc-magicchatbox-update-checker");
+
+                    // Check the rate limit status
+                    var rateLimitResponse = await client.GetAsync("https://api.github.com/rate_limit");
+                    var rateLimitData = JsonConvert.DeserializeObject<JObject>(await rateLimitResponse.Content.ReadAsStringAsync());
+
+                    // Check if the rate limit has been exceeded for the requested endpoint
+                    var resources = rateLimitData["resources"];
+                    var coreResource = resources["core"];
+                    var remainingRequests = (int)coreResource["remaining"];
+
+                    if (remainingRequests <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                return false;
+            }
+
+            return true;
         }
 
         private static object ConvertToType(Type targetType, string value)
@@ -168,6 +205,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     return double.Parse(value);
                 case Type t when t == typeof(Timezone):
                     return Enum.Parse(typeof(Timezone), value);
+                case Type t when t == typeof(MediaLinkTimeSeekbar):
+                    return Enum.Parse(typeof(MediaLinkTimeSeekbar), value);
                 case Type t when t == typeof(DateTime):
                     return DateTime.Parse(value);
                 default:
@@ -211,181 +250,190 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         private static Dictionary<string, (Type type, string category)> InitializeSettingsDictionary()
         {
             return new Dictionary<string, (Type type, string category)>
-            {
-                { "IntgrStatus", (typeof(bool), "Integrations") },
-                { "IntgrScanWindowActivity", (typeof(bool), "Integrations") },
-                { "IntgrScanSpotify_OLD", (typeof(bool), "Integrations") },
-                { "IntgrScanWindowTime", (typeof(bool), "Integrations") },
-                { "ApplicationHookV2", (typeof(bool), "Integrations") },
-                { "IntgrHeartRate", (typeof(bool), "Integrations") },
-                { "IntgrNetworkStatistics", (typeof(bool), "Integrations") },
-                { "IntgrScanMediaLink", (typeof(bool), "Integrations") },
-                { "IntgrComponentStats", (typeof(bool), "Integrations") },
-                { "IntgrSoundpad", (typeof(bool), "Integrations") },
+    {
+        { "IntgrStatus", (typeof(bool), "Integrations") },
+        { "IntgrScanWindowActivity", (typeof(bool), "Integrations") },
+        { "IntgrScanSpotify_OLD", (typeof(bool), "Integrations") },
+        { "IntgrScanWindowTime", (typeof(bool), "Integrations") },
+        { "ApplicationHookV2", (typeof(bool), "Integrations") },
+        { "IntgrHeartRate", (typeof(bool), "Integrations") },
+        { "IntgrNetworkStatistics", (typeof(bool), "Integrations") },
+        { "IntgrScanMediaLink", (typeof(bool), "Integrations") },
+        { "IntgrComponentStats", (typeof(bool), "Integrations") },
+        { "IntgrSoundpad", (typeof(bool), "Integrations") },
 
+        { "IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrComponentStats_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrComponentStats_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrNetworkStatistics_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrNetworkStatistics_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrNetworkStatistics_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrNetworkStatistics_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrStatus_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrStatus_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrMediaLink_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrMediaLink_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrMediaLink_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrMediaLink_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrWindowActivity_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrWindowActivity_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrWindowActivity_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrWindowActivity_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrHeartRate_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrHeartRate_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrHeartRate_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrHeartRate_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrCurrentTime_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrCurrentTime_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles") },
+        { "IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles") },
-                { "IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrSoundpad_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "IntgrSoundpad_VR", (typeof(bool), "IntegrationToggles") },
 
-                { "IntgrSoundpad_DESKTOP", (typeof(bool), "IntegrationToggles") },
-                { "IntgrSoundpad_VR", (typeof(bool), "IntegrationToggles") },
+        { "Time24H", (typeof(bool), "Time") },
+        { "PrefixTime", (typeof(bool), "Time") },
+        { "TimeShowTimeZone", (typeof(bool), "Time") },
+        { "SelectedTimeZone", (typeof(Timezone), "Time") },
+        { "UseDaylightSavingTime", (typeof(bool), "Time") },
+        { "AutoSetDaylight", (typeof(bool), "Time") },
+        { "UseSystemCulture", (typeof(bool), "Time") },
 
-                { "Time24H", (typeof(bool), "Time") },
-                { "PrefixTime", (typeof(bool), "Time") },
-                { "TimeShowTimeZone", (typeof(bool), "Time") },
-                { "SelectedTimeZone", (typeof(Timezone), "Time") },
-                { "UseDaylightSavingTime", (typeof(bool), "Time") },
-                { "AutoSetDaylight", (typeof(bool), "Time") },
+        { "CurrentMenuItem", (typeof(int), "Menu") },
 
-                { "CurrentMenuItem", (typeof(int), "Menu") },
+        { "NetworkStats_ShowCurrentDown", (typeof(bool), "NetworkStatistics") },
+        { "NetworkStats_ShowCurrentUp", (typeof(bool), "NetworkStatistics") },
+        { "NetworkStats_ShowMaxDown", (typeof(bool), "NetworkStatistics") },
+        { "NetworkStats_ShowMaxUp", (typeof(bool), "NetworkStatistics") },
+        { "NetworkStats_ShowTotalDown", (typeof(bool), "NetworkStatistics") },
+        { "NetworkStats_ShowTotalUp", (typeof(bool), "NetworkStatistics") },
+        { "NetworkStats_ShowNetworkUtilization", (typeof(bool), "NetworkStatistics") },
 
-                { "NetworkStats_ShowCurrentDown", (typeof(bool), "NetworkStatistics") },
-                { "NetworkStats_ShowCurrentUp", (typeof(bool), "NetworkStatistics") },
-                { "NetworkStats_ShowMaxDown", (typeof(bool), "NetworkStatistics") },
-                { "NetworkStats_ShowMaxUp", (typeof(bool), "NetworkStatistics") },
-                { "NetworkStats_ShowTotalDown", (typeof(bool), "NetworkStatistics") },
-                { "NetworkStats_ShowTotalUp", (typeof(bool), "NetworkStatistics") },
-                { "NetworkStats_ShowNetworkUtilization", (typeof(bool), "NetworkStatistics") },
+        { "OpenAIAccessTokenEncrypted", (typeof(string), "OpenAI") },
+        { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
 
-                { "OpenAIAccessTokenEncrypted", (typeof(string), "OpenAI") },
-                { "OpenAIOrganizationIDEncrypted", (typeof(string), "OpenAI") },
+        { "SelectedGPU", (typeof(string), "ComponentStats") },
+        { "AutoSelectGPU", (typeof(bool), "ComponentStats") },
+        { "UseEmojisForTempAndPower", (typeof(bool), "ComponentStats") },
+        { "IsTemperatureSwitchEnabled", (typeof(bool), "ComponentStats") },
 
-                { "SelectedGPU", (typeof(string), "ComponentStats") },
-                { "AutoSelectGPU", (typeof(bool), "ComponentStats") },
-                { "UseEmojisForTempAndPower", (typeof(bool), "ComponentStats") },
-                { "IsTemperatureSwitchEnabled", (typeof(bool), "ComponentStats") },
+        { "IntgrScanForce", (typeof(bool), "WindowActivity") },
+        { "AutoShowTitleOnNewApp", (typeof(bool), "WindowActivity") },
+        { "WindowActivityTitleScan", (typeof(bool), "WindowActivity") },
+        { "MaxShowTitleCount", (typeof(int), "WindowActivity") },
+        { "LimitTitleOnApp", (typeof(bool), "WindowActivity") },
+        { "TitleOnAppVR", (typeof(bool), "WindowActivity") },
+        { "WindowActivityPrivateName", (typeof(string), "WindowActivity") },
 
-                { "IntgrScanForce", (typeof(bool), "WindowActivity") },
-                { "AutoShowTitleOnNewApp", (typeof(bool), "WindowActivity") },
-                { "WindowActivityTitleScan", (typeof(bool), "WindowActivity") },
-                { "MaxShowTitleCount", (typeof(int), "WindowActivity") },
-                { "LimitTitleOnApp", (typeof(bool), "WindowActivity") },
-                { "TitleOnAppVR", (typeof(bool), "WindowActivity") },
-                { "WindowActivityPrivateName", (typeof(string), "WindowActivity") },
+        { "MediaSession_Timeout", (typeof(int), "MediaLink") },
+        { "MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink") },
+        { "MediaSession_AutoSwitch", (typeof(bool), "MediaLink") },
+        { "DisableMediaLink", (typeof(bool), "MediaLink") },
+        { "MediaLinkTimeSeekStyle", (typeof(MediaLinkTimeSeekbar), "MediaLink") },
+        { "MediaLinkDisplayTime", (typeof(bool), "MediaLink") },
+        { "MediaLinkProgressBarLength", (typeof(int), "MediaLink") },
+        { "MediaLinkFilledCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkMiddleCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkNonFilledCharacter", (typeof(string), "MediaLink") },
+        { "MediaLinkTimePrefix", (typeof(string), "MediaLink") },
+        { "MediaLinkTimeSuffix", (typeof(string), "MediaLink") },
+        { "MediaLinkShowTimeInSuperscript", (typeof(bool), "MediaLink") },
+        { "MediaLinkProgressBarOnTop", (typeof(bool), "MediaLink") },
+        { "AutoDowngradeSeekbar", (typeof(bool), "MediaLink") },
 
-                { "MediaSession_Timeout", (typeof(int), "MediaLink") },
-                { "MediaSession_AutoSwitchSpawn", (typeof(bool), "MediaLink") },
-                { "MediaSession_AutoSwitch", (typeof(bool), "MediaLink") },
-                { "DisableMediaLink", (typeof(bool), "MediaLink") },
-                { "MediaLinkShowTime", (typeof(bool), "MediaLink") },
+        { "ScanningInterval", (typeof(double), "Scanning") },
+        { "ScanPauseTimeout", (typeof(int), "Scanning") },
 
-                { "ScanningInterval", (typeof(double), "Scanning") },
-                { "ScanPauseTimeout", (typeof(int), "Scanning") },
+        { "PrefixIconMusic", (typeof(bool), "Icons") },
+        { "PauseIconMusic", (typeof(bool), "Icons") },
+        { "PrefixIconStatus", (typeof(bool), "Icons") },
+        { "PrefixIconSoundpad", (typeof(bool), "Icons") },
 
-                { "PrefixIconMusic", (typeof(bool), "Icons") },
-                { "PauseIconMusic", (typeof(bool), "Icons") },
-                { "PrefixIconStatus", (typeof(bool), "Icons") },
-                { "PrefixIconSoundpad", (typeof(bool), "Icons") },
+        { "PrefixChat", (typeof(bool), "Chat") },
+        { "ChatFX", (typeof(bool), "Chat") },
+        { "ChatLiveEdit", (typeof(bool), "Chat") },
+        { "KeepUpdatingChat", (typeof(bool), "Chat") },
+        { "ChatSendAgainFX", (typeof(bool), "Chat") },
+        { "ChatAddSmallDelay", (typeof(bool), "Chat") },
+        { "ChatAddSmallDelayTIME", (typeof(double), "Chat") },
+        { "ChattingUpdateRate", (typeof(double), "Chat") },
+        { "RealTimeChatEdit", (typeof(bool), "Chat") },
 
-                { "PrefixChat", (typeof(bool), "Chat") },
-                { "ChatFX", (typeof(bool), "Chat") },
-                { "ChatLiveEdit", (typeof(bool), "Chat") },
-                { "KeepUpdatingChat", (typeof(bool), "Chat") },
-                { "ChatSendAgainFX", (typeof(bool), "Chat") },
-                { "ChatAddSmallDelay", (typeof(bool), "Chat") },
-                { "ChatAddSmallDelayTIME", (typeof(double), "Chat") },
-                { "ChattingUpdateRate", (typeof(double), "Chat") },
-                { "RealTimeChatEdit", (typeof(bool), "Chat") },
+        { "SeperateWithENTERS", (typeof(bool), "Custom") },
 
-                { "SeperateWithENTERS", (typeof(bool), "Custom") },
+        { "CountOculusSystemAsVR", (typeof(bool), "System") },
+        { "Topmost", (typeof(bool), "Window") },
+        { "JoinedAlphaChannel", (typeof(bool), "Update") },
+        { "CheckUpdateOnStartup", (typeof(bool), "Update") },
 
-                { "CountOculusSystemAsVR", (typeof(bool), "System") },
-                { "Topmost", (typeof(bool), "Window") },
-                { "JoinedAlphaChannel", (typeof(bool), "Update") },
-                { "CheckUpdateOnStartup", (typeof(bool), "Update") },
+        { "TTSTikTokEnabled", (typeof(bool), "TTS") },
+        { "TTSCutOff", (typeof(bool), "TTS") },
+        { "AutoUnmuteTTS", (typeof(bool), "TTS") },
+        { "ToggleVoiceWithV", (typeof(bool), "TTS") },
+        { "TTSVolume", (typeof(float), "TTS") },
+        { "RecentTikTokTTSVoice", (typeof(string), "TTS") },
+        { "RecentPlayBackOutput", (typeof(string), "TTS") },
+        { "TTSOnResendChat", (typeof(bool), "TTS") },
 
-                { "TTSTikTokEnabled", (typeof(bool), "TTS") },
-                { "TTSCutOff", (typeof(bool), "TTS") },
-                { "AutoUnmuteTTS", (typeof(bool), "TTS") },
-                { "ToggleVoiceWithV", (typeof(bool), "TTS") },
-                { "TTSVolume", (typeof(float), "TTS") },
-                { "RecentTikTokTTSVoice", (typeof(string), "TTS") },
-                { "RecentPlayBackOutput", (typeof(string), "TTS") },
-                { "TTSOnResendChat", (typeof(bool), "TTS") },
+        { "OSCIP", (typeof(string), "OSC") },
+        { "OSCPortOut", (typeof(int), "OSC") },
+        { "SecOSC", (typeof(bool), "OSC") },
+        { "SecOSCPort", (typeof(int), "OSC") },
+        { "ThirdOSCPort", (typeof(int), "OSC") },
+        { "ThirdOSC", (typeof(bool), "OSC") },
+        { "UnmuteThirdOutput", (typeof(bool), "OSC") },
+        { "UnmuteSecOutput", (typeof(bool), "OSC") },
+        { "UnmuteMainOutput", (typeof(bool), "OSC") },
 
+        { "BlankEgg", (typeof(bool), "DEV") },
 
-                { "OSCIP", (typeof(string), "OSC") },
-                { "OSCPortOut", (typeof(int), "OSC") },
-                { "SecOSC", (typeof(bool), "OSC") },
-                { "SecOSCPort", (typeof(int), "OSC") },
-                { "ThirdOSCPort", (typeof(int), "OSC") },
-                { "ThirdOSC", (typeof(bool), "OSC") },
-                { "UnmuteThirdOutput", (typeof(bool), "OSC") },
-                { "UnmuteSecOutput", (typeof(bool), "OSC") },
-                { "UnmuteMainOutput", (typeof(bool), "OSC") },
+        { "SwitchStatusInterval", (typeof(int), "StatusSetting") },
+        { "IsRandomCycling", (typeof(bool), "StatusSetting") },
+        { "CycleStatus", (typeof(bool), "StatusSetting") },
 
-                { "BlankEgg", (typeof(bool), "DEV") },
+        { "WindowActivityShowFocusedApp", (typeof(bool), "WindowActivity") },
+        { "WindowActivityDesktopFocusTitle", (typeof(string), "WindowActivity") },
+        { "WindowActivityDesktopTitle", (typeof(string), "WindowActivity") },
+        { "WindowActivityVRFocusTitle", (typeof(string), "WindowActivity") },
+        { "WindowActivityVRTitle", (typeof(string), "WindowActivity") },
 
-                { "SwitchStatusInterval", (typeof(int), "StatusSetting") },
-                { "IsRandomCycling", (typeof(bool), "StatusSetting") },
-                { "CycleStatus", (typeof(bool), "StatusSetting") },
+        { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
+        { "HeartRateScanInterval_v3", (typeof(int), "PulsoidConnector") },
+        { "HeartRate", (typeof(int), "PulsoidConnector") },
+        { "HeartRateLastUpdate", (typeof(DateTime), "PulsoidConnector") },
+        { "ShowBPMSuffix", (typeof(bool), "PulsoidConnector") },
+        { "ApplyHeartRateAdjustment", (typeof(bool), "PulsoidConnector") },
+        { "HeartRateAdjustment", (typeof(int), "PulsoidConnector") },
+        { "SmoothHeartRate_v1", (typeof(bool), "PulsoidConnector") },
+        { "SmoothHeartRateTimeSpan", (typeof(int), "PulsoidConnector") },
+        { "HeartRateTrendIndicatorSensitivity", (typeof(double), "PulsoidConnector") },
+        { "ShowHeartRateTrendIndicator", (typeof(bool), "PulsoidConnector") },
+        { "HeartRateTrendIndicatorSampleRate", (typeof(int), "PulsoidConnector") },
+        { "HeartRateTitle", (typeof(bool), "PulsoidConnector") },
+        { "PulsoidAuthConnected", (typeof(bool), "PulsoidConnector") },
+        { "MagicHeartIconPrefix", (typeof(bool), "PulsoidConnector") },
+        { "CurrentHeartRateTitle", (typeof(string), "PulsoidConnector") },
+        { "EnableHeartRateOfflineCheck", (typeof(bool), "PulsoidConnector") },
+        { "UnchangedHeartRateTimeoutInSec", (typeof(int), "PulsoidConnector") },
 
-                { "WindowActivityShowFocusedApp", (typeof(bool), "WindowActivity") },
-                { "WindowActivityDesktopFocusTitle", (typeof(string), "WindowActivity") },
-                { "WindowActivityDesktopTitle", (typeof(string), "WindowActivity") },
-                { "WindowActivityVRFocusTitle", (typeof(string), "WindowActivity") },
-                { "WindowActivityVRTitle", (typeof(string), "WindowActivity") },
+        { "LowTemperatureThreshold", (typeof(int), "PulsoidConnector") },
+        { "HighTemperatureThreshold", (typeof(int), "PulsoidConnector") },
+        { "ShowTemperatureText", (typeof(bool), "PulsoidConnector") },
+        { "LowHeartRateText", (typeof(string), "PulsoidConnector") },
+        { "HighHeartRateText", (typeof(string), "PulsoidConnector") },
+        { "MagicHeartRateIcons", (typeof(bool), "PulsoidConnector") },
 
+        { "Settings_Status", (typeof(bool), "OptionsTabState") },
+        { "Settings_OpenAI", (typeof(bool), "OptionsTabState") },
+        { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
+        { "Settings_Time", (typeof(bool), "OptionsTabState") },
+        { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },
+        { "Settings_NetworkStatistics", (typeof(bool), "OptionsTabState") },
+        { "Settings_Chatting", (typeof(bool), "OptionsTabState") },
+        { "Settings_TTS", (typeof(bool), "OptionsTabState") },
+        { "Settings_MediaLink", (typeof(bool), "OptionsTabState") },
+        { "Settings_AppOptions", (typeof(bool), "OptionsTabState") },
+        { "Settings_WindowActivity", (typeof(bool), "OptionsTabState") }
 
-                { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
-                { "HeartRateScanInterval_v3", (typeof(int), "PulsoidConnector") },
-                { "HeartRate", (typeof(int), "PulsoidConnector") },
-                { "HeartRateLastUpdate", (typeof(DateTime), "PulsoidConnector") },
-                { "ShowBPMSuffix", (typeof(bool), "PulsoidConnector") },
-                { "ApplyHeartRateAdjustment", (typeof(bool), "PulsoidConnector") },
-                { "HeartRateAdjustment", (typeof(int), "PulsoidConnector") },
-                { "SmoothHeartRate_v1", (typeof(bool), "PulsoidConnector") },
-                { "SmoothHeartRateTimeSpan", (typeof(int), "PulsoidConnector") },
-                { "HeartRateTrendIndicatorSensitivity", (typeof(double), "PulsoidConnector") },
-                { "ShowHeartRateTrendIndicator", (typeof(bool), "PulsoidConnector") },
-                { "HeartRateTrendIndicatorSampleRate", (typeof(int), "PulsoidConnector") },
-                { "HeartRateTitle", (typeof(bool), "PulsoidConnector") },
-                { "PulsoidAuthConnected", (typeof(bool), "PulsoidConnector") },
-                { "MagicHeartIconPrefix", (typeof(bool), "PulsoidConnector") },
-                { "CurrentHeartRateTitle", (typeof(string), "PulsoidConnector") },
-                { "EnableHeartRateOfflineCheck", (typeof(bool), "PulsoidConnector") },
-                { "UnchangedHeartRateTimeoutInSec", (typeof(int), "PulsoidConnector") },
-
-                { "LowTemperatureThreshold", (typeof(int), "PulsoidConnector") },
-                { "HighTemperatureThreshold", (typeof(int), "PulsoidConnector") },
-                { "ShowTemperatureText", (typeof(bool), "PulsoidConnector") },
-                { "LowHeartRateText", (typeof(string), "PulsoidConnector") },
-                { "HighHeartRateText", (typeof(string), "PulsoidConnector") },
-                { "MagicHeartRateIcons", (typeof(bool), "PulsoidConnector") },
-
-                { "Settings_Status", (typeof(bool), "OptionsTabState") },
-                { "Settings_OpenAI", (typeof(bool), "OptionsTabState") },
-                { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
-                { "Settings_Time", (typeof(bool), "OptionsTabState") },
-                { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },
-                { "Settings_NetworkStatistics", (typeof(bool), "OptionsTabState") },
-                { "Settings_Chatting", (typeof(bool), "OptionsTabState") },
-                { "Settings_TTS", (typeof(bool), "OptionsTabState") },
-                { "Settings_MediaLink", (typeof(bool), "OptionsTabState") },
-                { "Settings_AppOptions", (typeof(bool), "OptionsTabState") },
-                { "Settings_WindowActivity", (typeof(bool), "OptionsTabState") }
-            };
+    };
         }
 
         private static void LoadSettingFromXML(
@@ -487,18 +535,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                 }
 
-                // Check if a downgrade is needed
-                if (!ViewModel.Instance.JoinedAlphaChannel &&
-                    ViewModel.Instance.LatestReleaseVersion != null &&
-                    currentVersion.CompareTo(ViewModel.Instance.LatestReleaseVersion.VersionNumber) > 0)
+                if (compareWithLatestRelease > 0)
                 {
-                    // If the current version is a pre-release version and the user has opted out of the alpha channel
-                    ViewModel.Instance.VersionTxt = "Downgrade version";
-                    ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
-                    ViewModel.Instance.VersionTxtUnderLine = true;
-                    ViewModel.Instance.CanUpdate = true;
+                    // If the current version is higher than the latest release version
+                    ViewModel.Instance.VersionTxt = "✨ Supporter version ✨";
+                    ViewModel.Instance.VersionTxtColor = "#FFD700"; // Gold color to signify supporter
+                    ViewModel.Instance.VersionTxtUnderLine = false;
+                    ViewModel.Instance.CanUpdate = false;
                     ViewModel.Instance.CanUpdateLabel = false;
-                    ViewModel.Instance.UpdateURL = ViewModel.Instance.LatestReleaseURL;
                     return;
                 }
 
@@ -514,6 +558,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
+
 
 
         public static bool CreateIfMissing(string path)
@@ -606,7 +651,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 else
                 {
                     Logging.WriteInfo("LastMessages history has never been created, not problem :P");
-                    if(ViewModel.Instance.LastMessages == null)
+                    if (ViewModel.Instance.LastMessages == null)
                     {
                         ViewModel.Instance.LastMessages = new();
                     }
@@ -639,7 +684,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         .ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMediaLinkSessions.xml"));
                     if (json.ToLower().Equals("null"))
                     {
-                           Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
+                        Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
                         ViewModel.Instance.SavedSessionSettings = new List<MediaSessionSettings>();
                         return;
                     }
@@ -648,7 +693,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 else
                 {
                     Logging.WriteInfo("LastMediaSessions history has never been created, not problem :P");
-                    if(ViewModel.Instance.SavedSessionSettings == null)
+                    if (ViewModel.Instance.SavedSessionSettings == null)
                     {
                         ViewModel.Instance.SavedSessionSettings = new List<MediaSessionSettings>();
                     }
@@ -713,7 +758,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             catch (JsonException jsonEx)
             {
-                Logging.WriteException(jsonEx, MSGBox:true);
+                Logging.WriteException(jsonEx, MSGBox: true);
                 ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
             }
         }
@@ -752,6 +797,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             return random.Next(10, 99999999);
         }
 
+        public static void EnsureLogDirectoryExists(string filePath)
+        {
+            string directory = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
 
 
         public static void ManageSettingsXML(bool saveSettings = false)
@@ -760,7 +813,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 if (ViewModel.Instance == null)
                 {
-                    Logging.WriteException(new Exception("ViewModel is null, please restart the program."), exitapp:true);
+                    Logging.WriteException(new Exception("ViewModel is null, please restart the program."), exitapp: true);
                 }
 
                 string datapath = Path.Combine(ViewModel.Instance.DataPath, "settings.xml");
@@ -975,6 +1028,22 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+
+        public static void CheckLogFolder()
+        {
+            try
+            {
+                if (CreateIfMissing(@"C:\temp\Vrcosc-MagicChatbox") == true)
+                {
+                    Logging.WriteInfo("Application started at: " + DateTime.Now);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: true);
             }
         }
     }

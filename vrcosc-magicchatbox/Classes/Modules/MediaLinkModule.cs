@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -291,6 +292,51 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         }
 
+        private static TimeSpan GetSeekTime(MediaSessionInfo mediaSessionInfo, double progressbarValue)
+        {
+            MediaSession S = mediaSessionInfo.Session;
+
+            if (S == null)
+                return TimeSpan.Zero;
+
+            TimeSpan FullMediaTime = S.ControlSession.GetTimelineProperties().EndTime - S.ControlSession.GetTimelineProperties().StartTime;
+
+            double requestedPositionSeconds = FullMediaTime.TotalSeconds * progressbarValue / 100;
+
+            return TimeSpan.FromSeconds(requestedPositionSeconds);
+        }
+
+
+
+
+        public static async Task MediaManager_SeekTo(MediaSessionInfo sessionInfo, double position)
+        {
+            MediaSession S = sessionInfo.Session;
+
+            TimeSpan requestedtime = GetSeekTime(sessionInfo, position);
+
+            long requestedPlaybackPosition = requestedtime.Ticks;
+
+            if (S == null)
+                return;
+
+            //get the currentplayback position
+            long currentPlaybackPosition = S.ControlSession.GetTimelineProperties().Position.Ticks;
+
+            await S.ControlSession.TryChangePlaybackPositionAsync(requestedPlaybackPosition);
+        }
+
+
+
+        public enum MediaLinkTimeSeekbar
+        {
+            [Description ("Small numbers")]
+            SmallNumbers,
+            [Description("Custom")]
+            NumbersAndSeekBar,
+            [Description("None")]
+            None
+        }
 
 
 
