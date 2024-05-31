@@ -204,7 +204,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     break;
 
                 case MediaLinkTimeSeekbar.SmallNumbers:
-                    string smallNumbersContent = $"{DataController.TransformToSuperscript(FormatTimeSpan(currentTime) + " : " + FormatTimeSpan(fullTime))}";
+                    string smallNumbersContent = $"{DataController.TransformToSuperscript(FormatTimeSpan(currentTime) + " l " + FormatTimeSpan(fullTime))}";
                     if (CalculateOSCMsgLength(uncomplete, x + smallNumbersContent) <= 140)
                     {
                         return x + " " + smallNumbersContent;
