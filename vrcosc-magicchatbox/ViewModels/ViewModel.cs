@@ -24,6 +24,38 @@ namespace vrcosc_magicchatbox.ViewModels
 
     public class ViewModel : INotifyPropertyChanged
     {
+
+        private ObservableCollection<MediaLinkStyle> _MediaLinkSeekbarStyles;
+
+        public ObservableCollection<MediaLinkStyle> MediaLinkSeekbarStyles
+        {
+            get { return _MediaLinkSeekbarStyles; }
+            set
+            {
+                if (_MediaLinkSeekbarStyles != value)
+                {
+                    _MediaLinkSeekbarStyles = value;
+                    NotifyPropertyChanged(nameof(MediaLinkSeekbarStyles));
+                }
+            }
+        }
+
+
+        private MediaLinkStyle _SelectedMediaLinkSeekbarStyle;
+
+        public MediaLinkStyle SelectedMediaLinkSeekbarStyle
+        {
+            get { return _SelectedMediaLinkSeekbarStyle; }
+            set
+            {
+                if (_SelectedMediaLinkSeekbarStyle != value)
+                {
+                    _SelectedMediaLinkSeekbarStyle = value;
+                    NotifyPropertyChanged(nameof(SelectedMediaLinkSeekbarStyle));
+                }
+            }
+        }
+
         public static readonly ViewModel Instance = new ViewModel();
 
         private bool _BlankEgg = false;
@@ -1884,14 +1916,7 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private bool _mediaLinkDisplayTime = true;
-        private int _mediaLinkProgressBarLength = 8;
-        private string _mediaLinkFilledCharacter = "▒";
-        private string _mediaLinkMiddleCharacter = "▓";
-        private string _mediaLinkNonFilledCharacter = "░";
-        private string _mediaLinkTimePrefix = "";
-        private string _mediaLinkTimeSuffix = "";
-        private bool _mediaLinkShowTimeInSuperscript = true;
+
 
         private bool autoDowngradeSeekbar = true;
         public bool AutoDowngradeSeekbar
@@ -1907,101 +1932,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private bool _mediaLinkProgressBarOnTop = false;
-
-        public bool MediaLinkProgressBarOnTop
-        {
-            get { return _mediaLinkProgressBarOnTop; }
-            set
-            {
-                if (_mediaLinkProgressBarOnTop != value)
-                {
-                    _mediaLinkProgressBarOnTop = value;
-                    NotifyPropertyChanged(nameof(MediaLinkProgressBarOnTop));
-                }
-            }
-        }
-
-        public bool MediaLinkDisplayTime
-        {
-            get => _mediaLinkDisplayTime;
-            set
-            {
-                _mediaLinkDisplayTime = value;
-                NotifyPropertyChanged(nameof(MediaLinkDisplayTime));
-            }
-        }
-
-        public int MediaLinkProgressBarLength
-        {
-            get => _mediaLinkProgressBarLength;
-            set
-            {
-                _mediaLinkProgressBarLength = value;
-                NotifyPropertyChanged(nameof(MediaLinkProgressBarLength));
-            }
-        }
-
-        public string MediaLinkFilledCharacter
-        {
-            get => _mediaLinkFilledCharacter;
-            set
-            {
-                _mediaLinkFilledCharacter = value;
-                NotifyPropertyChanged(nameof(MediaLinkFilledCharacter));
-            }
-        }
-
-        public string MediaLinkMiddleCharacter
-        {
-            get => _mediaLinkMiddleCharacter;
-            set
-            {
-                _mediaLinkMiddleCharacter = value;
-                NotifyPropertyChanged(nameof(MediaLinkMiddleCharacter));
-            }
-        }
-
-        public string MediaLinkNonFilledCharacter
-        {
-            get => _mediaLinkNonFilledCharacter;
-            set
-            {
-                _mediaLinkNonFilledCharacter = value;
-                NotifyPropertyChanged(nameof(MediaLinkNonFilledCharacter));
-            }
-        }
-
-        public string MediaLinkTimePrefix
-        {
-            get => _mediaLinkTimePrefix;
-            set
-            {
-                _mediaLinkTimePrefix = value;
-                NotifyPropertyChanged(nameof(MediaLinkTimePrefix));
-            }
-        }
-
-        public string MediaLinkTimeSuffix
-        {
-            get => _mediaLinkTimeSuffix;
-            set
-            {
-                _mediaLinkTimeSuffix = value;
-                NotifyPropertyChanged(nameof(MediaLinkTimeSuffix));
-            }
-        }
-
-        public bool MediaLinkShowTimeInSuperscript
-        {
-            get => _mediaLinkShowTimeInSuperscript;
-            set
-            {
-                _mediaLinkShowTimeInSuperscript = value;
-                NotifyPropertyChanged(nameof(MediaLinkShowTimeInSuperscript));
-            }
-        }
 
 
         #region ICommand's

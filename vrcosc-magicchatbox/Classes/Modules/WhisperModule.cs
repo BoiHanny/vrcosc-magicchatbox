@@ -508,7 +508,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     await audioStream.CopyToAsync(writer);
                 }
 
-                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.TranslateToCustomLanguage ? Settings.SelectedSpeechToTextLanguage.Code : null));
+                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionTextAsync(new AudioTranscriptionRequest(tempFilePath, language: Settings.TranslateToCustomLanguage ? Settings.SelectedSpeechToTextLanguage.Code : null));
 
 
                 return response;

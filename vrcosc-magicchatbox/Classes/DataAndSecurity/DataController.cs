@@ -328,15 +328,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "MediaSession_AutoSwitch", (typeof(bool), "MediaLink") },
         { "DisableMediaLink", (typeof(bool), "MediaLink") },
         { "MediaLinkTimeSeekStyle", (typeof(MediaLinkTimeSeekbar), "MediaLink") },
-        { "MediaLinkDisplayTime", (typeof(bool), "MediaLink") },
-        { "MediaLinkProgressBarLength", (typeof(int), "MediaLink") },
-        { "MediaLinkFilledCharacter", (typeof(string), "MediaLink") },
-        { "MediaLinkMiddleCharacter", (typeof(string), "MediaLink") },
-        { "MediaLinkNonFilledCharacter", (typeof(string), "MediaLink") },
-        { "MediaLinkTimePrefix", (typeof(string), "MediaLink") },
-        { "MediaLinkTimeSuffix", (typeof(string), "MediaLink") },
-        { "MediaLinkShowTimeInSuperscript", (typeof(bool), "MediaLink") },
-        { "MediaLinkProgressBarOnTop", (typeof(bool), "MediaLink") },
         { "AutoDowngradeSeekbar", (typeof(bool), "MediaLink") },
 
         { "ScanningInterval", (typeof(double), "Scanning") },
@@ -738,6 +729,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
         }
 
+
+
         private static void UpdateStatusListFromJson(string json)
         {
             if (string.IsNullOrWhiteSpace(json) || json.Trim().Equals("null", StringComparison.OrdinalIgnoreCase))
@@ -1008,6 +1001,186 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
+
+        private const string MediaLinkStylesFileName = "MediaLinkStyles.json";
+
+        private static string GetMediaLinkStylesFilePath()
+        {
+            return Path.Combine(ViewModel.Instance.DataPath, MediaLinkStylesFileName);
+        }
+
+
+        public static void LoadAndSaveMediaLinkStyles(bool save = false)
+        {
+            try
+            {
+                if (save)
+                {
+                    SaveMediaLinkStyles();
+                }
+                else
+                {
+                    LoadMediaLinkStyles();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        public static void AddNewSeekbarStyle()
+        {
+            // Extract custom styles (those that are not system defaults)
+            ObservableCollection<MediaLinkStyle> customStyles = new ObservableCollection<MediaLinkStyle>(
+                ViewModel.Instance.MediaLinkSeekbarStyles.Where(s => !s.SystemDefault));
+
+            // Find the highest ID among custom styles
+            int highestID = customStyles.Any() ? customStyles.Max(s => s.ID) : 99;
+
+            // Generate the next available ID starting from 100
+            int nextAvailableID = highestID + 1;
+
+            // Ensure the next ID is at least 100
+            if (nextAvailableID < 100)
+            {
+                nextAvailableID = 100;
+            }
+
+            // Create a new style with the next available ID
+            MediaLinkStyle newStyle = new MediaLinkStyle
+            {
+                ID = nextAvailableID,
+                ProgressBarLength = 8,
+                SystemDefault = false
+            };
+
+            // Add the new style to the collection
+            ViewModel.Instance.MediaLinkSeekbarStyles.Add(newStyle);
+
+            // Select the new style
+            ViewModel.Instance.SelectedMediaLinkSeekbarStyle = newStyle;
+
+            // Optionally save the updated styles
+            SaveMediaLinkStyles();
+
+            Logging.WriteInfo($"New media link style with ID {nextAvailableID} added.");
+        }
+
+
+        private static void LoadMediaLinkStyles()
+        {
+            // Load default styles first
+            ViewModel.Instance.MediaLinkSeekbarStyles = DefaultMediaLinkStyles();
+            Logging.WriteInfo("Default media link styles loaded.");
+
+            string filePath = GetMediaLinkStylesFilePath();
+
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    string jsonData = File.ReadAllText(filePath);
+                    var data = JsonConvert.DeserializeObject<MediaLinkStylesData>(jsonData);
+
+                    if (data?.CustomStyles != null)
+                    {
+                        foreach (var style in data.CustomStyles)
+                        {
+                            // Avoid adding duplicates
+                            if (!ViewModel.Instance.MediaLinkSeekbarStyles.Any(s => s.ID == style.ID))
+                            {
+                                ViewModel.Instance.MediaLinkSeekbarStyles.Add(style);
+                            }
+                        }
+                        Logging.WriteInfo("Custom media link styles loaded.");
+                    }
+
+                    if (data?.SelectedStyleId != null)
+                    {
+                        var selectedStyle = ViewModel.Instance.MediaLinkSeekbarStyles.FirstOrDefault(s => s.ID == data.SelectedStyleId);
+                        if (selectedStyle != null)
+                        {
+                            ViewModel.Instance.SelectedMediaLinkSeekbarStyle = selectedStyle;
+                            Logging.WriteInfo("Selected media link style loaded.");
+                        }
+                        else
+                        {
+                            ViewModel.Instance.SelectedMediaLinkSeekbarStyle = ViewModel.Instance.MediaLinkSeekbarStyles.FirstOrDefault();
+                            Logging.WriteInfo("Selected media link style not found in the loaded styles.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewModel.Instance.SelectedMediaLinkSeekbarStyle = ViewModel.Instance.MediaLinkSeekbarStyles.FirstOrDefault();
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+            }
+            else
+            {
+                Logging.WriteInfo($"Custom media link styles file '{filePath}' not found.");
+                ViewModel.Instance.SelectedMediaLinkSeekbarStyle = ViewModel.Instance.MediaLinkSeekbarStyles.FirstOrDefault();
+            }
+        }
+
+        private static void SaveMediaLinkStyles()
+        {
+            try
+            {
+                // Ensure the data directory exists
+                if (CreateIfMissing(ViewModel.Instance.DataPath))
+                {
+                    string filePath = GetMediaLinkStylesFilePath();
+
+                    // Get all the styles that are not system default
+                    ObservableCollection<MediaLinkStyle> nonSystemMediaLinkStyles = new ObservableCollection<MediaLinkStyle>(
+                        ViewModel.Instance.MediaLinkSeekbarStyles.Where(s => !s.SystemDefault));
+
+                    var data = new MediaLinkStylesData
+                    {
+                        CustomStyles = nonSystemMediaLinkStyles,
+                        SelectedStyleId = ViewModel.Instance.SelectedMediaLinkSeekbarStyle?.ID
+                    };
+
+                    var jsonData = JsonConvert.SerializeObject(data);
+                    File.WriteAllText(filePath, jsonData);
+
+                    Logging.WriteInfo("Custom media link styles and selected style saved.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private class MediaLinkStylesData
+        {
+            public ObservableCollection<MediaLinkStyle> CustomStyles { get; set; }
+            public int? SelectedStyleId { get; set; }
+        }
+
+        public static ObservableCollection<MediaLinkStyle> DefaultMediaLinkStyles()
+        {
+            return new ObservableCollection<MediaLinkStyle>
+            {
+                new MediaLinkStyle
+                {
+                    ID = 1,
+                    ProgressBarLength = 8,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "▒",
+                    MiddleCharacter = "▓",
+                    NonFilledCharacter = "░",
+                    TimePrefix = "",
+                    TimeSuffix = "",
+                    SystemDefault = true
+                },
+            };
+        }
+
 
         public static void SaveMediaSessions()
         {

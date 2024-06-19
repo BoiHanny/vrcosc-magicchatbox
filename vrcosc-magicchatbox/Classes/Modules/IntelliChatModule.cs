@@ -29,6 +29,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public enum IntelliGPTModel
     {
+        [Description("gpt-4o"), ModelTypeInfo("Chat")]
+        gpt4o,
+
         [Description("gpt-4"), ModelTypeInfo("Chat")]
         gpt4,
 
@@ -153,7 +156,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt3_5_turbo;
 
         [ObservableProperty]
-        private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4_turbo;
+        private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
         private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt3_5_turbo;
@@ -162,10 +165,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt3_5_turbo;
 
         [ObservableProperty]
-        private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4_turbo;
+        private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
-        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt4_turbo;
+        private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
         private IntelliGPTModel performModerationCheckModel = IntelliGPTModel.Moderation_Latest;

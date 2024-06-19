@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Windows.Media;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -188,14 +189,15 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
             double percentage = fullTime.TotalSeconds == 0 ? 0 : (currentTime.TotalSeconds / fullTime.TotalSeconds) * 100;
             int availableSpace = 140 - CalculateOSCMsgLength(uncomplete, x);
+            var selectedStyle = ViewModel.Instance.SelectedMediaLinkSeekbarStyle;
 
             switch (style)
             {
                 case MediaLinkTimeSeekbar.NumbersAndSeekBar:
-                    string progressBarContent = CreateProgressBar(percentage, mediaSession, ViewModel.Instance.MediaLinkDisplayTime);
-                    if (!string.IsNullOrWhiteSpace(progressBarContent) && CalculateOSCMsgLength(uncomplete, x + "\n" + progressBarContent) <= 140)
+                    string progressBarContent = CreateProgressBar(percentage, mediaSession, selectedStyle);
+                    if (!string.IsNullOrWhiteSpace(progressBarContent) && CalculateOSCMsgLength(uncomplete, x + "\n" + progressBarContent) <= 144)
                     {
-                        return ViewModel.Instance.MediaLinkProgressBarOnTop ? progressBarContent + "\n" + x : x + "\n" + progressBarContent;
+                        return ViewModel.Instance.SelectedMediaLinkSeekbarStyle.ProgressBarOnTop ? progressBarContent + "\n" + x : x + "\n" + progressBarContent;
                     }
                     else if (ViewModel.Instance.AutoDowngradeSeekbar)
                     {
@@ -205,7 +207,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
                 case MediaLinkTimeSeekbar.SmallNumbers:
                     string smallNumbersContent = $"{DataController.TransformToSuperscript(FormatTimeSpan(currentTime))} l {DataController.TransformToSuperscript(FormatTimeSpan(fullTime))}";
-                    if (CalculateOSCMsgLength(uncomplete, x + smallNumbersContent) <= 140)
+                    if (CalculateOSCMsgLength(uncomplete, x + smallNumbersContent) <= 144)
                     {
                         return x + " " + smallNumbersContent;
                     }
@@ -223,27 +225,29 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             return x;
         }
 
-
-
-
-        private static string CreateProgressBar(double percentage, MediaSessionInfo mediaSession, bool includeTime)
+        private static string CreateProgressBar(double percentage, MediaSessionInfo mediaSession, MediaLinkStyle style)
         {
             try
             {
-                int totalBlocks = ViewModel.Instance.MediaLinkProgressBarLength;
+                // Ensure characters are not empty or null before accessing
+                if (string.IsNullOrEmpty(style.FilledCharacter) ||
+                    string.IsNullOrEmpty(style.MiddleCharacter) ||
+                    string.IsNullOrEmpty(style.NonFilledCharacter))
+                {
+                    return string.Empty;
+                }
 
-                string currentTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                int totalBlocks = style.ProgressBarLength;
+
+                string currentTime = style.DisplayTime && style.ShowTimeInSuperscript
                     ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
                     : FormatTimeSpan(mediaSession.CurrentTime);
 
-                string fullTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                string fullTime = style.DisplayTime && style.ShowTimeInSuperscript
                     ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.FullTime))
                     : FormatTimeSpan(mediaSession.FullTime);
 
-                string timePrefix = ViewModel.Instance.MediaLinkTimePrefix;
-                string timeSuffix = ViewModel.Instance.MediaLinkTimeSuffix;
-
-                if (ViewModel.Instance.MediaLinkDisplayTime && totalBlocks > 0)
+                if (style.DisplayTime && totalBlocks > 0)
                 {
                     int timeStringLength = currentTime.Length + fullTime.Length + 1;
 
@@ -254,22 +258,38 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
 
                 int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-                char filledChar = ViewModel.Instance.MediaLinkFilledCharacter.ToCharArray()[0];
-                char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter.ToCharArray()[0];
-                char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter.ToCharArray()[0];
+                char filledChar = style.FilledCharacter[0];
+                char middleChar = style.MiddleCharacter[0];
+                char nonFilledChar = style.NonFilledCharacter[0];
 
                 string filledBar = new string(filledChar, filledBlocks);
                 string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
                 string progressBar = filledBar + middleChar + emptyBar;
 
-                return includeTime ? $"{timePrefix}{currentTime} {progressBar} {fullTime}{timeSuffix}" : progressBar;
+                if (style.TimePreSuffixOnTheInside)
+                {
+
+                    if (string.IsNullOrWhiteSpace(style.TimePrefix) || string.IsNullOrWhiteSpace(style.TimeSuffix))
+                    {
+                        return  $"{currentTime} {progressBar} {fullTime}";
+                    }
+                    else
+                    {
+                        return  $"{currentTime}{style.TimePrefix}{progressBar}{style.TimeSuffix}{fullTime}";
+                    }
+                }
+                else
+                {
+                    return style.DisplayTime ? $"{style.TimePrefix}{currentTime} {progressBar} {fullTime}{style.TimeSuffix}" : progressBar;
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Logging.WriteException(ex, MSGBox: false);
                 return string.Empty;
             }
-
         }
+
 
 
 

@@ -789,6 +789,7 @@ namespace vrcosc_magicchatbox
                 DataController.ManageSettingsXML(true);
                 DataController.SaveAppList();
                 DataController.SaveMediaSessions();
+                DataController.LoadAndSaveMediaLinkStyles(true);
                 HotkeyManagement.Instance.SaveHotkeyConfigurations();
                 ViewModel.Instance._statsManager.SaveComponentStats();
                 ViewModel.Instance.IntelliChatModule.SaveSettings();
@@ -1568,6 +1569,11 @@ namespace vrcosc_magicchatbox
                 }
 
             }
+        }
+
+        private void CreateNewSeekbar_btn_Click(object sender, RoutedEventArgs e)
+        {
+            DataController.AddNewSeekbarStyle();
         }
     }
 

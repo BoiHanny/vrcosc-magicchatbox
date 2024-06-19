@@ -146,6 +146,9 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Turbocharging MediaLink engines... Fast & Furious: Data Drift!", 95);
             ApplicationMediaController = new MediaLinkModule(ViewModel.Instance.IntgrScanMediaLink);
 
+            loadingWindow.UpdateProgress("Loading MediaLink styles... Fashion show, here we come!", 96);
+            await Task.Run(() => DataController.LoadAndSaveMediaLinkStyles());
+
             loadingWindow.UpdateProgress("Initializing Soundpad Module... Let's get this party started!", 96);
             await Task.Run(() => DataController.soundpadModule = new SoundpadModule(1500));
         }

@@ -78,7 +78,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             var request = new AudioTranscriptionRequest(Path.GetFullPath(audioFilePath), language: "en");
 
             // Call the AudioEndpoint to transcribe the audio
-            var response = await OpenAIClient.AudioEndpoint.CreateTranscriptionAsync(request);
+            var response = await OpenAIClient.AudioEndpoint.CreateTranscriptionTextAsync(request);
 
             // The response is expected to be a string containing the transcription
             return response; // Directly return the response

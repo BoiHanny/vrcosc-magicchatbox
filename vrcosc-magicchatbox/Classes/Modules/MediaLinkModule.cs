@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -339,6 +340,185 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
 
+        public class MediaLinkStyle : INotifyPropertyChanged
+        {
+            private int id = 0;
+            private int progressBarLength = 8;
+            private bool displayTime = true;
+            private bool showTimeInSuperscript = true;
+            private string filledCharacter = string.Empty;
+            private string middleCharacter = string.Empty;
+            private string nonFilledCharacter = string.Empty;
+            private string timePrefix = string.Empty;
+            private string timeSuffix = string.Empty;
+            private bool timePreSuffixOnTheInside = true;
+            private bool progressBarOnTop = true;
+            private bool systemDefault = false;
+
+            public int ID
+            {
+                get => id;
+                set => SetProperty(ref id, value);
+            }
+
+            public string StyleName
+            {
+                get
+                {
+                    try
+                    {
+                        double percentage = 50.0; // For preview purposes, let's assume a 50% completion
+                        string currentTime = "4:20";
+                        string fullTime = "6:90";
+
+                        int totalBlocks = ProgressBarLength;
+                        int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
+
+                        // Ensure characters are not empty or null before accessing
+                        char filledChar = !string.IsNullOrEmpty(FilledCharacter) ? FilledCharacter[0] : '■';
+                        char nonFilledChar = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter[0] : '□';
+                        char middleChar = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter[0] : '|';
+
+                        string filledBar = new string(filledChar, filledBlocks);
+                        string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
+                        string middleCharacter = MiddleCharacter.Length > 0 ? middleChar.ToString() : string.Empty;
+                        string progressBar = filledBar + middleCharacter + emptyBar;
+
+                        string timeSegment;
+                        if (DisplayTime)
+                        {
+                            if (TimePreSuffixOnTheInside)
+                            {
+                                if(string.IsNullOrWhiteSpace(TimePrefix) || string.IsNullOrWhiteSpace(TimeSuffix))
+                                {
+                                    timeSegment = $"{currentTime} {progressBar} {fullTime}";
+                                }
+                                else
+                                {
+                                    timeSegment = $"{currentTime}{TimePrefix}{progressBar}{TimeSuffix}{fullTime}";
+                                }
+
+                            }
+                            else
+                            {
+                                timeSegment = $"{TimePrefix}{currentTime} {progressBar} {fullTime}{TimeSuffix}";
+                            }
+                        }
+                        else
+                        {
+                            timeSegment = progressBar;
+                        }
+
+                        if (SystemDefault)
+                        {
+                            timeSegment += " | 🔒 Build-in";
+                        }
+                        else
+                        {
+                            timeSegment += " | 🎨 Custom";
+                        }
+
+                        return timeSegment;
+                    }
+                    catch (IndexOutOfRangeException ex)
+                    {
+                        Logging.WriteException(ex, MSGBox: false);
+                        return "Error generating style name.";
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteException(ex, MSGBox: false);
+                        return "Unexpected error generating style name.";
+                    }
+                }
+            }
+
+
+            public int ProgressBarLength
+            {
+                get => progressBarLength;
+                set => SetProperty(ref progressBarLength, value);
+            }
+
+            public bool DisplayTime
+            {
+                get => displayTime;
+                set => SetProperty(ref displayTime, value);
+            }
+
+            public bool ShowTimeInSuperscript
+            {
+                get => showTimeInSuperscript;
+                set => SetProperty(ref showTimeInSuperscript, value);
+            }
+
+            public string FilledCharacter
+            {
+                get => filledCharacter;
+                set => SetProperty(ref filledCharacter, value);
+            }
+
+            public string MiddleCharacter
+            {
+                get => middleCharacter;
+                set => SetProperty(ref middleCharacter, value);
+            }
+
+            public string NonFilledCharacter
+            {
+                get => nonFilledCharacter;
+                set => SetProperty(ref nonFilledCharacter, value);
+            }
+
+            public string TimePrefix
+            {
+                get => timePrefix;
+                set => SetProperty(ref timePrefix, value);
+            }
+
+            public string TimeSuffix
+            {
+                get => timeSuffix;
+                set => SetProperty(ref timeSuffix, value);
+            }
+
+            public bool TimePreSuffixOnTheInside
+            {
+                get => timePreSuffixOnTheInside;
+                set => SetProperty(ref timePreSuffixOnTheInside, value);
+            }
+
+            public bool ProgressBarOnTop
+            {
+                get => progressBarOnTop;
+                set => SetProperty(ref progressBarOnTop, value);
+            }
+
+            public bool SystemDefault
+            {
+                get => systemDefault;
+                set => SetProperty(ref systemDefault, value);
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+            {
+                if (Equals(storage, value)) return false;
+                storage = value;
+                OnPropertyChanged(propertyName);
+                OnPropertyChanged(StyleName);
+                return true;
+            }
+
+            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+
+
 
         public static void SessionRestore(MediaSessionInfo session)
         {
@@ -386,5 +566,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
+
     }
+
+
 }
