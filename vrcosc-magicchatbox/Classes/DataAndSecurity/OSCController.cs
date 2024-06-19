@@ -289,7 +289,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
-        }
+     
 
 
 
