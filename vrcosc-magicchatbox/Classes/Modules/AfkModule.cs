@@ -23,7 +23,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             OnSettingsChanged();
         }
 
-
         partial void OnAfkTimeoutChanged(int value)
         {
             OnSettingsChanged();
@@ -134,7 +133,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
         private void Settings_SettingsChanged(object sender, EventArgs e)
         {
             OnPropertyChanged(nameof(FriendlyTimeoutTime));
@@ -159,8 +157,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
-
         public string GenerateAFKString()
         {
             string afkString = "";
@@ -182,7 +178,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return afkString;
         }
 
-
         private void InitializeAfkDetection()
         {
             if (Settings.EnableAfkDetection)
@@ -200,8 +195,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void AfkTimer_Tick(object sender, EventArgs e)
         {
-
-
             // Update the visibility of the override button
             OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
 
@@ -210,7 +203,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 VRModeLabelActive = true; // Indicate VR mode is active, but AFK is not activated in VR
 
-                if(!Settings.OverrideAfk)
+                if (!Settings.OverrideAfk)
                 {
                     if (IsAfk) // If AFK mode is currently active, exit it since VR mode doesn't allow it
                     {
@@ -250,6 +243,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 if (idleTime >= Settings.AfkTimeout && !IsAfk)
                 {
+                    // Update last action time based on idleTime
+                    lastActionTime = DateTime.Now - TimeSpan.FromSeconds(idleTime);
                     EnterAfkMode(false, false); // Enter AFK due to inactivity, do not reset time
                 }
                 else if (idleTime < Settings.AfkTimeout && IsAfk)
@@ -269,17 +264,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
-
-
-
-
-
-
         private void EnterAfkMode(bool isOverride, bool resetTime)
         {
             IsAfk = true;
-            if (resetTime)
+            if (resetTime || isOverride)
             {
                 lastActionTime = DateTime.Now;
             }
@@ -288,12 +276,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
             AfkDetected?.Invoke(this, EventArgs.Empty);
         }
 
-
         private void ExitAfkMode()
         {
             IsAfk = false;
             lastActionTime = DateTime.Now;
             TimeCurrentlyAFK = string.Empty;
+            overrideAfkStarted = false;
             RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout));
             OverrideButtonVisible = true;
         }
@@ -312,7 +300,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 parts.Add($"{duration.Minutes}m");
             }
 
-
             if (duration.Seconds > 0 || (duration.Hours == 0 && duration.Minutes == 0))
             {
                 parts.Add($"{duration.Seconds}s");
@@ -320,7 +307,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             return string.Join(" ", parts);
         }
-
 
         private static uint GetIdleTime()
         {

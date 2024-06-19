@@ -237,9 +237,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     return string.Empty;
                 }
 
-                int totalBlocks = style.ProgressBarLength;
-
-                string currentTime = style.DisplayTime && style.ShowTimeInSuperscript
+                string currentTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
                     ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
                     : FormatTimeSpan(mediaSession.CurrentTime);
 
@@ -251,20 +249,21 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     int timeStringLength = currentTime.Length + fullTime.Length + 1;
 
-                    if (totalBlocks > timeStringLength)
+                    if (timeStringLength > 8)
                     {
-                        totalBlocks -= timeStringLength;
+                        int blocksToRemove = (timeStringLength - 8 + 3) / 4;
+                        totalBlocks = Math.Max(totalBlocks - blocksToRemove, 0); 
                     }
                 }
 
                 int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-                char filledChar = style.FilledCharacter[0];
-                char middleChar = style.MiddleCharacter[0];
-                char nonFilledChar = style.NonFilledCharacter[0];
+                char filledChar = ViewModel.Instance.MediaLinkFilledCharacter.ToCharArray()[0];
+                char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter.ToCharArray()[0];
+                char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter.ToCharArray()[0];
 
-                string filledBar = new string(filledChar, filledBlocks);
-                string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
-                string progressBar = filledBar + middleChar + emptyBar;
+                string filledBar = string.Concat(Enumerable.Repeat(filledString, filledBlocks));
+                string emptyBar = string.Concat(Enumerable.Repeat(nonFilledString, totalBlocks - filledBlocks));
+                string progressBar = filledBar + middleString + emptyBar;
 
                 if (style.TimePreSuffixOnTheInside)
                 {
@@ -290,6 +289,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
+        }
 
 
 

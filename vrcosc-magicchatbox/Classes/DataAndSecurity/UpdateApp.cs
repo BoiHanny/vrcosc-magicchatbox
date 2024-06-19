@@ -151,15 +151,16 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void StartNewApplication()
         {
-            ProcessStartInfo startInfoNoArgs = new ProcessStartInfo
+            ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                FileName = Path.Combine(unzipPath, "MagicChatbox.exe"),
+                FileName = Path.Combine(currentAppPath, "MagicChatbox.exe"),
                 UseShellExecute = true,
-                WorkingDirectory = unzipPath
+                WorkingDirectory = currentAppPath
             };
-            Process.Start(startInfoNoArgs);
+            Process.Start(startInfo);
             Environment.Exit(0);
         }
+
 
         private void ExtractCustomZip(string zipPath)
         {

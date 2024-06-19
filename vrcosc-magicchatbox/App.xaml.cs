@@ -82,7 +82,7 @@ namespace vrcosc_magicchatbox
         // Handle first-chance exceptions (before they are thrown)
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
-
+            
             Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
         }
 
