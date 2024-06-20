@@ -4148,7 +4148,26 @@
                                                         </DataTemplate>
                                                     </Button.ContentTemplate>
                                                 </Button>
-
+                                                <Button
+                                                    x:Name="DeleteSeekbar_btn"
+                                                    Height="30"
+                                                    Margin="5,0,0,0"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Background="#6B0000"
+                                                    BorderThickness="0"
+                                                    Click="DeleteSeekbar_btn_Click"
+                                                    Cursor="Hand"
+                                                    Style="{DynamicResource CancelEditbutton}"
+                                                    Visibility="{Binding SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <Grid>
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            RenderOptions.BitmapScalingMode="Linear"
+                                                            Source="/Img/Icons/Cross_ico.png" />
+                                                    </Grid>
+                                                </Button>
 
                                             </StackPanel>
 
@@ -4320,6 +4339,28 @@
                                                     IsChecked="{Binding SelectedMediaLinkSeekbarStyle.ShowTimeInSuperscript, Mode=TwoWay}"
                                                     Style="{DynamicResource SettingsCheckbox}">
                                                     Show time in stylized small numbers
+                                                </CheckBox>
+                                                <CheckBox
+                                                    Height="20"
+                                                    Margin="3,7"
+                                                    BorderBrush="#FF2D1265"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="18"
+                                                    Foreground="#FFB9B5C1"
+                                                    IsChecked="{Binding SelectedMediaLinkSeekbarStyle.SpaceAgainObjects, Mode=TwoWay}"
+                                                    Style="{DynamicResource SettingsCheckbox}">
+                                                    Smart place a space between objects
+                                                </CheckBox>
+                                                <CheckBox
+                                                    Height="20"
+                                                    Margin="3,7"
+                                                    BorderBrush="#FF2D1265"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="18"
+                                                    Foreground="#FFB9B5C1"
+                                                    IsChecked="{Binding SelectedMediaLinkSeekbarStyle.SpaceBetweenPreSuffixAndTime, Mode=TwoWay}"
+                                                    Style="{DynamicResource SettingsCheckbox}">
+                                                    Add space between pre-suffix and song time
                                                 </CheckBox>
                                                 <CheckBox
                                                     Height="20"

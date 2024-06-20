@@ -176,12 +176,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
 
 
-
         private static string CreateTimeStamp(string x, MediaSessionInfo mediaSession, MediaLinkTimeSeekbar style, List<string> uncomplete)
         {
             TimeSpan currentTime = mediaSession.CurrentTime;
             TimeSpan fullTime = mediaSession.FullTime;
 
+            // Validate times
             if (currentTime.TotalSeconds < 0 || fullTime.TotalSeconds < 0 || currentTime > fullTime)
             {
                 return x;
@@ -237,7 +237,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     return string.Empty;
                 }
 
-                string currentTime = includeTime && ViewModel.Instance.MediaLinkShowTimeInSuperscript
+                int totalBlocks = style.ProgressBarLength;
+
+                string currentTime = style.DisplayTime && style.ShowTimeInSuperscript
                     ? DataController.TransformToSuperscript(FormatTimeSpan(mediaSession.CurrentTime))
                     : FormatTimeSpan(mediaSession.CurrentTime);
 
@@ -249,38 +251,18 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     int timeStringLength = currentTime.Length + fullTime.Length + 1;
 
-                    if (timeStringLength > 8)
+                    if (totalBlocks > timeStringLength)
                     {
-                        int blocksToRemove = (timeStringLength - 8 + 3) / 4;
-                        totalBlocks = Math.Max(totalBlocks - blocksToRemove, 0); 
+                        totalBlocks -= timeStringLength;
                     }
                 }
 
                 int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-                char filledChar = ViewModel.Instance.MediaLinkFilledCharacter.ToCharArray()[0];
-                char middleChar = ViewModel.Instance.MediaLinkMiddleCharacter.ToCharArray()[0];
-                char nonFilledChar = ViewModel.Instance.MediaLinkNonFilledCharacter.ToCharArray()[0];
+                string filledBar = new string(style.FilledCharacter[0], filledBlocks);
+                string emptyBar = new string(style.NonFilledCharacter[0], totalBlocks - filledBlocks);
+                string progressBar = filledBar + style.MiddleCharacter + emptyBar;
 
-                string filledBar = string.Concat(Enumerable.Repeat(filledString, filledBlocks));
-                string emptyBar = string.Concat(Enumerable.Repeat(nonFilledString, totalBlocks - filledBlocks));
-                string progressBar = filledBar + middleString + emptyBar;
-
-                if (style.TimePreSuffixOnTheInside)
-                {
-
-                    if (string.IsNullOrWhiteSpace(style.TimePrefix) || string.IsNullOrWhiteSpace(style.TimeSuffix))
-                    {
-                        return  $"{currentTime} {progressBar} {fullTime}";
-                    }
-                    else
-                    {
-                        return  $"{currentTime}{style.TimePrefix}{progressBar}{style.TimeSuffix}{fullTime}";
-                    }
-                }
-                else
-                {
-                    return style.DisplayTime ? $"{style.TimePrefix}{currentTime} {progressBar} {fullTime}{style.TimeSuffix}" : progressBar;
-                }
+                return CreateTimeStamp(currentTime, fullTime, progressBar, style);
             }
             catch (Exception ex)
             {
@@ -288,8 +270,36 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 return string.Empty;
             }
         }
+        private static string CreateTimeStamp(string currentTime, string fullTime, string progressBar, MediaLinkStyle style)
+        {
+            string space = style.SpaceAgainObjects ? " " : string.Empty;
+            string preSuffixSpace = style.SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
 
-     
+            if (style.DisplayTime)
+            {
+                if (style.TimePreSuffixOnTheInside)
+                {
+                    return string.IsNullOrWhiteSpace(style.TimePrefix) || string.IsNullOrWhiteSpace(style.TimeSuffix) ?
+                        $"{currentTime}{space}{progressBar}{space}{fullTime}" :
+                        $"{currentTime}{preSuffixSpace}{style.TimePrefix}{progressBar}{style.TimeSuffix}{preSuffixSpace}{fullTime}";
+                }
+                else
+                {
+                    return $"{style.TimePrefix}{preSuffixSpace}{currentTime}{space}{progressBar}{space}{fullTime}{preSuffixSpace}{style.TimeSuffix}";
+                }
+            }
+            else
+            {
+                return style.TimePreSuffixOnTheInside ?
+                    $"{style.TimePrefix}{progressBar}{style.TimeSuffix}" :
+                    $"{style.TimePrefix}{preSuffixSpace}{progressBar}{preSuffixSpace}{style.TimeSuffix}";
+            }
+        }
+
+
+
+
+
 
 
 

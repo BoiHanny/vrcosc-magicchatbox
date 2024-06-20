@@ -1067,6 +1067,31 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             Logging.WriteInfo($"New media link style with ID {nextAvailableID} added.");
         }
 
+        public static void DeleteSelectedSeekbarStyleAndSelectDefault()
+        {
+            if (ViewModel.Instance.SelectedMediaLinkSeekbarStyle == null)
+            {
+                return;
+            }
+
+            if (ViewModel.Instance.SelectedMediaLinkSeekbarStyle.SystemDefault)
+            {
+                Logging.WriteInfo("Cannot delete system default media link style.");
+                return;
+            }
+
+            // Remove the selected style
+            ViewModel.Instance.MediaLinkSeekbarStyles.Remove(ViewModel.Instance.SelectedMediaLinkSeekbarStyle);
+
+            // Select the first style as the default
+            ViewModel.Instance.SelectedMediaLinkSeekbarStyle = ViewModel.Instance.MediaLinkSeekbarStyles.FirstOrDefault();
+
+            // Optionally save the updated styles
+            SaveMediaLinkStyles();
+
+            Logging.WriteInfo($"Media link style with ID {ViewModel.Instance.SelectedMediaLinkSeekbarStyle.ID} deleted.");
+        }
+
 
         private static void LoadMediaLinkStyles()
         {
@@ -1178,6 +1203,61 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     TimeSuffix = "",
                     SystemDefault = true
                 },
+                new MediaLinkStyle
+                {
+                    ID = 2,
+                    ProgressBarLength = 8,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "▥",
+                    MiddleCharacter = "▥",
+                    NonFilledCharacter = "▢",
+                    TimePrefix = string.Empty,
+                    TimeSuffix = string.Empty,
+                    SystemDefault = true
+                },
+                                new MediaLinkStyle
+                {
+                    ID = 3,
+                    ProgressBarLength = 8,
+    DisplayTime = true,
+    ShowTimeInSuperscript = true,
+    FilledCharacter = "●",
+    MiddleCharacter = "◐",
+    NonFilledCharacter = "○",
+    TimePrefix = "「",
+    TimeSuffix = "」",
+    SpaceBetweenPreSuffixAndTime = false,
+    SystemDefault = true
+                },
+                                new MediaLinkStyle
+                {
+                    ID = 4,
+    ProgressBarLength = 8,
+    DisplayTime = true,
+    ShowTimeInSuperscript = true,
+    FilledCharacter = "♣",
+    MiddleCharacter = "♠",
+    NonFilledCharacter = "○",
+    TimePrefix = "【",
+    TimeSuffix = "】",
+    SpaceBetweenPreSuffixAndTime = false,
+    SystemDefault = true
+                },
+                                                            new MediaLinkStyle
+            {
+                ID = 5,
+    ProgressBarLength = 8,
+    DisplayTime = true,
+    ShowTimeInSuperscript = true,
+    FilledCharacter = "★",
+    MiddleCharacter = "✦",
+    NonFilledCharacter = "☆",
+    TimePrefix = "«",
+    TimeSuffix = "»",
+    SpaceBetweenPreSuffixAndTime = true,
+    SystemDefault = true
+            },
             };
         }
 

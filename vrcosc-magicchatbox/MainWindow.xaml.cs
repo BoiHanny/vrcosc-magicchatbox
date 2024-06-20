@@ -1575,6 +1575,11 @@ namespace vrcosc_magicchatbox
         {
             DataController.AddNewSeekbarStyle();
         }
+
+        private void DeleteSeekbar_btn_Click(object sender, RoutedEventArgs e)
+        {
+            DataController.DeleteSelectedSeekbarStyleAndSelectDefault();
+        }
     }
 
 

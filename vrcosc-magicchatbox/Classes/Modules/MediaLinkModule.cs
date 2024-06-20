@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using Windows.Media.Control;
@@ -354,6 +355,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             private bool timePreSuffixOnTheInside = true;
             private bool progressBarOnTop = true;
             private bool systemDefault = false;
+            private bool spaceAgainObjects = true;
+            private bool spaceBetweenPreSuffixAndTime = false;
 
             public int ID
             {
@@ -371,47 +374,53 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         string currentTime = "4:20";
                         string fullTime = "6:90";
 
+                        if (ShowTimeInSuperscript)
+                        {
+                            currentTime = DataController.TransformToSuperscript(currentTime);
+                            fullTime = DataController.TransformToSuperscript(fullTime);
+                        }
+
                         int totalBlocks = ProgressBarLength;
                         int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
 
                         // Ensure characters are not empty or null before accessing
-                        char filledChar = !string.IsNullOrEmpty(FilledCharacter) ? FilledCharacter[0] : '■';
-                        char nonFilledChar = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter[0] : '□';
-                        char middleChar = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter[0] : '|';
+                        string filledChar = !string.IsNullOrEmpty(FilledCharacter) ? FilledCharacter : "?";
+                        string nonFilledChar = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter : "⁉️";
+                        string middleChar = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter : "?";
 
-                        string filledBar = new string(filledChar, filledBlocks);
-                        string emptyBar = new string(nonFilledChar, totalBlocks - filledBlocks);
-                        string middleCharacter = MiddleCharacter.Length > 0 ? middleChar.ToString() : string.Empty;
-                        string progressBar = filledBar + middleCharacter + emptyBar;
+                        string filledBar = new string(filledChar[0], filledBlocks);
+                        string emptyBar = new string(nonFilledChar[0], totalBlocks - filledBlocks);
+                        string progressBar = filledBar + middleChar + emptyBar;
 
                         string timeSegment;
+                        string space = SpaceAgainObjects ? " " : string.Empty;
+
                         if (DisplayTime)
                         {
                             if (TimePreSuffixOnTheInside)
                             {
-                                if(string.IsNullOrWhiteSpace(TimePrefix) || string.IsNullOrWhiteSpace(TimeSuffix))
-                                {
-                                    timeSegment = $"{currentTime} {progressBar} {fullTime}";
-                                }
-                                else
-                                {
-                                    timeSegment = $"{currentTime}{TimePrefix}{progressBar}{TimeSuffix}{fullTime}";
-                                }
-
+                                string preSuffixSpace = SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
+                                timeSegment = string.IsNullOrWhiteSpace(TimePrefix) || string.IsNullOrWhiteSpace(TimeSuffix) ?
+                                    $"{currentTime}{space}{progressBar}{space}{fullTime}" :
+                                    $"{currentTime}{preSuffixSpace}{TimePrefix}{progressBar}{TimeSuffix}{preSuffixSpace}{fullTime}";
                             }
                             else
                             {
-                                timeSegment = $"{TimePrefix}{currentTime} {progressBar} {fullTime}{TimeSuffix}";
+                                string preSuffixSpace = SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
+                                timeSegment = $"{TimePrefix}{preSuffixSpace}{currentTime}{space}{progressBar}{space}{fullTime}{preSuffixSpace}{TimeSuffix}";
                             }
                         }
                         else
                         {
-                            timeSegment = progressBar;
+                            string preSuffixSpace = SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
+                            timeSegment = TimePreSuffixOnTheInside ?
+                                $"{TimePrefix}{progressBar}{TimeSuffix}" :
+                                $"{TimePrefix}{preSuffixSpace}{progressBar}{preSuffixSpace}{TimeSuffix}";
                         }
 
                         if (SystemDefault)
                         {
-                            timeSegment += " | 🔒 Build-in";
+                            timeSegment += " | 🔒 Built-in";
                         }
                         else
                         {
@@ -433,6 +442,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
+            public bool SpaceAgainObjects
+            {
+                get => spaceAgainObjects;
+                set => SetProperty(ref spaceAgainObjects, value);
+            }
+
+            public bool SpaceBetweenPreSuffixAndTime
+            {
+                get => spaceBetweenPreSuffixAndTime;
+                set => SetProperty(ref spaceBetweenPreSuffixAndTime, value);
+            }
 
             public int ProgressBarLength
             {
@@ -507,7 +527,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 if (Equals(storage, value)) return false;
                 storage = value;
                 OnPropertyChanged(propertyName);
-                OnPropertyChanged(StyleName);
+                OnPropertyChanged(nameof(StyleName));
                 return true;
             }
 
@@ -516,6 +536,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
+
+
+
 
 
 
