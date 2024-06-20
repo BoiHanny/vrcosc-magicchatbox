@@ -4327,7 +4327,7 @@
                                                     Foreground="#FFB9B5C1"
                                                     IsChecked="{Binding SelectedMediaLinkSeekbarStyle.TimePreSuffixOnTheInside, Mode=TwoWay}"
                                                     Style="{DynamicResource SettingsCheckbox}">
-                                                    Place Pre-Suffix inside of the time
+                                                    Place Pre-Suffix inside time
                                                 </CheckBox>
                                                 <CheckBox
                                                     Height="20"
@@ -4349,7 +4349,7 @@
                                                     Foreground="#FFB9B5C1"
                                                     IsChecked="{Binding SelectedMediaLinkSeekbarStyle.SpaceAgainObjects, Mode=TwoWay}"
                                                     Style="{DynamicResource SettingsCheckbox}">
-                                                    Smart place a space between objects
+                                                    Automatically add space between objects
                                                 </CheckBox>
                                                 <CheckBox
                                                     Height="20"
@@ -4360,7 +4360,7 @@
                                                     Foreground="#FFB9B5C1"
                                                     IsChecked="{Binding SelectedMediaLinkSeekbarStyle.SpaceBetweenPreSuffixAndTime, Mode=TwoWay}"
                                                     Style="{DynamicResource SettingsCheckbox}">
-                                                    Add space between pre-suffix and song time
+                                                    Add space between pre-suffix and time
                                                 </CheckBox>
                                                 <CheckBox
                                                     Height="20"
