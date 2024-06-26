@@ -1,100 +1,55 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MagicChatboxV2.Services;
+using MagicChatboxV2.Startup.Windows;
+using MagicChatboxV2.Startup;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
-using MagicChatboxV2.Services;
-using MagicChatboxV2.Helpers;
-using MagicChatboxV2.Extensions;
-using System.Reflection;
-using Serilog;
-using System.Windows.Threading;
-using MagicChatboxV2.UIVM.Windows;
+using MagicChatboxV2.Models;
+using MagicChatboxV2.Modules;
 
 namespace MagicChatboxV2
 {
     public partial class App : Application
     {
-        private IServiceProvider serviceProvider;
-        public delegate PrimaryInterface PrimaryInterfaceFactory();
+        private IAppOutputService _appOutputService = null;
 
+        public static IHost? AppHost { get; private set; }
 
         public App()
         {
-            // Configure the logger
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console()
-                .WriteTo.File("logs/application.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
-
-            // Set the shutdown mode to explicit
-            Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
-            // Handle unhandled exceptions in the Dispatcher
-            DispatcherUnhandledException += App_DispatcherUnhandledException;
-
-            // Handle unhandled exceptions in the AppDomain
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            AppHost = Host.CreateDefaultBuilder()
+                .ConfigureServices(ServiceConfigurator.ConfigureServices)
+                .Build();
         }
 
-        // Handler for unhandled exceptions in the Dispatcher
-        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
-            // Log the exception
-            Log.Error(e.Exception, "An unhandled Dispatcher exception occurred");
+            await AppHost!.StartAsync();
 
-            // Show a custom error dialog with the exception details
-            var errorDialog = new CustomErrorDialog(e.Exception.Message, e.Exception.StackTrace);
-            errorDialog.ShowDialog();
+            _appOutputService = AppHost.Services.GetRequiredService<IAppOutputService>();
+            AppDomain.CurrentDomain.UnhandledException += _appOutputService.HandleUnhandledDomainException;
+            DispatcherUnhandledException += _appOutputService.HandleUnhandledException;
 
-            // Mark the exception as handled
-            e.Handled = true;
+            LoadingWindow loadingWindow = AppHost.Services.GetRequiredService<LoadingWindow>();
+            loadingWindow.Show();
+
+            var modules = AppHost.Services.GetServices<IModule>().ToList();
+            var initializationTasks = modules.Select(module => module.InitializeAsync());
+            await Task.WhenAll(initializationTasks);
         }
 
-        // Handler for unhandled exceptions in the AppDomain
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        protected override async void OnExit(ExitEventArgs e)
         {
-            // Log the exception
-            Log.Error((Exception)e.ExceptionObject, "An unhandled Domain exception occurred");
+            var modules = AppHost.Services.GetServices<IModule>().ToList();
+            var saveTasks = modules.Select(module => module.SaveStateAsync());
+            await Task.WhenAll(saveTasks);
 
-            // Show a custom error dialog with the exception details
-            var errorDialog = new CustomErrorDialog(((Exception)e.ExceptionObject).Message, ((Exception)e.ExceptionObject).StackTrace);
-            errorDialog.ShowDialog();
+            await AppHost!.StopAsync();
+            base.OnExit(e);
         }
-
-        // Configure and build the service provider
-        private IServiceProvider ConfigureServices()
-        {
-            var services = new ServiceCollection();
-
-            // Register services and modules as before
-            services.AddSingleton<VRChatMonitorService>();
-            services.AddSingleton<SystemTrayService>();
-            services.AddSingleton<StartupHelper>();
-            services.AddModules(Assembly.GetExecutingAssembly());
-
-
-
-            // Register ModuleManagerService
-            services.AddSingleton<ModuleManagerService>();
-
-            services.AddSingleton<PrimaryInterface>();
-            services.AddSingleton<PrimaryInterfaceFactory>(serviceProvider => () => serviceProvider.GetRequiredService<PrimaryInterface>());
-
-
-            return services.BuildServiceProvider();
-        }
-
-
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            base.OnStartup(e);
-            serviceProvider = ConfigureServices();
-
-            // Get the StartupHelper service from the service provider
-            var startupHelper = serviceProvider.GetService<StartupHelper>();
-
-            // Start the application logic using the StartupHelper
-            startupHelper?.Start();
-        }
-
     }
 }
