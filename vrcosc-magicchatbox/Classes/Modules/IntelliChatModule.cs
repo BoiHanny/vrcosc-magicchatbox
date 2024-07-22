@@ -29,26 +29,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public enum IntelliGPTModel
     {
+        [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
+        gpt4o_mini,
+
         [Description("gpt-4o"), ModelTypeInfo("Chat")]
         gpt4o,
-
-        [Description("gpt-4"), ModelTypeInfo("Chat")]
-        gpt4,
-
-        [Description("gpt-4-32k"), ModelTypeInfo("Chat")]
-        gpt4_32k,
 
         [Description("gpt-4-turbo"), ModelTypeInfo("Chat")]
         gpt4_turbo,
 
         [Description("gpt-3.5-turbo"), ModelTypeInfo("Chat")]
         gpt3_5_turbo,
-
-        [Description("gpt-3.5-turbo-16k"), ModelTypeInfo("Chat")]
-        gpt3_5_turbo_16k,
-
-        [Description("gpt-3.5-turbo-instruct"), ModelTypeInfo("Chat")]
-        gpt3_5_turbo_instruct,
 
         [Description("text-embedding-ada-002"), ModelTypeInfo("Embedding")]
         embedding_Ada_002,
@@ -59,8 +50,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [Description("text-moderation-latest"), ModelTypeInfo("Moderation")]
         Moderation_Latest,
 
-        [Description("dall-e-2"), ModelTypeInfo("Image")]
-        DallE_2,
+        [Description("dall-e-3"), ModelTypeInfo("Image")]
+        DallE_3,
     }
 
 
@@ -153,16 +144,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
     public partial class IntelliChatModuleSettings : ObservableObject
     {
         [ObservableProperty]
-        private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt3_5_turbo;
+    private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt4o_mini;
 
         [ObservableProperty]
         private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
-        private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt3_5_turbo;
+        private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt4o_mini;
 
         [ObservableProperty]
-        private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt3_5_turbo;
+        private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt4o_mini;
 
         [ObservableProperty]
         private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4o;
@@ -355,8 +346,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (_isInitialized) return;
 
             LoadSettings();
+            EnsureValidSelections();
             _isInitialized = true;
         }
+
 
         public void EnsureValidSelections()
         {
@@ -368,18 +361,32 @@ namespace vrcosc_magicchatbox.Classes.Modules
             var selectedTranslateLanguage = Settings.SelectedTranslateLanguage != null
                 ? Settings.SupportedLanguages.FirstOrDefault(lang => lang.ID == Settings.SelectedTranslateLanguage.ID)
                 : null;
-
             Settings.SelectedWritingStyle = selectedStyle ?? Settings.SupportedWritingStyles.FirstOrDefault(style => style.IsBuiltIn);
             Settings.SelectedTranslateLanguage = selectedTranslateLanguage ?? Settings.SupportedLanguages.Where(lang => lang.Language.Equals("English", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
+            var defaultModel = IntelliGPTModel.gpt4o_mini;
+
             // Check if the selected models are still valid
-            Settings.PerformSpellingCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformSpellingCheckModel) ? Settings.PerformSpellingCheckModel : IntelliGPTModel.gpt3_5_turbo;
-            Settings.GenerateConversationStarterModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.GenerateConversationStarterModel) ? Settings.GenerateConversationStarterModel : IntelliGPTModel.gpt3_5_turbo;
-            Settings.PerformLanguageTranslationModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformLanguageTranslationModel) ? Settings.PerformLanguageTranslationModel : IntelliGPTModel.gpt3_5_turbo;
-            Settings.PerformShortenTextModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformShortenTextModel) ? Settings.PerformShortenTextModel : IntelliGPTModel.gpt3_5_turbo;
-            Settings.PerformBeautifySentenceModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformBeautifySentenceModel) ? Settings.PerformBeautifySentenceModel : IntelliGPTModel.gpt3_5_turbo;
-            Settings.PerformTextCompletionModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformTextCompletionModel) ? Settings.PerformTextCompletionModel : IntelliGPTModel.gpt3_5_turbo;
-            Settings.PerformModerationCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel) ? Settings.PerformModerationCheckModel : IntelliGPTModel.Moderation_Latest;
+            Settings.PerformSpellingCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformSpellingCheckModel)
+                ? Settings.PerformSpellingCheckModel : IntelliGPTModel.gpt4o_mini;
+
+            Settings.GenerateConversationStarterModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.GenerateConversationStarterModel)
+                ? Settings.GenerateConversationStarterModel : IntelliGPTModel.gpt4o;
+
+            Settings.PerformLanguageTranslationModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformLanguageTranslationModel)
+                ? Settings.PerformLanguageTranslationModel : IntelliGPTModel.gpt4o_mini;
+
+            Settings.PerformShortenTextModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformShortenTextModel)
+                ? Settings.PerformShortenTextModel : IntelliGPTModel.gpt4o_mini;
+
+            Settings.PerformBeautifySentenceModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformBeautifySentenceModel)
+                ? Settings.PerformBeautifySentenceModel : IntelliGPTModel.gpt4o;
+
+            Settings.PerformTextCompletionModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformTextCompletionModel)
+                ? Settings.PerformTextCompletionModel : IntelliGPTModel.gpt4o;
+
+            Settings.PerformModerationCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel)
+                ? Settings.PerformModerationCheckModel : IntelliGPTModel.Moderation_Latest;
         }
 
 
@@ -440,23 +447,19 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public void ProcessUsedTokens(ChatResponse response)
         {
-            // Check if the response or its usage data is null
-            if (response == null || response.Usage == null)
+            if (response?.Usage == null)
             {
-                // Handle the case where there's no response or usage data
                 Console.WriteLine("No response or usage data available.");
                 return;
             }
 
-            // Extracting the necessary information
-            string modelName = response.Model; // Get the model name from the response
-            int promptTokens = response.Usage.PromptTokens ?? 0; // Safely handle null with ?? operator
-            int completionTokens = response.Usage.CompletionTokens ?? 0; // Safely handle null with ?? operator
+            string modelName = response.Model;
+            int promptTokens = response.Usage.PromptTokens ?? 0;
+            int completionTokens = response.Usage.CompletionTokens ?? 0;
 
-            // Assuming TokenUsageDataInstance is your accessible TokenUsageData instance within the ViewModel
-            // Update the token usage data for the specific model and day with the extracted information
             Settings.TokenUsageData.AddTokenUsage(modelName, promptTokens, completionTokens);
         }
+
 
 
 
