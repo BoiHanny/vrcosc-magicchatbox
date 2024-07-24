@@ -40,6 +40,28 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private string _secOSCIP = "127.0.0.1";
+        public string SecOSCIP
+        {
+            get => _secOSCIP;
+            set
+            {
+                _secOSCIP = value;
+                NotifyPropertyChanged(nameof(SecOSCIP));
+            }
+        }
+
+        private string _thirdOSCIP = "127.0.0.1";
+        public string ThirdOSCIP
+        {
+            get => _thirdOSCIP;
+            set
+            {
+                _thirdOSCIP = value;
+                NotifyPropertyChanged(nameof(ThirdOSCIP));
+            }
+        }
+
 
         private MediaLinkStyle _SelectedMediaLinkSeekbarStyle;
 

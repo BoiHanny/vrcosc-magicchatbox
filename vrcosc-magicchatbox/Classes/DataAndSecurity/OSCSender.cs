@@ -11,16 +11,16 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         private const string INPUT_VOICE = "/input/Voice";
         private const string CHATBOX_TYPING = "/chatbox/typing";
 
-        private const int TYPING_DURATION = 2000;   // 3 seconds
-        private const int COOLDOWN_DURATION = 1000;  // 0.5 seconds
+        private const int TYPING_DURATION = 2000;   // 2 seconds
+        private const int COOLDOWN_DURATION = 1000;  // 1 second
 
         private static System.Timers.Timer typingTimer;
         private static System.Timers.Timer cooldownTimer;
         private static bool isInCooldown = false;
 
-        private static UDPSender _oscSender;
-        private static UDPSender _secOscSender;
-        private static UDPSender _thirdOscSender;
+        private static UDPSender? _oscSender;
+        private static UDPSender? _secOscSender;
+        private static UDPSender? _thirdOscSender;
 
         private static UDPSender OscSender
         {
@@ -39,10 +39,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             get
             {
-                if (_secOscSender == null || ViewModel.Instance.OSCIP != _secOscSender.Address || ViewModel.Instance.SecOSCPort != _secOscSender.Port)
+                if (_secOscSender == null || ViewModel.Instance.SecOSCIP != _secOscSender.Address || ViewModel.Instance.SecOSCPort != _secOscSender.Port)
                 {
                     _secOscSender?.Close();
-                    _secOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.SecOSCPort);
+                    _secOscSender = new UDPSender(ViewModel.Instance.SecOSCIP, ViewModel.Instance.SecOSCPort);
                 }
                 return _secOscSender;
             }
@@ -52,16 +52,15 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             get
             {
-                if (_thirdOscSender == null || ViewModel.Instance.OSCIP != _thirdOscSender.Address || ViewModel.Instance.ThirdOSCPort != _thirdOscSender.Port)
+                if (_thirdOscSender == null || ViewModel.Instance.ThirdOSCIP != _thirdOscSender.Address || ViewModel.Instance.ThirdOSCPort != _thirdOscSender.Port)
                 {
                     _thirdOscSender?.Close();
-                    _thirdOscSender = new UDPSender(ViewModel.Instance.OSCIP, ViewModel.Instance.ThirdOSCPort);
+                    _thirdOscSender = new UDPSender(ViewModel.Instance.ThirdOSCIP, ViewModel.Instance.ThirdOSCPort);
                 }
                 return _thirdOscSender;
             }
         }
 
-        // This method sends an OSC packet to a specified address and port with the ViewModel's OSC input
         public static async Task SendOSCMessage(bool FX, int delay = 0)
         {
             if (!ViewModel.Instance.MasterSwitch || string.IsNullOrEmpty(ViewModel.Instance.OSCtoSent) || ViewModel.Instance.OSCtoSent.Length > 144)
@@ -95,7 +94,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     SecOscSender.Send(new OscMessage(CHATBOX_TYPING, true));
                 }
-                if (ViewModel.Instance.ThirdOSC) // Added condition for third sender
+                if (ViewModel.Instance.ThirdOSC)
                 {
                     ThirdOscSender.Send(new OscMessage(CHATBOX_TYPING, true));
                 }
@@ -113,7 +112,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     SecOscSender.Send(new OscMessage(CHATBOX_TYPING, false));
                 }
-                if (ViewModel.Instance.ThirdOSC) // Added condition for third sender
+                if (ViewModel.Instance.ThirdOSC)
                 {
                     ThirdOscSender.Send(new OscMessage(CHATBOX_TYPING, false));
                 }
@@ -137,10 +136,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             cooldownTimer.Start();
         }
 
-
         private static bool ShouldToggleVoice(bool force)
         {
-            return ViewModel.Instance.MasterSwitch && ViewModel.Instance.AutoUnmuteTTS || !force && ViewModel.Instance.MasterSwitch;
+            return ViewModel.Instance.MasterSwitch && (ViewModel.Instance.AutoUnmuteTTS || force);
         }
 
         private static OscMessage PrepareMessage(bool FX)
@@ -181,8 +179,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             await Task.Run(() =>
             {
-                if(ViewModel.Instance.UnmuteMainOutput)
-                OscSender.Send(new OscMessage(INPUT_VOICE, 1));
+                if (ViewModel.Instance.UnmuteMainOutput)
+                    OscSender.Send(new OscMessage(INPUT_VOICE, 1));
 
                 if (ViewModel.Instance.SecOSC && ViewModel.Instance.UnmuteSecOutput)
                     SecOscSender.Send(new OscMessage(INPUT_VOICE, 1));
@@ -225,11 +223,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
             else
             {
-                // Reset the timer if it's already active
                 typingTimer.Stop();
                 typingTimer.Start();
             }
         }
     }
 }
-

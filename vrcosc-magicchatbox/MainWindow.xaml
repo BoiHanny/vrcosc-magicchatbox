@@ -4541,6 +4541,27 @@
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
                                             Foreground="#FF9983AD"
+                                            Text="2nd IP address" />
+                                        <TextBox
+                                            x:Name="SecOSCIP"
+                                            Width="100"
+                                            Height="26"
+                                            Margin="0,3,0,5"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding SecOSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
                                             Text="2nd VRChat port (outgoing)" />
                                         <TextBox
                                             x:Name="SecOSCPort"
@@ -4588,6 +4609,27 @@
                                     CornerRadius="5,0,0,5"
                                     Visibility="{Binding ThirdOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Padding="0,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="2nd IP address" />
+                                        <TextBox
+                                            x:Name="ThirdOSCIP"
+                                            Width="100"
+                                            Height="26"
+                                            Margin="0,3,0,5"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding ThirdOSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
