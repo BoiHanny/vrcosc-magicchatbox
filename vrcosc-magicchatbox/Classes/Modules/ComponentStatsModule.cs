@@ -21,7 +21,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private static string FileName = null;
         public bool started = false;
 
-
         public void StartModule()
         {
             if (ViewModel.Instance.IntgrComponentStats && ViewModel.Instance.IntgrComponentStats_VR &&
@@ -48,7 +47,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 Logging.WriteException(ex);
             }
-
         }
 
         public bool GetShowMaxValue(StatsComponentType type)
@@ -65,7 +63,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 item.ShowMaxValue = state;
             }
         }
-
 
         public void LoadComponentStats()
         {
@@ -111,7 +108,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Logging.WriteException(ex, MSGBox: true);
             }
         }
-
 
         private void InitializeDefaultStats()
         {
@@ -183,7 +179,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 Logging.WriteException(ex);
             }
-
         }
 
         private async void RestartApplication()
@@ -209,10 +204,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             // Shut down the current application
             Application.Current.Shutdown();
         }
-
-
-
-
 
         public void UpdateStatValue(StatsComponentType type, string newValue)
         {
@@ -341,8 +332,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        public bool GetShowCPUTemperature()
-        {
+        public bool GetShowCPUTemperature() {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
             return item?.ShowTemperature ?? false;
         }
@@ -353,6 +343,21 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (item != null)
             {
                 item.ShowTemperature = state;
+            }
+        }
+
+        public bool GetShowGPUHotspotTemperature()
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
+            return item?.ShowHotSpotTemperature ?? false;
+        }
+
+        public void SetShowGPUHotspotTemperature(bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
+            if (item != null)
+            {
+                item.ShowHotSpotTemperature = state;
             }
         }
 
@@ -488,7 +493,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
         private static readonly StatsComponentType[] StatDisplayOrder =
         {
             StatsComponentType.CPU,
@@ -509,7 +513,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     string componentDescription = stat.GetDescription();
                     string additionalInfo = "";
-                    string cpuTemp = "", cpuPower = "", gpuTemp = "", gpuPower = "";
+                    string cpuTemp = "", cpuPower = "", gpuTemp = "", gpuPower = "", gpuHotSpotTemp = "";
 
                     var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
                     var gpuHardware = GetDedicatedGPU();
@@ -523,8 +527,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     else if (stat.ComponentType == StatsComponentType.GPU && gpuHardware != null)
                     {
                         gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
+                        gpuHotSpotTemp = stat.ShowHotSpotTemperature ? FetchHotspotTemperatureStat(gpuHardware, stat) : "";
                         gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
-                        additionalInfo = $"{(!stat.cantShowTemperature ? gpuTemp + " " : "")}{(!stat.cantShowWattage ? gpuPower : "")}";
+                        additionalInfo = $"{(!stat.cantShowTemperature ? gpuTemp + " " : "")}{(!stat.cantShowHotSpotTemperature ? gpuHotSpotTemp + " " : "")}{(!stat.cantShowWattage ? gpuPower : "")}";
                     }
 
                     // Combine the component description with additional info if any
@@ -543,13 +548,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             // Join the descriptions with the separator, ensuring no leading separator when there's only one item
             return string.Join(" ¦ ", descriptions);
         }
-
-
-
-
-
-
-
 
         public static Computer CurrentSystem;
 
@@ -614,7 +612,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 StopMonitoringComponents();
             }
         }
-
 
         public static void StopMonitoringComponents()
         {
@@ -687,7 +684,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return formattedTime;
             }
         }
-
 
         public static string GetTime()
         {
@@ -763,7 +759,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
         public static bool UpdateStats()
         {
             void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)
@@ -828,8 +823,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             return true;
         }
-
-
 
         public static bool IsVRRunning()
         {
@@ -916,8 +909,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
-
         private static string FetchStat(
             HardwareType hardwareType,
             SensorType sensorType,
@@ -985,11 +976,48 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        private static string FetchHotspotTemperatureStat(IHardware hardware, ComponentStatsItem item)
+        {
+            foreach (var sensor in hardware.Sensors)
+            {
+                if (sensor.SensorType == SensorType.Temperature &&
+                    (sensor.Name.Contains("Hot spot", StringComparison.InvariantCultureIgnoreCase) ||
+                     sensor.Name.Contains("Hotspot", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    double temperatureCelsius = sensor.Value ?? 0.0;
 
+                    if (temperatureCelsius == 0)
+                    {
+                        item.cantShowHotSpotTemperature = true;
+                        return "N/A";
+                    }
+
+                    string unit = ViewModel.Instance.TemperatureUnit;
+                    double temperature = unit == "F" ? temperatureCelsius * 9 / 5 + 32 : temperatureCelsius;
+
+                    if (item.RemoveNumberTrailing)
+                    {
+                        temperature = Math.Round(temperature);
+                    }
+
+                    string unitSymbol = unit == "F" ? "°F" : "°C";
+                    string tempText = ViewModel.Instance.UseEmojisForTempAndPower ? "🔥" : "GPU HotSpot";
+                    if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
+                    {
+                        tempText = DataController.TransformToSuperscript(tempText);
+                    }
+
+                    string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+                    item.cantShowHotSpotTemperature = false;
+                    return $"{tempText} {formattedTemperature}{DataController.TransformToSuperscript(unitSymbol)}";
+                }
+            }
+            item.cantShowHotSpotTemperature = true;
+            return "N/A";
+        }
 
         private string FetchTemperatureStat(IHardware hardware, ComponentStatsItem item)
         {
-
             foreach (var sensor in hardware.Sensors)
             {
                 if (sensor.SensorType == SensorType.Temperature &&
@@ -1065,18 +1093,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return "N/A";
         }
 
-
-
-
-
-
         private static string FetchCPUStat() =>
             FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total", statsComponentType: StatsComponentType.CPU);
+
         private static string FetchGPUStat() =>
             FetchStat(HardwareType.GpuNvidia, SensorType.Load, ViewModel.Instance.ComponentStatsGPU3DHook ? "D3D 3D" : "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
 
         private static string FetchVRAMStat() =>
-            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook? "D3D Dedicated Memory Used" : "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
+            FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook ? "D3D Dedicated Memory Used" : "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
 
         private static string FetchVRAMMaxStat() =>
             FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook ? "D3D Dedicated Memory Total" : "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);

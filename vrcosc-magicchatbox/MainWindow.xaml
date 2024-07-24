@@ -2961,6 +2961,19 @@
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="" />
                                     <CheckBox
+                                        x:Name="ComponentStatGPUHotSpotVisible_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show GPU hotspot temperature"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ComponentStatGPUHotSpotVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="" />
+                                    <CheckBox
                                         x:Name="GPU_SmallName_checkbox"
                                         Height="20"
                                         Margin="5,5"

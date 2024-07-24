@@ -1138,6 +1138,24 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(ComponentStatGPUWattageVisible));
             }
         }
+
+        public bool ComponentStatGPUHotSpotVisible
+        {
+            get => _statsManager.GetShowGPUHotspotTemperature();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowGPUHotspotTemperature(true);
+                }
+                else
+                {
+                    _statsManager.SetShowGPUHotspotTemperature(false);
+                }
+                NotifyPropertyChanged(nameof(ComponentStatGPUHotSpotVisible));
+            }
+        }
+
         public string TemperatureUnit
         {
             get
