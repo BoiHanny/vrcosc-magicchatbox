@@ -64,10 +64,12 @@
     <None Remove="Img\Icons\Next_ico.png" />
     <None Remove="Img\Icons\NotAccept_ico.png" />
     <None Remove="Img\Icons\OpenAI.png" />
+    <None Remove="Img\Icons\PasteChat_ico.png" />
     <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\Plus_ico.png" />
     <None Remove="Img\Icons\Pulsoid.png" />
     <None Remove="Img\Icons\RebuildChat.png" />
+    <None Remove="Img\Icons\Remove_icon.png" />
     <None Remove="Img\Icons\SaveDark.png" />
     <None Remove="Img\Icons\SaveLight.png" />
     <None Remove="Img\Icons\Settings_ico.png" />
@@ -127,6 +129,7 @@
     <Resource Include="Img\Icons\Next_ico.png" />
     <Resource Include="Img\Icons\NotAccept_ico.png" />
     <Resource Include="Img\Icons\OpenAI.png" />
+    <Resource Include="Img\Icons\PasteChat_ico.png" />
     <Resource Include="Img\Icons\PersonalMsg_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -134,6 +137,7 @@
     <Resource Include="Img\Icons\Plus_ico.png" />
     <Resource Include="Img\Icons\Pulsoid.png" />
     <Resource Include="Img\Icons\RebuildChat.png" />
+    <Resource Include="Img\Icons\Remove_icon.png" />
     <Resource Include="Img\Icons\SaveDark.png" />
     <Resource Include="Img\Icons\SaveLight.png" />
     <Resource Include="Img\Icons\Soundpad.png" />

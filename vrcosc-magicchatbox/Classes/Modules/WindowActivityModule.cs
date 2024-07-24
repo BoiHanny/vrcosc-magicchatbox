@@ -17,6 +17,46 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
         private const uint SHGFI_DISPLAYNAME = 0x00000200;
         private static bool _usedNewMethod = false;
+        private static readonly string _vrChatDirectory = @"C:\Steam\steamapps\common\VRChat";
+        private static readonly string _vrChatExecutable = "vrchat.exe";
+
+        public static bool IsOSCServerSuspended()
+        {
+            var process = Process.GetProcessesByName("install")
+                                 .FirstOrDefault(p => p.MainModule.FileName.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase));
+
+            if (process != null)
+            {
+                var processPath = process.MainModule?.FileName;
+                if (!string.IsNullOrEmpty(processPath) && Path.GetDirectoryName(processPath) == _vrChatDirectory)
+                {
+                    if (File.Exists(Path.Combine(_vrChatDirectory, _vrChatExecutable)))
+                    {
+                        return process.Responding == false;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static void KillOSCServer()
+        {
+            var process = Process.GetProcessesByName("install")
+                                 .FirstOrDefault(p => p.MainModule.FileName.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase));
+
+            if (process != null)
+            {
+                var processPath = process.MainModule?.FileName;
+                if (!string.IsNullOrEmpty(processPath) && Path.GetDirectoryName(processPath) == _vrChatDirectory)
+                {
+                    if (File.Exists(Path.Combine(_vrChatDirectory, _vrChatExecutable)))
+                    {
+                        process.Kill();
+                    }
+                }
+            }
+        }
 
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         private struct SHFILEINFO

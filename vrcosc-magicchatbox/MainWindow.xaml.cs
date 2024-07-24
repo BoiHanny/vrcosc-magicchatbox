@@ -1131,7 +1131,7 @@ namespace vrcosc_magicchatbox
                         return;
                     }
 
-                    scantickLogicAsync();
+                    await ExecuteScantickLogicAsync();
 
                     OSCController.BuildOSC();
                     long nowMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -1165,10 +1165,11 @@ namespace vrcosc_magicchatbox
         }
 
 
-        public async Task scantickLogicAsync()
+        public async Task ExecuteScantickLogicAsync()
         {
             try
             {
+                // List to hold all tasks to be executed concurrently
                 var tasks = new List<Task>
         {
             Task.Run(() => ComponentStatsModule.IsVRRunning())
@@ -1176,23 +1177,60 @@ namespace vrcosc_magicchatbox
 
                 if (ViewModel.Instance.IntgrScanSpotify_OLD)
                 {
-                    tasks.Add(Task.Run(() => ViewModel.Instance.PlayingSongTitle = SpotifyModule.CurrentPlayingSong()));
-                    tasks.Add(Task.Run(() => ViewModel.Instance.SpotifyActive = SpotifyModule.SpotifyIsRunning()));
+                    tasks.Add(UpdateSpotifyStatusAsync());
                 }
 
                 if (ViewModel.Instance.IntgrScanWindowActivity)
                 {
-                    tasks.Add(Task.Run(() => ViewModel.Instance.FocusedWindow = WindowActivityModule.GetForegroundProcessName()));
+                    tasks.Add(UpdateFocusedWindowAsync());
                 }
 
                 tasks.Add(Task.Run(() => ComponentStatsModule.TickAndUpdate()));
 
                 if (ViewModel.Instance.IntgrScanWindowTime)
                 {
-                    tasks.Add(Task.Run(() => ViewModel.Instance.CurrentTime = ComponentStatsModule.GetTime()));
+                    tasks.Add(UpdateCurrentTimeAsync());
                 }
 
-                await Task.WhenAll(tasks);
+                // Wait for all tasks to complete
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private async Task UpdateSpotifyStatusAsync()
+        {
+            try
+            {
+                ViewModel.Instance.PlayingSongTitle = await Task.Run(() => SpotifyModule.CurrentPlayingSong()).ConfigureAwait(false);
+                ViewModel.Instance.SpotifyActive = await Task.Run(() => SpotifyModule.SpotifyIsRunning()).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private async Task UpdateFocusedWindowAsync()
+        {
+            try
+            {
+                ViewModel.Instance.FocusedWindow = await Task.Run(() => WindowActivityModule.GetForegroundProcessName()).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private async Task UpdateCurrentTimeAsync()
+        {
+            try
+            {
+                ViewModel.Instance.CurrentTime = await Task.Run(() => ComponentStatsModule.GetTime()).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -1579,6 +1617,16 @@ namespace vrcosc_magicchatbox
         private void DeleteSeekbar_btn_Click(object sender, RoutedEventArgs e)
         {
             DataController.DeleteSelectedSeekbarStyleAndSelectDefault();
+        }
+
+        private void Paste_Chatting_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.NewChattingTxt = ViewModel.Instance.NewChattingTxt + Clipboard.GetText();
+        }
+
+        private void CleanChatting_btn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.NewChattingTxt = string.Empty;
         }
     }
 
