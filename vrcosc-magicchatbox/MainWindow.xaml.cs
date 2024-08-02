@@ -211,6 +211,15 @@ namespace vrcosc_magicchatbox
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
                 }
+                if (ViewModel.Instance.NewStatusItemTxt.ToLower() == "izurubae")
+                {
+                    ViewModel.Instance.IzuruBaeMode = true;
+                    MessageBox.Show(
+                        "u found the izurubae mode go to options",
+                        "Egg",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
                 ViewModel.Instance.NewStatusItemTxt = string.Empty;
                 ViewModel.SaveStatusList();
             }
@@ -370,6 +379,15 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.Egg_Dev = false;
                     MessageBox.Show(
                         "damn u left the dev egggmoooodeee",
+                        "Egg",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                if (item.msg.ToLower() == "izurubae")
+                {
+                    ViewModel.Instance.IzuruBaeMode = false;
+                    MessageBox.Show(
+                        "damn u left the izurubae mode",
                         "Egg",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);

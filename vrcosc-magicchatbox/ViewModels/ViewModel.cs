@@ -62,6 +62,29 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _IzuruBaeMode = false;
+        public bool IzuruBaeMode
+        {
+            get => _IzuruBaeMode;
+            set
+            {
+                _IzuruBaeMode = value;
+                NotifyPropertyChanged(nameof(IzuruBaeMode));
+            }
+        }
+
+        private string _PrefixIconStatusEgg = "";
+
+        public string PrefixIconStatusEgg
+        {
+            get { return _PrefixIconStatusEgg; }
+            set
+            {
+                _PrefixIconStatusEgg = value;
+                NotifyPropertyChanged(nameof(PrefixIconStatusEgg));
+            }
+        }
+
 
         private MediaLinkStyle _SelectedMediaLinkSeekbarStyle;
 

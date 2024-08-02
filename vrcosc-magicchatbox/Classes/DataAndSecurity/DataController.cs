@@ -333,6 +333,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "ScanningInterval", (typeof(double), "Scanning") },
         { "ScanPauseTimeout", (typeof(int), "Scanning") },
 
+        { "PrefixIconStatus", (typeof(bool), "Icons") },
         { "PrefixIconMusic", (typeof(bool), "Icons") },
         { "PauseIconMusic", (typeof(bool), "Icons") },
         { "PrefixIconStatus", (typeof(bool), "Icons") },
@@ -762,6 +763,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                                     x.msg.Equals("sr4 series", StringComparison.OrdinalIgnoreCase)))
             {
                 ViewModel.Instance.Egg_Dev = true;
+            }
+            if(statusList.Any(x => x.msg.Equals("izurubae", StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewModel.Instance.IzuruBaeMode = true;
             }
         }
 

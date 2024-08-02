@@ -996,6 +996,74 @@
 
                                 </Border>
                                 <Border
+                                    Margin="5,0,0,5"
+                                    CornerRadius="5,0,0,5"
+                                    Visibility="{Binding IzuruBaeMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <Border.Background>
+                                        <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                            <GradientStop Color="#FF40365B" />
+                                            <GradientStop Offset="1" Color="#FFEA005E" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <StackPanel>
+                                        <Grid>
+                                            <TextBlock
+                                                Padding="4,5,9,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="17"
+                                                FontWeight="DemiBold"
+                                                Foreground="White"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="IzuruBae's custom status icon">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="5"
+                                                        Direction="0"
+                                                        ShadowDepth="0"
+                                                        Color="White" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </Grid>
+                                        <StackPanel Margin="5,4,0,5" Orientation="Horizontal">
+                                            <TextBlock
+                                                Padding="0,0,4,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="White"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="Make it like:">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="5"
+                                                        Direction="0"
+                                                        ShadowDepth="0"
+                                                        Color="White" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                            <TextBox
+                                                x:Name="CustomIcon"
+                                                Width="auto"
+                                                Height="auto"
+                                                MinWidth="20"
+                                                Margin="0,0,0,0"
+                                                Padding="5,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="White"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding PrefixIconStatusEgg, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                TextAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+
+
+                                </Border>
+                                <Border
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
