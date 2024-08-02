@@ -679,7 +679,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     Complete_msg = ViewModel.Instance.NewChattingTxt;
                 }
 
-                if (Complete_msg.Length < 4)
+                if (Complete_msg.Length == 0)
                 {
                 }
                 else if (Complete_msg.Length > 144)
