@@ -992,6 +992,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
                 {
+
+                    if (ViewModel.Instance.LastMessages == null)
+                    {
+                        return;
+                    }
+
+                    if (ViewModel.Instance.LastMessages.Count == 0)
+                    {
+                        return;
+                    }
+
                     string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
 
                     if (string.IsNullOrEmpty(json))
@@ -999,7 +1010,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                         return;
                     }
 
-                    File.WriteAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"), json);
+                    string filePath = Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml");
+
+                    if (string.IsNullOrEmpty(filePath))
+                    {
+                        return;
+                    }
+
+                    File.WriteAllText(filePath, json);
                 }
             }
             catch (Exception ex)
