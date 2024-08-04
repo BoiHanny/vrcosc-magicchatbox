@@ -378,6 +378,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "BlankEgg", (typeof(bool), "DEV") },
 
         { "SwitchStatusInterval", (typeof(int), "StatusSetting") },
+        { "PrefixIconStatusEgg", (typeof(string), "StatusSetting") },
         { "IsRandomCycling", (typeof(bool), "StatusSetting") },
         { "CycleStatus", (typeof(bool), "StatusSetting") },
 
