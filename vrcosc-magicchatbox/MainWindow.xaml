@@ -1055,7 +1055,7 @@
                                                 BorderThickness="0"
                                                 FontSize="15"
                                                 Foreground="#FF240E54"
-                                                Text="{Binding PrefixIconStatusEgg, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Text="{Binding EggPrefixIconStatus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 TextAlignment="Center" />
                                         </StackPanel>
                                     </StackPanel>

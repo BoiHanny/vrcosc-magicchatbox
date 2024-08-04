@@ -368,9 +368,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     activeItem.LastUsed = DateTime.Now;
 
                     string icon = "💬";
-                    if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.PrefixIconStatusEgg))
+                    if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
                     {
-                        icon = ViewModel.Instance.PrefixIconStatusEgg.Substring(0, 1);
+                        icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, 1);
                     }
 
                     string? x = ViewModel.Instance.PrefixIconStatus == true

@@ -336,7 +336,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "PrefixIconStatus", (typeof(bool), "Icons") },
         { "PrefixIconMusic", (typeof(bool), "Icons") },
         { "PauseIconMusic", (typeof(bool), "Icons") },
-        { "PrefixIconStatus", (typeof(bool), "Icons") },
         { "PrefixIconSoundpad", (typeof(bool), "Icons") },
 
         { "PrefixChat", (typeof(bool), "Chat") },
@@ -378,7 +377,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "BlankEgg", (typeof(bool), "DEV") },
 
         { "SwitchStatusInterval", (typeof(int), "StatusSetting") },
-        { "PrefixIconStatusEgg", (typeof(string), "StatusSetting") },
+        { "EggPrefixIconStatus", (typeof(string), "StatusSetting") },
         { "IsRandomCycling", (typeof(bool), "StatusSetting") },
         { "CycleStatus", (typeof(bool), "StatusSetting") },
 

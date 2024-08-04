@@ -73,15 +73,15 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private string _PrefixIconStatusEgg = "";
+        private string _EggPrefixIconStatus = "";
 
-        public string PrefixIconStatusEgg
+        public string EggPrefixIconStatus
         {
-            get { return _PrefixIconStatusEgg; }
+            get { return _EggPrefixIconStatus; }
             set
             {
-                _PrefixIconStatusEgg = value;
-                NotifyPropertyChanged(nameof(PrefixIconStatusEgg));
+                _EggPrefixIconStatus = value;
+                NotifyPropertyChanged(nameof(EggPrefixIconStatus));
             }
         }
 
