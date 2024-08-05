@@ -370,7 +370,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     string icon = "💬";
                     if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
                     {
-                        icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, 1);
+                        icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
                     }
 
                     string? x = ViewModel.Instance.PrefixIconStatus == true
