@@ -79,9 +79,9 @@ Coming Soon
   <img src="https://github.com/user-attachments/assets/fb5edfca-96e0-41f1-a475-b7c7dffb7f58" alt="Windows" width="32" height="32"/>
 </p>
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/5473eaef-bb9d-49e8-b054-ab42bc9d9354" alt="Preview" width="312" height="66"/>
-  <img src="https://github.com/user-attachments/assets/d561e0ff-4027-4610-b3f1-32d19938a7d2" alt="Preview" width="312" height="66"/>
-  <img src="https://github.com/user-attachments/assets/5473eaef-bb9d-49e8-b054-ab42bc9d9354" alt="Preview" width="312" height="66"/>
+  <img src="https://github.com/user-attachments/assets/5473eaef-bb9d-49e8-b054-ab42bc9d9354" alt="Preview" width="212" height="36"/>
+  <img src="https://github.com/user-attachments/assets/d561e0ff-4027-4610-b3f1-32d19938a7d2" alt="Preview" width="212" height="36"/>
+  <img src="https://github.com/user-attachments/assets/5473eaef-bb9d-49e8-b054-ab42bc9d9354" alt="Preview" width="212" height="36"/>
 </p>
 
 >  - **Desktop mode:** MagicChatbox shows "On desktop" on the UI, and displays which application you are currently focused on. It's a great way to keep track of your messages while multitasking. The Spotify integration also shows the currently playing song, making it easier to keep up with your favorite tunes.
@@ -90,9 +90,9 @@ Coming Soon
   <img src="https://github.com/user-attachments/assets/87c067f2-baba-40a3-90ce-04e57937708b" alt="DesktopUi" width="32" height="32"/>
 </p>
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d8f77539-ba58-4e51-ae65-b03e39e9df2f" alt="PreviewDesktop" width="312" height="66"/>
-  <img src="https://github.com/user-attachments/assets/8fef7f71-d1ea-4105-a739-38b9890b6850" alt="Desktop" width="312" height="66"/>
-  <img src="https://github.com/user-attachments/assets/d8f77539-ba58-4e51-ae65-b03e39e9df2f" alt="PreviewDesktop" width="312" height="66"/>
+  <img src="https://github.com/user-attachments/assets/d8f77539-ba58-4e51-ae65-b03e39e9df2f" alt="PreviewDesktop" width="212" height="36"/>
+  <img src="https://github.com/user-attachments/assets/8fef7f71-d1ea-4105-a739-38b9890b6850" alt="Desktop" width="212" height="36"/>
+  <img src="https://github.com/user-attachments/assets/d8f77539-ba58-4e51-ae65-b03e39e9df2f" alt="PreviewDesktop" width="212" height="36"/>
 </p>
 
 <div style="border-top: 1px solid gray; width: 50%; margin-left: 0;"></div>
@@ -104,9 +104,9 @@ Coming Soon
   <img src="https://github.com/user-attachments/assets/dddb53d5-7c27-425d-90a0-12c7ae097558" alt="Pulsoid" width="42" height="42"/>
 </p>
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/1caeaab3-1e19-4854-b631-3a46e901480e" alt="PreviewHeartrate" width="312" height="66"/>
-  <img src="https://github.com/user-attachments/assets/a6a0d37e-dfbd-4e58-a1ce-f010f44648a5" alt="Heart" width="312" height="66"/>
-  <img src="https://github.com/user-attachments/assets/1caeaab3-1e19-4854-b631-3a46e901480e" alt="PreviewHeartrate" width="312" height="66"/>
+  <img src="https://github.com/user-attachments/assets/1caeaab3-1e19-4854-b631-3a46e901480e" alt="PreviewHeartrate" width="212" height="36"/>
+  <img src="https://github.com/user-attachments/assets/a6a0d37e-dfbd-4e58-a1ce-f010f44648a5" alt="Heart" width="212" height="36"/>
+  <img src="https://github.com/user-attachments/assets/1caeaab3-1e19-4854-b631-3a46e901480e" alt="PreviewHeartrate" width="212" height="36"/>
 </p>
 
 >  - **Status tab:** One of the most exciting changes we made back in version 0.4.0 is the addition of the Status tab, which provides an easy way to manage your status items. You can sort your status items based on creation date, recent usage, and if they are a favorite. Each status item has three types of interactions - activate, delete, and favorite - and you can quickly add new items using the input box.
@@ -151,6 +151,7 @@ Coming Soon
 
 
 > * Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
+> * Latest Operating-System Update installed
 
 
 <hr>
