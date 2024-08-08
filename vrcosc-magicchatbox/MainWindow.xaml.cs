@@ -1646,6 +1646,16 @@ namespace vrcosc_magicchatbox
         {
             ViewModel.Instance.NewChattingTxt = string.Empty;
         }
+
+        private void ResetIP_btn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.OSCIP = "127.0.0.1";
+        }
+
+        private void ResetOSCPortOut_btn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.OSCPortOut = 9000;
+        }
     }
 
 

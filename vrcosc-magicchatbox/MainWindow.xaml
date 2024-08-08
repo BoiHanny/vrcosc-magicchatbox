@@ -4506,46 +4506,107 @@
                                 <StackPanel>
                                     <TextBlock
                                         Grid.Column="0"
-                                        Padding="0,0,0,0"
+                                        Padding="0,0,0,3"
                                         HorizontalAlignment="Left"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
                                         Text="Local IP address" />
-                                    <TextBox
-                                        x:Name="OSCIPBox"
-                                        Width="100"
-                                        Height="26"
-                                        Margin="0,3,0,0"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox
+                                            x:Name="OSCIPBox"
+                                            Width="100"
+                                            Height="26"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding OSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button
+                                            x:Name="ResetIP_btn"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="5,0,0,0"
+                                            Padding="5"
+                                            Click="ResetIP_btn_Click"
+                                            Style="{StaticResource Status_Button_style}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            Margin="0,0,3,0"
+                                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                                            Source="/Img/Icons/Load_ico.png" />
+                                                        <TextBlock
+                                                            Margin="0,-1,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            FontWeight="DemiBold"
+                                                            Foreground="#9B90D1"
+                                                            Text="Default" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                    </StackPanel>
+
                                     <TextBlock
                                         Grid.Column="0"
-                                        Padding="0,10,0,0"
+                                        Padding="0,10,0,3"
                                         HorizontalAlignment="Left"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
                                         Text="Port (outgoing)" />
-                                    <TextBox
-                                        x:Name="OSCPortOutBox"
-                                        Width="100"
-                                        Height="26"
-                                        Margin="0,3,0,15"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                        <TextBox
+                                            x:Name="OSCPortOut"
+                                            Width="100"
+                                            Height="26"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding OSCPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button
+                                            x:Name="ResetOSCPortOut_btn"
+                                            Width="auto"
+                                            Height="26"
+                                            Margin="5,0,0,0"
+                                            Padding="5"
+                                            Click="ResetOSCPortOut_btn_Click"
+                                            Style="{StaticResource Status_Button_style}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            Margin="0,0,3,0"
+                                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                                            Source="/Img/Icons/Load_ico.png" />
+                                                        <TextBlock
+                                                            Margin="0,-1,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            FontWeight="DemiBold"
+                                                            Foreground="#9B90D1"
+                                                            Text="Default" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                    </StackPanel>
                                     <CheckBox
                                         x:Name="UnmuteMainOutput_checkbox"
                                         Height="21"
@@ -4682,7 +4743,7 @@
                                     Foreground="#FFB9B5C1"
                                     IsChecked="{Binding ThirdOSC, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}">
-                                    3nd VRChat output
+                                    3rd VRChat output
                                 </CheckBox>
                                 <Border
                                     Margin="0,0,0,15"
@@ -4697,7 +4758,7 @@
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
                                             Foreground="#FF9983AD"
-                                            Text="2nd IP address" />
+                                            Text="3rd IP address" />
                                         <TextBox
                                             x:Name="ThirdOSCIP"
                                             Width="100"
@@ -4718,7 +4779,7 @@
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
                                             Foreground="#FF9983AD"
-                                            Text="3nd VRChat port (outgoing)" />
+                                            Text="3rd VRChat port (outgoing)" />
                                         <TextBox
                                             x:Name="ThirdOSCPort"
                                             Width="100"
