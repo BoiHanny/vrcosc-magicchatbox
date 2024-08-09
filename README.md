@@ -47,18 +47,21 @@
 > - 🔳 Personal Status
 > - 🔳 Local Time Display
 > - 🔳 Window Activity
-> - 🔳 Heart-Rate Display (Only Pulsoid PRO)
 > - 🔳 System Stats
 > - 🔳 Network Stats
 > - 🔳 SoundPad Display
 > - 🔳 Spotify/Music Display
 > - 🔳 TTS Support
 > - 🔳 ChatGPT Chat Enhancer
+> - 🔳 Heart-Rate Display (Only [Pulsoid PRO](https://pulsoid.net))
 
-Coming Soon
+Prototype Features (not implemented)
 > - ◾ FPS Display
-> - ◾ Badge Collector Display
+> - ◾ Instance Display
 > - ◾ Online Time Display
+> - ◾ Badge Collector Display
+> - ◾ Community-Rank Display
+> - ◾ Moderation Feature (prototype! currently not hard planned)
 
 <hr>
 
