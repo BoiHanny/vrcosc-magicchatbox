@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.003</Version>
+	<Version>0.9.004</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -41,6 +41,7 @@
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
     <None Remove="Img\Icons\Add.png" />
     <None Remove="Img\Icons\admin.png" />
+    <None Remove="Img\Icons\Apply_ico.png" />
     <None Remove="Img\Icons\Close_ico.png" />
     <None Remove="Img\Icons\ComponentStats_ico.png" />
     <None Remove="Img\Icons\Copy_ico.png" />
@@ -55,6 +56,7 @@
     <None Remove="Img\Icons\Favorite_ico.png" />
     <None Remove="Img\Icons\GitHub.png" />
     <None Remove="Img\Icons\HeartRate_ico.png" />
+    <None Remove="Img\Icons\Info_ico.png" />
     <None Remove="Img\Icons\Load_ico.png" />
     <None Remove="Img\Icons\Log.png" />
     <None Remove="Img\Icons\MagicChatbox_ico.png" />
@@ -102,6 +104,7 @@
     </Resource>
     <Resource Include="Img\Icons\Add.png" />
     <Resource Include="Img\Icons\admin.png" />
+    <Resource Include="Img\Icons\Apply_ico.png" />
     <Resource Include="Img\Icons\Close_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -121,6 +124,7 @@
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\GitHub.png" />
+    <Resource Include="Img\Icons\Info_ico.png" />
     <Resource Include="Img\Icons\Load_ico.png" />
     <Resource Include="Img\Icons\Log.png" />
     <Resource Include="Img\Icons\MagicChatbox_ico.png" />
