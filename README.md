@@ -61,7 +61,6 @@ Prototype Features (not implemented)
 > - ◾ Online Time Display
 > - ◾ Badge Collector Display
 > - ◾ Community-Rank Display
-> - ◾ Moderation Feature (prototype! currently not hard planned)
 
 <hr>
 
