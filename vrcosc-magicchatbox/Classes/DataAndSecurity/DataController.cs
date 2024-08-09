@@ -43,25 +43,25 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
 
         public static string GetApplicationVersion()
-
         {
             try
             {
                 Assembly assembly = Assembly.GetExecutingAssembly();
                 AssemblyName assemblyName = assembly.GetName();
-                string version = assemblyName.Version.ToString();
-                if (version.EndsWith(".0"))
-                {
-                    version = version.Substring(0, version.LastIndexOf('.'));
-                }
-                return version;
+                string versionString = assemblyName.Version.ToString(); // For example, "0.9.1.0"
+
+                // Use the Version class to enforce the correct format
+                var version = new Version(versionString);
+
+                return version.VersionNumber;
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
-                return "69.420.666";
+                return "69.420.666"; // Fallback in case of error
             }
         }
+
 
         public static string TransformToSuperscript(string input)
         {
@@ -482,14 +482,13 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                var currentVersion = ViewModel.Instance.AppVersion.VersionNumber;
-                var latestReleaseVersion = ViewModel.Instance.LatestReleaseVersion.VersionNumber;
+                var currentVersion = new Version(ViewModel.Instance.AppVersion.VersionNumber).VersionNumber;
+                var latestReleaseVersion = new Version(ViewModel.Instance.LatestReleaseVersion.VersionNumber).VersionNumber;
 
-                int compareWithLatestRelease = currentVersion.CompareTo(latestReleaseVersion);
+                int compareWithLatestRelease = string.Compare(currentVersion, latestReleaseVersion, StringComparison.Ordinal);
 
                 if (compareWithLatestRelease < 0)
                 {
-                    // If the latest release version is greater than the current version
                     ViewModel.Instance.VersionTxt = "Update now";
                     ViewModel.Instance.VersionTxtColor = "#FF8AFF04";
                     ViewModel.Instance.VersionTxtUnderLine = true;
@@ -501,12 +500,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 if (ViewModel.Instance.JoinedAlphaChannel && ViewModel.Instance.PreReleaseVersion != null)
                 {
-                    var preReleaseVersion = ViewModel.Instance.PreReleaseVersion.VersionNumber;
-                    int compareWithPreRelease = currentVersion.CompareTo(preReleaseVersion);
+                    var preReleaseVersion = new Version(ViewModel.Instance.PreReleaseVersion.VersionNumber).VersionNumber;
+                    int compareWithPreRelease = string.Compare(currentVersion, preReleaseVersion, StringComparison.Ordinal);
 
                     if (compareWithPreRelease < 0)
                     {
-                        // If the pre-release version is greater than the current version and the user has joined the alpha channel
                         ViewModel.Instance.VersionTxt = "Try new pre-release";
                         ViewModel.Instance.VersionTxtUnderLine = true;
                         ViewModel.Instance.VersionTxtColor = "#2FD9FF";
@@ -517,7 +515,6 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                     else if (compareWithPreRelease == 0)
                     {
-                        // If the pre-release version is equal to the current version and the user has joined the alpha channel
                         ViewModel.Instance.VersionTxt = "Up-to-date (pre-release)";
                         ViewModel.Instance.VersionTxtUnderLine = false;
                         ViewModel.Instance.VersionTxtColor = "#75D5FE";
@@ -529,16 +526,14 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
                 if (compareWithLatestRelease > 0)
                 {
-                    // If the current version is higher than the latest release version
                     ViewModel.Instance.VersionTxt = "✨ Supporter version ✨";
-                    ViewModel.Instance.VersionTxtColor = "#FFD700"; // Gold color to signify supporter
+                    ViewModel.Instance.VersionTxtColor = "#FFD700";
                     ViewModel.Instance.VersionTxtUnderLine = false;
                     ViewModel.Instance.CanUpdate = false;
                     ViewModel.Instance.CanUpdateLabel = false;
                     return;
                 }
 
-                // If no new update or pre-release is found
                 ViewModel.Instance.VersionTxt = "You are up-to-date";
                 ViewModel.Instance.VersionTxtUnderLine = false;
                 ViewModel.Instance.VersionTxtColor = "#FF92CC90";
@@ -550,6 +545,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
+
+
 
 
 
