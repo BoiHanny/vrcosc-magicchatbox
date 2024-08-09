@@ -1656,6 +1656,31 @@ namespace vrcosc_magicchatbox
         {
             ViewModel.Instance.OSCPortOut = 9000;
         }
+
+        private void ApplyLinkPulsoid_btn_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://pulsoid.net/pricing?promo_campaign_id=613e3915-a6ba-40f1-a8d4-9ae68c433c6e",
+                UseShellExecute = true
+            });
+
+        }
+
+        private void PulsoidLearnMoreAboutDiscount_btn_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Unlock-a-15%25-Discount-on-Pulsoid's-BRO-Plan",
+                UseShellExecute = true
+            });
+
+        }
+
+        private void MainDiscoundButton_grid_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            ViewModel.Instance.ActivateSetting("Settings_HeartRate");
+        }
     }
 
 
