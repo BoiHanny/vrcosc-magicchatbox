@@ -80,7 +80,7 @@ jobs:
     - name: Determine Release Type
       id: determine_release_type
       run: |
-        if ($GITHUB_REF -eq 'refs/heads/master') {
+        if ($env:GITHUB_REF -eq 'refs/heads/master') {
           echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         } else {
           echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
