@@ -1,0 +1,166 @@
+﻿name: .NET Core Desktop Build and Release
+
+on:
+  push:
+    branches:
+      - 'Pre-Master'
+      - 'master'
+
+env:
+  Solution_Name: vrcosc-magicchatbox.sln
+  Project_Path: vrcosc-magicchatbox\vrcosc_magicchatbox.csproj
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build Solution
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
+
+    - name: Extract Version from csproj
+      id: get_version
+      run: |
+        $csproj = "vrcosc-magicchatbox\MagicChatbox.csproj"
+        $pattern = '<Version>(.*)<\/Version>'
+        $content = Get-Content $csproj -Raw
+        $match = [regex]::Match($content, $pattern)
+        if ($match.Success -and $match.Groups.Count -gt 1) {
+          $version = $match.Groups[1].Value
+          echo "VERSION=$version" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+        } else {
+          echo "Error: Version not found in csproj file."
+          exit 1
+        }
+      shell: pwsh
+
+    - name: Create Zip File
+      run: |
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+
+    - name: Upload and Scan with VirusTotal
+      id: virustotal_scan
+      run: |
+        $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
+        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+
+        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{
+          "x-apikey" = $api_key
+        } -Form @{
+          "file" = Get-Item $file_path
+        }
+
+        $scan_id = $response.data.id
+        echo "::set-output name=SCAN_ID::$scan_id"
+
+    - name: Get VirusTotal Scan Report
+      id: virustotal_report
+      run: |
+        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
+
+        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/analyses/$scan_id" -Headers @{
+          "x-apikey" = $api_key
+        }
+
+        $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
+        echo "::set-output name=REPORT_URL::$report_url"
+
+    - name: Determine Release Type
+      id: determine_release_type
+      run: |
+        if ($GITHUB_REF -eq 'refs/heads/master') {
+          echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+        } else {
+          echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+        }
+      shell: pwsh
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+      with:
+        tag_name: v${{ env.VERSION }}
+        release_name: v${{ env.VERSION }}${{ env.PRE_RELEASE == 'true' && ' (pre-release)' || '' }}
+        draft: false
+        prerelease: ${{ env.PRE_RELEASE }}
+        body: |
+          <div align="center">
+            <h1>✨ MagicChatbox v${{ env.VERSION }}${{ env.PRE_RELEASE == 'true' && ' (pre-release)' || '' }} ✨</h1>
+            <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
+
+            <p>
+              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
+                <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
+              </a>
+              <a href="${{ steps.virustotal_report.outputs.REPORT_URL }}">
+                <img src="https://custom-icon-badges.herokuapp.com/badge/-Virus%20Scan%20Result-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
+              </a>
+            </p>
+          </div>
+
+          ---
+
+          <div align="center">
+            <h2>🚀 Download and Installation Guide 🚀</h2>
+            <p>Follow these simple steps to get started with MagicChatbox:</p>
+          </div>
+
+          1. **Download** the .zip file from the link above.
+          2. Make sure you have [**.NET 6**](https://dotnet.microsoft.com/en-us/download) installed on your system.
+          3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
+          4. Open the extracted folder from your chosen location.
+          5. Run <code>MagicChatbox.exe</code> to launch the application.
+
+          ---
+
+          <div align="center">
+            <h2>🛡️ About VirusTotal Scan 🛡️</h2>
+            <p>We take your security seriously! Each release of MagicChatbox is scanned with VirusTotal to ensure it's free from harmful software.</p>
+            <p>However, please be aware that some antivirus engines might flag the application. This is due to the nature of certain components we use, such as:</p>
+            <ul>
+              <p>🔍 **Window Activity** - To show which windows you are currently focused on<p>
+              <p>🔗 **MediaLink Components** - For better multimedia integration<p>
+              <p>📊 **Component Stats** - For performance tracking<p>
+              <p>🌙 **AFK Module** - To detect when you are away from the keyboard<p>
+              <p>🎮 **OSC Controller** - To communicate with VRChat<p>
+            </ul>
+            <p>These features might trigger warnings from lesser-known scanners. Rest assured, we strive to keep our software as secure as possible and any flagged activity is closely monitored to maintain your safety.</p>
+            <p>For more details on the scan results, check the VirusTotal report linked above.</p>
+          </div>
+
+          ---
+
+          <div align="center">
+            <h2>📞 Need Help? We're Here for You! 📞</h2>
+            <p>Have any questions, suggestions, or feedback? Reach out to us through one of the following channels:</p>
+            <ul>
+            <p><strong>Our Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">Join now!!!</a><p>
+              <p><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a><p>
+              <p><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a><p>
+            </ul>
+            <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
+          </div>
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./MagicChatbox-${{ env.VERSION }}.zip
+        asset_name: MagicChatbox-${{ env.VERSION }}.zip
+        asset_content_type: application/zip

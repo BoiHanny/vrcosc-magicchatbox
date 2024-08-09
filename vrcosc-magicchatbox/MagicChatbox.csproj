@@ -2,100 +2,147 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+	<Version>0.9.000</Version>
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
+    <UseWPF>True</UseWPF>
     <Configurations>Debug;Release;Beta</Configurations>
     <DebugType>portable</DebugType>
-    <FileVersion>0.7.642</FileVersion>
-    <AssemblyVersion>0.7.642</AssemblyVersion>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
     <TargetFrameworks></TargetFrameworks>
     <PlatformTarget>x64</PlatformTarget>
+    <StartupObject>vrcosc_magicchatbox.App</StartupObject>
+    <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>False</Optimize>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<Optimize>True</Optimize>
+		<WarningLevel>4</WarningLevel>
+		<DebugType>none</DebugType>
+		<Prefer32Bit>false</Prefer32Bit>
+	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>False</Optimize>
     <WarningLevel>4</WarningLevel>
+	  <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Beta|AnyCPU'">
     <Optimize>False</Optimize>
     <WarningLevel>4</WarningLevel>
+	  <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Img\Icons\Accept_ico.png" />
     <None Remove="Img\Icons\ActivatedStatus_ico.png" />
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
+    <None Remove="Img\Icons\Add.png" />
+    <None Remove="Img\Icons\admin.png" />
     <None Remove="Img\Icons\Close_ico.png" />
+    <None Remove="Img\Icons\ComponentStats_ico.png" />
     <None Remove="Img\Icons\Copy_ico.png" />
     <None Remove="Img\Icons\Cross_ico.png" />
+    <None Remove="Img\Icons\Cross_v1_ico.png" />
+    <None Remove="Img\Icons\Cut_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Discord.png" />
+    <None Remove="Img\Icons\downgrade.png" />
     <None Remove="Img\Icons\Edit_ico.png" />
+    <None Remove="Img\Icons\error.png" />
     <None Remove="Img\Icons\Favorite_ico.png" />
     <None Remove="Img\Icons\GitHub.png" />
     <None Remove="Img\Icons\HeartRate_ico.png" />
     <None Remove="Img\Icons\Load_ico.png" />
+    <None Remove="Img\Icons\Log.png" />
     <None Remove="Img\Icons\MagicChatbox_ico.png" />
     <None Remove="Img\Icons\MediaLink_ico.png" />
     <None Remove="Img\Icons\Min_ico.png" />
+    <None Remove="Img\Icons\NetworkStats_ico.png" />
     <None Remove="Img\Icons\Next_ico.png" />
+    <None Remove="Img\Icons\NotAccept_ico.png" />
+    <None Remove="Img\Icons\OpenAI.png" />
+    <None Remove="Img\Icons\PasteChat_ico.png" />
     <None Remove="Img\Icons\PersonalMsg_ico.png" />
     <None Remove="Img\Icons\Plus_ico.png" />
+    <None Remove="Img\Icons\Pulsoid.png" />
+    <None Remove="Img\Icons\RebuildChat.png" />
+    <None Remove="Img\Icons\Remove_icon.png" />
     <None Remove="Img\Icons\SaveDark.png" />
     <None Remove="Img\Icons\SaveLight.png" />
     <None Remove="Img\Icons\Settings_ico.png" />
+    <None Remove="Img\Icons\Soundpad.png" />
+    <None Remove="Img\Icons\SpeechToText.png" />
+    <None Remove="Img\Icons\SpellingCheck.png" />
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
     <None Remove="Img\Icons\SystemTime_ico.png" />
+    <None Remove="Img\Icons\Translate_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
+    <None Remove="Img\Icons\Upload.png" />
+    <None Remove="Img\Icons\Wand_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
-    <None Remove="Img\OpenAI_logo.png" />
-    <None Remove="Json\OpenAIAPIBuiltInActions.json" />
+    <None Remove="Img\Icons\yes.png" />
+    <None Remove="Img\MagicOSC_icon.png" />
     <None Remove="Json\voices.json" />
     <None Remove="NLog.config" />
+    <None Remove="Sounds\start.wav" />
+    <None Remove="Sounds\stop.wav" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Img\Icons\Accept_ico.png" />
     <Resource Include="Img\Icons\ActivatedStatus_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\ActivateStatus_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Add.png" />
+    <Resource Include="Img\Icons\admin.png" />
     <Resource Include="Img\Icons\Close_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\ComponentStats_ico.png" />
     <Resource Include="Img\Icons\Copy_ico.png" />
     <Resource Include="Img\Icons\Cross_ico.png" />
+    <Resource Include="Img\Icons\Cross_v1_ico.png" />
+    <Resource Include="Img\Icons\Cut_ico.png" />
     <Resource Include="Img\Icons\Delete_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Discord.png" />
+    <Resource Include="Img\Icons\downgrade.png" />
     <Resource Include="Img\Icons\Edit_ico.png" />
+    <Resource Include="Img\Icons\error.png" />
     <Resource Include="Img\Icons\Favorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\GitHub.png" />
     <Resource Include="Img\Icons\Load_ico.png" />
+    <Resource Include="Img\Icons\Log.png" />
     <Resource Include="Img\Icons\MagicChatbox_ico.png" />
     <Resource Include="Img\Icons\MediaLink_ico.png" />
     <Resource Include="Img\Icons\Min_ico.png" />
     <Resource Include="Img\Icons\Next_ico.png" />
+    <Resource Include="Img\Icons\NotAccept_ico.png" />
+    <Resource Include="Img\Icons\OpenAI.png" />
+    <Resource Include="Img\Icons\PasteChat_ico.png" />
     <Resource Include="Img\Icons\PersonalMsg_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\HeartRate_ico.png" />
     <Resource Include="Img\Icons\Plus_ico.png" />
+    <Resource Include="Img\Icons\Pulsoid.png" />
+    <Resource Include="Img\Icons\RebuildChat.png" />
+    <Resource Include="Img\Icons\Remove_icon.png" />
     <Resource Include="Img\Icons\SaveDark.png" />
     <Resource Include="Img\Icons\SaveLight.png" />
+    <Resource Include="Img\Icons\Soundpad.png" />
+    <Resource Include="Img\Icons\SpeechToText.png" />
+    <Resource Include="Img\Icons\SpellingCheck.png" />
     <Resource Include="Img\Icons\spotify_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -105,18 +152,24 @@
     <Resource Include="Img\Icons\SystemTime_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Translate_ico.png" />
     <Resource Include="Img\Icons\Unfavorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Upload.png" />
+    <Resource Include="Img\Icons\Wand_ico.png" />
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Img\OpenAI_logo.png">
+    <Resource Include="Img\Icons\yes.png" />
+    <Resource Include="Img\MagicOSC_icon.png" />
+    <Resource Include="Img\Icons\NetworkStats_ico.png" />
+    <Resource Include="Sounds\start.wav">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Content Include="Json\OpenAIAPIBuiltInActions.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Resource Include="Sounds\stop.wav">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -127,17 +180,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoClosingMessageBox" Version="1.0.0.5" />
-    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.0" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.5" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4-pre324" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="5.2.0" />
+    <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
+    <PackageReference Include="NLog" Version="5.3.2" />
+	  <PackageReference Include="OpenAI-DotNet" Version="8.1.1" />
+	  <PackageReference Include="VRChat.OSCQuery" Version="0.0.7" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="CoreOSC">
-      <HintPath>..\..\..\..\..\..\Temp\CoreOSC.dll</HintPath>
+      <HintPath>libs\CoreOSC.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -151,6 +208,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Update="UI\Dialogs\ApplicationError.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Dialogs\OpenAIAuth.xaml.cs">
+      <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 
@@ -166,6 +229,12 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="UI\Dialogs\ApplicationError.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
 </Project>

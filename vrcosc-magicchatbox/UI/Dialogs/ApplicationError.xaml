@@ -1,0 +1,365 @@
+﻿<Window
+    x:Class="vrcosc_magicchatbox.UI.Dialogs.ApplicationError"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="clr-namespace:vrcosc_magicchatbox.Classes"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:vrcosc_magicchatbox.UI.Dialogs"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Application Error"
+    Width="700"
+    Height="auto"
+    ResizeMode="NoResize"
+    SizeToContent="Height"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+        <conv:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+    </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="55"
+            CornerRadius="0"
+            GlassFrameThickness="1"
+            ResizeBorderThickness="8"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform AngleX="-10" CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Offset="1" Color="#FF10178C" />
+                    <GradientStop Color="#FF540E0E" />
+                    <GradientStop Offset="0.469" Color="#FF0F46A0" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+        <Grid x:Name="Drag_area" Grid.Row="0">
+            <StackPanel
+                Margin="5,5"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                WindowChrome.IsHitTestVisibleInChrome="True">
+                <StackPanel
+                    Margin="0,0,10,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <StackPanel.Background>
+                        <LinearGradientBrush MappingMode="Absolute">
+                            <LinearGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                    <RotateTransform Angle="-20.323" CenterX="0.5" CenterY="0.5" />
+                                    <TranslateTransform />
+                                </TransformGroup>
+                            </LinearGradientBrush.RelativeTransform>
+                            <GradientStop Offset="0.5" Color="#FF240E54" />
+                            <GradientStop Offset="0.742" />
+                            <GradientStop Offset="0.039" Color="#00240E54" />
+                        </LinearGradientBrush>
+                    </StackPanel.Background>
+                    <Button
+                        x:Name="CheckUpdateBtnn"
+                        Margin="2,3,0,2"
+                        Padding="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Click="CheckUpdateBtnn_Click"
+                        Style="{StaticResource CircleButton}">
+                        <Image
+                            Width="10"
+                            Height="10"
+                            RenderOptions.BitmapScalingMode="Linear"
+                            Source="/Img/Icons/Load_ico.png" />
+
+                    </Button>
+                    <TextBlock
+                        Margin="5,1,0,0"
+                        VerticalAlignment="Center"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="#9D91D2"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Text="{Binding AppVersion.VersionNumber}">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="15"
+                                Opacity="0.9"
+                                ShadowDepth="0"
+                                Color="{Binding VersionTxtColor}" />
+                        </TextBlock.Effect>
+
+                    </TextBlock>
+                    <TextBlock
+                        Name="NewVersion"
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        Cursor="Hand"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="{Binding VersionTxtColor}"
+                        MouseUp="NewVersion_MouseUp"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Text="{Binding VersionTxt}">
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding VersionTxtUnderLine}" Value="True">
+                                        <Setter Property="TextDecorations" Value="Underline" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="15"
+                                Opacity="0.7"
+                                ShadowDepth="0"
+                                Color="{Binding VersionTxtColor}" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </StackPanel>
+                <Button
+                    x:Name="Discord"
+                    Width="auto"
+                    Margin="2,0"
+                    Padding="2"
+                    Click="Discord_Click"
+                    Style="{DynamicResource LINK_Button_style}"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Width="15"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Source="/Img/Icons/Discord.png" />
+                    </StackPanel>
+                </Button>
+                <Button
+                    x:Name="Github"
+                    Width="auto"
+                    Margin="2,0"
+                    Padding="1"
+                    Click="Github_Click"
+                    Style="{DynamicResource LINK_Button_style}"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Width="15"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Source="/Img/Icons/GitHub.png" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="2" Source="/Img/Icons/error.png" />
+                <TextBlock
+                    Margin="6,1,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="#FFFFBBA5"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Text="Something went wrong...">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="5"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#FF10178C" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+            </StackPanel>
+
+        </Grid>
+
+        <StackPanel Grid.Row="1" MaxHeight="1000">
+            <StackPanel.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF5B3737" />
+                    <GradientStop Offset="1" Color="#FF41375B" />
+                </LinearGradientBrush>
+            </StackPanel.Background>
+
+            <TextBlock
+                x:Name="MainError"
+                Margin="10,18,10,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontFamily="Comfortaa Light"
+                FontSize="25"
+                FontWeight="DemiBold"
+                Foreground="Yellow"
+                LineHeight="15"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Text="Main Error"
+                TextAlignment="Center"
+                TextWrapping="Wrap">
+                <TextBlock.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="315"
+                        Opacity="1"
+                        ShadowDepth="0"
+                        Color="#FF10178C" />
+                </TextBlock.Effect>
+            </TextBlock>
+
+
+            <TextBlock
+                x:Name="CallStack"
+                Margin="15,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontFamily="Calibri"
+                FontSize="15"
+                FontWeight="Light"
+                Foreground="LightYellow"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Text="Callstack"
+                TextWrapping="Wrap">
+                <TextBlock.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="315"
+                        Opacity="1"
+                        ShadowDepth="0"
+                        Color="#FF10178C" />
+                </TextBlock.Effect>
+            </TextBlock>
+
+
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                <Button
+                    x:Name="rollback"
+                    Height="30"
+                    Margin="0,15,2,15"
+                    Padding="5"
+                    VerticalAlignment="Top"
+                    Click="rollback_Click"
+                    Opacity="0.7"
+                    Style="{StaticResource UpdatedGreenButtonStyle}"
+                    Visibility="{Binding RollBackUpdateAvailable, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Height="18"
+                                    Margin="0,0,4,0"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/downgrade.png" />
+                                <TextBlock
+                                    x:Name="RollBackVersion"
+                                    Margin="0,-2,5,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    Text="{Binding DataContext.RollBackVersion, StringFormat='Rollback to {0}', RelativeSource={RelativeSource AncestorType={x:Type Window}}, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                <Button
+                    x:Name="Update"
+                    Height="30"
+                    Margin="0,15,2,15"
+                    Padding="5"
+                    VerticalAlignment="Top"
+                    Click="Update_Click"
+                    Opacity="0.7"
+                    Style="{StaticResource UpdatedGreenButtonStyle}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Height="18"
+                                    Margin="0,0,4,0"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/Upload.png" />
+                                <TextBlock
+                                    Margin="0,-2,5,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    Text="Update with ZIP" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                <Button
+                    Height="30"
+                    Margin="0,15,2,15"
+                    Padding="5"
+                    VerticalAlignment="Top"
+                    Click="OpenLogFolder_Click"
+                    Style="{StaticResource Status_Button_style}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Height="18"
+                                    Margin="0,0,4,0"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/Log.png" />
+                                <TextBlock
+                                    Margin="0,-2,5,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    Text="Open log folder" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                <Button
+                    x:Name="Close"
+                    Height="30"
+                    Margin="0,15,0,15"
+                    Padding="5"
+                    VerticalAlignment="Top"
+                    Click="Close_Click"
+                    Style="{StaticResource Status_Button_style}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Height="22"
+                                    Margin="0,-2,4,0"
+                                    Source="/Img/Icons/Cross_ico.png" />
+                                <TextBlock
+                                    Margin="0,-2,5,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    Text="Close" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+
+            </StackPanel>
+
+        </StackPanel>
+
+
+    </Grid>
+</Window>

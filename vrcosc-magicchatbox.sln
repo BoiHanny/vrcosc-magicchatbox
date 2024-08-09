@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MagicChatbox", "vrcosc-magicchatbox\MagicChatbox.csproj", "{76FB3E35-94A5-445C-87F2-D75E9F701E5F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicChatboxV2", "MagicChatboxV2\MagicChatboxV2.csproj", "{B1E75696-1878-43C8-A542-6B32CED72888}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Beta|Any CPU = Beta|Any CPU
@@ -18,6 +20,12 @@ Global
 		{76FB3E35-94A5-445C-87F2-D75E9F701E5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76FB3E35-94A5-445C-87F2-D75E9F701E5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76FB3E35-94A5-445C-87F2-D75E9F701E5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1E75696-1878-43C8-A542-6B32CED72888}.Beta|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1E75696-1878-43C8-A542-6B32CED72888}.Beta|Any CPU.Build.0 = Debug|Any CPU
+		{B1E75696-1878-43C8-A542-6B32CED72888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1E75696-1878-43C8-A542-6B32CED72888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1E75696-1878-43C8-A542-6B32CED72888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1E75696-1878-43C8-A542-6B32CED72888}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

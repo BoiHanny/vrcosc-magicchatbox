@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media.Animation;
 
 namespace vrcosc_magicchatbox.Classes
 {
     public class BoolToOpacityConverter : IValueConverter
     {
+        public double TrueOpacity { get; set; } = 1.0;
+        public double FalseOpacity { get; set; } = 0.4;
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool boolValue = (bool)value;
-            DoubleAnimation animation = new DoubleAnimation
+            if (value is bool boolValue)
             {
-                From = boolValue ? 0 : 1,
-                To = boolValue ? 1 : 0,
-                Duration = new Duration(TimeSpan.FromMilliseconds(500)),
-                BeginTime = TimeSpan.FromMilliseconds(0) // Set the delay before the animation starts
-            };
+                return boolValue ? TrueOpacity : FalseOpacity;
+            }
 
-            return animation;
+            return TrueOpacity;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -27,5 +24,4 @@ namespace vrcosc_magicchatbox.Classes
             throw new NotImplementedException();
         }
     }
-
 }
