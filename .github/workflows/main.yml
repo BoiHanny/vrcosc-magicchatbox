@@ -82,8 +82,10 @@ jobs:
       run: |
         if ($env:GITHUB_REF -eq 'refs/heads/master') {
           echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "RELEASE_NAME=v${{ env.VERSION }}" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         } else {
           echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         }
       shell: pwsh
 
@@ -94,12 +96,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
         tag_name: v${{ env.VERSION }}
-        release_name: ${{ env.PRE_RELEASE == 'true' && 'v${{ env.VERSION }} (pre-release)' || 'v${{ env.VERSION }}' }}
+        release_name: ${{ env.RELEASE_NAME }}
         draft: false
-        prerelease: ${{ env.PRE_RELEASE == 'true' }}
+        prerelease: ${{ env.PRE_RELEASE }}
         body: |
           <div align="center">
-            <h1>✨ MagicChatbox v${{ env.VERSION }}${{ env.PRE_RELEASE == 'true' && ' (pre-release)' || '' }} ✨</h1>
+            <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
             <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
 
             <p>
