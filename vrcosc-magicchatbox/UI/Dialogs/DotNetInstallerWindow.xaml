@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title=".NET 8 Installation"
     Width="700"
-    Height="300"
+    Height="350"
     Background="#41375B"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
@@ -66,6 +66,38 @@
                     </TextBlock.Effect>
                 </TextBlock>
             </StackPanel>
+            <Button
+                x:Name="Discord"
+                Width="auto"
+                Height="25"
+                Margin="0,0,120,0"
+                HorizontalAlignment="Right"
+                Click="Discord_Click"
+                Style="{DynamicResource LINK_Button_style}">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="20"
+                        Height="20"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Source="/Img/Icons/Discord.png" />
+                </StackPanel>
+            </Button>
+            <Button
+                x:Name="Github"
+                Width="auto"
+                Height="25"
+                Margin="0,0,95,0"
+                HorizontalAlignment="Right"
+                Click="Github_Click"
+                Style="{DynamicResource LINK_Button_style}">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="20"
+                        Height="20"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Source="/Img/Icons/GitHub.png" />
+                </StackPanel>
+            </Button>
             <TextBlock
                 x:Name="WhatsNET"
                 Width="auto"
@@ -93,7 +125,7 @@
                     FontFamily="Comfortaa Light"
                     FontSize="20"
                     Foreground="White"
-                    Text="Checking if .NET 8 is installed..."
+                    Text="Please wait while we check for .NET 8 installation..."
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -163,7 +195,7 @@
                     VerticalAlignment="Top"
                     FontFamily="Comfortaa Light"
                     FontSize="16"
-                    Text="Keep the magic going and unlock new features and stay safe, make sure to install .NET 8!"
+                    Text="Keep the magic going and unlock new features, make sure to install .NET 8!"
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -179,9 +211,6 @@
                         </RadialGradientBrush>
                     </TextBlock.Foreground>
                 </TextBlock>
-
-
-
             </StackPanel>
 
             <!--  Third Page: Installing .NET 8  -->
@@ -196,7 +225,7 @@
                     FontFamily="Comfortaa Light"
                     FontSize="20"
                     Foreground="White"
-                    Text="Installing .NET 8 in the background..."
+                    Text="Installing .NET 8, please wait..."
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -223,13 +252,100 @@
                 Background="#41375B"
                 Visibility="Hidden">
                 <TextBlock
-                    Margin="25"
+                    Margin="0,50,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     FontFamily="Comfortaa Light"
-                    FontSize="20"
+                    FontSize="23"
+                    Text=".NET 8 is installed on your cutie system, yay! 🎉"
+                    TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                    <TextBlock.Foreground>
+                        <RadialGradientBrush>
+                            <GradientStop Color="White" />
+                            <GradientStop Offset="2" Color="#FFC3A9FF" />
+                        </RadialGradientBrush>
+                    </TextBlock.Foreground>
+                </TextBlock>
+
+                <!--  Countdown TextBlock  -->
+                <TextBlock
+                    x:Name="CountdownTextBlock"
+                    Margin="0,100,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="16"
                     Foreground="White"
-                    Text=".NET 8 is installed, MagicChatbox can soon run on .NET 8."
+                    Text="This window will close in 2 seconds..."
+                    TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <Button
+                    x:Name="CloseButton"
+                    Width="250"
+                    Height="50"
+                    Margin="0,140,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Click="CloseWindow_Click"
+                    Style="{StaticResource Status_Button_style}"
+                    Visibility="Hidden">
+                    <TextBlock FontSize="20" Text="Close Now" />
+                </Button>
+            </Grid>
+
+
+            <!--  Fifth Page: Installation Failed  -->
+            <Grid
+                x:Name="InstallationFailedPage"
+                Background="#41375B"
+                Visibility="Hidden">
+                <TextBlock
+                    Margin="0,50,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="23"
+                    Text="Installation Failed 😢"
+                    TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                    <TextBlock.Foreground>
+                        <RadialGradientBrush>
+                            <GradientStop Color="White" />
+                            <GradientStop Offset="2" Color="#FFC3A9FF" />
+                        </RadialGradientBrush>
+                    </TextBlock.Foreground>
+                </TextBlock>
+
+                <TextBlock
+                    x:Name="InstallationFailedText"
+                    Margin="0,100,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="16"
+                    Foreground="White"
+                    Text="Please check your internet connection and try again."
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -243,7 +359,18 @@
                 <Button
                     Width="250"
                     Height="50"
-                    Margin="0,140,0,0"
+                    Margin="0,160,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Click="RetryInstall_Click"
+                    Style="{StaticResource Status_Button_style}">
+                    <TextBlock FontSize="20" Text="Retry" />
+                </Button>
+
+                <Button
+                    Width="250"
+                    Height="50"
+                    Margin="10,220,10,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     Click="CloseWindow_Click"

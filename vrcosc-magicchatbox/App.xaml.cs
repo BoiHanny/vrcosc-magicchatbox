@@ -57,8 +57,8 @@ namespace vrcosc_magicchatbox
                         await Task.Run(() => updater.ClearBackUp());
                         break;
                     case "-installDotNetAdmin":
-                        await updater.InstallDotNet(requiresAdmin: true);
-                        Shutdown();
+                        loadingWindow.UpdateProgress(".NET installation, coming right up!", 90);
+                        updater.InstallDotNet();
                         return;
                     default:
                         loadingWindow.Hide();
@@ -82,8 +82,10 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
             loadingWindow.Close();
 
-            await updater.InstallDotNet();
+            updater.InstallDotNet();
         }
+
+
 
         // Handle first-chance exceptions (before they are thrown)
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)

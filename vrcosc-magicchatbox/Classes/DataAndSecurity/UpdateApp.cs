@@ -338,64 +338,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
-        public async Task InstallDotNet(bool requiresAdmin = false)
+        public void InstallDotNet()
         {
+            Thread.Sleep(500);
             var installerWindow = new DotNetInstallerWindow();
             installerWindow.Show();
-
-            if (requiresAdmin && !IsAdministrator())
-            {
-                ElevateAndRestartDotNetInstaller();
-                return;
-            }
-
-            if (installerWindow.IsDotNet8Installed())
-            {
-                installerWindow.ShowConfirmationPage();
-            }
-            else
-            {
-                installerWindow.ShowAskInstallPage();
-                var userDecision = await installerWindow.WaitForUserDecisionAsync();
-
-                if (userDecision == DotNetInstallerWindow.UserDecision.Install)
-                {
-                    await installerWindow.InstallDotNet8Async();
-                }
-                else
-                {
-                    installerWindow.Close();
-                }
-            }
         }
 
-        private bool IsAdministrator()
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
-        private void ElevateAndRestartDotNetInstaller()
-        {
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = Assembly.GetExecutingAssembly().Location,
-                Arguments = "-installDotNetAdmin",
-                Verb = "runas", // Run with elevated permissions
-                UseShellExecute = true
-            };
-
-            try
-            {
-                Process.Start(startInfo);
-                Application.Current.Shutdown();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to restart as admin: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        
 
         private async Task DownloadAndExtractUpdate(string zipPath)
         {

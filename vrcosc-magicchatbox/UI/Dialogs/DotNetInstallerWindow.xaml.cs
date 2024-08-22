@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using NAudio.Wave;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +8,8 @@ using System.Reflection;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -21,18 +22,18 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             Cancel
         }
 
-        private TaskCompletionSource<UserDecision> tcs;
+        private TaskCompletionSource<UserDecision> _taskCompletionSource;
 
         public DotNetInstallerWindow()
         {
             InitializeComponent();
-            tcs = new TaskCompletionSource<UserDecision>();
-            CheckDotNetInstallation();
+            _taskCompletionSource = new TaskCompletionSource<UserDecision>();
+            Loaded += async (s, e) => await CheckDotNetInstallationAsync();
         }
 
         public Task<UserDecision> WaitForUserDecisionAsync()
         {
-            return tcs.Task;
+            return _taskCompletionSource.Task;
         }
 
         private async void NextButton_Click(object sender, RoutedEventArgs e)
@@ -40,7 +41,16 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             if (AskInstallPage.Visibility == Visibility.Visible)
             {
                 ShowInstallPage();
-                tcs.SetResult(UserDecision.Install);
+                _taskCompletionSource.SetResult(UserDecision.Install);
+
+                if (!IsAdministrator())
+                {
+                    ElevateAndRestart();
+                }
+                else
+                {
+                    await InstallDotNet8Async();
+                }
             }
             else
             {
@@ -50,15 +60,16 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            tcs.SetResult(UserDecision.Cancel);
+            _taskCompletionSource.SetResult(UserDecision.Cancel);
             Close();
         }
 
-        private async void CheckDotNetInstallation()
+        private async Task CheckDotNetInstallationAsync()
         {
             ShowCheckPage();
 
-            if (IsDotNet8Installed())
+            bool isDotNetInstalled = await Task.Run(() => IsDotNet8Installed());
+            if (isDotNetInstalled)
             {
                 ShowConfirmationPage();
             }
@@ -68,97 +79,81 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             }
         }
 
-        public async Task InstallDotNet8Async()
+        private async Task InstallDotNet8Async()
         {
+            ShowInstallPage();
+            string installerUrl = "https://download.visualstudio.microsoft.com/download/pr/907765b0-2bf8-494e-93aa-5ef9553c5d68/a9308dc010617e6716c0e6abd53b05ce/windowsdesktop-runtime-8.0.8-win-x64.exe";
+            string installerPath = Path.Combine(Path.GetTempPath(), "runtime-desktop-8.0.8-windows-x64-installer.exe");
+
             try
             {
-                if (!IsAdministrator())
+                await DownloadFileAsync(installerUrl, installerPath);
+                await RunInstallerAsync(installerPath);
+                bool isDotNetInstalled = await Task.Run(() => IsDotNet8Installed());
+
+                if (isDotNetInstalled)
                 {
-                    ElevateAndRestart("-installDotNetAdmin");
-                    return;
+                    ShowConfirmationPage();
                 }
-
-                string installerUrl = "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer";
-                string installerPath = Path.Combine(Path.GetTempPath(), "runtime-desktop-8.0.8-windows-x64-installer.exe");
-
-                using (WebClient client = new WebClient())
+                else
                 {
-                    await client.DownloadFileTaskAsync(new Uri(installerUrl), installerPath);
+                    ShowInstallationFailedPage("Installation completed but .NET 8 wasn't detected. Please try again.");
                 }
-
-                var processInfo = new ProcessStartInfo
-                {
-                    FileName = installerPath,
-                    Arguments = "/quiet /norestart",
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                };
-
-                using (var process = Process.Start(processInfo))
-                {
-                    await process.WaitForExitAsync();
-                    if (process.ExitCode != 0)
-                    {
-                        throw new Exception("Installation failed with exit code " + process.ExitCode);
-                    }
-                }
-
-                ShowConfirmationPage();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error installing .NET 8: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowInstallationFailedPage($"Installation failed: {ex.Message}");
             }
         }
 
-
-public bool IsDotNet8Installed()
-    {
-        try
+        private async Task DownloadFileAsync(string url, string outputPath)
         {
-            // Path where Microsoft.WindowsDesktop.App runtimes are installed
-            string desktopRuntimePath = @"C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App";
-
-            if (Directory.Exists(desktopRuntimePath))
+            using (WebClient client = new WebClient())
             {
-                // Get all subdirectories (version folders)
-                var versionFolders = Directory.GetDirectories(desktopRuntimePath)
-                                              .Select(Path.GetFileName)
-                                              .Where(name => name.StartsWith("10."))
-                                              .ToList();
+                await client.DownloadFileTaskAsync(new Uri(url), outputPath);
+            }
+        }
 
-                // If any folder starts with "8.", .NET 8 is installed
-                if (versionFolders.Any())
+        private async Task RunInstallerAsync(string installerPath)
+        {
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = installerPath,
+                Arguments = "/Passive /norestart",
+                UseShellExecute = true,
+                CreateNoWindow = false
+            };
+
+            using (var process = Process.Start(processInfo))
+            {
+                await process.WaitForExitAsync();
+                if (process.ExitCode != 0)
                 {
-                    return true;
+                    throw new Exception($"Installer exited with code {process.ExitCode}");
                 }
             }
         }
-        catch (Exception ex)
+
+        private bool IsDotNet8Installed()
         {
-            MessageBox.Show($"Error checking .NET installation: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            string desktopRuntimePath = @"C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App";
+            return Directory.Exists(desktopRuntimePath) && Directory.GetDirectories(desktopRuntimePath).Any(name => Path.GetFileName(name).StartsWith("8."));
         }
 
-        // Return false if no .NET 8 version is found
-        return false;
-    }
-
-
-
-    private bool IsAdministrator()
+        private bool IsAdministrator()
         {
             var identity = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(identity);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
-        private void ElevateAndRestart(string argument)
+        private void ElevateAndRestart()
         {
             var startInfo = new ProcessStartInfo
             {
-                FileName = Process.GetCurrentProcess().MainModule.FileName,  // This gets the .exe file path
-                Arguments = argument,
-                Verb = "runas",  // Elevates the process to administrator
+                FileName = Process.GetCurrentProcess().MainModule.FileName,
+                Arguments = "-installDotNetAdmin",
+                Verb = "runas",
                 UseShellExecute = true
             };
 
@@ -169,45 +164,117 @@ public bool IsDotNet8Installed()
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to restart as admin: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to restart as administrator: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-
         public void ShowCheckPage()
         {
-            CheckDotNetPage.Visibility = Visibility.Visible;
-            AskInstallPage.Visibility = Visibility.Hidden;
-            InstallDotNetPage.Visibility = Visibility.Hidden;
-            ConfirmDotNetPage.Visibility = Visibility.Hidden;
+            SetPageVisibility(CheckDotNetPage);
+            SetButtonVisibility(false, false);
         }
 
         public void ShowAskInstallPage()
         {
-            CheckDotNetPage.Visibility = Visibility.Hidden;
-            AskInstallPage.Visibility = Visibility.Visible;
-            NextButton.Visibility = Visibility.Visible;
-            CancelButton.Visibility = Visibility.Visible;
+            SetPageVisibility(AskInstallPage);
+            SetButtonVisibility(true, true);
         }
 
         public void ShowInstallPage()
         {
-            AskInstallPage.Visibility = Visibility.Hidden;
-            InstallDotNetPage.Visibility = Visibility.Visible;
-            NextButton.Visibility = Visibility.Hidden;
-            CancelButton.Visibility = Visibility.Hidden;
+            SetPageVisibility(InstallDotNetPage);
+            SetButtonVisibility(false, false);
         }
 
         public void ShowConfirmationPage()
         {
-            InstallDotNetPage.Visibility = Visibility.Hidden;
-            ConfirmDotNetPage.Visibility = Visibility.Visible;
+            SetPageVisibility(ConfirmDotNetPage);
+            NextButton.Visibility = Visibility.Hidden;
+            CancelButton.Visibility = Visibility.Hidden;
+            CloseButton.Visibility = Visibility.Hidden;  // Initially hide the Close button
 
+            CountdownTextBlock.Text = "This window will close in 3 seconds...";
+
+            StartCountdown(3);
+        }
+
+        private void StartCountdown(int seconds)
+        {
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            int remainingTime = seconds;
+
+            timer.Tick += (sender, args) =>
+            {
+                remainingTime--;
+
+                if (remainingTime > 0)
+                {
+                    CountdownTextBlock.Text = $"This window will close in {remainingTime} second{(remainingTime > 1 ? "s" : "")}...";
+                }
+                else
+                {
+                    timer.Stop();
+                    CloseWindow_Click(null, null);  // Trigger the close action
+                }
+            };
+
+            timer.Start();
+        }
+
+
+
+        public void ShowInstallationFailedPage(string errorMessage)
+        {
+            InstallationFailedText.Text = errorMessage;
+            SetPageVisibility(InstallationFailedPage);
+            SetButtonVisibility(false, false);
+        }
+
+        private void SetPageVisibility(UIElement visiblePage)
+        {
+            CheckDotNetPage.Visibility = Visibility.Hidden;
+            AskInstallPage.Visibility = Visibility.Hidden;
+            InstallDotNetPage.Visibility = Visibility.Hidden;
+            ConfirmDotNetPage.Visibility = Visibility.Hidden;
+            InstallationFailedPage.Visibility = Visibility.Hidden;
+
+            visiblePage.Visibility = Visibility.Visible;
+        }
+
+        private void SetButtonVisibility(bool nextVisible, bool cancelVisible)
+        {
+            NextButton.Visibility = nextVisible ? Visibility.Visible : Visibility.Hidden;
+            CancelButton.Visibility = cancelVisible ? Visibility.Visible : Visibility.Hidden;
+        }
+
+        private async void RetryInstall_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsAdministrator())
+            {
+                ElevateAndRestart();
+            }
+            else
+            {
+                await InstallDotNet8Async();
+            }
         }
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            if(sender == null)
+            {
+                Close();
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Process.GetCurrentProcess().MainModule.FileName,
+                UseShellExecute = true
+            });
+            Task.Delay(1000).Wait();
+            Application.Current.Shutdown();
         }
 
         private void WhatsNET_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -215,6 +282,24 @@ public bool IsDotNet8Installed()
             Process.Start(new ProcessStartInfo
             {
                 FileName = "https://dotnet.microsoft.com/en-us/learn/dotnet/what-is-dotnet",
+                UseShellExecute = true
+            });
+        }
+
+        private void Discord_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://discord.gg/ZaSFwBfhvG",
+                UseShellExecute = true
+            });
+        }
+
+        private void Github_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/BoiHanny/vrcosc-magicchatbox",
                 UseShellExecute = true
             });
         }
