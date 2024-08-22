@@ -3,6 +3,7 @@ using NAudio.Wave;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Principal;
@@ -77,8 +78,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                     return;
                 }
 
-                string installerUrl = "https://dotnet.microsoft.com/download/dotnet/thank-you/runtime-8.0.0-windows-x64-installer";
-                string installerPath = Path.Combine(Path.GetTempPath(), "dotnet-runtime-8.0.0-win-x64.exe");
+                string installerUrl = "https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer";
+                string installerPath = Path.Combine(Path.GetTempPath(), "runtime-desktop-8.0.8-windows-x64-installer.exe");
 
                 using (WebClient client = new WebClient())
                 {
@@ -110,28 +111,41 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             }
         }
 
-        public bool IsDotNet8Installed()
+
+public bool IsDotNet8Installed()
+    {
+        try
         {
-            try
+            // Path where Microsoft.WindowsDesktop.App runtimes are installed
+            string desktopRuntimePath = @"C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App";
+
+            if (Directory.Exists(desktopRuntimePath))
             {
-                var key = @"SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedhost";
-                using (var registryKey = Registry.LocalMachine.OpenSubKey(key))
+                // Get all subdirectories (version folders)
+                var versionFolders = Directory.GetDirectories(desktopRuntimePath)
+                                              .Select(Path.GetFileName)
+                                              .Where(name => name.StartsWith("10."))
+                                              .ToList();
+
+                // If any folder starts with "8.", .NET 8 is installed
+                if (versionFolders.Any())
                 {
-                    if (registryKey != null)
-                    {
-                        var version = registryKey.GetValue("Version") as string;
-                        return version != null && version.StartsWith("8.");
-                    }
+                    return true;
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error checking .NET installation: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            return false;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error checking .NET installation: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private bool IsAdministrator()
+        // Return false if no .NET 8 version is found
+        return false;
+    }
+
+
+
+    private bool IsAdministrator()
         {
             var identity = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(identity);
@@ -142,9 +156,9 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         {
             var startInfo = new ProcessStartInfo
             {
-                FileName = Assembly.GetExecutingAssembly().Location,
+                FileName = Process.GetCurrentProcess().MainModule.FileName,  // This gets the .exe file path
                 Arguments = argument,
-                Verb = "runas",
+                Verb = "runas",  // Elevates the process to administrator
                 UseShellExecute = true
             };
 
@@ -158,6 +172,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 MessageBox.Show($"Failed to restart as admin: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         public void ShowCheckPage()
         {
@@ -187,11 +202,21 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         {
             InstallDotNetPage.Visibility = Visibility.Hidden;
             ConfirmDotNetPage.Visibility = Visibility.Visible;
+
         }
 
         private void CloseWindow_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void WhatsNET_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://dotnet.microsoft.com/en-us/learn/dotnet/what-is-dotnet",
+                UseShellExecute = true
+            });
         }
     }
 }

@@ -29,7 +29,7 @@
             <RowDefinition Height="50" />
         </Grid.RowDefinitions>
 
-        <!-- Header Area -->
+        <!--  Header Area  -->
         <Grid x:Name="Drag_area" Grid.Row="0">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
@@ -66,12 +66,26 @@
                     </TextBlock.Effect>
                 </TextBlock>
             </StackPanel>
+            <TextBlock
+                x:Name="WhatsNET"
+                Width="auto"
+                Margin="0,0,10,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Cursor="Hand"
+                FontFamily="Albert Sans Thin"
+                FontSize="13"
+                Foreground="MediumPurple"
+                MouseUp="WhatsNET_MouseUp"
+                Text="What is .NET?"
+                TextDecorations="Underline"
+                WindowChrome.IsHitTestVisibleInChrome="True" />
         </Grid>
 
-        <!-- Main Content Area -->
+        <!--  Main Content Area  -->
         <Grid Grid.Row="1">
-            <!-- First Page: Checking for .NET 8 -->
-            <Grid x:Name="CheckDotNetPage">
+            <!--  First Page: Checking for .NET 8  -->
+            <Grid x:Name="CheckDotNetPage" Background="#41375B">
                 <TextBlock
                     Margin="25"
                     HorizontalAlignment="Center"
@@ -91,16 +105,20 @@
                 </TextBlock>
             </Grid>
 
-            <!-- Second Page: Ask to Install .NET 8 -->
-            <Grid x:Name="AskInstallPage" Visibility="Hidden">
+            <!--  Second Page: Ask to Install .NET 8  -->
+            <StackPanel
+                x:Name="AskInstallPage"
+                Background="#41375B"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Visibility="Hidden">
                 <TextBlock
-                    Margin="25"
+                    Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     FontFamily="Comfortaa Light"
-                    FontSize="20"
-                    Foreground="White"
-                    Text=".NET 8 is not installed on your system."
+                    FontSize="22"
+                    FontWeight="DemiBold"
+                    Text="It's time for a little upgrade magic! ✨"
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -109,15 +127,20 @@
                             ShadowDepth="0"
                             Color="#251153" />
                     </TextBlock.Effect>
+                    <TextBlock.Foreground>
+                        <RadialGradientBrush>
+                            <GradientStop Color="White" />
+                            <GradientStop Offset="1" Color="#FFC3A9FF" />
+                        </RadialGradientBrush>
+                    </TextBlock.Foreground>
                 </TextBlock>
+                <Image Height="100" Source="/Img/Icons/csharp-bot.png" />
                 <TextBlock
-                    Margin="25,60,25,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     FontFamily="Comfortaa Light"
                     FontSize="16"
-                    Foreground="LightYellow"
-                    Text="Would you like to install .NET 8 now?"
+                    Text=".NET 6 is saying goodbye, and so are we! 🚀"
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -126,11 +149,46 @@
                             ShadowDepth="0"
                             Color="#251153" />
                     </TextBlock.Effect>
+                    <TextBlock.Foreground>
+                        <RadialGradientBrush>
+                            <GradientStop Color="White" />
+                            <GradientStop Offset="2" Color="#FFC3A9FF" />
+                        </RadialGradientBrush>
+                    </TextBlock.Foreground>
                 </TextBlock>
-            </Grid>
 
-            <!-- Third Page: Installing .NET 8 -->
-            <Grid x:Name="InstallDotNetPage" Visibility="Hidden">
+                <TextBlock
+                    Margin="0,35,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="16"
+                    Text="Keep the magic going and unlock new features and stay safe, make sure to install .NET 8!"
+                    TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                    <TextBlock.Foreground>
+                        <RadialGradientBrush>
+                            <GradientStop Color="White" />
+                            <GradientStop Offset="2" Color="#FFC3A9FF" />
+                        </RadialGradientBrush>
+                    </TextBlock.Foreground>
+                </TextBlock>
+
+
+
+            </StackPanel>
+
+            <!--  Third Page: Installing .NET 8  -->
+            <Grid
+                x:Name="InstallDotNetPage"
+                Background="#41375B"
+                Visibility="Hidden">
                 <TextBlock
                     Margin="25"
                     HorizontalAlignment="Center"
@@ -155,12 +213,15 @@
                     Margin="0,60,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
-                    IsIndeterminate="True"
-                    Foreground="YellowGreen" />
+                    Foreground="YellowGreen"
+                    IsIndeterminate="True" />
             </Grid>
 
-            <!-- Fourth Page: Confirmation -->
-            <Grid x:Name="ConfirmDotNetPage" Visibility="Hidden">
+            <!--  Fourth Page: Confirmation  -->
+            <Grid
+                x:Name="ConfirmDotNetPage"
+                Background="#41375B"
+                Visibility="Hidden">
                 <TextBlock
                     Margin="25"
                     HorizontalAlignment="Center"
@@ -168,7 +229,7 @@
                     FontFamily="Comfortaa Light"
                     FontSize="20"
                     Foreground="White"
-                    Text=".NET 8 is installed and ready for use!"
+                    Text=".NET 8 is installed, MagicChatbox can soon run on .NET 8."
                     TextAlignment="Center">
                     <TextBlock.Effect>
                         <DropShadowEffect
@@ -192,8 +253,12 @@
             </Grid>
         </Grid>
 
-        <!-- Footer with Navigation Buttons -->
-        <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="10,0">
+        <!--  Footer with Navigation Buttons  -->
+        <Grid
+            Grid.Row="2"
+            Margin="10,0"
+            HorizontalAlignment="Center"
+            Background="#41375B">
             <StackPanel Orientation="Horizontal">
                 <Button
                     x:Name="CancelButton"
@@ -201,8 +266,8 @@
                     Height="40"
                     Margin="10,0"
                     Click="CancelButton_Click"
-                    Visibility="Hidden"
-                    Style="{StaticResource Status_Button_style}">
+                    Style="{StaticResource Status_Button_style}"
+                    Visibility="Hidden">
                     <TextBlock FontSize="16" Text="Cancel" />
                 </Button>
                 <Button
@@ -211,8 +276,8 @@
                     Height="40"
                     Margin="10,0"
                     Click="NextButton_Click"
-                    Visibility="Hidden"
-                    Style="{StaticResource Status_Button_style}">
+                    Style="{StaticResource Status_Button_style}"
+                    Visibility="Hidden">
                     <TextBlock FontSize="16" Text="Next" />
                 </Button>
             </StackPanel>
