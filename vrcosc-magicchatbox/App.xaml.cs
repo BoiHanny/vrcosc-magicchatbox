@@ -56,6 +56,10 @@ namespace vrcosc_magicchatbox
                         loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
                         await Task.Run(() => updater.ClearBackUp());
                         break;
+                    case "-installDotNetAdmin":
+                        loadingWindow.UpdateProgress(".NET installation, coming right up!", 90);
+                        updater.InstallDotNet();
+                        return;
                     default:
                         loadingWindow.Hide();
                         Logging.WriteException(new Exception($"Invalid command line argument '{e.Args[0]}'"), MSGBox: true, exitapp: true);
@@ -77,7 +81,11 @@ namespace vrcosc_magicchatbox
             // Close the loading window once initialization is complete
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
             loadingWindow.Close();
+
+            updater.InstallDotNet();
         }
+
+
 
         // Handle first-chance exceptions (before they are thrown)
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)

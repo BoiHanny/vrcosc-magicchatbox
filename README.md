@@ -67,7 +67,7 @@ Prototype Features (not implemented)
 ## Detailed-Features
 
 <details>
-  <summary>RIGHT-CLICK</summary>
+  <summary>LEFT-CLICK</summary>
 
 >  - **Extended Media Support:** We've introduced `MediaLink` to the integration tab and incorporated support for YouTube Music, SoundCloud, Spotify, Apple Music and even YouTube videos with the help of the `Windows Media API`.
 

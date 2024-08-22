@@ -128,6 +128,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.AfkModule = new AfkModule();
             ViewModel.Instance.AfkModule.AfkDetected += AfkModule_AfkDetected;
 
+
         }
 
         private void AfkModule_AfkDetected(object? sender, EventArgs e)
@@ -1680,6 +1681,12 @@ namespace vrcosc_magicchatbox
         private void MainDiscoundButton_grid_MouseUp(object sender, MouseButtonEventArgs e)
         {
             ViewModel.Instance.ActivateSetting("Settings_HeartRate");
+        }
+
+        private void OpenNETInstaller_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateApp updater = new UpdateApp();
+            updater.InstallDotNet();
         }
     }
 
