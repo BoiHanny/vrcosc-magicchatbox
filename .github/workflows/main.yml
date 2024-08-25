@@ -21,7 +21,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x  # Updated to use .NET 8.0.x
+        dotnet-version: 8.0.x
 
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Solution_Name }}
@@ -47,29 +47,36 @@ jobs:
 
     - name: Create Zip File
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" # Updated to target .NET 8.0
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+
     - name: Upload and Scan with VirusTotal
       id: virustotal_scan
       run: |
         $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+
         $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{
           "x-apikey" = $api_key
         } -Form @{
           "file" = Get-Item $file_path
         }
+
         $scan_id = $response.data.id
         echo "::set-output name=SCAN_ID::$scan_id"
+
     - name: Get VirusTotal Scan Report
       id: virustotal_report
       run: |
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
         $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
+
         $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/analyses/$scan_id" -Headers @{
           "x-apikey" = $api_key
         }
+
         $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
         echo "::set-output name=REPORT_URL::$report_url"
+
     - name: Determine Release Type
       id: determine_release_type
       run: |
@@ -96,6 +103,7 @@ jobs:
           <div align="center">
             <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
             <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
+
             <p>
               <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
@@ -105,17 +113,22 @@ jobs:
               </a>
             </p>
           </div>
+
           ---
+
           <div align="center">
             <h2>🚀 Download and Installation Guide 🚀</h2>
             <p>Follow these simple steps to get started with MagicChatbox:</p>
           </div>
+
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download) installed on your system.  # Updated to .NET 8
+          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.
+
           ---
+
           <div align="center">
             <h2>🛡️ About VirusTotal Scan 🛡️</h2>
             <p>We take your security seriously! Each release of MagicChatbox is scanned with VirusTotal to ensure it's free from harmful software.</p>
@@ -130,7 +143,9 @@ jobs:
             <p>These features might trigger warnings from lesser-known scanners. Rest assured, we strive to keep our software as secure as possible and any flagged activity is closely monitored to maintain your safety.</p>
             <p>For more details on the scan results, check the VirusTotal report linked above.</p>
           </div>
+
           ---
+
           <div align="center">
             <h2>📞 Need Help? We're Here for You! 📞</h2>
             <p>Have any questions, suggestions, or feedback? Reach out to us through one of the following channels:</p>
@@ -141,6 +156,7 @@ jobs:
             </ul>
             <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
           </div>
+
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
