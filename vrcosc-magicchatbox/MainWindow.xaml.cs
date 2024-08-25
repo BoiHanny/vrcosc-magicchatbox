@@ -1682,12 +1682,6 @@ namespace vrcosc_magicchatbox
         {
             ViewModel.Instance.ActivateSetting("Settings_HeartRate");
         }
-
-        private void OpenNETInstaller_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateApp updater = new UpdateApp();
-            updater.InstallDotNet();
-        }
     }
 
 

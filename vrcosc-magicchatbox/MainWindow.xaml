@@ -5050,38 +5050,6 @@
                                 </CheckBox>
 
                                 <Button
-                                    x:Name="OpenNETInstaller"
-                                    Width="auto"
-                                    Height="30"
-                                    Margin="0,0,0,5"
-                                    Padding="5"
-                                    HorizontalAlignment="Left"
-                                    Click="OpenNETInstaller_Click"
-                                    Opacity="0.7"
-                                    Style="{StaticResource UpdatedGreenButtonStyle}"
-                                    Visibility="{Binding RollBackUpdateAvailable, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                                    <Button.ContentTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Image
-                                                    Height="18"
-                                                    Margin="0,0,4,0"
-                                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                                    Source="/Img/Icons/DOTNET.png" />
-                                                <TextBlock
-                                                    x:Name="RollBackVersion"
-                                                    Margin="0,-2,5,0"
-                                                    VerticalAlignment="Center"
-                                                    FontSize="15"
-                                                    Text="Open .NET 8 install helper" />
-
-
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </Button.ContentTemplate>
-                                </Button>
-
-                                <Button
                                     x:Name="Rollback"
                                     Width="auto"
                                     Height="30"
