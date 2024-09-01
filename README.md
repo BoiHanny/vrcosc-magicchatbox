@@ -25,7 +25,7 @@
 
 > Proceed with following steps:
 > * Download the [zip file](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.8.885/MagicChatbox-0.8.885.zip).
-> * Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
+> * Make sure you have [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer) installed.
 > * Right-click and choose the option **'extract all'**.
 > * By default it will create a new folder in your download folder (you can also extract the content to other locations).
 > * When extracted, the folder will open.
