@@ -1271,7 +1271,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
     DisplayTime = true,
     ShowTimeInSuperscript = true,
     FilledCharacter = "★",
-    MiddleCharacter = "✦",
+    MiddleCharacter = "✴",
     NonFilledCharacter = "☆",
     TimePrefix = "«",
     TimeSuffix = "»",

@@ -1,4 +1,4 @@
-﻿name: .NET Core Desktop Build and Release
+name: .NET Core Desktop Build and Release
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     - name: Restore Dependencies
       run: dotnet restore ${{ env.Solution_Name }}
@@ -47,7 +47,7 @@ jobs:
 
     - name: Create Zip File
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net6.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
 
     - name: Upload and Scan with VirusTotal
       id: virustotal_scan
@@ -122,7 +122,7 @@ jobs:
           </div>
 
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 6**](https://dotnet.microsoft.com/en-us/download) installed on your system.
+          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.

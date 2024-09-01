@@ -56,10 +56,6 @@ namespace vrcosc_magicchatbox
                         loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
                         await Task.Run(() => updater.ClearBackUp());
                         break;
-                    case "-installDotNetAdmin":
-                        loadingWindow.UpdateProgress(".NET installation, coming right up!", 90);
-                        updater.InstallDotNet();
-                        return;
                     default:
                         loadingWindow.Hide();
                         Logging.WriteException(new Exception($"Invalid command line argument '{e.Args[0]}'"), MSGBox: true, exitapp: true);
@@ -82,7 +78,6 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
             loadingWindow.Close();
 
-            updater.InstallDotNet();
         }
 
 
@@ -90,8 +85,12 @@ namespace vrcosc_magicchatbox
         // Handle first-chance exceptions (before they are thrown)
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
-            
-            Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+
+                if(e.Exception.Message.Contains("The process cannot access the file"))
+                {
+                    return;
+                }
+                Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
         }
 
         // Handle unhandled exceptions in the application's dispatcher thread

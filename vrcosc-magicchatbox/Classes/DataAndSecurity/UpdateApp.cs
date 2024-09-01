@@ -338,15 +338,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
-        public void InstallDotNet()
-        {
-            Thread.Sleep(500);
-            var installerWindow = new DotNetInstallerWindow();
-            installerWindow.Show();
-        }
-
         
-
         private async Task DownloadAndExtractUpdate(string zipPath)
         {
             using (WebClient webClient = new WebClient())
