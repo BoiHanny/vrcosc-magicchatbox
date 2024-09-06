@@ -152,7 +152,7 @@ Prototype Features (not implemented)
 ## Dependencies
 
 
-> * Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
+> * Make sure you have [.NET 8](https://dotnet.microsoft.com/en-us/download) installed.
 > * Latest Operating-System Update installed
 
 
