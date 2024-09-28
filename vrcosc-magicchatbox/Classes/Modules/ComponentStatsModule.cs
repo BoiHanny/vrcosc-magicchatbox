@@ -701,12 +701,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     case Timezone.UTC:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("UTC");
                         standardAbbreviation = "UTC";
-                        daylightAbbreviation = "UTC"; // UTC does not observe DST
+                        daylightAbbreviation = "UTC";
                         break;
                     case Timezone.GMT:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
                         standardAbbreviation = "GMT";
-                        daylightAbbreviation = "BST"; // British Summer Time
+                        daylightAbbreviation = "BST"; 
                         break;
                     case Timezone.EST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
@@ -736,7 +736,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     case Timezone.HST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Hawaiian Standard Time");
                         standardAbbreviation = "HST";
-                        daylightAbbreviation = "HST"; // Hawaii does not observe DST
+                        daylightAbbreviation = "HST"; 
                         break;
                     case Timezone.CET:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
@@ -751,27 +751,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     case Timezone.IST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
                         standardAbbreviation = "IST";
-                        daylightAbbreviation = "IST"; // India does not observe DST
+                        daylightAbbreviation = "IST";
                         break;
                     case Timezone.CSTChina:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
                         standardAbbreviation = "CST";
-                        daylightAbbreviation = "CST"; // China does not observe DST
+                        daylightAbbreviation = "CST"; 
                         break;
                     case Timezone.JST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
                         standardAbbreviation = "JST";
-                        daylightAbbreviation = "JST"; // Japan does not observe DST
+                        daylightAbbreviation = "JST"; 
                         break;
                     case Timezone.KST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Korea Standard Time");
                         standardAbbreviation = "KST";
-                        daylightAbbreviation = "KST"; // South Korea does not observe DST
+                        daylightAbbreviation = "KST"; 
                         break;
                     case Timezone.MSK:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
                         standardAbbreviation = "MSK";
-                        daylightAbbreviation = "MSK"; // Russia does not observe DST
+                        daylightAbbreviation = "MSK"; 
                         break;
                     case Timezone.AEST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
@@ -791,7 +791,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     case Timezone.SAST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
                         standardAbbreviation = "SAST";
-                        daylightAbbreviation = "SAST"; // South Africa does not observe DST
+                        daylightAbbreviation = "SAST";
                         break;
                     default:
                         timeZoneInfo = TimeZoneInfo.Local;
