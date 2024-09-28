@@ -29,29 +29,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public enum IntelliGPTModel
     {
-        [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
-        gpt4o_mini,
-
         [Description("gpt-4o"), ModelTypeInfo("Chat")]
         gpt4o,
 
         [Description("gpt-4-turbo"), ModelTypeInfo("Chat")]
         gpt4_turbo,
 
+        [Description("gpt-4"), ModelTypeInfo("Chat")]
+        gpt4,
+
         [Description("gpt-3.5-turbo"), ModelTypeInfo("Chat")]
         gpt3_5_turbo,
-
-        [Description("text-embedding-ada-002"), ModelTypeInfo("Embedding")]
-        embedding_Ada_002,
 
         [Description("whisper-1"), ModelTypeInfo("STT")]
         whisper1,
 
-        [Description("text-moderation-latest"), ModelTypeInfo("Moderation")]
+        [Description("omni-moderation-latest"), ModelTypeInfo("Moderation")]
         Moderation_Latest,
-
-        [Description("dall-e-3"), ModelTypeInfo("Image")]
-        DallE_3,
     }
 
 
