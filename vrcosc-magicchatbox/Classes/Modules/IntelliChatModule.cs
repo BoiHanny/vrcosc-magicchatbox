@@ -138,16 +138,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
     public partial class IntelliChatModuleSettings : ObservableObject
     {
         [ObservableProperty]
-    private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt4o_mini;
+    private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
         private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
-        private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt4o_mini;
+        private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
-        private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt4o_mini;
+        private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt4o;
 
         [ObservableProperty]
         private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4o;
@@ -358,20 +358,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             Settings.SelectedWritingStyle = selectedStyle ?? Settings.SupportedWritingStyles.FirstOrDefault(style => style.IsBuiltIn);
             Settings.SelectedTranslateLanguage = selectedTranslateLanguage ?? Settings.SupportedLanguages.Where(lang => lang.Language.Equals("English", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-                var defaultModel = IntelliGPTModel.gpt4o_mini;
+                var defaultModel = IntelliGPTModel.gpt4o;
 
     // Check if the selected models are still valid
     Settings.PerformSpellingCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformSpellingCheckModel)
-        ? Settings.PerformSpellingCheckModel : IntelliGPTModel.gpt4o_mini;
+        ? Settings.PerformSpellingCheckModel : IntelliGPTModel.gpt4o;
 
     Settings.GenerateConversationStarterModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.GenerateConversationStarterModel)
         ? Settings.GenerateConversationStarterModel : IntelliGPTModel.gpt4o;
 
     Settings.PerformLanguageTranslationModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformLanguageTranslationModel)
-        ? Settings.PerformLanguageTranslationModel : IntelliGPTModel.gpt4o_mini;
+        ? Settings.PerformLanguageTranslationModel : IntelliGPTModel.gpt4o;
 
     Settings.PerformShortenTextModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformShortenTextModel)
-        ? Settings.PerformShortenTextModel : IntelliGPTModel.gpt4o_mini;
+        ? Settings.PerformShortenTextModel : IntelliGPTModel.gpt4o;
 
     Settings.PerformBeautifySentenceModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformBeautifySentenceModel)
         ? Settings.PerformBeautifySentenceModel : IntelliGPTModel.gpt4o;
