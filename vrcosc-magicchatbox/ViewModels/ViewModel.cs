@@ -284,14 +284,24 @@ namespace vrcosc_magicchatbox.ViewModels
             TimezoneFriendlyNames = new Dictionary<Timezone, string>
             {
                 { Timezone.UTC, "Coordinated Universal Time (UTC)" },
-                { Timezone.EST, "Eastern Standard Time (EST)" },
-                { Timezone.CST, "Central Standard Time (CST)" },
-                { Timezone.PST, "Pacific Standard Time (PST)" },
-                { Timezone.CET, "European Central Time (CET)" },
-                { Timezone.AEST, "Australian Eastern Standard Time (AEST)" },
                 { Timezone.GMT, "Greenwich Mean Time (GMT)" },
+                { Timezone.EST, "Eastern Time (US & Canada)" },
+                { Timezone.CST, "Central Time (US & Canada)" },
+                { Timezone.MST, "Mountain Time (US & Canada)" },
+                { Timezone.PST, "Pacific Time (US & Canada)" },
+                { Timezone.AKST, "Alaska Time (AKST)" },
+                { Timezone.HST, "Hawaii Standard Time (HST)" },
+                { Timezone.CET, "Central European Time (CET)" },
+                { Timezone.EET, "Eastern European Time (EET)" },
                 { Timezone.IST, "India Standard Time (IST)" },
+                { Timezone.CSTChina, "China Standard Time (CST)" },
                 { Timezone.JST, "Japan Standard Time (JST)" },
+                { Timezone.KST, "Korea Standard Time (KST)" },
+                { Timezone.MSK, "Moscow Standard Time (MSK)" },
+                { Timezone.AEST, "Australian Eastern Time (AET)" },
+                { Timezone.NZST, "New Zealand Time (NZT)" },
+                { Timezone.BRT, "Brasília Time (BRT)" },
+                { Timezone.SAST, "South Africa Standard Time (SAST)" }, 
             };
 
             SettingsMap = new Dictionary<string, Action<bool>>
