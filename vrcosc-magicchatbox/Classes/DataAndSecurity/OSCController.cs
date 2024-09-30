@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -678,7 +679,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 string Complete_msg = null;
                 if (ViewModel.Instance.PrefixChat == true)
                 {
-                    Complete_msg = "💬 " + ViewModel.Instance.NewChattingTxt;
+                    string icon = "💬";
+                    if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
+                    {
+                        icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
+                    }
+                    Complete_msg = icon + " " + ViewModel.Instance.NewChattingTxt;
                 }
                 else
                 {
