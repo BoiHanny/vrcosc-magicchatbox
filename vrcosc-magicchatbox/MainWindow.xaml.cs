@@ -320,7 +320,12 @@ namespace vrcosc_magicchatbox
                         string Complete_msg = null;
                         if (ViewModel.Instance.PrefixChat == true)
                         {
-                            Complete_msg = "💬 " + lastsendchat.Msg;
+                            string icon = "💬";
+                            if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
+                            {
+                                icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
+                            }
+                            Complete_msg = icon + " " + lastsendchat.Msg;
                         }
                         else
                         {
