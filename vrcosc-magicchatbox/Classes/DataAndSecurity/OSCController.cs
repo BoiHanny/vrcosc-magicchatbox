@@ -259,8 +259,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
 
                 int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-                string filledBar = new string(style.FilledCharacter[0], filledBlocks);
-                string emptyBar = new string(style.NonFilledCharacter[0], totalBlocks - filledBlocks);
+
+                // Use the entire string for emojis and multi-character strings
+                string filledBar = string.Concat(Enumerable.Repeat(style.FilledCharacter, filledBlocks));
+                string emptyBar = string.Concat(Enumerable.Repeat(style.NonFilledCharacter, totalBlocks - filledBlocks));
                 string progressBar = filledBar + style.MiddleCharacter + emptyBar;
 
                 return CreateTimeStamp(currentTime, fullTime, progressBar, style);
@@ -271,6 +273,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 return string.Empty;
             }
         }
+
         private static string CreateTimeStamp(string currentTime, string fullTime, string progressBar, MediaLinkStyle style)
         {
             string space = style.SpaceAgainObjects ? " " : string.Empty;
