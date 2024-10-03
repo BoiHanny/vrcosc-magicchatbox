@@ -122,7 +122,7 @@ jobs:
           </div>
 
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download) installed on your system.
+          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.
