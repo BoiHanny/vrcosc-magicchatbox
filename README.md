@@ -167,5 +167,3 @@ Prototype Features (not implemented)
 > - [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 > - **Github Issues:**  [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)
 > - Wiki: [Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)
-
-
