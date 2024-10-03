@@ -664,6 +664,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return dateTimeWithZone;
         }
 
+
         public static string GetFormattedTime(
             DateTimeOffset dateTimeWithZone,
             bool time24H,
@@ -685,57 +686,139 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+
         public static string GetTime()
         {
             try
             {
                 DateTimeOffset localDateTime = DateTimeOffset.Now;
                 TimeZoneInfo timeZoneInfo;
-                string timezoneLabel = null;
+                string standardAbbreviation = null;
+                string daylightAbbreviation = null;
 
                 switch (ViewModel.Instance.SelectedTimeZone)
                 {
                     case Timezone.UTC:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("UTC");
-                        timezoneLabel = "UTC";
-                        break;
-                    case Timezone.EST:
-                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                        timezoneLabel = "EST";
-                        break;
-                    case Timezone.CST:
-                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
-                        timezoneLabel = "CST";
-                        break;
-                    case Timezone.PST:
-                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                        timezoneLabel = "PST";
-                        break;
-                    case Timezone.CET:
-                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-                        timezoneLabel = "CET";
-                        break;
-                    case Timezone.AEST:
-                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. Australia Standard Time");
-                        timezoneLabel = "AEST";
+                        standardAbbreviation = "UTC";
+                        daylightAbbreviation = "UTC";
                         break;
                     case Timezone.GMT:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-                        timezoneLabel = "GMT";
+                        standardAbbreviation = "GMT";
+                        daylightAbbreviation = "BST"; 
+                        break;
+                    case Timezone.EST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                        standardAbbreviation = "EST";
+                        daylightAbbreviation = "EDT";
+                        break;
+                    case Timezone.CST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+                        standardAbbreviation = "CST";
+                        daylightAbbreviation = "CDT";
+                        break;
+                    case Timezone.MST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time");
+                        standardAbbreviation = "MST";
+                        daylightAbbreviation = "MDT";
+                        break;
+                    case Timezone.PST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                        standardAbbreviation = "PST";
+                        daylightAbbreviation = "PDT";
+                        break;
+                    case Timezone.AKST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Alaskan Standard Time");
+                        standardAbbreviation = "AKST";
+                        daylightAbbreviation = "AKDT";
+                        break;
+                    case Timezone.HST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Hawaiian Standard Time");
+                        standardAbbreviation = "HST";
+                        daylightAbbreviation = "HST"; 
+                        break;
+                    case Timezone.CET:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                        standardAbbreviation = "CET";
+                        daylightAbbreviation = "CEST";
+                        break;
+                    case Timezone.EET:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. Europe Standard Time");
+                        standardAbbreviation = "EET";
+                        daylightAbbreviation = "EEST";
                         break;
                     case Timezone.IST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                        timezoneLabel = "IST";
+                        standardAbbreviation = "IST";
+                        daylightAbbreviation = "IST";
+                        break;
+                    case Timezone.CSTChina:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
+                        standardAbbreviation = "CST";
+                        daylightAbbreviation = "CST"; 
                         break;
                     case Timezone.JST:
                         timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-                        timezoneLabel = "JST";
+                        standardAbbreviation = "JST";
+                        daylightAbbreviation = "JST"; 
+                        break;
+                    case Timezone.KST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Korea Standard Time");
+                        standardAbbreviation = "KST";
+                        daylightAbbreviation = "KST"; 
+                        break;
+                    case Timezone.MSK:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+                        standardAbbreviation = "MSK";
+                        daylightAbbreviation = "MSK"; 
+                        break;
+                    case Timezone.AEST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
+                        standardAbbreviation = "AEST";
+                        daylightAbbreviation = "AEDT";
+                        break;
+                    case Timezone.NZST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("New Zealand Standard Time");
+                        standardAbbreviation = "NZST";
+                        daylightAbbreviation = "NZDT";
+                        break;
+                    case Timezone.BRT:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+                        standardAbbreviation = "BRT";
+                        daylightAbbreviation = "BRST";
+                        break;
+                    case Timezone.SAST:
+                        timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+                        standardAbbreviation = "SAST";
+                        daylightAbbreviation = "SAST";
                         break;
                     default:
                         timeZoneInfo = TimeZoneInfo.Local;
-                        timezoneLabel = "Local";
+                        standardAbbreviation = timeZoneInfo.StandardName;
+                        daylightAbbreviation = timeZoneInfo.DaylightName;
                         break;
                 }
+
+                // Convert localDateTime to the selected time zone
+                DateTimeOffset targetDateTime = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
+
+                // Determine if DST is in effect based on user settings
+                bool isDaylightSavingTime;
+
+                if (ViewModel.Instance.AutoSetDaylight)
+                {
+                    // Use system's DST determination
+                    isDaylightSavingTime = timeZoneInfo.IsDaylightSavingTime(targetDateTime);
+                }
+                else
+                {
+                    // Use user's manual DST setting
+                    isDaylightSavingTime = ViewModel.Instance.UseDaylightSavingTime;
+                }
+
+                // Select the appropriate time zone abbreviation
+                string timezoneLabel = isDaylightSavingTime ? daylightAbbreviation : standardAbbreviation;
 
                 TimeSpan timeZoneOffset;
                 var dateTimeWithZone = GetDateTimeWithZone(
@@ -745,7 +828,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     timeZoneInfo,
                     out timeZoneOffset);
 
-                string timeZoneDisplay = $" ({timezoneLabel}{(timeZoneOffset < TimeSpan.Zero ? "" : "+")}{timeZoneOffset.Hours.ToString("00")})";
+                // Calculate offset sign and absolute values
+                string offsetSign = timeZoneOffset < TimeSpan.Zero ? "-" : "+";
+                int totalOffsetHours = (int)timeZoneOffset.TotalHours;
+                int offsetMinutes = Math.Abs(timeZoneOffset.Minutes);
+
+                // Format the offset string
+                string offsetString = offsetMinutes == 0
+                    ? $"{offsetSign}{Math.Abs(totalOffsetHours)}"
+                    : $"{offsetSign}{Math.Abs(totalOffsetHours)}:{offsetMinutes.ToString("00")}";
+
+                string timeZoneDisplay = $" ({timezoneLabel}{offsetString})";
+
                 return GetFormattedTime(
                     dateTimeWithZone,
                     ViewModel.Instance.Time24H,
@@ -758,6 +852,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return "00:00 XX";
             }
         }
+
+
+
+
+
 
         public static bool UpdateStats()
         {

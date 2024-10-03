@@ -14,15 +14,26 @@ namespace vrcosc_magicchatbox.ViewModels
     public enum Timezone
     {
         UTC,
+        GMT,
         EST,
         CST,
+        MST,
         PST,
+        AKST,
+        HST,
         CET,
+        EET,
+        IST,
+        CSTChina,
+        JST,
+        KST,
+        MSK,
         AEST,
-        GMT, 
-        IST, 
-        JST
+        NZST,
+        BRT,
+        SAST
     }
+
 
     public enum StatsComponentType
     {

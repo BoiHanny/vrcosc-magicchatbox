@@ -114,7 +114,7 @@ namespace vrcosc_magicchatbox
         public MainWindow()
         {
             InitializeComponent();
-            Closing += SaveDataToDisk;
+            Closing += MainWindow_ClosingAsync;
 
             backgroundCheck.Tick += Timer;
             backgroundCheck.Interval = TimeSpan.FromMilliseconds(ViewModel.Instance.ScanningInterval * 1000);
@@ -320,7 +320,12 @@ namespace vrcosc_magicchatbox
                         string Complete_msg = null;
                         if (ViewModel.Instance.PrefixChat == true)
                         {
-                            Complete_msg = "💬 " + lastsendchat.Msg;
+                            string icon = "💬";
+                            if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
+                            {
+                                icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
+                            }
+                            Complete_msg = icon + " " + lastsendchat.Msg;
                         }
                         else
                         {
@@ -594,7 +599,7 @@ namespace vrcosc_magicchatbox
             else
             {
                 backgroundCheck.Stop();
-                OSCSender.SentClearMessage();
+                OSCSender.SentClearMessage(1000);
 
             }
         }
@@ -784,19 +789,41 @@ namespace vrcosc_magicchatbox
             }
         }
 
-
-        public void SaveDataToDisk(object sender, System.ComponentModel.CancelEventArgs e)
+        private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            // Cancel the window closing event temporarily to await the async task
+            e.Cancel = true;
+
             try
             {
-                OSCSender.SentClearMessage();
+                // Optionally hide the window while saving data
                 Hide();
-                FireExitSave();
 
-                System.Environment.Exit(1);
+                // Await your asynchronous save logic
+                await SaveDataToDiskAsync();
+
+                // After the async task completes, close the window
+                Application.Current.Shutdown(); // This is equivalent to System.Environment.Exit in WPF
             }
             catch (Exception ex)
             {
+                // Handle the exception and optionally log it
+                Logging.WriteException(ex, MSGBox: true, exitapp: true);
+            }
+        }
+
+
+        public async Task SaveDataToDiskAsync()
+        {
+            try
+            {
+                // Perform your async operations here
+                await OSCSender.SentClearMessage(1500);
+                FireExitSave();
+            }
+            catch (Exception ex)
+            {
+                // Log any exceptions encountered during the save process
                 Logging.WriteException(ex, MSGBox: true, exitapp: true);
             }
         }

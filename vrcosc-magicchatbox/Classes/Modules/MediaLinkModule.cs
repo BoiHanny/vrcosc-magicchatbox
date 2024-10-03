@@ -370,9 +370,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     try
                     {
-                        double percentage = 50.0; // For preview purposes, let's assume a 50% completion
+                        double percentage = 80.0;
                         string currentTime = "4:20";
-                        string fullTime = "6:90";
+                        string fullTime = "69:00";
 
                         if (ShowTimeInSuperscript)
                         {
@@ -388,8 +388,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         string nonFilledChar = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter : "⁉️";
                         string middleChar = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter : "?";
 
-                        string filledBar = new string(filledChar[0], filledBlocks);
-                        string emptyBar = new string(nonFilledChar[0], totalBlocks - filledBlocks);
+                        // Use the entire string for emojis and multi-character strings
+                        string filledBar = string.Concat(Enumerable.Repeat(filledChar, filledBlocks));
+                        string emptyBar = string.Concat(Enumerable.Repeat(nonFilledChar, totalBlocks - filledBlocks));
                         string progressBar = filledBar + middleChar + emptyBar;
 
                         string timeSegment;
@@ -441,6 +442,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                 }
             }
+
 
             public bool SpaceAgainObjects
             {

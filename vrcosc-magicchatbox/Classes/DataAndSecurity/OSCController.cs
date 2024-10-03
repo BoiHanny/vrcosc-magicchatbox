@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -258,8 +259,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
 
                 int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-                string filledBar = new string(style.FilledCharacter[0], filledBlocks);
-                string emptyBar = new string(style.NonFilledCharacter[0], totalBlocks - filledBlocks);
+
+                // Use the entire string for emojis and multi-character strings
+                string filledBar = string.Concat(Enumerable.Repeat(style.FilledCharacter, filledBlocks));
+                string emptyBar = string.Concat(Enumerable.Repeat(style.NonFilledCharacter, totalBlocks - filledBlocks));
                 string progressBar = filledBar + style.MiddleCharacter + emptyBar;
 
                 return CreateTimeStamp(currentTime, fullTime, progressBar, style);
@@ -270,6 +273,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 return string.Empty;
             }
         }
+
         private static string CreateTimeStamp(string currentTime, string fullTime, string progressBar, MediaLinkStyle style)
         {
             string space = style.SpaceAgainObjects ? " " : string.Empty;
@@ -678,7 +682,12 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 string Complete_msg = null;
                 if (ViewModel.Instance.PrefixChat == true)
                 {
-                    Complete_msg = "💬 " + ViewModel.Instance.NewChattingTxt;
+                    string icon = "💬";
+                    if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
+                    {
+                        icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
+                    }
+                    Complete_msg = icon + " " + ViewModel.Instance.NewChattingTxt;
                 }
                 else
                 {

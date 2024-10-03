@@ -5,13 +5,13 @@
 [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox)
 [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
 [![GitHub top language](https://img.shields.io/github/languages/top/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&style=plastic)](https://github.com/search?q=repo%3ABoiHanny%2Fvrcosc-magicchatbox++language%3AC%23&type=code)
-[![NET](https://img.shields.io/badge/.NET%206-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download)
+[![NET](https://img.shields.io/badge/.NET%208-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer)
 [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=VR%20OSC&logo=discord&logoColor=white&style=plastic)](https://discord.gg/ZaSFwBfhvG)
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.015/MagicChatbox-0.9.015.zip)
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/94a77b2e4fa3311aa3c981c12c8f4439953e86a053953dbabd1f5e5fa230e1f6/detection)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.003/MagicChatbox-0.9.003.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/4f1508955db90fe7d66106cf82d4e21628110b7c442a3386c27aa2a05ab78fbd/detection)
 <!-- END LATEST DOWNLOAD BUTTON -->
 # MagicChatbox
 > **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
@@ -152,7 +152,7 @@ Prototype Features (not implemented)
 ## Dependencies
 
 
-> * Make sure you have [.NET 8](https://dotnet.microsoft.com/en-us/download) installed.
+> * Make sure you have [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer) installed.
 > * Latest Operating-System Update installed
 
 
@@ -167,5 +167,3 @@ Prototype Features (not implemented)
 > - [![](https://dcbadge.vercel.app/api/server/ZaSFwBfhvG)](https://discord.gg/ZaSFwBfhvG)
 > - **Github Issues:**  [Report a bug or submit a feature request](https://github.com/BoiHanny/vrcosc-magicchatbox/issues)
 > - Wiki: [Help & more](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)
-
-
