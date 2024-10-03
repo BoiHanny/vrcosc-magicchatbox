@@ -5,7 +5,7 @@
 [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox)
 [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
 [![GitHub top language](https://img.shields.io/github/languages/top/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&style=plastic)](https://github.com/search?q=repo%3ABoiHanny%2Fvrcosc-magicchatbox++language%3AC%23&type=code)
-[![NET](https://img.shields.io/badge/.NET%206-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download)
+[![NET](https://img.shields.io/badge/.NET%208-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer)
 [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=VR%20OSC&logo=discord&logoColor=white&style=plastic)](https://discord.gg/ZaSFwBfhvG)
 [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
 --
@@ -152,7 +152,7 @@ Prototype Features (not implemented)
 ## Dependencies
 
 
-> * Make sure you have [.NET 6](https://dotnet.microsoft.com/en-us/download) installed.
+> * Make sure you have [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer) installed.
 > * Latest Operating-System Update installed
 
 
