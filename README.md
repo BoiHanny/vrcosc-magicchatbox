@@ -11,7 +11,7 @@
 --
 
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.021/MagicChatbox-0.9.021.zip)
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/4f1508955db90fe7d66106cf82d4e21628110b7c442a3386c27aa2a05ab78fbd/detection)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/b1b4b25e682ba55101ec804fbd5589ea71233b7049e5d6d372ca6f4af08e079d/detection)
 <!-- END LATEST DOWNLOAD BUTTON -->
 # MagicChatbox
 > **Introducing MagicChatbox: the ultimate companion for all your VRChat needs! Whether you're on desktop or in VR, we've got you covered with our compact and modern UI.**
