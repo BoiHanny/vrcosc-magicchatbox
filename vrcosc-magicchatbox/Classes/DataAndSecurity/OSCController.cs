@@ -71,49 +71,10 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         // this function will build the heart rate message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddHeartRate(List<string> Uncomplete)
         {
-            if (ViewModel.Instance.IntgrHeartRate == true && ViewModel.Instance.HeartRate > 0)
-            {
-                if (ViewModel.Instance.EnableHeartRateOfflineCheck && ViewModel.Instance.PulsoidDeviceOnline || !ViewModel.Instance.EnableHeartRateOfflineCheck)
-                {
-                    // Always start with the heart icon if MagicHeartRateIcons or ShowTemperatureText is true
-                    string displayText = ViewModel.Instance.MagicHeartIconPrefix
-                        ? ViewModel.Instance.HeartRateIcon + " "
-                        : string.Empty;
+            string output = ViewModel.Instance.HeartRateConnector.GetHeartRateString();
 
-                    // Add the heart rate value
-                    displayText += ViewModel.Instance.HeartRate.ToString();
+            TryAddToUncomplete(Uncomplete, output, "HeartRate");
 
-                    // Optionally append " bpm" suffix if ShowBPMSuffix is true
-                    if (ViewModel.Instance.ShowBPMSuffix)
-                    {
-                        displayText += " bpm";
-                    }
-
-                    if (ViewModel.Instance.HeartRateConnector.Settings.ShowCalories)
-                        displayText += " " + DataController.TransformToSuperscript(ViewModel.Instance.HeartRateConnector.PulsoidStatistics?.calories_burned_in_kcal + " kcal");
-
-                    // Append the HeartRateTrendIndicator if ShowHeartRateTrendIndicator is true
-                    if (ViewModel.Instance.ShowHeartRateTrendIndicator)
-                    {
-                        displayText += $" {ViewModel.Instance.HeartRateTrendIndicator}";
-                    }
-
-
-
-                    // Add title if HeartRateTitle is true, with a separator based on SeperateWithENTERS
-                    if (ViewModel.Instance.HeartRateTitle)
-                    {
-                        string titleSeparator = ViewModel.Instance.SeperateWithENTERS ? "\v" : ": ";
-                        string hrTitle = ViewModel.Instance.CurrentHeartRateTitle + titleSeparator;
-                        displayText = hrTitle + displayText;
-                    }
-
-
-
-                    // Finally, add the constructed string to the Uncomplete list with a tag
-                    TryAddToUncomplete(Uncomplete, displayText, "HeartRate");
-                }
-            }
         }
 
 

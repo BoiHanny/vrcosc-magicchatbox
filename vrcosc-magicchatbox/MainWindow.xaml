@@ -1609,7 +1609,7 @@
                                                     Source="/Img/Icons/Cross_v1_ico.png" />
                                             </Grid>
                                         </Button>
-                                        <Border Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <Border Visibility="{Binding HeartRateConnector.PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <TextBlock
                                                 Margin="5,0,0,0"
                                                 VerticalAlignment="Center"
@@ -1620,7 +1620,7 @@
                                                 Foreground="LightSeaGreen"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                 Text="No device connected"
-                                                Visibility="{Binding PulsoidDeviceOnline, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                Visibility="{Binding HeartRateConnector.PulsoidDeviceOnline, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                         </Border>
                                         <TextBlock
                                             Width="400"
@@ -1629,9 +1629,9 @@
                                             FontFamily="Albert Sans Thin"
                                             FontSize="14"
                                             Foreground="PaleVioletRed"
-                                            Text="{Binding PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                            Text="{Binding HeartRateConnector.PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
                                             TextWrapping="Wrap"
-                                            Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            Visibility="{Binding HeartRateConnector.PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                 </Border>
                                 <Border
@@ -1645,7 +1645,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding MagicHeartIconPrefix, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.MagicHeartIconPrefix, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show prefix icon in front of the heart rate
                                         </CheckBox>
@@ -1671,7 +1671,7 @@
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5"
-                                    Visibility="{Binding MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    Visibility="{Binding HeartRateConnector.Settings.MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="MagicHeartRateIcons_checkbox"
@@ -1679,7 +1679,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding MagicHeartRateIcons, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.MagicHeartRateIcons, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Auto change heart rate prefix icons
                                         </CheckBox>
@@ -1689,7 +1689,7 @@
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5"
-                                    Visibility="{Binding MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    Visibility="{Binding HeartRateConnector.Settings.MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="ShowTemperatureText_checkbox"
@@ -1697,11 +1697,11 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding ShowTemperatureText, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.ShowTemperatureText, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show temperature status
                                         </CheckBox>
-                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding HeartRateConnector.Settings.ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock
                                                     Padding="0,0,9,0"
@@ -1721,7 +1721,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Text="{Binding HeartRateConnector.Settings.LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                     TextAlignment="Center" />
                                                 <TextBlock
                                                     Padding="5,0,5,0"
@@ -1741,7 +1741,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding LowHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.LowHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                             <StackPanel Margin="0,5,0,5" Orientation="Horizontal">
                                                 <TextBlock
@@ -1761,7 +1761,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Text="{Binding HeartRateConnector.Settings.HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                     TextAlignment="Center" />
                                                 <TextBlock
                                                     Padding="5,0,4,0"
@@ -1782,7 +1782,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding HighHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.HighHeartRateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
@@ -1800,12 +1800,12 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding ShowHeartRateTrendIndicator, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.ShowHeartRateTrendIndicator, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
                                             Trend suffix indicators ⤴️ ⤵️
                                         </CheckBox>
-                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateConnector.Settings.ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
@@ -1847,7 +1847,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
                                                     FontFamily="Albert Sans Thin"
@@ -1883,7 +1883,7 @@
                                                     Maximum="1"
                                                     Minimum="0"
                                                     Style="{StaticResource CustomSlider}"
-                                                    Value="{Binding Path=HeartRateTrendIndicatorSensitivity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Value="{Binding Path=HeartRateConnector.Settings.HeartRateTrendIndicatorSensitivity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     Width="auto"
                                                     Padding="5,0"
@@ -1909,12 +1909,12 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding SmoothHeartRate_v1, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.SmoothHeartRate, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
                                             Smooth heart rate
                                         </CheckBox>
-                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding SmoothHeartRate_v1, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateConnector.Settings.SmoothHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
                                                 Margin="0,5,0,5"
                                                 VerticalAlignment="Center"
@@ -1936,7 +1936,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
                                                     FontFamily="Albert Sans Thin"
@@ -1962,13 +1962,13 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding ApplyHeartRateAdjustment, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.ApplyHeartRateAdjustment, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
                                             Heart rate adjustment
                                         </CheckBox>
 
-                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding HeartRateConnector.Settings.ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
                                                 Margin="0,5,0,5"
                                                 VerticalAlignment="Center"
@@ -1990,7 +1990,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
                                                     FontFamily="Albert Sans Thin"
@@ -2017,12 +2017,12 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding EnableHeartRateOfflineCheck, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.EnableHeartRateOfflineCheck, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
                                             Check for offline heart rate
                                         </CheckBox>
-                                        <StackPanel Margin="0,5,0,0" Visibility="{Binding EnableHeartRateOfflineCheck, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,5,0,0" Visibility="{Binding HeartRateConnector.Settings.EnableHeartRateOfflineCheck, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
                                                 Margin="0,5,0,0"
                                                 VerticalAlignment="Center"
@@ -2044,7 +2044,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding UnchangedHeartRateTimeoutInSec, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.UnchangedHeartRateTimeoutInSec, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
                                                     FontFamily="Albert Sans Thin"
@@ -2068,7 +2068,7 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding ShowBPMSuffix, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.ShowBPMSuffix, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
                                             Show BPM suffix
@@ -2088,13 +2088,27 @@
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding HeartRateTitle, Mode=TwoWay}"
+                                            IsChecked="{Binding HeartRateConnector.Settings.HeartRateTitle, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
                                             Show heart-rate title
                                         </CheckBox>
 
-                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateConnector.Settings.HeartRateTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+                                            <CheckBox
+                                                x:Name="HeartRateTitleStackMethod_checkbox"
+                                                Height="20"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.SeparateTitleWithEnter, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Seperate with enter
+                                            </CheckBox>
                                             <StackPanel
                                                 Margin="0,5,0,5"
                                                 VerticalAlignment="Center"
@@ -2116,7 +2130,7 @@
                                                     BorderThickness="0"
                                                     FontSize="15"
                                                     Foreground="#FF240E54"
-                                                    Text="{Binding CurrentHeartRateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    Text="{Binding HeartRateConnector.Settings.CurrentHeartRateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </StackPanel>
 
@@ -8321,7 +8335,7 @@
                                         FontSize="12"
                                         Foreground="#ABA4B8"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="{Binding HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                        Text="{Binding HeartRateConnector.HeartRateLastUpdate, StringFormat='{}{0:T}'}"
                                         Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Margin="5,0,0,0"
@@ -8332,8 +8346,8 @@
                                         Foreground="PaleVioletRed"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Text="Something went wrong, check settings"
-                                        Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                    <Border Visibility="{Binding PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        Visibility="{Binding HeartRateConnector.PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Border Visibility="{Binding HeartRateConnector.PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
@@ -8344,7 +8358,7 @@
                                             Foreground="LightSeaGreen"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="No device connected"
-                                            Visibility="{Binding PulsoidDeviceOnline, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            Visibility="{Binding HeartRateConnector.PulsoidDeviceOnline, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </Border>
 
                                 </StackPanel>
