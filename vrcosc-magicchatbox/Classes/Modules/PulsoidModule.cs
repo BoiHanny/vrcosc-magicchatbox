@@ -108,7 +108,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         [ObservableProperty]
         private PulsoidTrendSymbolSet selectedPulsoidTrendSymbol = new();
-
+            
         [ObservableProperty]
         private StatisticsTimeRange selectedStatisticsTimeRange = StatisticsTimeRange._24h;
 
@@ -116,28 +116,28 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private List<StatisticsTimeRange> statisticsTimeRanges = new();
 
         [ObservableProperty]
+        bool pulsoidStatsEnabled = true;
+
+        [ObservableProperty]
         bool showCalories = true;
 
         [ObservableProperty]
-        bool showAverageHeartRate = false;
+        bool showAverageHeartRate = true;
 
         [ObservableProperty]
-        bool showMinimumHeartRate = false;
+        bool showMinimumHeartRate = true;
 
         [ObservableProperty]
-        bool showMaximumHeartRate = false;
+        bool showMaximumHeartRate = true;
 
         [ObservableProperty]
-        bool showDuration = false;
+        bool showDuration = true;
 
         [ObservableProperty]
         bool showStatsTimeRange = false;
 
-        bool trendIndicatorBehindStats = true;
-
-
         [ObservableProperty]
-        bool showMaxHeartRate = true;
+        bool trendIndicatorBehindStats = true;
 
         [ObservableProperty]
         bool showMinHeartRate = true;
@@ -316,7 +316,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
 
                     string content = await response.Content.ReadAsStringAsync();
-                    PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
+
+                    if (Settings.ApplyHeartRateAdjustment)
+                    {
+                        PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
+                        PulsoidStatistics.maximum_beats_per_minute += Settings.HeartRateAdjustment;
+                        PulsoidStatistics.minimum_beats_per_minute += Settings.HeartRateAdjustment;
+                        PulsoidStatistics.average_beats_per_minute += Settings.HeartRateAdjustment;
+                    }
+                    else
+
+                        PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
                 }
                 catch (HttpRequestException ex)
                 {
@@ -588,7 +598,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             int heartRate = HeartRateFromSocket;
-            _ = Task.Run(() => FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth));
+
+            if(Settings.PulsoidStatsEnabled)
+                _ = Task.Run(() => FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth));
 
             // New logic to handle unchanged heart rate readings
             if (heartRate == _previousHeartRate)
@@ -695,37 +707,94 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (HeartRate <= 0)
                 return string.Empty;
 
-            // Build the display text
-            string displayText = Settings.MagicHeartIconPrefix
-                ? Settings.HeartRateIcon + " "
-                : string.Empty;
+            StringBuilder displayTextBuilder = new StringBuilder();
 
-            displayText += HeartRate.ToString();
+            if (Settings.MagicHeartIconPrefix)
+            {
+                displayTextBuilder.Append(Settings.HeartRateIcon + " ");
+            }
+
+            displayTextBuilder.Append(HeartRate.ToString());
 
             if (Settings.ShowBPMSuffix)
             {
-                displayText += " bpm";
+                displayTextBuilder.Append(" bpm");
             }
 
-            if (Settings.ShowCalories && PulsoidStatistics != null)
+            if (Settings.ShowHeartRateTrendIndicator && !Settings.TrendIndicatorBehindStats)
             {
-                displayText += " " + DataController.TransformToSuperscript(PulsoidStatistics.calories_burned_in_kcal + " kcal");
+                displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
             }
 
-            if (Settings.ShowHeartRateTrendIndicator)
+            if (Settings.PulsoidStatsEnabled)
+            { 
+
+            List<string> statsList = new List<string>();
+
+            if (PulsoidStatistics != null)
             {
-                displayText += $" {Settings.HeartRateTrendIndicator}";
+                if (Settings.ShowCalories)
+                {
+                    statsList.Add($"{PulsoidStatistics.calories_burned_in_kcal} kcal");
+                }
+                if (Settings.ShowAverageHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.average_beats_per_minute} Avg");
+                }
+                if (Settings.ShowMinimumHeartRate || Settings.ShowMinHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.minimum_beats_per_minute} Min");
+                }
+                if (Settings.ShowMaximumHeartRate || Settings.ShowMaximumHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.maximum_beats_per_minute} Max");
+                }
+                if (Settings.ShowDuration)
+                {
+                    TimeSpan duration = TimeSpan.FromSeconds(PulsoidStatistics.streamed_duration_in_seconds);
+                    string formattedDuration = duration.ToString(@"hh\:mm\:ss");
+
+                    if (Settings.ShowStatsTimeRange)
+                    {
+                        string timeRangeDescription = Settings.SelectedStatisticsTimeRange.GetDescription();
+                        statsList.Add($"duration over {timeRangeDescription} {formattedDuration} ");
+                    }
+                    else
+                    {
+                        statsList.Add($"duration {formattedDuration}");
+                    }
+                }
+
+                for (int i = 0; i < statsList.Count; i++)
+                {
+                    statsList[i] = DataController.TransformToSuperscript(statsList[i]);
+                }
+            }
+
+            if (statsList.Count > 0)
+            {
+                string statslist = string.Join("|", statsList);
+                displayTextBuilder.Append($" {statslist}");
+            }
+
+            }
+
+            if (Settings.ShowHeartRateTrendIndicator && Settings.TrendIndicatorBehindStats)
+            {
+                    displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
             }
 
             if (Settings.HeartRateTitle)
             {
                 string titleSeparator = Settings.SeparateTitleWithEnter ? "\v" : ": ";
                 string hrTitle = Settings.CurrentHeartRateTitle + titleSeparator;
-                displayText = hrTitle + displayText;
+                displayTextBuilder.Insert(0, hrTitle);
             }
 
-            return displayText;
+            return displayTextBuilder.ToString();
         }
+
+
 
         private async Task HeartRateMonitoringLoopAsync(CancellationToken cancellationToken)
         {

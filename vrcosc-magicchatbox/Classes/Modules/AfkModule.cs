@@ -286,7 +286,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             OverrideButtonVisible = true;
         }
 
-        private static string FormatDuration(TimeSpan duration)
+        public static string FormatDuration(TimeSpan duration)
         {
             var parts = new List<string>();
 

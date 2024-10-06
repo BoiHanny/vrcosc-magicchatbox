@@ -71,9 +71,16 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         // this function will build the heart rate message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
         public static void AddHeartRate(List<string> Uncomplete)
         {
-            string output = ViewModel.Instance.HeartRateConnector.GetHeartRateString();
-
-            TryAddToUncomplete(Uncomplete, output, "HeartRate");
+            if (ViewModel.Instance.IntgrHeartRate)
+            {
+                string output = ViewModel.Instance.HeartRateConnector.GetHeartRateString();
+                if (string.IsNullOrEmpty(output))
+                {
+                    return;
+                }
+                TryAddToUncomplete(Uncomplete, output, "HeartRate");
+            }
+           
 
         }
 

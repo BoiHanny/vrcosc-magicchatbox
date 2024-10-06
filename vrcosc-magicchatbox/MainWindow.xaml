@@ -1651,22 +1651,7 @@
                                         </CheckBox>
                                     </StackPanel>
                                 </Border>
-                                <Border
-                                    Margin="0,0,0,5"
-                                    Background="#FF3B3054"
-                                    CornerRadius="5,0,0,5">
-                                    <StackPanel Margin="5">
-                                        <CheckBox
-                                            Margin="0,0,0,0"
-                                            FontFamily="Comfortaa Light"
-                                            FontSize="18"
-                                            Foreground="#FFB9B5C1"
-                                            IsChecked="{Binding HeartRateConnector.Settings.ShowCalories, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Show calories from Pulsoid
-                                        </CheckBox>
-                                    </StackPanel>
-                                </Border>
+
                                 <Border
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
@@ -1683,6 +1668,197 @@
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Auto change heart rate prefix icons
                                         </CheckBox>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Pulsoid ˢᵗᵃᵗˢ" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="You can show stats over a selected time peroid." />
+
+                                        <CheckBox
+                                            x:Name="EnableStats"
+                                            Height="20"
+                                            Margin="4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding HeartRateConnector.Settings.PulsoidStatsEnabled, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Enable Pulsoid ˢᵗᵃᵗˢ
+                                        </CheckBox>
+
+                                        <StackPanel Visibility="{Binding HeartRateConnector.Settings.PulsoidStatsEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="2,5,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF9983AD"
+                                                Text="Select the timeframe you want to show the stats for." />
+                                            <ComboBox
+                                                x:Name="PulsoidTimeFrame_combo"
+                                                Width="100"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                ItemsSource="{Binding HeartRateConnector.Settings.StatisticsTimeRanges, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Opacity="0.3"
+                                                SelectedItem="{Binding HeartRateConnector.Settings.SelectedStatisticsTimeRange, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+
+                                            <CheckBox
+                                                x:Name="PlaceTrendIndicatorBehindStats"
+                                                Height="20"
+                                                Margin="2,4"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.TrendIndicatorBehindStats, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Place trend indicator behind stats
+                                            </CheckBox>
+
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="2,5,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FF9983AD"
+                                                Text="Pick the stats you want to show that is collected over your selected time frame." />
+
+
+
+                                            <CheckBox
+                                                x:Name="ShowCalories"
+                                                Height="20"
+                                                Margin="2,8,2,4"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowCalories, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show calories
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                x:Name="AverageHeartRate"
+                                                Height="20"
+                                                Margin="2"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowAverageHeartRate, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show average heart rate
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                x:Name="MinimumHeartRate"
+                                                Height="20"
+                                                Margin="2"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowMinimumHeartRate, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show minimum heart rate
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                x:Name="MaximumHeartRate"
+                                                Height="20"
+                                                Margin="2"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowMaximumHeartRate, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show maximum heart rate
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                x:Name="RecordedTime"
+                                                Height="20"
+                                                Margin="2"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowDuration, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show recorded time over selected time frame
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                x:Name="ShowSelectTimeInRecordedTime"
+                                                Height="20"
+                                                Margin="2,16,2,4"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowStatsTimeRange, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click"
+                                                Visibility="{Binding HeartRateConnector.Settings.ShowDuration, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                Show selected time like (24h) frame in recorded time stat
+                                            </CheckBox>
+
+
+                                        </StackPanel>
+
+
+
+
+
                                     </StackPanel>
                                 </Border>
                                 <Border
