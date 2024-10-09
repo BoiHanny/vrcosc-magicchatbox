@@ -430,23 +430,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void ProcessResponse(ChatResponse? response)
         {
-            if (response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String)
-            {
-                Settings.IntelliChatUILabel = false;
-                Settings.IntelliChatUILabelTxt = string.Empty;
+            string rawResponse = response?.Choices?[0].Message.Content.GetString() ?? string.Empty;
+            string sanitizedResponse = SanitizeShortenedText(rawResponse);
 
-                Settings.IntelliChatTxt = RemoveQuotationMarkAroundResponse(response.Choices[0].Message.Content.GetString());
-                Settings.IntelliChatWaitingToAccept = true;
+            Settings.IntelliChatUILabel = false;
+            Settings.IntelliChatUILabelTxt = string.Empty;
 
-            }
-            else
-            {
-                Settings.IntelliChatUILabel = false;
-                Settings.IntelliChatUILabelTxt = string.Empty;
+            Settings.IntelliChatTxt = sanitizedResponse;
+            Settings.IntelliChatWaitingToAccept = true;
 
-                Settings.IntelliChatTxt = RemoveQuotationMarkAroundResponse(response?.Choices?[0].Message.Content.ToString() ?? string.Empty);
-                Settings.IntelliChatWaitingToAccept = true;
-            }
             ProcessUsedTokens(response);
         }
 
@@ -1019,28 +1011,51 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+                // Define the prompt based on retry count
                 string prompt = retryCount == 0
-                ? $"Shorten ONLY the following text to 140 characters or less dont add anything, including spaces: {text}"
-                : $"Please be more concise. Shorten ONLY this text to 140 characters or less don't add more into it, including spaces: {text}";
+                    ? $"You are an expert at condensing text. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}"
+                    : $"The previous attempt did not meet the 140-character limit. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}";
 
                 var modelName = GetModelDescription(Settings.PerformShortenTextModel);
+
+                // Construct messages with role clarity
+                var messages = new List<Message>
+        {
+            new Message(Role.System, prompt)
+        };
+
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
+                {
+                    // Extracting the Language property from each SupportedIntelliChatLanguage object
+                    var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
+
+                    // Joining the language strings with commas
+                    var languagesString = string.Join(", ", languages);
+
+                    messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                }
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(new List<Message>
-                    {
-            new Message(Role.System, prompt)
-                    }, maxTokens: 60, model:modelName), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 60, // Adjusted for conciseness
+                        temperature: 0.3, // Reduced for determinism
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 var shortenedText = response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String
                     ? response.Choices[0].Message.Content.GetString()
                     : string.Empty;
 
+                // Sanitize the shortened text
+                string sanitizedShortenedText = SanitizeShortenedText(shortenedText);
+
                 // Check if the response is still over 140 characters and retry if necessary
-                if (shortenedText.Length > 140 && retryCount < 2) // Limiting to one retry
+                if (sanitizedShortenedText.Length > 140 && retryCount < 2) // Limiting to two retries
                 {
-                    await ShortenTextAsync(shortenedText, retryCount + 1);
+                    await ShortenTextAsync(sanitizedShortenedText, retryCount + 1);
                 }
                 else
                 {
@@ -1051,8 +1066,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
+        }
 
+        private string SanitizeShortenedText(string response)
+        {
+            if (string.IsNullOrEmpty(response))
+                return string.Empty;
 
+            // Remove any leading/trailing quotation marks
+            response = RemoveQuotationMarkAroundResponse(response);
+
+            // Trim the response to 140 characters if necessary
+            if (response.Length > 140)
+            {
+                response = response.Substring(0, 140).TrimEnd('.') + "...";
+            }
+
+            return response;
         }
 
         private string RemoveQuotationMarkAroundResponse(string response)
