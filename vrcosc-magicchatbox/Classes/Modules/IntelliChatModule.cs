@@ -524,15 +524,43 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             try
             {
-
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-                var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI and tech";
+                // Define the refined prompt
+                var prompt = "You are an imaginative conversationalist specializing all directions. Generate a creative and engaging conversation starter that is 140 characters or fewer, incorporating subtle lewdness or double entendres without being explicit.";
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
-                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(new List<Message> { new Message(Role.System, prompt) }, maxTokens: 60, temperature:2), _cancellationTokenSource.Token);
+                // Construct messages with role clarity
+                var messages = new List<Message>
+        {
+            new Message(Role.System, prompt)
+        };
+
+                // Include language considerations if applicable
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
+                {
+                    // Extracting the Language property from each SupportedIntelliChatLanguage object
+                    var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
+
+                    // Joining the language strings with commas
+                    var languagesString = string.Join(", ", languages);
+
+                    messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                }
+
+
+                var modelName = GetModelDescription(Settings.GenerateConversationStarterModel); 
+
+                // Adjusted model parameters
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 20, // Sufficient for a 140-character response
+                        temperature: 0.7, // Balanced creativity and coherence
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -547,7 +575,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
-
         }
 
         private List<SupportedIntelliChatLanguage> GetDefaultLanguages()
