@@ -32,6 +32,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [Description("gpt-4o"), ModelTypeInfo("Chat")]
         gpt4o,
 
+        [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
+        gpt4omini,
+
         [Description("gpt-4-turbo"), ModelTypeInfo("Chat")]
         gpt4_turbo,
 
@@ -379,8 +382,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
     Settings.PerformTextCompletionModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformTextCompletionModel)
         ? Settings.PerformTextCompletionModel : IntelliGPTModel.gpt4o;
 
-    Settings.PerformModerationCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel)
-        ? Settings.PerformModerationCheckModel : IntelliGPTModel.Moderation_Latest;
+            if (Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel) &&
+                GetModelType(Settings.PerformModerationCheckModel) == "Moderation")
+            {
+            }
+            else
+            {
+                Settings.PerformModerationCheckModel = IntelliGPTModel.Moderation_Latest;
+            }
+
+
         }
 
 
@@ -794,30 +805,29 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 intelliChatWritingStyle = intelliChatWritingStyle ?? Settings.SelectedWritingStyle;
 
                 var messages = new List<Message>
-                {
-                    new Message(Role.System, $"Rewrite this sentence in {intelliChatWritingStyle.StyleDescription}, Try to keep same word count")
-                };
+        {
+            new Message(Role.System, $"You are a helpful assistant that rewrites sentences in a {intelliChatWritingStyle.StyleDescription} style without adding any extra information."),
+            new Message(Role.User, text)
+        };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
                 {
-                    // Extracting the Language property from each SupportedIntelliChatLanguage object
                     var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
-
-                    // Joining the language strings with commas
                     var languagesString = string.Join(", ", languages);
-
                     messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
                 }
-
-
-                messages.Add(new Message(Role.User, text));
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var modelName = GetModelDescription(Settings.PerformBeautifySentenceModel);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature, model: modelName), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 60,
+                        temperature: intelliChatWritingStyle.Temperature,
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -830,9 +840,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
-
-
-
         }
 
 
