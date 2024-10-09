@@ -2327,7 +2327,7 @@
                                             <CheckBox
                                                 x:Name="HeartRateTitleStackMethod_checkbox"
                                                 Height="20"
-                                                 Margin="4,3"
+                                                Margin="4,3"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -9084,120 +9084,260 @@
                     </Border>
                 </ListBoxItem>
                 <ListBoxItem Name="SoundpadItem" Opacity="{Binding Soundpad_Opacity}">
-                    <Border Margin="5,0,5,5" CornerRadius="5">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="DarkSlateBlue" />
-                                <GradientStop Offset="1" Color="#FF302573" />
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="5"
-                                Direction="-23"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="DarkBlue" />
-                        </Border.Effect>
-                        <Grid Margin="3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <!--  Image  -->
-                            <Image
-                                Grid.Column="0"
-                                Width="35"
-                                Margin="5"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                Source="/Img/Icons/Soundpad.png" />
-                            <!--  Text Content  -->
-                            <StackPanel
-                                Grid.Column="1"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Center">
-                                <StackPanel
-                                    Margin="0,3,0,0"
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <Border
+                            Grid.Row="1"
+                            Margin="0"
+                            d:Visibility="Visible"
+                            Background="Transparent"
+                            Visibility="{Binding SoundpadModule.EnablePanel, Converter={StaticResource InverseBoolToHiddenConverter}}">
+
+                            <Border
+                                Width="auto"
+                                Height="35"
+                                Margin="5,0,5,5"
+                                VerticalAlignment="Stretch"
+                                Background="#3A1F74"
+                                CornerRadius="5">
+                                <Border.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Performance"
+                                        ShadowDepth="0"
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid>
+                                    <Border
+                                        Margin="0"
+                                        BorderThickness="2,2,0,2"
+                                        CornerRadius="4"
+                                        IsHitTestVisible="False">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                <GradientStop Color="#3A1F74" />
+                                                <GradientStop Offset="1" Color="#651A72" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Border.BorderBrush>
+                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.0,0">
+                                                <GradientStop Color="#3A1F74" />
+                                                <GradientStop Offset="1" Color="#B61BC1" />
+                                            </LinearGradientBrush>
+                                        </Border.BorderBrush>
+
+                                    </Border>
+                                    <StackPanel
+                                        Margin="4,4"
+                                        IsEnabled="{Binding SoundpadModule.IsSoundpadRunning}"
+                                        Orientation="Horizontal">
+                                        <Button
+                                            x:Name="SoundPadPrevious"
+                                            Width="auto"
+                                            Margin="3,0"
+                                            VerticalAlignment="Center"
+                                            Click="SoundPadPrevious_Click"
+                                            Content="⏮ Previous"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource GlowyButtonSoundpadWithText}" />
+                                        <Button
+                                            x:Name="SoundPadNext"
+                                            Width="auto"
+                                            Margin="3,0"
+                                            VerticalAlignment="Center"
+                                            Click="SoundPadNext_Click"
+                                            Content="⏭ Next"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource GlowyButtonSoundpadWithText}" />
+                                        <Button
+                                            x:Name="SoundPadRandon"
+                                            Width="auto"
+                                            Margin="3,0"
+                                            VerticalAlignment="Center"
+                                            Click="SoundPadRandon_Click"
+                                            Content="🔄 Random"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource GlowyButtonSoundpadWithText}" />
+                                        <Button
+                                            x:Name="SoundPadPlay"
+                                            Width="auto"
+                                            Margin="3,0"
+                                            VerticalAlignment="Center"
+                                            Click="SoundPadPlay_Click"
+                                            Content="▶ Paused"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource GlowyButtonSoundpadWithText}"
+                                            Visibility="{Binding SoundpadModule.PlayingNow, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                        <Button
+                                            x:Name="SoundPadPause"
+                                            Width="auto"
+                                            Margin="3,0"
+                                            VerticalAlignment="Center"
+                                            Click="SoundPadPause_Click"
+                                            Content="⏸ playing"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource GlowyButtonSoundpadWithText}"
+                                            Visibility="{Binding SoundpadModule.PlayingNow, Converter={StaticResource InverseBoolToHiddenConverter}}" />
+                                        <Button
+                                            x:Name="SoundPadStop"
+                                            Width="auto"
+                                            Margin="3,0"
+                                            VerticalAlignment="Center"
+                                            Click="SoundPadStop_Click"
+                                            Content="⏹️ Stop"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource GlowyButtonSoundpadWithText}"
+                                            Visibility="{Binding SoundpadModule.Stopped, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+                                        <TextBlock
+                                            Margin="7,0,0,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            d:Text=":( sorry"
+                                            d:Visibility="Visible"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Foreground="#9B7FD9"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding SoundpadModule.ErrorString}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding SoundpadModule.Error, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="10"
+                                                    Opacity="1"
+                                                    ShadowDepth="0"
+                                                    Color="#8B2FFA" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                </Grid>
+
+
+                            </Border>
+                        </Border>
+                        <Border Margin="5,0,5,5" CornerRadius="5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="DarkSlateBlue" />
+                                    <GradientStop Offset="1" Color="#FF302573" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="5"
+                                    Direction="-23"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="DarkBlue" />
+                            </Border.Effect>
+                            <Grid Margin="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <!--  Image  -->
+                                <Image
+                                    Grid.Column="0"
+                                    Width="35"
+                                    Margin="5"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
-                                    Orientation="Horizontal">
-                                    <TextBlock
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    Source="/Img/Icons/Soundpad.png" />
+                                <!--  Text Content  -->
+                                <StackPanel
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center">
+                                    <StackPanel
+                                        Margin="0,3,0,0"
                                         VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="20"
+                                            Foreground="White"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="Soundpad"
+                                            TextWrapping="Wrap" />
+                                        <ToggleButton
+                                            Width="60"
+                                            Height="19"
+                                            Margin="10,2,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="DESKTOP"
+                                            IsChecked="{Binding IntgrSoundpad_DESKTOP, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <ToggleButton
+                                            Width="30"
+                                            Height="19"
+                                            Margin="5,2,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Content="VR"
+                                            IsChecked="{Binding IntgrSoundpad_VR, Mode=TwoWay}"
+                                            Style="{StaticResource GlowyToggleButton}" />
+                                        <Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding ActivateSettingCommand}"
+                                            CommandParameter="Settings_Soundpad"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Style="{StaticResource CircleButton}">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Source="/Img/Icons/Next_ico.png" />
+                                            <Button.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="5"
+                                                    Opacity="0.4"
+                                                    ShadowDepth="0"
+                                                    Color="#251153" />
+                                            </Button.Effect>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <TextBlock
+                                        Margin="0,3,0,0"
                                         Effect="{StaticResource TextBlockShadowEffect}"
                                         FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
+                                        FontSize="13"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="Soundpad"
-                                        TextWrapping="Wrap" />
-                                    <ToggleButton
-                                        Width="60"
-                                        Height="19"
-                                        Margin="10,2,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Content="DESKTOP"
-                                        IsChecked="{Binding IntgrSoundpad_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
-                                    <ToggleButton
-                                        Width="30"
-                                        Height="19"
-                                        Margin="5,2,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Content="VR"
-                                        IsChecked="{Binding IntgrSoundpad_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
-                                    <Button
-                                        Margin="10,0,0,0"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Soundpad"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Style="{StaticResource CircleButton}">
-                                        <Image
-                                            Width="15"
-                                            Height="15"
-                                            Source="/Img/Icons/Next_ico.png" />
-                                        <Button.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="5"
-                                                Opacity="0.4"
-                                                ShadowDepth="0"
-                                                Color="#251153" />
-                                        </Button.Effect>
-                                    </Button>
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Foreground>
+                                            <RadialGradientBrush>
+                                                <GradientStop Color="White" />
+                                                <GradientStop Offset="1" Color="#FFC3A9FF" />
+                                            </RadialGradientBrush>
+                                        </TextBlock.Foreground>
+                                        <Run Text="Display audio clips from Soundpad during playback; hidden when paused or inactive." />
+                                    </TextBlock>
                                 </StackPanel>
-
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    TextWrapping="Wrap">
-                                    <TextBlock.Foreground>
-                                        <RadialGradientBrush>
-                                            <GradientStop Color="White" />
-                                            <GradientStop Offset="1" Color="#FFC3A9FF" />
-                                        </RadialGradientBrush>
-                                    </TextBlock.Foreground>
-                                    <Run Text="Display audio clips from Soundpad during playback; hidden when paused or inactive." />
-                                </TextBlock>
-                            </StackPanel>
-                            <!--  Toggle Button  -->
-                            <Grid Grid.Column="2">
-                                <CheckBox
-                                    Name="Soundpad_switch"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="Update_Click"
-                                    IsChecked="{Binding IntgrSoundpad, Mode=TwoWay}"
-                                    Style="{DynamicResource Switch}" />
+                                <!--  Toggle Button  -->
+                                <Grid Grid.Column="2">
+                                    <CheckBox
+                                        Name="Soundpad_switch"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Click="Update_Click"
+                                        IsChecked="{Binding IntgrSoundpad, Mode=TwoWay}"
+                                        Style="{DynamicResource Switch}" />
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </Border>
+                        </Border>
+
+                    </Grid>
+
                 </ListBoxItem>
 
                 <ListBoxItem
