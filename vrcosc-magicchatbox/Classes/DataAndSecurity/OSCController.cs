@@ -617,9 +617,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         {
             if(ViewModel.Instance.IntgrSoundpad)
             {
-                string playingSong = $"{DataController.soundpadModule.GetPlayingSong()}";
+                string playingSong = $"{ViewModel.Instance.SoundpadModule.GetPlayingSong()}";
 
-                if (string.IsNullOrEmpty(DataController.soundpadModule.GetPlayingSong()))
+                if (string.IsNullOrEmpty(ViewModel.Instance.SoundpadModule.GetPlayingSong()))
                 {
                     return;
                 }

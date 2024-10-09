@@ -27,7 +27,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static NetworkStatisticsModule networkStatisticsModule = null;
 
-        public static SoundpadModule soundpadModule = null;
+
 
         private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
         {
