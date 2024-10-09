@@ -859,13 +859,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (!await ModerationCheckPassedAsync(text)) return;
 
-                SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? settings.SelectedTranslateLanguage;
+                SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? Settings.SelectedTranslateLanguage;
 
                 var messages = new List<Message>
+        {
+            new Message(Role.System, $"You are a professional translator. Translate the following text to {intelliChatLanguage.Language} accurately without adding any additional information or context."),
+            new Message(Role.User, text)
+        };
+
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
                 {
-                    new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}:"),
-                    new Message(Role.User, text)
-                };
+                    var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
+                    var languagesString = string.Join(", ", languages);
+                    messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                }
 
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
@@ -875,7 +882,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature:0.3,model: modelName), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 120, 
+                        temperature: 0.3,
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -884,18 +896,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
                 else
                 {
-                    Settings.IntelliChatUILabel = false;
                     ProcessResponse(response);
                 }
-
             }
             catch (Exception ex)
             {
                 ProcessError(ex);
             }
-
-
         }
+
 
 
         public async Task PerformSpellingAndGrammarCheckAsync(string text)
