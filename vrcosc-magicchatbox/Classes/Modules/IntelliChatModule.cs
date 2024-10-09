@@ -925,33 +925,34 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+                IntelliChatWritingStyle intelliChatWritingStyle = Settings.SelectedWritingStyle;
+
                 var messages = new List<Message>
-                {
-                new Message(
-                    Role.System,
-                    "Please correct any spelling and grammar errors in the following text, always return correct version:")
-                };
+        {
+            new Message(Role.System, "You are a professional editor. Correct any spelling and grammar errors in the following text without adding or removing any additional information."),
+            new Message(Role.User, text)
+        };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
                 {
-                    // Extracting the Language property from each SupportedIntelliChatLanguage object
                     var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
 
-                    // Joining the language strings with commas
                     var languagesString = string.Join(", ", languages);
 
                     messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
                 }
 
-
-                messages.Add(new Message(Role.User, text));
-
                 var modelName = GetModelDescription(Settings.PerformSpellingCheckModel);
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
-                ChatResponse response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,model: modelName), _cancellationTokenSource.Token);
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 60,
+                        temperature: 0.3,
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -966,9 +967,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
-
-
         }
+
 
         public void RejectIntelliChatSuggestion()
         {
