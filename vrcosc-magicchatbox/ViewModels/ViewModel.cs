@@ -1,10 +1,8 @@
-﻿using NAudio.Wave;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,6 +35,17 @@ namespace vrcosc_magicchatbox.ViewModels
                     _MediaLinkSeekbarStyles = value;
                     NotifyPropertyChanged(nameof(MediaLinkSeekbarStyles));
                 }
+            }
+        }
+
+        private SoundpadModule _SoundpadModule;
+        public SoundpadModule SoundpadModule
+        {
+            get { return _SoundpadModule; }
+            set
+            {
+                _SoundpadModule = value;
+                NotifyPropertyChanged(nameof(SoundpadModule));
             }
         }
 
@@ -317,8 +326,11 @@ namespace vrcosc_magicchatbox.ViewModels
             };
 
             HeartRateConnector = new PulsoidModule();
+            SoundpadModule = new(1000);
+
 
             PropertyChanged += HeartRateConnector.PropertyChangedHandler;
+            PropertyChanged += SoundpadModule.PropertyChangedHandler;
         }
 
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
