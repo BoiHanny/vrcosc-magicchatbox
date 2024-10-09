@@ -59,6 +59,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private double heartRateTrendIndicatorSensitivity = 0.65;
 
         [ObservableProperty]
+        private bool hideCurrentHeartRate = false;
+
+        [ObservableProperty]
         private bool showTemperatureText = true;
 
         [ObservableProperty]
@@ -119,7 +122,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         bool pulsoidStatsEnabled = true;
 
         [ObservableProperty]
-        bool showCalories = true;
+        bool showCalories = false;
 
         [ObservableProperty]
         bool showAverageHeartRate = true;
@@ -131,16 +134,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
         bool showMaximumHeartRate = true;
 
         [ObservableProperty]
-        bool showDuration = true;
+        bool showDuration = false;
 
         [ObservableProperty]
         bool showStatsTimeRange = false;
 
         [ObservableProperty]
         bool trendIndicatorBehindStats = true;
-
-        [ObservableProperty]
-        bool showMinHeartRate = true;
 
 
         public void SaveSettings()
@@ -360,9 +360,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             Settings.PulsoidTrendSymbols = new List<PulsoidTrendSymbolSet>
             {
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⤴️", DownwardTrendSymbol = "⤵️" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⬆", DownwardTrendSymbol = "⬇" },
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↗", DownwardTrendSymbol = "↘" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
             };
@@ -711,14 +711,24 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             if (Settings.MagicHeartIconPrefix)
             {
-                displayTextBuilder.Append(Settings.HeartRateIcon + " ");
+                displayTextBuilder.Append(Settings.HeartRateIcon);
             }
 
-            displayTextBuilder.Append(HeartRate.ToString());
+            bool showCurrentHeartRate = true;
 
-            if (Settings.ShowBPMSuffix)
+            if (Settings.PulsoidStatsEnabled)
             {
-                displayTextBuilder.Append(" bpm");
+                showCurrentHeartRate = !Settings.HideCurrentHeartRate;
+            }
+
+            if (showCurrentHeartRate)
+            {
+                displayTextBuilder.Append(" " + HeartRate.ToString());
+
+                if (Settings.ShowBPMSuffix)
+                {
+                    displayTextBuilder.Append(" bpm");
+                }
             }
 
             if (Settings.ShowHeartRateTrendIndicator && !Settings.TrendIndicatorBehindStats)
@@ -741,13 +751,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     statsList.Add($"{PulsoidStatistics.average_beats_per_minute} Avg");
                 }
-                if (Settings.ShowMinimumHeartRate || Settings.ShowMinHeartRate)
-                {
-                    statsList.Add($"{PulsoidStatistics.minimum_beats_per_minute} Min");
-                }
-                if (Settings.ShowMaximumHeartRate || Settings.ShowMaximumHeartRate)
+                if (Settings.ShowMaximumHeartRate)
                 {
                     statsList.Add($"{PulsoidStatistics.maximum_beats_per_minute} Max");
+                }
+                    if (Settings.ShowMinimumHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.minimum_beats_per_minute} Min");
                 }
                 if (Settings.ShowDuration)
                 {
@@ -840,8 +850,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public class PulsoidTrendSymbolSet
     {
-        public string UpwardTrendSymbol { get; set; } = "⤴️";
-        public string DownwardTrendSymbol { get; set; } = "⤵️";
+        public string UpwardTrendSymbol { get; set; } = "↑";
+        public string DownwardTrendSymbol { get; set; } = "↓";
         public string CombinedTrendSymbol => $"{UpwardTrendSymbol} - {DownwardTrendSymbol}";
     }
     public class PulsoidOAuthHandler
