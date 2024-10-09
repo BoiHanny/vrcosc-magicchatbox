@@ -1641,7 +1641,7 @@
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="MagicHeartRateICON_checkbox"
-                                            Margin="0,0,0,0"
+                                            Margin="2,0"
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
@@ -1660,7 +1660,7 @@
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="MagicHeartRateIcons_checkbox"
-                                            Margin="0,0,0,0"
+                                            Margin="2,0"
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
@@ -1685,14 +1685,14 @@
 
                                         <TextBlock
                                             Width="auto"
-                                            Padding="2,3,0,0"
+                                            Margin="2,0"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="13"
                                             FontStyle="Italic"
                                             Foreground="#FF9983AD"
                                             Opacity="0.5"
-                                            Text="You can show stats over a selected time peroid." />
+                                            Text="You can show stats over a selected time period." />
 
                                         <CheckBox
                                             x:Name="EnableStats"
@@ -1712,7 +1712,7 @@
                                         <StackPanel Visibility="{Binding HeartRateConnector.Settings.PulsoidStatsEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <TextBlock
                                                 Width="auto"
-                                                Padding="2,5,0,0"
+                                                Margin="4,2"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="13"
@@ -1722,7 +1722,7 @@
                                                 x:Name="PulsoidTimeFrame_combo"
                                                 Width="100"
                                                 Height="25"
-                                                Margin="2,4"
+                                                Margin="4,4"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
                                                 ItemsSource="{Binding HeartRateConnector.Settings.StatisticsTimeRanges, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -1735,24 +1735,11 @@
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
 
-                                            <CheckBox
-                                                x:Name="PlaceTrendIndicatorBehindStats"
-                                                Height="20"
-                                                Margin="2,4"
-                                                BorderBrush="#FF2D1265"
-                                                Checked="Update_Click"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="18"
-                                                Foreground="#FFB9B5C1"
-                                                IsChecked="{Binding HeartRateConnector.Settings.TrendIndicatorBehindStats, Mode=TwoWay}"
-                                                Style="{DynamicResource SettingsCheckbox}"
-                                                Unchecked="Update_Click">
-                                                Place trend indicator behind stats
-                                            </CheckBox>
+
 
                                             <TextBlock
                                                 Width="auto"
-                                                Padding="2,5,0,0"
+                                                Padding="4,10,0,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="13"
@@ -1764,7 +1751,7 @@
                                             <CheckBox
                                                 x:Name="ShowCalories"
                                                 Height="20"
-                                                Margin="2,8,2,4"
+                                                Margin="4,4,2,3"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -1779,7 +1766,7 @@
                                             <CheckBox
                                                 x:Name="AverageHeartRate"
                                                 Height="20"
-                                                Margin="2"
+                                                Margin="4,3"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -1792,24 +1779,9 @@
                                             </CheckBox>
 
                                             <CheckBox
-                                                x:Name="MinimumHeartRate"
-                                                Height="20"
-                                                Margin="2"
-                                                BorderBrush="#FF2D1265"
-                                                Checked="Update_Click"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="18"
-                                                Foreground="#FFB9B5C1"
-                                                IsChecked="{Binding HeartRateConnector.Settings.ShowMinimumHeartRate, Mode=TwoWay}"
-                                                Style="{DynamicResource SettingsCheckbox}"
-                                                Unchecked="Update_Click">
-                                                Show minimum heart rate
-                                            </CheckBox>
-
-                                            <CheckBox
                                                 x:Name="MaximumHeartRate"
                                                 Height="20"
-                                                Margin="2"
+                                                Margin="4,3"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -1822,9 +1794,26 @@
                                             </CheckBox>
 
                                             <CheckBox
+                                                x:Name="MinimumHeartRate"
+                                                Height="20"
+                                                Margin="4,3"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.ShowMinimumHeartRate, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Show minimum heart rate
+                                            </CheckBox>
+
+
+
+                                            <CheckBox
                                                 x:Name="RecordedTime"
                                                 Height="20"
-                                                Margin="2"
+                                                Margin="4,3"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -1839,7 +1828,7 @@
                                             <CheckBox
                                                 x:Name="ShowSelectTimeInRecordedTime"
                                                 Height="20"
-                                                Margin="2,16,2,4"
+                                                Margin="4,3"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -1850,6 +1839,35 @@
                                                 Unchecked="Update_Click"
                                                 Visibility="{Binding HeartRateConnector.Settings.ShowDuration, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 Show selected time like (24h) frame in recorded time stat
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                x:Name="HideCurrentHeartRate"
+                                                Height="20"
+                                                Margin="4,12,4,3"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.HideCurrentHeartRate, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Hide current heart rate when showing stats
+                                            </CheckBox>
+                                            <CheckBox
+                                                x:Name="PlaceTrendIndicatorBehindStats"
+                                                Height="20"
+                                                Margin="4,3"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.TrendIndicatorBehindStats, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Place trend indicator behind stats
                                             </CheckBox>
 
 
@@ -1869,7 +1887,7 @@
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="ShowTemperatureText_checkbox"
-                                            Margin="0,0,0,0"
+                                            Margin="4,2"
                                             FontFamily="Comfortaa Light"
                                             FontSize="18"
                                             Foreground="#FFB9B5C1"
@@ -1877,7 +1895,7 @@
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show temperature status
                                         </CheckBox>
-                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding HeartRateConnector.Settings.ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="4,5,0,0" Visibility="{Binding HeartRateConnector.Settings.ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock
                                                     Padding="0,0,9,0"
@@ -1971,6 +1989,7 @@
                                         <CheckBox
                                             x:Name="ShowHeartRateTrendIndicator"
                                             Height="20"
+                                            Margin="4,2"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
@@ -1981,8 +2000,9 @@
                                             Unchecked="Update_Click">
                                             Trend suffix indicators ⤴️ ⤵️
                                         </CheckBox>
-                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateConnector.Settings.ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,6,0,0" Visibility="{Binding HeartRateConnector.Settings.ShowHeartRateTrendIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <TextBlock
+                                                Margin="4,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="15"
@@ -1994,7 +2014,7 @@
                                                     x:Name="PulsoidTrendSymbols"
                                                     Width="100"
                                                     Height="25"
-                                                    Margin="2,4"
+                                                    Margin="4,2"
                                                     HorizontalAlignment="Left"
                                                     VerticalAlignment="Center"
                                                     DisplayMemberPath="CombinedTrendSymbol"
@@ -2003,7 +2023,7 @@
                                                     SelectedItem="{Binding HeartRateConnector.Settings.SelectedPulsoidTrendSymbol, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                             <StackPanel
-                                                Margin="0,5,0,10"
+                                                Margin="4,5,0,10"
                                                 VerticalAlignment="Center"
                                                 Orientation="Horizontal">
                                                 <TextBlock
@@ -2035,13 +2055,13 @@
 
                                             <TextBlock
                                                 Width="auto"
-                                                Padding="0,0"
+                                                Padding="4,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="15"
                                                 Foreground="#FF9983AD"
                                                 Text="Trend sensitivity" />
-                                            <StackPanel Orientation="Horizontal">
+                                            <StackPanel Margin="3,0" Orientation="Horizontal">
 
                                                 <TextBlock
                                                     Width="auto"
@@ -2080,6 +2100,7 @@
                                         <CheckBox
                                             x:Name="SmoothHeartRate_checkbox"
                                             Height="20"
+                                            Margin="4,2"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
@@ -2090,7 +2111,7 @@
                                             Unchecked="Update_Click">
                                             Smooth heart rate
                                         </CheckBox>
-                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateConnector.Settings.SmoothHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="4,4,0,0" Visibility="{Binding HeartRateConnector.Settings.SmoothHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
                                                 Margin="0,5,0,5"
                                                 VerticalAlignment="Center"
@@ -2132,7 +2153,7 @@
                                         <CheckBox
                                             x:Name="ApplyHeartRateAdjustment_checkbox"
                                             Height="20"
-                                            Margin="0,0,0,0"
+                                            Margin="4,2"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
@@ -2144,7 +2165,7 @@
                                             Heart rate adjustment
                                         </CheckBox>
 
-                                        <StackPanel Margin="0,15,0,0" Visibility="{Binding HeartRateConnector.Settings.ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="4,5,0,0" Visibility="{Binding HeartRateConnector.Settings.ApplyHeartRateAdjustment, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
                                                 Margin="0,5,0,5"
                                                 VerticalAlignment="Center"
@@ -2187,7 +2208,7 @@
                                         <CheckBox
                                             x:Name="EnableHeartRateOfflineCheck_checkbox"
                                             Height="22"
-                                            Margin="0,0,0,0"
+                                            Margin="4,2"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
@@ -2198,7 +2219,7 @@
                                             Unchecked="Update_Click">
                                             Check for offline heart rate
                                         </CheckBox>
-                                        <StackPanel Margin="0,5,0,0" Visibility="{Binding HeartRateConnector.Settings.EnableHeartRateOfflineCheck, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="4,5,0,0" Visibility="{Binding HeartRateConnector.Settings.EnableHeartRateOfflineCheck, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
                                                 Margin="0,5,0,0"
                                                 VerticalAlignment="Center"
@@ -2239,6 +2260,7 @@
                                         <CheckBox
                                             x:Name="ShowBPMSuffix_checkbox"
                                             Height="20"
+                                            Margin="4,2"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
@@ -2259,6 +2281,7 @@
                                         <CheckBox
                                             x:Name="HeartRateTitle_checkbox"
                                             Height="20"
+                                            Margin="4,2"
                                             BorderBrush="#FF2D1265"
                                             Checked="Update_Click"
                                             FontFamily="Comfortaa Light"
@@ -2271,22 +2294,15 @@
                                         </CheckBox>
 
                                         <StackPanel Margin="0,10,0,0" Visibility="{Binding HeartRateConnector.Settings.HeartRateTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-
-                                            <CheckBox
-                                                x:Name="HeartRateTitleStackMethod_checkbox"
-                                                Height="20"
-                                                BorderBrush="#FF2D1265"
-                                                Checked="Update_Click"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="18"
-                                                Foreground="#FFB9B5C1"
-                                                IsChecked="{Binding HeartRateConnector.Settings.SeparateTitleWithEnter, Mode=TwoWay}"
-                                                Style="{DynamicResource SettingsCheckbox}"
-                                                Unchecked="Update_Click">
-                                                Seperate with enter
-                                            </CheckBox>
+                                            <TextBlock
+                                                Margin="4,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="The title is shown above/before the heart rate." />
                                             <StackPanel
-                                                Margin="0,5,0,5"
+                                                Margin="4,5,0,5"
                                                 VerticalAlignment="Center"
                                                 Orientation="Horizontal">
                                                 <TextBlock
@@ -2294,7 +2310,7 @@
                                                     FontFamily="Albert Sans Thin"
                                                     FontSize="15"
                                                     Foreground="#FF9983AD"
-                                                    Text="Title:" />
+                                                    Text="Show off as:" />
                                                 <TextBox
                                                     x:Name="HeartRateTitleCustom"
                                                     Width="auto"
@@ -2308,6 +2324,21 @@
                                                     Foreground="#FF240E54"
                                                     Text="{Binding HeartRateConnector.Settings.CurrentHeartRateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
+                                            <CheckBox
+                                                x:Name="HeartRateTitleStackMethod_checkbox"
+                                                Height="20"
+                                                 Margin="4,3"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.SeparateTitleWithEnter, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Seperate with enter
+                                            </CheckBox>
+
                                         </StackPanel>
 
                                     </StackPanel>
