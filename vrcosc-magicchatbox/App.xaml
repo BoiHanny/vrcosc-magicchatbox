@@ -997,15 +997,59 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Setter Property="Effect">
+
+        </Style>
+
+        <Style x:Key="GlowyButtonSoundpadWithText" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="#AF00FA" />
+            <Setter Property="Foreground" Value="#230E53" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="35" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect
-                        BlurRadius="3"
-                        ShadowDepth="0"
-                        Color="#B9CAF7" />
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Border
+                                x:Name="buttonBorder"
+                                VerticalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Effect="{TemplateBinding Effect}">
+                                <ContentPresenter
+                                    Width="auto"
+                                    Height="20"
+                                    Margin="4,5,4,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Content="{TemplateBinding Content}"
+                                    TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!--  MouseOver Trigger  -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#BB35F4" />
+                            </Trigger>
+
+                            <!--  IsPressed Trigger  -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#E135F4" />
+                            </Trigger>
+
+                            <!--  IsEnabled Trigger  -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                                <Setter Property="Cursor" Value="No" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
 
 
 

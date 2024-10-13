@@ -50,6 +50,7 @@ namespace vrcosc_magicchatbox.ViewModels
         Playing,
         Paused,
         Stopped,
-        NotRunning
+        NotRunning,
+        Unknown
     }
 }

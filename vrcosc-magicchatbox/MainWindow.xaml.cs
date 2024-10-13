@@ -1709,6 +1709,36 @@ namespace vrcosc_magicchatbox
         {
             ViewModel.Instance.ActivateSetting("Settings_HeartRate");
         }
+
+        private void SoundPadPlay_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.SoundpadModule.TogglePause();
+        }
+
+        private void SoundPadPause_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.SoundpadModule.TogglePause();
+        }
+
+        private void SoundPadPrevious_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.SoundpadModule.PlayPreviousSound();
+        }
+
+        private void SoundPadNext_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.SoundpadModule.PlayNextSound();
+        }
+
+        private void SoundPadStop_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.SoundpadModule.StopSound();
+        }
+
+        private void SoundPadRandon_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.SoundpadModule.PlayRandomSound();
+        }
     }
 
 

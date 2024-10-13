@@ -32,6 +32,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [Description("gpt-4o"), ModelTypeInfo("Chat")]
         gpt4o,
 
+        [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
+        gpt4omini,
+
         [Description("gpt-4-turbo"), ModelTypeInfo("Chat")]
         gpt4_turbo,
 
@@ -379,8 +382,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
     Settings.PerformTextCompletionModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformTextCompletionModel)
         ? Settings.PerformTextCompletionModel : IntelliGPTModel.gpt4o;
 
-    Settings.PerformModerationCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel)
-        ? Settings.PerformModerationCheckModel : IntelliGPTModel.Moderation_Latest;
+            if (Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel) &&
+                GetModelType(Settings.PerformModerationCheckModel) == "Moderation")
+            {
+            }
+            else
+            {
+                Settings.PerformModerationCheckModel = IntelliGPTModel.Moderation_Latest;
+            }
+
+
         }
 
 
@@ -419,23 +430,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void ProcessResponse(ChatResponse? response)
         {
-            if (response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String)
-            {
-                Settings.IntelliChatUILabel = false;
-                Settings.IntelliChatUILabelTxt = string.Empty;
+            string rawResponse = response?.Choices?[0].Message.Content.GetString() ?? string.Empty;
+            string sanitizedResponse = SanitizeShortenedText(rawResponse);
 
-                Settings.IntelliChatTxt = RemoveQuotationMarkAroundResponse(response.Choices[0].Message.Content.GetString());
-                Settings.IntelliChatWaitingToAccept = true;
+            Settings.IntelliChatUILabel = false;
+            Settings.IntelliChatUILabelTxt = string.Empty;
 
-            }
-            else
-            {
-                Settings.IntelliChatUILabel = false;
-                Settings.IntelliChatUILabelTxt = string.Empty;
+            Settings.IntelliChatTxt = sanitizedResponse;
+            Settings.IntelliChatWaitingToAccept = true;
 
-                Settings.IntelliChatTxt = RemoveQuotationMarkAroundResponse(response?.Choices?[0].Message.Content.ToString() ?? string.Empty);
-                Settings.IntelliChatWaitingToAccept = true;
-            }
             ProcessUsedTokens(response);
         }
 
@@ -521,15 +524,43 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             try
             {
-
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-                var prompt = "Please generate a short a creative and engaging conversation starter of max 140 characters (this includes spaces), avoid AI and tech";
+                // Define the refined prompt
+                var prompt = "You are an imaginative conversationalist specializing all directions. Generate a creative and engaging conversation starter that is 140 characters or fewer, incorporating subtle lewdness or double entendres without being explicit.";
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
-                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(new List<Message> { new Message(Role.System, prompt) }, maxTokens: 60, temperature:2), _cancellationTokenSource.Token);
+                // Construct messages with role clarity
+                var messages = new List<Message>
+        {
+            new Message(Role.System, prompt)
+        };
+
+                // Include language considerations if applicable
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
+                {
+                    // Extracting the Language property from each SupportedIntelliChatLanguage object
+                    var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
+
+                    // Joining the language strings with commas
+                    var languagesString = string.Join(", ", languages);
+
+                    messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                }
+
+
+                var modelName = GetModelDescription(Settings.GenerateConversationStarterModel); 
+
+                // Adjusted model parameters
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 20, // Sufficient for a 140-character response
+                        temperature: 0.7, // Balanced creativity and coherence
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -544,7 +575,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
-
         }
 
         private List<SupportedIntelliChatLanguage> GetDefaultLanguages()
@@ -794,30 +824,29 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 intelliChatWritingStyle = intelliChatWritingStyle ?? Settings.SelectedWritingStyle;
 
                 var messages = new List<Message>
-                {
-                    new Message(Role.System, $"Rewrite this sentence in {intelliChatWritingStyle.StyleDescription}, Try to keep same word count")
-                };
+        {
+            new Message(Role.System, $"You are a helpful assistant that rewrites sentences in a {intelliChatWritingStyle.StyleDescription} style without adding any extra information."),
+            new Message(Role.User, text)
+        };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
                 {
-                    // Extracting the Language property from each SupportedIntelliChatLanguage object
                     var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
-
-                    // Joining the language strings with commas
                     var languagesString = string.Join(", ", languages);
-
                     messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
                 }
-
-
-                messages.Add(new Message(Role.User, text));
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var modelName = GetModelDescription(Settings.PerformBeautifySentenceModel);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature: intelliChatWritingStyle.Temperature, model: modelName), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 60,
+                        temperature: intelliChatWritingStyle.Temperature,
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -830,9 +859,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
-
-
-
         }
 
 
@@ -852,13 +878,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (!await ModerationCheckPassedAsync(text)) return;
 
-                SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? settings.SelectedTranslateLanguage;
+                SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? Settings.SelectedTranslateLanguage;
 
                 var messages = new List<Message>
+        {
+            new Message(Role.System, $"You are a professional translator. Translate the following text to {intelliChatLanguage.Language} accurately without adding any additional information or context."),
+            new Message(Role.User, text)
+        };
+
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
                 {
-                    new Message(Role.System, $"Translate this to {intelliChatLanguage.Language}:"),
-                    new Message(Role.User, text)
-                };
+                    var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
+                    var languagesString = string.Join(", ", languages);
+                    messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                }
 
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
@@ -868,7 +901,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120, temperature:0.3,model: modelName), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 120, 
+                        temperature: 0.3,
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -877,18 +915,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
                 else
                 {
-                    Settings.IntelliChatUILabel = false;
                     ProcessResponse(response);
                 }
-
             }
             catch (Exception ex)
             {
                 ProcessError(ex);
             }
-
-
         }
+
 
 
         public async Task PerformSpellingAndGrammarCheckAsync(string text)
@@ -909,33 +944,34 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+                IntelliChatWritingStyle intelliChatWritingStyle = Settings.SelectedWritingStyle;
+
                 var messages = new List<Message>
-                {
-                new Message(
-                    Role.System,
-                    "Please correct any spelling and grammar errors in the following text, always return correct version:")
-                };
+        {
+            new Message(Role.System, "You are a professional editor. Correct any spelling and grammar errors in the following text without adding or removing any additional information."),
+            new Message(Role.User, text)
+        };
 
                 if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
                 {
-                    // Extracting the Language property from each SupportedIntelliChatLanguage object
                     var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
 
-                    // Joining the language strings with commas
                     var languagesString = string.Join(", ", languages);
 
                     messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
                 }
 
-
-                messages.Add(new Message(Role.User, text));
-
                 var modelName = GetModelDescription(Settings.PerformSpellingCheckModel);
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
-                ChatResponse response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(messages: messages, maxTokens: 120,model: modelName), _cancellationTokenSource.Token);
+                var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 60,
+                        temperature: 0.3,
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 if (response == null)
                 {
@@ -950,9 +986,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
-
-
         }
+
 
         public void RejectIntelliChatSuggestion()
         {
@@ -1003,28 +1038,51 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Settings.IntelliChatUILabel = true;
                 Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+                // Define the prompt based on retry count
                 string prompt = retryCount == 0
-                ? $"Shorten ONLY the following text to 140 characters or less dont add anything, including spaces: {text}"
-                : $"Please be more concise. Shorten ONLY this text to 140 characters or less don't add more into it, including spaces: {text}";
+                    ? $"You are an expert at condensing text. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}"
+                    : $"The previous attempt did not meet the 140-character limit. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}";
 
                 var modelName = GetModelDescription(Settings.PerformShortenTextModel);
+
+                // Construct messages with role clarity
+                var messages = new List<Message>
+        {
+            new Message(Role.System, prompt)
+        };
+
+                if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
+                {
+                    // Extracting the Language property from each SupportedIntelliChatLanguage object
+                    var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
+
+                    // Joining the language strings with commas
+                    var languagesString = string.Join(", ", languages);
+
+                    messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                }
 
                 ResetCancellationToken(Settings.IntelliChatTimeout);
 
                 var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                    .GetCompletionAsync(new ChatRequest(new List<Message>
-                    {
-            new Message(Role.System, prompt)
-                    }, maxTokens: 60, model:modelName), _cancellationTokenSource.Token);
+                    .GetCompletionAsync(new ChatRequest(
+                        messages: messages,
+                        maxTokens: 60, // Adjusted for conciseness
+                        temperature: 0.3, // Reduced for determinism
+                        model: modelName),
+                    _cancellationTokenSource.Token);
 
                 var shortenedText = response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String
                     ? response.Choices[0].Message.Content.GetString()
                     : string.Empty;
 
+                // Sanitize the shortened text
+                string sanitizedShortenedText = SanitizeShortenedText(shortenedText);
+
                 // Check if the response is still over 140 characters and retry if necessary
-                if (shortenedText.Length > 140 && retryCount < 2) // Limiting to one retry
+                if (sanitizedShortenedText.Length > 140 && retryCount < 2) // Limiting to two retries
                 {
-                    await ShortenTextAsync(shortenedText, retryCount + 1);
+                    await ShortenTextAsync(sanitizedShortenedText, retryCount + 1);
                 }
                 else
                 {
@@ -1035,8 +1093,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 ProcessError(ex);
             }
+        }
 
+        private string SanitizeShortenedText(string response)
+        {
+            if (string.IsNullOrEmpty(response))
+                return string.Empty;
 
+            // Remove any leading/trailing quotation marks
+            response = RemoveQuotationMarkAroundResponse(response);
+
+            // Trim the response to 140 characters if necessary
+            if (response.Length > 140)
+            {
+                response = response.Substring(0, 140).TrimEnd('.') + "...";
+            }
+
+            return response;
         }
 
         private string RemoveQuotationMarkAroundResponse(string response)

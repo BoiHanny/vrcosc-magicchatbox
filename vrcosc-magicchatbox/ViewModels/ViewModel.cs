@@ -1,10 +1,8 @@
-﻿using NAudio.Wave;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,6 +35,17 @@ namespace vrcosc_magicchatbox.ViewModels
                     _MediaLinkSeekbarStyles = value;
                     NotifyPropertyChanged(nameof(MediaLinkSeekbarStyles));
                 }
+            }
+        }
+
+        private SoundpadModule _SoundpadModule;
+        public SoundpadModule SoundpadModule
+        {
+            get { return _SoundpadModule; }
+            set
+            {
+                _SoundpadModule = value;
+                NotifyPropertyChanged(nameof(SoundpadModule));
             }
         }
 
@@ -186,9 +195,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private bool _HeartRateTitle = false;
-
         private bool _IntgrComponentStats = false;
 
 
@@ -320,8 +326,11 @@ namespace vrcosc_magicchatbox.ViewModels
             };
 
             HeartRateConnector = new PulsoidModule();
+            SoundpadModule = new(1000);
+
 
             PropertyChanged += HeartRateConnector.PropertyChangedHandler;
+            PropertyChanged += SoundpadModule.PropertyChangedHandler;
         }
 
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -671,15 +680,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public bool HeartRateTitle
-        {
-            get { return _HeartRateTitle; }
-            set
-            {
-                _HeartRateTitle = value;
-                NotifyPropertyChanged(nameof(HeartRateTitle));
-            }
-        }
         public bool IntgrComponentStats
         {
             get { return _IntgrComponentStats; }
@@ -1946,18 +1946,6 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
 
-        private bool _MagicHeartIconPrefix = true;
-        public bool MagicHeartIconPrefix
-        {
-            get { return _MagicHeartIconPrefix; }
-            set
-            {
-                _MagicHeartIconPrefix = value;
-                NotifyPropertyChanged(nameof(MagicHeartIconPrefix));
-            }
-        }
-
-
         private bool _RollBackUpdateAvailable = false;
 
         public bool RollBackUpdateAvailable
@@ -2422,31 +2410,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private int _HeartRateScanInterval_v3 = 1;
-
-        public int HeartRateScanInterval_v3
-        {
-            get { return _HeartRateScanInterval_v3; }
-            set
-            {
-                _HeartRateScanInterval_v3 = value;
-                NotifyPropertyChanged(nameof(HeartRateScanInterval_v3));
-            }
-        }
-
-        private DateTime _HeartRateLastUpdate = DateTime.Now;
-
-        public DateTime HeartRateLastUpdate
-        {
-            get { return _HeartRateLastUpdate; }
-            set
-            {
-                _HeartRateLastUpdate = value;
-                NotifyPropertyChanged(nameof(HeartRateLastUpdate));
-            }
-        }
-
         private DateTime _ComponentStatsLastUpdate = DateTime.Now;
 
         public DateTime ComponentStatsLastUpdate
@@ -2692,73 +2655,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-
-
-        private int _HeartRate;
-
-        public int HeartRate
-        {
-            get { return _HeartRate; }
-            set
-            {
-                _HeartRate = value;
-                NotifyPropertyChanged(nameof(HeartRate));
-            }
-        }
-
-
-        private bool _ApplyHeartRateAdjustment = false;
-
-        public bool ApplyHeartRateAdjustment
-        {
-            get { return _ApplyHeartRateAdjustment; }
-            set
-            {
-                _ApplyHeartRateAdjustment = value;
-                NotifyPropertyChanged(nameof(ApplyHeartRateAdjustment));
-            }
-        }
-
-
-        private int _SmoothHeartRateTimeSpan = 4;
-
-        public int SmoothHeartRateTimeSpan
-        {
-            get { return _SmoothHeartRateTimeSpan; }
-            set
-            {
-                _SmoothHeartRateTimeSpan = value;
-                NotifyPropertyChanged(nameof(SmoothHeartRateTimeSpan));
-            }
-        }
-
-
-        private bool _SmoothHeartRate_v1 = true;
-
-        public bool SmoothHeartRate_v1
-        {
-            get { return _SmoothHeartRate_v1; }
-            set
-            {
-                _SmoothHeartRate_v1 = value;
-                NotifyPropertyChanged(nameof(SmoothHeartRate_v1));
-            }
-        }
-
-
-        private bool _ShowBPMSuffix = false;
-
-        public bool ShowBPMSuffix
-        {
-            get { return _ShowBPMSuffix; }
-            set
-            {
-                _ShowBPMSuffix = value;
-                NotifyPropertyChanged(nameof(ShowBPMSuffix));
-            }
-        }
-
         private string _PulsoidAccessTokenOAuthEncrypted = string.Empty;
         private string _PulsoidAccessTokenOAuth;
 
@@ -2897,146 +2793,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
             }
         }
-
-
-        public int CurrentHeartIconIndex = 0;
-
-        public readonly List<string> HeartIcons = new List<string> { "❤️", "💖", "💗", "💙", "💚", "💛", "💜" };
-
-        private int _lowTemperatureThreshold = 60;
-        public int LowTemperatureThreshold
-        {
-            get { return _lowTemperatureThreshold; }
-            set
-            {
-                if (_lowTemperatureThreshold != value)
-                {
-                    _lowTemperatureThreshold = value;
-                    NotifyPropertyChanged(nameof(LowTemperatureThreshold));
-                }
-            }
-        }
-
-        private int _highTemperatureThreshold = 100;
-        public int HighTemperatureThreshold
-        {
-            get { return _highTemperatureThreshold; }
-            set
-            {
-                if (_highTemperatureThreshold != value)
-                {
-                    _highTemperatureThreshold = value;
-                    NotifyPropertyChanged(nameof(HighTemperatureThreshold));
-                }
-            }
-        }
-
-        private bool _showTemperatureText = true;
-        public bool ShowTemperatureText
-        {
-            get { return _showTemperatureText; }
-            set
-            {
-                if (_showTemperatureText != value)
-                {
-                    _showTemperatureText = value;
-                    NotifyPropertyChanged(nameof(ShowTemperatureText));
-                }
-            }
-        }
-
-        private string _lowHeartRateText = "sleepy";
-        public string LowHeartRateText
-        {
-            get { return _lowHeartRateText; }
-            set
-            {
-                if (_lowHeartRateText != value)
-                {
-                    _lowHeartRateText = value;
-                    PulsoidModule.UpdateFormattedHeartRateText();
-                    NotifyPropertyChanged(nameof(LowHeartRateText));
-                }
-            }
-        }
-
-        private string _highHeartRateText = "hot";
-        public string HighHeartRateText
-        {
-            get { return _highHeartRateText; }
-            set
-            {
-                if (_highHeartRateText != value)
-                {
-                    _highHeartRateText = value;
-                    PulsoidModule.UpdateFormattedHeartRateText();
-                    NotifyPropertyChanged(nameof(HighHeartRateText));
-                }
-            }
-        }
-
-        private string _formattedLowHeartRateText;
-        public string FormattedLowHeartRateText
-        {
-            get { return _formattedLowHeartRateText; }
-            set
-            {
-                if (_formattedLowHeartRateText != value)
-                {
-                    _formattedLowHeartRateText = value;
-                    NotifyPropertyChanged(nameof(FormattedLowHeartRateText));
-                }
-            }
-        }
-
-        private string _formattedHighHeartRateText;
-        public string FormattedHighHeartRateText
-        {
-            get { return _formattedHighHeartRateText; }
-            set
-            {
-                if (_formattedHighHeartRateText != value)
-                {
-                    _formattedHighHeartRateText = value;
-                    NotifyPropertyChanged(nameof(FormattedHighHeartRateText));
-                }
-            }
-        }
-
-
-        private bool _MagicHeartRateIcons = true;
-
-        public bool MagicHeartRateIcons
-        {
-            get { return _MagicHeartRateIcons; }
-            set
-            {
-                if (_MagicHeartRateIcons != value)
-                {
-                    _MagicHeartRateIcons = value;
-                    NotifyPropertyChanged(nameof(MagicHeartRateIcons));
-                }
-            }
-        }
-
-
-        private string _HeartRateIcon = "❤️";
-
-        public string HeartRateIcon
-        {
-            get { return _HeartRateIcon; }
-            set
-            {
-                if (_HeartRateIcon != value)
-                {
-                    _HeartRateIcon = value;
-                    NotifyPropertyChanged(nameof(HeartRateIcon));
-                }
-            }
-        }
-
-
-
 
         private bool _timeShowTimeZone = false;
 
@@ -3739,59 +3495,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private int _HeartRateTrendIndicatorSampleRate = 4;
-
-        public int HeartRateTrendIndicatorSampleRate
-        {
-            get { return _HeartRateTrendIndicatorSampleRate; }
-            set
-            {
-                _HeartRateTrendIndicatorSampleRate = value;
-                NotifyPropertyChanged(nameof(HeartRateTrendIndicatorSampleRate));
-            }
-        }
-
-        private bool _ShowHeartRateTrendIndicator = true;
-
-        public bool ShowHeartRateTrendIndicator
-        {
-            get { return _ShowHeartRateTrendIndicator; }
-            set
-            {
-                _ShowHeartRateTrendIndicator = value;
-                NotifyPropertyChanged(nameof(ShowHeartRateTrendIndicator));
-            }
-        }
-
-        private string _HeartRateTrendIndicator = string.Empty;
-
-        public string HeartRateTrendIndicator
-        {
-            get { return _HeartRateTrendIndicator; }
-            set
-            {
-                _HeartRateTrendIndicator = value;
-                NotifyPropertyChanged(nameof(HeartRateTrendIndicator));
-            }
-        }
-
-
-
-
-
-        private double _HeartRateTrendIndicatorSensitivity = 0.65;
-
-        public double HeartRateTrendIndicatorSensitivity
-        {
-            get { return _HeartRateTrendIndicatorSensitivity; }
-            set
-            {
-                _HeartRateTrendIndicatorSensitivity = value;
-                NotifyPropertyChanged(nameof(HeartRateTrendIndicatorSensitivity));
-            }
-        }
-
         public string MenuItem_2_Visibility
         {
             get { return _MenuItem_2_Visibility; }
@@ -3862,19 +3565,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-
-        private int _HeartRateAdjustment = -5;
-
-        public int HeartRateAdjustment
-        {
-            get { return _HeartRateAdjustment; }
-            set
-            {
-                _HeartRateAdjustment = value;
-                NotifyPropertyChanged(nameof(HeartRateAdjustment));
-            }
-        }
-
         public string HeartRate_Opacity
         {
             get { return _HeartRate_Opacity; }
@@ -3935,31 +3625,6 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrStatus = value;
                 NotifyPropertyChanged(nameof(IntgrStatus));
-            }
-        }
-
-
-        private string _PulsoidAccessErrorTxt = string.Empty;
-
-        public string PulsoidAccessErrorTxt
-        {
-            get { return _PulsoidAccessErrorTxt; }
-            set
-            {
-                _PulsoidAccessErrorTxt = value;
-                NotifyPropertyChanged(nameof(PulsoidAccessErrorTxt));
-            }
-        }
-
-        private bool _PulsoidAccessError = false;
-
-        public bool PulsoidAccessError
-        {
-            get { return _PulsoidAccessError; }
-            set
-            {
-                _PulsoidAccessError = value;
-                NotifyPropertyChanged(nameof(PulsoidAccessError));
             }
         }
 
@@ -4457,53 +4122,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(SpotifyPaused));
             }
         }
-
-        private bool _PulsoidDeviceOnline = true;
-        public bool PulsoidDeviceOnline
-        {
-            get { return _PulsoidDeviceOnline; }
-            set
-            {
-                _PulsoidDeviceOnline = value;
-                NotifyPropertyChanged(nameof(PulsoidDeviceOnline));
-            }
-        }
-
-
-        private string _CurrentHeartRateTitle = "My heartrate";
-        public string CurrentHeartRateTitle
-        {
-            get { return _CurrentHeartRateTitle; }
-            set
-            {
-                _CurrentHeartRateTitle = value;
-                NotifyPropertyChanged(nameof(CurrentHeartRateTitle));
-            }
-        }
-
-        private int _UnchangedHeartRateTimeoutInSec = 30;
-        public int UnchangedHeartRateTimeoutInSec
-        {
-            get { return _UnchangedHeartRateTimeoutInSec; }
-            set
-            {
-                _UnchangedHeartRateTimeoutInSec = value;
-                NotifyPropertyChanged(nameof(UnchangedHeartRateTimeoutInSec));
-            }
-        }
-
-
-        private bool _EnableHeartRateOfflineCheck = true;
-        public bool EnableHeartRateOfflineCheck
-        {
-            get { return _EnableHeartRateOfflineCheck; }
-            set
-            {
-                _EnableHeartRateOfflineCheck = value;
-                NotifyPropertyChanged(nameof(EnableHeartRateOfflineCheck));
-            }
-        }
-
         #endregion
 
         #region PropChangedEvent

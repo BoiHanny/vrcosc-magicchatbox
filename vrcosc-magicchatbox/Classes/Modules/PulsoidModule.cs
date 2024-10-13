@@ -29,20 +29,118 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private const string SettingsFileName = "PulsoidModuleSettings.json";
 
         [ObservableProperty]
-
-        List<PulsoidTrendSymbolSet> pulsoidTrendSymbols = new();
-
-        [ObservableProperty]
-        PulsoidTrendSymbolSet selectedPulsoidTrendSymbol = new();
+        private List<PulsoidTrendSymbolSet> pulsoidTrendSymbols = new();
 
         [ObservableProperty]
-        bool showCalories = true;
+        private int currentHeartIconIndex = 0;
 
         [ObservableProperty]
-        bool showMaxHeartRate = true;
+        private string heartRateTrendIndicator = string.Empty;
 
         [ObservableProperty]
-        bool showMinHeartRate = true;
+        private bool enableHeartRateOfflineCheck = true;
+
+        [ObservableProperty]
+        private int unchangedHeartRateTimeoutInSec = 30;
+
+        [ObservableProperty]
+        private bool smoothHeartRate = true;
+
+        [ObservableProperty]
+        private int smoothHeartRateTimeSpan = 4;
+
+        [ObservableProperty]
+        private bool showHeartRateTrendIndicator = true;
+
+        [ObservableProperty]
+        private int heartRateTrendIndicatorSampleRate = 5;
+
+        [ObservableProperty]
+        private double heartRateTrendIndicatorSensitivity = 0.65;
+
+        [ObservableProperty]
+        private bool hideCurrentHeartRate = false;
+
+        [ObservableProperty]
+        private bool showTemperatureText = true;
+
+        [ObservableProperty]
+        private bool magicHeartRateIcons = true;
+
+        [ObservableProperty]
+        private bool magicHeartIconPrefix = true;
+
+        [ObservableProperty]
+        private List<string> heartIcons = new List<string> { "❤️", "💖", "💗", "💙", "💚", "💛", "💜" };
+
+        [ObservableProperty]
+        private string heartRateIcon = "❤️";
+
+        [ObservableProperty]
+        private bool separateTitleWithEnter = false;
+
+        [ObservableProperty]
+        private int lowTemperatureThreshold = 60;
+
+        [ObservableProperty]
+        private int highTemperatureThreshold = 100;
+
+        [ObservableProperty]
+        private bool applyHeartRateAdjustment = false;
+
+        [ObservableProperty]
+        private int heartRateAdjustment = -5;
+
+        [ObservableProperty]
+        private int heartRateScanInterval = 1;
+
+        [ObservableProperty]
+        private string lowHeartRateText = "sleepy";
+
+        [ObservableProperty]
+        private string highHeartRateText = "hot";
+
+        [ObservableProperty]
+        private bool showBPMSuffix = false;
+
+        [ObservableProperty]
+        private string currentHeartRateTitle = "Heart Rate";
+
+        [ObservableProperty]
+        private bool heartRateTitle = false;
+
+        [ObservableProperty]
+        private PulsoidTrendSymbolSet selectedPulsoidTrendSymbol = new();
+            
+        [ObservableProperty]
+        private StatisticsTimeRange selectedStatisticsTimeRange = StatisticsTimeRange._24h;
+
+        [ObservableProperty]
+        private List<StatisticsTimeRange> statisticsTimeRanges = new();
+
+        [ObservableProperty]
+        bool pulsoidStatsEnabled = true;
+
+        [ObservableProperty]
+        bool showCalories = false;
+
+        [ObservableProperty]
+        bool showAverageHeartRate = true;
+
+        [ObservableProperty]
+        bool showMinimumHeartRate = true;
+
+        [ObservableProperty]
+        bool showMaximumHeartRate = true;
+
+        [ObservableProperty]
+        bool showDuration = false;
+
+        [ObservableProperty]
+        bool showStatsTimeRange = false;
+
+        [ObservableProperty]
+        bool trendIndicatorBehindStats = true;
 
 
         public void SaveSettings()
@@ -101,7 +199,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     }
 
-    enum statisticsTimeRange
+    public enum StatisticsTimeRange
     {
         [Description("24h")]
         _24h,
@@ -143,6 +241,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly object _fetchLock = new object();
         private bool _isFetchingStatistics = false;
 
+        [ObservableProperty]
+        private int heartRate;
+
+        [ObservableProperty]
+        private bool pulsoidDeviceOnline = false;
+
+        [ObservableProperty]
+        private DateTime heartRateLastUpdate = DateTime.Now;
+
+        [ObservableProperty]
+        private string formattedLowHeartRateText;
+
+        [ObservableProperty]
+        private string formattedHighHeartRateText;
+
+        [ObservableProperty]
+        private bool pulsoidAccessError = false;
+
+        [ObservableProperty]
+        private string pulsoidAccessErrorTxt = string.Empty;
+
 
 
         [ObservableProperty]
@@ -152,6 +271,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             Settings = PulsoidModuleSettings.LoadSettings();
             RefreshTrendSymbols();
+            RefreshTimeRanges();
 
             _processDataTimer = new System.Timers.Timer
             {
@@ -161,7 +281,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _processDataTimer.Elapsed += (sender, e) => Application.Current.Dispatcher.Invoke(ProcessData);
         }
 
-        private async Task FetchPulsoidStatisticsAsync(string accessToken, statisticsTimeRange statisticsTimeRange = statisticsTimeRange._24h)
+        private async Task FetchPulsoidStatisticsAsync(string accessToken)
         {
 
             lock (_fetchLock)
@@ -175,7 +295,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             try
             {
-                string timeRangeDescription = statisticsTimeRange.GetDescription();
+                string timeRangeDescription = Settings.SelectedStatisticsTimeRange.GetDescription();
                 string requestUri = $"https://dev.pulsoid.net/api/v1/statistics?time_range={timeRangeDescription}";
 
 
@@ -196,7 +316,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
 
                     string content = await response.Content.ReadAsStringAsync();
-                    PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
+
+                    if (Settings.ApplyHeartRateAdjustment)
+                    {
+                        PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
+                        PulsoidStatistics.maximum_beats_per_minute += Settings.HeartRateAdjustment;
+                        PulsoidStatistics.minimum_beats_per_minute += Settings.HeartRateAdjustment;
+                        PulsoidStatistics.average_beats_per_minute += Settings.HeartRateAdjustment;
+                    }
+                    else
+
+                        PulsoidStatistics = JsonConvert.DeserializeObject<PulsoidStatisticsResponse>(content);
                 }
                 catch (HttpRequestException ex)
                 {
@@ -209,7 +339,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             finally
             {
-                // Ensure the flag is reset even if an exception occurs
                 lock (_fetchLock)
                 {
                     _isFetchingStatistics = false;
@@ -231,9 +360,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             Settings.PulsoidTrendSymbols = new List<PulsoidTrendSymbolSet>
             {
+                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⤴️", DownwardTrendSymbol = "⤵️" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⬆", DownwardTrendSymbol = "⬇" },
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↗", DownwardTrendSymbol = "↘" },
                 new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
             };
@@ -242,13 +371,26 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             if (symbolExists)
             {
-                // If the previously selected symbol exists, select it again
                 Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault(s => s.CombinedTrendSymbol == Settings.SelectedPulsoidTrendSymbol.CombinedTrendSymbol);
             }
             else
             {
-                // If it doesn't exist or if there was no selection, default to the first symbol in the list
                 Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault();
+            }
+        }
+
+        public void RefreshTimeRanges()
+        {
+            Settings.StatisticsTimeRanges = new List<StatisticsTimeRange>
+            {
+                StatisticsTimeRange._24h,
+                StatisticsTimeRange._7d,
+                StatisticsTimeRange._30d
+            };
+            var rangeExists = Settings.StatisticsTimeRanges.Any(r => r == Settings.SelectedStatisticsTimeRange);
+            if (!rangeExists)
+            {
+                Settings.SelectedStatisticsTimeRange = Settings.StatisticsTimeRanges.FirstOrDefault();
             }
         }
 
@@ -275,26 +417,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
 
 
-        public static void UpdateFormattedHeartRateText()
+        public void UpdateFormattedHeartRateText()
         {
-            ViewModel.Instance.FormattedLowHeartRateText = DataController.TransformToSuperscript(ViewModel.Instance.LowHeartRateText);
-            ViewModel.Instance.FormattedHighHeartRateText = DataController.TransformToSuperscript(ViewModel.Instance.HighHeartRateText);
+            FormattedLowHeartRateText = DataController.TransformToSuperscript(Settings.LowHeartRateText);
+            FormattedHighHeartRateText = DataController.TransformToSuperscript(Settings.HighHeartRateText);
         }
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ViewModel.Instance.HeartRateScanInterval_v3))
+            if (e.PropertyName == nameof(Settings.HeartRateScanInterval))
             {
-                _processDataTimer.Interval = ViewModel.Instance.HeartRateScanInterval_v3 * 1000;
+                _processDataTimer.Interval = Settings.HeartRateScanInterval * 1000;
                 return;
             }
+
             if (IsRelevantPropertyChange(e.PropertyName))
             {
                 if (ShouldStartMonitoring() && !isMonitoringStarted)
                 {
                     StartMonitoringHeartRateAsync();
                 }
-                else
+                else if (!ShouldStartMonitoring())
                 {
                     StopMonitoringHeartRateAsync();
                 }
@@ -355,8 +498,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ViewModel.Instance.PulsoidAccessError = false;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = "";
+                    PulsoidAccessError = false;
+                    PulsoidAccessErrorTxt = "";
                 });
 
                 _processDataTimer.Start();
@@ -367,8 +510,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ViewModel.Instance.PulsoidAccessError = true;
-                    ViewModel.Instance.PulsoidAccessErrorTxt = ex.Message;
+                    PulsoidAccessError = true;
+                    PulsoidAccessErrorTxt = ex.Message;
                 });
                 Logging.WriteException(ex, MSGBox: false);
             }
@@ -389,9 +532,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     isMonitoringStarted = false;
-                    ViewModel.Instance.PulsoidAccessError = true;
+                    PulsoidAccessError = true;
                     TriggerPulsoidAuthConnected(false);
-                    ViewModel.Instance.PulsoidAccessErrorTxt = "No Pulsoid connection found. Please connect with the Pulsoid Authentication server";
+                    PulsoidAccessErrorTxt = "No Pulsoid connection found. Please connect with the Pulsoid Authentication server";
                 });
                 return;
             }
@@ -402,9 +545,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     isMonitoringStarted = false;
-                    ViewModel.Instance.PulsoidAccessError = true;
+                    PulsoidAccessError = true;
                     TriggerPulsoidAuthConnected(false);
-                    ViewModel.Instance.PulsoidAccessErrorTxt = "Expired access token. Please reconnect with the Pulsoid Authentication server";
+                    PulsoidAccessErrorTxt = "Expired access token. Please reconnect with the Pulsoid Authentication server";
                 });
 
                 return;
@@ -446,16 +589,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             if(HeartRateFromSocket <= 0)
             {
-                ViewModel.Instance.PulsoidDeviceOnline = false;
+                PulsoidDeviceOnline = false;
                 return;
             }
             else
                 {
-                ViewModel.Instance.PulsoidDeviceOnline = true;
+                PulsoidDeviceOnline = true;
             }
 
             int heartRate = HeartRateFromSocket;
-            _ = Task.Run(() => FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth, statisticsTimeRange._24h));
+
+            if(Settings.PulsoidStatsEnabled)
+                _ = Task.Run(() => FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth));
 
             // New logic to handle unchanged heart rate readings
             if (heartRate == _previousHeartRate)
@@ -469,25 +614,25 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             // Determine if the Pulsoid device should be considered offline
-            if (ViewModel.Instance.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= ViewModel.Instance.UnchangedHeartRateTimeoutInSec)
+            if (Settings.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= Settings.UnchangedHeartRateTimeoutInSec)
             {
-                ViewModel.Instance.PulsoidDeviceOnline = false; // Set the device as offline
+                PulsoidDeviceOnline = false; // Set the device as offline
                 return;
             }
             else
             {
-                ViewModel.Instance.PulsoidDeviceOnline = true; // Otherwise, consider it online
+                PulsoidDeviceOnline = true; // Otherwise, consider it online
 
             }
 
             // If SmoothHeartRate_v1 is true, calculate and use average heart rate
-            if (ViewModel.Instance.SmoothHeartRate_v1)
+            if (Settings.SmoothHeartRate)
             {
                 // Record the heart rate with the current time
                 _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, heartRate));
 
                 // Remove old data
-                while (_heartRates.Count > 0 && DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(ViewModel.Instance.SmoothHeartRateTimeSpan))
+                while (_heartRates.Count > 0 && DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(Settings.SmoothHeartRateTimeSpan))
                 {
                     _heartRates.Dequeue();
                 }
@@ -497,10 +642,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             // Record the heart rate for trend analysis
-            if (ViewModel.Instance.ShowHeartRateTrendIndicator)
+            if (Settings.ShowHeartRateTrendIndicator)
             {
                 // Only keep the last N heart rates, where N is HeartRateTrendIndicatorSampleRate
-                if (_heartRateHistory.Count >= ViewModel.Instance.HeartRateTrendIndicatorSampleRate)
+                if (_heartRateHistory.Count >= Settings.HeartRateTrendIndicatorSampleRate)
                 {
                     _heartRateHistory.Dequeue();
                 }
@@ -512,47 +657,154 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
 
                     double slope = CalculateSlope(_heartRateHistory);
-                    if (slope > ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
+                    if (slope > Settings.HeartRateTrendIndicatorSensitivity)
                     {
-                        ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
+                        Settings.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
                     }
-                    else if (slope < -ViewModel.Instance.HeartRateTrendIndicatorSensitivity)
+                    else if (slope < -Settings.HeartRateTrendIndicatorSensitivity)
                     {
-                        ViewModel.Instance.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
+                        Settings.HeartRateTrendIndicator = Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
                     }
                     else
                     {
-                        ViewModel.Instance.HeartRateTrendIndicator = "";
+                        Settings.HeartRateTrendIndicator = "";
                     }
                 }
             }
             // Update the heart rate icon
-            if (ViewModel.Instance.MagicHeartRateIcons)
+            if (Settings.MagicHeartRateIcons)
             {
                 // Always cycle through heart icons
-                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
-                ViewModel.Instance.CurrentHeartIconIndex = (ViewModel.Instance.CurrentHeartIconIndex + 1) % ViewModel.Instance.HeartIcons.Count;
+                Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
+                Settings.CurrentHeartIconIndex = (Settings.CurrentHeartIconIndex + 1) % Settings.HeartIcons.Count;
             }
             // Append additional icons based on heart rate, if the toggle is enabled
-            if (ViewModel.Instance.ShowTemperatureText)
+            if (Settings.ShowTemperatureText)
             {
-                if (heartRate < ViewModel.Instance.LowTemperatureThreshold)
+                if (heartRate < Settings.LowTemperatureThreshold)
                 {
-                    ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedLowHeartRateText;
+                    Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex] + FormattedLowHeartRateText;
                 }
-                else if (heartRate >= ViewModel.Instance.HighTemperatureThreshold)
+                else if (heartRate >= Settings.HighTemperatureThreshold)
                 {
-                    ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex] + ViewModel.Instance.FormattedHighHeartRateText;
+                    Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex] + FormattedHighHeartRateText;
                 }
             }
             else
-                ViewModel.Instance.HeartRateIcon = ViewModel.Instance.HeartIcons[ViewModel.Instance.CurrentHeartIconIndex];
+                Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
 
-            if (ViewModel.Instance.HeartRate != heartRate)
+            if (HeartRate != heartRate)
             {
-                ViewModel.Instance.HeartRate = heartRate;
+                HeartRate = heartRate;
             }
         }
+
+        public string GetHeartRateString()
+        {
+            if (Settings.EnableHeartRateOfflineCheck && !PulsoidDeviceOnline)
+                return string.Empty;
+
+            if (HeartRate <= 0)
+                return string.Empty;
+
+            StringBuilder displayTextBuilder = new StringBuilder();
+
+            if (Settings.MagicHeartIconPrefix)
+            {
+                displayTextBuilder.Append(Settings.HeartRateIcon);
+            }
+
+            bool showCurrentHeartRate = true;
+
+            if (Settings.PulsoidStatsEnabled)
+            {
+                showCurrentHeartRate = !Settings.HideCurrentHeartRate;
+            }
+
+            if (showCurrentHeartRate)
+            {
+                displayTextBuilder.Append(" " + HeartRate.ToString());
+
+                if (Settings.ShowBPMSuffix)
+                {
+                    displayTextBuilder.Append(" bpm");
+                }
+            }
+
+            if (Settings.ShowHeartRateTrendIndicator && !Settings.TrendIndicatorBehindStats)
+            {
+                displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
+            }
+
+            if (Settings.PulsoidStatsEnabled)
+            { 
+
+            List<string> statsList = new List<string>();
+
+            if (PulsoidStatistics != null)
+            {
+                if (Settings.ShowCalories)
+                {
+                    statsList.Add($"{PulsoidStatistics.calories_burned_in_kcal} kcal");
+                }
+                if (Settings.ShowAverageHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.average_beats_per_minute} Avg");
+                }
+                if (Settings.ShowMaximumHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.maximum_beats_per_minute} Max");
+                }
+                    if (Settings.ShowMinimumHeartRate)
+                {
+                    statsList.Add($"{PulsoidStatistics.minimum_beats_per_minute} Min");
+                }
+                if (Settings.ShowDuration)
+                {
+                    TimeSpan duration = TimeSpan.FromSeconds(PulsoidStatistics.streamed_duration_in_seconds);
+                    string formattedDuration = duration.ToString(@"hh\:mm\:ss");
+
+                    if (Settings.ShowStatsTimeRange)
+                    {
+                        string timeRangeDescription = Settings.SelectedStatisticsTimeRange.GetDescription();
+                        statsList.Add($"duration over {timeRangeDescription} {formattedDuration} ");
+                    }
+                    else
+                    {
+                        statsList.Add($"duration {formattedDuration}");
+                    }
+                }
+
+                for (int i = 0; i < statsList.Count; i++)
+                {
+                    statsList[i] = DataController.TransformToSuperscript(statsList[i]);
+                }
+            }
+
+            if (statsList.Count > 0)
+            {
+                string statslist = string.Join("|", statsList);
+                displayTextBuilder.Append($" {statslist}");
+            }
+
+            }
+
+            if (Settings.ShowHeartRateTrendIndicator && Settings.TrendIndicatorBehindStats)
+            {
+                    displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
+            }
+
+            if (Settings.HeartRateTitle)
+            {
+                string titleSeparator = Settings.SeparateTitleWithEnter ? "\v" : ": ";
+                string hrTitle = Settings.CurrentHeartRateTitle + titleSeparator;
+                displayTextBuilder.Insert(0, hrTitle);
+            }
+
+            return displayTextBuilder.ToString();
+        }
+
+
 
         private async Task HeartRateMonitoringLoopAsync(CancellationToken cancellationToken)
         {
@@ -576,13 +828,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         if (heartRate != -1)
                         {
                             // Apply the adjustment if ApplyHeartRateAdjustment is true
-                            if (ViewModel.Instance.ApplyHeartRateAdjustment)
+                            if (Settings.ApplyHeartRateAdjustment)
                             {
-                                heartRate += ViewModel.Instance.HeartRateAdjustment;
+                                heartRate += Settings.HeartRateAdjustment;
                             }
 
                             HeartRateFromSocket = heartRate;
-                            ViewModel.Instance.HeartRateLastUpdate = DateTime.Now;
+                            HeartRateLastUpdate = DateTime.Now;
                         }
                     }
                 }
@@ -598,9 +850,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public class PulsoidTrendSymbolSet
     {
-        public string UpwardTrendSymbol { get; set; } = "⤴️";
-        public string DownwardTrendSymbol { get; set; } = "⤵️";
-
+        public string UpwardTrendSymbol { get; set; } = "↑";
+        public string DownwardTrendSymbol { get; set; } = "↓";
         public string CombinedTrendSymbol => $"{UpwardTrendSymbol} - {DownwardTrendSymbol}";
     }
     public class PulsoidOAuthHandler

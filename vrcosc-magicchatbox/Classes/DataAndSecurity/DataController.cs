@@ -27,7 +27,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         public static NetworkStatisticsModule networkStatisticsModule = null;
 
-        public static SoundpadModule soundpadModule = null;
+
 
         private static readonly Dictionary<char, string> SuperscriptMapping = new Dictionary<char, string>
         {
@@ -388,30 +388,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "WindowActivityVRTitle", (typeof(string), "WindowActivity") },
 
         { "PulsoidAccessTokenOAuthEncrypted", (typeof(string), "PulsoidConnector") },
-        { "HeartRateScanInterval_v3", (typeof(int), "PulsoidConnector") },
-        { "HeartRate", (typeof(int), "PulsoidConnector") },
-        { "HeartRateLastUpdate", (typeof(DateTime), "PulsoidConnector") },
-        { "ShowBPMSuffix", (typeof(bool), "PulsoidConnector") },
-        { "ApplyHeartRateAdjustment", (typeof(bool), "PulsoidConnector") },
-        { "HeartRateAdjustment", (typeof(int), "PulsoidConnector") },
-        { "SmoothHeartRate_v1", (typeof(bool), "PulsoidConnector") },
-        { "SmoothHeartRateTimeSpan", (typeof(int), "PulsoidConnector") },
-        { "HeartRateTrendIndicatorSensitivity", (typeof(double), "PulsoidConnector") },
-        { "ShowHeartRateTrendIndicator", (typeof(bool), "PulsoidConnector") },
-        { "HeartRateTrendIndicatorSampleRate", (typeof(int), "PulsoidConnector") },
-        { "HeartRateTitle", (typeof(bool), "PulsoidConnector") },
         { "PulsoidAuthConnected", (typeof(bool), "PulsoidConnector") },
-        { "MagicHeartIconPrefix", (typeof(bool), "PulsoidConnector") },
-        { "CurrentHeartRateTitle", (typeof(string), "PulsoidConnector") },
-        { "EnableHeartRateOfflineCheck", (typeof(bool), "PulsoidConnector") },
-        { "UnchangedHeartRateTimeoutInSec", (typeof(int), "PulsoidConnector") },
 
-        { "LowTemperatureThreshold", (typeof(int), "PulsoidConnector") },
-        { "HighTemperatureThreshold", (typeof(int), "PulsoidConnector") },
-        { "ShowTemperatureText", (typeof(bool), "PulsoidConnector") },
-        { "LowHeartRateText", (typeof(string), "PulsoidConnector") },
-        { "HighHeartRateText", (typeof(string), "PulsoidConnector") },
-        { "MagicHeartRateIcons", (typeof(bool), "PulsoidConnector") },
 
         { "Settings_Status", (typeof(bool), "OptionsTabState") },
         { "Settings_OpenAI", (typeof(bool), "OptionsTabState") },
