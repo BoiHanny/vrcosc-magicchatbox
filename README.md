@@ -6,7 +6,10 @@
 
 ## Installation
 
-- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.021/MagicChatbox-0.9.021.zip) **the official ZIP-File of MagicChatBox**
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.032/MagicChatbox-0.9.032.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/09873367abeead40e33106e38ba8c4474a4e84e37ddb4238286eff388b7976d0/detection)
+
+- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.032/MagicChatbox-0.9.032.zip) **the official ZIP-File of MagicChatBox**
 - 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) **NET-8 from Microsoft**
 - 🔳 Extract the ZIP File into an Folder
 - 🔳 Run the **MagicChatBox.exe** inside the Folder
@@ -15,7 +18,7 @@
 If you need any further help `setting up` the program hit up our `Discord Server`.
 
 > [!IMPORTANT]
-> **You need to enable OSC inside VRChat in order to have the program working!**
+> **You need to [enable OSC](https://youtu.be/OHjN_q6RqGY?t=80) inside VRChat in order to have the program working!**
 
 ## Features
 
@@ -24,15 +27,20 @@ If you need any further help `setting up` the program hit up our `Discord Server
 > - 🧭 Window Activity
 > - 🩵 Heart Rate
 > - 🎛️ Component Stats
+> - 🧠 Chatting Module
+> - ⚗️ OpenAI Module
 > - ⛓️‍💥 Network Stats
 > - 📆 Time Status
 > - 🎶 Music Activity
+> - 💤 AFK Module
 > - 🎼 Soundpad
-> - 📱 FPS Display
-> - 🛖 Instance Display
-> - ⏱️ Playtime Display
-> - 🥈 Badge Display
-> - 🎫 MCB Rank Display
+> - 📱 FPS Display `(Upcoming V2)`
+> - 📏 OSC Module `(Upcoming V2)`
+> - 🔋 Battery Display `(Upcoming V2)`
+> - 🛖 Instance Display `(Upcoming V2)`
+> - ⏱️ Playtime Display `(Upcoming V2)`
+> - 🥈 Badge Display `(Upcoming V2)`
+> - 🎫 MCB Rank Display `(Upcoming V2)`
 
 
 > [!IMPORTANT]
@@ -50,10 +58,10 @@ If you need more help, feel free to click the button below:
 
 ### 📚 Additional Resources
 - [FAQ](FAQ.md) – Frequently Asked Questions and Answers
-- [Contact](https://discord.gg/magicchatbox) – Create an Ticket here
-- [Documentation](https://discord.gg/magicchatbox) – Detailed guides and manuals
+- [Staff](Staff.md) – Meet the team behind MagicChatbox.
 - [Rating](Rating.md) – Our User Ratings
+- [Contact](https://discord.gg/magicchatbox) – Create an Ticket here
+- [Funding](Funding.md) – Our Communitys Advocates
 - [Pulsoid CoS](PulsoidTOS.md) – Terms of Service for Pulsoid Integration
-
+- [Documentation](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki) – Detailed guides and manuals
 ****
-
