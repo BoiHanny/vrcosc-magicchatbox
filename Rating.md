@@ -1,4 +1,4 @@
-![Banner MagicChatbox RATING](https://github.com/user-attachments/assets/429b57fb-8eaa-47db-b619-4ea785e88592)
+![image](https://github.com/user-attachments/assets/a05eaa27-71d6-42ef-9b2d-511bb074e096)
 
 # Our Ratings ![Version](https://badgen.net/badge/Version/0.9.021/yellow/?icon=terminal) ![Rating](https://badgen.net/badge/Stars/★★★★★/yellow/?icon=kofi) ![Downloads](https://badgen.net/badge/Installations/176k/gold/?icon=github) ![Discord](https://badgen.net/discord/members/magicchatbox/?icon=discord)
 
