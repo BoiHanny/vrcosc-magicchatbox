@@ -1,4 +1,4 @@
-![Banner MagicChatbox License](https://github.com/user-attachments/assets/21114b91-df1e-4f23-94f2-d4aacb60a1c9)
+![image](https://github.com/user-attachments/assets/c8252476-933e-4cec-8ee5-1753849d5d18)
 
 # Limited Modification License
 
