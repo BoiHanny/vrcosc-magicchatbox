@@ -1,4 +1,4 @@
-![Banner MagicChatbox SUPPORT2](https://github.com/user-attachments/assets/6175a55c-f38a-425c-ad5c-e72bd46b784c)
+![image](https://github.com/user-attachments/assets/60c4ae0c-a2af-4df6-85e6-11c8b2e3fad8)
 
 # Support ![Discord](https://badgen.net/discord/members/magicchatbox/?icon=discord)
 **Welcome to the Support Page for MagicChatbox!**
