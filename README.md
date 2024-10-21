@@ -1,5 +1,4 @@
-![Banner MagicChatbox mit wolke2](https://github.com/user-attachments/assets/7d33cbad-3c41-4729-9d55-b02ba379e079)
-
+![image](https://github.com/user-attachments/assets/3e4cf513-c87e-4ad0-b9d2-b0f1c24cb6d3)
 
 # MagicChatBox ![Version](https://badgen.net/badge/Version/0.9.021/purple/?icon=terminal) ![Downloads](https://badgen.net/badge/Installations/176k/blue/?icon=github) ![Discord](https://badgen.net/discord/members/magicchatbox/?icon=discord) ![Runtime](https://badgen.net/badge/Runtime/NET-8/black/?icon=windows)
 `Welcome to MagicChatBox – the ultimate VRChat upgrade! Unlock new features, enhance your interactions, and take your virtual experience to the next level.`
