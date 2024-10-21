@@ -1,16 +1,18 @@
+# Staff of MagicChatbox
+
+`Here you can find all official Team-Members of MagicChatbox.`
+
 ```mermaid
 graph TB;
     A["**FOUNDER**<br>BoiHanny"]:::black --> B["**HEAD OF ADMINISTRATION**<br>Lyrikidionisos"]:::darkred4;
     B --> C1["**ADMINISTRATOR**<br>ItsByMe"]:::brightred;
     B --> C2["**ADMINISTRATOR**<br>❔"]:::brightred;
     B --> C3["**ADMINISTRATOR**<br>❔"]:::brightred;
-    B --> C4["**ADMINISTRATOR**<br>❔"]:::brightred;
-    B --> C5["**ADMINISTRATOR**<br>IzuruBae"]:::brightred;
+    B --> C4["**ADMINISTRATOR**<br>IzuruBae"]:::brightred;
     C1 --> G["**STAFF OF MAGICLABS**"]:::staff;
     C2 --> G;
     C3 --> G;
     C4 --> G;
-    C5 --> G;
     G --> D["**DEVELOPER**"]:::developer;
     G --> E["**MODERATION**"]:::moderation;
     D --> D1["**ʜᴇᴀᴅ ᴏғ ᴅᴇᴠᴇʟᴏᴘᴍᴇɴᴛ**<br>Franxx"]:::developerText;
@@ -70,3 +72,4 @@ graph TB;
     classDef moderationText color:#388e3c,font-weight:bold;
     classDef staff fill:#808080,stroke:#505050,stroke-width:2px,color:#000000,font-weight:bold;
     classDef brightred fill:#b13838,stroke:#990000,stroke-width:2px,color:#ffffff,font-weight:bold;
+
