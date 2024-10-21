@@ -2,7 +2,7 @@
 
 ```mermaid
 graph TB;
-    A["**Founder**<br>BoiHanny"]:::black --> B["**Head-Administrator / Contractor**<br>Lyrikidionisos"]:::darkred4;
+    A["**Founder**<br>BoiHanny"]:::black --> B["**Head-Administrator / Projectmanagement**<br>Lyrikidionisos"]:::darkred4;
     B --> C1["**Administrator**<br>ItsByMe"]:::red;
     B --> C2["**Administrator**<br>IzuruBae"]:::red;
     B --> C3["**Administrator**<br>???"]:::red;
