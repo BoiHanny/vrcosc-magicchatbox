@@ -1,4 +1,4 @@
-![Banner MagicChatbox TOS](https://github.com/user-attachments/assets/5ce0d1e4-c56a-469c-aaab-7fdcc101e82b)
+![image](https://github.com/user-attachments/assets/d9b89ff6-01a5-448d-9dbd-cdd0315e2c64)
 
 # Terms of Service / Conditions of Use ![Runtime](https://badgen.net/badge/REGULATIONS/MCB-OSC/black/?icon=zeit)
 
