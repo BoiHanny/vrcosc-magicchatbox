@@ -1,4 +1,4 @@
-![Banner MagicChatbox PULSOID](https://github.com/user-attachments/assets/1593543f-80ed-4140-a68b-ae105fc8e191)
+![image](https://github.com/user-attachments/assets/e516e828-266c-444c-b9e6-9c439af793a5)
 
 # Pulsoid Conditions of Use ![Runtime](https://badgen.net/badge/REGULATIONS/Pulsoid/black/?icon=zeit)
 
