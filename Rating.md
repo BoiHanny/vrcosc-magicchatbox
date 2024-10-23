@@ -6,12 +6,12 @@
 
 | **Feature**               | **Status**       | **Additional Feature** | **Status**         | **Extra Feature**      | **Status**       |
 |---------------------------|------------------|------------------------|--------------------|------------------------|------------------|
-| 🆕 Latest Version         | 0.9.021          | 👥 Daily Active Users  | 10,000+             | 🛡️ Security Level      | NET-8             |
+| 🆕 Latest Version         | 0.9.023          | 👥 Daily Active Users  | 10,000+             | 🛡️ Security Level      | NET-8             |
 | ⭐ Total Stars            | ★★★★★           | 🌐 Worlds Spotted    | 300+               | 🔧 Customization Options  | Extensive            |
 | 📥 Installations         | 176k             | ⏰ Average Session Time| 45 minutes         | 🕒 Average Response Time| < 60 minutes       |
-| 🌐 Community             | 12.6K members    | 🌎 Languages Supported | 15+                | ⚙️ Compatibility       | Windows   |
-| 😊 Customer Satisfaction  | 98%              | 🔄 Updates This Year   | 12                 | 💬 Support Tickets Resolved | 10k+           |
-| 🔒 Data Privacy Secured  | Yes              | 🛠️ Support Channels   | 24/7               | 📈 Growth Rate         | 25% per month    |
+| 🌐 Community             | 2.8K members    | 🌎 Languages Supported | 1                | ⚙️ Compatibility       | Windows   |
+| 😊 Customer Satisfaction  | 98%              | 🔄 Updates This Year   | 12                 | 💬 Support Tickets Resolved | 500+           |
+| 🔒 Data Privacy Secured  | Yes              | 🛠️ Support Channels   | 24/7               | 📈 Growth Rate         | 12% per month    |
 
 <p align="center">Over <strong>10,000 VRChat users</strong> rely on our program daily across more than <strong>300 worlds</strong>!</p>
 
