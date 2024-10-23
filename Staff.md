@@ -1,4 +1,4 @@
-# Staff of MagicChatbox
+# 🛂 Staff of MagicChatbox
 
 `Here you can find all official Team-Members of MagicChatbox.`
 
@@ -6,8 +6,8 @@
 graph TB;
     A["**FOUNDER**<br>BoiHanny"]:::black --> B["**HEAD OF ADMINISTRATION**<br>Lyrikidionisos"]:::darkred4;
     B --> C1["**ADMINISTRATOR**<br>ItsByMe"]:::brightred;
-    B --> C2["**ADMINISTRATOR**<br>❔"]:::brightred;
-    B --> C3["**ADMINISTRATOR**<br>❔"]:::brightred;
+    B --> C2["**ADMINISTRATOR**<br>Ralph"]:::brightred;
+    B --> C3["**ADMINISTRATOR**<br>ChineseName"]:::brightred;
     B --> C4["**ADMINISTRATOR**<br>IzuruBae"]:::brightred;
     C1 --> G["**STAFF OF MAGICLABS**"]:::staff;
     C2 --> G;
@@ -72,4 +72,16 @@ graph TB;
     classDef moderationText color:#388e3c,font-weight:bold;
     classDef staff fill:#808080,stroke:#505050,stroke-width:2px,color:#000000,font-weight:bold;
     classDef brightred fill:#b13838,stroke:#990000,stroke-width:2px,color:#ffffff,font-weight:bold;
+```
+
+## About the Team
+
+### ◥◣ BoiHanny (aka. Hanny)
+- Administrator
+
+  - I’m a passionate technology strategist/solutions architect with 7 years of experience officially working in IT. Before that, I spent time working on smaller projects to fund my journey into the world of development, and now I specialize in building cutting-edge tools with technologies like C#, .NET, and Azure.
+
+### ◥◣ Lyrikidionisos (aka. Ethan)
+- Administrator
+  - I have specialized experience in legal topics for 2 years and have worked as an administrator and server technician for 5 years, focusing on Java/Python/Lua and server management across various networks. Additionally, I have 1 year of experience as a former Content Relation Administrator for Hypixel.net. I hold a C1 level in International English and possess advanced skills in cybersecurity, cloud computing, and network architecture.
 
