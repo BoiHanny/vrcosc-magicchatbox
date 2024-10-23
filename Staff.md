@@ -78,10 +78,12 @@ graph TB;
 
 ### ◥◣ BoiHanny (aka. Hanny)
 - Founder
+
   - I’m a passionate technology strategist/solutions architect with 7 years of experience officially working in IT. Before that, I spent time working on smaller projects to fund my journey into the world of development, and now I specialize in building cutting-edge tools with technologies like C#, .NET, and Azure.
 
 ### ◥◣ Lyrikidionisos (aka. Ethan)
 - Head of Administration
+
   - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator for Hypixel.net. I hold a C1 level in International Business English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
  
 ### ◥◣ ItsByMe
