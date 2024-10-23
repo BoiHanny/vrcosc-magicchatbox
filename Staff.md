@@ -83,5 +83,4 @@ graph TB;
 
 ### ◥◣ Lyrikidionisos (aka. Ethan)
 - Administrator
-  - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Python/Lua and server management across various networks. Additionally, I have 1 year of experience as a former Content Relation Administrator for Hypixel.net. I hold a C1 level in International English and possess advanced skills in cybersecurity, cloud computing, and network architecture.
-
+  - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator for Hypixel.net. I hold a C1 level in International English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
