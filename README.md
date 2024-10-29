@@ -58,11 +58,11 @@ If you need more help, feel free to click the button below:
 ---
 
 ### 📚 Additional Resources
-- [FAQ](FAQ.md) – Frequently Asked Questions and Answers
-- [Staff](Staff.md) – Meet the team behind MagicChatbox.
-- [Rating](Rating.md) – Our User Ratings
+- [FAQ](information/FAQ.md) – Frequently Asked Questions and Answers
+- [Staff](information/Staff.md) – Meet the team behind MagicChatbox.
+- [Rating](information/Rating.md) – Our User Ratings
 - [Contact](https://discord.gg/magicchatbox) – Create an Ticket here
-- [Funding](Funding.md) – Our Communitys Advocates
-- [Pulsoid CoS](PulsoidTOS.md) – Terms of Service for Pulsoid Integration
+- [Funding](information/Funding.md) – Our Communitys Advocates
+- [Pulsoid CoS](information/PulsoidTOS.md) – Terms of Service for Pulsoid Integration
 - [Documentation](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki) – Detailed guides and manuals
 ****
