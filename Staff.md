@@ -74,7 +74,7 @@ graph TB;
     classDef brightred fill:#b13838,stroke:#990000,stroke-width:2px,color:#ffffff,font-weight:bold;
 ```
 
-## About the Team
+## About the Lead
 
 ### ◥◣ ${\color{magenta}𝗙𝗢𝗨𝗡𝗗𝗘𝗥}$ ${\color{Gray}•}$ BoiHanny ${\color{darkGray}𝑎𝑘𝑎. \space 𝐻𝑎𝑛𝑛𝑦}$
 
