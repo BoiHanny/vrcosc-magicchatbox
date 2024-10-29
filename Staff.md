@@ -1,4 +1,4 @@
-# 🛂 Staff of MagicChatbox
+# 🛂 Organisation
 
 `Here you can find all official Team-Members of MagicChatbox.`
 
