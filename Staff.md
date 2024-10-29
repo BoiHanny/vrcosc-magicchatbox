@@ -4,7 +4,7 @@
 
 ```mermaid
 graph TB;
-    A["**FOUNDER**<br>BoiHanny"]:::black --> B["**HEAD OF ADMINISTRATION**<br>Lyrikidionisos"]:::darkred4;
+    A["**FOUNDER**<br>BoiHanny"]:::black --> B["**CHIEF ADMINISTRATOR**<br>Lyrikidionisos"]:::darkred4;
     B --> C1["**ADMINISTRATOR**<br>ItsByMe"]:::brightred;
     B --> C2["**ADMINISTRATOR**<br>Ralph"]:::brightred;
     B --> C3["**ADMINISTRATOR**<br>ChineseName"]:::brightred;
@@ -76,36 +76,25 @@ graph TB;
 
 ## About the Team
 
-### ◥◣ BoiHanny (aka. Hanny)
-- Founder
+### ◥◣ ${\color{magenta}𝗙𝗢𝗨𝗡𝗗𝗘𝗥}$ ${\color{Gray}•}$ BoiHanny ${\color{darkGray}𝑎𝑘𝑎. \space 𝐻𝑎𝑛𝑛𝑦}$
 
   - I’m a passionate technology strategist/solutions architect with 7 years of experience officially working in IT. Before that, I spent time working on smaller projects to fund my journey into the world of development, and now I specialize in building cutting-edge tools with technologies like C#, .NET, and Azure.
 
-### ◥◣ Lyrikidionisos (aka. Ethan)
-- Head of Administration
+### ◥◣ ${\color{RubineRed}𝗖𝗛𝗜𝗘𝗙 \space 𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ Lyrikidionisos ${\color{darkGray}𝑎𝑘𝑎. \space 𝐸𝑡ℎ𝑎𝑛}$
 
   - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator for Hypixel.net. I hold a C1 level in International Business English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
  
-### ◥◣ ItsByMe
-- Administrator
-  - Text
+### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ ItsByMe 
+  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-### ◥◣ IzuruBae
-- Administrator
-  - Text
+### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ IzuruBae
+  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ Ralph
+  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+### ◥◣ ${\color{cyan}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗠𝗘𝗡𝗧}$ ${\color{Gray}•}$ Franxx
+  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
  
-### ◥◣ Ralph
-- Administrator
-  - Text
-
-### ◥◣ ChineseName
-- Administrator
-  - Text
-
-### ◥◣ Franxx
-- Head of Development
-  - Text
- 
-### ◥◣ miss_crystal (aka. Crystal)
-- Head of Moderation
-  - Text
+### ◥◣ ${\color{ForestGreen}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗠𝗢𝗗𝗘𝗥𝗔𝗧𝗜𝗢𝗡}$ ${\color{Gray}•}$ miss_crystal (aka. Crystal)
+  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
