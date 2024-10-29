@@ -7,7 +7,7 @@ graph TB;
     A["**FOUNDER**<br>BoiHanny"]:::black --> B["**CHIEF ADMINISTRATOR**<br>Lyrikidionisos"]:::darkred4;
     B --> C1["**ADMINISTRATOR**<br>ItsByMe"]:::brightred;
     B --> C2["**ADMINISTRATOR**<br>Ralph"]:::brightred;
-    B --> C3["**ADMINISTRATOR**<br>ChineseName"]:::brightred;
+    B --> C3["**ADMINISTRATOR**<br>中文姓名"]:::brightred;
     B --> C4["**ADMINISTRATOR**<br>IzuruBae"]:::brightred;
     C1 --> G["**STAFF OF MAGICLABS**"]:::staff;
     C2 --> G;
@@ -85,16 +85,19 @@ graph TB;
   - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator for Hypixel.net. I hold a C1 level in International Business English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
  
 ### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ ItsByMe 
-  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  - Hi, for the past three years, I’ve been working on the technical side of things, helping to bring this amazing program to life. You’ll often find me online in public lobbies, where I love interacting with the community. I’m fluent in English and have extensive experience with Unity, Blender, and C#.
 
 ### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ IzuruBae
-  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  - Hi, I’m IzuruBae. I have professional experience as a Community Manager and have been the Head of Public Relations at MagicChatbox for the past three years. I’m a B2 Level English speaker and have been organizing events and meetings for MagicChatbox. As a VRChat veteran from the early days, I bring a wealth of experience and enthusiasm to the community.
 
 ### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ Ralph
-  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  - Hi, I’m Ralph. I have extensive experience in community management as well as leadership roles. As an early supporter of the MagicChatbox project, I’ve been deeply involved from the beginning, helping to shape and guide its development. I also have an English proficiency at the B2 level.
+
+### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ 中文姓名
+  - Not much is known about him. He has emerged in the management team, leaving us unsure whether to fear or revere him. He possesses strong competencies in English and community management. Additionally, he has a knack for solving complex problems with innovative solutions, making him a valuable yet enigmatic figure in our organization.
 
 ### ◥◣ ${\color{cyan}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗠𝗘𝗡𝗧}$ ${\color{Gray}•}$ Franxx
-  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  - Hi, I’m Franxx, the Head of Development at MagicChatbox. I have an excellent English proficiency at the B2 level. As a developer and contributor to MagicChatbox, I bring over three years of experience in C#, Unity, Python, Java, and Lua. I’m the second point of contact for program development after Hanny, and I specialize in bug fixing and managing pull requests.
  
 ### ◥◣ ${\color{ForestGreen}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗠𝗢𝗗𝗘𝗥𝗔𝗧𝗜𝗢𝗡}$ ${\color{Gray}•}$ miss_crystal (aka. Crystal)
-  - Lorem ipsum dolor sit amet, consectetur adipiscing elit. MagicChatbox sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  - Hi, I’m Crystal, the Head of Moderation at MagicChatbox. I’ve been with the team for a year now. I started as a regular user and was brought onto the team due to my dedication in helping other users with their issues. I’m well-versed in the regulations and troubleshooting for MagicChatbox. My main focus is on support and moderation, where I’m most active. I also have native-level proficiency in English.
