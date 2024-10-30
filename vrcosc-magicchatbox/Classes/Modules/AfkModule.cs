@@ -38,6 +38,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool enableAfkDetection = true;
 
         [ObservableProperty]
+        private bool useSmallLettersForDuration = true;
+
+        [ObservableProperty]
         private bool showPrefixIcon = true;
 
         [ObservableProperty]
@@ -94,7 +97,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private DateTime lastActionTime;
         private bool overrideAfkStarted = false;
 
-        public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout));
+        public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
 
         [ObservableProperty]
         private string remainingTimeUntilAFK;
@@ -195,28 +198,26 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void AfkTimer_Tick(object sender, EventArgs e)
         {
-            // Update the visibility of the override button
             OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
 
-            // Handle VR mode-specific logic
             if (ViewModel.Instance.IsVRRunning && !Settings.ActivateInVR)
             {
-                VRModeLabelActive = true; // Indicate VR mode is active, but AFK is not activated in VR
+                VRModeLabelActive = true;
 
                 if (!Settings.OverrideAfk)
                 {
-                    if (IsAfk) // If AFK mode is currently active, exit it since VR mode doesn't allow it
+                    if (IsAfk) 
                     {
                         ExitAfkMode();
                     }
 
-                    // Since VR mode is active and AFK activation is not allowed, skip further processing
+                    
                     return;
                 }
             }
             else
             {
-                VRModeLabelActive = false; // Ensure VR mode label is deactivated when not needed
+                VRModeLabelActive = false;
             }
 
             // Handle override logic
@@ -225,54 +226,53 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 VRModeLabelActive = false;
                 if (!overrideAfkStarted)
                 {
-                    EnterAfkMode(true, true); // Enter AFK mode with override, reset time
+                    EnterAfkMode(true, true);
                     overrideAfkStarted = true;
                 }
             }
             else if (overrideAfkStarted)
             {
-                ExitAfkMode(); // Exit AFK mode when override is deactivated
+                ExitAfkMode();
                 overrideAfkStarted = false;
             }
 
             uint idleTime = 0;
-            // Normal AFK detection logic when no override is active
+
             if (!Settings.OverrideAfk)
             {
                 idleTime = GetIdleTime();
 
                 if (idleTime >= Settings.AfkTimeout && !IsAfk)
                 {
-                    // Update last action time based on idleTime
                     lastActionTime = DateTime.Now - TimeSpan.FromSeconds(idleTime);
-                    EnterAfkMode(false, false); // Enter AFK due to inactivity, do not reset time
+                    EnterAfkMode(false, false);
                 }
                 else if (idleTime < Settings.AfkTimeout && IsAfk)
                 {
-                    ExitAfkMode(); // Exit AFK as user is active again
+                    ExitAfkMode();
                 }
             }
 
-            // Update AFK status display
             if (IsAfk)
             {
-                TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime);
+                TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime, Settings.UseSmallLettersForDuration);
             }
             else
             {
-                RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout - idleTime));
+                RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout - idleTime), Settings.UseSmallLettersForDuration);
             }
         }
 
         private void EnterAfkMode(bool isOverride, bool resetTime)
         {
             IsAfk = true;
+
             if (resetTime || isOverride)
             {
                 lastActionTime = DateTime.Now;
             }
 
-            TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime);
+            TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime, Settings.UseSmallLettersForDuration);
             AfkDetected?.Invoke(this, EventArgs.Empty);
         }
 
@@ -282,28 +282,51 @@ namespace vrcosc_magicchatbox.Classes.Modules
             lastActionTime = DateTime.Now;
             TimeCurrentlyAFK = string.Empty;
             overrideAfkStarted = false;
-            RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout));
+            RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
             OverrideButtonVisible = true;
         }
 
-        public static string FormatDuration(TimeSpan duration)
+        public static string FormatDuration(TimeSpan duration, bool useSmallLetters)
         {
             var parts = new List<string>();
 
-            if (duration.TotalHours >= 1)
+            int years = duration.Days / 365;
+            int months = (duration.Days % 365) / 30;
+            int days = (duration.Days % 365) % 30;
+
+            string yearUnit = useSmallLetters ? "ʸ" : "y";
+            string monthUnit = useSmallLetters ? "ᵐᵒ" : "mo";
+            string dayUnit = useSmallLetters ? "ᵈ" : "d";
+            string hourUnit = useSmallLetters ? "ʰ" : "h";
+            string minuteUnit = useSmallLetters ? "ᵐ" : "m";
+            string secondUnit = useSmallLetters ? "ˢ" : "s";
+
+            if (years > 0)
             {
-                parts.Add($"{duration.Hours}h");
+                parts.Add($"{years}{yearUnit}");
             }
 
-            if (duration.Minutes > 0)
+            if (months > 0)
             {
-                parts.Add($"{duration.Minutes}m");
+                parts.Add($"{months}{monthUnit}");
             }
 
-            if (duration.Seconds > 0 || (duration.Hours == 0 && duration.Minutes == 0))
+            if (days > 0)
             {
-                parts.Add($"{duration.Seconds}s");
+                parts.Add($"{days}{dayUnit}");
             }
+
+            if (duration.Hours > 0 || years > 0 || months > 0 || days > 0)
+            {
+                parts.Add($"{duration.Hours}{hourUnit}");
+            }
+
+            if (duration.Minutes > 0 || duration.Hours > 0 || years > 0 || months > 0 || days > 0)
+            {
+                parts.Add($"{duration.Minutes}{minuteUnit}");
+            }
+
+            parts.Add($"{duration.Seconds}{secondUnit}");
 
             return string.Join(" ", parts);
         }

@@ -1265,6 +1265,19 @@
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show how long you are AFK
                                         </CheckBox>
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="4,5,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AfkModule.Settings.UseSmallLettersForDuration, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Visibility="{Binding AfkModule.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            Use small letters for duration
+                                        </CheckBox>
                                         <TextBlock
                                             Padding="4,5,9,0"
                                             VerticalAlignment="Center"
