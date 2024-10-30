@@ -99,5 +99,5 @@ graph TB;
 ### ◥◣ ${\color{cyan}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗠𝗘𝗡𝗧}$ ${\color{Gray}•}$ Franxx
   - Hi, I’m Franxx, the Head of Development at MagicChatbox. I have an excellent English proficiency at the B2 level. As a developer and contributor to MagicChatbox, I bring over three years of experience in C#, Unity, Python, Java, and Lua. I’m the second point of contact for program development after Hanny, and I specialize in bug fixing and managing pull requests.
  
-### ◥◣ ${\color{ForestGreen}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗠𝗢𝗗𝗘𝗥𝗔𝗧𝗜𝗢𝗡}$ ${\color{Gray}•}$ miss_crystal (aka. Crystal)
+### ◥◣ ${\color{ForestGreen}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗠𝗢𝗗𝗘𝗥𝗔𝗧𝗜𝗢𝗡}$ ${\color{Gray}•}$ miss_crystal
   - Hi, I’m Crystal, the Head of Moderation at MagicChatbox. I’ve been with the team for a year now. I started as a regular user and was brought onto the team due to my dedication in helping other users with their issues. I’m well-versed in the regulations and troubleshooting for MagicChatbox. My main focus is on support and moderation, where I’m most active. I also have native-level proficiency in English.
