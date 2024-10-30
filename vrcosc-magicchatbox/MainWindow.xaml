@@ -389,6 +389,7 @@
         </Border.Effect>
         <Grid HorizontalAlignment="Stretch" Background="#FF3B3054">
 
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="55" />
                 <RowDefinition Height="*" />
@@ -1264,6 +1265,19 @@
                                             IsChecked="{Binding AfkModule.Settings.ShowAFKTime, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show how long you are AFK
+                                        </CheckBox>
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="4,5,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding AfkModule.Settings.UseSmallLettersForDuration, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Visibility="{Binding AfkModule.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            Use small letters for duration suffix
                                         </CheckBox>
                                         <TextBlock
                                             Padding="4,5,9,0"
@@ -7402,8 +7416,21 @@
             <Grid
                 Grid.Row="1"
                 Grid.Column="1"
-                Width="225"
-                Background="#FF42385D">
+                Width="225">
+                <Grid.Background>
+                    <LinearGradientBrush EndPoint="0.5,0.5" StartPoint="0.5,0" MappingMode="RelativeToBoundingBox" SpreadMethod="Pad">
+                        <LinearGradientBrush.RelativeTransform>
+                            <TransformGroup>
+                                <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                <SkewTransform CenterX="0.5" CenterY="0.5"/>
+                                <RotateTransform Angle="140.194" CenterX="0.5" CenterY="0.5"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </LinearGradientBrush.RelativeTransform>
+                        <GradientStop Color="#FF231E5F"/>
+                        <GradientStop Color="#FF42385D" Offset="1"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
                     <RowDefinition Height="auto" />
@@ -7419,6 +7446,380 @@
                         ShadowDepth="15"
                         Color="DarkBlue" />
                 </Grid.Effect>
+                <Grid
+                    Grid.Row="3"
+                    Height="auto"
+                    VerticalAlignment="Bottom">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Stretch"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="#FF7D7397"
+                        Text="{Binding UpdateStatustxt}" />
+                    <TextBlock
+                        x:Name="GitHubChanges"
+                        Width="auto"
+                        HorizontalAlignment="Center"
+                        Cursor="Hand"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="8.5"
+                        Foreground="#26A1FA"
+                        MouseUp="GitHubChanges_MouseUp"
+                        Text="View changes on GitHub"
+                        TextDecorations="Underline"
+                        Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="10"
+                                Opacity="0.3"
+                                ShadowDepth="0"
+                                Color="#251153" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <StackPanel VerticalAlignment="Bottom">
+                        <Grid>
+
+                            <Image
+                                MaxHeight="180"
+                                Margin="0,0,0,44"
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                Source="/Img/Hellowwweeeeen.png" />
+
+
+
+                            <CheckBox
+                                Width="auto"
+                                Height="40"
+                                Margin="0,0,0,25"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Checked="Update_Click"
+                                Cursor="Hand"
+                                FontFamily="Algerian"
+                                FontSize="16"
+                                FontWeight="DemiBold"
+                                Foreground="#E85716"
+                                IsChecked="{Binding PrefixChat, Mode=TwoWay}"
+                                Unchecked="Update_Click">
+                                <CheckBox.Template>
+                                    <ControlTemplate TargetType="CheckBox">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!--  Custom CheckBox Box  -->
+                                            <Border
+                                                x:Name="CheckBoxBorder"
+                                                Width="20"
+                                                Height="20"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="Transparent"
+                                                BorderBrush="#FF2D1265"
+                                                BorderThickness="2"
+                                                CornerRadius="2">
+                                                <!--  Pumpkin Emoji  -->
+                                                <TextBlock
+                                                    x:Name="CheckMark"
+                                                    Margin="1.5"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="13"
+                                                    Text="🎃"
+                                                    Visibility="Collapsed" />
+
+                                            </Border>
+
+                                            <!--  CheckBox Content  -->
+                                            <ContentPresenter
+                                                Grid.Column="1"
+                                                Margin="10,0,0,0"
+                                                VerticalAlignment="Center" />
+                                        </Grid>
+
+                                        <ControlTemplate.Triggers>
+                                            <!--  When Checked  -->
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                                                <Setter TargetName="CheckBoxBorder" Property="Background" Value="#FF2D1265" />
+                                            </Trigger>
+
+                                            <!--  Mouse Over Effect  -->
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#E85716" />
+                                            </Trigger>
+
+                                            <!--  Disabled State  -->
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Foreground" Value="#888888" />
+                                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#888888" />
+                                                <Setter TargetName="CheckMark" Property="Text" Value="🦇" />
+                                                <!--  Optional: Different icon when disabled  -->
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </CheckBox.Template>
+
+                                <!--  CheckBox Label with Optional Icon  -->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Margin="-5,2,0,0" Text="SPOOKY CHAT ICONS">
+                                        <TextBlock.Foreground>
+                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                <LinearGradientBrush.RelativeTransform>
+                                                    <TransformGroup>
+                                                        <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                                        <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                                        <RotateTransform Angle="83.66" CenterX="0.5" CenterY="0.5" />
+                                                        <TranslateTransform />
+                                                    </TransformGroup>
+                                                </LinearGradientBrush.RelativeTransform>
+                                                <GradientStop Color="#FFA336E3" />
+                                                <GradientStop Offset="1" Color="#FFE85716" />
+                                            </LinearGradientBrush>
+                                        </TextBlock.Foreground>
+
+                                    </TextBlock>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox
+                                Width="auto"
+                                Height="40"
+                                Margin="0,0,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Checked="Update_Click"
+                                Cursor="Hand"
+                                FontFamily="Algerian"
+                                FontSize="16"
+                                FontWeight="DemiBold"
+                                Foreground="#E85716"
+                                IsChecked="{Binding PrefixIconStatus, Mode=TwoWay}"
+                                Unchecked="Update_Click">
+                                <CheckBox.Template>
+                                    <ControlTemplate TargetType="CheckBox">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!--  Custom CheckBox Box  -->
+                                            <Border
+                                                x:Name="CheckBoxBorder"
+                                                Width="20"
+                                                Height="20"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="Transparent"
+                                                BorderBrush="#FF2D1265"
+                                                BorderThickness="2"
+                                                CornerRadius="2">
+                                                <!--  Pumpkin Emoji  -->
+                                                <TextBlock
+                                                    x:Name="CheckMark"
+                                                    Margin="1.5"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="13"
+                                                    Text="🎃"
+                                                    Visibility="Collapsed" />
+
+                                            </Border>
+
+                                            <!--  CheckBox Content  -->
+                                            <ContentPresenter
+                                                Grid.Column="1"
+                                                Margin="10,0,0,0"
+                                                VerticalAlignment="Center" />
+                                        </Grid>
+
+                                        <ControlTemplate.Triggers>
+                                            <!--  When Checked  -->
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                                                <Setter TargetName="CheckBoxBorder" Property="Background" Value="#FF2D1265" />
+                                            </Trigger>
+
+                                            <!--  Mouse Over Effect  -->
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#E85716" />
+                                            </Trigger>
+
+                                            <!--  Disabled State  -->
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Foreground" Value="#888888" />
+                                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#888888" />
+                                                <Setter TargetName="CheckMark" Property="Text" Value="🦇" />
+                                                <!--  Optional: Different icon when disabled  -->
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </CheckBox.Template>
+
+                                <!--  CheckBox Label with Optional Icon  -->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Margin="-5,2,0,0" Text="SPOOKY STATUS ICONS">
+                                        <TextBlock.Foreground>
+                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                <LinearGradientBrush.RelativeTransform>
+                                                    <TransformGroup>
+                                                        <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                                        <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                                        <RotateTransform Angle="143.746" CenterX="0.5" CenterY="0.5" />
+                                                        <TranslateTransform />
+                                                    </TransformGroup>
+                                                </LinearGradientBrush.RelativeTransform>
+                                                <GradientStop Color="#FFA336E3" />
+                                                <GradientStop Offset="1" Color="#FFE85716" />
+                                            </LinearGradientBrush>
+                                        </TextBlock.Foreground>
+
+                                    </TextBlock>
+                                </StackPanel>
+                            </CheckBox>
+                            <Button
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Top"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                Command="{Binding ActivateSettingCommand}"
+                                CommandParameter="Settings_MediaLink"
+                                Cursor="Hand">
+
+                                <!--  Define a custom style to remove hover effects  -->
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <!--  Remove any default background and border visuals  -->
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="BorderBrush" Value="Transparent" />
+
+                                        <!--  Define a ControlTemplate that only displays the content without any additional visuals  -->
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <ContentPresenter />
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+
+                                        <!--  Remove visual changes on different states  -->
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="BorderBrush" Value="Transparent" />
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="BorderBrush" Value="Transparent" />
+                                            </Trigger>
+                                            <Trigger Property="IsFocused" Value="True">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="BorderBrush" Value="Transparent" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+
+                                <!--  TextBlock as the Button's Content  -->
+                                <Label
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
+                                    FontFamily="Algerian"
+                                    FontSize="12"
+                                    Content="+ MediaLink seekbar styles"
+                                    FontStyle="Normal">
+                                    <Label.Foreground>
+                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                            <LinearGradientBrush.RelativeTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                                    <RotateTransform Angle="83.66" CenterX="0.5" CenterY="0.5" />
+                                                    <TranslateTransform />
+                                                </TransformGroup>
+                                            </LinearGradientBrush.RelativeTransform>
+                                            <GradientStop Color="#FFA336E3" />
+                                            <GradientStop Offset="1" Color="#FFE85716" />
+                                        </LinearGradientBrush>
+                                    </Label.Foreground>
+                                </Label>
+                            </Button>
+
+
+                        </Grid>
+
+
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                            <Button
+                                x:Name="CheckUpdateBtnn"
+                                Margin="0,-3"
+                                Padding="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Click="CheckUpdateBtnn_Click"
+                                Style="{StaticResource CircleButton}">
+                                <Image
+                                    Width="12"
+                                    Height="12"
+                                    RenderOptions.BitmapScalingMode="Linear"
+                                    Source="/Img/Icons/Load_ico.png" />
+
+                            </Button>
+                            <TextBlock
+                                Margin="5,0.5,5,5"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Stretch"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="13"
+                                Foreground="#9D91D2"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="{Binding AppVersion.VersionNumber}">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="15"
+                                        Opacity="0.9"
+                                        ShadowDepth="0"
+                                        Color="{Binding VersionTxtColor}" />
+                                </TextBlock.Effect>
+
+                            </TextBlock>
+                            <TextBlock
+                                Name="NewVersion"
+                                Margin="0,0.5,5,8"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Bottom"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{Binding VersionTxtColor}"
+                                MouseUp="NewVersion_MouseUp"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="{Binding VersionTxt}">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding VersionTxtUnderLine}" Value="True">
+                                                <Setter Property="TextDecorations" Value="Underline" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="15"
+                                        Opacity="0.7"
+                                        ShadowDepth="0"
+                                        Color="{Binding VersionTxtColor}" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+
+                </Grid>
                 <TextBlock
                     Grid.Column="0"
                     HorizontalAlignment="Center"
@@ -7976,106 +8377,7 @@
 
 
 
-                <Grid
-                    Grid.Row="3"
-                    Height="45"
-                    VerticalAlignment="Bottom">
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Stretch"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="#FF7D7397"
-                        Text="{Binding UpdateStatustxt}" />
-                    <TextBlock
-                        x:Name="GitHubChanges"
-                        Width="auto"
-                        HorizontalAlignment="Center"
-                        Cursor="Hand"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="8.5"
-                        Foreground="#26A1FA"
-                        MouseUp="GitHubChanges_MouseUp"
-                        Text="View changes on GitHub"
-                        TextDecorations="Underline"
-                        Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Opacity="0.3"
-                                ShadowDepth="0"
-                                Color="#251153" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                    <StackPanel
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Bottom"
-                        Orientation="Horizontal">
-                        <Button
-                            x:Name="CheckUpdateBtnn"
-                            Margin="0,-3"
-                            Padding="0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top"
-                            Click="CheckUpdateBtnn_Click"
-                            Style="{StaticResource CircleButton}">
-                            <Image
-                                Width="12"
-                                Height="12"
-                                RenderOptions.BitmapScalingMode="Linear"
-                                Source="/Img/Icons/Load_ico.png" />
 
-                        </Button>
-                        <TextBlock
-                            Margin="5,0.5,5,5"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Stretch"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="#9D91D2"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="{Binding AppVersion.VersionNumber}">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Opacity="0.9"
-                                    ShadowDepth="0"
-                                    Color="{Binding VersionTxtColor}" />
-                            </TextBlock.Effect>
-
-                        </TextBlock>
-                        <TextBlock
-                            Name="NewVersion"
-                            Margin="0,0.5,5,8"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Bottom"
-                            Cursor="Hand"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="12"
-                            Foreground="{Binding VersionTxtColor}"
-                            MouseUp="NewVersion_MouseUp"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="{Binding VersionTxt}">
-                            <TextBlock.Style>
-                                <Style TargetType="{x:Type TextBlock}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding VersionTxtUnderLine}" Value="True">
-                                            <Setter Property="TextDecorations" Value="Underline" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Opacity="0.7"
-                                    ShadowDepth="0"
-                                    Color="{Binding VersionTxtColor}" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                    </StackPanel>
-                </Grid>
                 <Button
                     x:Name="Discord"
                     Width="auto"
@@ -9896,6 +10198,7 @@
 
 
             </ListBox>
+
         </Grid>
     </Border>
 </Window>

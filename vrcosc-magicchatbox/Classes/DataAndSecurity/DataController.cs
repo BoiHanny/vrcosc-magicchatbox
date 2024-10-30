@@ -739,7 +739,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 ViewModel.Instance.Egg_Dev = true;
             }
-            if(statusList.Any(x => x.msg.Equals("izurubae", StringComparison.OrdinalIgnoreCase)))
+            if (statusList.Any(x => x.msg.Equals("izurubae", StringComparison.OrdinalIgnoreCase)))
             {
                 ViewModel.Instance.IzuruBaeMode = true;
             }
@@ -1218,44 +1218,87 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     ID = 3,
                     ProgressBarLength = 8,
-    DisplayTime = true,
-    ShowTimeInSuperscript = true,
-    FilledCharacter = "●",
-    MiddleCharacter = "◐",
-    NonFilledCharacter = "○",
-    TimePrefix = "「",
-    TimeSuffix = "」",
-    SpaceBetweenPreSuffixAndTime = false,
-    SystemDefault = true
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "●",
+                    MiddleCharacter = "◐",
+                    NonFilledCharacter = "○",
+                    TimePrefix = "「",
+                    TimeSuffix = "」",
+                    SpaceBetweenPreSuffixAndTime = false,
+                    SystemDefault = true
                 },
                                 new MediaLinkStyle
                 {
                     ID = 4,
-    ProgressBarLength = 8,
-    DisplayTime = true,
-    ShowTimeInSuperscript = true,
-    FilledCharacter = "♣",
-    MiddleCharacter = "♠",
-    NonFilledCharacter = "○",
-    TimePrefix = "【",
-    TimeSuffix = "】",
-    SpaceBetweenPreSuffixAndTime = false,
-    SystemDefault = true
+                    ProgressBarLength = 8,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "♣",
+                    MiddleCharacter = "♠",
+                    NonFilledCharacter = "○",
+                    TimePrefix = "【",
+                    TimeSuffix = "】",
+                    SpaceBetweenPreSuffixAndTime = false,
+                    SystemDefault = true
                 },
                                                             new MediaLinkStyle
             {
-                ID = 5,
-    ProgressBarLength = 8,
-    DisplayTime = true,
-    ShowTimeInSuperscript = true,
-    FilledCharacter = "★",
-    MiddleCharacter = "✴",
-    NonFilledCharacter = "☆",
-    TimePrefix = "«",
-    TimeSuffix = "»",
-    SpaceBetweenPreSuffixAndTime = true,
-    SystemDefault = true
+                    ID = 5,
+                    ProgressBarLength = 8,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "★",
+                    MiddleCharacter = "✴",
+                    NonFilledCharacter = "☆",
+                    TimePrefix = "«",
+                    TimeSuffix = "»",
+                    SpaceBetweenPreSuffixAndTime = true,
+                    SystemDefault = true
             },
+                                                            new MediaLinkStyle
+            {
+                    ID = 6,
+                    ProgressBarLength = 8,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "▞",
+                    MiddleCharacter = "▞",
+                    NonFilledCharacter = "━",
+                    TimePrefix = "┣",
+                    TimeSuffix = "┫",
+                    SpaceBetweenPreSuffixAndTime = false,
+                    SystemDefault = true
+            },
+            new MediaLinkStyle
+            {
+                    ID = 7,
+                    ProgressBarLength = 8,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "◉",
+                    MiddleCharacter = "◉",
+                    NonFilledCharacter = "◎",
+                    TimePrefix = "",
+                    TimeSuffix = "",
+                    SpaceBetweenPreSuffixAndTime = false,
+                    SystemDefault = true
+            },
+            new MediaLinkStyle
+            {
+                    ID = 8,
+                    ProgressBarLength = 7,
+                    DisplayTime = true,
+                    ShowTimeInSuperscript = true,
+                    FilledCharacter = "┅",
+                    MiddleCharacter = "🕷️",
+                    NonFilledCharacter = "┅",
+                    TimePrefix = "🧙",
+                    TimeSuffix = "🕸️",
+                    SpaceBetweenPreSuffixAndTime = false,
+                    SystemDefault = true
+            },
+
             };
         }
 
