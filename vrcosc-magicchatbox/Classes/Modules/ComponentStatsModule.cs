@@ -512,28 +512,52 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 if (stat != null)
                 {
                     string componentDescription = stat.GetDescription();
-                    string additionalInfo = "";
-                    string cpuTemp = "", cpuPower = "", gpuTemp = "", gpuPower = "", gpuHotSpotTemp = "";
+                    List<string> additionalInfoParts = new List<string>();
 
                     var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
                     var gpuHardware = GetDedicatedGPU();
 
                     if (stat.ComponentType == StatsComponentType.CPU && cpuHardware != null)
                     {
-                        cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : "";
-                        cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : "";
-                        additionalInfo = $"{(!stat.cantShowTemperature ? cpuTemp + " " : "")}{(!stat.cantShowWattage ? cpuPower : "")}";
+                        string cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : "";
+                        string cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : "";
+
+                        if (!stat.cantShowTemperature && !string.IsNullOrWhiteSpace(cpuTemp))
+                        {
+                            additionalInfoParts.Add(cpuTemp);
+                        }
+                        if (!stat.cantShowWattage && !string.IsNullOrWhiteSpace(cpuPower))
+                        {
+                            additionalInfoParts.Add(cpuPower);
+                        }
                     }
                     else if (stat.ComponentType == StatsComponentType.GPU && gpuHardware != null)
                     {
-                        gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
-                        gpuHotSpotTemp = stat.ShowHotSpotTemperature ? FetchHotspotTemperatureStat(gpuHardware, stat) : "";
-                        gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
-                        additionalInfo = $"{(!stat.cantShowTemperature ? gpuTemp + " " : "")}{(!stat.cantShowHotSpotTemperature ? gpuHotSpotTemp + " " : "")}{(!stat.cantShowWattage ? gpuPower : "")}";
+                        string gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
+                        string gpuHotSpotTemp = stat.ShowHotSpotTemperature ? FetchHotspotTemperatureStat(gpuHardware, stat) : "";
+                        string gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
+
+                        if (!stat.cantShowTemperature && !string.IsNullOrWhiteSpace(gpuTemp))
+                        {
+                            additionalInfoParts.Add(gpuTemp);
+                        }
+                        if (!stat.cantShowHotSpotTemperature && !string.IsNullOrWhiteSpace(gpuHotSpotTemp))
+                        {
+                            additionalInfoParts.Add(gpuHotSpotTemp);
+                        }
+                        if (!stat.cantShowWattage && !string.IsNullOrWhiteSpace(gpuPower))
+                        {
+                            additionalInfoParts.Add(gpuPower);
+                        }
                     }
 
+                    // Combine the additionalInfo parts with a single space
+                    string additionalInfo = string.Join(" ", additionalInfoParts).Trim();
+
                     // Combine the component description with additional info if any
-                    string fullComponentInfo = $"{componentDescription}{(string.IsNullOrWhiteSpace(additionalInfo) ? "" : $" {additionalInfo}")}".Trim();
+                    string fullComponentInfo = string.IsNullOrWhiteSpace(additionalInfo)
+                        ? componentDescription
+                        : $"{componentDescription} {additionalInfo}";
 
                     // Add the full component info to the list of descriptions
                     if (!string.IsNullOrEmpty(fullComponentInfo))
@@ -548,6 +572,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             // Join the descriptions with the separator, ensuring no leading separator when there's only one item
             return string.Join(" ¦ ", descriptions);
         }
+
 
         public static Computer CurrentSystem;
 
