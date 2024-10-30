@@ -36,6 +36,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Img\Hellowwweeeeen.png" />
     <None Remove="Img\Icons\Accept_ico.png" />
     <None Remove="Img\Icons\ActivatedStatus_ico.png" />
     <None Remove="Img\Icons\ActivateStatus_ico.png" />
@@ -97,6 +98,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Img\Hellowwweeeeen.png" />
     <Resource Include="Img\Icons\Accept_ico.png" />
     <Resource Include="Img\Icons\ActivatedStatus_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>

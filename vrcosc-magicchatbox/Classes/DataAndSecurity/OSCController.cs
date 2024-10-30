@@ -339,7 +339,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     // Update LastUsed property for the active item
                     activeItem.LastUsed = DateTime.Now;
 
-                    string icon = "💬";
+                    string icon = ViewModel.Instance.GetNextEmoji();
                     if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
                     {
                         icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
@@ -650,7 +650,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 string Complete_msg = null;
                 if (ViewModel.Instance.PrefixChat == true)
                 {
-                    string icon = "💬";
+                    string icon = ViewModel.Instance.GetNextEmoji();
                     if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
                     {
                         icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);

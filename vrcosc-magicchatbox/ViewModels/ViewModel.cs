@@ -147,7 +147,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _Egg_Dev = false;
 
-
+        
 
         private PulsoidModule _HeartRateConnector;
         public PulsoidModule HeartRateConnector
@@ -331,6 +331,9 @@ namespace vrcosc_magicchatbox.ViewModels
 
             PropertyChanged += HeartRateConnector.PropertyChangedHandler;
             PropertyChanged += SoundpadModule.PropertyChangedHandler;
+
+            ShuffleEmojis(); 
+            CurrentEmoji = GetNextEmoji(); 
         }
 
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -4122,6 +4125,48 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(SpotifyPaused));
             }
         }
+
+        private readonly List<string> _halloweenEmojis = new List<string>
+    {
+        "😱", "🫣", "💀", "🤡", "👹", "👺", "👻", "🧛", "🧟",
+        "🕷️", "🕸️", "🍬", "🍭", "🎃", "🔮", "🎭", "🕯️",
+        "⛓️", "⚰️", "🪦", "⚱️"
+    };
+
+        private Queue<string> _shuffledEmojis;
+
+        private readonly Random _random = new Random();
+
+        private string _currentEmoji;
+        public string CurrentEmoji
+        {
+            get => _currentEmoji;
+            private set
+            {
+                if (_currentEmoji != value)
+                {
+                    _currentEmoji = value;
+                    NotifyPropertyChanged(nameof(CurrentEmoji));
+                }
+            }
+        }
+
+        private void ShuffleEmojis()
+        {
+            var shuffledList = _halloweenEmojis.OrderBy(e => _random.Next()).ToList();
+            _shuffledEmojis = new Queue<string>(shuffledList);
+        }
+
+        public string GetNextEmoji()
+        {
+            if (_shuffledEmojis.Count == 0)
+            {
+                ShuffleEmojis(); 
+            }
+
+            return CurrentEmoji = _shuffledEmojis.Dequeue();
+        }
+
         #endregion
 
         #region PropChangedEvent
