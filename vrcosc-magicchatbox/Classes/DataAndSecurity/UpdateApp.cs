@@ -60,10 +60,8 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         currentAppPath = appLocation["currentAppPath"].ToString();
 
                         // Check if the current app path matches the actual current app path
-                        if (createNewAppLocation || !string.Equals(currentAppPath, actualCurrentAppPath, StringComparison.OrdinalIgnoreCase))
+                        if (createNewAppLocation)
                         {
-                            // The app has been moved to a new location
-                            Logging.WriteInfo("The application has been moved. Updating app_location.json.");
                             SetDefaultPaths();
                             SaveUpdateLocation();
                         }
