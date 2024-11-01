@@ -60,7 +60,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void Update_Click(object sender, RoutedEventArgs e)
         {
-            UpdateApp updater = new UpdateApp();
+            UpdateApp updater = new UpdateApp(true);
             updater.SelectCustomZip();
         }
 
@@ -70,7 +70,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             {
                 ViewModel.Instance.CanUpdate = false;
                 ViewModel.Instance.CanUpdateLabel = false;
-                UpdateApp updateApp = new UpdateApp();
+                UpdateApp updateApp = new UpdateApp(true);
                 Task.Run(() => updateApp.PrepareUpdate());
             }
             else
@@ -91,7 +91,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void rollback_Click(object sender, RoutedEventArgs e)
         {
-            UpdateApp updater = new UpdateApp();
+            UpdateApp updater = new UpdateApp(true);
             updater.StartRollback();
         }
     }

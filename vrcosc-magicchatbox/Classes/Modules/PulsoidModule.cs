@@ -151,7 +151,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public static string GetFullSettingsPath()
         {
-            return Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox"), SettingsFileName);
+            return Path.Combine(ViewModel.Instance.DataPath, SettingsFileName);
         }
 
         public static PulsoidModuleSettings LoadSettings()

@@ -29,7 +29,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         private const string SettingsFileName = "AfkModuleSettings.json";
-        private static readonly string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+        private static readonly string SettingsPath = Path.Combine(ViewModel.Instance.DataPath, SettingsFileName);
 
         [ObservableProperty]
         private int afkTimeout = 120;

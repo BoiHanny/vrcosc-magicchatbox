@@ -6,6 +6,10 @@
     },
     "Normal": {
       "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "commandLineArgs": "-profile=1"
     }
   }
 }

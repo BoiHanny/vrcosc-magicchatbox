@@ -681,11 +681,18 @@ namespace vrcosc_magicchatbox
 
         private void NewVersion_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            if(ViewModel.Instance.UseCustomProfile)
+            {
+                Logging.WriteException(new Exception("Cannot update while using a custom profile."), MSGBox: true);
+                return;
+            }
+
+
             if (ViewModel.Instance.CanUpdate)
             {
                 ViewModel.Instance.CanUpdate = false;
                 ViewModel.Instance.CanUpdateLabel = false;
-                UpdateApp updateApp = new UpdateApp();
+                UpdateApp updateApp = new UpdateApp(true);
                 Task.Run(() => updateApp.PrepareUpdate());
             }
             else
@@ -1559,7 +1566,13 @@ namespace vrcosc_magicchatbox
 
         private void UpdateByZipFile_Click(object sender, RoutedEventArgs e)
         {
-            UpdateApp updateApp = new UpdateApp();
+            if (ViewModel.Instance.UseCustomProfile)
+            {
+                Logging.WriteException(new Exception("Cannot update by zip while using a custom profile."), MSGBox: true);
+                return;
+            }
+
+            UpdateApp updateApp = new UpdateApp(true);
             updateApp.SelectCustomZip();
         }
 
@@ -1633,7 +1646,13 @@ namespace vrcosc_magicchatbox
 
         private void Rollback_Click(object sender, RoutedEventArgs e)
         {
-            UpdateApp updateApp = new UpdateApp();
+            if (ViewModel.Instance.UseCustomProfile)
+            {
+                Logging.WriteException(new Exception("Cannot rollback while using a custom profile."), MSGBox: true);
+                return;
+            }
+
+            UpdateApp updateApp = new UpdateApp(true);
             updateApp.StartRollback();
         }
 

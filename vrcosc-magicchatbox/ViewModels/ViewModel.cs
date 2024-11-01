@@ -325,13 +325,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_Status), value => Settings_Status = value }
             };
 
-            HeartRateConnector = new PulsoidModule();
-            SoundpadModule = new(1000);
-
-
-            PropertyChanged += HeartRateConnector.PropertyChangedHandler;
-            PropertyChanged += SoundpadModule.PropertyChangedHandler;
-
             ShuffleEmojis(); 
             CurrentEmoji = GetNextEmoji(); 
         }
@@ -339,6 +332,16 @@ namespace vrcosc_magicchatbox.ViewModels
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             Resort();
+        }
+
+        public void StartModules()
+        {
+            HeartRateConnector = new PulsoidModule();
+            SoundpadModule = new(1000);
+
+
+            PropertyChanged += HeartRateConnector.PropertyChangedHandler;
+            PropertyChanged += SoundpadModule.PropertyChangedHandler;
         }
 
 
@@ -2183,6 +2186,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _OSCPOrtIN = value;
                 NotifyPropertyChanged(nameof(OSCPOrtIN));
+            }
+        }
+
+        public void SetDataPath()
+        {
+            if(UseCustomProfile)
+            {
+                DataPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    $"Vrcosc-MagicChatbox-profile-{ProfileNumber}");
             }
         }
 
@@ -4165,6 +4178,28 @@ namespace vrcosc_magicchatbox.ViewModels
             }
 
             return CurrentEmoji = _shuffledEmojis.Dequeue();
+        }
+
+        private int _profileNumber;
+        public int ProfileNumber
+        {
+            get => _profileNumber;
+            set
+            {
+                _profileNumber = value;
+                NotifyPropertyChanged(nameof(ProfileNumber));
+            }
+        }
+
+        private bool _useCustomProfile;
+        public bool UseCustomProfile
+        {
+            get => _useCustomProfile;
+            set
+            {
+                _useCustomProfile = value;
+                NotifyPropertyChanged(nameof(UseCustomProfile));
+            }
         }
 
         #endregion

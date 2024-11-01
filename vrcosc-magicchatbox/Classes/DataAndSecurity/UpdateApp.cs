@@ -26,16 +26,23 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         private string magicChatboxExePath;
         private string backupPath;
 
-        public UpdateApp()
+        public UpdateApp(bool createNewAppLocation = false)
         {
             dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
-            InitializePaths();
+            InitializePaths(createNewAppLocation);
         }
 
-        private void InitializePaths()
+        private void InitializePaths(bool createNewAppLocation)
         {
             string jsonFilePath = Path.Combine(dataPath, "app_location.json");
-            if (File.Exists(jsonFilePath))
+            string actualCurrentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            if (!File.Exists(jsonFilePath))
+            {
+                SetDefaultPaths();
+                SaveUpdateLocation();
+            }
+            else
             {
                 var settingsJson = File.ReadAllText(jsonFilePath);
 
@@ -43,6 +50,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     Logging.WriteInfo("The app_location.json file is empty or corrupted.");
                     SetDefaultPaths();
+                    SaveUpdateLocation();
                 }
                 else
                 {
@@ -50,21 +58,31 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     {
                         JObject appLocation = JObject.Parse(settingsJson);
                         currentAppPath = appLocation["currentAppPath"].ToString();
-                        tempPath = appLocation["tempPath"].ToString();
-                        unzipPath = appLocation["unzipPath"].ToString();
-                        magicChatboxExePath = appLocation["magicChatboxExePath"].ToString();
-                        backupPath = Path.Combine(dataPath, "backup");
+
+                        // Check if the current app path matches the actual current app path
+                        if (createNewAppLocation || !string.Equals(currentAppPath, actualCurrentAppPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // The app has been moved to a new location
+                            Logging.WriteInfo("The application has been moved. Updating app_location.json.");
+                            SetDefaultPaths();
+                            SaveUpdateLocation();
+                        }
+                        else
+                        {
+                            // Existing code to set paths from app_location.json
+                            tempPath = appLocation["tempPath"].ToString();
+                            unzipPath = appLocation["unzipPath"].ToString();
+                            magicChatboxExePath = appLocation["magicChatboxExePath"].ToString();
+                            backupPath = Path.Combine(dataPath, "backup");
+                        }
                     }
                     catch (Newtonsoft.Json.JsonReaderException ex)
                     {
                         Logging.WriteInfo($"Error parsing app_location.json: {ex.Message}");
                         SetDefaultPaths();
+                        SaveUpdateLocation();
                     }
                 }
-            }
-            else
-            {
-                SetDefaultPaths();
             }
 
             if (!Directory.Exists(tempPath))
@@ -417,7 +435,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
         private void SaveUpdateLocation(string backupPath = null)
         {
             JObject appLocation = new JObject(
-                new JProperty("currentAppPath", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)),
+                new JProperty("currentAppPath", currentAppPath),
                 new JProperty("tempPath", tempPath),
                 new JProperty("unzipPath", unzipPath),
                 new JProperty("magicChatboxExePath", magicChatboxExePath)
