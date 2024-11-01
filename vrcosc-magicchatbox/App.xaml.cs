@@ -35,33 +35,56 @@ namespace vrcosc_magicchatbox
             // Process command-line arguments
             if (e.Args != null && e.Args.Length > 0)
             {
-                switch (e.Args[0])
+                foreach (string arg in e.Args)
                 {
-                    case "-update":
-                        loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
-                        await Task.Run(() => updater.UpdateApplication());
-                        Shutdown();
-                        return;
-                    case "-updateadmin":
-                        loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
-                        await Task.Run(() => updater.UpdateApplication(true));
-                        Shutdown();
-                        return;
-                    case "-rollback":
-                        loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
-                        await Task.Run(() => updater.RollbackApplication(loadingWindow));
-                        Shutdown();
-                        return;
-                    case "-clearbackup":
-                        loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
-                        await Task.Run(() => updater.ClearBackUp());
-                        break;
-                    default:
-                        loadingWindow.Hide();
-                        Logging.WriteException(new Exception($"Invalid command line argument '{e.Args[0]}'"), MSGBox: true, exitapp: true);
-                        return;
+                    if (arg.StartsWith("-profile="))
+                    {
+                        string profileNumberString = arg.Substring(9);
+                        if (int.TryParse(profileNumberString, out int profileNumber))
+                        {
+                            ViewModel.Instance.ProfileNumber = profileNumber;
+                            ViewModel.Instance.UseCustomProfile = true;
+                            ViewModel.Instance.SetDataPath();
+                        }
+                        else
+                        {
+                            loadingWindow.Hide();
+                            Logging.WriteException(new Exception($"Invalid profile number '{profileNumberString}'"), MSGBox: true, exitapp: true);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        switch (arg)
+                        {
+                            case "-update":
+                                loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
+                                await Task.Run(() => updater.UpdateApplication());
+                                Shutdown();
+                                return;
+                            case "-updateadmin":
+                                loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
+                                await Task.Run(() => updater.UpdateApplication(true));
+                                Shutdown();
+                                return;
+                            case "-rollback":
+                                loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
+                                await Task.Run(() => updater.RollbackApplication(loadingWindow));
+                                Shutdown();
+                                return;
+                            case "-clearbackup":
+                                loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
+                                await Task.Run(() => updater.ClearBackUp());
+                                break;
+                            default:
+                                loadingWindow.Hide();
+                                Logging.WriteException(new Exception($"Invalid command line argument '{arg}'"), MSGBox: true, exitapp: true);
+                                return;
+                        }
+                    }
                 }
             }
+
 
             // Initialize various components with progress updates
             await InitializeComponentsWithProgress(loadingWindow);
@@ -152,6 +175,9 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Turbocharging MediaLink engines... Fast & Furious: Data Drift!", 95);
             ApplicationMediaController = new MediaLinkModule(ViewModel.Instance.IntgrScanMediaLink);
+
+            loadingWindow.UpdateProgress("Starting the modules... Ready, set, go!", 96);
+            await Task.Run(() => ViewModel.Instance.StartModules());
 
             loadingWindow.UpdateProgress("Loading MediaLink styles... Fashion show, here we come!", 98);
             await Task.Run(() => DataController.LoadAndSaveMediaLinkStyles());
