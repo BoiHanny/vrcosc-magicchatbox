@@ -17,7 +17,7 @@ graph TB;
     G --> E["**MODERATION**"]:::moderation;
     D --> D1["**ʜᴇᴀᴅ ᴏғ ᴅᴇᴠᴇʟᴏᴘᴍᴇɴᴛ**<br>Franxx"]:::developerText;
     D1 --> H["**TRANSLATOR**"]:::translator;
-    D --> D2["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>skye"]:::developerName;
+    D --> D2["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>puppy_wolfskye"]:::developerName;
     D --> D3["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
     D --> D4["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
     D --> D5["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
