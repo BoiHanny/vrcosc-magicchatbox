@@ -100,4 +100,4 @@ graph TB;
   - Hi, I’m Franxx, the Head of Development at MagicChatbox. I have an excellent English proficiency at the B2 level. As a developer and contributor to MagicChatbox, I bring over three years of experience in C#, Unity, Python, Java, and Lua. I’m the second point of contact for program development after Hanny, and I specialize in bug fixing and managing pull requests.
  
 ### ◥◣ ${\color{ForestGreen}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗠𝗢𝗗𝗘𝗥𝗔𝗧𝗜𝗢𝗡}$ ${\color{Gray}•}$ miss_crystal (aka. Crystal)
-  - Hi, I’m Crystal, the Head of Moderation at MagicChatbox.
+  - Hi, I’m Crystal, or Sakura the Head of Moderation at MagicChatbox. You'll hear me go by both. I've been apart of the team for almost a year now, helping out with support here and there as well as moderation. native English speaker, and in the process of learning A1 German. I'm mostly easy going as a VRChat veteran. I also have a background in IT (Comp TIA A+ Cert)
