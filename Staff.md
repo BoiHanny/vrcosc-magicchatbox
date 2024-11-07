@@ -17,7 +17,7 @@ graph TB;
     G --> E["**MODERATION**"]:::moderation;
     D --> D1["**ʜᴇᴀᴅ ᴏғ ᴅᴇᴠᴇʟᴏᴘᴍᴇɴᴛ**<br>Franxx"]:::developerText;
     D1 --> H["**TRANSLATOR**"]:::translator;
-    D --> D2["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
+    D --> D2["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>puppy_wolfskye"]:::developerName;
     D --> D3["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
     D --> D4["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
     D --> D5["**ᴅᴇᴠᴇʟᴏᴘᴇʀ**<br>❔"]:::developerName;
@@ -29,17 +29,17 @@ graph TB;
     E --> E4["**ᴍᴏᴅᴇʀᴀᴛᴏʀ**<br>❔"]:::moderationName;
     E --> E5["**ᴍᴏᴅᴇʀᴀᴛᴏʀ**<br>❔"]:::moderationName;
     E5 --> J["**VRC CONTRIBUTOR**"]:::nummer;
-    F --> F1["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>❔"]:::supporterName;
-    F --> F2["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>❔"]:::supporterName;
+    F --> F1["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>The Nova Beast"]:::supporterName;
+    F --> F2["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>Jari"]:::supporterName;
     F --> F3["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>❔"]:::supporterName;
     F --> F4["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>❔"]:::supporterName;
     F --> F5["**sᴜᴘᴘᴏʀᴛᴇʀ**<br>❔"]:::supporterName;
-    H --> H1["**ᴛʀᴀɴsʟᴀᴛᴏʀ**<br>❔"]:::translatorName;
+    H --> H1["**ᴛʀᴀɴsʟᴀᴛᴏʀ**<br>Kio"]:::translatorName;
     H --> H2["**ᴛʀᴀɴsʟᴀᴛᴏʀ**<br>❔"]:::translatorName;
     H --> H3["**ᴛʀᴀɴsʟᴀᴛᴏʀ**<br>❔"]:::translatorName;
     H --> H4["**ᴛʀᴀɴsʟᴀᴛᴏʀ**<br>❔"]:::translatorName;
     H --> H5["**ᴛʀᴀɴsʟᴀᴛᴏʀ**<br>❔"]:::translatorName;
-    I --> I1["**ᴄᴏɴᴛᴇɴᴛ**<br>❔"]:::newGroupName;
+    I --> I1["**ᴄᴏɴᴛᴇɴᴛ**<br>! rainn !"]:::newGroupName;
     I --> I2["**ᴄᴏɴᴛᴇɴᴛ**<br>❔"]:::newGroupName;
     I --> I3["**ᴄᴏɴᴛᴇɴᴛ**<br>❔"]:::newGroupName;
     I --> I4["**ᴄᴏɴᴛᴇɴᴛ**<br>❔"]:::newGroupName;
@@ -100,4 +100,4 @@ graph TB;
   - Hi, I’m Franxx, the Head of Development at MagicChatbox. I have an excellent English proficiency at the B2 level. As a developer and contributor to MagicChatbox, I bring over three years of experience in C#, Unity, Python, Java, and Lua. I’m the second point of contact for program development after Hanny, and I specialize in bug fixing and managing pull requests.
  
 ### ◥◣ ${\color{ForestGreen}𝗛𝗘𝗔𝗗 \space 𝗢𝗙 \space 𝗠𝗢𝗗𝗘𝗥𝗔𝗧𝗜𝗢𝗡}$ ${\color{Gray}•}$ miss_crystal (aka. Crystal)
-  - Hi, I’m Crystal, the Head of Moderation at MagicChatbox. I’ve been with the team for a year now. I started as a regular user and was brought onto the team due to my dedication in helping other users with their issues. I’m well-versed in the regulations and troubleshooting for MagicChatbox. My main focus is on support and moderation, where I’m most active. I also have native-level proficiency in English.
+  - Hi, I’m Crystal, or Sakura the Head of Moderation at MagicChatbox. You'll hear me go by both. I've been apart of the team for almost a year now, helping out with support here and there as well as moderation. native English speaker, and in the process of learning A1 German. I'm mostly easy going as a VRChat veteran. I also have a background in IT (Comp TIA A+ Cert)
