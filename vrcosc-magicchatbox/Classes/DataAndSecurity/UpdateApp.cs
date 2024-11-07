@@ -8,11 +8,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity
