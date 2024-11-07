@@ -37,6 +37,13 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             string jsonFilePath = Path.Combine(dataPath, "app_location.json");
             string actualCurrentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            // Ensure the dataPath directory exists
+            if (!Directory.Exists(dataPath))
+            {
+                Directory.CreateDirectory(dataPath);
+                Logging.WriteInfo($"Created data directory at: {dataPath}");
+            }
+
             if (!File.Exists(jsonFilePath))
             {
                 SetDefaultPaths();
@@ -57,7 +64,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     try
                     {
                         JObject appLocation = JObject.Parse(settingsJson);
-                        currentAppPath = appLocation["currentAppPath"].ToString();
+                        currentAppPath = appLocation["currentAppPath"]?.ToString();
 
                         // Check if the current app path matches the actual current app path
                         if (createNewAppLocation)
@@ -68,9 +75,9 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         else
                         {
                             // Existing code to set paths from app_location.json
-                            tempPath = appLocation["tempPath"].ToString();
-                            unzipPath = appLocation["unzipPath"].ToString();
-                            magicChatboxExePath = appLocation["magicChatboxExePath"].ToString();
+                            tempPath = appLocation["tempPath"]?.ToString();
+                            unzipPath = appLocation["unzipPath"]?.ToString();
+                            magicChatboxExePath = appLocation["magicChatboxExePath"]?.ToString();
                             backupPath = Path.Combine(dataPath, "backup");
                         }
                     }
@@ -83,9 +90,25 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
             }
 
+            // Ensure tempPath directory exists
             if (!Directory.Exists(tempPath))
             {
                 Directory.CreateDirectory(tempPath);
+                Logging.WriteInfo($"Created temp directory at: {tempPath}");
+            }
+
+            // Ensure unzipPath directory exists
+            if (!Directory.Exists(unzipPath))
+            {
+                Directory.CreateDirectory(unzipPath);
+                Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
+        }
+
+            // Ensure backupPath directory exists
+            if (!Directory.Exists(backupPath))
+            {
+                Directory.CreateDirectory(backupPath);
+                Logging.WriteInfo($"Created backup directory at: {backupPath}");
             }
         }
 
@@ -96,6 +119,26 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             unzipPath = Path.Combine(tempPath, "update_unzip");
             magicChatboxExePath = Path.Combine(unzipPath, "MagicChatbox.exe");
             backupPath = Path.Combine(dataPath, "backup");
+
+            // Ensure tempPath and unzipPath directories exist
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+                Logging.WriteInfo($"Created temp directory at: {tempPath}");
+        }
+
+            if (!Directory.Exists(unzipPath))
+            {
+                Directory.CreateDirectory(unzipPath);
+                Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
+            }
+
+            // Ensure backupPath directory exists
+            if (!Directory.Exists(backupPath))
+            {
+                Directory.CreateDirectory(backupPath);
+                Logging.WriteInfo($"Created backup directory at: {backupPath}");
+            }
         }
 
         public void UpdateApplication(bool admin = false, string customZipPath = null)
@@ -120,7 +163,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
 
         private void HandleAccessIssues(bool admin)
         {
-            Logging.WriteException(new Exception("Access denied, trying to run as admin"), MSGBox: true, autoclose:true);
+            Logging.WriteException(new Exception("Access denied, trying to run as admin"), MSGBox: true, autoclose: true);
         }
 
         private void MoveToRecycleBin(DirectoryInfo currentAppDirectory, bool admin)
@@ -205,6 +248,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                         }
                     }
                 }
+                Logging.WriteInfo($"Extracted custom ZIP to: {unzipPath}");
             }
             catch (Exception ex)
             {
@@ -245,6 +289,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 {
                     UpdateStatus("Creating backup directory");
                     Directory.CreateDirectory(backupPath);
+                    Logging.WriteInfo($"Created backup directory at: {backupPath}");
                 }
                 else
                 {
@@ -252,12 +297,14 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                     UpdateStatus("Clearing previous backup");
                     Directory.Delete(backupPath, true);
                     Directory.CreateDirectory(backupPath);
+                    Logging.WriteInfo($"Cleared and recreated backup directory at: {backupPath}");
                 }
                 UpdateStatus("Creating backup");
                 CopyDirectory(new DirectoryInfo(currentAppPath), new DirectoryInfo(backupPath));
 
                 // Update app_location.json with backupPath information
                 SaveUpdateLocation(backupPath: backupPath); // Adjust SaveUpdateLocation method accordingly
+                Logging.WriteInfo("Saved update location with backupPath.");
 
                 if (!useCustomZip)
                 {
@@ -272,7 +319,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 }
 
                 // Start the updated application with a specific argument
-                StartNewApplication("-update",unzipPath);
+                StartNewApplication("-update", unzipPath);
             }
             catch (Exception ex)
             {
