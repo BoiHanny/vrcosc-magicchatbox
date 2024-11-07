@@ -20,6 +20,8 @@ namespace vrcosc_magicchatbox
         {
             base.OnStartup(e);
 
+            await Task.Run(() => DataController.CheckLogFolder());
+
             // Show the startup/loading window
             StartUp loadingWindow = new StartUp();
             loadingWindow.Show();
@@ -131,10 +133,7 @@ namespace vrcosc_magicchatbox
         // Helper method to initialize components with progress updates
         private async Task InitializeComponentsWithProgress(StartUp loadingWindow)
         {
-            loadingWindow.UpdateProgress("Making sure log folder exists... hell yeah, logs!", 5);
-            await Task.Run(() => DataController.CheckLogFolder());
-
-            loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 10);
+            loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 7);
             await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
 
             loadingWindow.UpdateProgress("Sifting through your ancient settings... Indiana Jones, is that you?", 20);

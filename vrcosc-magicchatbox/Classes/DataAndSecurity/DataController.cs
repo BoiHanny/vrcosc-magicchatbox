@@ -1142,7 +1142,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             }
             else
             {
-                Logging.WriteInfo($"Custom media link styles file '{filePath}' not found.");
+                Logging.WriteInfo($"Custom media link styles file '{filePath}' not found, no problem!");
                 ViewModel.Instance.SelectedMediaLinkSeekbarStyle = ViewModel.Instance.MediaLinkSeekbarStyles.FirstOrDefault();
             }
         }
