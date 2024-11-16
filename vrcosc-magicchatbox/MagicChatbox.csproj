@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.047</Version>
+	<Version>0.9.050</Version>
     <TargetFramework>net8.0-windows10.0.22000.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
