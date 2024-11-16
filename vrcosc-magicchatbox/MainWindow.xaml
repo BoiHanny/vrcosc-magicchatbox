@@ -7573,27 +7573,30 @@
                         FontSize="12"
                         Foreground="#FF7D7397"
                         Text="{Binding UpdateStatustxt}" />
-                    <TextBlock
-                        x:Name="GitHubChanges"
-                        Width="auto"
-                        HorizontalAlignment="Center"
-                        Cursor="Hand"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="8.5"
-                        Foreground="#26A1FA"
-                        MouseUp="GitHubChanges_MouseUp"
-                        Text="View changes on GitHub"
-                        TextDecorations="Underline"
-                        Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Opacity="0.3"
-                                ShadowDepth="0"
-                                Color="#251153" />
-                        </TextBlock.Effect>
-                    </TextBlock>
+
                     <StackPanel VerticalAlignment="Bottom">
+                        <TextBlock
+                            x:Name="GitHubChanges"
+                            Width="auto"
+                            Margin="0,0,0,10"
+                            HorizontalAlignment="Center"
+                            Cursor="Hand"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="8.5"
+                            Foreground="#26A1FA"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            MouseUp="GitHubChanges_MouseUp"
+                            Text="View changes on GitHub"
+                            TextDecorations="Underline"
+                            Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Opacity="0.3"
+                                    ShadowDepth="0"
+                                    Color="#251153" />
+                            </TextBlock.Effect>
+                        </TextBlock>
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                             <Button
                                 x:Name="CheckUpdateBtnn"
