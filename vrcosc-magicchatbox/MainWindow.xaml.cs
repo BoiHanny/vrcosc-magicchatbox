@@ -320,7 +320,7 @@ namespace vrcosc_magicchatbox
                         string Complete_msg = null;
                         if (ViewModel.Instance.PrefixChat == true)
                         {
-                            string icon = ViewModel.Instance.GetNextEmoji();
+                            string icon = ViewModel.Instance.GetNextEmoji(true);
                             if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
                             {
                                 icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
@@ -561,7 +561,7 @@ namespace vrcosc_magicchatbox
         {
             Process.Start(
                 "explorer",
-                "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Set-Up-MagicChatbox-with-Pulsoid-for-VRChat-%F0%9F%92%9C");
+                "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/%F0%9F%A9%B5-Heart-Rate");
         }
 
 
@@ -569,7 +569,7 @@ namespace vrcosc_magicchatbox
         {
             Process.Start(
                 "explorer",
-                "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/How-to-Use-the-Spotify-Integration-%F0%9F%8E%B5");
+                "https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/%F0%9F%8E%BC-Music-Display");
         }
 
         private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)
@@ -1759,7 +1759,20 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.SoundpadModule.PlayRandomSound();
         }
 
+        private void AddEmojiButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool added = ViewModel.Instance.AddEmoji(EmojiNew.Text);
+            if (added)
+                EmojiNew.Clear();
+        }
 
+        private void EmojiNew_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                AddEmojiButton_Click(sender, e);
+            }
+        }
     }
 
 

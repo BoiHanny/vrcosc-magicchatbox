@@ -123,7 +123,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _ChatSendAgainFX = true;
 
-
         private double _ChattingUpdateRate = 3;
 
         private ObservableCollection<ComponentStatsItem> _componentStatsListPrivate = new ObservableCollection<ComponentStatsItem>();
@@ -4139,12 +4138,79 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        private readonly List<string> _halloweenEmojis = new List<string>
+        private ObservableCollection<string> _emojiCollection = new ObservableCollection<string>
     {
-        "😱", "🫣", "💀", "🤡", "👹", "👺", "👻", "🧛", "🧟",
-        "🕷️", "🕸️", "🍬", "🍭", "🎃", "🔮", "🎭", "🕯️",
-        "⛓️", "⚰️", "🪦", "⚱️"
+        "💬", "🗨️", "💭", "🗯️"
     };
+
+
+        public ObservableCollection<string> EmojiCollection
+        {
+            get => _emojiCollection;
+            set
+            {
+                if (_emojiCollection != value)
+                {
+                    _emojiCollection = value;
+                    NotifyPropertyChanged(nameof(EmojiCollection));
+                }
+            }
+        }
+
+
+
+
+        private string _emojiListString;
+        public string EmojiListString
+        {
+            get => string.Join(",", EmojiCollection);
+            set
+            {
+                if (_emojiListString != value)
+                {
+                    _emojiListString = value;
+                    ParseEmojiListString(value);
+                    NotifyPropertyChanged(nameof(EmojiListString));
+                }
+            }
+        }
+
+        private void ParseEmojiListString(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                EmojiCollection.Clear();
+            }
+            else
+            {
+                var emojis = input.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                  .Select(e => e.Trim())
+                                  .Where(e => !string.IsNullOrWhiteSpace(e));
+
+                // Clear existing collection and add new emojis
+                EmojiCollection.Clear();
+                foreach (var emoji in emojis)
+                {
+                    EmojiCollection.Add(emoji);
+                }
+            }
+
+            // Notify that EmojiCollection has changed
+            NotifyPropertyChanged(nameof(EmojiCollection));
+        }
+
+        public bool AddEmoji(string emoji)
+        {
+            if (string.IsNullOrWhiteSpace(emoji))
+                return false;
+            if (!EmojiCollection.Contains(emoji))
+            {
+                EmojiCollection.Add(emoji);
+                NotifyPropertyChanged(nameof(EmojiCollection));
+                NotifyPropertyChanged(nameof(EmojiListString));
+            }
+            return true;
+        }
 
         private Queue<string> _shuffledEmojis;
 
@@ -4166,18 +4232,71 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private void ShuffleEmojis()
         {
-            var shuffledList = _halloweenEmojis.OrderBy(e => _random.Next()).ToList();
+            var shuffledList = EmojiCollection.OrderBy(e => _random.Next()).ToList();
             _shuffledEmojis = new Queue<string>(shuffledList);
         }
 
-        public string GetNextEmoji()
+        public string GetNextEmoji(bool IsChat = false)
         {
-            if (_shuffledEmojis.Count == 0)
+            string defaulticon = "💬";
+
+            // Check if _emojiCollection is empty
+            if (EmojiCollection == null || !EmojiCollection.Any())
             {
-                ShuffleEmojis(); 
+                CurrentEmoji = defaulticon;
+                return defaulticon;
             }
 
-            return CurrentEmoji = _shuffledEmojis.Dequeue();
+            if (EnableEmojiShuffle && (IsChat ? EnableEmojiShuffleInChats : true))
+            {
+                // Initialize the shuffled queue if it's null
+                if (_shuffledEmojis == null)
+                {
+                    ShuffleEmojis();
+                }
+
+                // If the shuffled queue is empty, reshuffle
+                if (_shuffledEmojis.Count == 0)
+                {
+                    ShuffleEmojis();
+                }
+
+                // Ensure there are emojis to dequeue after shuffling
+                if (_shuffledEmojis.Count > 0)
+                {
+                    CurrentEmoji = _shuffledEmojis.Dequeue();
+                    return CurrentEmoji;
+                }
+            }
+
+            // If shuffling is disabled or no emojis are available after shuffling, return the default icon
+            CurrentEmoji = defaulticon;
+            return defaulticon;
+        }
+
+        private bool _EnableEmojiShuffle = true;
+        private bool _EnableEmojiShuffleInChats = false;
+
+
+
+        public bool EnableEmojiShuffle
+        {
+            get { return _EnableEmojiShuffle; }
+            set
+            {
+                _EnableEmojiShuffle = value;
+                NotifyPropertyChanged(nameof(EnableEmojiShuffle));
+            }
+        }
+
+        public bool EnableEmojiShuffleInChats
+        {
+            get { return _EnableEmojiShuffleInChats; }
+            set
+            {
+                _EnableEmojiShuffleInChats = value;
+                NotifyPropertyChanged(nameof(EnableEmojiShuffleInChats));
+            }
         }
 
         private int _profileNumber;
