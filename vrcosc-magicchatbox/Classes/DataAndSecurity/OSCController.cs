@@ -650,7 +650,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
                 string Complete_msg = null;
                 if (ViewModel.Instance.PrefixChat == true)
                 {
-                    string icon = ViewModel.Instance.GetNextEmoji();
+                    string icon = ViewModel.Instance.GetNextEmoji(true);
                     if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
                     {
                         icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);

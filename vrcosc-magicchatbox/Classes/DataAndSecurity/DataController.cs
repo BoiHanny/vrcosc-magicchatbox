@@ -191,28 +191,71 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         private static object ConvertToType(Type targetType, string value)
         {
-            switch (targetType)
+            if (targetType == typeof(bool))
             {
-                case Type t when t == typeof(bool):
-                    return bool.Parse(value);
-                case Type t when t == typeof(int):
-                    return int.Parse(value);
-                case Type t when t == typeof(string):
-                    return value;
-                case Type t when t == typeof(float):
-                    return float.Parse(value);
-                case Type t when t == typeof(double):
-                    return double.Parse(value);
-                case Type t when t == typeof(Timezone):
-                    return Enum.Parse(typeof(Timezone), value);
-                case Type t when t == typeof(MediaLinkTimeSeekbar):
-                    return Enum.Parse(typeof(MediaLinkTimeSeekbar), value);
-                case Type t when t == typeof(DateTime):
-                    return DateTime.Parse(value);
-                default:
-                    throw new NotSupportedException($"Unsupported type: {targetType}");
+                if (bool.TryParse(value, out bool boolResult))
+                    return boolResult;
+                return false; // Default for bool
             }
+            if (targetType == typeof(int))
+            {
+                if (int.TryParse(value, out int intResult))
+                    return intResult;
+                return 0; // Default for int
+            }
+            if (targetType == typeof(string))
+            {
+                return value;
+            }
+            if (targetType == typeof(float))
+            {
+                if (float.TryParse(value, out float floatResult))
+                    return floatResult;
+                return 0f; // Default for float
+            }
+            if (targetType == typeof(double))
+            {
+                if (double.TryParse(value, out double doubleResult))
+                    return doubleResult;
+                return 0.0; // Default for double
+            }
+            if (targetType == typeof(Timezone))
+            {
+                if (Enum.TryParse(typeof(Timezone), value, out var timezoneResult))
+                    return timezoneResult;
+                return Timezone.UTC; // Default timezone
+            }
+            if (targetType == typeof(MediaLinkTimeSeekbar))
+            {
+                if (Enum.TryParse(typeof(MediaLinkTimeSeekbar), value, out var seekbarResult))
+                    return seekbarResult;
+                return MediaLinkTimeSeekbar.SmallNumbers; // Default enum value
+            }
+            if (targetType == typeof(DateTime))
+            {
+                if (DateTime.TryParse(value, out DateTime dateTimeResult))
+                    return dateTimeResult;
+                return DateTime.MinValue; // Default for DateTime
+            }
+            // Handle ObservableCollection<string>
+            if (targetType == typeof(ObservableCollection<string>))
+            {
+                try
+                {
+                    // Assuming the value is a JSON array
+                    var list = JsonConvert.DeserializeObject<List<string>>(value);
+                    return new ObservableCollection<string>(list ?? new List<string>());
+                }
+                catch (Exception)
+                {
+                    // Fallback to empty collection if parsing fails
+                    return new ObservableCollection<string>();
+                }
+            }
+            throw new NotSupportedException($"Unsupported type: {targetType}");
         }
+
+
 
 
         private static XmlNode GetOrCreateNode(XmlDocument xmlDoc, XmlNode rootNode, string nodeName)
@@ -337,6 +380,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "PrefixIconMusic", (typeof(bool), "Icons") },
         { "PauseIconMusic", (typeof(bool), "Icons") },
         { "PrefixIconSoundpad", (typeof(bool), "Icons") },
+        { "EmojiCollection", (typeof(ObservableCollection<string>), "Icons") },
 
         { "PrefixChat", (typeof(bool), "Chat") },
         { "ChatFX", (typeof(bool), "Chat") },
@@ -407,17 +451,68 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         }
 
         private static void LoadSettingFromXML(
-            XmlNode categoryNode,
-            KeyValuePair<string, (Type type, string category)> setting,
-            PropertyInfo property)
+    XmlNode categoryNode,
+    KeyValuePair<string, (Type type, string category)> setting,
+    PropertyInfo property)
         {
-            XmlNode settingNode = categoryNode.SelectSingleNode(setting.Key);
-            if (settingNode != null && !string.IsNullOrEmpty(settingNode.InnerText))
+            try
             {
-                object value = ConvertToType(setting.Value.type, settingNode.InnerText);
-                property.SetValue(ViewModel.Instance, value);
+                XmlNode settingNode = categoryNode.SelectSingleNode(setting.Key);
+                if (settingNode != null && !string.IsNullOrEmpty(settingNode.InnerText))
+                {
+                    try
+                    {
+                        object value = ConvertToType(setting.Value.type, settingNode.InnerText);
+                        property.SetValue(ViewModel.Instance, value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteException(new Exception($"Failed to convert setting '{setting.Key}' with value '{settingNode.InnerText}'", ex), MSGBox: false);
+                        // Optionally set a default value
+                        SetDefaultValue(property, setting.Value.type);
+                    }
+                }
+                else
+                {
+                    // Setting node is missing or empty
+                    if (setting.Key == "EmojiCollection")
+                    {
+                        // Do NOT set to default. Retain existing value in ViewModel.
+                        Logging.WriteInfo($"Setting '{setting.Key}' not found or empty in XML. Retaining existing value.");
+                    }
+                    else
+                    {
+                        // For other settings, set default value
+                        Logging.WriteInfo($"Setting '{setting.Key}' not found or empty in XML. Setting to default.");
+                        SetDefaultValue(property, setting.Value.type);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(new Exception($"Error loading setting '{setting.Key}'", ex), MSGBox: false);
+                // Continue processing other settings
             }
         }
+
+
+
+        private static void SetDefaultValue(PropertyInfo property, Type type)
+        {
+            object defaultValue;
+            if (type == typeof(ObservableCollection<string>))
+            {
+                // Initialize with an empty collection instead of null
+                defaultValue = new ObservableCollection<string>();
+            }
+            else
+            {
+                defaultValue = type.IsValueType ? Activator.CreateInstance(type) : null;
+            }
+            property.SetValue(ViewModel.Instance, defaultValue);
+        }
+
+
 
         private static void SaveSettingToXML(
             XmlDocument xmlDoc,
@@ -425,14 +520,49 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             KeyValuePair<string, (Type type, string category)> setting,
             PropertyInfo property)
         {
-            object value = property.GetValue(ViewModel.Instance);
-            if (value != null && !string.IsNullOrEmpty(value.ToString()))
+            try
             {
-                XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
-                settingNode.InnerText = value.ToString();
-                categoryNode.AppendChild(settingNode);
+                object value = property.GetValue(ViewModel.Instance);
+                if (value != null)
+                {
+                    string serializedValue;
+
+                    if (value is ObservableCollection<string> collection)
+                    {
+                        // Serialize the collection to JSON
+                        serializedValue = JsonConvert.SerializeObject(collection);
+                    }
+                    else
+                    {
+                        serializedValue = value.ToString();
+                    }
+
+                    if (!string.IsNullOrEmpty(serializedValue))
+                    {
+                        XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
+                        settingNode.InnerText = serializedValue;
+                        categoryNode.AppendChild(settingNode);
+                    }
+                    else
+                    {
+                        // Handle null or empty value if necessary
+                        Logging.WriteInfo($"Setting '{setting.Key}' has null or empty value. Skipping save.");
+                    }
+                }
+                else
+                {
+                    // Handle null value if necessary
+                    Logging.WriteInfo($"Setting '{setting.Key}' is null. Skipping save.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(new Exception($"Error saving setting '{setting.Key}'", ex), MSGBox: false);
+                // Continue processing other settings
             }
         }
+
+
 
         public static async Task CheckForUpdateAndWait(bool checkagain = false)
         {
@@ -805,11 +935,17 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 {
                     if (!File.Exists(datapath))
                     {
+                        Logging.WriteInfo($"Settings file '{datapath}' does not exist. Using defaults.");
                         return;
                     }
 
                     xmlDoc.Load(datapath);
                     rootNode = xmlDoc.SelectSingleNode("Settings");
+                    if (rootNode == null)
+                    {
+                        Logging.WriteInfo("Settings root node missing in XML. Using defaults.");
+                        return;
+                    }
                 }
 
                 var settings = InitializeSettingsDictionary();
@@ -819,6 +955,12 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     try
                     {
                         PropertyInfo property = ViewModel.Instance.GetType().GetProperty(setting.Key);
+                        if (property == null)
+                        {
+                            Logging.WriteInfo($"Property '{setting.Key}' not found in ViewModel. Skipping.");
+                            continue;
+                        }
+
                         XmlNode categoryNode = GetOrCreateNode(xmlDoc, rootNode, setting.Value.category);
 
                         if (saveSettings)
@@ -832,22 +974,22 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                     catch (Exception ex)
                     {
-                        Logging.WriteException(ex, MSGBox: false);
+                        Logging.WriteException(new Exception($"Error processing setting '{setting.Key}'", ex), MSGBox: false);
+                        // Continue with other settings
                     }
                 }
 
                 if (saveSettings)
                 {
                     xmlDoc.Save(datapath);
+                    Logging.WriteInfo("All settings have been saved successfully.");
                 }
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, MSGBox: false);
+                Logging.WriteException(new Exception("Error managing settings XML.", ex), MSGBox: false);
             }
-
         }
-
         public static bool PopulateOutputDevices(bool beforeTTS = false)
         {
             try
