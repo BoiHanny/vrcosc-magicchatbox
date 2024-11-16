@@ -5,12 +5,10 @@
 
 ## Installation
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.047/MagicChatbox-0.9.047.zip)
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/ed380f998b990e7d858b244583e198995a190c90f4848bfdec3f7e98f4a11565/detection)
-<img src="https://camo.githubusercontent.com/7055ee703672fb4a4e47beb8a1d3a636f005091e837bda8da286cbc6b471f73a/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f417a7572652d3030373844343f7374796c653d666f722d7468652d6261646765266c6f676f3d617a7572656465766f7073266c6f676f436f6c6f723d7768697465" alt="Azure" data-canonical-src="https://img.shields.io/badge/Azure-0078D4?style=for-the-badge&amp;logo=azuredevops&amp;logoColor=white" style="max-width: 100%;">
-<img src="https://camo.githubusercontent.com/068c1b9e7dceb1b53a9b97c853e1f0d8cd714b6533966ad4796eea632a864d32/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f556e6974792d3130303030303f7374796c653d666f722d7468652d6261646765266c6f676f3d756e697479266c6f676f436f6c6f723d7768697465" alt="Unity" data-canonical-src="https://img.shields.io/badge/Unity-100000?style=for-the-badge&amp;logo=unity&amp;logoColor=white" style="max-width: 100%;">
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.050/MagicChatbox-0.9.050.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/f507e4556feba4322b69bc779577d39274134d2ce9da952cea3462f81558105c/detection)
 
-- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.047/MagicChatbox-0.9.047.zip) **the official ZIP-File of MagicChatBox**
+- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.050/MagicChatbox-0.9.050.zip) **the official ZIP-File of MagicChatBox**
 - 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.10-windows-x64-installer) **NET-8 from Microsoft**
 - 🔳 Extract the ZIP File into an Folder
 - 🔳 Run the **MagicChatBox.exe** inside the Folder
