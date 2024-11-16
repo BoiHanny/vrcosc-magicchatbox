@@ -381,6 +381,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "PauseIconMusic", (typeof(bool), "Icons") },
         { "PrefixIconSoundpad", (typeof(bool), "Icons") },
         { "EmojiCollection", (typeof(ObservableCollection<string>), "Icons") },
+        { "EnableEmojiShuffleInChats", (typeof(bool), "Icons") },
+        { "EnableEmojiShuffle", (typeof(bool), "Icons") },
 
         { "PrefixChat", (typeof(bool), "Chat") },
         { "ChatFX", (typeof(bool), "Chat") },

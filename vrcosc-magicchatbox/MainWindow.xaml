@@ -8678,16 +8678,20 @@
                                                 Color="LightSeaGreen" />
                                         </Border.Effect>
                                     </Border>
-                                    <TextBlock
-                                        Margin="5,0,0,0"
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="12"
-                                        Foreground="#ABA4B8"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="{Binding HeartRateConnector.HeartRateLastUpdate, StringFormat='{}{0:T}'}"
-                                        Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Border Visibility="{Binding HeartRateConnector.PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Margin="5,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Foreground="#ABA4B8"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding HeartRateConnector.HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                            Visibility="{Binding IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Border>
+
+
                                     <TextBlock
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
