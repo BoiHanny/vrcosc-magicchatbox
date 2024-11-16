@@ -1722,6 +1722,23 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool RAM_ShowDDRVersion
+        {
+            get => _statsManager.GetShowRamDDRVersion();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowRamDDRVersion(true);
+                }
+                else
+                {
+                    _statsManager.SetShowRamDDRVersion(false);
+                }
+                NotifyPropertyChanged(nameof(RAM_ShowDDRVersion));
+            }
+        }
+
         public bool JoinedAlphaChannel
         {
             get { return _JoinedAlphaChannel; }

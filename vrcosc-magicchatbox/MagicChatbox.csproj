@@ -199,6 +199,7 @@
     <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
     <PackageReference Include="NLog" Version="5.3.4" />
 	  <PackageReference Include="OpenAI-DotNet" Version="8.4.1" />
+	  <PackageReference Include="System.Management" Version="9.0.0" />
 	  <PackageReference Include="VRChat.OSCQuery" Version="0.0.7" />
   </ItemGroup>
 

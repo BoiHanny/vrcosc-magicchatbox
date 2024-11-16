@@ -3835,6 +3835,19 @@
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
                                     <CheckBox
+                                        x:Name="RAM_ShowDDRVersion_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show RAM DDR version"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding RAM_ShowDDRVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the DDR version of the RAM will be displayed." />
+                                    <CheckBox
                                         x:Name="RAM_NumberTrailingZeros_checkbox"
                                         Height="20"
                                         Margin="5,5"

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -20,6 +21,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly List<ComponentStatsItem> _componentStats = new List<ComponentStatsItem>();
         private static string FileName = null;
         public bool started = false;
+        private string _ramDDRVersion = "Unknown";
 
         public void StartModule()
         {
@@ -27,8 +29,69 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrComponentStats &&
                     ViewModel.Instance.IntgrComponentStats_DESKTOP &&
                     !ViewModel.Instance.IsVRRunning)
+            {
                 LoadComponentStats();
+                FetchAndStoreDDRVersion();
+            }
+                
         }
+
+        private void FetchAndStoreDDRVersion()
+        {
+            _ramDDRVersion = GetDDRVersion();
+            var ramItem = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+            if (ramItem != null)
+            {
+                ramItem.DDRVersion = _ramDDRVersion;
+            }
+        }
+
+        public static string GetDDRVersion()
+        {
+            try
+            {
+                using (ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory"))
+                {
+                    HashSet<int> memoryTypes = new HashSet<int>();
+
+                    foreach (ManagementObject mo in mos.Get())
+                    {
+                        var smbiosMemoryType = mo["SMBIOSMemoryType"];
+
+                        if (smbiosMemoryType != null)
+                        {
+                            int type = Convert.ToInt32(smbiosMemoryType);
+                            memoryTypes.Add(type);
+                        }
+                    }
+
+                    if (memoryTypes.Count > 0)
+                    {
+                        return MapMemoryTypeToDDR(memoryTypes.First());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+            return "Unknown";
+        }
+
+        private static string MapMemoryTypeToDDR(int type)
+        {
+            switch (type)
+            {
+                case 20: return "ᴰᴰᴿ";
+                case 21: return "ᴰᴰᴿ²";
+                case 24: return "ᴰᴰᴿ³";
+                case 26: return "ᴰᴰᴿ⁴";
+                case 28:
+                case 34: return "ᴰᴰᴿ⁵";
+                default: return string.Empty;
+            }
+        }
+
 
         public IReadOnlyList<ComponentStatsItem> GetAllStats()
         {
@@ -346,6 +409,21 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        public bool GetShowRamDDRVersion()
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+            return item?.ShowDDRVersion ?? false;
+        }
+
+        public void SetShowRamDDRVersion(bool state)
+        {
+            var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+            if (item != null)
+            {
+                item.ShowDDRVersion = state;
+            }
+        }
+
         public bool GetShowGPUHotspotTemperature()
         {
             var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
@@ -499,7 +577,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             StatsComponentType.GPU,
             StatsComponentType.VRAM,
             StatsComponentType.RAM,
-            //StatsComponentType.FPS
         };
 
         public string GenerateStatsDescription()
@@ -549,6 +626,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         {
                             additionalInfoParts.Add(gpuPower);
                         }
+                    }
+
+                    if (stat.ComponentType == StatsComponentType.RAM && stat.ShowDDRVersion)
+                    {
+                        componentDescription += $" ⁽{stat.DDRVersion}⁾";
                     }
 
                     // Combine the additionalInfo parts with a single space
@@ -1099,6 +1181,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return "N/A";
             }
         }
+
+     
 
         private static string FetchHotspotTemperatureStat(IHardware hardware, ComponentStatsItem item)
         {
