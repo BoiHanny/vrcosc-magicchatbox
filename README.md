@@ -50,8 +50,8 @@ If you need any further help `setting up` the program hit up our `Discord Server
 If you need more help, feel free to click the button below:
 > [!NOTE]
 > **Our support team is here to assist you with any issues!**
-> 
-> [![SUPPORT](https://github.com/user-attachments/assets/c9109180-a1df-44a5-8dd1-de74f616dfd9)](Support.md)
+>
+> [![SUPPORT](https://github.com/user-attachments/assets/c08772f1-3075-4590-9744-3bcbcd15cfe9)](Support.md)
 
 ---
 
