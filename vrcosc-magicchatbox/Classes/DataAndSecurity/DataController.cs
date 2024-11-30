@@ -393,6 +393,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "ChatAddSmallDelayTIME", (typeof(double), "Chat") },
         { "ChattingUpdateRate", (typeof(double), "Chat") },
         { "RealTimeChatEdit", (typeof(bool), "Chat") },
+        { "HideOpenAITools", (typeof(bool), "Chat") },
 
         { "SeperateWithENTERS", (typeof(bool), "Custom") },
 

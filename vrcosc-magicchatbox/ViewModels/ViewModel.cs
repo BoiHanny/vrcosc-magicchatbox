@@ -4253,6 +4253,18 @@ namespace vrcosc_magicchatbox.ViewModels
             _shuffledEmojis = new Queue<string>(shuffledList);
         }
 
+
+        private bool _HideOpenAITools = false;
+        public bool HideOpenAITools
+        {
+            get { return _HideOpenAITools; }
+            set
+            {
+                _HideOpenAITools = value;
+                NotifyPropertyChanged(nameof(HideOpenAITools));
+            }
+        }
+
         public string GetNextEmoji(bool IsChat = false)
         {
             string defaulticon = "💬";
