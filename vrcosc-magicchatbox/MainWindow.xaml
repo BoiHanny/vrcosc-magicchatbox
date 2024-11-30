@@ -7622,6 +7622,7 @@
                     Height="auto"
                     VerticalAlignment="Bottom">
                     <TextBlock
+                        Padding="0,0,0,30"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Stretch"
                         FontFamily="Albert Sans Thin"

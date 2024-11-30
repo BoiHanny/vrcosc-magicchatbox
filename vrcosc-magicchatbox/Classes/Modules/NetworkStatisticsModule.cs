@@ -170,7 +170,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         /// <summary>
         /// Asynchronously determines the active network interface.
-        /// Includes both IPv4 and IPv6 statistics.
+        /// Includes only IPv4 statistics.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The selected active NetworkInterface or null if none found.</returns>
@@ -240,18 +240,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Retrieves total bytes sent and received, including both IPv4 and IPv6.
+        /// Retrieves total bytes sent and received, including only IPv4 statistics.
         /// </summary>
         /// <param name="ni">NetworkInterface.</param>
         /// <returns>TotalBytes struct containing BytesReceived and BytesSent.</returns>
         private TotalBytes GetTotalBytes(NetworkInterface ni)
         {
             var ipv4Stats = ni.GetIPv4Statistics();
-            var ipv6Stats = ni.GetIPStatistics();
+            // Removed IPv6 statistics to avoid duplication
             return new TotalBytes
             {
-                BytesReceived = ipv4Stats.BytesReceived + ipv6Stats.BytesReceived,
-                BytesSent = ipv4Stats.BytesSent + ipv6Stats.BytesSent
+                BytesReceived = ipv4Stats.BytesReceived,
+                BytesSent = ipv4Stats.BytesSent
             };
         }
 
@@ -297,7 +297,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (_activeNetworkInterface == null)
                 {
-                    // Attempt to re-initialize if the active interface is null
                     InitializeNetworkStatsAsync().ConfigureAwait(false);
                     if (_activeNetworkInterface == null)
                         return;
