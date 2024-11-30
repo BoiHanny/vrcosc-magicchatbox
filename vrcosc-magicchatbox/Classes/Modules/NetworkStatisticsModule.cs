@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -21,9 +22,25 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private long _previousBytesReceived;
         private long _previousBytesSent;
         private readonly Dispatcher _dispatcher;
+        private readonly object _initLock = new object();
+        private bool _isInitializing;
 
         public bool IsInitialized { get; private set; }
-        public double Interval { get; set; } = 1000;
+        private double _interval = 1000;
+        public double Interval
+        {
+            get => _interval;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Interval), "Interval must be greater than zero.");
+                _interval = value;
+                if (_isMonitoring)
+                {
+                    _updateTimer.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_interval));
+                }
+            }
+        }
 
         private double _currentDownloadSpeedMbps;
         private double _currentUploadSpeedMbps;
@@ -38,17 +55,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
         // New property to control max speed source
         public bool UseInterfaceMaxSpeed { get; set; } = false;
 
-        public NetworkStatisticsModule(double interval)
+        // CancellationTokenSource for asynchronous initialization
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        public NetworkStatisticsModule(double interval = 1000)
         {
             Interval = interval;
             _dispatcher = Application.Current.Dispatcher;
             ViewModel.Instance.PropertyChanged += PropertyChangedHandler;
 
-            if (ShouldStartMonitoring())
-            {
-                InitializeNetworkStats();
-                StartModule();
-            }
+            InitializeNetworkStatsAsync().ConfigureAwait(false);
         }
 
         private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -57,11 +73,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (ShouldStartMonitoring())
                 {
-                    if (!IsInitialized)
-                    {
-                        InitializeNetworkStats();
-                    }
-                    StartModule();
+                    InitializeNetworkStatsAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -85,106 +97,168 @@ namespace vrcosc_magicchatbox.Classes.Modules
                    propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_DESKTOP);
         }
 
-        private void InitializeNetworkStats()
+        /// <summary>
+        /// Asynchronously initializes network statistics.
+        /// Ensures that initialization is thread-safe and does not block the UI thread.
+        /// </summary>
+        private async Task InitializeNetworkStatsAsync()
         {
-            _activeNetworkInterface = GetActiveNetworkInterface();
-            if (_activeNetworkInterface != null)
+            if (_isInitializing)
+                return;
+
+            lock (_initLock)
             {
-                if (UseInterfaceMaxSpeed)
-                {
-                    var speedInMbps = _activeNetworkInterface.Speed / 1e6;
-                    MaxDownloadSpeedMbps = speedInMbps;
-                    MaxUploadSpeedMbps = speedInMbps;
-                }
-                else
-                {
-                    MaxDownloadSpeedMbps = 0;
-                    MaxUploadSpeedMbps = 0;
-                }
-
-                var stats = _activeNetworkInterface.GetIPv4Statistics();
-                _previousBytesReceived = stats.BytesReceived;
-                _previousBytesSent = stats.BytesSent;
-
-                IsInitialized = true;
+                if (_isInitializing)
+                    return;
+                _isInitializing = true;
             }
-            else
-            {
-                // Handle the case when no active network interface is found
-                Logging.WriteException(new Exception("No active network interface found"), MSGBox: false);
-                IsInitialized = false;
-            }
-        }
 
-        private NetworkInterface GetActiveNetworkInterface()
-        {
             try
             {
-                var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
-                    .Where(ni =>
-                        ni.OperationalStatus == OperationalStatus.Up &&
-                        ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-                        ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
-                        ni.GetIPProperties().UnicastAddresses.Count > 0).ToList();
-
-                if (networkInterfaces.Count == 0)
-                    return null;
-
-                // If there's only one active network interface, return it directly
-                if (networkInterfaces.Count == 1)
+                var networkInterface = await Task.Run(() => GetActiveNetworkInterfaceAsync(_cancellationTokenSource.Token));
+                if (networkInterface != null)
                 {
-                    return networkInterfaces.First();
-                }
+                    _activeNetworkInterface = networkInterface;
 
-                // Measure initial bytes sent/received
-                var interfaceStats = new List<InterfaceStats>();
-                foreach (var ni in networkInterfaces)
-                {
-                    var stats = ni.GetIPv4Statistics();
-                    interfaceStats.Add(new InterfaceStats
+                    if (UseInterfaceMaxSpeed)
                     {
-                        NetworkInterface = ni,
-                        InitialBytesReceived = stats.BytesReceived,
-                        InitialBytesSent = stats.BytesSent
-                    });
-                }
+                        var speedInMbps = _activeNetworkInterface.Speed / 1e6;
+                        MaxDownloadSpeedMbps = speedInMbps;
+                        MaxUploadSpeedMbps = speedInMbps;
+                    }
+                    else
+                    {
+                        MaxDownloadSpeedMbps = 0;
+                        MaxUploadSpeedMbps = 0;
+                    }
 
-                // Wait for a short interval
-                Thread.Sleep(500);
+                    var stats = GetTotalBytes(_activeNetworkInterface);
+                    _previousBytesReceived = stats.BytesReceived;
+                    _previousBytesSent = stats.BytesSent;
 
-                // Measure bytes sent/received after the interval
-                foreach (var stat in interfaceStats)
-                {
-                    var stats = stat.NetworkInterface.GetIPv4Statistics();
-                    stat.BytesReceivedDiff = stats.BytesReceived - stat.InitialBytesReceived;
-                    stat.BytesSentDiff = stats.BytesSent - stat.InitialBytesSent;
-                    stat.TotalBytesDiff = stat.BytesReceivedDiff + stat.BytesSentDiff;
-                }
+                    IsInitialized = true;
 
-                // Select the network interface with the highest total bytes difference
-                var mostActiveInterface = interfaceStats.OrderByDescending(s => s.TotalBytesDiff).FirstOrDefault();
-
-                if (mostActiveInterface != null && mostActiveInterface.TotalBytesDiff > 0)
-                {
-                    return mostActiveInterface.NetworkInterface;
+                    if (!_isMonitoring)
+                    {
+                        StartModule();
+                    }
                 }
                 else
                 {
-                    // If no activity detected or measurement fails, fallback to selecting the first interface
-                    return networkInterfaces.FirstOrDefault();
+                    // Handle the case when no active network interface is found
+                    Logging.WriteException(new Exception("No active network interface found"), MSGBox: false);
+                    IsInitialized = false;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Initialization was canceled; do nothing.
             }
             catch (Exception ex)
             {
-                // Log the exception and fallback to the first available network interface
                 Logging.WriteException(ex, MSGBox: false);
-                return NetworkInterface.GetAllNetworkInterfaces()
-                    .FirstOrDefault(ni =>
-                        ni.OperationalStatus == OperationalStatus.Up &&
-                        ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-                        ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
-                        ni.GetIPProperties().UnicastAddresses.Count > 0);
+                IsInitialized = false;
             }
+            finally
+            {
+                lock (_initLock)
+                {
+                    _isInitializing = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously determines the active network interface.
+        /// Includes both IPv4 and IPv6 statistics.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The selected active NetworkInterface or null if none found.</returns>
+        private NetworkInterface GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
+        {
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(ni =>
+                    ni.OperationalStatus == OperationalStatus.Up &&
+                    ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                    ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
+                    ni.GetIPProperties().UnicastAddresses.Any()).ToList();
+
+            if (networkInterfaces.Count == 0)
+                return null;
+
+            // If there's only one active network interface, return it directly
+            if (networkInterfaces.Count == 1)
+            {
+                return networkInterfaces.First();
+            }
+
+            // Prioritize network interfaces based on type (e.g., Ethernet over Wireless)
+            var prioritizedInterfaces = networkInterfaces.OrderByDescending(ni => GetInterfacePriority(ni)).ToList();
+
+            // Measure initial bytes sent/received for all interfaces
+            var interfaceStats = prioritizedInterfaces.Select(ni => new InterfaceStats
+            {
+                NetworkInterface = ni,
+                InitialBytesReceived = GetTotalBytes(ni).BytesReceived,
+                InitialBytesSent = GetTotalBytes(ni).BytesSent
+            }).ToList();
+
+            // Wait for a short interval asynchronously
+            Task.Delay(500, cancellationToken).Wait(cancellationToken);
+
+            // Measure bytes sent/received after the interval
+            foreach (var stat in interfaceStats)
+            {
+                var currentStats = GetTotalBytes(stat.NetworkInterface);
+                stat.BytesReceivedDiff = currentStats.BytesReceived - stat.InitialBytesReceived;
+                stat.BytesSentDiff = currentStats.BytesSent - stat.InitialBytesSent;
+                stat.TotalBytesDiff = stat.BytesReceivedDiff + stat.BytesSentDiff;
+            }
+
+            // Select the network interface with the highest total bytes difference
+            var mostActiveInterface = interfaceStats
+                .OrderByDescending(s => s.TotalBytesDiff)
+                .FirstOrDefault(s => s.TotalBytesDiff > 0);
+
+            return mostActiveInterface?.NetworkInterface ?? prioritizedInterfaces.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Assigns a priority to network interfaces based on their type.
+        /// Higher priority for Ethernet, then Wireless, then others.
+        /// </summary>
+        /// <param name="ni">NetworkInterface.</param>
+        /// <returns>Integer priority.</returns>
+        private int GetInterfacePriority(NetworkInterface ni)
+        {
+            return ni.NetworkInterfaceType switch
+            {
+                NetworkInterfaceType.Ethernet => 3,
+                NetworkInterfaceType.Wireless80211 => 2,
+                _ => 1,
+            };
+        }
+
+        /// <summary>
+        /// Retrieves total bytes sent and received, including both IPv4 and IPv6.
+        /// </summary>
+        /// <param name="ni">NetworkInterface.</param>
+        /// <returns>TotalBytes struct containing BytesReceived and BytesSent.</returns>
+        private TotalBytes GetTotalBytes(NetworkInterface ni)
+        {
+            var ipv4Stats = ni.GetIPv4Statistics();
+            var ipv6Stats = ni.GetIPStatistics();
+            return new TotalBytes
+            {
+                BytesReceived = ipv4Stats.BytesReceived + ipv6Stats.BytesReceived,
+                BytesSent = ipv4Stats.BytesSent + ipv6Stats.BytesSent
+            };
+        }
+
+        private struct TotalBytes
+        {
+            public long BytesReceived;
+            public long BytesSent;
         }
 
         private class InterfaceStats
@@ -199,10 +273,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public void StartModule()
         {
-            if (_isMonitoring)
+            if (_isMonitoring || !IsInitialized)
                 return;
 
-            _updateTimer = new Timer(OnTimedEvent, null, 0, (int)Interval);
+            _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
             _isMonitoring = true;
         }
 
@@ -211,7 +285,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (!_isMonitoring)
                 return;
 
-            _updateTimer?.Change(Timeout.Infinite, 0);
+            _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
             _updateTimer?.Dispose();
             _updateTimer = null;
             _isMonitoring = false;
@@ -223,11 +297,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (_activeNetworkInterface == null)
                 {
-                    InitializeNetworkStats();
+                    // Attempt to re-initialize if the active interface is null
+                    InitializeNetworkStatsAsync().ConfigureAwait(false);
                     if (_activeNetworkInterface == null)
                         return;
                 }
 
+                // Update UseInterfaceMaxSpeed based on ViewModel
                 if (UseInterfaceMaxSpeed != ViewModel.Instance.NetworkStats_UseInterfaceMaxSpeed)
                 {
                     UseInterfaceMaxSpeed = ViewModel.Instance.NetworkStats_UseInterfaceMaxSpeed;
@@ -235,7 +311,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     MaxUploadSpeedMbps = 0;
                 }
 
-                var stats = _activeNetworkInterface.GetIPv4Statistics();
+                var stats = GetTotalBytes(_activeNetworkInterface);
 
                 // Calculate the differences since the last check
                 var bytesReceivedDiff = stats.BytesReceived - _previousBytesReceived;
@@ -251,8 +327,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 var uploadSpeed = (bytesSentDiff * 8) / 1e6 / intervalInSeconds;
 
                 // Update total downloaded and uploaded data in MB
-                var totalDownloaded = TotalDownloadedMB + bytesReceivedDiff / 1e6;
-                var totalUploaded = TotalUploadedMB + bytesSentDiff / 1e6;
+                var totalDownloaded = TotalDownloadedMB + (bytesReceivedDiff / 1e6);
+                var totalUploaded = TotalUploadedMB + (bytesSentDiff / 1e6);
 
                 // Update maximum observed speeds if not using interface max speed
                 if (!UseInterfaceMaxSpeed)
@@ -325,7 +401,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Up: ")} {FormatData(TotalUploadedMB)}");
 
             if (ViewModel.Instance.NetworkStats_ShowNetworkUtilization)
-                networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network utilization: ")} {NetworkUtilization:N2} %");
+                networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network Utilization: ")} {NetworkUtilization:N2} %");
 
             if (networkStatsDescriptions.Count == 0)
             {
@@ -396,8 +472,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             if (dataMB < 1)
                 return $"{dataMB * 1000:N2} {ConvertToSuperScriptIfNeeded("KB")}";
+            else if (dataMB >= 1_000_000)
+                return $"{dataMB / 1e6:N2} {ConvertToSuperScriptIfNeeded("TB")}";
             else if (dataMB >= 1000)
-                return dataMB >= 1_000_000 ? $"{dataMB / 1e6:N2} TB" : $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
+                return $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
             else
                 return $"{dataMB:N2} {ConvertToSuperScriptIfNeeded("MB")}";
         }
@@ -472,6 +550,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public void Dispose()
         {
             StopModule();
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
             ViewModel.Instance.PropertyChanged -= PropertyChangedHandler;
         }
     }
