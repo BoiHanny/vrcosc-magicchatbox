@@ -46,52 +46,65 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        public static string GetDDRVersion()
+        public string GetDDRVersion()
         {
             try
             {
-                using (ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory"))
+                HashSet<string> ddrVersions = new HashSet<string>();
+
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory");
+                foreach (ManagementObject queryObj in searcher.Get())
                 {
-                    HashSet<int> memoryTypes = new HashSet<int>();
-
-                    foreach (ManagementObject mo in mos.Get())
+                    ushort smbiosMemoryType = Convert.ToUInt16(queryObj["SMBIOSMemoryType"]);
+                    string ddrVersion = GetDDRVersionFromSMBIOSMemoryType(smbiosMemoryType);
+                    if (!string.IsNullOrEmpty(ddrVersion))
                     {
-                        var smbiosMemoryType = mo["SMBIOSMemoryType"];
-
-                        if (smbiosMemoryType != null)
-                        {
-                            int type = Convert.ToInt32(smbiosMemoryType);
-                            memoryTypes.Add(type);
-                        }
+                        ddrVersions.Add(ddrVersion);
                     }
+                }
 
-                    if (memoryTypes.Count > 0)
-                    {
-                        return MapMemoryTypeToDDR(memoryTypes.First());
-                    }
+                if (ddrVersions.Count > 0)
+                {
+                    // Return the unique DDR versions, joined by a slash if multiple
+                    return string.Join("'", ddrVersions);
                 }
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
             }
-            return "Unknown";
+
+            // Return null if DDR version cannot be determined
+            return null;
         }
 
-        private static string MapMemoryTypeToDDR(int type)
+        private string GetDDRVersionFromSMBIOSMemoryType(ushort smbiosMemoryType)
         {
-            switch (type)
+            // Map the SMBIOSMemoryType to DDR version numbers 0-5
+            switch (smbiosMemoryType)
             {
-                case 20: return "ᴰᴰᴿ";
-                case 21: return "ᴰᴰᴿ²";
-                case 24: return "ᴰᴰᴿ³";
-                case 26: return "ᴰᴰᴿ⁴";
-                case 28:
-                case 34: return "ᴰᴰᴿ⁵";
-                default: return string.Empty;
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                    return "ᴰᴰᴿ";
+                case 20:
+                    return "ᴰᴰᴿ¹";
+                case 21:
+                    return "ᴰᴰᴿ²";
+                case 24:
+                    return "ᴰᴰᴿ³";
+                case 26:
+                    return "ᴰᴰᴿ⁴";
+                case 34:
+                    return "ᴰᴰᴿ⁵";
+                // Include other cases as needed
+                default:
+                    return null;
             }
         }
-
 
         public IReadOnlyList<ComponentStatsItem> GetAllStats()
         {
@@ -628,7 +641,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         }
                     }
 
-                    if (stat.ComponentType == StatsComponentType.RAM && stat.ShowDDRVersion)
+                    if (stat.ComponentType == StatsComponentType.RAM && stat.ShowDDRVersion && !string.IsNullOrWhiteSpace(stat.DDRVersion))
                     {
                         componentDescription += $" ⁽{stat.DDRVersion}⁾";
                     }

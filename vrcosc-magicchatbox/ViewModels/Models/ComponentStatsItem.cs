@@ -32,7 +32,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         public bool IsEnabled { get; set; } = true;
         public bool ShowSmallName { get; set; } = true;
         public bool ShowDDRVersion { get; set; } = true;
-        public string DDRVersion { get; set; }
+        public string DDRVersion { get; set; } = null;
 
         public string GetFormattedValue() { return ShowUnit ? $"{ComponentValue}{Unit}" : ComponentValue; }
         public string GetFormattedMaxValue()
