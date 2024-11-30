@@ -1722,6 +1722,23 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool RAM_ShowDDRVersion
+        {
+            get => _statsManager.GetShowRamDDRVersion();
+            set
+            {
+                if (value)
+                {
+                    _statsManager.SetShowRamDDRVersion(true);
+                }
+                else
+                {
+                    _statsManager.SetShowRamDDRVersion(false);
+                }
+                NotifyPropertyChanged(nameof(RAM_ShowDDRVersion));
+            }
+        }
+
         public bool JoinedAlphaChannel
         {
             get { return _JoinedAlphaChannel; }
@@ -3919,6 +3936,21 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _NetworkStats_UseInterfaceMaxSpeed = false;
+
+        public bool NetworkStats_UseInterfaceMaxSpeed
+        {
+            get { return _NetworkStats_UseInterfaceMaxSpeed; }
+            set
+            {
+                if (_NetworkStats_UseInterfaceMaxSpeed != value)
+                {
+                    _NetworkStats_UseInterfaceMaxSpeed = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_UseInterfaceMaxSpeed));
+                }
+            }
+        }
+
 
         private bool _NetworkStats_ShowCurrentUp = false;
 
@@ -4234,6 +4266,18 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             var shuffledList = EmojiCollection.OrderBy(e => _random.Next()).ToList();
             _shuffledEmojis = new Queue<string>(shuffledList);
+        }
+
+
+        private bool _HideOpenAITools = false;
+        public bool HideOpenAITools
+        {
+            get { return _HideOpenAITools; }
+            set
+            {
+                _HideOpenAITools = value;
+                NotifyPropertyChanged(nameof(HideOpenAITools));
+            }
         }
 
         public string GetNextEmoji(bool IsChat = false)

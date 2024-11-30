@@ -3257,6 +3257,28 @@
 
                                     </StackPanel>
                                 </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="HideOpenAITools"
+                                            Height="20"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding HideOpenAITools, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Hide OpenAI toolbar in chatting tab
+                                        </CheckBox>
+
+                                    </StackPanel>
+                                </Border>
+
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -3835,6 +3857,19 @@
                                         Style="{DynamicResource SettingsCheckbox}"
                                         ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
                                     <CheckBox
+                                        x:Name="RAM_ShowDDRVersion_checkbox"
+                                        Height="20"
+                                        Margin="5,5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        Content="Show RAM DDR version"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding RAM_ShowDDRVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="When checked, the DDR version of the RAM will be displayed." />
+                                    <CheckBox
                                         x:Name="RAM_NumberTrailingZeros_checkbox"
                                         Height="20"
                                         Margin="5,5"
@@ -3922,7 +3957,25 @@
                             Margin="34,0,0,0"
                             Visibility="{Binding Settings_NetworkStatistics, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
-
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <CheckBox
+                                        x:Name="NetworkStats_UseInterfaceMaxSpeed"
+                                        Height="20"
+                                        Margin="5"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding NetworkStats_UseInterfaceMaxSpeed, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Use network interface as the max speed
+                                    </CheckBox>
+                                </Border>
                                 <Border
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
@@ -6107,7 +6160,7 @@
                     <RowDefinition Height="31" />
                     <RowDefinition Height="35" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="40" />
+                    <RowDefinition Height="auto" />
                     <RowDefinition Height="60" />
                 </Grid.RowDefinitions>
                 <Border
@@ -6972,6 +7025,7 @@
                 </Grid>
                 <Grid
                     Grid.Row="3"
+                    Height="auto"
                     HorizontalAlignment="Stretch"
                     Background="#FF493F65">
                     <Grid.Effect>
@@ -6984,11 +7038,12 @@
                             Color="#FF7F759A" />
                     </Grid.Effect>
                     <StackPanel
-                        Margin="13,0,0,0"
+                        Margin="15,5,0,5"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Visibility="{Binding HideOpenAITools, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
                                 <Style.Triggers>
@@ -7573,27 +7628,30 @@
                         FontSize="12"
                         Foreground="#FF7D7397"
                         Text="{Binding UpdateStatustxt}" />
-                    <TextBlock
-                        x:Name="GitHubChanges"
-                        Width="auto"
-                        HorizontalAlignment="Center"
-                        Cursor="Hand"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="8.5"
-                        Foreground="#26A1FA"
-                        MouseUp="GitHubChanges_MouseUp"
-                        Text="View changes on GitHub"
-                        TextDecorations="Underline"
-                        Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Opacity="0.3"
-                                ShadowDepth="0"
-                                Color="#251153" />
-                        </TextBlock.Effect>
-                    </TextBlock>
+
                     <StackPanel VerticalAlignment="Bottom">
+                        <TextBlock
+                            x:Name="GitHubChanges"
+                            Width="auto"
+                            Margin="0,0,0,10"
+                            HorizontalAlignment="Center"
+                            Cursor="Hand"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="8.5"
+                            Foreground="#26A1FA"
+                            MouseUp="GitHubChanges_MouseUp"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="View changes on GitHub"
+                            TextDecorations="Underline"
+                            Visibility="{Binding CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Opacity="0.3"
+                                    ShadowDepth="0"
+                                    Color="#251153" />
+                            </TextBlock.Effect>
+                        </TextBlock>
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                             <Button
                                 x:Name="CheckUpdateBtnn"

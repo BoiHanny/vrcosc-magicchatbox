@@ -393,6 +393,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "ChatAddSmallDelayTIME", (typeof(double), "Chat") },
         { "ChattingUpdateRate", (typeof(double), "Chat") },
         { "RealTimeChatEdit", (typeof(bool), "Chat") },
+        { "HideOpenAITools", (typeof(bool), "Chat") },
 
         { "SeperateWithENTERS", (typeof(bool), "Custom") },
 
@@ -1054,7 +1055,11 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                string json = File.ReadAllText(@"Json\voices.json");
+                string currentrunningAppdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+
+                string voicesFilePath = Path.Combine(currentrunningAppdir, "Json", "voices.json");
+                string json = File.ReadAllText(voicesFilePath);
                 List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
 
                 if (string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
@@ -1064,10 +1069,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 if (!string.IsNullOrEmpty(ViewModel.Instance.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
                 {
                     Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == ViewModel.Instance.RecentTikTokTTSVoice);
-                    if (selectedVoice == null)
-                    {
-                    }
-                    else
+                    if (selectedVoice != null)
                     {
                         ViewModel.Instance.SelectedTikTokTTSVoice = selectedVoice;
                     }
