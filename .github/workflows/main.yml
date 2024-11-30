@@ -47,7 +47,7 @@ jobs:
 
     - name: Create Zip File
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.22000.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
 
     - name: Upload and Scan with VirusTotal
       id: virustotal_scan
