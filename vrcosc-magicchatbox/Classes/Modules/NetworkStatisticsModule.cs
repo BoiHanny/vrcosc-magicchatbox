@@ -130,6 +130,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 if (networkInterfaces.Count == 0)
                     return null;
 
+                // If there's only one active network interface, return it directly
+                if (networkInterfaces.Count == 1)
+                {
+                    return networkInterfaces.First();
+                }
+
                 // Measure initial bytes sent/received
                 var interfaceStats = new List<InterfaceStats>();
                 foreach (var ni in networkInterfaces)
@@ -164,14 +170,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
                 else
                 {
-                    // If no activity detected, return the first interface
+                    // If no activity detected or measurement fails, fallback to selecting the first interface
                     return networkInterfaces.FirstOrDefault();
                 }
             }
             catch (Exception ex)
             {
+                // Log the exception and fallback to the first available network interface
                 Logging.WriteException(ex, MSGBox: false);
-                return null;
+                return NetworkInterface.GetAllNetworkInterfaces()
+                    .FirstOrDefault(ni =>
+                        ni.OperationalStatus == OperationalStatus.Up &&
+                        ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                        ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
+                        ni.GetIPProperties().UnicastAddresses.Count > 0);
             }
         }
 
@@ -222,8 +234,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     MaxDownloadSpeedMbps = 0;
                     MaxUploadSpeedMbps = 0;
                 }
-
-
 
                 var stats = _activeNetworkInterface.GetIPv4Statistics();
 
@@ -295,8 +305,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             // List to store individual network stats descriptions
             var networkStatsDescriptions = new List<string>();
-
-
 
             if (ViewModel.Instance.NetworkStats_ShowCurrentDown)
                 networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Down: ")} {FormatSpeed(CurrentDownloadSpeedMbps)}");
