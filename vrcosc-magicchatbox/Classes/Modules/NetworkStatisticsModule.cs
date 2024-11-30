@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Windows;
+using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
@@ -18,6 +20,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool _isMonitoring;
         private long _previousBytesReceived;
         private long _previousBytesSent;
+        private readonly Dispatcher _dispatcher;
 
         public bool IsInitialized { get; private set; }
         public double Interval { get; set; } = 1000;
@@ -32,9 +35,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        // New property to control max speed source
+        public bool UseInterfaceMaxSpeed { get; set; } = false;
+
         public NetworkStatisticsModule(double interval)
         {
             Interval = interval;
+            _dispatcher = Application.Current.Dispatcher;
             ViewModel.Instance.PropertyChanged += PropertyChangedHandler;
 
             if (ShouldStartMonitoring())
@@ -83,9 +90,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _activeNetworkInterface = GetActiveNetworkInterface();
             if (_activeNetworkInterface != null)
             {
-                var speedInMbps = _activeNetworkInterface.Speed / 1e6;
-                MaxDownloadSpeedMbps = speedInMbps;
-                MaxUploadSpeedMbps = speedInMbps;
+                if (UseInterfaceMaxSpeed)
+                {
+                    var speedInMbps = _activeNetworkInterface.Speed / 1e6;
+                    MaxDownloadSpeedMbps = speedInMbps;
+                    MaxUploadSpeedMbps = speedInMbps;
+                }
+                else
+                {
+                    MaxDownloadSpeedMbps = 0;
+                    MaxUploadSpeedMbps = 0;
+                }
 
                 var stats = _activeNetworkInterface.GetIPv4Statistics();
                 _previousBytesReceived = stats.BytesReceived;
@@ -201,6 +216,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         return;
                 }
 
+                if (UseInterfaceMaxSpeed != ViewModel.Instance.NetworkStats_UseInterfaceMaxSpeed)
+                {
+                    UseInterfaceMaxSpeed = ViewModel.Instance.NetworkStats_UseInterfaceMaxSpeed;
+                    MaxDownloadSpeedMbps = 0;
+                    MaxUploadSpeedMbps = 0;
+                }
+
+
+
                 var stats = _activeNetworkInterface.GetIPv4Statistics();
 
                 // Calculate the differences since the last check
@@ -213,22 +237,48 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 // Calculate speeds in Mbps
                 var intervalInSeconds = Interval / 1000;
-                CurrentDownloadSpeedMbps = (bytesReceivedDiff * 8) / 1e6 / intervalInSeconds;
-                CurrentUploadSpeedMbps = (bytesSentDiff * 8) / 1e6 / intervalInSeconds;
+                var downloadSpeed = (bytesReceivedDiff * 8) / 1e6 / intervalInSeconds;
+                var uploadSpeed = (bytesSentDiff * 8) / 1e6 / intervalInSeconds;
 
                 // Update total downloaded and uploaded data in MB
-                TotalDownloadedMB += bytesReceivedDiff / 1e6;
-                TotalUploadedMB += bytesSentDiff / 1e6;
+                var totalDownloaded = TotalDownloadedMB + bytesReceivedDiff / 1e6;
+                var totalUploaded = TotalUploadedMB + bytesSentDiff / 1e6;
+
+                // Update maximum observed speeds if not using interface max speed
+                if (!UseInterfaceMaxSpeed)
+                {
+                    if (downloadSpeed > MaxDownloadSpeedMbps)
+                        MaxDownloadSpeedMbps = downloadSpeed;
+
+                    if (uploadSpeed > MaxUploadSpeedMbps)
+                        MaxUploadSpeedMbps = uploadSpeed;
+                }
+
+                // Determine the max speed to use for utilization calculation
+                var maxDownloadSpeed = UseInterfaceMaxSpeed
+                    ? _activeNetworkInterface.Speed / 1e6
+                    : MaxDownloadSpeedMbps;
+
+                var maxUploadSpeed = UseInterfaceMaxSpeed
+                    ? _activeNetworkInterface.Speed / 1e6
+                    : MaxUploadSpeedMbps;
 
                 // Update network utilization
-                NetworkUtilization = Math.Min(100, (CurrentDownloadSpeedMbps / MaxDownloadSpeedMbps) * 100);
+                var utilization = maxDownloadSpeed > 0
+                    ? Math.Min(100, (downloadSpeed / maxDownloadSpeed) * 100)
+                    : 0;
 
-                // Notify property changes
-                OnPropertyChanged(nameof(CurrentDownloadSpeedMbps));
-                OnPropertyChanged(nameof(CurrentUploadSpeedMbps));
-                OnPropertyChanged(nameof(TotalDownloadedMB));
-                OnPropertyChanged(nameof(TotalUploadedMB));
-                OnPropertyChanged(nameof(NetworkUtilization));
+                // Update properties on the UI thread
+                _dispatcher.BeginInvoke(new Action(() =>
+                {
+                    CurrentDownloadSpeedMbps = downloadSpeed;
+                    CurrentUploadSpeedMbps = uploadSpeed;
+                    TotalDownloadedMB = totalDownloaded;
+                    TotalUploadedMB = totalUploaded;
+                    NetworkUtilization = utilization;
+                    MaxDownloadSpeedMbps = maxDownloadSpeed;
+                    MaxUploadSpeedMbps = maxUploadSpeed;
+                }));
             }
             catch (Exception ex)
             {
@@ -245,6 +295,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             // List to store individual network stats descriptions
             var networkStatsDescriptions = new List<string>();
+
+
 
             if (ViewModel.Instance.NetworkStats_ShowCurrentDown)
                 networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Down: ")} {FormatSpeed(CurrentDownloadSpeedMbps)}");
@@ -274,15 +326,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             foreach (var description in networkStatsDescriptions)
             {
-                // Skip any descriptions that are null or whitespace.
                 if (string.IsNullOrWhiteSpace(description))
                 {
                     continue;
                 }
 
-                // If adding the next description would exceed the max line width,
-                // or if the description is the only item and should be displayed alone,
-                // add currentLine to lines and reset it.
                 if (currentLine.Length + description.Length > maxLineWidth || (currentLine.Length == 0 && description.Length <= maxLineWidth))
                 {
                     if (currentLine.Length > 0)
@@ -291,8 +339,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         currentLine = "";
                     }
 
-                    // If the description is short enough and currentLine is empty,
-                    // add it directly to lines instead of appending to currentLine.
                     if (description.Length <= maxLineWidth)
                     {
                         lines.Add(description);
@@ -300,18 +346,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                 }
 
-                // If currentLine is not empty, append the separator before adding the new description.
                 if (currentLine.Length > 0)
                 {
                     currentLine += separator;
                 }
 
-                // Append the current description to currentLine.
                 currentLine += description;
             }
 
-            // After processing all descriptions, if there's any content left in currentLine,
-            // add it to lines.
             if (currentLine.Length > 0)
             {
                 lines.Add(currentLine.TrimEnd());
@@ -322,7 +364,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private string FormatSpeed(double speedMbps)
         {
-            // Convert and format speed based on its magnitude
             if (speedMbps < 1)
                 return $"{speedMbps * 1000:N2} {ConvertToSuperScriptIfNeeded("Kbps")}";
             else if (speedMbps >= 1000)
@@ -345,11 +386,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private string FormatData(double dataMB)
         {
-            // Convert and format data based on its magnitude
             if (dataMB < 1)
                 return $"{dataMB * 1000:N2} {ConvertToSuperScriptIfNeeded("KB")}";
             else if (dataMB >= 1000)
-                return dataMB >= 1000000 ? $"{dataMB / 1e6:N2} TB" : $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
+                return dataMB >= 1_000_000 ? $"{dataMB / 1e6:N2} TB" : $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
             else
                 return $"{dataMB:N2} {ConvertToSuperScriptIfNeeded("MB")}";
         }
@@ -408,7 +448,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (!_dispatcher.CheckAccess())
+            {
+                _dispatcher.BeginInvoke(() =>
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                });
+            }
+            else
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         public void Dispose()

@@ -3936,6 +3936,21 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _NetworkStats_UseInterfaceMaxSpeed = false;
+
+        public bool NetworkStats_UseInterfaceMaxSpeed
+        {
+            get { return _NetworkStats_UseInterfaceMaxSpeed; }
+            set
+            {
+                if (_NetworkStats_UseInterfaceMaxSpeed != value)
+                {
+                    _NetworkStats_UseInterfaceMaxSpeed = value;
+                    NotifyPropertyChanged(nameof(NetworkStats_UseInterfaceMaxSpeed));
+                }
+            }
+        }
+
 
         private bool _NetworkStats_ShowCurrentUp = false;
 
