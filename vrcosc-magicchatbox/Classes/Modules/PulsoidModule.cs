@@ -41,6 +41,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool enableHeartRateOfflineCheck = true;
 
         [ObservableProperty]
+        private bool disableLegacySupport = false;
+
+        [ObservableProperty]
         private int unchangedHeartRateTimeoutInSec = 30;
 
         [ObservableProperty]
@@ -911,14 +914,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 SendHRToOSC(true);
             }
         }
-
-        // Send OSC parameters method
         private void SendHRToOSC(bool isHRBeat)
         {
-            if (!ViewModel.Instance.IntgrHeartRate_OSC) return; // Only send if enabled
+            if (!ViewModel.Instance.IntgrHeartRate_OSC) return;
 
-            bool isHRConnected = ViewModel.Instance.PulsoidAuthConnected; // Authenticated and token valid
-            bool isHRActive = PulsoidDeviceOnline;                       // Device considered online
+            bool isHRConnected = ViewModel.Instance.PulsoidAuthConnected;
+            bool isHRActive = PulsoidDeviceOnline; 
 
             int hrValueForOSC = GetOSCHeartRate();
             if (hrValueForOSC <= 0) return;
@@ -935,6 +936,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
             OSCSender.SendOscParam("/avatar/parameters/HRPercent", hrPercent);
             OSCSender.SendOscParam("/avatar/parameters/FullHRPercent", fullHRPercent);
             OSCSender.SendOscParam("/avatar/parameters/HR", hrValueForOSC);
+
+            if (!Settings.DisableLegacySupport)
+            {
+                int ones = hrValueForOSC % 10;
+                int tens = (hrValueForOSC / 10) % 10;
+                int hundreds = hrValueForOSC / 100;
+
+                OSCSender.SendOscParam("/avatar/parameters/onesHR", ones);
+                OSCSender.SendOscParam("/avatar/parameters/tensHR", tens);
+                OSCSender.SendOscParam("/avatar/parameters/hundredsHR", hundreds);
+            }
         }
     }
 
