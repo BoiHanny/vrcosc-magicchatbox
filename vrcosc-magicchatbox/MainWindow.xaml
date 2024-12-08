@@ -2231,7 +2231,7 @@
                                             IsChecked="{Binding HeartRateConnector.Settings.SmoothHeartRate, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
-                                            Smooth heart rate
+                                            Smooth heart rate to Chatbox
                                         </CheckBox>
                                         <StackPanel Margin="4,4,0,0" Visibility="{Binding HeartRateConnector.Settings.SmoothHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <StackPanel
@@ -2262,6 +2262,58 @@
                                                     FontSize="15"
                                                     Foreground="#FF9983AD"
                                                     Text="heart rate scans to show smooth heart rate changes." />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="SmoothOSCHeartRate_checkbox"
+                                            Height="20"
+                                            Margin="4,2"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding HeartRateConnector.Settings.SmoothOSCHeartRate, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Smooth heart rate to OSC
+                                        </CheckBox>
+                                        <StackPanel Margin="4,4,0,0" Visibility="{Binding HeartRateConnector.Settings.SmoothOSCHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Use last" />
+                                                <TextBox
+                                                    x:Name="SmoothOSCHeartRate_INT"
+                                                    Width="auto"
+                                                    MinWidth="20"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HeartRateConnector.Settings.SmoothOSCHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="received heart rate updates from the network to show smooth heart rate changes." />
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
@@ -8655,6 +8707,15 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrHeartRate_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButton}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="OSC"
+                                        IsChecked="{Binding IntgrHeartRate_OSC, Mode=TwoWay}"
                                         Style="{StaticResource GlowyToggleButton}" />
                                     <Button
                                         Margin="10,0,0,0"

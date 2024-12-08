@@ -213,6 +213,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _IntgrHeartRate_VR = true;
 
+        private bool _IntgrHeartRate_OSC = false;
+
         private bool _IntgrMediaLink_DESKTOP = true;
 
 
@@ -763,6 +765,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrHeartRate_VR = value;
                 NotifyPropertyChanged(nameof(IntgrHeartRate_VR));
+            }
+        }
+
+        public bool IntgrHeartRate_OSC
+        {
+            get { return _IntgrHeartRate_OSC; }
+            set
+            {
+                _IntgrHeartRate_OSC = value;
+                NotifyPropertyChanged(nameof(IntgrHeartRate_OSC));
             }
         }
 

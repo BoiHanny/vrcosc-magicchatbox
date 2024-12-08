@@ -35,6 +35,42 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity
             }
         }
 
+        public static void SendOscParam(string address, float value)
+        {
+            if (!ViewModel.Instance.MasterSwitch) return;
+
+            var msg = new OscMessage(address, value);
+            OscSender.Send(msg);
+            if (ViewModel.Instance.SecOSC)
+                SecOscSender.Send(msg);
+            if (ViewModel.Instance.ThirdOSC)
+                ThirdOscSender.Send(msg);
+        }
+
+        public static void SendOscParam(string address, int value)
+        {
+            if (!ViewModel.Instance.MasterSwitch) return;
+
+            var msg = new OscMessage(address, value);
+            OscSender.Send(msg);
+            if (ViewModel.Instance.SecOSC)
+                SecOscSender.Send(msg);
+            if (ViewModel.Instance.ThirdOSC)
+                ThirdOscSender.Send(msg);
+        }
+
+        public static void SendOscParam(string address, bool value)
+        {
+            if (!ViewModel.Instance.MasterSwitch) return;
+
+            var msg = new OscMessage(address, value ? 1 : 0);
+            OscSender.Send(msg);
+            if (ViewModel.Instance.SecOSC)
+                SecOscSender.Send(msg);
+            if (ViewModel.Instance.ThirdOSC)
+                ThirdOscSender.Send(msg);
+        }
+
         private static UDPSender SecOscSender
         {
             get

@@ -322,6 +322,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
 
         { "IntgrHeartRate_VR", (typeof(bool), "IntegrationToggles") },
         { "IntgrHeartRate_DESKTOP", (typeof(bool), "IntegrationToggles") },
+        { "_IntgrHeartRate_OSC", (typeof(bool), "IntegrationToggles") },
 
         { "IntgrCurrentTime_VR", (typeof(bool), "IntegrationToggles") },
         { "IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles") },
