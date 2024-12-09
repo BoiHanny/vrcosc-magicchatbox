@@ -204,7 +204,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
     }
 
-
     public enum StatisticsTimeRange
     {
         [Description("24h")]
@@ -252,6 +251,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private HttpClient _StatisticsClient = new HttpClient();
         private readonly object _fetchLock = new object();
         private bool _isFetchingStatistics = false;
+        private DateTime _lastStateChangeTime = DateTime.MinValue;
+        private readonly TimeSpan _stateChangeDebounce = TimeSpan.FromSeconds(2);
 
         // Flag to track if a reading arrived this interval
         private bool GotReadingThisInterval = false;
@@ -594,46 +595,84 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public async void ProcessData()
         {
-            if (HeartRateFromSocket <= 0)
+            // Determine if the device should be considered online based on the latest heart rate reading
+            bool shouldBeOnline = HeartRateFromSocket > 0;
+
+            // Initialize a flag to track if the online state has changed
+            bool stateChanged = false;
+
+            // Lock to ensure thread safety when accessing shared resources
+            lock (_fetchLock)
             {
-                PulsoidDeviceOnline = false;
-                ResetIntervalFlag();
-                return;
-            }
-            else
-            {
-                PulsoidDeviceOnline = true;
+                // If the device is currently online, perform additional checks
+                if (shouldBeOnline)
+                {
+                    if (HeartRateFromSocket == _previousHeartRate)
+                    {
+                        _unchangedHeartRateCount++;
+                    }
+                    else
+                    {
+                        _unchangedHeartRateCount = 0;
+                        _previousHeartRate = HeartRateFromSocket;
+                    }
+
+                    // Check if the heart rate has remained unchanged beyond the timeout threshold
+                    if (Settings.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= Settings.UnchangedHeartRateTimeoutInSec)
+                    {
+                        shouldBeOnline = false;
+                        ResetIntervalFlag();
+                        Logging.WriteInfo($"Heart rate unchanged for {_unchangedHeartRateCount} seconds. Marking device as offline.");
+                    }
+                }
             }
 
+            // Debounce state changes to prevent rapid toggling
+            DateTime currentTime = DateTime.Now;
+            if (PulsoidDeviceOnline != shouldBeOnline)
+            {
+                // Check if enough time has passed since the last state change
+                if ((currentTime - _lastStateChangeTime) > _stateChangeDebounce)
+                {
+                    PulsoidDeviceOnline = shouldBeOnline;
+                    _lastStateChangeTime = currentTime;
+                    stateChanged = true;
+
+                    if (!PulsoidDeviceOnline)
+                    {
+                        Logging.WriteInfo("Pulsoid device went offline.");
+                        // Additional actions when device goes offline (e.g., notify user)
+                        ResetIntervalFlag();
+                    }
+                    else
+                    {
+                        Logging.WriteInfo("Pulsoid device is online.");
+                        // Additional actions when device comes online (e.g., fetch statistics)
+                    }
+                }
+                else
+                {
+                    // If within debounce period, do not change the state
+                    Logging.WriteInfo("State change detected but within debounce period. Ignoring to prevent flicker.");
+                }
+            }
+
+            // If the device is offline, exit early to avoid unnecessary processing
+            if (!PulsoidDeviceOnline)
+            {
+                return;
+            }
+
+            // Proceed with processing since the device is online
             int hr = HeartRateFromSocket;
 
+            // Fetch Pulsoid statistics if enabled
             if (Settings.PulsoidStatsEnabled)
+            {
                 await FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth).ConfigureAwait(false);
-
-
-            // Unchanged HR logic
-            if (hr == _previousHeartRate)
-            {
-                _unchangedHeartRateCount++;
-            }
-            else
-            {
-                _unchangedHeartRateCount = 0;
-                _previousHeartRate = hr;
             }
 
-            if (Settings.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= Settings.UnchangedHeartRateTimeoutInSec)
-            {
-                PulsoidDeviceOnline = false;
-                ResetIntervalFlag();
-                return;
-            }
-            else
-            {
-                PulsoidDeviceOnline = true;
-            }
-
-            // Normal smoothing (time-based)
+            // Apply normal smoothing (time-based)
             if (Settings.SmoothHeartRate)
             {
                 _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, hr));
@@ -644,7 +683,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 hr = (int)_heartRates.Average(t => t.Item2);
             }
 
-            // Trend indicator
+            // Handle trend indicator based on heart rate history
             if (Settings.ShowHeartRateTrendIndicator)
             {
                 if (_heartRateHistory.Count >= Settings.HeartRateTrendIndicatorSampleRate)
@@ -672,13 +711,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-            // Magic heart rate icons
+            // Update magic heart rate icons if enabled
             if (Settings.MagicHeartRateIcons)
             {
                 Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
                 Settings.CurrentHeartIconIndex = (Settings.CurrentHeartIconIndex + 1) % Settings.HeartIcons.Count;
             }
 
+            // Append temperature text based on heart rate thresholds
             if (Settings.ShowTemperatureText)
             {
                 if (hr < Settings.LowTemperatureThreshold)
@@ -691,23 +731,27 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
             else
+            {
                 Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
+            }
 
+            // Update the HeartRate property if it has changed
             if (HeartRate != hr)
             {
                 HeartRate = hr;
             }
 
-            // If no reading arrived this interval, we still send an OSC update now if enabled
+            // If OSC integration is enabled and no reading arrived this interval, send an OSC update
             if (ViewModel.Instance.IntgrHeartRate_OSC && !GotReadingThisInterval)
             {
-                // This ensures no large gap without updating OSC
+                // Ensures no large gap without updating OSC
                 SendHRToOSC(false);
             }
 
-            // Reset for next interval
+            // Reset the flag for the next interval
             ResetIntervalFlag();
         }
+
 
         private void ResetIntervalFlag()
         {
@@ -956,9 +1000,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public string DownwardTrendSymbol { get; set; } = "↓";
         public string CombinedTrendSymbol => $"{UpwardTrendSymbol} - {DownwardTrendSymbol}";
     }
-
-
-    // No changes to PulsoidOAuthHandler or other classes required, unless needed for consistency.
 
     public class PulsoidOAuthHandler : IDisposable
     {

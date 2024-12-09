@@ -2464,7 +2464,7 @@
                                             IsChecked="{Binding HeartRateConnector.Settings.DisableLegacySupport, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
-                                            disable legacy OSC support (improved performance)
+                                            Disable legacy OSC support (improved performance)
                                         </CheckBox>
                                     </StackPanel>
                                 </Border>
