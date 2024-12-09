@@ -2023,7 +2023,7 @@
                                             FontStyle="Italic"
                                             Foreground="#FF9983AD"
                                             Opacity="0.5"
-                                            Text="You can show stats over a selected time period." />
+                                            Text="With Pulsoid to OSC you can send your heart rate to your VRChat Avatar." />
 
                                         <CheckBox
                                             x:Name="EnableOSCStats"
@@ -2040,11 +2040,41 @@
                                             Enable OSC support
                                         </CheckBox>
 
-                                        <StackPanel Visibility="{Binding IntgrHeartRate_OSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <StackPanel Margin="0,10,0,0" Visibility="{Binding IntgrHeartRate_OSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <CheckBox
+                                                x:Name="sentMCBHeartrateInfo_checkbox"
+                                                Height="20"
+                                                Margin="4,4"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.SentMCBHeartrateInfo, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click">
+                                                Send magic info to OSC, like trend indicator and max, min, avg heart rate.
+                                            </CheckBox>
+                                            <CheckBox
+                                                x:Name="sentMCBHeartrateInfoLegacy_checkbox"
+                                                Height="20"
+                                                Margin="4,2"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding HeartRateConnector.Settings.SentMCBHeartrateInfoLegacy, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}"
+                                                Unchecked="Update_Click"
+                                                Visibility="{Binding HeartRateConnector.Settings.SentMCBHeartrateInfo, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                Send magic info as legacy values to OSC
+                                            </CheckBox>
+
                                             <CheckBox
                                                 x:Name="SmoothOSCHeartRate_checkbox"
                                                 Height="20"
-                                                Margin="4,2"
+                                                Margin="4,10,4,0"
                                                 BorderBrush="#FF2D1265"
                                                 Checked="Update_Click"
                                                 FontFamily="Comfortaa Light"
@@ -2055,6 +2085,7 @@
                                                 Unchecked="Update_Click">
                                                 Smooth heart rate to OSC
                                             </CheckBox>
+
                                             <StackPanel Margin="4,4,0,0" Visibility="{Binding HeartRateConnector.Settings.SmoothOSCHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 <StackPanel
                                                     Margin="0,5,0,5"
@@ -2085,6 +2116,16 @@
                                                         Foreground="#FF9983AD"
                                                         Text="received heart rate updates from the network to show smooth heart rate changes." />
                                                 </StackPanel>
+                                                <TextBlock
+                                                    Width="auto"
+                                                    Margin="2,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="13"
+                                                    FontStyle="Italic"
+                                                    Foreground="#FF9983AD"
+                                                    Opacity="0.5"
+                                                    Text="By using a heartrate band, you get way more updates from the network than you would get from a watch." />
                                             </StackPanel>
                                         </StackPanel>
 

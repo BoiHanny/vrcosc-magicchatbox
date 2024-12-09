@@ -154,7 +154,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         bool trendIndicatorBehindStats = true;
 
+        [ObservableProperty]
+        private bool sentMCBHeartrateInfo = false; 
 
+        [ObservableProperty]
+        private bool sentMCBHeartrateInfoLegacy = false;
 
         /// <summary>
         /// Save current settings to disk as JSON.
@@ -314,10 +318,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             CheckMonitoringConditions();
         }
 
-        /// <summary>
-        /// Fetch Pulsoid statistics using the provided access token.
-        /// These stats are displayed as part of the heart rate information.
-        /// </summary>
         private async Task FetchPulsoidStatisticsAsync(string accessToken)
         {
             lock (_fetchLock)
@@ -353,6 +353,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     PulsoidStatistics.maximum_beats_per_minute += Settings.HeartRateAdjustment;
                     PulsoidStatistics.minimum_beats_per_minute += Settings.HeartRateAdjustment;
                     PulsoidStatistics.average_beats_per_minute += Settings.HeartRateAdjustment;
+
+                    // Ensure values are clamped to 0-255 as per HR range if desired
+                    PulsoidStatistics.maximum_beats_per_minute = Math.Clamp(PulsoidStatistics.maximum_beats_per_minute, 0, 255);
+                    PulsoidStatistics.minimum_beats_per_minute = Math.Clamp(PulsoidStatistics.minimum_beats_per_minute, 0, 255);
+                    PulsoidStatistics.average_beats_per_minute = Math.Clamp(PulsoidStatistics.average_beats_per_minute, 0, 255);
                 }
             }
             catch (HttpRequestException ex)
@@ -372,27 +377,21 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Called when application is closing. Saves current module settings.
-        /// </summary>
         public void OnApplicationClosing()
         {
             Settings.SaveSettings();
         }
 
-        /// <summary>
-        /// Refresh the available trend symbols for heart rate up/down indicators.
-        /// </summary>
         public void RefreshTrendSymbols()
         {
             Settings.PulsoidTrendSymbols = new List<PulsoidTrendSymbolSet>
-            {
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⤴️", DownwardTrendSymbol = "⤵️" },
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⬆", DownwardTrendSymbol = "⬇" },
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↗", DownwardTrendSymbol = "↘" },
-                new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
-            };
+        {
+            new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↑", DownwardTrendSymbol = "↓" },
+            new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⤴️", DownwardTrendSymbol = "⤵️" },
+            new PulsoidTrendSymbolSet { UpwardTrendSymbol = "⬆", DownwardTrendSymbol = "⬇" },
+            new PulsoidTrendSymbolSet { UpwardTrendSymbol = "↗", DownwardTrendSymbol = "↘" },
+            new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
+        };
 
             var symbolExists = Settings.PulsoidTrendSymbols.Any(s => s.CombinedTrendSymbol == Settings.SelectedPulsoidTrendSymbol.CombinedTrendSymbol);
 
@@ -406,17 +405,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Refresh available time ranges for statistics and ensure the currently selected is valid.
-        /// </summary>
         public void RefreshTimeRanges()
         {
             Settings.StatisticsTimeRanges = new List<StatisticsTimeRange>
-            {
-                StatisticsTimeRange._24h,
-                StatisticsTimeRange._7d,
-                StatisticsTimeRange._30d
-            };
+        {
+            StatisticsTimeRange._24h,
+            StatisticsTimeRange._7d,
+            StatisticsTimeRange._30d
+        };
 
             var rangeExists = Settings.StatisticsTimeRanges.Any(r => r == Settings.SelectedStatisticsTimeRange);
             if (!rangeExists)
@@ -425,10 +421,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Calculate a slope of values to determine trend direction.
-        /// This method is used to detect upward or downward HR trends.
-        /// </summary>
         private static double CalculateSlope(Queue<int> values)
         {
             int count = values.Count;
@@ -448,9 +440,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return slope;
         }
 
-        /// <summary>
-        /// Convert Low and High HR text to use superscripts.
-        /// </summary>
         public void UpdateFormattedHeartRateText()
         {
             FormattedLowHeartRateText = DataController.TransformToSuperscript(Settings.LowHeartRateText);
@@ -471,9 +460,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Starts or stops HR monitoring based on configuration and conditions.
-        /// </summary>
         private void CheckMonitoringConditions()
         {
             if (ShouldStartMonitoring() && !isMonitoringStarted)
@@ -488,7 +474,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public bool ShouldStartMonitoring()
         {
-            // Logic to determine if HR monitoring should start, based on integration toggles and VR state.
             return ViewModel.Instance.IntgrHeartRate && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_VR ||
                    ViewModel.Instance.IntgrHeartRate && !ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrHeartRate_DESKTOP ||
                    ViewModel.Instance.IntgrHeartRate_OSC;
@@ -506,9 +491,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                    propertyName == nameof(ViewModel.Instance.PulsoidAccessTokenOAuth);
         }
 
-        /// <summary>
-        /// Stops HR monitoring and cleans up WebSocket and timers.
-        /// </summary>
         private void StopMonitoringHeartRateAsync()
         {
             if (_cts != null)
@@ -535,9 +517,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             isMonitoringStarted = false;
         }
 
-        /// <summary>
-        /// Connect to Pulsoid WebSocket and start heart rate monitoring.
-        /// </summary>
         private async Task ConnectToWebSocketAsync(string accessToken, CancellationToken cancellationToken)
         {
             _webSocket = new ClientWebSocket();
@@ -574,9 +553,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             StopMonitoringHeartRateAsync();
         }
 
-        /// <summary>
-        /// Attempts to start HR monitoring if conditions are met.
-        /// </summary>
         private async Task StartMonitoringHeartRateAsync()
         {
             if (_cts != null || isMonitoringStarted) return;
@@ -610,7 +586,24 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             _cts = new CancellationTokenSource();
             UpdateFormattedHeartRateText();
-            await ConnectToWebSocketAsync(accessToken, _cts.Token).ConfigureAwait(false);
+
+            try
+            {
+                await ConnectToWebSocketAsync(accessToken, _cts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    PulsoidAccessError = true;
+                    PulsoidAccessErrorTxt = ex.Message;
+                });
+                Logging.WriteException(ex);
+            }
         }
 
         public void TriggerPulsoidAuthConnected(bool newValue)
@@ -636,40 +629,30 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Processes heart rate data at fixed intervals (timer). Updates device online state,
-        /// applies smoothing, trend calculations, and triggers OSC updates.
-        /// </summary>
         public async void ProcessData()
         {
             bool shouldBeOnline = HeartRateFromSocket > 0;
-            bool stateChanged = false;
 
-            lock (_fetchLock)
+            if (shouldBeOnline)
             {
-                if (shouldBeOnline)
+                if (HeartRateFromSocket == _previousHeartRate)
                 {
-                    if (HeartRateFromSocket == _previousHeartRate)
-                    {
-                        _unchangedHeartRateCount++;
-                    }
-                    else
-                    {
-                        _unchangedHeartRateCount = 0;
-                        _previousHeartRate = HeartRateFromSocket;
-                    }
+                    _unchangedHeartRateCount++;
+                }
+                else
+                {
+                    _unchangedHeartRateCount = 0;
+                    _previousHeartRate = HeartRateFromSocket;
+                }
 
-                    // Check if heart rate stayed the same beyond threshold
-                    if (Settings.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= Settings.UnchangedHeartRateTimeoutInSec)
-                    {
-                        shouldBeOnline = false;
-                        ResetIntervalFlag();
-                        Logging.WriteInfo($"HR unchanged for {_unchangedHeartRateCount} seconds. Marking offline.");
-                    }
+                if (Settings.EnableHeartRateOfflineCheck && _unchangedHeartRateCount >= Settings.UnchangedHeartRateTimeoutInSec)
+                {
+                    shouldBeOnline = false;
+                    ResetIntervalFlag();
+                    Logging.WriteInfo($"HR unchanged for {_unchangedHeartRateCount} seconds. Marking offline.");
                 }
             }
 
-            // Debounce state changes
             DateTime currentTime = DateTime.Now;
             if (PulsoidDeviceOnline != shouldBeOnline)
             {
@@ -677,7 +660,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     PulsoidDeviceOnline = shouldBeOnline;
                     _lastStateChangeTime = currentTime;
-                    stateChanged = true;
 
                     if (!PulsoidDeviceOnline)
                     {
@@ -689,38 +671,52 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         Logging.WriteInfo("Pulsoid device is online.");
                     }
                 }
-                else
-                {
-                    // Ignore quick flickers
-                    Logging.WriteInfo("State change ignored due to debounce.");
-                }
             }
 
             if (!PulsoidDeviceOnline)
             {
-                return; // Exit if device offline
+                return;
             }
 
             int hr = HeartRateFromSocket;
 
-            // Fetch statistics if enabled
             if (Settings.PulsoidStatsEnabled)
             {
                 await FetchPulsoidStatisticsAsync(ViewModel.Instance.PulsoidAccessTokenOAuth).ConfigureAwait(false);
             }
 
-            // Apply normal smoothing (time-based)
             if (Settings.SmoothHeartRate)
             {
-                _heartRates.Enqueue(new Tuple<DateTime, int>(DateTime.UtcNow, hr));
-                while (_heartRates.Count > 0 && DateTime.UtcNow - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(Settings.SmoothHeartRateTimeSpan))
+                var now = DateTime.UtcNow;
+                _heartRates.Enqueue(new Tuple<DateTime, int>(now, hr));
+                while (_heartRates.Count > 0 && now - _heartRates.Peek().Item1 > TimeSpan.FromSeconds(Settings.SmoothHeartRateTimeSpan))
                 {
                     _heartRates.Dequeue();
                 }
-                hr = (int)_heartRates.Average(t => t.Item2);
+                if (_heartRates.Count > 0)
+                {
+                    hr = (int)_heartRates.Average(t => t.Item2);
+                }
             }
 
-            // Handle trend indicator
+            UpdateHeartRateTrendIndicator(hr);
+            UpdateHeartRateIcon(hr);
+
+            if (HeartRate != hr)
+            {
+                HeartRate = hr;
+            }
+
+            if (ViewModel.Instance.IntgrHeartRate_OSC && !GotReadingThisInterval)
+            {
+                SendHRToOSC(false);
+            }
+
+            ResetIntervalFlag();
+        }
+
+        private void UpdateHeartRateTrendIndicator(int hr)
+        {
             if (Settings.ShowHeartRateTrendIndicator)
             {
                 if (_heartRateHistory.Count >= Settings.HeartRateTrendIndicatorSampleRate)
@@ -747,54 +743,42 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                 }
             }
+        }
 
-            // Magic icons cycling
+        private void UpdateHeartRateIcon(int hr)
+        {
+            if (HeartRate != hr)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    HeartRate = hr;
+                });
+            }
             if (Settings.MagicHeartRateIcons)
             {
                 Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
                 Settings.CurrentHeartIconIndex = (Settings.CurrentHeartIconIndex + 1) % Settings.HeartIcons.Count;
             }
 
-            // Append temperature text if enabled
             if (Settings.ShowTemperatureText)
             {
                 if (hr < Settings.LowTemperatureThreshold)
                 {
-                    Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex] + FormattedLowHeartRateText;
+                    Settings.HeartRateIcon = Settings.HeartRateIcon + FormattedLowHeartRateText;
                 }
                 else if (hr >= Settings.HighTemperatureThreshold)
                 {
-                    Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex] + FormattedHighHeartRateText;
+                    Settings.HeartRateIcon = Settings.HeartRateIcon + FormattedHighHeartRateText;
                 }
             }
-            else
-            {
-                Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
-            }
-
-            if (HeartRate != hr)
-            {
-                HeartRate = hr;
-            }
-
-            // If OSC enabled and no reading this interval, send fallback OSC update
-            if (ViewModel.Instance.IntgrHeartRate_OSC && !GotReadingThisInterval)
-            {
-                SendHRToOSC(false);
-            }
-
-            // Reset the interval flag
-            ResetIntervalFlag();
         }
+
 
         private void ResetIntervalFlag()
         {
             GotReadingThisInterval = false;
         }
 
-        /// <summary>
-        /// Get OSC smoothed heart rate if enabled, otherwise the raw last HR.
-        /// </summary>
         private int GetOSCHeartRate()
         {
             if (!Settings.SmoothOSCHeartRate || _oscHeartRates.Count == 0)
@@ -807,10 +791,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Builds a string representing the current heart rate and associated data.
-        /// Called for UI display (e.g., overlay or log).
-        /// </summary>
         public string GetHeartRateString()
         {
             if (Settings.EnableHeartRateOfflineCheck && !PulsoidDeviceOnline)
@@ -884,7 +864,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                 }
 
-                // Transform stats to superscript
                 for (int i = 0; i < statsList.Count; i++)
                 {
                     statsList[i] = DataController.TransformToSuperscript(statsList[i]);
@@ -912,9 +891,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return displayTextBuilder.ToString();
         }
 
-        /// <summary>
-        /// Receives messages from the Pulsoid WebSocket and updates HR data.
-        /// </summary>
         private async Task HeartRateMonitoringLoopAsync(CancellationToken cancellationToken)
         {
             var buffer = new byte[1024];
@@ -935,7 +911,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                     catch (OperationCanceledException)
                     {
-                        // Graceful stop requested
                         break;
                     }
                     catch (IOException ioex)
@@ -964,15 +939,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        /// <summary>
-        /// Handles incoming HR messages, applies adjustments, updates OSC smoothing queues, and triggers OSC.
-        /// </summary>
         private void HandleHeartRateMessage(string message)
         {
             int rawHR = ParseHeartRateFromMessage(message);
             if (rawHR == -1) return;
 
-            // Apply HR adjustment
             if (Settings.ApplyHeartRateAdjustment)
             {
                 rawHR += Settings.HeartRateAdjustment;
@@ -982,15 +953,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
             HeartRateFromSocket = rawHR;
             HeartRateLastUpdate = DateTime.Now;
 
-            // Update OSC smoothing buffer
             _oscHeartRates.Enqueue(rawHR);
             while (_oscHeartRates.Count > Settings.SmoothOSCHeartRateTimeSpan)
                 _oscHeartRates.Dequeue();
 
-            // We got a reading this interval
             GotReadingThisInterval = true;
 
-            // Send immediate OSC update if enabled
             if (ViewModel.Instance.IntgrHeartRate_OSC)
             {
                 SendHRToOSC(true);
@@ -998,8 +966,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Sends HR and related parameters to the avatar via OSC.
+        /// Send HR and associated parameters to the avatar via OSC.
         /// </summary>
+        /// <param name="isHRBeat">True if this is triggered by a new HR reading, false if a fallback update.</param>
         private void SendHRToOSC(bool isHRBeat)
         {
             if (!ViewModel.Instance.IntgrHeartRate_OSC) return;
@@ -1010,12 +979,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
             int hrValueForOSC = GetOSCHeartRate();
             if (hrValueForOSC <= 0) return;
 
-            // Map HR to [0,1]
-            float hrPercent = (float)hrValueForOSC / 255.0f;
-            // Map HR to [-1,1]
-            float fullHRPercent = ((float)hrValueForOSC / 127.5f) - 1.0f;
+            float hrPercent = hrValueForOSC / 255f;
+            float fullHRPercent = (hrValueForOSC / 127.5f) - 1f;
 
-            // Send parameters over OSC
             OSCSender.SendOscParam("/avatar/parameters/isHRConnected", isHRConnected);
             OSCSender.SendOscParam("/avatar/parameters/isHRActive", isHRActive);
             OSCSender.SendOscParam("/avatar/parameters/isHRBeat", isHRBeat);
@@ -1033,8 +999,54 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 OSCSender.SendOscParam("/avatar/parameters/tensHR", tens);
                 OSCSender.SendOscParam("/avatar/parameters/hundredsHR", hundreds);
             }
+
+            if (Settings.SentMCBHeartrateInfo && PulsoidStatistics != null)
+            {
+                SendMCBHeartRateInfo(hrValueForOSC);
+            }
         }
+
+        private void SendMCBHeartRateInfo(int hrValueForOSC)
+        {
+            bool isHot = hrValueForOSC >= Settings.HighTemperatureThreshold;
+            bool isSleepy = hrValueForOSC < Settings.LowTemperatureThreshold;
+
+            bool trendUp = Settings.HeartRateTrendIndicator == Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
+            bool trendDown = Settings.HeartRateTrendIndicator == Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
+
+            OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Hot", isHot);
+            OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Sleepy", isSleepy);
+            OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_TrendUp", trendUp);
+            OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_TrendDown", trendDown);
+
+            if (!Settings.SentMCBHeartrateInfoLegacy)
+            {
+                OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
+                OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
+                OSCSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
+            }
+            else
+            {
+                // Send min/max/avg as ones, tens, hundreds
+                SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
+                SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
+                SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
+            }
+        }
+
+        private void SendHeartRateDigits(string baseAddress, int hrValue)
+        {
+            int ones = hrValue % 10;
+            int tens = (hrValue / 10) % 10;
+            int hundreds = hrValue / 100;
+
+            OSCSender.SendOscParam($"{baseAddress}_Ones", ones);
+            OSCSender.SendOscParam($"{baseAddress}_Tens", tens);
+            OSCSender.SendOscParam($"{baseAddress}_Hundreds", hundreds);
+        }
+
     }
+
 
     public class PulsoidTrendSymbolSet
     {
@@ -1148,23 +1160,31 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 using (var request = new HttpRequestMessage(HttpMethod.Get, "https://dev.pulsoid.net/api/v1/token/validate"))
                 {
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                    var response = await httpClient.SendAsync(request);
+                    var response = await httpClient.SendAsync(request).ConfigureAwait(false);
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var content = await response.Content.ReadAsStringAsync();
+                        var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                         var tokenInfo = JsonConvert.DeserializeObject<TokenInfo>(content);
 
                         var requiredScopes = new[] { "data:heart_rate:read", "profile:read", "data:statistics:read" };
                         return requiredScopes.All(scope => tokenInfo.Scopes.Contains(scope));
                     }
-
-                    return false;
+                    else
+                    {
+                        Logging.WriteInfo($"Token validation failed with status code {response.StatusCode}");
+                        return false;
+                    }
                 }
+            }
+            catch (HttpRequestException ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                return false;
             }
             catch (Exception ex)
             {
-                Logging.WriteException(new Exception("Token validation failed.", ex), MSGBox: false);
+                Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
         }
