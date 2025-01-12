@@ -37,6 +37,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+
             <local:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
             <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
@@ -1436,7 +1437,52 @@
                                                 Text="{Binding AfkModule.Settings.AfkMessageWithoutTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Visibility="{Binding AfkModule.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
+                                        <StackPanel Visibility="{Binding BussyBoysMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
+                                            <TextBlock
+                                                Padding="4,15,9,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="19"
+                                                Foreground="#FF9983AD"
+                                                Text="Bussy Boys (custom counting from date and more)" />
+
+                                            <CheckBox
+                                                Height="20"
+                                                Margin="4,5,4,4"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding BussyBoysMultiMODE, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}">
+                                                Allow personal AFK + Status
+                                            </CheckBox>
+
+                                            <CheckBox
+                                                Height="20"
+                                                Margin="4,5,4,4"
+                                                BorderBrush="#FF2D1265"
+                                                Checked="Update_Click"
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="18"
+                                                Foreground="#FFB9B5C1"
+                                                IsChecked="{Binding BussyBoysDateEnable, Mode=TwoWay}"
+                                                Style="{DynamicResource SettingsCheckbox}">
+                                                Start custom counting ↴
+                                            </CheckBox>
+
+                                            <DatePicker
+                                                Width="250"
+                                                Margin="3,5,4,4"
+                                                HorizontalAlignment="Left"
+                                                BorderThickness="0"
+                                                Foreground="#FF240E54"
+                                                IsTodayHighlighted="True"
+                                                Opacity="0.5"
+                                                SelectedDate="{Binding BussyBoysDate, Mode=TwoWay}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

@@ -13,11 +13,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public partial class SoundpadModule : ObservableObject
     {
+        private static bool _isInitialized = false;
         private static string _soundpadLocation;
         private static Timer _stateTimer;
-        private static bool _isInitialized = false;
-        private static int ErrorCount = 0;
         private static readonly object _updateLock = new object();
+        private static int ErrorCount = 0;
+
+        [ObservableProperty]
+        soundpadState currentSoundpadState = soundpadState.NotRunning;
+
+        [ObservableProperty]
+        bool enablePanel = false;
 
         [ObservableProperty]
         bool error = false;
@@ -26,34 +32,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
         string errorString = string.Empty;
 
         [ObservableProperty]
-        bool enablePanel = false;
-
-        [ObservableProperty]
         bool isSoundpadRunning = false;
-
-        [ObservableProperty]
-        bool stopped = true;
-
-        [ObservableProperty]
-        soundpadState currentSoundpadState = soundpadState.NotRunning;
 
         [ObservableProperty]
         bool playingNow = false;
 
         [ObservableProperty]
-        public string playingSong = string.Empty;
+        bool stopped = true;
 
-        public string GetPlayingSong()
-        {
-            if (CurrentSoundpadState == soundpadState.Playing)
-            {
-                return PlayingSong;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
+        [ObservableProperty]
+        public string playingSong = string.Empty;
 
         public SoundpadModule(int time)
         {
@@ -64,6 +52,67 @@ namespace vrcosc_magicchatbox.Classes.Modules
             };
             _stateTimer.Elapsed += (sender, e) => UpdateSoundpadState(false);
             InitializeSoundpadModuleAsync();
+        }
+
+        private void ExecuteSoundpadCommand(string arguments)
+        {
+            if (IsSoundpadRunning)
+            {
+                try
+                {
+                    Process.Start(_soundpadLocation, arguments);
+                    Error = false;
+                    ErrorString = string.Empty;
+                }
+                catch (System.Exception ex)
+                {
+                    Error = true;
+                    ErrorString = "😞 Failed to execute Soundpad command.";
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+            }
+            else
+            {
+                Error = true;
+                ErrorString = "😞 Soundpad is not running.";
+                // Optionally handle the case when Soundpad is not running
+            }
+        }
+
+        private string GetSoundpadLocation()
+        {
+            try
+            {
+                var soundpadProc = Process.GetProcessesByName("Soundpad").FirstOrDefault();
+                if (soundpadProc != null)
+                {
+                    return soundpadProc.MainModule.FileName;
+                }
+                return string.Empty;
+            }
+            catch (System.Exception ex)
+            {
+                Logging.WriteException(new System.Exception("Soundpad not found"), MSGBox: false);
+                Error = true;
+                ErrorString = "😞 Unable to find Soundpad location.";
+                return string.Empty;
+            }
+        }
+
+        private void InitializeAndStartModuleIfNeeded()
+        {
+            if (ShouldStartMonitoring())
+            {
+                if (!IsSoundpadRunning)
+                {
+                    UpdateSoundpadState(false); // Check if Soundpad is running
+                }
+                if (!_isInitialized && IsSoundpadRunning)
+                {
+                    InitializeSoundpadModuleAsync();
+                }
+                StartModule();
+            }
         }
 
         private async Task InitializeSoundpadModuleAsync()
@@ -79,6 +128,98 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
                 InitializeAndStartModuleIfNeeded();
             });
+        }
+
+        private void UpdateCurrentState(string title)
+        {
+            // Removing the content inside brackets and the brackets themselves
+            title = Regex.Replace(title, @"\s*\[.*?\]\s*", " ").Trim();
+
+            // Dispatch property updates to the UI thread
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (string.IsNullOrEmpty(title))
+                {
+                    // Unable to get the title, possibly minimized to tray
+                    CurrentSoundpadState = soundpadState.Unknown;
+                    PlayingNow = false;
+                    Stopped = true;
+                    PlayingSong = string.Empty;
+                }
+                else if (title.Contains("II "))
+                {
+                    CurrentSoundpadState = soundpadState.Paused;
+                    PlayingNow = false;
+                    Stopped = false;
+                    PlayingSong = title.Replace("Soundpad - ", "").Replace(" II", "").Trim();
+                    Error = false;
+                    ErrorString = string.Empty;
+                }
+                else if (!string.IsNullOrWhiteSpace(title) && !title.Equals("Soundpad"))
+                {
+                    CurrentSoundpadState = soundpadState.Playing;
+                    PlayingNow = true;
+                    Stopped = false;
+                    PlayingSong = title.Replace("Soundpad - ", "").Trim();
+                    Error = false;
+                    ErrorString = string.Empty;
+                }
+                else
+                {
+                    CurrentSoundpadState = soundpadState.Stopped;
+                    PlayingNow = false;
+                    Stopped = true;
+                    PlayingSong = string.Empty; // Ensure the playing song is cleared when stopped
+                    Error = false;
+                    ErrorString = string.Empty;
+                }
+            });
+        }
+
+        private void UpdateCurrentStateBasedOnRunningStatus(Process soundpadProc)
+        {
+            if (IsSoundpadRunning && soundpadProc != null)
+            {
+                string title = string.Empty;
+                try
+                {
+                    title = soundpadProc.MainWindowTitle;
+
+                    if (string.IsNullOrEmpty(title))
+                    {
+                        // Soundpad is minimized to system tray or title is inaccessible
+                        Error = true;
+                        ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
+                        UpdateCurrentState(string.Empty);
+                    }
+                    else
+                    {
+                        Error = false;
+                        ErrorString = string.Empty;
+                        UpdateCurrentState(title);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    // Exception occurred while accessing MainWindowTitle
+                    Error = true;
+                    ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
+                    Logging.WriteException(ex, MSGBox: false);
+                    UpdateCurrentState(string.Empty);
+                }
+            }
+            else
+            {
+                // Soundpad is not running
+                Error = true;
+                ErrorString = "😞 Soundpad is not running.";
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    CurrentSoundpadState = soundpadState.NotRunning;
+                    PlayingNow = false;
+                    PlayingSong = string.Empty;
+                });
+            }
         }
 
 
@@ -128,116 +269,54 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private void UpdateCurrentStateBasedOnRunningStatus(Process soundpadProc)
+        public string GetPlayingSong()
         {
-            if (IsSoundpadRunning && soundpadProc != null)
+            if (CurrentSoundpadState == soundpadState.Playing)
             {
-                string title = string.Empty;
-                try
-                {
-                    title = soundpadProc.MainWindowTitle;
-
-                    if (string.IsNullOrEmpty(title))
-                    {
-                        // Soundpad is minimized to system tray or title is inaccessible
-                        Error = true;
-                        ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
-                        UpdateCurrentState(string.Empty);
-                    }
-                    else
-                    {
-                        Error = false;
-                        ErrorString = string.Empty;
-                        UpdateCurrentState(title);
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    // Exception occurred while accessing MainWindowTitle
-                    Error = true;
-                    ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
-                    Logging.WriteException(ex, MSGBox: false);
-                    UpdateCurrentState(string.Empty);
-                }
+                return PlayingSong;
             }
             else
             {
-                // Soundpad is not running
-                Error = true;
-                ErrorString = "😞 Soundpad is not running.";
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    CurrentSoundpadState = soundpadState.NotRunning;
-                    PlayingNow = false;
-                    PlayingSong = string.Empty;
-                });
+                return string.Empty;
             }
         }
 
-        private void UpdateCurrentState(string title)
+        public bool IsRelevantPropertyChange(string propertyName)
         {
-            // Removing the content inside brackets and the brackets themselves
-            title = Regex.Replace(title, @"\s*\[.*?\]\s*", " ").Trim();
-
-            // Dispatch property updates to the UI thread
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (string.IsNullOrEmpty(title))
-                {
-                    // Unable to get the title, possibly minimized to tray
-                    CurrentSoundpadState = soundpadState.Unknown;
-                    PlayingNow = false;
-                    Stopped = true;
-                    PlayingSong = string.Empty;
-                }
-                else if (title.Contains("II "))
-                {
-                    CurrentSoundpadState = soundpadState.Paused;
-                    PlayingNow = false;
-                    Stopped = false;
-                    PlayingSong = title.Replace("Soundpad - ", "").Replace(" II", "").Trim();
-                    Error = false;
-                    ErrorString = string.Empty;
-                }
-                else if (!string.IsNullOrWhiteSpace(title) && !title.Equals("Soundpad"))
-                {
-                    CurrentSoundpadState = soundpadState.Playing;
-                    PlayingNow = true;
-                    Stopped = false;
-                    PlayingSong = title.Replace("Soundpad - ", "").Trim();
-                    Error = false;
-                    ErrorString = string.Empty;
-                }
-                else
-                {
-                    CurrentSoundpadState = soundpadState.Stopped;
-                    PlayingNow = false;
-                    Stopped = true;
-                    PlayingSong = string.Empty; // Ensure the playing song is cleared when stopped
-                    Error = false;
-                    ErrorString = string.Empty;
-                }
-            });
+            return propertyName == nameof(ViewModel.Instance.IntgrSoundpad) ||
+                   propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
+                   propertyName == nameof(ViewModel.Instance.IntgrSoundpad_VR) ||
+                   propertyName == nameof(ViewModel.Instance.IntgrSoundpad_DESKTOP);
         }
 
-        private string GetSoundpadLocation()
+        public void PlayNextSound()
         {
-            try
-            {
-                var soundpadProc = Process.GetProcessesByName("Soundpad").FirstOrDefault();
-                if (soundpadProc != null)
-                {
-                    return soundpadProc.MainModule.FileName;
-                }
-                return string.Empty;
-            }
-            catch (System.Exception ex)
-            {
-                Logging.WriteException(new System.Exception("Soundpad not found"), MSGBox: false);
-                Error = true;
-                ErrorString = "😞 Unable to find Soundpad location.";
-                return string.Empty;
-            }
+            ExecuteSoundpadCommand("-rc DoPlayNextSound()");
+        }
+
+        public void PlayPreviousSound()
+        {
+            ExecuteSoundpadCommand("-rc DoPlayPreviousSound()");
+        }
+
+        public void PlayRandomSound()
+        {
+            ExecuteSoundpadCommand($"-rc DoPlayRandomSound()");
+        }
+
+        public void PlaySound(int index, bool speakers, bool mic)
+        {
+            ExecuteSoundpadCommand($"-rc DoPlaySound({index},{speakers.ToString().ToLower()},{mic.ToString().ToLower()})");
+        }
+
+        public void PlaySoundByIndex(int index)
+        {
+            ExecuteSoundpadCommand($"-rc DoPlaySound({index})");
+        }
+
+        public void PlaySoundFromCategory(int categoryIndex, int soundIndex)
+        {
+            ExecuteSoundpadCommand($"-rc DoPlaySoundFromCategory({categoryIndex},{soundIndex})");
         }
 
         public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -255,20 +334,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private void InitializeAndStartModuleIfNeeded()
+        public bool ShouldStartMonitoring()
         {
-            if (ShouldStartMonitoring())
-            {
-                if (!IsSoundpadRunning)
-                {
-                    UpdateSoundpadState(false); // Check if Soundpad is running
-                }
-                if (!_isInitialized && IsSoundpadRunning)
-                {
-                    InitializeSoundpadModuleAsync();
-                }
-                StartModule();
-            }
+            return ViewModel.Instance.IntgrSoundpad && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrSoundpad_VR ||
+                   ViewModel.Instance.IntgrSoundpad && !ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrSoundpad_DESKTOP;
         }
 
         public void StartModule()
@@ -285,67 +354,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 _stateTimer.Stop();
             }
-            if(!IsSoundpadRunning)
+            if (!IsSoundpadRunning)
             {
                 EnablePanel = false;
             }
-        }
-
-        public bool ShouldStartMonitoring()
-        {
-            return ViewModel.Instance.IntgrSoundpad && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrSoundpad_VR ||
-                   ViewModel.Instance.IntgrSoundpad && !ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrSoundpad_DESKTOP;
-        }
-
-        public bool IsRelevantPropertyChange(string propertyName)
-        {
-            return propertyName == nameof(ViewModel.Instance.IntgrSoundpad) ||
-                   propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
-                   propertyName == nameof(ViewModel.Instance.IntgrSoundpad_VR) ||
-                   propertyName == nameof(ViewModel.Instance.IntgrSoundpad_DESKTOP);
-        }
-
-        private void ExecuteSoundpadCommand(string arguments)
-        {
-            if (IsSoundpadRunning)
-            {
-                try
-                {
-                    Process.Start(_soundpadLocation, arguments);
-                    Error = false;
-                    ErrorString = string.Empty;
-                }
-                catch (System.Exception ex)
-                {
-                    Error = true;
-                    ErrorString = "😞 Failed to execute Soundpad command.";
-                    Logging.WriteException(ex, MSGBox: false);
-                }
-            }
-            else
-            {
-                Error = true;
-                ErrorString = "😞 Soundpad is not running.";
-                // Optionally handle the case when Soundpad is not running
-            }
-        }
-
-        public void PlayNextSound()
-        {
-            ExecuteSoundpadCommand("-rc DoPlayNextSound()");
-        }
-
-        public void PlayPreviousSound()
-        {
-            ExecuteSoundpadCommand("-rc DoPlayPreviousSound()");
-        }
-
-        public void TogglePause()
-        {
-            if (Stopped)
-                ExecuteSoundpadCommand("-rc DoPlayCurrentSoundAgain()");
-            else
-                ExecuteSoundpadCommand("-rc DoTogglePause()");
         }
 
         public void StopSound()
@@ -355,24 +367,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
             PlayingNow = false;
         }
 
-        public void PlayRandomSound()
+        public void TogglePause()
         {
-            ExecuteSoundpadCommand($"-rc DoPlayRandomSound()");
-        }
-
-        public void PlaySound(int index, bool speakers, bool mic)
-        {
-            ExecuteSoundpadCommand($"-rc DoPlaySound({index},{speakers.ToString().ToLower()},{mic.ToString().ToLower()})");
-        }
-
-        public void PlaySoundFromCategory(int categoryIndex, int soundIndex)
-        {
-            ExecuteSoundpadCommand($"-rc DoPlaySoundFromCategory({categoryIndex},{soundIndex})");
-        }
-
-        public void PlaySoundByIndex(int index)
-        {
-            ExecuteSoundpadCommand($"-rc DoPlaySound({index})");
+            if (Stopped)
+                ExecuteSoundpadCommand("-rc DoPlayCurrentSoundAgain()");
+            else
+                ExecuteSoundpadCommand("-rc DoTogglePause()");
         }
     }
 }

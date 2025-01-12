@@ -14,9 +14,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public partial class SpeechToTextLanguage : ObservableObject
     {
-        public string Language { get; set; }
         public string Code { get; set; }
+        public string Language { get; set; }
     }
+
     public partial class WhisperModuleSettings : ObservableObject
     {
         private const string SettingsFileName = "WhisperModuleSettings.json";
@@ -25,104 +26,33 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private List<RecordingDeviceInfo> availableDevices;
 
         [ObservableProperty]
-        private int selectedDeviceIndex;
-
-        [ObservableProperty]
-        private float noiseGateThreshold = 0.12f;
-
-        [ObservableProperty]
         private bool isNoiseGateOpen = false;
 
         [ObservableProperty]
         private bool isRecording = false;
 
         [ObservableProperty]
-        private List<SpeechToTextLanguage> speechToTextLanguages;
+        private float noiseGateThreshold = 0.12f;
+
+        [ObservableProperty]
+        private int selectedDeviceIndex;
 
         [ObservableProperty]
         private SpeechToTextLanguage selectedSpeechToTextLanguage;
 
         [ObservableProperty]
-        private bool translateToCustomLanguage = false;
+        private int silenceAutoTurnOffDuration = 3000;
 
         [ObservableProperty]
-        private int silenceAutoTurnOffDuration = 3000;
+        private List<SpeechToTextLanguage> speechToTextLanguages;
+
+        [ObservableProperty]
+        private bool translateToCustomLanguage = false;
 
         private WhisperModuleSettings()
         {
             RefreshDevices();
             RefreshSpeechToTextLanguages();
-        }
-
-
-
-        public static WhisperModuleSettings LoadSettings()
-        {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
-
-            if (File.Exists(path))
-            {
-                var settingsJson = File.ReadAllText(path);
-
-                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
-                {
-                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
-                    return new WhisperModuleSettings();
-                }
-
-                try
-                {
-                    var settings = JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
-
-                    if (settings != null)
-                    {
-                        settings.RefreshDevices();
-                        settings.RefreshSpeechToTextLanguages();
-                        return settings;
-                    }
-                    else
-                    {
-                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
-                        return new WhisperModuleSettings();
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
-                    return new WhisperModuleSettings();
-                }
-            }
-            else
-            {
-                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
-                return new WhisperModuleSettings();
-            }
-        }
-
-
-        public void SaveSettings()
-        {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)); // Ensure directory exists
-            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            File.WriteAllText(path, settingsJson);
-        }
-
-        public void RefreshDevices()
-        {
-            availableDevices = new List<RecordingDeviceInfo>();
-
-            for (int n = 0; n < WaveIn.DeviceCount; n++)
-            {
-                var capabilities = WaveIn.GetCapabilities(n);
-                availableDevices.Add(new RecordingDeviceInfo(n, capabilities.ProductName));
-            }
-
-            // Optionally, reset the selected device if it's no longer available
-            if (selectedDeviceIndex >= availableDevices.Count)
-            {
-                SelectedDeviceIndex = availableDevices.Any() ? 0 : -1;
-            }
         }
 
         private void RefreshSpeechToTextLanguages()
@@ -216,6 +146,77 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             OnPropertyChanged(nameof(SelectedSpeechToTextLanguage));
         }
+
+
+
+        public static WhisperModuleSettings LoadSettings()
+        {
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+
+            if (File.Exists(path))
+            {
+                var settingsJson = File.ReadAllText(path);
+
+                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+                {
+                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
+                    return new WhisperModuleSettings();
+                }
+
+                try
+                {
+                    var settings = JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
+
+                    if (settings != null)
+                    {
+                        settings.RefreshDevices();
+                        settings.RefreshSpeechToTextLanguages();
+                        return settings;
+                    }
+                    else
+                    {
+                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
+                        return new WhisperModuleSettings();
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
+                    return new WhisperModuleSettings();
+                }
+            }
+            else
+            {
+                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
+                return new WhisperModuleSettings();
+            }
+        }
+
+        public void RefreshDevices()
+        {
+            availableDevices = new List<RecordingDeviceInfo>();
+
+            for (int n = 0; n < WaveIn.DeviceCount; n++)
+            {
+                var capabilities = WaveIn.GetCapabilities(n);
+                availableDevices.Add(new RecordingDeviceInfo(n, capabilities.ProductName));
+            }
+
+            // Optionally, reset the selected device if it's no longer available
+            if (selectedDeviceIndex >= availableDevices.Count)
+            {
+                SelectedDeviceIndex = availableDevices.Any() ? 0 : -1;
+            }
+        }
+
+
+        public void SaveSettings()
+        {
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)); // Ensure directory exists
+            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+            File.WriteAllText(path, settingsJson);
+        }
     }
 
 
@@ -223,8 +224,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
     public class RecordingDeviceInfo
     {
-        public int DeviceIndex { get; }
-        public string DeviceName { get; }
 
         public RecordingDeviceInfo(int deviceIndex, string deviceName)
         {
@@ -236,26 +235,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             return $"{DeviceName} (Index: {DeviceIndex})";
         }
+
+        public int DeviceIndex { get; }
+        public string DeviceName { get; }
     }
+
     public partial class WhisperModule : ObservableObject
     {
-        private WaveInEvent waveIn;
         private MemoryStream audioStream = new MemoryStream();
-        private DateTime lastSoundTimestamp = DateTime.Now;
         private bool isCurrentlySpeaking = false;
-        private DateTime speakingStartedTimestamp = DateTime.Now;
         private bool isProcessingShortPause = false;
+        private DateTime lastSoundTimestamp = DateTime.Now;
         private TimeSpan speakingDuration = TimeSpan.Zero;
-
-        public event Action<string> TranscriptionReceived;
-
-        private void UpdateSpeakingDuration()
-        {
-            if (isCurrentlySpeaking)
-            {
-                speakingDuration = DateTime.Now - speakingStartedTimestamp;
-            }
-        }
+        private DateTime speakingStartedTimestamp = DateTime.Now;
+        private WaveInEvent waveIn;
 
         [ObservableProperty]
         public WhisperModuleSettings settings;
@@ -267,18 +260,37 @@ namespace vrcosc_magicchatbox.Classes.Modules
             InitializeWaveIn();
         }
 
-        public void OnApplicationClosing()
+        public event Action<string> TranscriptionReceived;
+
+
+        private float CalculateMaxAmplitude(byte[] buffer, int bytesRecorded)
         {
-            Settings.SaveSettings();
+            short[] samples = new short[bytesRecorded / 2];
+            Buffer.BlockCopy(buffer, 0, samples, 0, bytesRecorded);
+            return samples.Max(sample => Math.Abs(sample / 32768f));
         }
 
-        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void HandleSpeakingState(WaveInEventArgs e)
         {
-            if (e.PropertyName == nameof(Settings.SelectedDeviceIndex))
+            if (!isCurrentlySpeaking)
             {
-                StopRecording();
-                InitializeWaveIn();
+                speakingStartedTimestamp = DateTime.Now;
+                isCurrentlySpeaking = true;
+                // Reset the speaking duration when starting to speak
+                speakingDuration = TimeSpan.Zero;
+                if (audioStream.Length > 0)
+                {
+                    ProcessAudioStreamAsync(audioStream, partial: true);
+                    audioStream.SetLength(0); // Clears the stream
+                    audioStream.Position = 0; // Resets the position
+
+                }
             }
+
+            audioStream.Write(e.Buffer, 0, e.BytesRecorded);
+            lastSoundTimestamp = DateTime.Now;
+            UpdateSpeakingDuration();
+            UpdateUI($"Speaking... Duration: {speakingDuration.TotalSeconds:0.0}s", true);
         }
 
         private void InitializeWaveIn()
@@ -302,56 +314,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             waveIn.DataAvailable += OnDataAvailable;
             waveIn.RecordingStopped += OnRecordingStopped;
-        }
-
-
-        public void StartRecording()
-        {
-            if (!OpenAIModule.Instance.IsInitialized)
-            {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-            }
-            if (waveIn == null)
-            {
-                UpdateUI("Starting recording failed: Device not initialized.", false);
-                return;
-            }
-            if(settings.IsRecording) 
-            {
-                UpdateUI("Already recording.", false);
-                return;
-            }
-            UpdateUI("Ready to speak?", true);
-            waveIn.StartRecording();
-            //PlaySound("start.wav");
-            settings.IsRecording = true;
-        }
-
-        public void StopRecording()
-        {
-            if (!OpenAIModule.Instance.IsInitialized)
-            {
-                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-            }
-            if (waveIn == null)
-            {
-                UpdateUI("Stopping recording failed: Device not initialized.", false);
-                return;
-            }
-            if(settings.IsRecording == false) 
-            {
-                UpdateUI("Not currently recording.", false);
-                return;
-            }
-            waveIn.StopRecording();
-            settings.IsRecording = false;
-            UpdateUI("Recording stopped. Processing last audio...", false);
-            if (audioStream.Length > 0)
-            {
-                ProcessAudioStreamAsync(audioStream);
-            }
-            audioStream.SetLength(0); // Clears the stream
-            audioStream.Position = 0; // Resets the position
         }
 
         //private void PlaySound(string soundFileName)
@@ -389,27 +351,41 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private void HandleSpeakingState(WaveInEventArgs e)
-        {
-            if (!isCurrentlySpeaking)
-            {
-                speakingStartedTimestamp = DateTime.Now;
-                isCurrentlySpeaking = true;
-                // Reset the speaking duration when starting to speak
-                speakingDuration = TimeSpan.Zero;
-                if (audioStream.Length > 0)
-                {
-                    ProcessAudioStreamAsync(audioStream, partial: true);
-                    audioStream.SetLength(0); // Clears the stream
-                    audioStream.Position = 0; // Resets the position
 
-                }
+        private void OnRecordingStopped(object sender, StoppedEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                Console.WriteLine($"Recording stopped due to error: {e.Exception.Message}");
+            }
+            else
+            {
+                Console.WriteLine("Recording stopped successfully.");
+            }
+        }
+
+        private async Task ProcessAudioStreamAsync(MemoryStream stream, bool partial = false)
+        {
+            if (stream.Length == 0) return;
+
+            stream.Position = 0;
+            UpdateUI(partial ? "Transcribing part of your speech..." : "Transcribing with OpenAI...", true);
+            string transcription = await TranscribeAudioAsync(stream);
+            if (!string.IsNullOrEmpty(transcription))
+            {
+                TranscriptionReceived?.Invoke(transcription);
+                UpdateUI("Transcription complete.", false);
+            }
+            else
+            {
+                UpdateUI("Error transcribing audio.", false);
             }
 
-            audioStream.Write(e.Buffer, 0, e.BytesRecorded);
-            lastSoundTimestamp = DateTime.Now;
-            UpdateSpeakingDuration();
-            UpdateUI($"Speaking... Duration: {speakingDuration.TotalSeconds:0.0}s", true);
+            if (!partial)
+            {
+                audioStream.SetLength(0); // Clears the stream
+                audioStream.Position = 0; // Resets the position
+            }
         }
 
 
@@ -442,57 +418,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
-
-
-
-
-
-        private async void UpdateUI(string message, bool isVisible)
+        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabelTxt = message;
-            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = isVisible;
-
-            if (!isVisible)
+            if (e.PropertyName == nameof(Settings.SelectedDeviceIndex))
             {
-                ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = true;
-                await Task.Delay(2500); 
-                App.Current.Dispatcher.Invoke(() =>
-                {
-                    ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = false;
-                });
-            }
-        }
-
-
-        private float CalculateMaxAmplitude(byte[] buffer, int bytesRecorded)
-        {
-            short[] samples = new short[bytesRecorded / 2];
-            Buffer.BlockCopy(buffer, 0, samples, 0, bytesRecorded);
-            return samples.Max(sample => Math.Abs(sample / 32768f));
-        }
-
-        private async Task ProcessAudioStreamAsync(MemoryStream stream, bool partial = false)
-        {
-            if (stream.Length == 0) return;
-
-            stream.Position = 0;
-            UpdateUI(partial ? "Transcribing part of your speech..." : "Transcribing with OpenAI...", true);
-            string transcription = await TranscribeAudioAsync(stream);
-            if (!string.IsNullOrEmpty(transcription))
-            {
-                TranscriptionReceived?.Invoke(transcription);
-                UpdateUI("Transcription complete.", false);
-            }
-            else
-            {
-                UpdateUI("Error transcribing audio.", false);
-            }
-
-            if (!partial)
-            {
-                audioStream.SetLength(0); // Clears the stream
-                audioStream.Position = 0; // Resets the position
+                StopRecording();
+                InitializeWaveIn();
             }
         }
 
@@ -527,16 +458,33 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-
-        private void OnRecordingStopped(object sender, StoppedEventArgs e)
+        private void UpdateSpeakingDuration()
         {
-            if (e.Exception != null)
+            if (isCurrentlySpeaking)
             {
-                Console.WriteLine($"Recording stopped due to error: {e.Exception.Message}");
+                speakingDuration = DateTime.Now - speakingStartedTimestamp;
             }
-            else
+        }
+
+
+
+
+
+
+
+        private async void UpdateUI(string message, bool isVisible)
+        {
+            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabelTxt = message;
+            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = isVisible;
+
+            if (!isVisible)
             {
-                Console.WriteLine("Recording stopped successfully.");
+                ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = true;
+                await Task.Delay(2500);
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = false;
+                });
             }
         }
 
@@ -545,6 +493,61 @@ namespace vrcosc_magicchatbox.Classes.Modules
             waveIn?.Dispose();
             audioStream?.Dispose();
             UpdateUI("Disposed resources.", false);
+        }
+
+        public void OnApplicationClosing()
+        {
+            Settings.SaveSettings();
+        }
+
+
+        public void StartRecording()
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
+            if (waveIn == null)
+            {
+                UpdateUI("Starting recording failed: Device not initialized.", false);
+                return;
+            }
+            if (settings.IsRecording)
+            {
+                UpdateUI("Already recording.", false);
+                return;
+            }
+            UpdateUI("Ready to speak?", true);
+            waveIn.StartRecording();
+            //PlaySound("start.wav");
+            settings.IsRecording = true;
+        }
+
+        public void StopRecording()
+        {
+            if (!OpenAIModule.Instance.IsInitialized)
+            {
+                ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            }
+            if (waveIn == null)
+            {
+                UpdateUI("Stopping recording failed: Device not initialized.", false);
+                return;
+            }
+            if (settings.IsRecording == false)
+            {
+                UpdateUI("Not currently recording.", false);
+                return;
+            }
+            waveIn.StopRecording();
+            settings.IsRecording = false;
+            UpdateUI("Recording stopped. Processing last audio...", false);
+            if (audioStream.Length > 0)
+            {
+                ProcessAudioStreamAsync(audioStream);
+            }
+            audioStream.SetLength(0); // Clears the stream
+            audioStream.Position = 0; // Resets the position
         }
     }
 

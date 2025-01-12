@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -59,6 +61,101 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             {
                 Logging.WriteException(ex, MSGBox: false);
                 return "69.420.666"; // Fallback in case of error
+            }
+        }
+
+        /// <summary>
+        /// Processes the ban on a user by zipping their data folder and moving it
+        /// to the temp directory. Also deletes the backup folder.
+        /// </summary>
+        /// <param name="bannedUserID">The ID of the banned user (unused here, shown for compatibility).</param>
+        public static void ProcessBan(string bannedUserID)
+        {
+            // Path to the data folder in your application
+            string dataPath = ViewModel.Instance.DataPath;
+
+            // Path to the backup folder (to be deleted)
+            string backupFolderPath = Path.Combine(
+                dataPath,
+                "backup"
+            );
+
+            // The final ZIP file will be placed in the system temp directory.
+            // Feel free to adjust the file name as needed.
+            string zipTempPath = Path.Combine(Path.GetTempPath(), "MagicChatboxBannedData.zip");
+
+            try
+            {
+                // If the ZIP file already exists in temp, we skip to avoid duplicates.
+                if (!File.Exists(zipTempPath))
+                {
+                    // Delete the backup folder recursively if it exists to prevent rollback.
+                    if (Directory.Exists(backupFolderPath))
+                    {
+                        Directory.Delete(backupFolderPath, recursive: true);
+                    }
+
+                    // Check if the data directory has any files to zip.
+                    string[] filesInDataPath = Directory.GetFiles(dataPath);
+                    if (filesInDataPath.Length == 0)
+                    {
+                        // No files present, so there's nothing to do.
+                        return;
+                    }
+
+                    // Create a ZIP file of all files in the dataPath and place it in the temp directory.
+                    ZipFilesInDirectory(dataPath, zipTempPath);
+
+                    if (Directory.Exists(dataPath))
+                    {
+                        Directory.Delete(dataPath, recursive: true);
+                    }
+                }
+
+                
+
+                // Apply a blur effect (or any UI feedback) to indicate the ban visually.
+                ViewModel.Instance.MainWindowBlurEffect = 10;
+
+                // Log and display the ban message, then exit the app if desired.
+                Logging.WriteException(
+                                   new Exception("You have been banned from using MagicChatbox.\n\n" +
+                                                 "You might have misbehaved towards our staff or violated TOS.\n\n" +
+                                                 "There is no need to appeal this ban; we have a zero-tolerance policy."),
+                                   MSGBox: true,
+                                   exitapp: false,
+                                   autoclose:true
+
+                               );
+
+                Environment.Exit(1);
+            }
+            catch (Exception ex)
+            {
+                // Log any unexpected errors but do not necessarily exit the application.
+                Logging.WriteException(ex, MSGBox: true, exitapp: false);
+            }
+        }
+
+        /// <summary>
+        /// Zips all files in the specified directory and saves the ZIP to zipPath.
+        /// </summary>
+        /// <param name="sourceDirectory">The directory whose files will be zipped.</param>
+        /// <param name="zipPath">The output path for the resulting ZIP file.</param>
+        private static void ZipFilesInDirectory(string sourceDirectory, string zipPath)
+        {
+            // Create or overwrite the zip file
+            using (FileStream zipToCreate = new FileStream(zipPath, FileMode.Create))
+            {
+                using (ZipArchive archive = new ZipArchive(zipToCreate, ZipArchiveMode.Create))
+                {
+                    foreach (string filePath in Directory.GetFiles(sourceDirectory))
+                    {
+                        string entryName = Path.GetFileName(filePath);
+                        // Create an entry for each file in the archive
+                        archive.CreateEntryFromFile(filePath, entryName);
+                    }
+                }
             }
         }
 
@@ -340,6 +437,9 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         { "UseDaylightSavingTime", (typeof(bool), "Time") },
         { "AutoSetDaylight", (typeof(bool), "Time") },
         { "UseSystemCulture", (typeof(bool), "Time") },
+        { "BussyBoysDate", (typeof(DateTime), "Time") },
+        { "BussyBoysDateEnable", (typeof(bool), "Time") },
+        { "BussyBoysMultiMODE", (typeof(bool), "Time") },
 
         { "CurrentMenuItem", (typeof(int), "Menu") },
 
@@ -876,6 +976,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
             if (statusList.Any(x => x.msg.Equals("izurubae", StringComparison.OrdinalIgnoreCase)))
             {
                 ViewModel.Instance.IzuruBaeMode = true;
+            }
+            if (statusList.Any(x => x.msg.Equals("bussyboys", StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewModel.Instance.BussyBoysMode = true;
             }
         }
 

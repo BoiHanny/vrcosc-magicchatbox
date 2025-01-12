@@ -72,6 +72,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        private static TimeSpan GetSeekTime(MediaSessionInfo mediaSessionInfo, double progressbarValue)
+        {
+            MediaSession S = mediaSessionInfo.Session;
+
+            if (S == null)
+                return TimeSpan.Zero;
+
+            TimeSpan FullMediaTime = S.ControlSession.GetTimelineProperties().EndTime - S.ControlSession.GetTimelineProperties().StartTime;
+
+            double requestedPositionSeconds = FullMediaTime.TotalSeconds * progressbarValue / 100;
+
+            return TimeSpan.FromSeconds(requestedPositionSeconds);
+        }
+
         // this function will be called when the user changes the media properties of a media session
         private static void MediaManager_OnAnyMediaPropertyChanged(
             MediaSession sender,
@@ -241,6 +255,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        public static void MediaManager_NextAsync(MediaSessionInfo sessionInfo)
+        {
+            MediaSession S = sessionInfo.Session;
+
+            if (S == null)
+                return;
+
+            S?.ControlSession.TrySkipNextAsync();
+        }
+
         public static void MediaManager_OnAnyTimelinePropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionTimelineProperties args)
         {
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
@@ -270,16 +294,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             S?.ControlSession.TryTogglePlayPauseAsync();
         }
 
-        public static void MediaManager_NextAsync(MediaSessionInfo sessionInfo)
-        {
-            MediaSession S = sessionInfo.Session;
-
-            if (S == null)
-                return;
-
-            S?.ControlSession.TrySkipNextAsync();
-        }
-
         public static async Task MediaManager_PreviousAsync(MediaSessionInfo sessionInfo)
         {
             MediaSession S = sessionInfo.Session;
@@ -292,20 +306,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 S?.ControlSession.TrySkipPreviousAsync();
             }
 
-        }
-
-        private static TimeSpan GetSeekTime(MediaSessionInfo mediaSessionInfo, double progressbarValue)
-        {
-            MediaSession S = mediaSessionInfo.Session;
-
-            if (S == null)
-                return TimeSpan.Zero;
-
-            TimeSpan FullMediaTime = S.ControlSession.GetTimelineProperties().EndTime - S.ControlSession.GetTimelineProperties().StartTime;
-
-            double requestedPositionSeconds = FullMediaTime.TotalSeconds * progressbarValue / 100;
-
-            return TimeSpan.FromSeconds(requestedPositionSeconds);
         }
 
 
@@ -330,9 +330,63 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
 
 
+
+
+
+
+
+        public static void SessionRestore(MediaSessionInfo session)
+        {
+            MediaSessionSettings savedSettings = new MediaSessionSettings();
+
+            MediaSessionSettings matchingSettings = ViewModel.Instance.SavedSessionSettings
+                .FirstOrDefault(s => s.SessionId == session.Session.Id);
+
+            if (matchingSettings != null)
+            {
+                // Copy the values from matchingSettings to savedSettings
+                savedSettings.ShowTitle = matchingSettings.ShowTitle;
+                savedSettings.AutoSwitch = matchingSettings.AutoSwitch;
+                savedSettings.ShowArtist = matchingSettings.ShowArtist;
+                savedSettings.IsVideo = matchingSettings.IsVideo;
+                savedSettings.KeepSaved = matchingSettings.KeepSaved;
+
+                if (savedSettings != null && !session.TimeoutRestore)
+                {
+                    session.ShowTitle = savedSettings.ShowTitle;
+                    session.AutoSwitch = savedSettings.AutoSwitch;
+                    session.ShowArtist = savedSettings.ShowArtist;
+                    session.IsVideo = savedSettings.IsVideo;
+                    session.KeepSaved = savedSettings.KeepSaved;
+                }
+            }
+        }
+
+        // this function will start the media manager and subscribe to all the events that we need to listen to for media sessions
+        public static void Start()
+        {
+            try
+            {
+                mediaManager = new MediaManager();
+                mediaManager.OnAnySessionOpened += MediaManager_OnAnySessionOpened;
+                mediaManager.OnAnySessionClosed += MediaManager_OnAnySessionClosed;
+                mediaManager.OnFocusedSessionChanged += MediaManager_OnFocusedSessionChanged;
+                mediaManager.OnAnyPlaybackStateChanged += MediaManager_OnAnyPlaybackStateChanged;
+                mediaManager.OnAnyMediaPropertyChanged += MediaManager_OnAnyMediaPropertyChanged;
+                mediaManager.OnAnyTimelinePropertyChanged += MediaManager_OnAnyTimelinePropertyChanged;
+                mediaManager.Start();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+
+
         public enum MediaLinkTimeSeekbar
         {
-            [Description ("Small numbers")]
+            [Description("Small numbers")]
             SmallNumbers,
             [Description("Custom")]
             NumbersAndSeekBar,
@@ -343,25 +397,96 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public class MediaLinkStyle : INotifyPropertyChanged
         {
-            private int id = 0;
-            private int progressBarLength = 8;
             private bool displayTime = true;
-            private bool showTimeInSuperscript = true;
             private string filledCharacter = string.Empty;
+            private int id = 0;
             private string middleCharacter = string.Empty;
             private string nonFilledCharacter = string.Empty;
-            private string timePrefix = string.Empty;
-            private string timeSuffix = string.Empty;
-            private bool timePreSuffixOnTheInside = true;
+            private int progressBarLength = 8;
             private bool progressBarOnTop = true;
-            private bool systemDefault = false;
+            private bool showTimeInSuperscript = true;
             private bool spaceAgainObjects = true;
             private bool spaceBetweenPreSuffixAndTime = false;
+            private bool systemDefault = false;
+            private string timePrefix = string.Empty;
+            private bool timePreSuffixOnTheInside = true;
+            private string timeSuffix = string.Empty;
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+
+            protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+            {
+                if (Equals(storage, value)) return false;
+                storage = value;
+                OnPropertyChanged(propertyName);
+                OnPropertyChanged(nameof(StyleName));
+                return true;
+            }
+
+            public bool DisplayTime
+            {
+                get => displayTime;
+                set => SetProperty(ref displayTime, value);
+            }
+
+            public string FilledCharacter
+            {
+                get => filledCharacter;
+                set => SetProperty(ref filledCharacter, value);
+            }
 
             public int ID
             {
                 get => id;
                 set => SetProperty(ref id, value);
+            }
+
+            public string MiddleCharacter
+            {
+                get => middleCharacter;
+                set => SetProperty(ref middleCharacter, value);
+            }
+
+            public string NonFilledCharacter
+            {
+                get => nonFilledCharacter;
+                set => SetProperty(ref nonFilledCharacter, value);
+            }
+
+            public int ProgressBarLength
+            {
+                get => progressBarLength;
+                set => SetProperty(ref progressBarLength, value);
+            }
+
+            public bool ProgressBarOnTop
+            {
+                get => progressBarOnTop;
+                set => SetProperty(ref progressBarOnTop, value);
+            }
+
+            public bool ShowTimeInSuperscript
+            {
+                get => showTimeInSuperscript;
+                set => SetProperty(ref showTimeInSuperscript, value);
+            }
+
+
+            public bool SpaceAgainObjects
+            {
+                get => spaceAgainObjects;
+                set => SetProperty(ref spaceAgainObjects, value);
+            }
+
+            public bool SpaceBetweenPreSuffixAndTime
+            {
+                get => spaceBetweenPreSuffixAndTime;
+                set => SetProperty(ref spaceBetweenPreSuffixAndTime, value);
             }
 
             public string StyleName
@@ -443,53 +568,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-
-            public bool SpaceAgainObjects
+            public bool SystemDefault
             {
-                get => spaceAgainObjects;
-                set => SetProperty(ref spaceAgainObjects, value);
-            }
-
-            public bool SpaceBetweenPreSuffixAndTime
-            {
-                get => spaceBetweenPreSuffixAndTime;
-                set => SetProperty(ref spaceBetweenPreSuffixAndTime, value);
-            }
-
-            public int ProgressBarLength
-            {
-                get => progressBarLength;
-                set => SetProperty(ref progressBarLength, value);
-            }
-
-            public bool DisplayTime
-            {
-                get => displayTime;
-                set => SetProperty(ref displayTime, value);
-            }
-
-            public bool ShowTimeInSuperscript
-            {
-                get => showTimeInSuperscript;
-                set => SetProperty(ref showTimeInSuperscript, value);
-            }
-
-            public string FilledCharacter
-            {
-                get => filledCharacter;
-                set => SetProperty(ref filledCharacter, value);
-            }
-
-            public string MiddleCharacter
-            {
-                get => middleCharacter;
-                set => SetProperty(ref middleCharacter, value);
-            }
-
-            public string NonFilledCharacter
-            {
-                get => nonFilledCharacter;
-                set => SetProperty(ref nonFilledCharacter, value);
+                get => systemDefault;
+                set => SetProperty(ref systemDefault, value);
             }
 
             public string TimePrefix
@@ -498,98 +580,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 set => SetProperty(ref timePrefix, value);
             }
 
-            public string TimeSuffix
-            {
-                get => timeSuffix;
-                set => SetProperty(ref timeSuffix, value);
-            }
-
             public bool TimePreSuffixOnTheInside
             {
                 get => timePreSuffixOnTheInside;
                 set => SetProperty(ref timePreSuffixOnTheInside, value);
             }
 
-            public bool ProgressBarOnTop
+            public string TimeSuffix
             {
-                get => progressBarOnTop;
-                set => SetProperty(ref progressBarOnTop, value);
-            }
-
-            public bool SystemDefault
-            {
-                get => systemDefault;
-                set => SetProperty(ref systemDefault, value);
-            }
-
-            public event PropertyChangedEventHandler PropertyChanged;
-
-            protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
-            {
-                if (Equals(storage, value)) return false;
-                storage = value;
-                OnPropertyChanged(propertyName);
-                OnPropertyChanged(nameof(StyleName));
-                return true;
-            }
-
-            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-
-
-
-
-
-
-
-        public static void SessionRestore(MediaSessionInfo session)
-        {
-            MediaSessionSettings savedSettings = new MediaSessionSettings();
-
-            MediaSessionSettings matchingSettings = ViewModel.Instance.SavedSessionSettings
-                .FirstOrDefault(s => s.SessionId == session.Session.Id);
-
-            if (matchingSettings != null)
-            {
-                // Copy the values from matchingSettings to savedSettings
-                savedSettings.ShowTitle = matchingSettings.ShowTitle;
-                savedSettings.AutoSwitch = matchingSettings.AutoSwitch;
-                savedSettings.ShowArtist = matchingSettings.ShowArtist;
-                savedSettings.IsVideo = matchingSettings.IsVideo;
-                savedSettings.KeepSaved = matchingSettings.KeepSaved;
-
-                if (savedSettings != null && !session.TimeoutRestore)
-                {
-                    session.ShowTitle = savedSettings.ShowTitle;
-                    session.AutoSwitch = savedSettings.AutoSwitch;
-                    session.ShowArtist = savedSettings.ShowArtist;
-                    session.IsVideo = savedSettings.IsVideo;
-                    session.KeepSaved = savedSettings.KeepSaved;
-                }
-            }
-        }
-
-        // this function will start the media manager and subscribe to all the events that we need to listen to for media sessions
-        public static void Start()
-        {
-            try
-            {
-                mediaManager = new MediaManager();
-                mediaManager.OnAnySessionOpened += MediaManager_OnAnySessionOpened;
-                mediaManager.OnAnySessionClosed += MediaManager_OnAnySessionClosed;
-                mediaManager.OnFocusedSessionChanged += MediaManager_OnFocusedSessionChanged;
-                mediaManager.OnAnyPlaybackStateChanged += MediaManager_OnAnyPlaybackStateChanged;
-                mediaManager.OnAnyMediaPropertyChanged += MediaManager_OnAnyMediaPropertyChanged;
-                mediaManager.OnAnyTimelinePropertyChanged += MediaManager_OnAnyTimelinePropertyChanged;
-                mediaManager.Start();
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
+                get => timeSuffix;
+                set => SetProperty(ref timeSuffix, value);
             }
         }
 

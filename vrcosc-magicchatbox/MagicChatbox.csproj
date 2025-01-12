@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.069</Version>
+	<Version>0.9.070</Version>
     <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -190,7 +190,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0-preview3" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.5" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.5-pre370" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
@@ -201,6 +201,10 @@
 	  <PackageReference Include="OpenAI-DotNet" Version="8.4.1" />
 	  <PackageReference Include="System.Management" Version="9.0.0" />
 	  <PackageReference Include="VRChat.OSCQuery" Version="0.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MagicChatboxAPI\MagicChatboxAPI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

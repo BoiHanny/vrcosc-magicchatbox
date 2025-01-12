@@ -221,6 +221,15 @@ namespace vrcosc_magicchatbox
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
                 }
+                if (ViewModel.Instance.NewStatusItemTxt.ToLower() == "bussyboys")
+                {
+                    ViewModel.Instance.BussyBoysMode = true;
+                    MessageBox.Show(
+                        "Bussy Boysss letsss goooo, go to afk options",
+                        "Egg",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
                 ViewModel.Instance.NewStatusItemTxt = string.Empty;
                 ViewModel.SaveStatusList();
             }
@@ -394,6 +403,15 @@ namespace vrcosc_magicchatbox
                     ViewModel.Instance.IzuruBaeMode = false;
                     MessageBox.Show(
                         "damn u left the izurubae mode",
+                        "Egg",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                if (item.msg.ToLower() == "bussyboys")
+                {
+                    ViewModel.Instance.BussyBoysMode = false;
+                    MessageBox.Show(
+                        "damn u left the bussyboys mode",
                         "Egg",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
