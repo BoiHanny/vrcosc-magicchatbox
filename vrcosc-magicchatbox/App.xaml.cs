@@ -1,4 +1,6 @@
-﻿using NLog;
+﻿using MagicChatboxAPI.Enums;
+using MagicChatboxAPI.Services;
+using NLog;
 using System;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -14,6 +16,7 @@ namespace vrcosc_magicchatbox
     {
         // Singleton instance for managing media links within the application
         public static MediaLinkModule ApplicationMediaController { get; private set; }
+        public static IAllowedForUsingService AllowedForUsingService { get; private set; } = new AllowedForUsingService();
 
         // Main entry point for the application
         protected override async void OnStartup(StartupEventArgs e)
@@ -87,7 +90,6 @@ namespace vrcosc_magicchatbox
                 }
             }
 
-
             // Initialize various components with progress updates
             await InitializeComponentsWithProgress(loadingWindow);
 
@@ -98,6 +100,9 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Setting up the hotkeys... Hotkey, hotkey, hotkey!", 97);
             HotkeyManagement.Instance.Initialize(mainWindow);
             mainWindow.Show();
+
+            // Initialize user monitoring
+            InitializeUserMonitoring();
 
             // Close the loading window once initialization is complete
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
@@ -129,6 +134,21 @@ namespace vrcosc_magicchatbox
         {
             Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true, log: false);
         }
+
+        // Initialize user monitoring by starting background checks and subscribing to events
+        private void InitializeUserMonitoring()
+        {
+            AllowedForUsingService.BanDetected += (sender, args) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DataController.ProcessBan(args.BannedUserId);
+                });
+ 
+            };
+            AllowedForUsingService.StartUserMonitoring(TimeSpan.FromSeconds(300));
+        }
+
 
         // Helper method to initialize components with progress updates
         private async Task InitializeComponentsWithProgress(StartUp loadingWindow)

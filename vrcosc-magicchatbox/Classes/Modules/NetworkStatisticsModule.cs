@@ -16,47 +16,26 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
     {
-        private Timer _updateTimer;
         private NetworkInterface _activeNetworkInterface;
-        private bool _isMonitoring;
-        private long _previousBytesReceived;
-        private long _previousBytesSent;
-        private readonly Dispatcher _dispatcher;
-        private readonly object _initLock = new object();
-        private bool _isInitializing;
-
-        public bool IsInitialized { get; private set; }
-        private double _interval = 1000;
-        public double Interval
-        {
-            get => _interval;
-            set
-            {
-                if (value <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(Interval), "Interval must be greater than zero.");
-                _interval = value;
-                if (_isMonitoring)
-                {
-                    _updateTimer.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_interval));
-                }
-            }
-        }
-
-        private double _currentDownloadSpeedMbps;
-        private double _currentUploadSpeedMbps;
-        private double _maxDownloadSpeedMbps;
-        private double _maxUploadSpeedMbps;
-        private double _networkUtilization;
-        private double _totalDownloadedMB;
-        private double _totalUploadedMB;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        // New property to control max speed source
-        public bool UseInterfaceMaxSpeed { get; set; } = false;
 
         // CancellationTokenSource for asynchronous initialization
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        private double _currentDownloadSpeedMbps;
+        private double _currentUploadSpeedMbps;
+        private readonly Dispatcher _dispatcher;
+        private readonly object _initLock = new object();
+        private double _interval = 1000;
+        private bool _isInitializing;
+        private bool _isMonitoring;
+        private double _maxDownloadSpeedMbps;
+        private double _maxUploadSpeedMbps;
+        private double _networkUtilization;
+        private long _previousBytesReceived;
+        private long _previousBytesSent;
+        private double _totalDownloadedMB;
+        private double _totalUploadedMB;
+        private Timer _updateTimer;
 
         public NetworkStatisticsModule(double interval = 1000)
         {
@@ -67,105 +46,40 @@ namespace vrcosc_magicchatbox.Classes.Modules
             InitializeNetworkStatsAsync().ConfigureAwait(false);
         }
 
-        private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private string ConvertToSuperScriptIfNeeded(string unitstring)
         {
-            if (IsRelevantPropertyChange(e.PropertyName))
+            if (ViewModel.Instance.NetworkStats_StyledCharacters)
             {
-                if (ShouldStartMonitoring())
-                {
-                    InitializeNetworkStatsAsync().ConfigureAwait(false);
-                }
-                else
-                {
-                    StopModule();
-                }
+                return DataController.TransformToSuperscript(unitstring.Replace(":", ""));
+            }
+            else
+            {
+                return unitstring;
             }
         }
 
-        private bool ShouldStartMonitoring()
+        private string FormatData(double dataMB)
         {
-            return ViewModel.Instance.IntgrNetworkStatistics &&
-                   ((ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrNetworkStatistics_VR) ||
-                    (!ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrNetworkStatistics_DESKTOP));
+            if (dataMB < 1)
+                return $"{dataMB * 1000:N2} {ConvertToSuperScriptIfNeeded("KB")}";
+            else if (dataMB >= 1_000_000)
+                return $"{dataMB / 1e6:N2} {ConvertToSuperScriptIfNeeded("TB")}";
+            else if (dataMB >= 1000)
+                return $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
+            else
+                return $"{dataMB:N2} {ConvertToSuperScriptIfNeeded("MB")}";
         }
 
-        private bool IsRelevantPropertyChange(string propertyName)
+        private string FormatSpeed(double speedMbps)
         {
-            return propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics) ||
-                   propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
-                   propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_VR) ||
-                   propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_DESKTOP);
-        }
-
-        /// <summary>
-        /// Asynchronously initializes network statistics.
-        /// Ensures that initialization is thread-safe and does not block the UI thread.
-        /// </summary>
-        private async Task InitializeNetworkStatsAsync()
-        {
-            if (_isInitializing)
-                return;
-
-            lock (_initLock)
-            {
-                if (_isInitializing)
-                    return;
-                _isInitializing = true;
-            }
-
-            try
-            {
-                var networkInterface = await Task.Run(() => GetActiveNetworkInterfaceAsync(_cancellationTokenSource.Token));
-                if (networkInterface != null)
-                {
-                    _activeNetworkInterface = networkInterface;
-
-                    if (UseInterfaceMaxSpeed)
-                    {
-                        var speedInMbps = _activeNetworkInterface.Speed / 1e6;
-                        MaxDownloadSpeedMbps = speedInMbps;
-                        MaxUploadSpeedMbps = speedInMbps;
-                    }
-                    else
-                    {
-                        MaxDownloadSpeedMbps = 0;
-                        MaxUploadSpeedMbps = 0;
-                    }
-
-                    var stats = GetTotalBytes(_activeNetworkInterface);
-                    _previousBytesReceived = stats.BytesReceived;
-                    _previousBytesSent = stats.BytesSent;
-
-                    IsInitialized = true;
-
-                    if (!_isMonitoring)
-                    {
-                        StartModule();
-                    }
-                }
-                else
-                {
-                    // Handle the case when no active network interface is found
-                    Logging.WriteException(new Exception("No active network interface found"), MSGBox: false);
-                    IsInitialized = false;
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Initialization was canceled; do nothing.
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-                IsInitialized = false;
-            }
-            finally
-            {
-                lock (_initLock)
-                {
-                    _isInitializing = false;
-                }
-            }
+            if (speedMbps < 1)
+                return $"{speedMbps * 1000:N2} {ConvertToSuperScriptIfNeeded("Kbps")}";
+            else if (speedMbps >= 1000)
+                return $"{speedMbps / 1000:N2} {ConvertToSuperScriptIfNeeded("Gbps")}";
+            else
+                return $"{speedMbps:N2} {ConvertToSuperScriptIfNeeded("Mbps")}";
         }
 
         /// <summary>
@@ -255,40 +169,83 @@ namespace vrcosc_magicchatbox.Classes.Modules
             };
         }
 
-        private struct TotalBytes
+        /// <summary>
+        /// Asynchronously initializes network statistics.
+        /// Ensures that initialization is thread-safe and does not block the UI thread.
+        /// </summary>
+        private async Task InitializeNetworkStatsAsync()
         {
-            public long BytesReceived;
-            public long BytesSent;
-        }
-
-        private class InterfaceStats
-        {
-            public NetworkInterface NetworkInterface { get; set; }
-            public long InitialBytesReceived { get; set; }
-            public long InitialBytesSent { get; set; }
-            public long BytesReceivedDiff { get; set; }
-            public long BytesSentDiff { get; set; }
-            public long TotalBytesDiff { get; set; }
-        }
-
-        public void StartModule()
-        {
-            if (_isMonitoring || !IsInitialized)
+            if (_isInitializing)
                 return;
 
-            _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
-            _isMonitoring = true;
+            lock (_initLock)
+            {
+                if (_isInitializing)
+                    return;
+                _isInitializing = true;
+            }
+
+            try
+            {
+                var networkInterface = await Task.Run(() => GetActiveNetworkInterfaceAsync(_cancellationTokenSource.Token));
+                if (networkInterface != null)
+                {
+                    _activeNetworkInterface = networkInterface;
+
+                    if (UseInterfaceMaxSpeed)
+                    {
+                        var speedInMbps = _activeNetworkInterface.Speed / 1e6;
+                        MaxDownloadSpeedMbps = speedInMbps;
+                        MaxUploadSpeedMbps = speedInMbps;
+                    }
+                    else
+                    {
+                        MaxDownloadSpeedMbps = 0;
+                        MaxUploadSpeedMbps = 0;
+                    }
+
+                    var stats = GetTotalBytes(_activeNetworkInterface);
+                    _previousBytesReceived = stats.BytesReceived;
+                    _previousBytesSent = stats.BytesSent;
+
+                    IsInitialized = true;
+
+                    if (!_isMonitoring)
+                    {
+                        StartModule();
+                    }
+                }
+                else
+                {
+                    // Handle the case when no active network interface is found
+                    Logging.WriteException(new Exception("No active network interface found"), MSGBox: false);
+                    IsInitialized = false;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Initialization was canceled; do nothing.
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                IsInitialized = false;
+            }
+            finally
+            {
+                lock (_initLock)
+                {
+                    _isInitializing = false;
+                }
+            }
         }
 
-        public void StopModule()
+        private bool IsRelevantPropertyChange(string propertyName)
         {
-            if (!_isMonitoring)
-                return;
-
-            _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-            _updateTimer?.Dispose();
-            _updateTimer = null;
-            _isMonitoring = false;
+            return propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics) ||
+                   propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
+                   propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_VR) ||
+                   propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_DESKTOP);
         }
 
         private void OnTimedEvent(object state)
@@ -371,6 +328,60 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
+        private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        {
+            if (IsRelevantPropertyChange(e.PropertyName))
+            {
+                if (ShouldStartMonitoring())
+                {
+                    InitializeNetworkStatsAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    StopModule();
+                }
+            }
+        }
+
+        private bool ShouldStartMonitoring()
+        {
+            return ViewModel.Instance.IntgrNetworkStatistics &&
+                   ((ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrNetworkStatistics_VR) ||
+                    (!ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrNetworkStatistics_DESKTOP));
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            if (!_dispatcher.CheckAccess())
+            {
+                _dispatcher.BeginInvoke(() =>
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                });
+            }
+            else
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value))
+                return false;
+            storage = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        public void Dispose()
+        {
+            StopModule();
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
+            ViewModel.Instance.PropertyChanged -= PropertyChangedHandler;
+        }
+
         public string GenerateDescription()
         {
             const int maxLineWidth = 25;
@@ -445,38 +456,24 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return string.Join("\v", lines);
         }
 
-        private string FormatSpeed(double speedMbps)
+        public void StartModule()
         {
-            if (speedMbps < 1)
-                return $"{speedMbps * 1000:N2} {ConvertToSuperScriptIfNeeded("Kbps")}";
-            else if (speedMbps >= 1000)
-                return $"{speedMbps / 1000:N2} {ConvertToSuperScriptIfNeeded("Gbps")}";
-            else
-                return $"{speedMbps:N2} {ConvertToSuperScriptIfNeeded("Mbps")}";
+            if (_isMonitoring || !IsInitialized)
+                return;
+
+            _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
+            _isMonitoring = true;
         }
 
-        private string ConvertToSuperScriptIfNeeded(string unitstring)
+        public void StopModule()
         {
-            if (ViewModel.Instance.NetworkStats_StyledCharacters)
-            {
-                return DataController.TransformToSuperscript(unitstring.Replace(":", ""));
-            }
-            else
-            {
-                return unitstring;
-            }
-        }
+            if (!_isMonitoring)
+                return;
 
-        private string FormatData(double dataMB)
-        {
-            if (dataMB < 1)
-                return $"{dataMB * 1000:N2} {ConvertToSuperScriptIfNeeded("KB")}";
-            else if (dataMB >= 1_000_000)
-                return $"{dataMB / 1e6:N2} {ConvertToSuperScriptIfNeeded("TB")}";
-            else if (dataMB >= 1000)
-                return $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
-            else
-                return $"{dataMB:N2} {ConvertToSuperScriptIfNeeded("MB")}";
+            _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _updateTimer?.Dispose();
+            _updateTimer = null;
+            _isMonitoring = false;
         }
 
         // Implement property getters and setters with OnPropertyChanged notifications
@@ -491,6 +488,22 @@ namespace vrcosc_magicchatbox.Classes.Modules
             get => _currentUploadSpeedMbps;
             set => SetProperty(ref _currentUploadSpeedMbps, value);
         }
+        public double Interval
+        {
+            get => _interval;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Interval), "Interval must be greater than zero.");
+                _interval = value;
+                if (_isMonitoring)
+                {
+                    _updateTimer.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_interval));
+                }
+            }
+        }
+
+        public bool IsInitialized { get; private set; }
 
         public double MaxDownloadSpeedMbps
         {
@@ -522,36 +535,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
             set => SetProperty(ref _totalUploadedMB, value);
         }
 
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        // New property to control max speed source
+        public bool UseInterfaceMaxSpeed { get; set; } = false;
+
+        private struct TotalBytes
         {
-            if (EqualityComparer<T>.Default.Equals(storage, value))
-                return false;
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            public long BytesReceived;
+            public long BytesSent;
         }
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private class InterfaceStats
         {
-            if (!_dispatcher.CheckAccess())
-            {
-                _dispatcher.BeginInvoke(() =>
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                });
-            }
-            else
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-        public void Dispose()
-        {
-            StopModule();
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Dispose();
-            ViewModel.Instance.PropertyChanged -= PropertyChangedHandler;
+            public long BytesReceivedDiff { get; set; }
+            public long BytesSentDiff { get; set; }
+            public long InitialBytesReceived { get; set; }
+            public long InitialBytesSent { get; set; }
+            public NetworkInterface NetworkInterface { get; set; }
+            public long TotalBytesDiff { get; set; }
         }
     }
 }

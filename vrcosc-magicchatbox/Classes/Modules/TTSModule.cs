@@ -12,6 +12,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public static class TTSModule
     {
+
+        private static void UpdateVolume(WaveOutEvent waveOut) { waveOut.Volume = ViewModel.Instance.TTSVolume; }
+
         public static async Task<byte[]> GetAudioBytesFromTikTokAPI(string text)
         {
             byte[] audioBytes = null;
@@ -48,8 +51,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             return audioBytes;
         }
-
-        private static void UpdateVolume(WaveOutEvent waveOut) { waveOut.Volume = ViewModel.Instance.TTSVolume; }
 
         public static async Task PlayTikTokAudioAsSpeech(
             CancellationToken cancellationToken,

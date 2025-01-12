@@ -333,6 +333,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private static uint GetIdleTime()
         {
+            if (ViewModel.Instance.BussyBoysMode && ViewModel.Instance.BussyBoysDateEnable)
+            {
+                TimeSpan elapsedSinceBussyBoysDate = DateTime.Now - ViewModel.Instance.BussyBoysDate;
+                return (uint)elapsedSinceBussyBoysDate.TotalSeconds;
+            }
+
             LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO)) };
             GetLastInputInfo(ref lastInputInfo);
             return ((uint)Environment.TickCount - lastInputInfo.dwTime) / 1000;
