@@ -15,8 +15,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
 using System.Text;
-using System.Collections.Concurrent;
-using System.Timers;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.DataAndSecurity;
@@ -257,6 +255,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly Queue<Tuple<DateTime, int>> _heartRates = new();
         private bool _isFetchingStatistics = false;
         private DateTime _lastStateChangeTime = DateTime.MinValue;
+        private DateTime _lastMessageReceivedTime = DateTime.Now;
+        private readonly TimeSpan _inactivityThreshold = TimeSpan.FromSeconds(15);
 
         // For OSC smoothing (count-based)
         private readonly Queue<int> _oscHeartRates = new();
@@ -349,34 +349,76 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private async Task ConnectToWebSocketAsync(string accessToken, CancellationToken cancellationToken)
+        private async Task ConnectToWebSocketWithReconnectAsync(string accessToken, CancellationToken cancellationToken)
         {
-            _webSocket = new ClientWebSocket();
-            _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {accessToken}");
-            _webSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
-
-            try
+            int attempt = 0;
+            const int maxAttempts = 10; // Maximum reconnection attempts
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await _webSocket.ConnectAsync(new Uri("wss://dev.pulsoid.net/api/v1/data/real_time"), cancellationToken).ConfigureAwait(false);
-
-                Application.Current.Dispatcher.Invoke(() =>
+                try
                 {
-                    PulsoidAccessError = false;
-                    PulsoidAccessErrorTxt = "";
-                });
+                    // Initialize and configure a new WebSocket instance
+                    _webSocket = new ClientWebSocket();
+                    _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {accessToken}");
+                    _webSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
 
-                _processDataTimer.Start();
+                    // Attempt to connect to the Pulsoid WebSocket endpoint
+                    await _webSocket.ConnectAsync(new Uri("wss://dev.pulsoid.net/api/v1/data/real_time"), cancellationToken);
 
-                await HeartRateMonitoringLoopAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (WebSocketException ex)
-            {
-                Application.Current.Dispatcher.Invoke(() =>
+                    // On successful connection, reset error flags and start the timer
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        PulsoidAccessError = false;
+                        PulsoidAccessErrorTxt = "";
+                    });
+                    _processDataTimer.Start();
+
+                    // Begin reading messages from the WebSocket
+                    await HeartRateMonitoringLoopAsync(cancellationToken);
+                    break; // Exit the loop on a clean exit
+                }
+                catch (WebSocketException ex)
                 {
-                    PulsoidAccessError = true;
-                    PulsoidAccessErrorTxt = ex.Message;
-                });
-                Logging.WriteException(ex, MSGBox: false);
+                    attempt++;
+                    Logging.WriteInfo($"WebSocket connection attempt {attempt} failed: {ex.Message}");
+
+                    // Immediately check if the token is still valid. If not, exit.
+                    bool tokenValid = await PulsoidOAuthHandler.Instance.ValidateTokenAsync(accessToken);
+                    if (!tokenValid)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            PulsoidAccessError = true;
+                            PulsoidAccessErrorTxt = "Access token invalid or revoked. Please reconnect.";
+                            TriggerPulsoidAuthConnected(false);
+                        });
+                        return; // Stop further reconnection attempts.
+                    }
+
+                    if (attempt >= maxAttempts)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            PulsoidAccessError = true;
+                            PulsoidAccessErrorTxt = "Failed to connect after multiple attempts.";
+                        });
+                        return;
+                    }
+                    // Use exponential backoff (capped at 10 seconds)
+                    int delayMs = Math.Min(10000, 2000 * (int)Math.Pow(2, attempt));
+                    Logging.WriteInfo($"Retrying connection in {delayMs}ms...");
+                    await Task.Delay(delayMs, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        PulsoidAccessError = true;
+                        PulsoidAccessErrorTxt = ex.Message;
+                    });
+                    Logging.WriteException(ex);
+                    return;
+                }
             }
         }
 
@@ -456,6 +498,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
             int rawHR = ParseHeartRateFromMessage(message);
             if (rawHR == -1) return;
 
+            // Record the time of the last valid message.
+            _lastMessageReceivedTime = DateTime.Now;
+
             if (Settings.ApplyHeartRateAdjustment)
             {
                 rawHR += Settings.HeartRateAdjustment;
@@ -480,19 +525,32 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private async Task HeartRateMonitoringLoopAsync(CancellationToken cancellationToken)
         {
             var buffer = new byte[1024];
-
             try
             {
-                while (_webSocket != null && _webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+                while (_webSocket != null &&
+                       _webSocket.State == WebSocketState.Open &&
+                       !cancellationToken.IsCancellationRequested)
                 {
                     WebSocketReceiveResult result;
                     try
                     {
-                        result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken).ConfigureAwait(false);
+                        result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
                     }
                     catch (WebSocketException wex)
                     {
-                        Logging.WriteInfo($"WebSocketException: {wex.Message}");
+                        Logging.WriteInfo($"WebSocket exception during receive: {wex.Message}");
+                        // On exception, check token immediately.
+                        bool tokenValid = await PulsoidOAuthHandler.Instance.ValidateTokenAsync(ViewModel.Instance.PulsoidAccessTokenOAuth);
+                        if (!tokenValid)
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                PulsoidAccessError = true;
+                                PulsoidAccessErrorTxt = "Access token invalid or revoked. Please reconnect.";
+                                TriggerPulsoidAuthConnected(false);
+                            });
+                            return; // Exit the monitoring loop.
+                        }
                         break;
                     }
                     catch (OperationCanceledException)
@@ -501,26 +559,43 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                     catch (IOException ioex)
                     {
-                        Logging.WriteInfo($"IOException while reading from WebSocket: {ioex.Message}");
+                        Logging.WriteInfo($"IO exception during receive: {ioex.Message}");
                         break;
                     }
 
+                    // Check if the server signals a closure
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken).ConfigureAwait(false);
+                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken);
                         break;
                     }
 
+                    // Process the received message
                     string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     HandleHeartRateMessage(message);
                 }
             }
             finally
             {
-                if (ShouldStartMonitoring() && !isMonitoringStarted)
+                // Before attempting reconnection, check token validity
+                if (ShouldStartMonitoring() && !cancellationToken.IsCancellationRequested)
                 {
-                    await Task.Delay(5000).ConfigureAwait(false);
-                    await Application.Current.Dispatcher.InvokeAsync(() => StartMonitoringHeartRateAsync()).Task.ConfigureAwait(false);
+                    bool valid = await PulsoidOAuthHandler.Instance.ValidateTokenAsync(ViewModel.Instance.PulsoidAccessTokenOAuth);
+                    if (valid)
+                    {
+                        Logging.WriteInfo("WebSocket connection lost, attempting reconnection...");
+                        await Task.Delay(5000, cancellationToken);
+                        await Application.Current.Dispatcher.InvokeAsync(() => StartMonitoringHeartRateAsync());
+                    }
+                    else
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            PulsoidAccessError = true;
+                            PulsoidAccessErrorTxt = "Access token invalid or revoked. Please reconnect.";
+                            TriggerPulsoidAuthConnected(false);
+                        });
+                    }
                 }
             }
         }
@@ -627,7 +702,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private async Task StartMonitoringHeartRateAsync()
         {
-            if (_cts != null || isMonitoringStarted) return;
+            // Avoid duplicate monitoring sessions
+            if (_cts != null || isMonitoringStarted)
+                return;
 
             isMonitoringStarted = true;
             string accessToken = ViewModel.Instance.PulsoidAccessTokenOAuth;
@@ -643,6 +720,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return;
             }
 
+            // Validate the access token before proceeding
             bool isTokenValid = await PulsoidOAuthHandler.Instance.ValidateTokenAsync(accessToken).ConfigureAwait(false);
             if (!isTokenValid)
             {
@@ -656,16 +734,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return;
             }
 
+            // Create a cancellation token for this monitoring session and update UI text
             _cts = new CancellationTokenSource();
             UpdateFormattedHeartRateText();
 
             try
             {
-                await ConnectToWebSocketAsync(accessToken, _cts.Token).ConfigureAwait(false);
+                // Use the improved connection method that handles reconnection automatically
+                await ConnectToWebSocketWithReconnectAsync(accessToken, _cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-
+                // Monitoring was cancelled; no further action required.
             }
             catch (Exception ex)
             {
@@ -886,6 +966,32 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public async void ProcessData()
         {
+            // Check for inactivity: if no message has been received for a specified threshold
+            TimeSpan inactivity = DateTime.Now - _lastMessageReceivedTime;
+            if (inactivity > _inactivityThreshold)
+            {
+                bool tokenValid = await PulsoidOAuthHandler.Instance.ValidateTokenAsync(ViewModel.Instance.PulsoidAccessTokenOAuth);
+                if (!tokenValid)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        PulsoidAccessError = true;
+                        PulsoidAccessErrorTxt = "Access token invalid or revoked. Please reconnect.";
+                        TriggerPulsoidAuthConnected(false);
+                    });
+                    StopMonitoringHeartRateAsync();
+                    return;
+                }
+                else
+                {
+                    Logging.WriteInfo($"No messages received for {inactivity.TotalSeconds} seconds, but token is still valid. Device might be offline.");
+                    // Optionally, mark the device as offline:
+                    PulsoidDeviceOnline = false;
+                    return;
+                }
+            }
+
+            // Existing logic to determine device status based on heart rate changes
             bool shouldBeOnline = HeartRateFromSocket > 0;
 
             if (shouldBeOnline)

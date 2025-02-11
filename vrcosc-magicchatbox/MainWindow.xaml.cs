@@ -1791,6 +1791,11 @@ namespace vrcosc_magicchatbox
                 AddEmojiButton_Click(sender, e);
             }
         }
+
+        private void TextBlock_GiveFeedback(object sender, GiveFeedbackEventArgs e)
+        {
+
+        }
     }
 
 
