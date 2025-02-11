@@ -808,6 +808,207 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="GlowyToggleButtonDT" TargetType="{x:Type ToggleButton}">
+            <!--  Base properties for the toggle button  -->
+            <Setter Property="Background" Value="#3A3644" />
+            <Setter Property="Foreground" Value="#82829B" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+
+            <!--  Define the ControlTemplate  -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <!--  Main container: a Grid holding the base content and the overlay border  -->
+                        <Grid>
+                            <!--  Base content border that provides background and rounded corners  -->
+                            <Border
+                                x:Name="baseBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                SnapsToDevicePixels="True">
+                                <Grid>
+                                    <!--  TextBlock to display the button's content  -->
+                                    <TextBlock
+                                        x:Name="buttonText"
+                                        Padding="0,2,0,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Foreground="{TemplateBinding Foreground}"
+                                        Text="{TemplateBinding Content}" />
+                                </Grid>
+                            </Border>
+
+                            <!--
+                                Overlay border for the gradient effect. This border is drawn over the baseBorder
+                                but does not affect the measured size of the button.
+                            -->
+                            <Border
+                                x:Name="gradientOverlay"
+                                Background="Transparent"
+                                BorderThickness="1.5"
+                                CornerRadius="4"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                SnapsToDevicePixels="True">
+                                <!--  Define a horizontal LinearGradientBrush  -->
+                                <Border.BorderBrush>
+                                    <LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
+                                        <!--  Red color at the top-right corner  -->
+                                        <GradientStop Offset="0" Color="#FF54B955" />
+                                        <!--  Maintain red briefly to ensure a solid red in the corner  -->
+                                        <GradientStop Offset="0.7" Color="Transparent" />
+                                        <!--  Fade out to Transparent  -->
+                                        <GradientStop Offset="1" Color="Transparent" />
+                                    </LinearGradientBrush>
+                                </Border.BorderBrush>
+                            </Border>
+                        </Grid>
+
+                        <!--  Visual State Triggers  -->
+                        <ControlTemplate.Triggers>
+                            <!--  MouseOver trigger: changes the base background when the mouse hovers  -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="baseBorder" Property="Background" Value="#322E3A" />
+                            </Trigger>
+
+                            <!--  Checked trigger: changes colors and applies a drop shadow when the button is toggled  -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="baseBorder" Property="Background" Value="#9E82DD" />
+                                <Setter TargetName="buttonText" Property="Foreground" Value="#312844" />
+                                <Setter TargetName="baseBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect
+                                            BlurRadius="9"
+                                            ShadowDepth="0"
+                                            Color="#B4A4DB" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <!--  MultiTrigger for when both MouseOver and IsChecked are true  -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsChecked" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="baseBorder" Property="Background" Value="#A78FE0" />
+                            </MultiTrigger>
+
+                            <!--  DataTrigger: when IsVRRunning is false, show the gradient overlay  -->
+                            <DataTrigger Binding="{Binding IsVRRunning}" Value="false">
+                                <Setter TargetName="gradientOverlay" Property="Opacity" Value="1" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GlowyToggleButtonVR" TargetType="{x:Type ToggleButton}">
+            <!--  Base properties for the toggle button  -->
+            <Setter Property="Background" Value="#3A3644" />
+            <Setter Property="Foreground" Value="#82829B" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+
+            <!--  Define the ControlTemplate  -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <!--  Main container: a Grid holding the base content and the overlay border  -->
+                        <Grid>
+                            <!--  Base content border that provides background and rounded corners  -->
+                            <Border
+                                x:Name="baseBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                SnapsToDevicePixels="True">
+                                <Grid>
+                                    <!--  TextBlock to display the button's content  -->
+                                    <TextBlock
+                                        x:Name="buttonText"
+                                        Padding="0,2,0,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Foreground="{TemplateBinding Foreground}"
+                                        Text="{TemplateBinding Content}" />
+                                </Grid>
+                            </Border>
+
+                            <!--
+                                Overlay border for the gradient effect. This border is drawn over the baseBorder
+                                but does not affect the measured size of the button.
+                            -->
+                            <Border
+                                x:Name="gradientOverlay"
+                                Background="Transparent"
+                                BorderThickness="1.5"
+                                CornerRadius="4"
+                                IsHitTestVisible="False"
+                                Opacity="0"
+                                SnapsToDevicePixels="True">
+                                <!--  Define a horizontal LinearGradientBrush  -->
+                                <Border.BorderBrush>
+                                    <LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
+                                        <!--  Red color at the top-right corner  -->
+                                        <GradientStop Offset="0" Color="#FFCA577C" />
+
+                                        <GradientStop Offset="0.3" Color="#FFCA577C" />
+                                        <!--  Maintain red briefly to ensure a solid red in the corner  -->
+                                        <GradientStop Offset="0.7" Color="Transparent" />
+                                        <!--  Fade out to Transparent  -->
+                                        <GradientStop Offset="1" Color="Transparent" />
+                                    </LinearGradientBrush>
+                                </Border.BorderBrush>
+                            </Border>
+                        </Grid>
+
+                        <!--  Visual State Triggers  -->
+                        <ControlTemplate.Triggers>
+                            <!--  MouseOver trigger: changes the base background when the mouse hovers  -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="baseBorder" Property="Background" Value="#322E3A" />
+                            </Trigger>
+
+                            <!--  Checked trigger: changes colors and applies a drop shadow when the button is toggled  -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="baseBorder" Property="Background" Value="#9E82DD" />
+                                <Setter TargetName="buttonText" Property="Foreground" Value="#312844" />
+                                <Setter TargetName="baseBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect
+                                            BlurRadius="9"
+                                            ShadowDepth="0"
+                                            Color="#B4A4DB" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <!--  MultiTrigger for when both MouseOver and IsChecked are true  -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsChecked" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="baseBorder" Property="Background" Value="#A78FE0" />
+                            </MultiTrigger>
+
+                            <!--  DataTrigger: when IsVRRunning is false, show the gradient overlay  -->
+                            <DataTrigger Binding="{Binding IsVRRunning}" Value="True">
+                                <Setter TargetName="gradientOverlay" Property="Opacity" Value="1" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
         <Style x:Key="GlowyToggleButton" TargetType="{x:Type ToggleButton}">
             <Setter Property="Background" Value="#3A3644" />
             <Setter Property="Foreground" Value="#82829B" />
