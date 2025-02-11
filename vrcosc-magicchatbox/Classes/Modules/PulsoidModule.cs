@@ -33,6 +33,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool applyHeartRateAdjustment = false;
 
         [ObservableProperty]
+        private bool throttleHR = false;
+
+        [ObservableProperty]
+        private int throttleMaxAdditional = 10;
+
+        [ObservableProperty]
+        private int throttleHRMax = 105;
+
+        [ObservableProperty]
         private int currentHeartIconIndex = 0;
 
         [ObservableProperty]
@@ -257,6 +266,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private DateTime _lastStateChangeTime = DateTime.MinValue;
         private DateTime _lastMessageReceivedTime = DateTime.Now;
         private readonly TimeSpan _inactivityThreshold = TimeSpan.FromSeconds(15);
+        private static readonly Random _random = new Random();
 
         // For OSC smoothing (count-based)
         private readonly Queue<int> _oscHeartRates = new();
@@ -348,6 +358,39 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 StopMonitoringHeartRateAsync();
             }
         }
+
+        private int ApplyThrottle(int rawHR)
+        {
+            if (!Settings.ThrottleHR || rawHR <= Settings.ThrottleHRMax)
+                return rawHR;
+
+            const int maxHumanHR = 200; // Absolute physiological limit
+            int baseHR = Settings.ThrottleHRMax;
+            int allowedSpread = Settings.ThrottleMaxAdditional;
+
+            // Calculate how much we need to compress the HR
+            int excess = rawHR - baseHR;
+            int compressibleRange = maxHumanHR - baseHR;
+
+            // Integer-based proportional scaling (no floating points)
+            int scaledAdjustment = (excess * allowedSpread) / compressibleRange;
+
+            // Smart randomness that decreases with higher HR
+            int variance = excess switch
+            {
+                < 30 => _random.Next(-3, 4),  // ±3 BPM when close to base
+                < 60 => _random.Next(-2, 3),  // ±2 BPM
+                _ => _random.Next(-1, 2)      // ±1 BPM at extreme highs
+            };
+
+            return Math.Clamp(
+                baseHR + scaledAdjustment + variance,
+                baseHR,
+                baseHR + allowedSpread
+            );
+        }
+
+
 
         private async Task ConnectToWebSocketWithReconnectAsync(string accessToken, CancellationToken cancellationToken)
         {
@@ -498,13 +541,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
             int rawHR = ParseHeartRateFromMessage(message);
             if (rawHR == -1) return;
 
-            // Record the time of the last valid message.
             _lastMessageReceivedTime = DateTime.Now;
 
             if (Settings.ApplyHeartRateAdjustment)
             {
                 rawHR += Settings.HeartRateAdjustment;
                 rawHR = Math.Clamp(rawHR, 0, 255);
+            }
+
+            // Apply throttle here before storing in HeartRateFromSocket
+            if (Settings.ThrottleHR)
+            {
+                rawHR = ApplyThrottle(rawHR);
             }
 
             HeartRateFromSocket = rawHR;

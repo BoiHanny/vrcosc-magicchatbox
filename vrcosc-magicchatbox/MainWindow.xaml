@@ -1828,7 +1828,17 @@
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
+
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="2,0,0,2"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Example: ❤️ 88 bpm. Gives a little heart icon as a prefix." />
                                         <CheckBox
                                             x:Name="MagicHeartRateICON_checkbox"
                                             Margin="2,0"
@@ -1848,6 +1858,15 @@
                                     CornerRadius="5,0,0,5"
                                     Visibility="{Binding HeartRateConnector.Settings.MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="2,0,0,4"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Cycle through different heart symbols (❤️, 💖, 💗, etc.) every time your heart rate updates." />
                                         <CheckBox
                                             x:Name="MagicHeartRateIcons_checkbox"
                                             Margin="2,0"
@@ -2209,6 +2228,15 @@
                                     CornerRadius="5,0,0,5"
                                     Visibility="{Binding HeartRateConnector.Settings.MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Example: If below 60 BPM, shows 'sleepy'; if above 100 BPM, shows 'hot'." />
                                         <CheckBox
                                             x:Name="ShowTemperatureText_checkbox"
                                             Margin="4,2"
@@ -2310,6 +2338,15 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Monitors changes in heart rate over time, showing up/down arrows if you accelerate or decelerate quickly." />
                                         <CheckBox
                                             x:Name="ShowHeartRateTrendIndicator"
                                             Height="20"
@@ -2421,6 +2458,15 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Applies a moving average over a few seconds so the displayed BPM doesn't jump too wildly." />
                                         <CheckBox
                                             x:Name="SmoothHeartRate_checkbox"
                                             Height="20"
@@ -2474,6 +2520,127 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Any heart rate above the max threshold gets compressed into a smaller range to avoid extremely high values" />
+                                        <CheckBox
+                                            x:Name="ThrottleHR"
+                                            Height="20"
+                                            Margin="4,2"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding HeartRateConnector.Settings.ThrottleHR, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Enable Heart Rate Throttling
+                                        </CheckBox>
+
+                                        <StackPanel Margin="4,5,0,0" Visibility="{Binding HeartRateConnector.Settings.ThrottleHR, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+
+
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Max Heart Rate:" />
+                                                <TextBox
+                                                    x:Name="throttleRangeMin"
+                                                    Width="auto"
+                                                    MinWidth="20"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HeartRateConnector.Settings.ThrottleHRMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="BPM" />
+
+                                            </StackPanel>
+
+                                            <StackPanel
+                                                Margin="0,5,0,5"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Max Overflow:" />
+
+                                                <TextBox
+                                                    x:Name="throttleHRMax"
+                                                    Width="auto"
+                                                    MinWidth="20"
+                                                    Margin="5,0"
+                                                    Padding="3,0"
+                                                    VerticalAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding HeartRateConnector.Settings.ThrottleMaxAdditional, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="15"
+                                                    Foreground="#FF9983AD"
+                                                    Text="BPM" />
+                                            </StackPanel>
+                                            <TextBlock
+                                                Width="auto"
+                                                Margin="0,0,0,5"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                FontStyle="Italic"
+                                                Foreground="#FF9983AD"
+                                                Opacity="0.5"
+                                                Text="Max Overflow adds a small extra range above the cutoff to gently scale heart-rate spikes instead of cutting them off abruptly." />
+
+
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,2,0,3"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Applies a constant offset to your measured BPM. Useful if your sensor is known to be +5 BPM off. use - to remove BPM" />
                                         <CheckBox
                                             x:Name="ApplyHeartRateAdjustment_checkbox"
                                             Height="20"
@@ -2529,6 +2696,15 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,2"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Marks your heart rate as 'offline' if it stops updating for too long." />
                                         <CheckBox
                                             x:Name="EnableHeartRateOfflineCheck_checkbox"
                                             Height="22"
@@ -2581,6 +2757,15 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Adds 'bpm' after the heart rate, e.g. '85 bpm' instead of just '85'." />
                                         <CheckBox
                                             x:Name="ShowBPMSuffix_checkbox"
                                             Height="20"
@@ -2602,6 +2787,15 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,2"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="If disabled, sends only new style parameters (/avatar/parameters/HR, etc.) for a simpler, faster update." />
                                         <CheckBox
                                             x:Name="DisableLegacyOSCSupport_checkbox"
                                             Height="20"
@@ -2623,6 +2817,15 @@
                                     Background="#FF3B3054"
                                     CornerRadius="5,0,0,5">
                                     <StackPanel Margin="5">
+                                        <TextBlock
+                                            Width="auto"
+                                            Margin="4,3,0,2"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="If checked, you'll see a short label (like 'Heart Rate:') before the BPM." />
                                         <CheckBox
                                             x:Name="HeartRateTitle_checkbox"
                                             Height="20"
@@ -7820,7 +8023,7 @@
                                 <TextBlock.Foreground>
                                     <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                         <GradientStop Offset="0.106" Color="#FF3A1A7E" />
-                                        <GradientStop Offset="0.827" Color="#FFCA577C" />
+                                        <GradientStop Offset="0.627" Color="#FFCA577C" />
                                     </LinearGradientBrush>
                                 </TextBlock.Foreground>
                             </TextBlock>
@@ -8672,7 +8875,7 @@
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
                                         IsChecked="{Binding IntgrStatus_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
                                     <ToggleButton
                                         Grid.Column="1"
                                         Width="30"
@@ -8682,7 +8885,7 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrStatus_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
                                     <Button
                                         Margin="10,0,0,0"
                                         Command="{Binding ActivateSettingCommand}"
@@ -8791,7 +8994,7 @@
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
                                         IsChecked="{Binding IntgrWindowActivity_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
                                     <ToggleButton
                                         Width="30"
                                         Height="19"
@@ -8800,7 +9003,7 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrWindowActivity_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
                                     <ToggleButton
                                         Width="57"
                                         Height="19"
@@ -8919,7 +9122,7 @@
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
                                         IsChecked="{Binding IntgrHeartRate_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
                                     <ToggleButton
                                         Width="30"
                                         Height="19"
@@ -8928,7 +9131,7 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrHeartRate_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
                                     <ToggleButton
                                         Width="30"
                                         Height="19"
@@ -9264,7 +9467,7 @@
                                             VerticalAlignment="Top"
                                             Content="DESKTOP"
                                             IsChecked="{Binding IntgrComponentStats_DESKTOP, Mode=TwoWay}"
-                                            Style="{StaticResource GlowyToggleButton}" />
+                                            Style="{StaticResource GlowyToggleButtonDT}" />
                                         <ToggleButton
                                             Width="30"
                                             Height="19"
@@ -9273,7 +9476,7 @@
                                             VerticalAlignment="Top"
                                             Content="VR"
                                             IsChecked="{Binding IntgrComponentStats_VR, Mode=TwoWay}"
-                                            Style="{StaticResource GlowyToggleButton}" />
+                                            Style="{StaticResource GlowyToggleButtonVR}" />
                                         <Button
                                             Margin="10,0,0,0"
                                             Command="{Binding ActivateSettingCommand}"
@@ -9396,7 +9599,7 @@
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
                                         IsChecked="{Binding IntgrNetworkStatistics_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
                                     <ToggleButton
                                         Width="30"
                                         Height="19"
@@ -9405,7 +9608,7 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrNetworkStatistics_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
                                     <Button
                                         Margin="10,0,0,0"
                                         Command="{Binding ActivateSettingCommand}"
@@ -9513,7 +9716,7 @@
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
                                         IsChecked="{Binding IntgrCurrentTime_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
                                     <ToggleButton
                                         Width="30"
                                         Height="19"
@@ -9522,7 +9725,7 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrCurrentTime_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
                                     <Button
                                         Margin="10,0,0,0"
                                         Command="{Binding ActivateSettingCommand}"
@@ -9766,7 +9969,7 @@
                                             VerticalAlignment="Top"
                                             Content="DESKTOP"
                                             IsChecked="{Binding IntgrSoundpad_DESKTOP, Mode=TwoWay}"
-                                            Style="{StaticResource GlowyToggleButton}" />
+                                            Style="{StaticResource GlowyToggleButtonDT}" />
                                         <ToggleButton
                                             Width="30"
                                             Height="19"
@@ -9775,7 +9978,7 @@
                                             VerticalAlignment="Top"
                                             Content="VR"
                                             IsChecked="{Binding IntgrSoundpad_VR, Mode=TwoWay}"
-                                            Style="{StaticResource GlowyToggleButton}" />
+                                            Style="{StaticResource GlowyToggleButtonVR}" />
                                         <Button
                                             Margin="10,0,0,0"
                                             Command="{Binding ActivateSettingCommand}"
@@ -9890,7 +10093,7 @@
                                         VerticalAlignment="Top"
                                         Content="DESKTOP"
                                         IsChecked="{Binding IntgrSpotifyStatus_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
                                     <ToggleButton
                                         Width="30"
                                         Height="19"
@@ -9899,7 +10102,7 @@
                                         VerticalAlignment="Top"
                                         Content="VR"
                                         IsChecked="{Binding IntgrSpotifyStatus_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
                                     <Button
                                         Margin="10,0,0,0"
                                         Command="{Binding ActivateSettingCommand}"
@@ -10018,7 +10221,7 @@
                                             VerticalAlignment="Top"
                                             Content="DESKTOP"
                                             IsChecked="{Binding IntgrMediaLink_DESKTOP, Mode=TwoWay}"
-                                            Style="{StaticResource GlowyToggleButton}" />
+                                            Style="{StaticResource GlowyToggleButtonDT}" />
                                         <ToggleButton
                                             Width="30"
                                             Height="19"
@@ -10027,7 +10230,7 @@
                                             VerticalAlignment="Top"
                                             Content="VR"
                                             IsChecked="{Binding IntgrMediaLink_VR, Mode=TwoWay}"
-                                            Style="{StaticResource GlowyToggleButton}" />
+                                            Style="{StaticResource GlowyToggleButtonVR}" />
                                         <Button
                                             Margin="10,0,0,0"
                                             Command="{Binding ActivateSettingCommand}"
