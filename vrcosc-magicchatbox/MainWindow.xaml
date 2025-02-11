@@ -3509,6 +3509,20 @@
 
                                         </StackPanel>
 
+                                        <CheckBox
+                                            x:Name="SendAftersilence"
+                                            Height="20"
+                                            Margin="4,10,4,4"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding WhisperModule.Settings.SendAftersilence, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Sent Speech to text after silence
+                                        </CheckBox>
+
                                         <TextBlock
                                             Width="auto"
                                             Padding="4,16,0,5"
@@ -3516,7 +3530,7 @@
                                             FontFamily="Albert Sans Thin"
                                             FontSize="15"
                                             Foreground="#FF9983AD"
-                                            Text="Adjust the noise gate threshold (testing option coming soon)" />
+                                            Text="Adjust the noise gate threshold" />
 
                                         <StackPanel Margin="4,0,0,7" Orientation="Horizontal">
                                             <Slider
@@ -3541,6 +3555,7 @@
                                                 Text="{Binding WhisperModule.Settings.NoiseGateThreshold, UpdateSourceTrigger=PropertyChanged}" />
 
                                         </StackPanel>
+
 
                                     </StackPanel>
                                 </Border>

@@ -124,10 +124,20 @@ namespace vrcosc_magicchatbox
             Task initTask = InitializeAsync();
             ViewModel.Instance.WhisperModule = new WhisperModule();
             ViewModel.Instance.WhisperModule.TranscriptionReceived += WhisperModule_TranscriptionReceived;
+            ViewModel.Instance.WhisperModule.SentChatMessage += WhisperModule_SentChat;
 
             ViewModel.Instance.AfkModule = new AfkModule();
             ViewModel.Instance.AfkModule.AfkDetected += AfkModule_AfkDetected;
 
+
+        }
+
+        private void WhisperModule_SentChat()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ButtonChattingTxt_Click(null, null);
+            });
 
         }
 

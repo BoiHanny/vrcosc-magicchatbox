@@ -42,6 +42,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private float noiseGateThreshold = 0.12f;
 
         [ObservableProperty]
+        private bool sendAftersilence = true;
+
+        [ObservableProperty]
         private int selectedDeviceIndex;
 
         [ObservableProperty]
@@ -276,6 +279,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         /// </summary>
         public event Action<string> TranscriptionReceived;
 
+        public event Action SentChatMessage;
+
         /// <summary>
         /// Calculate the maximum amplitude (normalized) from the provided audio buffer.
         /// </summary>
@@ -450,6 +455,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 isCurrentlySpeaking = false;
                 StopRecording();
                 UpdateUI($"Silence detected for more than {Settings.SilenceAutoTurnOffDuration / 1000.0} seconds, auto-disabling STT session...", false);
+                if(Settings.SendAftersilence)
+                    SentChatMessage?.Invoke();
             }
         }
 
