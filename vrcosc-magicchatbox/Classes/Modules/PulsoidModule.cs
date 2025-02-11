@@ -54,6 +54,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool enableHeartRateOfflineCheck = true;
 
         [ObservableProperty]
+        [property: JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         private List<string> heartIcons = new List<string> { "❤️", "💖", "💗", "💙", "💚", "💛", "💜" };
 
         [ObservableProperty]
