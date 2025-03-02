@@ -1,15 +1,18 @@
 ![image](https://github.com/user-attachments/assets/3e4cf513-c87e-4ad0-b9d2-b0f1c24cb6d3)
 
-# MagicChatBox ![Version](https://badgen.net/badge/Version/0.9.070/purple/?icon=terminal) ![Downloads](https://badgen.net/badge/Installations/176k/blue/?icon=github) ![Discord](https://badgen.net/discord/members/magicchatbox/?icon=discord) ![Runtime](https://badgen.net/badge/Runtime/NET-8/black/?icon=windows)
+# MagicChatBox [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=%20&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox) [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases) [![NET](https://img.shields.io/badge/.NET%208-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.13-windows-x64-installer) [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=MagicChatbox&logo=discord&logoColor=white&style=plastic)](https://discord.gg/magicchatbox) [![Coffee](https://img.shields.io/badge/Send-A%20Coffee-FFDD00?style=plastic&logo=buymeacoffee&logoColor=white)](https://www.buymeacoffee.com/BoiHanny)
+
+
+ ![Runtime](https://badgen.net/badge/Runtime/NET-8/black/?icon=windows)
 `Welcome to MagicChatBox – the ultimate VRChat upgrade! Unlock new features, enhance your interactions, and take your virtual experience to the next level.`
 
 ## Installation
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.070/MagicChatbox-0.9.070.zip)
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/97b60e10ed66987f6f21f817b24f592633aac1496393cfee92241e29db07d417/detection)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.073/MagicChatbox-0.9.073.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/e6e2922e76d18e29666034e612e7d0bfe21c0e4c51e63c35fc1ceba535a9feb3/detection)
 
-- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.060/MagicChatbox-0.9.070.zip) **the official ZIP-File of MagicChatBox**
-- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.11-windows-x64-installer) **NET-8 from Microsoft**
+- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.073/MagicChatbox-0.9.073.zip) **the official ZIP-File of MagicChatBox**
+- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.13-windows-x64-installer) **NET-8 from Microsoft**
 - 🔳 Extract the ZIP File into an Folder
 - 🔳 Run the **MagicChatBox.exe** inside the Folder
 - 🔳 You're good to go now!
@@ -51,7 +54,7 @@ If you need more help, feel free to click the button below:
 > [!NOTE]
 > **Our support team is here to assist you with any issues!**
 >
-> [![SUPPORT](https://github.com/user-attachments/assets/c08772f1-3075-4590-9744-3bcbcd15cfe9)](Support.md)
+[![SUPPORT](https://github.com/user-attachments/assets/c08772f1-3075-4590-9744-3bcbcd15cfe9)](https://discord.gg/magicchatbox)
 
 ---
 
