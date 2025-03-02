@@ -142,11 +142,11 @@ namespace vrcosc_magicchatbox
             {
                 Dispatcher.Invoke(() =>
                 {
-                    DataController.ProcessBan(args.BannedUserId);
+                    DataController.ProcessBan(args.UserId, args.Reason);
                 });
  
             };
-            AllowedForUsingService.StartUserMonitoring(TimeSpan.FromSeconds(300));
+            AllowedForUsingService.StartUserMonitoring(TimeSpan.FromMinutes(15));
         }
 
 
