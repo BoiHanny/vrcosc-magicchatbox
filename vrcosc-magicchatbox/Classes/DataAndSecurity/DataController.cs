@@ -1,4 +1,5 @@
-﻿using NAudio.CoreAudioApi;
+﻿using MagicChatboxAPI.Services;
+using NAudio.CoreAudioApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -69,7 +70,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         /// to the temp directory. Also deletes the backup folder.
         /// </summary>
         /// <param name="bannedUserID">The ID of the banned user (unused here, shown for compatibility).</param>
-        public static void ProcessBan(string bannedUserID)
+        public static void ProcessBan(string bannedUserID, string reason)
         {
             // Path to the data folder in your application
             string dataPath = ViewModel.Instance.DataPath;
@@ -112,7 +113,8 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                     }
                 }
 
-                
+
+
 
                 // Apply a blur effect (or any UI feedback) to indicate the ban visually.
                 ViewModel.Instance.MainWindowBlurEffect = 10;
@@ -120,7 +122,7 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 // Log and display the ban message, then exit the app if desired.
                 Logging.WriteException(
                                    new Exception("You have been banned from using MagicChatbox.\n\n" +
-                                                 "You might have misbehaved towards our staff or violated TOS.\n\n" +
+                                      $"Reason: {reason}\n\n" +
                                                  "There is no need to appeal this ban; we have a zero-tolerance policy."),
                                    MSGBox: true,
                                    exitapp: false,

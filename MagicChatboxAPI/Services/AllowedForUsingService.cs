@@ -1,20 +1,19 @@
-﻿using MagicChatboxAPI.Enums;
-using MagicChatboxAPI.Events;
+﻿using MagicChatboxAPI.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MagicChatboxAPI.Services
 {
-
     public interface IAllowedForUsingService
     {
         void StartUserMonitoring(TimeSpan interval);
         void StopUserMonitoring();
-
         event EventHandler<BanDetectedEventArgs> BanDetected;
     }
 
@@ -22,30 +21,29 @@ namespace MagicChatboxAPI.Services
     {
         #region Constants and Fields
 
-        // External API endpoint for checking a user's ban status
-        private const string ApiEndpoint = "https://api.magicchatbox.com/moderation/checkIfClientIsAllowed";
+        // External API endpoint for checking a user's ban status.
+        private const string CheckApiEndpoint = "https://api.magicchatbox.com/moderation/checkIfClientIsAllowed";
+        // External API endpoint for acknowledging a ban.
+        private const string AcknowledgeBanEndpoint = "https://api.magicchatbox.com/moderation/acknowledgeBan";
 
         private readonly HttpClient _httpClient;
-
         private Timer _timer;
         private bool _isMonitoring;
         private readonly object _monitorLock = new();
 
         private List<string> _allUserIds;
-
+        // Cache tracking each user's current allowed state.
         private readonly Dictionary<string, bool> _userAllowedCache = new();
 
         #endregion
 
         #region Events
 
-
         public event EventHandler<BanDetectedEventArgs> BanDetected;
 
         #endregion
 
         #region Constructor
-
 
         public AllowedForUsingService()
         {
@@ -61,7 +59,7 @@ namespace MagicChatboxAPI.Services
             lock (_monitorLock)
             {
                 if (_isMonitoring)
-                    return; 
+                    return;
 
                 _allUserIds = ScanAllVrChatUserIds();
 
@@ -77,12 +75,11 @@ namespace MagicChatboxAPI.Services
 
                 _timer = new Timer(async _ => await UserMonitorCallback(),
                                    null,
-                                   TimeSpan.Zero,  
-                                   interval);      
+                                   TimeSpan.Zero,
+                                   interval);
                 _isMonitoring = true;
             }
         }
-
 
         public void StopUserMonitoring()
         {
@@ -104,26 +101,23 @@ namespace MagicChatboxAPI.Services
         /// <summary>
         /// Scans the VRChat OSC folder once, collecting all user IDs.
         /// </summary>
-        /// <returns>List of all user IDs found (excluding "usr_" prefix).</returns>
         private List<string> ScanAllVrChatUserIds()
         {
             var userIds = new List<string>();
 
             try
             {
-                // Base path to VRChat's OSC user folders
+                // Base path to VRChat's OSC user folders.
                 var basePath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     "AppData", "LocalLow", "VRChat", "VRChat", "OSC");
 
-                // If folder doesn't exist, return empty
                 if (!Directory.Exists(basePath))
                 {
                     Console.WriteLine($"[AllowedForUsingService] VRChat OSC folder not found: {basePath}");
                     return userIds;
                 }
 
-                // Get all directories matching "usr_*"
                 var userDirectories = Directory.GetDirectories(basePath, "usr_*");
                 if (userDirectories == null || userDirectories.Length == 0)
                 {
@@ -131,7 +125,6 @@ namespace MagicChatboxAPI.Services
                     return userIds;
                 }
 
-                // Extract the user IDs
                 foreach (var directory in userDirectories)
                 {
                     var directoryName = Path.GetFileName(directory);
@@ -150,102 +143,128 @@ namespace MagicChatboxAPI.Services
                 Console.WriteLine($"[AllowedForUsingService] Error scanning user IDs: {ex.Message}");
             }
 
-            return userIds.Distinct().ToList(); // Remove duplicates just in case
+            return userIds.Distinct().ToList();
         }
 
         /// <summary>
         /// Timer callback: checks the ban status of all known user IDs via API.
-        /// Fires the BanDetected event immediately when a user transitions from allowed to banned.
+        /// When a user transitions from allowed to banned, it calls the acknowledge-ban endpoint,
+        /// then fires the BanDetected event with the user ID and ban reason.
         /// </summary>
         private async Task UserMonitorCallback()
         {
             if (_allUserIds == null || !_allUserIds.Any())
-                return; // Skip if no users are loaded
+                return;
 
             try
             {
-                // Iterate over known user IDs to check their ban status
                 foreach (var userId in _allUserIds)
                 {
-                    bool isCurrentlyAllowed = await CheckSingleUserAsync(userId);
+                    var (isCurrentlyAllowed, reason) = await CheckSingleUserWithReasonAsync(userId);
 
+                    bool wasAllowed;
                     lock (_userAllowedCache)
                     {
-                        // If we have cached state for this user
-                        if (_userAllowedCache.TryGetValue(userId, out bool wasAllowed))
-                        {
-                            // If the user was previously allowed but now banned
-                            if (wasAllowed && !isCurrentlyAllowed)
-                            {
-                                // Update the cache for consistency
-                                _userAllowedCache[userId] = isCurrentlyAllowed;
+                        _userAllowedCache.TryGetValue(userId, out wasAllowed);
+                    }
 
-                                // Fire the BanDetected event immediately with the banned user ID
-                                BanDetected?.Invoke(
-                                    this,
-                                    new BanDetectedEventArgs(userId)
-                                );
-
-                                // Break out of the loop once a banned user is found 
-                                // to trigger the event without checking further users
-                                return;
-                            }
-                        }
-                        else
+                    if (wasAllowed && !isCurrentlyAllowed)
+                    {
+                        lock (_userAllowedCache)
                         {
-                            // In case user is not present in the cache, add them
                             _userAllowedCache[userId] = isCurrentlyAllowed;
                         }
 
-                        // Update the user's allowed status if no ban was detected
-                        _userAllowedCache[userId] = isCurrentlyAllowed;
+                        // Call the acknowledge-ban endpoint.
+                        bool acknowledged = await AcknowledgeBanAsync(userId);
+                        if (!acknowledged)
+                        {
+                            Console.WriteLine($"[AllowedForUsingService] Failed to acknowledge ban for user {userId}.");
+                        }
+
+                        // Fire the BanDetected event with the ban reason.
+                        BanDetected?.Invoke(this, new BanDetectedEventArgs(userId, reason));
+
+                        return;
+                    }
+                    else
+                    {
+                        // Update the cache in any case.
+                        lock (_userAllowedCache)
+                        {
+                            _userAllowedCache[userId] = isCurrentlyAllowed;
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Log or handle exception as needed
                 Console.WriteLine($"[AllowedForUsingService] Monitoring error: {ex.Message}");
             }
         }
 
-
         /// <summary>
-        /// Calls the external API for a single user to determine if they are banned.
-        /// Returns true if the user is allowed (not banned); false if banned.
+        /// Calls the external API for a single user to determine if they are banned,
+        /// and retrieves the ban reason if applicable.
+        /// Returns a tuple where the first value indicates whether the user is allowed
+        /// (true means allowed, false means banned), and the second value contains the ban reason.
         /// </summary>
-        /// <param name="userId">Unique portion of the user ID (e.g., after 'usr_').</param>
-        private async Task<bool> CheckSingleUserAsync(string userId)
+        private async Task<(bool isAllowed, string reason)> CheckSingleUserWithReasonAsync(string userId)
         {
             var payload = new { userId };
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(ApiEndpoint, payload);
+                var response = await _httpClient.PostAsJsonAsync(CheckApiEndpoint, payload);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     Console.WriteLine($"[AllowedForUsingService] API returned {response.StatusCode}: {errorContent}");
-                    // Treat as banned (false) to be safe
-                    return true;
+                    // In case of error, treat user as allowed for safety.
+                    return (true, string.Empty);
                 }
 
                 var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse>();
                 if (apiResponse == null)
                 {
                     Console.WriteLine("[AllowedForUsingService] API response was null.");
-                    // Treat as banned (false) to be safe
-                    return true;
+                    return (true, string.Empty);
                 }
 
-                // If "isBanned" is true in the API response, the user is banned (not allowed).
-                return !apiResponse.isBanned;
+                // If "isBanned" is true in the API response, the user is banned (i.e. not allowed).
+                // We assume that the API returns a 'reason' when a user is banned.
+                bool isAllowed = !apiResponse.isBanned;
+                string reason = apiResponse.isBanned ? apiResponse.reason : string.Empty;
+                return (isAllowed, reason);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AllowedForUsingService] CheckSingleUserAsync error for userId={userId}: {ex.Message}");
-                // On exception, treat as banned for safety
+                Console.WriteLine($"[AllowedForUsingService] CheckSingleUserWithReasonAsync error for userId={userId}: {ex.Message}");
+                return (true, string.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Calls the external acknowledge-ban API endpoint to mark the ban as acknowledged.
+        /// </summary>
+        private async Task<bool> AcknowledgeBanAsync(string userId)
+        {
+            var payload = new { userId };
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(AcknowledgeBanEndpoint, payload);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[AllowedForUsingService] Acknowledge API returned {response.StatusCode}: {errorContent}");
+                    return false;
+                }
                 return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AllowedForUsingService] Error acknowledging ban for user {userId}: {ex.Message}");
+                return false;
             }
         }
 
@@ -259,8 +278,9 @@ namespace MagicChatboxAPI.Services
         /// </summary>
         private class ApiResponse
         {
-            public string userId { get; set; }
             public bool isBanned { get; set; }
+            // The reason provided by the API when a user is banned.
+            public string reason { get; set; }
         }
 
         #endregion
