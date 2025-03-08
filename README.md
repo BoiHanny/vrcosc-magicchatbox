@@ -11,7 +11,7 @@
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/01533802fb696b6dd746b05367fd97a5d9280e6f24cd13fa3032a784a774a290/detection)
 
 - 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.075/MagicChatbox-0.9.075.zip) **the official ZIP-File of MagicChatBox**
-- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.13-windows-x64-installer) **NET-8/9 from Microsoft**
+- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.13-windows-x64-installer) **NET-8 from Microsoft**
 - 🔳 Extract the ZIP File into an Folder
 - 🔳 Run the **MagicChatBox.exe** inside the Folder
 - 🔳 You're good to go now!
