@@ -6,7 +6,7 @@
 
 | **Feature**               | **Status**       | **Additional Feature** | **Status**         | **Extra Feature**      | **Status**       |
 |---------------------------|------------------|------------------------|--------------------|------------------------|------------------|
-| 🆕 Latest Version         | 0.9.023          | 👥 Daily Active Users  | 10,000+             | 🛡️ Security Level      | NET-8             |
+| 🆕 Latest Version         | 0.9.075          | 👥 Daily Active Users  | 10,000+             | 🛡️ Security Level      | NET-9             |
 | ⭐ Total Stars            | ★★★★★           | 🌐 Worlds Spotted    | 300+               | 🔧 Customization Options  | Extensive            |
 | 📥 Installations         | 176k             | ⏰ Average Session Time| 45 minutes         | 🕒 Average Response Time| < 60 minutes       |
 | 🌐 Community             | 2.8K members    | 🌎 Languages Supported | 1                | ⚙️ Compatibility       | Windows   |
