@@ -6,7 +6,7 @@
 
 > [!CAUTION]
 > ## 1. Data Collection and Monitoring
-> - **1.1** MagicChatBox collects data exclusively to monitor compliance with these terms, including vrchat username.
+> - **1.1** MagicChatBox use data exclusively to monitor compliance with these terms, including vrchat user's ID.
 > - **1.2** This data is not used for marketing, profiling, or any purpose unrelated to enforcing these terms and is disposed after use.
 > - **1.3** If violations are detected through monitoring, MagicChatBox reserves the right to exclude users.
 >
