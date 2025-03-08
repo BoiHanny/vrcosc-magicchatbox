@@ -44,5 +44,42 @@
 >
 > ## 10. Disclaimer
 > - 10.1. The use of the MagicChatBox software is at your own risk. The developers assume no liability for any damages that may arise from the use or malfunction of the software.
+>
+> ## 11. Administrative Discretion
+> - 11.1. Administrators have the discretion to ban users without being bound to provide reasons or justifications for their decisions.
+> 
+> ## 12. Account Security
+> - 12.1. Users are responsible for maintaining the security of their accounts. Sharing account credentials with others is prohibited.
+> - 12.2. The developers are not liable for any loss or damage arising from unauthorized access to your account.
+>
+> ## 13. Reporting Violations
+> - 13.1. Users are encouraged to report any violations of these terms of service to the administrators. Reports will be handled confidentially.
+> - 13.2. False reporting of violations is prohibited and may result in consequences.
+>
+> ## 14. Third-Party Services
+> - 14.1. The software may integrate with third-party services. The developers are not responsible for the content or practices of these third-party services.
+> - 14.2. Users must comply with the terms of service of any third-party services used in conjunction with the MagicChatBox software.
+>
+> ## 15. Termination of Service
+> - 15.1. The developers reserve the right to terminate the service at any time without prior notice. Users will be informed of the termination as soon as possible.
+> - 15.2. Upon termination, users must cease all use of the software and delete any copies in their possession.
+>
+> ## 16. Intellectual Property
+> - 16.1. All intellectual property rights in the software and related materials are owned by the developers. Users are granted a limited, non-exclusive, non-transferable license to use the software in accordance with these terms.
+> - 16.2. Users must not copy, modify, distribute, or create derivative works based on the software without prior written consent from the developers.
+>
+> ## 17. User Feedback
+> - 17.1. Users may provide feedback, suggestions, or ideas regarding the software. By submitting feedback, users grant the developers a non-exclusive, royalty-free, perpetual, and irrevocable license to use, modify, and incorporate the feedback into the software.
+>
+> ## 18. No Warranty
+> - 18.1. The software is provided "as is" without any warranties, express or implied. The developers do not warrant that the software will be error-free or uninterrupted.
+>
+> ## 19. Limitation of Liability
+> - 19.1. To the maximum extent permitted by law, the developers shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with the use or inability to use the software.
+>
+> ## 20. Governing Law
+> - 20.1. These terms of service shall be governed by and construed in accordance with the laws of the jurisdiction in which the developers are located. Any disputes arising out of or in connection with these terms shall be subject to the exclusive jurisdiction of the courts in that jurisdiction.
 
 `By using the MagicChatBox software, you agree to these terms and commit to adhering to them.`
+
+**To learn more about bans, you can read ["HCGI-Banned"](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/🛑-HCIG-Banned).**
