@@ -1,6 +1,6 @@
 ![image](https://github.com/user-attachments/assets/a05eaa27-71d6-42ef-9b2d-511bb074e096)
 
-# Our Ratings ![Version](https://badgen.net/badge/Version/0.9.032/yellow/?icon=terminal) ![Rating](https://badgen.net/badge/Stars/★★★★★/yellow/?icon=kofi) ![Downloads](https://badgen.net/badge/Installations/176k/gold/?icon=github) ![Discord](https://badgen.net/discord/members/magicchatbox/?icon=discord)
+# Our Ratings ![Version](https://badgen.net/badge/Version/0.9.075/yellow/?icon=terminal) ![Rating](https://badgen.net/badge/Stars/★★★★★/yellow/?icon=kofi) ![Downloads](https://badgen.net/badge/Installations/176k/gold/?icon=github) ![Discord](https://badgen.net/discord/members/magicchatbox/?icon=discord)
 
 `Our Program is TOP #1 out there!`
 
