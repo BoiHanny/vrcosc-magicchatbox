@@ -84,16 +84,10 @@ _We are planning to fill 80% of our capacity this year!_
 
 ### ◥◣ ${\color{RubineRed}𝗖𝗛𝗜𝗘𝗙 \space 𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ Lyrikidionisos ${\color{darkGray}𝑎𝑘𝑎. \space 𝐸𝑡ℎ𝑎𝑛}$
 
-  - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator for Hypixel.net. I hold a C1 level in International Business English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
+  - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator. I hold a C1 level in International Business English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
  
 ### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ ItsByMe 
   - Hi, for the past three years, I’ve been working on the technical side of things, helping to bring this amazing program to life. You’ll often find me online in public lobbies, where I love interacting with the community. I’m fluent in English and have extensive experience with Unity, Blender, and C#.
-
-### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ IzuruBae
-  - Hi, I’m IzuruBae. I have professional experience as a Community Manager and have been the Head of Public Relations at MagicChatbox for the past three years. I’m a B2 Level English speaker and have been organizing events and meetings for MagicChatbox. As a VRChat veteran from the early days, I bring a wealth of experience and enthusiasm to the community.
-
-### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ Ralph
-  - Hi, I’m Ralph. I have extensive experience in community management as well as leadership roles. As an early supporter of the MagicChatbox project, I’ve been deeply involved from the beginning, helping to shape and guide its development. I also have an English proficiency at the B2 level.
 
 ### ◥◣ ${\color{Red}𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥}$ ${\color{Gray}•}$ 中文姓名
   - Not much is known about him. He has emerged in the management team, leaving us unsure whether to fear or revere him. He possesses strong competencies in English and community management. Additionally, he has a knack for solving complex problems with innovative solutions, making him a valuable yet enigmatic figure in our organization.
