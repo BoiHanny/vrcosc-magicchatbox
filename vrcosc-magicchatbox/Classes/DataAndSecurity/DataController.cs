@@ -1100,63 +1100,66 @@ namespace vrcosc_magicchatbox.DataAndSecurity
                 Logging.WriteException(new Exception("Error managing settings XML.", ex), MSGBox: false);
             }
         }
-        public static bool PopulateOutputDevices(bool beforeTTS = false)
+        public static bool PopulateOutputDevices()
         {
             try
             {
-                var devicesRen_enumerator = new MMDeviceEnumerator();
-                var devicesRen = devicesRen_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                ViewModel.Instance.PlaybackOutputDevices.Clear();
 
-                var deviceNumber = 0;
+                using var enumerator = new MMDeviceEnumerator();
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
+                                        .OrderBy(mmDevice => mmDevice.FriendlyName);
 
-                if (beforeTTS == true)
+                int index = 0;
+                foreach (var mmDevice in devices)
                 {
-                    ViewModel.Instance.PlaybackOutputDevices.Clear();
+                    var audioDevice = new AudioDevice(
+                        mmDevice.FriendlyName,
+                        mmDevice.ID,
+                        index++
+                    );
+                    ViewModel.Instance.PlaybackOutputDevices.Add(audioDevice);
                 }
 
-                foreach (var device in devicesRen)
-                {
-                    ViewModel.Instance.PlaybackOutputDevices.Add(new AudioDevice(device.FriendlyName, device.ID, deviceNumber++));
-                }
+                var defaultMMDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                var defaultAudioDevice = new AudioDevice(
+                    defaultMMDevice.FriendlyName,
+                    defaultMMDevice.ID,
+                    -1
+                );
 
-                var defaultPlaybackOutputDevice = devicesRen_enumerator.GetDefaultAudioEndpoint(
-                    DataFlow.Render,
-                    Role.Multimedia);
-                if (ViewModel.Instance.RecentPlayBackOutput == null)
+                if (string.IsNullOrEmpty(ViewModel.Instance.RecentPlayBackOutput))
                 {
-                    ViewModel.Instance.SelectedPlaybackOutputDevice = new AudioDevice(
-                        defaultPlaybackOutputDevice.FriendlyName,
-                        defaultPlaybackOutputDevice.ID,
-                        -1);
-                    ViewModel.Instance.RecentPlayBackOutput = ViewModel.Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                    ViewModel.Instance.SelectedPlaybackOutputDevice = defaultAudioDevice;
+                    ViewModel.Instance.RecentPlayBackOutput = defaultAudioDevice.FriendlyName;
                 }
                 else
                 {
-                    AudioDevice ADevice = ViewModel.Instance.PlaybackOutputDevices
-                        .FirstOrDefault(v => v.FriendlyName == ViewModel.Instance.RecentPlayBackOutput);
-                    if (ADevice == null)
+                    var matching = ViewModel.Instance.PlaybackOutputDevices
+                        .FirstOrDefault(dev => dev.FriendlyName == ViewModel.Instance.RecentPlayBackOutput);
+
+                    if (matching != null)
                     {
-                        ViewModel.Instance.SelectedPlaybackOutputDevice = new AudioDevice(
-                            defaultPlaybackOutputDevice.FriendlyName,
-                            defaultPlaybackOutputDevice.ID,
-                            -1);
-                        ViewModel.Instance.RecentPlayBackOutput = ViewModel.Instance.SelectedPlaybackOutputDevice.FriendlyName;
+                        ViewModel.Instance.SelectedPlaybackOutputDevice = matching;
                     }
                     else
                     {
-                        ViewModel.Instance.SelectedPlaybackOutputDevice = ADevice;
+                        ViewModel.Instance.SelectedPlaybackOutputDevice = defaultAudioDevice;
+                        ViewModel.Instance.RecentPlayBackOutput = defaultAudioDevice.FriendlyName;
                     }
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
                 return false;
             }
-            return true;
         }
 
-        // Check for updates
+
+
 
         public static List<Voice> ReadTkTkTTSVoices()
         {

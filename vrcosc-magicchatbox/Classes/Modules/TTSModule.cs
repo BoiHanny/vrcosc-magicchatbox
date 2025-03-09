@@ -1,7 +1,9 @@
-﻿using NAudio.Wave;
+﻿using NAudio.CoreAudioApi;
+using NAudio.Wave;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,45 +54,53 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return audioBytes;
         }
 
-        public static async Task PlayTikTokAudioAsSpeech(
-            CancellationToken cancellationToken,
-            byte[] audio,
-            int outputDeviceNumber)
+        public static async Task PlayTikTokAudioAsSpeechAsync(
+            byte[] audioData,
+            string deviceId,
+            CancellationToken cancelToken
+        )
         {
+            if (audioData == null || audioData.Length == 0)
+                return; 
+
             try
             {
-                using (var audioStream = new MemoryStream(audio))
+                using var enumerator = new MMDeviceEnumerator();
+                MMDevice device = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
+                                            .FirstOrDefault(d => d.ID == deviceId);
+
+                if (device == null)
                 {
-                    audioStream.Position = 0;
-                    var audioReader = new Mp3FileReader(audioStream);
-
-                    var waveOut = new WaveOutEvent();
-                    if (outputDeviceNumber >= 0 && outputDeviceNumber < WaveOut.DeviceCount)
-                    {
-                        waveOut.DeviceNumber = outputDeviceNumber;
-                    }
-
-                    waveOut.Init(audioReader);
-
-                    OSCSender.ToggleVoice();
-                    Thread.Sleep(175);
-
-                    waveOut.Play();
-
-                    while (waveOut.PlaybackState == PlaybackState.Playing)
-                    {
-                        UpdateVolume(waveOut); // Add this line to update the volume
-
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            waveOut.Stop();
-                            OSCSender.ToggleVoice();
-                            break;
-                        }
-                        await Task.Delay(100);
-                    }
-                    OSCSender.ToggleVoice();
+                    device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
                 }
+
+                using var mp3Stream = new MemoryStream(audioData);
+                using var mp3Reader = new Mp3FileReader(mp3Stream);
+
+                using var wasapiOut = new WasapiOut(device, AudioClientShareMode.Shared, false, 100);
+
+                wasapiOut.Init(mp3Reader);
+
+                wasapiOut.Volume = ViewModel.Instance.TTSVolume;
+
+                OSCSender.ToggleVoice();
+                await Task.Delay(175);
+
+                wasapiOut.Play();
+
+                while (wasapiOut.PlaybackState == PlaybackState.Playing)
+                {
+                    wasapiOut.Volume = ViewModel.Instance.TTSVolume;
+
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        wasapiOut.Stop();
+                        break;
+                    }
+                    await Task.Delay(100, cancelToken);
+                }
+
+                OSCSender.ToggleVoice();
             }
             catch (Exception ex)
             {
