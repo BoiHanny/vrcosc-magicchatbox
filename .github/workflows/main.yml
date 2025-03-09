@@ -9,6 +9,7 @@ on:
 env:
   Solution_Name: vrcosc-magicchatbox.sln
   Project_Path: vrcosc-magicchatbox\vrcosc_magicchatbox.csproj
+  DOTNET_ROOT: C:\Program Files\dotnet
 
 jobs:
   build-and-release:
@@ -25,9 +26,8 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # STEP 1: Extract Version from csproj
+    # Step 1: Extract version from the csproj
     - name: Extract Version from csproj
-      id: get_version
       shell: pwsh
       run: |
         $csproj = "${{ env.Project_Path }}"
@@ -37,11 +37,13 @@ jobs:
         if ($match.Success -and $match.Groups.Count -gt 1) {
           $version = $match.Groups[1].Value
           echo "VERSION=$version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-        } else {
+        }
+        else {
           Write-Error "Error: Version not found in csproj file."
           exit 1
+        }
 
-    # STEP 2: Check if Release Exists
+    # Step 2: Check if a release with this version already exists
     - name: Check if Release Exists
       id: check_release
       uses: actions/github-script@v6
@@ -63,28 +65,31 @@ jobs:
             }
           }
 
-    # STEP 3: If release already exists, stop here
+    # Step 3: If the release already exists, stop here
     - name: Release Already Exists
       if: steps.check_release.outputs.release_exists == 'true'
       run: |
         echo "Release v${{ env.VERSION }} already exists. Skipping build and release."
         exit 0
 
-    # The following steps only run if the release doesn't already exist
+    # Step 4: Restore Dependencies (only if release doesn't exist)
     - name: Restore Dependencies
       if: steps.check_release.outputs.release_exists == 'false'
       run: dotnet restore ${{ env.Solution_Name }}
 
+    # Step 5: Build Solution (only if release doesn't exist)
     - name: Build Solution
       if: steps.check_release.outputs.release_exists == 'false'
       run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
 
+    # Step 6: Create ZIP of artifacts
     - name: Create Zip File
       if: steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
         Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
 
+    # Step 7: [Optional] Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
       if: steps.check_release.outputs.release_exists == 'false'
       id: virustotal_scan
@@ -117,6 +122,7 @@ jobs:
         $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
         echo "::set-output name=REPORT_URL::$report_url"
 
+    # Step 8: Determine if this is a pre-release or final release
     - name: Determine Release Type
       if: steps.check_release.outputs.release_exists == 'false'
       id: determine_release_type
@@ -130,6 +136,7 @@ jobs:
           echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         }
 
+    # Step 9: Create GitHub Release
     - name: Create Release
       if: steps.check_release.outputs.release_exists == 'false'
       id: create_release
@@ -205,6 +212,7 @@ jobs:
             <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
           </div>
 
+    # Step 10: Upload Release Asset
     - name: Upload Release Asset
       if: steps.check_release.outputs.release_exists == 'false'
       uses: actions/upload-release-asset@v1
