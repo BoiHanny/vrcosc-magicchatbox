@@ -8,7 +8,7 @@ on:
 
 env:
   Solution_Name: vrcosc-magicchatbox.sln
-  Project_Path: vrcosc-magicchatbox\vrcosc_magicchatbox.csproj
+  Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
   DOTNET_ROOT: C:\Program Files\dotnet
 
 jobs:
