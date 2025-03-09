@@ -109,6 +109,6 @@ By using the MagicChatBox software, you agree to these terms of service. These t
 > 
 ---
 
-By using the MagicChatBox software, you confirm your agreement to these terms and commit to adhering to them.
+``By using the MagicChatBox software, you confirm your agreement to these terms and commit to adhering to them.``
 
 To learn more about bans, refer to [“HCGI-Banned”](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/🛑-HCIG-Banned).
