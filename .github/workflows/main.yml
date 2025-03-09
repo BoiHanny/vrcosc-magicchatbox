@@ -13,6 +13,8 @@ env:
 jobs:
   build-and-release:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout Repository
@@ -21,36 +23,72 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: '8.0.x'
 
-    - name: Restore Dependencies
-      run: dotnet restore ${{ env.Solution_Name }}
-
-    - name: Build Solution
-      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
-
+    # STEP 1: Extract Version from csproj
     - name: Extract Version from csproj
       id: get_version
+      shell: pwsh
       run: |
-        $csproj = "vrcosc-magicchatbox\MagicChatbox.csproj"
-        $pattern = '<Version>(.*)<\/Version>'
+        $csproj = "${{ env.Project_Path }}"
+        $pattern = '<Version>(.*)</Version>'
         $content = Get-Content $csproj -Raw
         $match = [regex]::Match($content, $pattern)
         if ($match.Success -and $match.Groups.Count -gt 1) {
           $version = $match.Groups[1].Value
-          echo "VERSION=$version" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "VERSION=$version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
         } else {
-          echo "Error: Version not found in csproj file."
+          Write-Error "Error: Version not found in csproj file."
           exit 1
-        }
-      shell: pwsh
+
+    # STEP 2: Check if Release Exists
+    - name: Check if Release Exists
+      id: check_release
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const tag = `v${{ env.VERSION }}`;
+          try {
+            await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: tag
+            });
+            core.setOutput('release_exists', 'true');
+          } catch (error) {
+            if (error.status === 404) {
+              core.setOutput('release_exists', 'false');
+            } else {
+              throw error;
+            }
+          }
+
+    # STEP 3: If release already exists, stop here
+    - name: Release Already Exists
+      if: steps.check_release.outputs.release_exists == 'true'
+      run: |
+        echo "Release v${{ env.VERSION }} already exists. Skipping build and release."
+        exit 0
+
+    # The following steps only run if the release doesn't already exist
+    - name: Restore Dependencies
+      if: steps.check_release.outputs.release_exists == 'false'
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build Solution
+      if: steps.check_release.outputs.release_exists == 'false'
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
 
     - name: Create Zip File
+      if: steps.check_release.outputs.release_exists == 'false'
+      shell: pwsh
       run: |
         Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
 
     - name: Upload and Scan with VirusTotal
+      if: steps.check_release.outputs.release_exists == 'false'
       id: virustotal_scan
+      shell: pwsh
       run: |
         $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
@@ -65,7 +103,9 @@ jobs:
         echo "::set-output name=SCAN_ID::$scan_id"
 
     - name: Get VirusTotal Scan Report
+      if: steps.check_release.outputs.release_exists == 'false'
       id: virustotal_report
+      shell: pwsh
       run: |
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
         $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
@@ -78,7 +118,9 @@ jobs:
         echo "::set-output name=REPORT_URL::$report_url"
 
     - name: Determine Release Type
+      if: steps.check_release.outputs.release_exists == 'false'
       id: determine_release_type
+      shell: pwsh
       run: |
         if ($env:GITHUB_REF -eq 'refs/heads/master') {
           echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
@@ -87,9 +129,9 @@ jobs:
           echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
           echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         }
-      shell: pwsh
 
     - name: Create Release
+      if: steps.check_release.outputs.release_exists == 'false'
       id: create_release
       uses: actions/create-release@v1
       env:
@@ -164,6 +206,7 @@ jobs:
           </div>
 
     - name: Upload Release Asset
+      if: steps.check_release.outputs.release_exists == 'false'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
