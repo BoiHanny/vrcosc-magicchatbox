@@ -1583,10 +1583,10 @@ namespace vrcosc_magicchatbox.DataAndSecurity
         {
             try
             {
-                if (CreateIfMissing(@"C:\temp\Vrcosc-MagicChatbox") == true)
-                {
+                // Instead of placing the temp directly in C:\ lets move it further back into it placing it in Local of the appdata
+                string temppath = Path.Combine(Path.GetTempPath(), "Vrcosc-MagicChatbox");
+                if (CreateIfMissing(temppath) == true)
                     Logging.WriteInfo("Application started at: " + DateTime.Now);
-                }
             }
             catch (Exception ex)
             {
