@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.075</Version>
+	<Version>0.9.078</Version>
     <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -14,6 +14,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <StartupObject>vrcosc_magicchatbox.App</StartupObject>
     <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
+	  <GenerateBootstrapperOnBuild>true</GenerateBootstrapperOnBuild>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -191,16 +192,23 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Costura.Fody" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.5" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.5-pre392" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.5-pre396" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
     <PackageReference Include="NLog" Version="5.4.0" />
-	  <PackageReference Include="OpenAI-DotNet" Version="8.6.1" />
-	  <PackageReference Include="System.Management" Version="10.0.0-preview.1.25080.5" />
-	  <PackageReference Include="VRChat.OSCQuery" Version="0.0.7" />
+	  <PackageReference Include="OpenAI-DotNet" Version="8.6.3" />
+	  <PackageReference Include="System.Management" Version="10.0.0-preview.2.25163.2" />
   </ItemGroup>
 
   <ItemGroup>

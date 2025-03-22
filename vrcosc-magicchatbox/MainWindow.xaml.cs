@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Navigation;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -53,7 +54,11 @@ namespace vrcosc_magicchatbox
             this.StateChanged += MainWindow_StateChanged;
         }
 
-
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
+        }
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
@@ -276,7 +281,7 @@ namespace vrcosc_magicchatbox
                 DataController.SaveChatList();
                 if (ViewModel.Instance.TTSTikTokEnabled == true)
                 {
-                    if (DataAndSecurity.DataController.PopulateOutputDevices(true))
+                    if (DataController.PopulateOutputDevices())
                     {
                         ViewModel.Instance.ChatFeedbackTxt = "Requesting TTS...";
                         TTSGOAsync(chat);
@@ -1165,7 +1170,7 @@ namespace vrcosc_magicchatbox
 
                     if (ViewModel.Instance.TTSTikTokEnabled == true && ViewModel.Instance.TTSOnResendChat)
                     {
-                        if (DataAndSecurity.DataController.PopulateOutputDevices(true))
+                        if (DataController.PopulateOutputDevices())
                         {
                             ViewModel.Instance.ChatFeedbackTxt = "Requesting TTS...";
                             MainWindow.TTSGOAsync(item.Msg, true);
@@ -1352,6 +1357,7 @@ namespace vrcosc_magicchatbox
         {
             try
             {
+                // If user wants to cut off any existing TTS:
                 if (ViewModel.Instance.TTSCutOff)
                 {
                     foreach (var tokenSource in _activeCancellationTokens)
@@ -1361,33 +1367,33 @@ namespace vrcosc_magicchatbox
                     _activeCancellationTokens.Clear();
                 }
 
-
+                // 1) Fetch the MP3 bytes from the TikTok TTS server
                 byte[] audioFromApi = await TTSModule.GetAudioBytesFromTikTokAPI(chat);
-                if (audioFromApi != null)
-                {
-                    var cancellationTokenSource = new CancellationTokenSource();
-                    _activeCancellationTokens.Add(cancellationTokenSource);
-                    ViewModel.Instance.ChatFeedbackTxt = "TTS is playing...";
-                    await TTSModule.PlayTikTokAudioAsSpeech(
-                        cancellationTokenSource.Token,
-                        audioFromApi,
-                        ViewModel.Instance.SelectedPlaybackOutputDevice.DeviceNumber);
-                    if (resent)
-                    {
-                        ViewModel.Instance.ChatFeedbackTxt = "Chat was sent again with TTS.";
-                    }
-                    else
-                    {
-                        ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS.";
-                    }
-
-
-                    _activeCancellationTokens.Remove(cancellationTokenSource);
-                }
-                else
+                if (audioFromApi == null)
                 {
                     ViewModel.Instance.ChatFeedbackTxt = "Error getting TTS from online servers.";
+                    return;
                 }
+
+                // 2) Kick off the playback
+                var cancellationTokenSource = new CancellationTokenSource();
+                _activeCancellationTokens.Add(cancellationTokenSource);
+
+                ViewModel.Instance.ChatFeedbackTxt = "TTS is playing...";
+
+                await TTSModule.PlayTikTokAudioAsSpeechAsync(
+                    audioFromApi,
+                    ViewModel.Instance.SelectedPlaybackOutputDevice.ID,
+                    cancellationTokenSource.Token
+                );
+
+                // 3) Wrap up
+                if (resent)
+                    ViewModel.Instance.ChatFeedbackTxt = "Chat was sent again with TTS.";
+                else
+                    ViewModel.Instance.ChatFeedbackTxt = "Chat was sent with TTS.";
+
+                _activeCancellationTokens.Remove(cancellationTokenSource);
             }
             catch (OperationCanceledException ex)
             {
@@ -1397,6 +1403,7 @@ namespace vrcosc_magicchatbox
             catch (Exception ex)
             {
                 ViewModel.Instance.ChatFeedbackTxt = "Error sending a chat with TTS";
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 
