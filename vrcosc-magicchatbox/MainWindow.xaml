@@ -3429,14 +3429,46 @@
 
                                         </StackPanel>
                                         <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="OpenAI STT Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding WhisperModule.Settings.AvailableSTTModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding WhisperModule.Settings.SpeechToTextModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBlock
                                             Width="600"
-                                            Padding="2,14,0,5"
+                                            Padding="2,14,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="13"
                                             Foreground="#FF9983AD"
                                             Text="You can speak any language you want, the AI will try to understand it. If you want to translate it."
+                                            TextWrapping="Wrap" />
+                                        <TextBlock
+                                            Width="600"
+                                            Padding="2,0,0,5"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Only works in Whisper"
                                             TextWrapping="Wrap" />
                                         <CheckBox
                                             x:Name="TranslateToCustomLanguage"
