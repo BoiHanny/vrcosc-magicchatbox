@@ -1584,21 +1584,16 @@ PropertyInfo property)
 
     public static void CheckLogFolder()
     {
+        string temppath = Path.Combine(Path.GetTempPath(), "Vrcosc-MagicChatbox");
         try
         {
             try
             {
                 // Instead of placing the temp directly in C:\ lets move it further back into it placing it in Local of the appdata
-                string temppath = Path.Combine(Path.GetTempPath(), "Vrcosc-MagicChatbox");
                 if (CreateIfMissing(temppath) == true)
                     Logging.WriteInfo("Application started at: " + DateTime.Now);
             }
-            catch (Exception ex)
-              
-            if (CreateIfMissing(temppath) == true)
-            {
-                Logging.WriteInfo("Application started at: " + DateTime.Now);
-            }
+            catch (Exception ex) { Logging.WriteException(ex); }
         }
         catch (Exception ex)
         {
