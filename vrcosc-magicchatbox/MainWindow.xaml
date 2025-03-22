@@ -940,6 +940,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -6571,7 +6572,37 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </Grid>
+
                     </Grid>
+                    <Grid Grid.Row="12" Margin="0,5,0,10">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="#FF9983AD"
+                            TextWrapping="Wrap">
+                            <Run Text="By using MagicChatbox, you agree to our" />
+                            <!--  Hyperlink to the Terms of Service  -->
+                            <Hyperlink
+                                Foreground="#FF31B7B4"
+                                NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md"
+                                RequestNavigate="Hyperlink_RequestNavigate"
+                                ToolTip="View our Terms of Service">
+                                <Run Text="Terms of Service" />
+                            </Hyperlink>
+                            <Run Text="and" />
+                            <!--  Hyperlink to the Software License Agreement  -->
+                            <Hyperlink
+                                Foreground="#FF31B7B4"
+                                NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md"
+                                RequestNavigate="Hyperlink_RequestNavigate"
+                                ToolTip="View our Software License Agreement">
+                                <Run Text="Software License Agreement" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </Grid>
+
                 </Grid>
             </ScrollViewer>
             <Grid

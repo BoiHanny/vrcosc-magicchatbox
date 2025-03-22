@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Navigation;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -53,7 +54,11 @@ namespace vrcosc_magicchatbox
             this.StateChanged += MainWindow_StateChanged;
         }
 
-
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
+        }
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
