@@ -1,3 +1,5 @@
+![Banner MagicChatbox TOS](https://github.com/user-attachments/assets/7234f0fa-ace3-46c7-af60-860a892e1982)
+
 > [!CAUTION]  
 > **MagicChatbox Terms of Service (TOS)**  
 > *Effective as of Day 22 | Month 03 | Year 2025*
