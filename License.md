@@ -20,8 +20,8 @@
 > - **Licensor:** BoiHanny, the creator and copyright holder.
 > - **Licensee:** Any individual or entity using, copying, modifying, or distributing the Software under this Agreement.
 > - **Protected Components:** Specific integral parts of the Software that are subject to additional restrictions. These include:  
->  ⇥ The **Monitoring and Ban API** used for moderation in VRChat.  
->  ⇥ The **Pulsoid Heart Rate Integration Module**, which connects the Software exclusively to the Pulsoid heart rate streaming service.
+>   - The **Monitoring and Ban API** used for moderation in VRChat.  
+>   - The **Pulsoid Heart Rate Integration Module**, which connects the Software exclusively to the Pulsoid heart rate streaming service.
 > - **Fork/Derivative Work:** Any software or project derived from the Software, including modifications or adaptations of its source code.
 > - **TOS:** The MagicChatbox Terms of Service, currently located at [`Security.md`](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md), which is incorporated by reference into this Agreement.
 >
