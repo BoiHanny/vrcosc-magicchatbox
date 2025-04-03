@@ -2,7 +2,7 @@
 > **MagicChatbox Terms of Service (TOS)**  
 > *Effective as of Day 22 | Month 03 | Year 2025*
 
-# MagicChatbox Terms of Service (TOS)
+# 📜 MagicChatbox Terms of Service (TOS)
 
 These Terms of Service govern your use of MagicChatBox. They are intended to ensure a respectful, lawful, and safe environment for all users. They apply when you run or interact with the software and do **not** cover modification or distribution rights—which are addressed in the separate [Software License Agreement](https://github.com/BoiHanny/vrcosc-magicchatbox/edit/master/License.md).
 
