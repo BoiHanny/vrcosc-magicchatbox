@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '9.0.x'
 
     # Step 1: Extract version from the csproj
     - name: Extract Version from csproj
@@ -87,7 +87,7 @@ jobs:
       if: steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net9.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
 
     # Step 7: [Optional] Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
@@ -177,7 +177,7 @@ jobs:
           </div>
 
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer) installed on your system.
+          2. Make sure you have [**.NET 9**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-9.0.4-windows-x64-installer) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.
