@@ -63,7 +63,6 @@ If you need more help, feel free to click the button below:
 - [Rating](information/Rating.md) – Our User Ratings
 - [Contact](https://discord.gg/magicchatbox) – Create a support ticket here
 - [Funding](information/Funding.md) – Our community’s advocates
-- [Pulsoid TOS](information/PulsoidTOS.md) – Terms of Service for Pulsoid Integration
 - [Documentation](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki) – Detailed guides and manuals
 
 ---
