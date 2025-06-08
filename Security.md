@@ -129,6 +129,16 @@ These Terms of Service govern your use of MagicChatBox. They are intended to ens
 > - **15.1** These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which the MagicChatBox developers are located. Any disputes will be subject to the exclusive jurisdiction of those courts.
 > 
 > ---
+> ## 16. Advertising
+> 
+> Advertising through the system is permitted under the following conditions:
+> 
+> * Brand Integrity: Advertisements must not harm the reputation or image of MagicChatbox.
+> * Legality: Advertisements must not promote or support illegal activities in any applicable jurisdiction.
+> * Transparency: Advertisements must not be misleading or deceptive, especially if intended to exploit or defraud users.
+> * Clear Labeling: All advertisements must be clearly identifiable as such and appropriately labeled.
+> * Data Protection Compliance: All advertisements must comply with applicable data protection laws and must not involve unauthorized data collection or sharing.
+> ---
 
 ``By using MagicChatBox, you confirm your agreement to these Terms of Service and commit to adhering to them.``
 
