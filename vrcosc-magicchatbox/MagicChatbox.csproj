@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.080</Version>
+	<Version>0.9.125</Version>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -200,15 +200,15 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.5" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.5-pre412" />
+    <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.6" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6-pre600" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.5-beta1" />
     <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
-    <PackageReference Include="NLog" Version="6.0.0-preview1" />
-	  <PackageReference Include="OpenAI-DotNet" Version="8.6.4" />
-	  <PackageReference Include="System.Management" Version="10.0.0-preview.3.25171.5" />
+    <PackageReference Include="NLog" Version="6.0.7" />
+	  <PackageReference Include="OpenAI-DotNet" Version="8.8.8" />
+	  <PackageReference Include="System.Management" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
