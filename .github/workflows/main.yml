@@ -8,11 +8,14 @@ on:
 
 env:
   Solution_Name: vrcosc-magicchatbox.sln
-  Project_Path: vrcosc-magicchatbox\vrcosc_magicchatbox.csproj
+  Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
+  DOTNET_ROOT: C:\Program Files\dotnet
 
 jobs:
   build-and-release:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout Repository
@@ -21,36 +24,76 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: '9.0.x'
 
-    - name: Restore Dependencies
-      run: dotnet restore ${{ env.Solution_Name }}
-
-    - name: Build Solution
-      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
-
+    # Step 1: Extract version from the csproj
     - name: Extract Version from csproj
-      id: get_version
+      shell: pwsh
       run: |
-        $csproj = "vrcosc-magicchatbox\MagicChatbox.csproj"
-        $pattern = '<Version>(.*)<\/Version>'
+        $csproj = "${{ env.Project_Path }}"
+        $pattern = '<Version>(.*)</Version>'
         $content = Get-Content $csproj -Raw
         $match = [regex]::Match($content, $pattern)
         if ($match.Success -and $match.Groups.Count -gt 1) {
           $version = $match.Groups[1].Value
-          echo "VERSION=$version" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-        } else {
-          echo "Error: Version not found in csproj file."
+          echo "VERSION=$version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        }
+        else {
+          Write-Error "Error: Version not found in csproj file."
           exit 1
         }
-      shell: pwsh
 
-    - name: Create Zip File
+    # Step 2: Check if a release with this version already exists
+    - name: Check if Release Exists
+      id: check_release
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const tag = `v${{ env.VERSION }}`;
+          try {
+            await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: tag
+            });
+            core.setOutput('release_exists', 'true');
+          } catch (error) {
+            if (error.status === 404) {
+              core.setOutput('release_exists', 'false');
+            } else {
+              throw error;
+            }
+          }
+
+    # Step 3: If the release already exists, stop here
+    - name: Release Already Exists
+      if: steps.check_release.outputs.release_exists == 'true'
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net8.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+        echo "Release v${{ env.VERSION }} already exists. Skipping build and release."
+        exit 0
 
+    # Step 4: Restore Dependencies (only if release doesn't exist)
+    - name: Restore Dependencies
+      if: steps.check_release.outputs.release_exists == 'false'
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    # Step 5: Build Solution (only if release doesn't exist)
+    - name: Build Solution
+      if: steps.check_release.outputs.release_exists == 'false'
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
+
+    # Step 6: Create ZIP of artifacts
+    - name: Create Zip File
+      if: steps.check_release.outputs.release_exists == 'false'
+      shell: pwsh
+      run: |
+        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net9.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+
+    # Step 7: [Optional] Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
+      if: steps.check_release.outputs.release_exists == 'false'
       id: virustotal_scan
+      shell: pwsh
       run: |
         $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
@@ -65,7 +108,9 @@ jobs:
         echo "::set-output name=SCAN_ID::$scan_id"
 
     - name: Get VirusTotal Scan Report
+      if: steps.check_release.outputs.release_exists == 'false'
       id: virustotal_report
+      shell: pwsh
       run: |
         $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
         $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
@@ -77,8 +122,11 @@ jobs:
         $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
         echo "::set-output name=REPORT_URL::$report_url"
 
+    # Step 8: Determine if this is a pre-release or final release
     - name: Determine Release Type
+      if: steps.check_release.outputs.release_exists == 'false'
       id: determine_release_type
+      shell: pwsh
       run: |
         if ($env:GITHUB_REF -eq 'refs/heads/master') {
           echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
@@ -87,9 +135,10 @@ jobs:
           echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
           echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         }
-      shell: pwsh
 
+    # Step 9: Create GitHub Release
     - name: Create Release
+      if: steps.check_release.outputs.release_exists == 'false'
       id: create_release
       uses: actions/create-release@v1
       env:
@@ -103,7 +152,13 @@ jobs:
           <div align="center">
             <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
             <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
+          </div>
 
+          > [!IMPORTANT]
+          > **We highly recommend reading our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before you download or use MagicChatBox.**  
+          > It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
+
+          <div align="center">
             <p>
               <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
@@ -122,7 +177,7 @@ jobs:
           </div>
 
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 8**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.8-windows-x64-installer) installed on your system.
+          2. Make sure you have [**.NET 9**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-9.0.4-windows-x64-installer) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.
@@ -134,11 +189,11 @@ jobs:
             <p>We take your security seriously! Each release of MagicChatbox is scanned with VirusTotal to ensure it's free from harmful software.</p>
             <p>However, please be aware that some antivirus engines might flag the application. This is due to the nature of certain components we use, such as:</p>
             <ul>
-              <p>🔍 <strong>Window Activity</strong> - To show which windows you are currently focused on<p>
-              <p>🔗 <strong>MediaLink Components</strong> - For better multimedia integration<p>
-              <p>📊 <strong>Component Stats</strong> - For performance tracking<p>
-              <p>🌙 <strong>AFK Module</strong> - To detect when you are away from the keyboard<p>
-              <p>🎮 <strong>OSC Controller</strong> - To communicate with VRChat<p>
+              <p>🔍 <strong>Window Activity</strong> - To show which windows you are currently focused on</p>
+              <p>🔗 <strong>MediaLink Components</strong> - For better multimedia integration</p>
+              <p>📊 <strong>Component Stats</strong> - For performance tracking</p>
+              <p>🌙 <strong>AFK Module</strong> - To detect when you are away from the keyboard</p>
+              <p>🎮 <strong>OSC Controller</strong> - To communicate with VRChat</p>
             </ul>
             <p>These features might trigger warnings from lesser-known scanners. Rest assured, we strive to keep our software as secure as possible and any flagged activity is closely monitored to maintain your safety.</p>
             <p>For more details on the scan results, check the VirusTotal report linked above.</p>
@@ -150,14 +205,16 @@ jobs:
             <h2>📞 Need Help? We're Here for You! 📞</h2>
             <p>Have any questions, suggestions, or feedback? Reach out to us through one of the following channels:</p>
             <ul>
-            <p><strong>Our Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">Join now!!!</a><p>
-              <p><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a><p>
-              <p><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a><p>
+              <p><strong>Our Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">Join now!!!</a></p>
+              <p><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a></p>
+              <p><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a></p>
             </ul>
             <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
           </div>
 
+    # Step 10: Upload Release Asset
     - name: Upload Release Asset
+      if: steps.check_release.outputs.release_exists == 'false'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}

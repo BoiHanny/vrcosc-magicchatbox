@@ -1,15 +1,16 @@
-﻿using NAudio.Wave;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NAudio.Wave;
+using Newtonsoft.Json;
+using OpenAI.Audio;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenAI.Audio;
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
@@ -31,6 +32,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         [ObservableProperty]
         private List<RecordingDeviceInfo> availableDevices;
+
+        [ObservableProperty]
+        private IntelliGPTModel speechToTextModel = IntelliGPTModel.whisper1;
 
         [ObservableProperty]
         private bool isNoiseGateOpen = false;
@@ -59,7 +63,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         private bool translateToCustomLanguage = false;
 
-        // Private constructor to enforce use of LoadSettings method.
+        /// <summary>
+        /// Shows only models with ModelType == "STT" in IntelliGPTModel.
+        /// </summary>
+        [JsonIgnore]
+        public IEnumerable<IntelliGPTModel> AvailableSTTModels =>
+            Enum.GetValues(typeof(IntelliGPTModel))
+                .Cast<IntelliGPTModel>()
+                .Where(m => WhisperModule.GetModelType(m) == "STT");
+
+        // Private constructor (use LoadSettings).
         private WhisperModuleSettings()
         {
             RefreshDevices();
@@ -67,13 +80,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Refreshes the list of available languages.
+        /// Refreshes the list of supported languages in the UI and preserves the current selection if still valid.
         /// </summary>
         private void RefreshSpeechToTextLanguages()
         {
-            // Save the current selection so it can be re-applied after the list is refreshed.
             var currentSelectedLanguageCode = SelectedSpeechToTextLanguage?.Code;
 
+            // This set includes most major languages for the speech-to-text functionality.
             SpeechToTextLanguages = new List<SpeechToTextLanguage>
             {
                 new SpeechToTextLanguage { Language = "English", Code = "en" },
@@ -145,8 +158,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 new SpeechToTextLanguage { Language = "Catalan", Code = "ca" },
             };
 
-            // Restore the previous selection if it still exists.
-            var languageExists = SpeechToTextLanguages.Any(lang => lang.Code == currentSelectedLanguageCode);
+            bool languageExists = SpeechToTextLanguages.Any(lang => lang.Code == currentSelectedLanguageCode);
             SelectedSpeechToTextLanguage = languageExists
                 ? SpeechToTextLanguages.First(lang => lang.Code == currentSelectedLanguageCode)
                 : SpeechToTextLanguages.FirstOrDefault();
@@ -155,17 +167,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Loads settings from disk, handling cases of empty or corrupted JSON.
+        /// Loads settings from disk, handling empty or corrupted JSON gracefully.
         /// </summary>
         public static WhisperModuleSettings LoadSettings()
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var settingsFolder = Path.Combine(appDataPath, "Vrcosc-MagicChatbox");
+            var path = Path.Combine(settingsFolder, SettingsFileName);
+
             if (File.Exists(path))
             {
-                var settingsJson = File.ReadAllText(path);
+                string settingsJson = File.ReadAllText(path);
                 if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
                 {
-                    Logging.WriteInfo("The settings JSON file is empty or corrupted.");
+                    Logging.WriteInfo("Settings file is empty or corrupted.");
                     return new WhisperModuleSettings();
                 }
 
@@ -180,7 +195,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     }
                     else
                     {
-                        Logging.WriteInfo("Failed to deserialize the settings JSON.");
+                        Logging.WriteInfo("Deserialization of settings failed.");
                         return new WhisperModuleSettings();
                     }
                 }
@@ -192,23 +207,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             else
             {
-                Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
+                Logging.WriteInfo("Settings file not found, returning new instance.");
                 return new WhisperModuleSettings();
             }
         }
 
         /// <summary>
-        /// Refreshes the list of available recording devices.
+        /// Refreshes the list of recording devices on the system.
         /// </summary>
         public void RefreshDevices()
         {
             availableDevices = new List<RecordingDeviceInfo>();
             for (int n = 0; n < WaveIn.DeviceCount; n++)
             {
-                var capabilities = WaveIn.GetCapabilities(n);
-                availableDevices.Add(new RecordingDeviceInfo(n, capabilities.ProductName));
+                var caps = WaveIn.GetCapabilities(n);
+                availableDevices.Add(new RecordingDeviceInfo(n, caps.ProductName));
             }
-            // If the currently selected device is no longer available, reset the selection.
+
             if (selectedDeviceIndex >= availableDevices.Count)
             {
                 SelectedDeviceIndex = availableDevices.Any() ? 0 : -1;
@@ -216,19 +231,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Saves settings to disk.
+        /// Saves the STT settings to disk.
         /// </summary>
         public void SaveSettings()
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox", SettingsFileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)); // Ensure directory exists
-            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var settingsFolder = Path.Combine(appDataPath, "Vrcosc-MagicChatbox");
+            var path = Path.Combine(settingsFolder, SettingsFileName);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+            string settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
             File.WriteAllText(path, settingsJson);
         }
     }
 
     /// <summary>
-    /// Simple class representing a recording device.
+    /// Holds device index and name for an audio input device.
     /// </summary>
     public class RecordingDeviceInfo
     {
@@ -245,105 +264,106 @@ namespace vrcosc_magicchatbox.Classes.Modules
     }
 
     /// <summary>
-    /// Main module that handles recording, detecting speech, and transcribing audio using OpenAI.
+    /// Manages audio recording, detecting speech, and transcribing with OpenAI.
     /// </summary>
     public partial class WhisperModule : ObservableObject, IDisposable
     {
-        // Shared audio buffer and associated lock for thread safety.
-        private MemoryStream audioStream = new MemoryStream();
+        // Thread-safe audio stream plus lock.
+        private readonly MemoryStream audioStream = new MemoryStream();
         private readonly object _audioStreamLock = new object();
 
-        // Cancellation source for transcription tasks (optional).
+        // Manages transcription cancellation.
         private CancellationTokenSource _transcriptionCancellationTokenSource = new CancellationTokenSource();
 
-        // State variables for speaking detection.
-        private bool isCurrentlySpeaking = false;
-        private bool isProcessingShortPause = false;
+        // Speech detection states.
+        private bool isCurrentlySpeaking;
+        private bool isProcessingShortPause;
         private DateTime lastSoundTimestamp = DateTime.Now;
-        private TimeSpan speakingDuration = TimeSpan.Zero;
-        private DateTime speakingStartedTimestamp = DateTime.Now;
+        private TimeSpan speakingDuration;
+        private DateTime speakingStartedTimestamp;
+
         private WaveInEvent waveIn;
 
         [ObservableProperty]
-        public WhisperModuleSettings settings;
+        private WhisperModuleSettings settings;
 
+        /// <summary>
+        /// Raised when transcription text is ready.
+        /// </summary>
+        public event Action<string> TranscriptionReceived;
+
+        /// <summary>
+        /// Raised after a final chunk is transcribed, if auto-sending is enabled.
+        /// </summary>
+        public event Action SentChatMessage;
+
+        /// <summary>
+        /// Constructor: load settings, subscribe to changes, set up wave device.
+        /// </summary>
         public WhisperModule()
         {
             settings = WhisperModuleSettings.LoadSettings();
-            Settings.PropertyChanged += Settings_PropertyChanged;
+            settings.PropertyChanged += Settings_PropertyChanged;
             InitializeWaveIn();
         }
 
         /// <summary>
-        /// Event raised when a transcription is received.
+        /// Calculates the maximum amplitude from raw audio data, normalized 0..1.
         /// </summary>
-        public event Action<string> TranscriptionReceived;
-
-        public event Action SentChatMessage;
-
-        /// <summary>
-        /// Calculate the maximum amplitude (normalized) from the provided audio buffer.
-        /// </summary>
-        /// <param name="buffer">Audio data</param>
-        /// <param name="bytesRecorded">Number of bytes recorded</param>
-        /// <returns>Maximum amplitude value</returns>
         private float CalculateMaxAmplitude(byte[] buffer, int bytesRecorded)
         {
-            // Convert 16-bit samples to normalized float values.
             short[] samples = new short[bytesRecorded / 2];
             Buffer.BlockCopy(buffer, 0, samples, 0, bytesRecorded);
             return samples.Max(sample => Math.Abs(sample / 32768f));
         }
 
         /// <summary>
-        /// Handles state when speaking is detected.
+        /// Enters the "speaking" state if not already speaking, and accumulates audio.
         /// </summary>
-        /// <param name="e">Audio event args</param>
         private void HandleSpeakingState(WaveInEventArgs e)
         {
             if (!isCurrentlySpeaking)
             {
-                // Start of a new speech segment.
                 speakingStartedTimestamp = DateTime.Now;
                 isCurrentlySpeaking = true;
                 speakingDuration = TimeSpan.Zero;
 
-                // If there is buffered audio from previous speech, process it as a partial transcription.
+                // If the buffer already has data, transcribe partially.
                 if (GetAudioStreamLength() > 0)
                 {
                     _ = ProcessAudioStreamAsync(partial: true);
                 }
             }
 
-            // Safely append new audio data.
             lock (_audioStreamLock)
             {
                 audioStream.Write(e.Buffer, 0, e.BytesRecorded);
             }
+
             lastSoundTimestamp = DateTime.Now;
             UpdateSpeakingDuration();
-            UpdateUI($"Speaking... Duration: {speakingDuration.TotalSeconds:0.0}s", true);
+
+            UpdateUI($"Speaking... {speakingDuration.TotalSeconds:0.0}s", true);
         }
 
         /// <summary>
-        /// Initializes the WaveInEvent instance using the selected recording device.
+        /// Sets up the WaveInEvent using the selected device index.
         /// </summary>
         private void InitializeWaveIn()
         {
-            waveIn?.Dispose(); // Dispose any existing instance
+            waveIn?.Dispose();  // Clean up existing device if any.
 
-            if (Settings.SelectedDeviceIndex == -1)
+            if (settings.SelectedDeviceIndex == -1)
             {
                 UpdateUI("No valid audio input device selected.", false);
-                // Disable recording functionality until a valid device is selected.
                 return;
             }
 
             waveIn = new WaveInEvent
             {
-                DeviceNumber = Settings.SelectedDeviceIndex,
-                WaveFormat = new WaveFormat(16000, 16, 1), // Suitable for voice recognition
-                BufferMilliseconds = 450 // Balance responsiveness and performance
+                DeviceNumber = settings.SelectedDeviceIndex,
+                WaveFormat = new WaveFormat(16000, 16, 1), // best for speech
+                BufferMilliseconds = 350  // shorter buffer => faster partial updates
             };
 
             waveIn.DataAvailable += OnDataAvailable;
@@ -351,13 +371,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Handles incoming audio data.
+        /// Receives audio from the wave device and checks amplitude vs noise gate.
         /// </summary>
         private void OnDataAvailable(object sender, WaveInEventArgs e)
         {
             float maxAmplitude = CalculateMaxAmplitude(e.Buffer, e.BytesRecorded);
-            bool isLoudEnough = maxAmplitude > Settings.NoiseGateThreshold;
-            Settings.IsNoiseGateOpen = isLoudEnough;
+            bool isLoudEnough = maxAmplitude > settings.NoiseGateThreshold;
+            settings.IsNoiseGateOpen = isLoudEnough;
 
             if (isLoudEnough)
             {
@@ -370,7 +390,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Handles cleanup when recording stops.
+        /// Called when the recording stops (manually or due to an error).
         /// </summary>
         private void OnRecordingStopped(object sender, StoppedEventArgs e)
         {
@@ -385,87 +405,82 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Processes the current audio buffer asynchronously.
+        /// Sends the current audio buffer to OpenAI for transcription.
         /// </summary>
-        /// <param name="partial">Whether this is a partial (mid-speech) transcription</param>
-        private async Task ProcessAudioStreamAsync(bool partial = false)
+        private async Task ProcessAudioStreamAsync(bool partial)
         {
             byte[] audioData;
-            // Lock and copy the current audio buffer to avoid conflicts with new incoming audio.
             lock (_audioStreamLock)
             {
                 if (audioStream.Length == 0)
-                {
                     return;
-                }
+
                 audioData = audioStream.ToArray();
                 ResetAudioStream();
             }
 
-            using (var streamToProcess = new MemoryStream(audioData))
+            using (var localCopyStream = new MemoryStream(audioData))
             {
-                UpdateUI(partial ? "Transcribing part of your speech..." : "Transcribing with OpenAI...", true);
+                UpdateUI(
+                    partial ? "Transcribing partial audio..." : "Transcribing final audio...",
+                    showMessage: true
+                );
 
-                // Optionally cancel any previous transcription if still running.
+                // Cancel any older transcription in progress.
                 _transcriptionCancellationTokenSource.Cancel();
+                _transcriptionCancellationTokenSource.Dispose();
                 _transcriptionCancellationTokenSource = new CancellationTokenSource();
 
-                string transcription = await TranscribeAudioAsync(streamToProcess, _transcriptionCancellationTokenSource.Token);
+                string transcription = await TranscribeAudioAsync(localCopyStream, _transcriptionCancellationTokenSource.Token);
                 if (!string.IsNullOrEmpty(transcription))
                 {
                     TranscriptionReceived?.Invoke(transcription);
-                    UpdateUI("Transcription complete.", false);
+                    UpdateUI("Transcription done.", false);
                 }
                 else
                 {
-                    UpdateUI("Error transcribing audio.", false);
+                    UpdateUI("Transcription error or canceled.", false);
                 }
             }
         }
 
         /// <summary>
-        /// Checks if silence or a short pause has occurred and processes the buffered audio accordingly.
+        /// Checks how long we have been silent; triggers partial or final stop accordingly.
         /// </summary>
         private void ProcessSilenceOrShortPause()
         {
-            var silenceDuration = DateTime.Now.Subtract(lastSoundTimestamp).TotalMilliseconds;
+            double silenceMs = (DateTime.Now - lastSoundTimestamp).TotalMilliseconds;
+            if (!isCurrentlySpeaking || silenceMs < 500)
+                return;
 
-            if (!isCurrentlySpeaking || silenceDuration < 500)
-            {
-                return; // Not enough silence to trigger processing.
-            }
-
-            // Process a short pause as a partial transcription.
-            if (silenceDuration <= Settings.SilenceAutoTurnOffDuration && isCurrentlySpeaking)
+            // Short pause => partial transcription, continue capturing.
+            if (silenceMs <= settings.SilenceAutoTurnOffDuration)
             {
                 if (!isProcessingShortPause)
                 {
                     isProcessingShortPause = true;
-                    _ = ProcessAudioStreamAsync(partial: true);
-                    // Reset speaking timing without ending the current session.
+                    _ = ProcessAudioStreamAsync(true);
                     speakingStartedTimestamp = DateTime.Now;
                     speakingDuration = TimeSpan.Zero;
-                    // Allow further processing after a short delay.
+
                     Task.Delay(500).ContinueWith(_ => isProcessingShortPause = false);
                 }
             }
-            // If the silence is too long, end the speaking session.
-            else if (silenceDuration > Settings.SilenceAutoTurnOffDuration && isCurrentlySpeaking)
+            // If silence is too long => auto-stop.
+            else
             {
                 isCurrentlySpeaking = false;
-                StopRecording();
-                UpdateUI($"Silence detected for more than {Settings.SilenceAutoTurnOffDuration / 1000.0} seconds, auto-disabling STT session...", false);
-                if(Settings.SendAftersilence)
-                    SentChatMessage?.Invoke();
+                StopRecording(); // final chunk processed in StopRecording
+                UpdateUI($"Silence > {settings.SilenceAutoTurnOffDuration / 1000.0}s, stopping STT...", false);
             }
         }
 
         /// <summary>
-        /// Handles settings changes – e.g. when the recording device is changed.
+        /// If user changes the device in settings, re-initialize the waveIn.
         /// </summary>
-        private void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Settings.SelectedDeviceIndex))
+            if (e.PropertyName == nameof(settings.SelectedDeviceIndex))
             {
                 StopRecording();
                 InitializeWaveIn();
@@ -473,50 +488,50 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Transcribes the provided audio stream using OpenAI.
+        /// Actual transcription call to OpenAI, returning the recognized text if successful.
         /// </summary>
-        /// <param name="audioStream">The audio stream to transcribe.</param>
-        /// <param name="cancellationToken">Cancellation token to cancel the transcription if needed.</param>
-        /// <returns>The transcription text.</returns>
-        private async Task<string> TranscribeAudioAsync(Stream audioStream, CancellationToken cancellationToken = default)
+        private async Task<string> TranscribeAudioAsync(Stream waveFileStream, CancellationToken cancellationToken)
         {
-            // Create a temporary file with a .wav extension. Some APIs require the extension.
+            // We'll store the wave data on disk in a temporary file for the request.
             string tempFilePath = Path.GetTempFileName() + ".wav";
             try
             {
-                // Write the audio data to a WAV file.
                 using (var writer = new WaveFileWriter(tempFilePath, waveIn.WaveFormat))
                 {
-                    await audioStream.CopyToAsync(writer, 81920, cancellationToken);
+                    await waveFileStream.CopyToAsync(writer, 81920, cancellationToken);
                     writer.Flush();
                 }
 
-                // Call the OpenAI transcription endpoint.
-                // If your OpenAI client supports cancellation tokens, pass it here.
-                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint.CreateTranscriptionTextAsync(
-                    new AudioTranscriptionRequest(
-                        tempFilePath,
-                        language: Settings.TranslateToCustomLanguage ? Settings.SelectedSpeechToTextLanguage.Code : null
-                    ),
-                    cancellationToken
-                );
+                string modelName = GetModelDescription(Settings.SpeechToTextModel);
+                string languageCode = Settings.TranslateToCustomLanguage
+                    ? Settings.SelectedSpeechToTextLanguage?.Code
+                    : null;
+
+                var response = await OpenAIModule.Instance.OpenAIClient.AudioEndpoint
+                    .CreateTranscriptionTextAsync(
+                        new AudioTranscriptionRequest(
+                            audioPath: tempFilePath,
+                            model: modelName,
+                            language: languageCode
+                        ),
+                        cancellationToken
+                    );
 
                 return response;
             }
             catch (OperationCanceledException)
             {
-                Logging.WriteInfo("Transcription was canceled.");
+                Logging.WriteInfo("Transcription canceled by user or system.");
                 return null;
             }
             catch (Exception ex)
             {
-                UpdateUI($"Error during transcription: {ex.Message}", false);
                 Logging.WriteInfo($"Transcription error: {ex}");
+                UpdateUI($"Transcription error: {ex.Message}", false);
                 return null;
             }
             finally
             {
-                // Clean up the temporary file.
                 if (File.Exists(tempFilePath))
                 {
                     File.Delete(tempFilePath);
@@ -525,7 +540,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Updates the speaking duration based on the current time.
+        /// Updates how long we have been speaking.
         /// </summary>
         private void UpdateSpeakingDuration()
         {
@@ -536,7 +551,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Resets the shared audio stream.
+        /// Clears the shared audio buffer in a thread-safe way.
         /// </summary>
         private void ResetAudioStream()
         {
@@ -548,7 +563,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Returns the current length of the audio stream in a thread-safe manner.
+        /// Gets the length of the buffer (in bytes) in a thread-safe way.
         /// </summary>
         private long GetAudioStreamLength()
         {
@@ -559,22 +574,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Updates the UI message. Uses the dispatcher to update WPF UI elements.
+        /// Temporarily shows or hides a status message in your UI.
         /// </summary>
-        /// <param name="message">Message text</param>
-        /// <param name="isVisible">Whether the message should be visible</param>
-        private async void UpdateUI(string message, bool isVisible)
+        private async void UpdateUI(string message, bool showMessage)
         {
-            // Update the UI using your ViewModel.
             ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabelTxt = message;
-            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = isVisible;
+            ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = showMessage;
 
-            if (!isVisible)
+            if (!showMessage)
             {
-                // Show the message briefly before hiding it.
                 ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = true;
                 await Task.Delay(2500);
-                App.Current.Dispatcher.Invoke(() =>
+                App.Current?.Dispatcher?.Invoke(() =>
                 {
                     ViewModel.Instance.IntelliChatModule.Settings.IntelliChatUILabel = false;
                 });
@@ -582,97 +593,152 @@ namespace vrcosc_magicchatbox.Classes.Modules
         }
 
         /// <summary>
-        /// Starts the audio recording session.
+        /// Starts capturing audio from the selected device, if valid. Cancels if OpenAI uninitialized.
         /// </summary>
         public void StartRecording()
         {
             if (!OpenAIModule.Instance.IsInitialized)
             {
                 ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-                UpdateUI("OpenAI not initialized. Please check your settings.", false);
+                UpdateUI("OpenAI not initialized. Please check settings.", false);
                 return;
             }
+
             if (waveIn == null)
             {
-                UpdateUI("Starting recording failed: Device not initialized.", false);
+                UpdateUI("No audio device is ready.", false);
                 return;
             }
-            if (Settings.IsRecording)
+
+            if (settings.IsRecording)
             {
                 UpdateUI("Already recording.", false);
                 return;
             }
-            UpdateUI("Ready to speak?", true);
+
             try
             {
                 waveIn.StartRecording();
-                Settings.IsRecording = true;
+                settings.IsRecording = true;
+                UpdateUI("Recording started. Speak now...", true);
             }
             catch (Exception ex)
             {
-                UpdateUI($"Error starting recording: {ex.Message}", false);
                 Logging.WriteInfo($"StartRecording error: {ex}");
+                UpdateUI($"Error starting recording: {ex.Message}", false);
             }
         }
 
         /// <summary>
-        /// Stops the audio recording session.
+        /// Stops audio capture and processes any remaining audio data, then triggers SentChatMessage as needed.
         /// </summary>
         public void StopRecording()
         {
             if (!OpenAIModule.Instance.IsInitialized)
             {
                 ViewModel.Instance.ActivateSetting("Settings_OpenAI");
-                UpdateUI("OpenAI not initialized. Please check your settings.", false);
+                UpdateUI("OpenAI not initialized. Please check settings.", false);
                 return;
             }
+
             if (waveIn == null)
             {
-                UpdateUI("Stopping recording failed: Device not initialized.", false);
+                UpdateUI("StopRecording failed: no audio device.", false);
                 return;
             }
-            if (!Settings.IsRecording)
+
+            if (!settings.IsRecording)
             {
                 UpdateUI("Not currently recording.", false);
                 return;
             }
+
             try
             {
                 waveIn.StopRecording();
-                Settings.IsRecording = false;
-                UpdateUI("Recording stopped. Processing last audio...", false);
+                settings.IsRecording = false;
+                UpdateUI("Stopped. Processing final chunk...", false);
 
-                // Process any remaining buffered audio.
+                // If leftover data is present, do final transcription. Then, optionally auto-send.
                 if (GetAudioStreamLength() > 0)
                 {
-                    _ = ProcessAudioStreamAsync();
+                    var finalTask = ProcessAudioStreamAsync(partial: false);
+                    finalTask.ContinueWith(t =>
+                    {
+                        // If the transcription task ran successfully, raise SentChatMessage if enabled.
+                        if (!t.IsFaulted && !t.IsCanceled && settings.SendAftersilence)
+                        {
+                            SentChatMessage?.Invoke();
+                        }
+                    });
+                }
+                else
+                {
+                    // If no leftover data, we can still auto-send if you want. 
+                    // Usually no data => no transcription => no reason to send. 
+                    if (settings.SendAftersilence)
+                    {
+                        SentChatMessage?.Invoke();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                UpdateUI($"Error stopping recording: {ex.Message}", false);
                 Logging.WriteInfo($"StopRecording error: {ex}");
+                UpdateUI($"Error stopping recording: {ex.Message}", false);
             }
         }
 
         /// <summary>
-        /// Releases audio and other resources.
+        /// Dispose waveIn, audio stream, and transcription tasks.
         /// </summary>
         public void Dispose()
         {
             waveIn?.Dispose();
             audioStream?.Dispose();
+
             _transcriptionCancellationTokenSource?.Cancel();
             _transcriptionCancellationTokenSource?.Dispose();
+
             UpdateUI("Disposed resources.", false);
         }
 
         /// <summary>
-        /// Should be called on application shutdown to persist settings.
+        /// Saves current settings when closing the application.
         /// </summary>
         public void OnApplicationClosing()
         {
-            Settings.SaveSettings();
+            settings.SaveSettings();
         }
+
+        #region Helper Methods for Model Selection
+
+        private static string GetModelDescription(IntelliGPTModel model)
+        {
+            var type = model.GetType();
+            var memberInfo = type.GetMember(model.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+                if (attrs.Length > 0)
+                    return ((DescriptionAttribute)attrs[0]).Description;
+            }
+            return model.ToString();
+        }
+
+        internal static string GetModelType(IntelliGPTModel model)
+        {
+            var type = model.GetType();
+            var memberInfo = type.GetMember(model.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(ModelTypeInfoAttribute), false);
+                if (attrs.Length > 0)
+                    return ((ModelTypeInfoAttribute)attrs[0]).ModelType;
+            }
+            return "Unknown";
+        }
+
+        #endregion
     }
 }

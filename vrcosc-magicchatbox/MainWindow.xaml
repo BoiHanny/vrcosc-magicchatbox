@@ -940,6 +940,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,5,0,0">
@@ -3428,14 +3429,46 @@
 
                                         </StackPanel>
                                         <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="OpenAI STT Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding WhisperModule.Settings.AvailableSTTModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding WhisperModule.Settings.SpeechToTextModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBlock
                                             Width="600"
-                                            Padding="2,14,0,5"
+                                            Padding="2,14,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="13"
                                             Foreground="#FF9983AD"
                                             Text="You can speak any language you want, the AI will try to understand it. If you want to translate it."
+                                            TextWrapping="Wrap" />
+                                        <TextBlock
+                                            Width="600"
+                                            Padding="2,0,0,5"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Only works in Whisper"
                                             TextWrapping="Wrap" />
                                         <CheckBox
                                             x:Name="TranslateToCustomLanguage"
@@ -4847,6 +4880,21 @@
                             Margin="34,10,0,0"
                             Visibility="{Binding Settings_TTS, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
+                                <Border
+                                    Margin="0,0,0,14"
+                                    Padding="10"
+                                    Background="#33F0A23A"
+                                    BorderBrush="#FFF0A23A"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                    <TextBlock
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FFF8DDB3"
+                                        TextWrapping="Wrap">
+                                        Heads up: The TikTok TTS endpoint this feature used may be shut down, so TTS playback could fail. If it stops working
+                                    </TextBlock>
+                                </Border>
                                 <CheckBox
                                     x:Name="TTSCutOff"
                                     Height="21"
@@ -6571,7 +6619,37 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </Grid>
+
                     </Grid>
+                    <Grid Grid.Row="12" Margin="0,5,0,10">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="#FF9983AD"
+                            TextWrapping="Wrap">
+                            <Run Text="By using MagicChatbox, you agree to our" />
+                            <!--  Hyperlink to the Terms of Service  -->
+                            <Hyperlink
+                                Foreground="#FF31B7B4"
+                                NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md"
+                                RequestNavigate="Hyperlink_RequestNavigate"
+                                ToolTip="View our Terms of Service">
+                                <Run Text="Terms of Service" />
+                            </Hyperlink>
+                            <Run Text="and" />
+                            <!--  Hyperlink to the Software License Agreement  -->
+                            <Hyperlink
+                                Foreground="#FF31B7B4"
+                                NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md"
+                                RequestNavigate="Hyperlink_RequestNavigate"
+                                ToolTip="View our Software License Agreement">
+                                <Run Text="Software License Agreement" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </Grid>
+
                 </Grid>
             </ScrollViewer>
             <Grid
