@@ -12,7 +12,7 @@
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
     <TargetFrameworks></TargetFrameworks>
     <PlatformTarget>x64</PlatformTarget>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StartupObject>vrcosc_magicchatbox.App</StartupObject>
     <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
 	  <GenerateBootstrapperOnBuild>true</GenerateBootstrapperOnBuild>
@@ -262,4 +262,6 @@
   </ItemGroup>
 
 </Project>
+
+
 
