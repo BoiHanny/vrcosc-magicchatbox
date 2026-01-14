@@ -1,4 +1,4 @@
-﻿using MagicChatboxAPI.Enums;
+using MagicChatboxAPI.Enums;
 using MagicChatboxAPI.Services;
 using NLog;
 using System;
@@ -203,3 +203,5 @@ namespace vrcosc_magicchatbox
         }
     }
 }
+
+
