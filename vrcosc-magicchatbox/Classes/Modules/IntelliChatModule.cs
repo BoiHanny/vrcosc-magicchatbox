@@ -30,20 +30,47 @@ public class ModelTypeInfoAttribute : Attribute
 
 public enum IntelliGPTModel
 {
+    [Description("gpt-5.2"), ModelTypeInfo("Chat")]
+    gpt5_2,
+
+    [Description("gpt-5.1"), ModelTypeInfo("Chat")]
+    gpt5_1,
+
+    [Description("gpt-5"), ModelTypeInfo("Chat")]
+    gpt5,
+
+    [Description("gpt-5-mini"), ModelTypeInfo("Chat")]
+    gpt5_mini,
+
+    [Description("gpt-5-nano"), ModelTypeInfo("Chat")]
+    gpt5_nano,
+
+    [Description("gpt-4.1"), ModelTypeInfo("Chat")]
+    gpt4_1,
+
+    [Description("gpt-4.1-mini"), ModelTypeInfo("Chat")]
+    gpt4_1_mini,
+
+    [Description("gpt-4.1-nano"), ModelTypeInfo("Chat")]
+    gpt4_1_nano,
+
     [Description("gpt-4o"), ModelTypeInfo("Chat")]
     gpt4o,
 
     [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
     gpt4omini,
 
-    [Description("gpt-4-turbo"), ModelTypeInfo("Chat")]
-    gpt4_turbo,
+    [Description("o1"), ModelTypeInfo("Chat")]
+    o1,
 
-    [Description("gpt-4"), ModelTypeInfo("Chat")]
-    gpt4,
+    [Description("o1-mini"), ModelTypeInfo("Chat")]
+    o1_mini,
 
-    [Description("gpt-3.5-turbo"), ModelTypeInfo("Chat")]
-    gpt3_5_turbo,
+    [Description("o3"), ModelTypeInfo("Chat")]
+    o3,
+
+    [Description("o3-mini"), ModelTypeInfo("Chat")]
+    o3_mini,
 
     [Description("whisper-1"), ModelTypeInfo("STT")]
     whisper1,
@@ -53,6 +80,9 @@ public enum IntelliGPTModel
 
     [Description("gpt-4o-transcribe"), ModelTypeInfo("STT")]
     gpt_4o_transcribe,
+
+    [Description("gpt-4o-transcribe-diarize"), ModelTypeInfo("STT")]
+    gpt_4o_transcribe_diarize,
 
     [Description("omni-moderation-latest"), ModelTypeInfo("Moderation")]
     Moderation_Latest,
@@ -153,7 +183,7 @@ public partial class IntelliChatModuleSettings : ObservableObject
     private bool autolanguageSelection = true;
 
     [ObservableProperty]
-    private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt4o;
+    private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt5_nano;
 
     [ObservableProperty]
     private bool intelliChatError = false;
@@ -183,21 +213,21 @@ public partial class IntelliChatModuleSettings : ObservableObject
     private bool intelliChatWaitingToAccept = false;
 
     [ObservableProperty]
-    private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt4o;
+    private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt5_nano;
 
     [ObservableProperty]
-    private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt4o;
+    private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt5_nano;
 
     [ObservableProperty]
     private IntelliGPTModel performModerationCheckModel = IntelliGPTModel.Moderation_Latest;
 
     [ObservableProperty]
-    private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt4o;
+    private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt5_nano;
     [ObservableProperty]
-    private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt4o;
+    private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt5_nano;
 
     [ObservableProperty]
-    private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt4o;
+    private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt5_nano;
 
     [ObservableProperty]
     private List<SupportedIntelliChatLanguage> selectedSupportedLanguages = new List<SupportedIntelliChatLanguage>();
@@ -620,26 +650,26 @@ public partial class IntelliChatModule : ObservableObject
         Settings.SelectedWritingStyle = selectedStyle ?? Settings.SupportedWritingStyles.FirstOrDefault(style => style.IsBuiltIn);
         Settings.SelectedTranslateLanguage = selectedTranslateLanguage ?? Settings.SupportedLanguages.Where(lang => lang.Language.Equals("English", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-        var defaultModel = IntelliGPTModel.gpt4o;
+        var defaultModel = IntelliGPTModel.gpt5_nano;
 
         // Check if the selected models are still valid
         Settings.PerformSpellingCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformSpellingCheckModel)
-            ? Settings.PerformSpellingCheckModel : IntelliGPTModel.gpt4o;
+            ? Settings.PerformSpellingCheckModel : defaultModel;
 
         Settings.GenerateConversationStarterModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.GenerateConversationStarterModel)
-            ? Settings.GenerateConversationStarterModel : IntelliGPTModel.gpt4o;
+            ? Settings.GenerateConversationStarterModel : defaultModel;
 
         Settings.PerformLanguageTranslationModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformLanguageTranslationModel)
-            ? Settings.PerformLanguageTranslationModel : IntelliGPTModel.gpt4o;
+            ? Settings.PerformLanguageTranslationModel : defaultModel;
 
         Settings.PerformShortenTextModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformShortenTextModel)
-            ? Settings.PerformShortenTextModel : IntelliGPTModel.gpt4o;
+            ? Settings.PerformShortenTextModel : defaultModel;
 
         Settings.PerformBeautifySentenceModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformBeautifySentenceModel)
-            ? Settings.PerformBeautifySentenceModel : IntelliGPTModel.gpt4o;
+            ? Settings.PerformBeautifySentenceModel : defaultModel;
 
         Settings.PerformTextCompletionModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformTextCompletionModel)
-            ? Settings.PerformTextCompletionModel : IntelliGPTModel.gpt4o;
+            ? Settings.PerformTextCompletionModel : defaultModel;
 
         if (Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformModerationCheckModel) &&
             GetModelType(Settings.PerformModerationCheckModel) == "Moderation")

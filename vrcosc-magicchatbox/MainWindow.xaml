@@ -4880,6 +4880,21 @@
                             Margin="34,10,0,0"
                             Visibility="{Binding Settings_TTS, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
+                                <Border
+                                    Margin="0,0,0,14"
+                                    Padding="10"
+                                    Background="#33F0A23A"
+                                    BorderBrush="#FFF0A23A"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                    <TextBlock
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FFF8DDB3"
+                                        TextWrapping="Wrap">
+                                        Heads up: The TikTok TTS endpoint this feature used may be shut down, so TTS playback could fail. If it stops working
+                                    </TextBlock>
+                                </Border>
                                 <CheckBox
                                     x:Name="TTSCutOff"
                                     Height="21"

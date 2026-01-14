@@ -22,7 +22,7 @@ public static class TTSModule
         byte[] audioBytes = null;
         try
         {
-            var url = "https://tiktok-tts.weilnet.workers.dev/api/generation";
+            var url = "https://gesserit.co/api/tiktok-tts";
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
             httpRequest.Method = "POST";
             httpRequest.ContentType = "application/json";
@@ -40,8 +40,20 @@ public static class TTSModule
             using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
             {
                 var result = await streamReader.ReadToEndAsync();
-                var dataHere = JObject.Parse(result.ToString()).SelectToken("data").ToString();
-                audioInBase64 = dataHere.ToString();
+                var json = JObject.Parse(result);
+                var audioToken = json.SelectToken("audioUrl") ?? json.SelectToken("data");
+                if (audioToken == null)
+                {
+                    return audioBytes;
+                }
+
+                audioInBase64 = audioToken.ToString();
+            }
+
+            var commaIndex = audioInBase64.IndexOf(',');
+            if (commaIndex >= 0)
+            {
+                audioInBase64 = audioInBase64.Substring(commaIndex + 1);
             }
 
             audioBytes = Convert.FromBase64String(audioInBase64);
