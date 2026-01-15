@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="vrcosc_magicchatbox.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -438,289 +438,361 @@
                         </TextBlock>
                     </StackPanel>
                 </Grid>
-                <ScrollViewer
+                <ListBox
                     Name="Statusitems"
                     Grid.Row="2"
+                    Width="710"
+                    Margin="5"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ItemsSource="{Binding StatusList}"
+                    ScrollViewer.CanContentScroll="True"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.IsDeferredScrollingEnabled="True"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    VirtualizingPanel.CacheLength="2"
+                    VirtualizingPanel.CacheLengthUnit="Page"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.VirtualizationMode="Recycling"
                     Visibility="Visible">
-                    <ItemsControl
-                        Width="710"
-                        Height="auto"
-                        Margin="5"
-                        ItemsSource="{Binding StatusList}">
-                        <ItemsControl.Resources>
-                            <Style x:Key="ActiveStatusText" TargetType="TextBlock">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                        <Setter Property="Foreground" Value="#FF9DDAA8" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                        <Setter Property="Foreground" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                            <Style x:Key="ActiveStatusTextEdit" TargetType="TextBox">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                        <Setter Property="Foreground" Value="#FF9DDAA8" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                        <Setter Property="Foreground" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ItemsControl.Resources>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border
-                                    Margin="5"
-                                    Background="DarkSlateBlue"
-                                    CornerRadius="5">
+                    <ListBox.Resources>
+                        <local:CountThresholdConverter x:Key="StatusEffectThresholdConverter" />
+                        <DropShadowEffect
+                            x:Key="StatusCardShadow"
+                            BlurRadius="8"
+                            Direction="0"
+                            Opacity="0.9"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="Black" />
+                        <DropShadowEffect
+                            x:Key="StatusTextShadow"
+                            BlurRadius="18"
+                            Opacity="0.7"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="WhiteSmoke" />
+                        <DropShadowEffect
+                            x:Key="StatusEditTextShadow"
+                            BlurRadius="18"
+                            Opacity="0.9"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="#B0E6FC" />
+                        <DropShadowEffect
+                            x:Key="StatusActiveIconShadow"
+                            BlurRadius="15"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LimeGreen" />
+                        <Style x:Key="ActiveStatusText" TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                    <Setter Property="Foreground" Value="#FF9DDAA8" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                    <Setter Property="Foreground" Value="LightGray" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style x:Key="ActiveStatusTextEdit" TargetType="TextBox">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                    <Setter Property="Foreground" Value="#FF9DDAA8" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                    <Setter Property="Foreground" Value="LightGray" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style x:Key="StatusShadowBorder" TargetType="Border">
+                            <Setter Property="Effect" Value="{StaticResource StatusCardShadow}" />
+                            <Setter Property="CacheMode">
+                                <Setter.Value>
+                                    <BitmapCache RenderAtScale="1.0" />
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                                    <Setter Property="Effect" Value="{x:Null}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style
+                            x:Key="ActiveStatusTextShadow"
+                            BasedOn="{StaticResource ActiveStatusText}"
+                            TargetType="TextBlock">
+                            <Setter Property="Effect" Value="{StaticResource StatusTextShadow}" />
+                            <Setter Property="CacheMode">
+                                <Setter.Value>
+                                    <BitmapCache RenderAtScale="1.0" />
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                                    <Setter Property="Effect" Value="{x:Null}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style
+                            x:Key="ActiveStatusTextEditShadow"
+                            BasedOn="{StaticResource ActiveStatusTextEdit}"
+                            TargetType="TextBox">
+                            <Setter Property="Effect" Value="{StaticResource StatusEditTextShadow}" />
+                            <Setter Property="CacheMode">
+                                <Setter.Value>
+                                    <BitmapCache RenderAtScale="1.0" />
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                                    <Setter Property="Effect" Value="{x:Null}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style x:Key="ActiveStatusIconStyle" TargetType="Image">
+                            <Setter Property="Effect" Value="{StaticResource StatusActiveIconShadow}" />
+                            <Setter Property="CacheMode">
+                                <Setter.Value>
+                                    <BitmapCache RenderAtScale="1.0" />
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                                    <Setter Property="Effect" Value="{x:Null}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Resources>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                Margin="5"
+                                Background="DarkSlateBlue"
+                                CornerRadius="5">
+                                <Grid>
+                                    <Border
+                                        Width="auto"
+                                        Height="auto"
+                                        Background="DarkSlateBlue"
+                                        BorderThickness="0"
+                                        CornerRadius="5"
+                                        Style="{StaticResource StatusShadowBorder}" />
                                     <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="35" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="35" />
+                                            <ColumnDefinition Width="30" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="25" />
+                                            <ColumnDefinition Width="35" />
+                                        </Grid.ColumnDefinitions>
                                         <Border
-                                            Width="auto"
-                                            Height="auto"
-                                            Background="DarkSlateBlue"
-                                            BorderThickness="0"
-                                            CornerRadius="5">
-                                            <Border.Effect>
-                                                <DropShadowEffect
-                                                    BlurRadius="8"
-                                                    Direction="0"
-                                                    Opacity="0.9"
-                                                    RenderingBias="Performance"
-                                                    ShadowDepth="0"
-                                                    Color="black" />
-                                            </Border.Effect>
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Background="#3A1F73">
+                                            <Image
+                                                Width="22"
+                                                Height="22"
+                                                Source="/Img/Icons/ActivatedStatus_ico.png"
+                                                Stretch="Uniform"
+                                                Style="{StaticResource ActiveStatusIconStyle}" />
                                         </Border>
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="35" />
-                                            </Grid.RowDefinitions>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="35" />
-                                                <ColumnDefinition Width="30" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="25" />
-                                                <ColumnDefinition Width="35" />
-                                            </Grid.ColumnDefinitions>
-                                            <Border
-                                                Grid.Row="0"
-                                                Grid.Column="0"
-                                                Background="#3A1F73">
+
+
+
+                                        <ToggleButton
+                                            x:Name="Editbutton"
+                                            Grid.Row="0"
+                                            Grid.Column="3"
+                                            Width="25"
+                                            Height="35"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Background="#483472"
+                                            BorderThickness="0"
+                                            Checked="Editbutton_Checked"
+                                            Cursor="Hand"
+                                            IsChecked="{Binding IsEditing}"
+                                            Style="{DynamicResource Editbutton}"
+                                            Tag="{Binding}"
+                                            Unchecked="Editbutton_Checked">
+                                            <Grid>
                                                 <Image
-                                                    Width="22"
-                                                    Height="22"
-                                                    Source="/Img/Icons/ActivatedStatus_ico.png"
-                                                    Stretch="Uniform">
-                                                    <Image.Effect>
-                                                        <DropShadowEffect
-                                                            BlurRadius="15"
-                                                            RenderingBias="Performance"
-                                                            ShadowDepth="0"
-                                                            Color="LimeGreen" />
-                                                    </Image.Effect>
+                                                    Width="15"
+                                                    Height="15"
+                                                    RenderOptions.BitmapScalingMode="Linear"
+                                                    Source="/Img/Icons/Edit_ico.png" />
+                                            </Grid>
+                                        </ToggleButton>
+
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="16"
+                                            Foreground="DarkSlateBlue"
+                                            Style="{StaticResource ActiveStatusTextShadow}"
+                                            Text="{Binding msg}"
+                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="16"
+                                            Style="{StaticResource ActiveStatusText}"
+                                            Text="{Binding msg}"
+                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox
+                                            x:Name="EditTextBox"
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Margin="7,0,30,0"
+                                            VerticalAlignment="Center"
+                                            local:TextBoxBehaviour.HandleEnterKey="True"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="16"
+                                            FontWeight="Medium"
+                                            IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource ActiveStatusTextEditShadow}"
+                                            Text="{Binding editMsg}"
+                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+
+
+                                        <Button
+                                            x:Name="CancelEditbutton"
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Width="20"
+                                            Height="20"
+                                            Margin="0,0,5,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Background="#6B0000"
+                                            BorderThickness="0"
+                                            Click="CancelEditbutton_Click"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource CancelEditbutton}"
+                                            Tag="{Binding}"
+                                            Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Grid>
+                                                <Image
+                                                    Width="15"
+                                                    Height="15"
+                                                    Source="/Img/Icons/Cross_ico.png" />
+                                            </Grid>
+                                        </Button>
+
+                                        <Button
+                                            Name="Activatebutton"
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Width="35"
+                                            Height="35"
+                                            Margin="0,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Background="#3A1F73"
+                                            BorderThickness="0"
+                                            Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource Activatebutton}"
+                                            Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                            <Image
+                                                Width="22"
+                                                Height="22"
+                                                Source="/Img/Icons/ActivateStatus_ico.png"
+                                                Stretch="Uniform" />
+                                        </Button>
+
+                                        <Button
+                                            x:Name="Deletebutton"
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Width="30"
+                                            Height="35"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Background="#3F2970"
+                                            BorderThickness="0"
+                                            Click="DeleteButton_Click"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource Deletebutton}"
+                                            Tag="{Binding}">
+                                            <Grid>
+                                                <Image
+                                                    Width="20"
+                                                    Height="20"
+                                                    Source="/Img/Icons/Delete_ico.png" />
+                                            </Grid>
+                                        </Button>
+
+                                        <Button
+                                            Name="Favbutton"
+                                            Grid.Row="0"
+                                            Grid.Column="4"
+                                            Width="35"
+                                            Height="35"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Background="#3A1F73"
+                                            BorderThickness="0"
+                                            Click="Favbutton_Click"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource Favbutton}">
+                                            <Grid>
+                                                <Image Width="22" Height="22">
+                                                    <Image.Style>
+                                                        <Style>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding UseInCycle}" Value="True">
+                                                                    <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding UseInCycle}" Value="False">
+                                                                    <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
                                                 </Image>
-                                            </Border>
+                                            </Grid>
+                                        </Button>
 
-
-
-                                            <ToggleButton
-                                                x:Name="Editbutton"
-                                                Grid.Row="0"
-                                                Grid.Column="3"
-                                                Width="25"
-                                                Height="35"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center"
-                                                Background="#483472"
-                                                BorderThickness="0"
-                                                Checked="Editbutton_Checked"
-                                                Cursor="Hand"
-                                                IsChecked="{Binding IsEditing}"
-                                                Style="{DynamicResource Editbutton}"
-                                                Tag="{Binding}"
-                                                Unchecked="Editbutton_Checked">
-                                                <Grid>
-                                                    <Image
-                                                        Width="15"
-                                                        Height="15"
-                                                        RenderOptions.BitmapScalingMode="Linear"
-                                                        Source="/Img/Icons/Edit_ico.png" />
-                                                </Grid>
-                                            </ToggleButton>
-
-                                            <TextBlock
-                                                Grid.Row="0"
-                                                Grid.Column="2"
-                                                Margin="8,0,0,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="16"
-                                                Foreground="DarkSlateBlue"
-                                                Style="{StaticResource ActiveStatusText}"
-                                                Text="{Binding msg}"
-                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="18"
-                                                        Opacity="0.7"
-                                                        RenderingBias="Performance"
-                                                        ShadowDepth="0"
-                                                        Color="WhiteSmoke" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-
-                                            <TextBlock
-                                                Grid.Row="0"
-                                                Grid.Column="2"
-                                                Margin="8,0,0,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="16"
-                                                Style="{StaticResource ActiveStatusText}"
-                                                Text="{Binding msg}"
-                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                            <TextBox
-                                                x:Name="EditTextBox"
-                                                Grid.Row="0"
-                                                Grid.Column="2"
-                                                Margin="7,0,30,0"
-                                                VerticalAlignment="Center"
-                                                local:TextBoxBehaviour.HandleEnterKey="True"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                FontFamily="Comfortaa Light"
-                                                FontSize="16"
-                                                FontWeight="Medium"
-                                                IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                                Style="{StaticResource ActiveStatusTextEdit}"
-                                                Text="{Binding editMsg}"
-                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBox.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="18"
-                                                        Opacity="0.9"
-                                                        RenderingBias="Performance"
-                                                        ShadowDepth="0"
-                                                        Color="#B0E6FC" />
-                                                </TextBox.Effect>
-                                            </TextBox>
-
-
-
-                                            <Button
-                                                x:Name="CancelEditbutton"
-                                                Grid.Row="0"
-                                                Grid.Column="2"
-                                                Width="20"
-                                                Height="20"
-                                                Margin="0,0,5,0"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Center"
-                                                Background="#6B0000"
-                                                BorderThickness="0"
-                                                Click="CancelEditbutton_Click"
-                                                Cursor="Hand"
-                                                Style="{DynamicResource CancelEditbutton}"
-                                                Tag="{Binding}"
-                                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <Grid>
-                                                    <Image
-                                                        Width="15"
-                                                        Height="15"
-                                                        Source="/Img/Icons/Cross_ico.png" />
-                                                </Grid>
-                                            </Button>
-
-                                            <Button
-                                                Name="Activatebutton"
-                                                Grid.Row="0"
-                                                Grid.Column="0"
-                                                Width="35"
-                                                Height="35"
-                                                Margin="0,0,0,0"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center"
-                                                Background="#3A1F73"
-                                                BorderThickness="0"
-                                                Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                Cursor="Hand"
-                                                Style="{DynamicResource Activatebutton}"
-                                                Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                                <Image
-                                                    Width="22"
-                                                    Height="22"
-                                                    Source="/Img/Icons/ActivateStatus_ico.png"
-                                                    Stretch="Uniform" />
-                                            </Button>
-
-                                            <Button
-                                                x:Name="Deletebutton"
-                                                Grid.Row="0"
-                                                Grid.Column="1"
-                                                Width="30"
-                                                Height="35"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center"
-                                                Background="#3F2970"
-                                                BorderThickness="0"
-                                                Click="DeleteButton_Click"
-                                                Cursor="Hand"
-                                                Style="{DynamicResource Deletebutton}"
-                                                Tag="{Binding}">
-                                                <Grid>
-                                                    <Image
-                                                        Width="20"
-                                                        Height="20"
-                                                        Source="/Img/Icons/Delete_ico.png" />
-                                                </Grid>
-                                            </Button>
-
-                                            <Button
-                                                Name="Favbutton"
-                                                Grid.Row="0"
-                                                Grid.Column="4"
-                                                Width="35"
-                                                Height="35"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center"
-                                                Background="#3A1F73"
-                                                BorderThickness="0"
-                                                Click="Favbutton_Click"
-                                                Cursor="Hand"
-                                                Style="{DynamicResource Favbutton}">
-                                                <Grid>
-                                                    <Image Width="22" Height="22">
-                                                        <Image.Style>
-                                                            <Style>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="True">
-                                                                        <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png" />
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="False">
-                                                                        <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Image.Style>
-                                                    </Image>
-                                                    <CheckBox
-                                                        Width="35"
-                                                        Height="35"
-                                                        IsChecked="{Binding UseInCycle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                        Opacity="0" />
-                                                </Grid>
-                                            </Button>
-
-                                        </Grid>
                                     </Grid>
+                                </Grid>
 
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
                 <Grid
                     Grid.Row="4"
                     Width="auto"
@@ -10681,7 +10753,6 @@
 
 
             </ListBox>
-
         </Grid>
     </Border>
 </Window>

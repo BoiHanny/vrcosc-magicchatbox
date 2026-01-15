@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.127</Version>
+	<Version>0.9.128</Version>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -12,7 +12,6 @@
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
     <TargetFrameworks></TargetFrameworks>
     <PlatformTarget>x64</PlatformTarget>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StartupObject>vrcosc_magicchatbox.App</StartupObject>
     <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
 	  <GenerateBootstrapperOnBuild>true</GenerateBootstrapperOnBuild>
@@ -193,10 +192,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Costura.Fody" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -262,6 +257,7 @@
   </ItemGroup>
 
 </Project>
+
 
 
 
