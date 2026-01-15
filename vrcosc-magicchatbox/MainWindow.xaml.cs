@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -572,7 +572,14 @@ namespace vrcosc_magicchatbox
             }
         }
 
-        private void Favbutton_Click(object sender, RoutedEventArgs e) { ViewModel.SaveStatusList(); }
+        private void Favbutton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is StatusItem item)
+            {
+                item.UseInCycle = !item.UseInCycle;
+                ViewModel.SaveStatusList();
+            }
+        }
 
         private void Github_Click(object sender, RoutedEventArgs e)
         { Process.Start("explorer", "https://github.com/BoiHanny/vrcosc-magicchatbox"); }

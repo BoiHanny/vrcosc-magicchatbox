@@ -1,4 +1,4 @@
-﻿using MagicChatboxAPI.Services;
+using MagicChatboxAPI.Services;
 using NAudio.CoreAudioApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -943,12 +943,33 @@ PropertyInfo property)
 
 
 
+    private static void SetStatusList(ObservableCollection<StatusItem> statusList, bool checkSpecialMessages)
+    {
+        void Apply()
+        {
+            ViewModel.Instance.StatusList = statusList;
+            if (checkSpecialMessages)
+            {
+                CheckForSpecialMessages(statusList);
+            }
+        }
+
+        Dispatcher dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(Apply);
+        }
+        else
+        {
+            Apply();
+        }
+    }
     private static void UpdateStatusListFromJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json) || json.Trim().Equals("null", StringComparison.OrdinalIgnoreCase))
         {
             Logging.WriteInfo("StatusList history is empty or null.");
-            ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
+            SetStatusList(new ObservableCollection<StatusItem>(), checkSpecialMessages: false);
             return;
         }
 
@@ -957,14 +978,13 @@ PropertyInfo property)
             var statusList = JsonConvert.DeserializeObject<ObservableCollection<StatusItem>>(json);
             if (statusList != null)
             {
-                ViewModel.Instance.StatusList = statusList;
-                CheckForSpecialMessages(statusList);
+                SetStatusList(statusList, checkSpecialMessages: true);
             }
         }
         catch (JsonException jsonEx)
         {
             Logging.WriteException(jsonEx, MSGBox: true);
-            ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
+            SetStatusList(new ObservableCollection<StatusItem>(), checkSpecialMessages: false);
         }
     }
 
@@ -987,12 +1007,13 @@ PropertyInfo property)
 
     private static void InitializeStatusListWithDefaults()
     {
-        ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>
-{
-    new StatusItem { CreationDate = DateTime.Now, IsActive = true, msg = "Enjoy 💖", MSGID = GenerateRandomId() },
-    new StatusItem { CreationDate = DateTime.Now, IsActive = false, msg = "Below you can create your own status", MSGID = GenerateRandomId() },
-    new StatusItem { CreationDate = DateTime.Now, IsActive = false, msg = "Activate it by clicking the power icon", MSGID = GenerateRandomId() }
-};
+        var defaults = new ObservableCollection<StatusItem>
+        {
+            new StatusItem { CreationDate = DateTime.Now, IsActive = true, msg = "Enjoy 💖", MSGID = GenerateRandomId() },
+            new StatusItem { CreationDate = DateTime.Now, IsActive = false, msg = "Below you can create your own status", MSGID = GenerateRandomId() },
+            new StatusItem { CreationDate = DateTime.Now, IsActive = false, msg = "Activate it by clicking the power icon", MSGID = GenerateRandomId() }
+        };
+        SetStatusList(defaults, checkSpecialMessages: false);
         ViewModel.SaveStatusList();
     }
 
@@ -1000,7 +1021,7 @@ PropertyInfo property)
     {
         if (ViewModel.Instance.StatusList == null)
         {
-            ViewModel.Instance.StatusList = new ObservableCollection<StatusItem>();
+            SetStatusList(new ObservableCollection<StatusItem>(), checkSpecialMessages: false);
         }
     }
 
