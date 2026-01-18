@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.128</Version>
+	<Version>0.9.130</Version>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -10,8 +10,9 @@
     <Configurations>Debug;Release;Beta</Configurations>
     <DebugType>portable</DebugType>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
-    <TargetFrameworks></TargetFrameworks>
     <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StartupObject>vrcosc_magicchatbox.App</StartupObject>
     <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
 	  <GenerateBootstrapperOnBuild>true</GenerateBootstrapperOnBuild>
@@ -257,7 +258,3 @@
   </ItemGroup>
 
 </Project>
-
-
-
-
