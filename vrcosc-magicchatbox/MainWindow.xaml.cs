@@ -1109,6 +1109,11 @@ namespace vrcosc_magicchatbox
             WeatherService.TriggerManualRefresh();
         }
 
+        private void TwitchSyncNow_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.TwitchModule?.TriggerManualRefresh();
+        }
+
         public static void ChangeMenuItem(int changeINT)
         {
             ViewModel.Instance.CurrentMenuItem = changeINT;

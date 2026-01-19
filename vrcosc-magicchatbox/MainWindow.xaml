@@ -3110,7 +3110,7 @@
                                         Foreground="#FFB9B5C1"
                                         Text="Convert your local time to a standard time zone" />
                                 </StackPanel>
-                                
+
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -3125,7 +3125,7 @@
                                 <GradientStop Offset="1" Color="#FF40365B" />
                             </LinearGradientBrush>
                         </Grid.Background>
-                        <Grid Grid.Row="3">
+                        <Grid Grid.Row="0">
                             <ToggleButton
                                 Width="Auto"
                                 Height="30"
@@ -3144,25 +3144,10 @@
                             Margin="34,10,0,0"
                             Visibility="{Binding Settings_Weather, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
-                                <CheckBox
-                                    x:Name="ShowWeatherInTime_checkbox"
-                                    Height="20"
-                                    Margin="0,0,0,15"
-                                    BorderBrush="#FF2D1265"
-                                    Checked="Update_Click"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="18"
-                                    Foreground="#FFB9B5C1"
-                                    IsChecked="{Binding ShowWeatherInTime, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Unchecked="Update_Click">
-                                    Enable weather integration
-                                </CheckBox>
                                 <StackPanel
                                     Width="auto"
                                     Margin="0,0,0,15"
-                                    HorizontalAlignment="Left"
-                                    Visibility="{Binding ShowWeatherInTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    HorizontalAlignment="Left">
                                     <TextBlock
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -3585,6 +3570,461 @@
                     </Grid>
 
                     <Grid Grid.Row="4" Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Background>
+                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="#FF3A3053" />
+                                <GradientStop Offset="1" Color="#FF40365B" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Grid Grid.Row="0">
+                            <ToggleButton
+                                Width="Auto"
+                                Height="30"
+                                HorizontalAlignment="Left"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="#BDAEE2"
+                                IsChecked="{Binding Settings_Twitch, Mode=TwoWay}"
+                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                Tag="Twitch options"
+                                TextOptions.TextRenderingMode="ClearType" />
+                        </Grid>
+                        <Grid
+                            Grid.Row="1"
+                            Height="Auto"
+                            Margin="34,10,0,0"
+                            Visibility="{Binding Settings_Twitch, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel>
+                                <StackPanel
+                                    Width="auto"
+                                    Margin="0,0,0,15"
+                                    HorizontalAlignment="Left">
+                                    <TextBlock
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Channel name" />
+                                    <TextBox
+                                        x:Name="TwitchChannelName"
+                                        Width="200"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding TwitchChannelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,8,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Client ID" />
+                                    <TextBox
+                                        x:Name="TwitchClientId"
+                                        Width="260"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding TwitchClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,8,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Access token" />
+                                    <TextBox
+                                        x:Name="TwitchAccessToken"
+                                        Width="360"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding TwitchAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="Paste a Twitch access token (app or user)." />
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Refresh interval (seconds)" />
+                                    <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                        <TextBox
+                                            x:Name="TwitchRefreshInterval"
+                                            Width="40"
+                                            Height="26"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding TwitchUpdateIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button
+                                            x:Name="TwitchSyncNow"
+                                            Width="60"
+                                            Height="26"
+                                            Margin="6,0,0,0"
+                                            Padding="6,0,6,0"
+                                            Click="TwitchSyncNow_Click"
+                                            Style="{StaticResource Status_Button_style}">
+                                            <TextBlock FontSize="12" Text="Sync" />
+                                        </Button>
+                                        <TextBlock
+                                            Margin="8,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="{Binding TwitchLastSyncDisplay}" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="{Binding TwitchStatusMessage}" />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Output" />
+                                    <CheckBox
+                                        x:Name="TwitchUseSmallText_checkbox"
+                                        Height="20"
+                                        Margin="0,6,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchUseSmallText, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Use small text for labels
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="TwitchShowLiveIndicator_checkbox"
+                                        Height="20"
+                                        Margin="0,6,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchShowLiveIndicator, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show LIVE indicator
+                                    </CheckBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowLiveIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Live prefix" />
+                                        <TextBox
+                                            x:Name="TwitchLivePrefix"
+                                            Width="120"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding TwitchLivePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="TwitchShowGameName_checkbox"
+                                        Height="20"
+                                        Margin="0,6,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchShowGameName, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show current game
+                                    </CheckBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowGameName, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Game prefix" />
+                                        <TextBox
+                                            x:Name="TwitchGamePrefix"
+                                            Width="120"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding TwitchGamePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="TwitchShowViewerCount_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchShowViewerCount, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show viewer count
+                                    </CheckBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowViewerCount, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <CheckBox
+                                            x:Name="TwitchShowViewerLabel_checkbox"
+                                            Height="20"
+                                            Margin="0,0,0,0"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding TwitchShowViewerLabel, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Show viewer label
+                                        </CheckBox>
+                                        <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowViewerLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock
+                                                Padding="0,0,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Viewer label" />
+                                            <TextBox
+                                                x:Name="TwitchViewerLabel"
+                                                Width="120"
+                                                Height="26"
+                                                Margin="0,3,0,0"
+                                                Padding="5,0,0,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding TwitchViewerLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <CheckBox
+                                            x:Name="TwitchViewerCountCompact_checkbox"
+                                            Height="20"
+                                            Margin="0,6,0,0"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding TwitchViewerCountCompact, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Use compact viewer counts (1.2K)
+                                        </CheckBox>
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="TwitchShowStreamTitle_checkbox"
+                                        Height="20"
+                                        Margin="0,6,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchShowStreamTitle, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show stream title
+                                    </CheckBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowStreamTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Title prefix" />
+                                        <TextBox
+                                            x:Name="TwitchStreamTitlePrefix"
+                                            Width="120"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding TwitchStreamTitlePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <CheckBox
+                                        x:Name="TwitchShowChannelName_checkbox"
+                                        Height="20"
+                                        Margin="0,6,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchShowChannelName, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show channel name
+                                    </CheckBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowChannelName, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Channel prefix" />
+                                        <TextBox
+                                            x:Name="TwitchChannelPrefix"
+                                            Width="120"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding TwitchChannelPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Separator"
+                                        Visibility="{Binding TwitchTemplateHasValue, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox
+                                        x:Name="TwitchSeparator"
+                                        Width="120"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding TwitchSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Visibility="{Binding TwitchTemplateHasValue, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="Separators are ignored while a template is set."
+                                        Visibility="{Binding TwitchTemplateHasValue, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Template (use {live} {game} {gameWithLabel} {viewers} {viewerCount} {viewerLabel} {title} {titleWithLabel} {channel} {channelWithLabel} {status})" />
+                                    <TextBox
+                                        x:Name="TwitchTemplate"
+                                        Width="480"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding TwitchTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="Tip: use \\n for a new line in the template." />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Offline message" />
+                                    <TextBox
+                                        x:Name="TwitchOfflineMessage"
+                                        Width="240"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding TwitchOfflineMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="Leave empty to hide when offline." />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Grid.Row="5" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -4283,7 +4723,7 @@
                     </Grid>
                     <Grid
                         x:Name="CompLayer"
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -4926,7 +5366,7 @@
                             </Border>
                         </StackPanel>
                     </Grid>
-                    <Grid Grid.Row="6" Margin="0,5,0,0">
+                    <Grid Grid.Row="7" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -5130,7 +5570,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="7" Margin="0,5,0,0">
+                    <Grid Grid.Row="8" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -5380,7 +5820,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="8" Margin="0,5,0,0">
+                    <Grid Grid.Row="9" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -5503,7 +5943,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="9" Margin="0,5,0,0">
+                    <Grid Grid.Row="10" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -6064,7 +6504,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="10" Margin="0,5,0,0">
+                    <Grid Grid.Row="11" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -6573,7 +7013,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="11"
+                        Grid.Row="12"
                         Margin="0,5,0,0"
                         Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Grid.RowDefinitions>
@@ -7164,7 +7604,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="12" Margin="0,5,0,10">
+                    <Grid Grid.Row="14" Margin="0,5,0,10">
                         <TextBlock
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
@@ -10384,14 +10824,14 @@
                                 </StackPanel>
 
 
-                                    <TextBlock
-                                        Margin="0,3,0,0"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="13"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="Displays local time with optional time zone conversion."
-                                        TextWrapping="Wrap">
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Displays local time with optional time zone conversion."
+                                    TextWrapping="Wrap">
                                     <TextBlock.Foreground>
                                         <RadialGradientBrush>
                                             <GradientStop Color="White" />
@@ -10417,8 +10857,8 @@
                     <Border Margin="5,0,5,5" CornerRadius="5">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Offset="0" Color="#FF5BA6D8" />
-                                <GradientStop Offset="1" Color="#FF6B4FA4" />
+                                <GradientStop Offset="0" Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
@@ -10427,7 +10867,7 @@
                                 Direction="-23"
                                 RenderingBias="Performance"
                                 ShadowDepth="0"
-                                Color="#1B0E49" />
+                                Color="DarkBlue" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -10534,6 +10974,122 @@
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding ShowWeatherInTime, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="TwitchItem" Opacity="{Binding Twitch_Opacity}">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Offset="0" Color="DarkSlateBlue" />
+                                <GradientStop Offset="1" Color="#FF302573" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                Source="/Img/Icons/Discord.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Twitch"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrTwitch_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrTwitch_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Twitch"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Show live stream status, viewer count, and current game."
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFE5D9FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="Twitch_switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding IntgrTwitch, Mode=TwoWay}"
                                     Style="{DynamicResource Switch}" />
                             </Grid>
                         </Grid>

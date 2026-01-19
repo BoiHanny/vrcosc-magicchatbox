@@ -206,6 +206,7 @@
     <PackageReference Include="NLog" Version="6.0.7" />
 	  <PackageReference Include="OpenAI-DotNet" Version="8.8.8" />
 	  <PackageReference Include="System.Management" Version="10.0.2" />
+    <PackageReference Include="TwitchLib.Api" Version="3.5.0" />
   </ItemGroup>
 
   <ItemGroup>

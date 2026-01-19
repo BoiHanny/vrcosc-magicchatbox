@@ -85,6 +85,23 @@ public static class OSCController
         TryAddToUncomplete(Uncomplete, weatherText, "Weather");
     }
 
+    public static void AddTwitch(List<string> Uncomplete)
+    {
+        if (!ViewModel.Instance.IntgrTwitch || ViewModel.Instance.TwitchModule == null)
+        {
+            return;
+        }
+
+        ViewModel.Instance.TwitchModule.TriggerRefreshIfNeeded();
+        string twitchText = ViewModel.Instance.TwitchModule.GetOutputString();
+        if (string.IsNullOrWhiteSpace(twitchText))
+        {
+            return;
+        }
+
+        TryAddToUncomplete(Uncomplete, twitchText, "Twitch");
+    }
+
 
     // this function will build the heart rate message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
     public static void AddHeartRate(List<string> Uncomplete)
@@ -571,6 +588,15 @@ public static class OSCController
             },
 
             {
+                () => ViewModel.Instance.IntgrTwitch &&
+                (ViewModel.Instance.IntgrTwitch_VR &&
+                ViewModel.Instance.IsVRRunning ||
+                ViewModel.Instance.IntgrTwitch_DESKTOP &&
+                !ViewModel.Instance.IsVRRunning),
+                AddTwitch
+            },
+
+            {
                 () => ViewModel.Instance.IntgrSpotifyStatus_VR &&
                 ViewModel.Instance.IsVRRunning ||
                 ViewModel.Instance.IntgrSpotifyStatus_DESKTOP &&
@@ -607,6 +633,7 @@ public static class OSCController
             SetOpacity("Soundpad", "1");
             SetOpacity("Time", "1");
             SetOpacity("Weather", "1");
+            SetOpacity("Twitch", "1");
             SetOpacity("MediaLink", "1");
 
             // Add the strings to the list if the total length of the list is less than 144 characters
@@ -820,6 +847,9 @@ public static class OSCController
                 break;
             case "Weather":
                 ViewModel.Instance.Weather_Opacity = opacity;
+                break;
+            case "Twitch":
+                ViewModel.Instance.Twitch_Opacity = opacity;
                 break;
             case "Spotify":
                 ViewModel.Instance.Spotify_Opacity = opacity;

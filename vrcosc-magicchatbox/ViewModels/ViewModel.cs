@@ -79,6 +79,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private PulsoidModule _HeartRateConnector;
 
+        private TwitchModule _TwitchModule;
 
         private IntelliChatModule _IntelliChatModule;
 
@@ -97,6 +98,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IntgrCurrentTime_VR = true;
         private bool _IntgrWeather_DESKTOP = false;
         private bool _IntgrWeather_VR = true;
+        private bool _IntgrTwitch_DESKTOP = true;
+        private bool _IntgrTwitch_VR = true;
 
 
         private bool _IntgrHeartRate_DESKTOP = false;
@@ -274,6 +277,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
                 { nameof(Settings_TTS), value => Settings_TTS = value },
                 { nameof(Settings_Weather), value => Settings_Weather = value },
+                { nameof(Settings_Twitch), value => Settings_Twitch = value },
                 { nameof(Settings_Time), value => Settings_Time = value },
                 { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
                 { nameof(Settings_Status), value => Settings_Status = value }
@@ -507,6 +511,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             HeartRateConnector = new PulsoidModule();
             SoundpadModule = new(1000);
+            TwitchModule = new TwitchModule();
 
 
             PropertyChanged += HeartRateConnector.PropertyChangedHandler;
@@ -1145,6 +1150,26 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrWeather_VR = value;
                 NotifyPropertyChanged(nameof(IntgrWeather_VR));
+            }
+        }
+
+        public bool IntgrTwitch_DESKTOP
+        {
+            get { return _IntgrTwitch_DESKTOP; }
+            set
+            {
+                _IntgrTwitch_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrTwitch_DESKTOP));
+            }
+        }
+
+        public bool IntgrTwitch_VR
+        {
+            get { return _IntgrTwitch_VR; }
+            set
+            {
+                _IntgrTwitch_VR = value;
+                NotifyPropertyChanged(nameof(IntgrTwitch_VR));
             }
         }
 
@@ -1899,6 +1924,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public TwitchModule TwitchModule
+        {
+            get { return _TwitchModule; }
+            set
+            {
+                _TwitchModule = value;
+                NotifyPropertyChanged(nameof(TwitchModule));
+            }
+        }
+
         public int StatusIndex
         {
             get { return _StatusIndex; }
@@ -2177,6 +2212,30 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _WeatherLocationCity = "London";
         private double _WeatherLocationLatitude = 0;
         private double _WeatherLocationLongitude = 0;
+        private string _TwitchChannelName = string.Empty;
+        private string _TwitchClientId = string.Empty;
+        private string _TwitchAccessTokenEncrypted = string.Empty;
+        private string _TwitchAccessToken;
+        private bool _TwitchShowViewerCount = true;
+        private bool _TwitchShowGameName = true;
+        private bool _TwitchShowLiveIndicator = true;
+        private string _TwitchLivePrefix = "LIVE";
+        private string _TwitchOfflineMessage = string.Empty;
+        private bool _TwitchShowStreamTitle = false;
+        private string _TwitchStreamTitlePrefix = "title";
+        private bool _TwitchShowChannelName = false;
+        private string _TwitchChannelPrefix = "channel";
+        private string _TwitchGamePrefix = "playing";
+        private bool _TwitchShowViewerLabel = true;
+        private string _TwitchViewerLabel = "viewers";
+        private bool _TwitchViewerCountCompact = false;
+        private bool _TwitchUseSmallText = true;
+        private string _TwitchSeparator = " | ";
+        private string _TwitchTemplate = string.Empty;
+        private int _TwitchUpdateIntervalSeconds = 60;
+        private string _TwitchLastSyncDisplay = "Last sync: Never";
+        private string _TwitchStatusMessage = "Not connected";
+        private bool _TwitchConnected = false;
         private string _OSCtoSent = string.Empty;
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8MkHBjZNbEinG/3ybInlUK/5UkyNRVhK145nO7C4Mwhe1Zer1hBcG/F1b5f/BMcNFLXk4K6ozRcK7gHcebJZWnpxEDxjW6DyrZ/si913BPp";
         private Models.Version _AppVersion = new(DataController.GetApplicationVersion());
@@ -2209,6 +2268,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
         private string _Weather_Opacity = "1";
+        private string _Twitch_Opacity = "1";
         private string _HeartRate_Opacity = "1";
         private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
@@ -2784,6 +2844,18 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Settings_Weather = value;
                 NotifyPropertyChanged(nameof(Settings_Weather));
+            }
+        }
+
+        private bool _Settings_Twitch = false;
+
+        public bool Settings_Twitch
+        {
+            get { return _Settings_Twitch; }
+            set
+            {
+                _Settings_Twitch = value;
+                NotifyPropertyChanged(nameof(Settings_Twitch));
             }
         }
 
@@ -3958,6 +4030,266 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public string TwitchChannelName
+        {
+            get { return _TwitchChannelName; }
+            set
+            {
+                _TwitchChannelName = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchChannelName));
+            }
+        }
+
+        public string TwitchClientId
+        {
+            get { return _TwitchClientId; }
+            set
+            {
+                _TwitchClientId = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchClientId));
+            }
+        }
+
+        public string TwitchAccessTokenEncrypted
+        {
+            get { return _TwitchAccessTokenEncrypted; }
+            set
+            {
+                if (_TwitchAccessTokenEncrypted != value)
+                {
+                    _TwitchAccessTokenEncrypted = value;
+                    EncryptionMethods.TryProcessToken(ref _TwitchAccessTokenEncrypted, ref _TwitchAccessToken, false);
+                    NotifyPropertyChanged(nameof(TwitchAccessTokenEncrypted));
+                }
+            }
+        }
+
+        public string TwitchAccessToken
+        {
+            get { return _TwitchAccessToken; }
+            set
+            {
+                if (_TwitchAccessToken != value)
+                {
+                    _TwitchAccessToken = value;
+                    EncryptionMethods.TryProcessToken(ref _TwitchAccessToken, ref _TwitchAccessTokenEncrypted, true);
+                    NotifyPropertyChanged(nameof(TwitchAccessToken));
+                }
+            }
+        }
+
+        public bool TwitchShowViewerCount
+        {
+            get { return _TwitchShowViewerCount; }
+            set
+            {
+                _TwitchShowViewerCount = value;
+                NotifyPropertyChanged(nameof(TwitchShowViewerCount));
+            }
+        }
+
+        public bool TwitchShowGameName
+        {
+            get { return _TwitchShowGameName; }
+            set
+            {
+                _TwitchShowGameName = value;
+                NotifyPropertyChanged(nameof(TwitchShowGameName));
+            }
+        }
+
+        public bool TwitchShowLiveIndicator
+        {
+            get { return _TwitchShowLiveIndicator; }
+            set
+            {
+                _TwitchShowLiveIndicator = value;
+                NotifyPropertyChanged(nameof(TwitchShowLiveIndicator));
+            }
+        }
+
+        public string TwitchLivePrefix
+        {
+            get { return _TwitchLivePrefix; }
+            set
+            {
+                _TwitchLivePrefix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchLivePrefix));
+            }
+        }
+
+        public string TwitchOfflineMessage
+        {
+            get { return _TwitchOfflineMessage; }
+            set
+            {
+                _TwitchOfflineMessage = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchOfflineMessage));
+            }
+        }
+
+        public bool TwitchShowStreamTitle
+        {
+            get { return _TwitchShowStreamTitle; }
+            set
+            {
+                _TwitchShowStreamTitle = value;
+                NotifyPropertyChanged(nameof(TwitchShowStreamTitle));
+            }
+        }
+
+        public string TwitchStreamTitlePrefix
+        {
+            get { return _TwitchStreamTitlePrefix; }
+            set
+            {
+                _TwitchStreamTitlePrefix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchStreamTitlePrefix));
+            }
+        }
+
+        public bool TwitchShowChannelName
+        {
+            get { return _TwitchShowChannelName; }
+            set
+            {
+                _TwitchShowChannelName = value;
+                NotifyPropertyChanged(nameof(TwitchShowChannelName));
+            }
+        }
+
+        public string TwitchChannelPrefix
+        {
+            get { return _TwitchChannelPrefix; }
+            set
+            {
+                _TwitchChannelPrefix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchChannelPrefix));
+            }
+        }
+
+        public string TwitchGamePrefix
+        {
+            get { return _TwitchGamePrefix; }
+            set
+            {
+                _TwitchGamePrefix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchGamePrefix));
+            }
+        }
+
+        public bool TwitchShowViewerLabel
+        {
+            get { return _TwitchShowViewerLabel; }
+            set
+            {
+                _TwitchShowViewerLabel = value;
+                NotifyPropertyChanged(nameof(TwitchShowViewerLabel));
+            }
+        }
+
+        public string TwitchViewerLabel
+        {
+            get { return _TwitchViewerLabel; }
+            set
+            {
+                _TwitchViewerLabel = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchViewerLabel));
+            }
+        }
+
+        public bool TwitchViewerCountCompact
+        {
+            get { return _TwitchViewerCountCompact; }
+            set
+            {
+                _TwitchViewerCountCompact = value;
+                NotifyPropertyChanged(nameof(TwitchViewerCountCompact));
+            }
+        }
+
+        public bool TwitchUseSmallText
+        {
+            get { return _TwitchUseSmallText; }
+            set
+            {
+                _TwitchUseSmallText = value;
+                NotifyPropertyChanged(nameof(TwitchUseSmallText));
+            }
+        }
+
+        public string TwitchSeparator
+        {
+            get { return _TwitchSeparator; }
+            set
+            {
+                _TwitchSeparator = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchSeparator));
+            }
+        }
+
+        public string TwitchTemplate
+        {
+            get { return _TwitchTemplate; }
+            set
+            {
+                _TwitchTemplate = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchTemplate));
+                NotifyPropertyChanged(nameof(TwitchTemplateHasValue));
+            }
+        }
+
+        public bool TwitchTemplateHasValue => !string.IsNullOrWhiteSpace(_TwitchTemplate);
+
+        public int TwitchUpdateIntervalSeconds
+        {
+            get { return _TwitchUpdateIntervalSeconds; }
+            set
+            {
+                if (value < 15)
+                {
+                    value = 15;
+                }
+                else if (value > 3600)
+                {
+                    value = 3600;
+                }
+
+                _TwitchUpdateIntervalSeconds = value;
+                NotifyPropertyChanged(nameof(TwitchUpdateIntervalSeconds));
+            }
+        }
+
+        public string TwitchLastSyncDisplay
+        {
+            get { return _TwitchLastSyncDisplay; }
+            set
+            {
+                _TwitchLastSyncDisplay = value;
+                NotifyPropertyChanged(nameof(TwitchLastSyncDisplay));
+            }
+        }
+
+        public string TwitchStatusMessage
+        {
+            get { return _TwitchStatusMessage; }
+            set
+            {
+                _TwitchStatusMessage = value;
+                NotifyPropertyChanged(nameof(TwitchStatusMessage));
+            }
+        }
+
+        public bool TwitchConnected
+        {
+            get { return _TwitchConnected; }
+            set
+            {
+                _TwitchConnected = value;
+                NotifyPropertyChanged(nameof(TwitchConnected));
+            }
+        }
+
         public string Spotify_Opacity
         {
             get { return _Spotify_Opacity; }
@@ -4018,6 +4350,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Weather_Opacity = value;
                 NotifyPropertyChanged(nameof(Weather_Opacity));
+            }
+        }
+
+        public string Twitch_Opacity
+        {
+            get { return _Twitch_Opacity; }
+            set
+            {
+                _Twitch_Opacity = value;
+                NotifyPropertyChanged(nameof(Twitch_Opacity));
             }
         }
 
@@ -4476,6 +4818,17 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Soundpad_Opacity = value;
                 NotifyPropertyChanged(nameof(Soundpad_Opacity));
+            }
+        }
+
+        private bool _IntgrTwitch = false;
+        public bool IntgrTwitch
+        {
+            get { return _IntgrTwitch; }
+            set
+            {
+                _IntgrTwitch = value;
+                NotifyPropertyChanged(nameof(IntgrTwitch));
             }
         }
 

@@ -441,6 +441,7 @@ public static class DataController
     { "IntgrScanMediaLink", (typeof(bool), "Integrations") },
     { "IntgrComponentStats", (typeof(bool), "Integrations") },
     { "IntgrSoundpad", (typeof(bool), "Integrations") },
+    { "IntgrTwitch", (typeof(bool), "Integrations") },
 
     { "IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles") },
     { "IntgrComponentStats_DESKTOP", (typeof(bool), "IntegrationToggles") },
@@ -471,6 +472,8 @@ public static class DataController
 
     { "IntgrSoundpad_DESKTOP", (typeof(bool), "IntegrationToggles") },
     { "IntgrSoundpad_VR", (typeof(bool), "IntegrationToggles") },
+    { "IntgrTwitch_DESKTOP", (typeof(bool), "IntegrationToggles") },
+    { "IntgrTwitch_VR", (typeof(bool), "IntegrationToggles") },
 
     { "Time24H", (typeof(bool), "Time") },
     { "PrefixTime", (typeof(bool), "Time") },
@@ -503,6 +506,27 @@ public static class DataController
     { "BussyBoysDate", (typeof(DateTime), "Time") },
     { "BussyBoysDateEnable", (typeof(bool), "Time") },
     { "BussyBoysMultiMODE", (typeof(bool), "Time") },
+
+    { "TwitchChannelName", (typeof(string), "Twitch") },
+    { "TwitchClientId", (typeof(string), "Twitch") },
+    { "TwitchAccessTokenEncrypted", (typeof(string), "Twitch") },
+    { "TwitchShowViewerCount", (typeof(bool), "Twitch") },
+    { "TwitchShowGameName", (typeof(bool), "Twitch") },
+    { "TwitchShowLiveIndicator", (typeof(bool), "Twitch") },
+    { "TwitchLivePrefix", (typeof(string), "Twitch") },
+    { "TwitchOfflineMessage", (typeof(string), "Twitch") },
+    { "TwitchShowStreamTitle", (typeof(bool), "Twitch") },
+    { "TwitchStreamTitlePrefix", (typeof(string), "Twitch") },
+    { "TwitchShowChannelName", (typeof(bool), "Twitch") },
+    { "TwitchChannelPrefix", (typeof(string), "Twitch") },
+    { "TwitchGamePrefix", (typeof(string), "Twitch") },
+    { "TwitchShowViewerLabel", (typeof(bool), "Twitch") },
+    { "TwitchViewerLabel", (typeof(string), "Twitch") },
+    { "TwitchViewerCountCompact", (typeof(bool), "Twitch") },
+    { "TwitchUseSmallText", (typeof(bool), "Twitch") },
+    { "TwitchSeparator", (typeof(string), "Twitch") },
+    { "TwitchTemplate", (typeof(string), "Twitch") },
+    { "TwitchUpdateIntervalSeconds", (typeof(int), "Twitch") },
 
     { "CurrentMenuItem", (typeof(int), "Menu") },
 
@@ -607,6 +631,7 @@ public static class DataController
     { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
     { "Settings_Time", (typeof(bool), "OptionsTabState") },
     { "Settings_Weather", (typeof(bool), "OptionsTabState") },
+    { "Settings_Twitch", (typeof(bool), "OptionsTabState") },
     { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },
     { "Settings_NetworkStatistics", (typeof(bool), "OptionsTabState") },
     { "Settings_Chatting", (typeof(bool), "OptionsTabState") },
@@ -625,7 +650,19 @@ public static class DataController
         { "WeatherLocationCity", "London" },
         { "WeatherLocationMode", WeatherLocationMode.CustomCity },
         { "WeatherStatsSeparator", " " },
-        { "WeatherWindUnitOverride", WeatherWindUnitOverride.UseGlobal }
+        { "WeatherWindUnitOverride", WeatherWindUnitOverride.UseGlobal },
+        { "TwitchShowViewerCount", true },
+        { "TwitchShowGameName", true },
+        { "TwitchShowLiveIndicator", true },
+        { "TwitchLivePrefix", "LIVE" },
+        { "TwitchStreamTitlePrefix", "title" },
+        { "TwitchChannelPrefix", "channel" },
+        { "TwitchGamePrefix", "playing" },
+        { "TwitchShowViewerLabel", true },
+        { "TwitchViewerLabel", "viewers" },
+        { "TwitchUseSmallText", true },
+        { "TwitchSeparator", " | " },
+        { "TwitchUpdateIntervalSeconds", 60 }
     };
 
     private static void LoadSettingFromXML(
