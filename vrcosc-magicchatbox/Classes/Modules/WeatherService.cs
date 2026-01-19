@@ -207,6 +207,12 @@ public static class WeatherService
     {
         var primaryParts = new List<string>();
         var secondaryParts = new List<string>();
+        if (TryExtractConditionIcon(condition, out string iconPrefix, out string conditionText) &&
+            !string.IsNullOrWhiteSpace(tempWithUnit))
+        {
+            tempWithUnit = $"{iconPrefix} {tempWithUnit}";
+            condition = conditionText;
+        }
         if (!string.IsNullOrWhiteSpace(tempWithUnit))
         {
             primaryParts.Add(tempWithUnit);
@@ -367,6 +373,35 @@ public static class WeatherService
         }
 
         return ToSmallText(text);
+    }
+
+    private static bool TryExtractConditionIcon(string condition, out string iconPrefix, out string conditionText)
+    {
+        iconPrefix = string.Empty;
+        conditionText = condition ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(conditionText))
+        {
+            return false;
+        }
+
+        if (!char.IsLetterOrDigit(conditionText[0]))
+        {
+            int spaceIndex = conditionText.IndexOf(' ');
+            if (spaceIndex > 0)
+            {
+                iconPrefix = conditionText.Substring(0, spaceIndex);
+                conditionText = conditionText.Substring(spaceIndex + 1).Trim();
+            }
+            else
+            {
+                iconPrefix = conditionText;
+                conditionText = string.Empty;
+            }
+
+            return !string.IsNullOrWhiteSpace(iconPrefix);
+        }
+
+        return false;
     }
 
     private static string ResolveUnit()

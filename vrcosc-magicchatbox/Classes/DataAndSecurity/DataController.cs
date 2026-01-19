@@ -560,6 +560,15 @@ public static class DataController
     { "DisableMediaLink", (typeof(bool), "MediaLink") },
     { "MediaLinkTimeSeekStyle", (typeof(MediaLinkTimeSeekbar), "MediaLink") },
     { "AutoDowngradeSeekbar", (typeof(bool), "MediaLink") },
+    { "MediaLink_TransientMode", (typeof(bool), "MediaLink") },
+    { "MediaLink_TransientDuration", (typeof(double), "MediaLink") },
+    { "MediaLink_IconPlay", (typeof(string), "MediaLink") },
+    { "MediaLink_IconPause", (typeof(string), "MediaLink") },
+    { "MediaLink_IconStop", (typeof(string), "MediaLink") },
+    { "MediaLink_Separator", (typeof(string), "MediaLink") },
+    { "MediaLink_TextPlaying", (typeof(string), "MediaLink") },
+    { "MediaLink_TextPaused", (typeof(string), "MediaLink") },
+    { "MediaLink_UpperCase", (typeof(bool), "MediaLink") },
 
     { "ScanningInterval", (typeof(double), "Scanning") },
     { "ScanPauseTimeout", (typeof(int), "Scanning") },
@@ -662,7 +671,16 @@ public static class DataController
         { "TwitchViewerLabel", "viewers" },
         { "TwitchUseSmallText", true },
         { "TwitchSeparator", " | " },
-        { "TwitchUpdateIntervalSeconds", 60 }
+        { "TwitchUpdateIntervalSeconds", 60 },
+        { "MediaLink_TransientMode", false },
+        { "MediaLink_TransientDuration", 5.0 },
+        { "MediaLink_IconPlay", "" },
+        { "MediaLink_IconPause", "⏸" },
+        { "MediaLink_IconStop", "⏹️" },
+        { "MediaLink_Separator", " ᵇʸ " },
+        { "MediaLink_TextPlaying", "Listening to" },
+        { "MediaLink_TextPaused", "Paused" },
+        { "MediaLink_UpperCase", false }
     };
 
     private static void LoadSettingFromXML(

@@ -29,6 +29,8 @@ public class MediaLinkModule
     private static ConcurrentDictionary<MediaSession, MediaSessionInfo> sessionInfoLookup = new ConcurrentDictionary<MediaSession, MediaSessionInfo>(
         );
 
+    public static DateTime LastMediaChangeTime { get; private set; } = DateTime.UtcNow;
+
 
     // this is the main function that will be called when a new media session is opened
     public MediaLinkModule(bool shouldStart)
@@ -95,6 +97,12 @@ public class MediaLinkModule
 
         if (sessionInfo != null)
         {
+            if (!string.Equals(sessionInfo.Title, args.Title, StringComparison.Ordinal) ||
+                !string.Equals(sessionInfo.Artist, args.Artist, StringComparison.Ordinal))
+            {
+                LastMediaChangeTime = DateTime.UtcNow;
+            }
+
             sessionInfo.AlbumArtist = args.AlbumArtist;
             sessionInfo.AlbumTitle = args.AlbumTitle;
             sessionInfo.Artist = args.Artist;
@@ -115,6 +123,11 @@ public class MediaLinkModule
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
             if (sessionInfo != null)
             {
+                if (sessionInfo.PlaybackStatus != args.PlaybackStatus)
+                {
+                    LastMediaChangeTime = DateTime.UtcNow;
+                }
+
                 // Update the playback status.
                 sessionInfo.PlaybackStatus = args.PlaybackStatus;
 
@@ -206,6 +219,7 @@ public class MediaLinkModule
         sessionInfoLookup[session] = sessionInfo;
         currentSession = session;
         SessionRestore(sessionInfo);
+        LastMediaChangeTime = DateTime.UtcNow;
     }
 
     // this function will be  called when the user changes the focused media session

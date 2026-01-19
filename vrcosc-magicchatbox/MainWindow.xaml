@@ -1267,7 +1267,6 @@
                                         Cycle status items that are marked with 💛
                                     </CheckBox>
                                 </Border>
-
                                 <Border
                                     Margin="0,0,0,5"
                                     Background="#FF3B3054"
@@ -3186,13 +3185,6 @@
                                             Text="{Binding WeatherLastSyncDisplay}" />
                                     </StackPanel>
                                     <TextBlock
-                                        Margin="0,12,0,0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="16"
-                                        Foreground="#FFB9B5C1"
-                                        Text="Location" />
-                                    <TextBlock
                                         Margin="0,6,0,0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -3314,13 +3306,6 @@
                                             Text="Example: 51.5074, -0.1278" />
                                     </StackPanel>
                                     <TextBlock
-                                        Margin="0,12,0,0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="16"
-                                        Foreground="#FFB9B5C1"
-                                        Text="Layout and template" />
-                                    <TextBlock
                                         Margin="0,6,0,0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -3413,7 +3398,7 @@
                                     <CheckBox
                                         x:Name="ShowWeatherCondition_checkbox"
                                         Height="20"
-                                        Margin="0,12,0,0"
+                                        Margin="0,12,0,6"
                                         BorderBrush="#FF2D1265"
                                         Checked="Update_Click"
                                         FontFamily="Comfortaa Light"
@@ -3427,7 +3412,7 @@
                                     <CheckBox
                                         x:Name="ShowWeatherEmoji_checkbox"
                                         Height="20"
-                                        Margin="0,0,0,0"
+                                        Margin="0,0,0,6"
                                         BorderBrush="#FF2D1265"
                                         Checked="Update_Click"
                                         FontFamily="Comfortaa Light"
@@ -3453,13 +3438,6 @@
                                         Use 1 decimal for temperature and wind
                                     </CheckBox>
                                     <TextBlock
-                                        Margin="0,12,0,0"
-                                        Padding="0,0,0,0"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="16"
-                                        Foreground="#FFB9B5C1"
-                                        Text="Units" />
-                                    <TextBlock
                                         Margin="0,6,0,0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -3469,7 +3447,7 @@
                                     <ComboBox
                                         Width="200"
                                         Height="25"
-                                        Margin="2,4"
+                                        Margin="0,4"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding AvailableWeatherUnitOverrides}"
                                         Opacity="0.3"
@@ -3490,7 +3468,7 @@
                                     <ComboBox
                                         Width="220"
                                         Height="25"
-                                        Margin="2,4"
+                                        Margin="0,4"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding AvailableWeatherWindUnitOverrides}"
                                         Opacity="0.3"
@@ -3504,7 +3482,7 @@
                                     <CheckBox
                                         x:Name="ShowWeatherHumidity_checkbox"
                                         Height="20"
-                                        Margin="0,8,0,0"
+                                        Margin="0,12,0,6"
                                         BorderBrush="#FF2D1265"
                                         Checked="Update_Click"
                                         FontFamily="Comfortaa Light"
@@ -3518,7 +3496,7 @@
                                     <CheckBox
                                         x:Name="ShowWeatherWind_checkbox"
                                         Height="20"
-                                        Margin="0,0,0,0"
+                                        Margin="0,0,0,6"
                                         BorderBrush="#FF2D1265"
                                         Checked="Update_Click"
                                         FontFamily="Comfortaa Light"
@@ -3532,7 +3510,7 @@
                                     <CheckBox
                                         x:Name="ShowWeatherFeelsLike_checkbox"
                                         Height="20"
-                                        Margin="0,0,0,0"
+                                        Margin="0,0,0,6"
                                         BorderBrush="#FF2D1265"
                                         Checked="Update_Click"
                                         FontFamily="Comfortaa Light"
@@ -3553,7 +3531,7 @@
                                     <ComboBox
                                         Width="200"
                                         Height="25"
-                                        Margin="2,4"
+                                        Margin="0,4"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding AvailableWeatherFallbackModes}"
                                         Opacity="0.3"
@@ -3771,7 +3749,7 @@
                                     <CheckBox
                                         x:Name="TwitchShowGameName_checkbox"
                                         Height="20"
-                                        Margin="0,6,0,0"
+                                        Margin="0,6,0,6"
                                         BorderBrush="#FF2D1265"
                                         Checked="Update_Click"
                                         FontFamily="Comfortaa Light"
@@ -3782,7 +3760,7 @@
                                         Unchecked="Update_Click">
                                         Show current game
                                     </CheckBox>
-                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowGameName, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <StackPanel Margin="0,0,0,6" Visibility="{Binding TwitchShowGameName, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
                                             Padding="0,0,0,0"
                                             FontFamily="Albert Sans Thin"
@@ -6034,7 +6012,7 @@
                                             IsChecked="{Binding PrefixIconMusic, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click">
-                                            Change 'listening to:' prefix to 🎵
+                                            Show media icon prefix
                                         </CheckBox>
                                         <CheckBox
                                             Height="21"
@@ -6048,10 +6026,212 @@
                                             Style="{DynamicResource SettingsCheckbox}"
                                             Unchecked="Update_Click"
                                             Visibility="{Binding PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            Show ⏸ when  music is paused
+                                            Show pause icon when music is paused
                                         </CheckBox>
 
 
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Transient mode" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Only show media info for a short time after it changes." />
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding MediaLink_TransientMode, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Only show when changing
+                                        </CheckBox>
+                                        <StackPanel
+                                            Margin="3,0"
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding MediaLink_TransientMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock
+                                                Margin="0,0,5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Hide after:" />
+                                            <TextBox
+                                                Width="40"
+                                                Height="26"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding MediaLink_TransientDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Margin="5,0,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="seconds" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="#FF3B3054"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="#FF9983AD"
+                                            Text="Customization" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="#FF9983AD"
+                                            Opacity="0.5"
+                                            Text="Adjust icons, separators, and state text to match your style." />
+                                        <StackPanel Margin="0,5" Orientation="Horizontal">
+                                            <StackPanel Margin="5,0">
+                                                <TextBlock
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Pause icon" />
+                                                <TextBox
+                                                    Width="40"
+                                                    Height="26"
+                                                    Padding="5,0,0,0"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding MediaLink_IconPause, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="5,0">
+                                                <TextBlock
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Stop icon" />
+                                                <TextBox
+                                                    Width="40"
+                                                    Height="26"
+                                                    Padding="5,0,0,0"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding MediaLink_IconStop, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="5,0">
+                                                <TextBlock
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Separator" />
+                                                <TextBox
+                                                    Width="70"
+                                                    Height="26"
+                                                    Padding="5,0,0,0"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding MediaLink_Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock
+                                            Margin="2,5,0,2"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="State text" />
+                                        <StackPanel Margin="0,2" Orientation="Horizontal">
+                                            <TextBlock
+                                                Width="70"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FFB9B5C1"
+                                                Text="Playing:" />
+                                            <TextBox
+                                                Width="140"
+                                                Height="26"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding MediaLink_TextPlaying, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <StackPanel Margin="0,2" Orientation="Horizontal">
+                                            <TextBlock
+                                                Width="70"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="#FFB9B5C1"
+                                                Text="Paused:" />
+                                            <TextBox
+                                                Width="140"
+                                                Height="26"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding MediaLink_TextPaused, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="3,10,3,7"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding MediaLink_UpperCase, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Force uppercase
+                                        </CheckBox>
                                     </StackPanel>
                                 </Border>
 
@@ -10878,13 +11058,12 @@
                             <!--  Image  -->
                             <Image
                                 Grid.Column="0"
-                                Width="35"
-                                Margin="5"
+                                Margin="4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
                                 RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/NetworkStats_ico.png" />
+                                Source="/Img/Icons/Weather_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
                                 Grid.Column="1"
@@ -11004,13 +11183,12 @@
                             <!--  Image  -->
                             <Image
                                 Grid.Column="0"
-                                Width="35"
-                                Margin="5"
+                                Margin="2"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource ImageShadowEffect}"
                                 RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/Discord.png" />
+                                Source="/Img/Icons/Twitch_ico.png" />
                             <!--  Text Content  -->
                             <StackPanel
                                 Grid.Column="1"

@@ -164,6 +164,15 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _MediaSession_Timeout = 3;
+        private bool _MediaLink_TransientMode = false;
+        private double _MediaLink_TransientDuration = 5.0;
+        private string _MediaLink_IconPlay = "";
+        private string _MediaLink_IconPause = "⏸";
+        private string _MediaLink_IconStop = "⏹️";
+        private string _MediaLink_Separator = " ᵇʸ ";
+        private string _MediaLink_TextPlaying = "Listening to";
+        private string _MediaLink_TextPaused = "Paused";
+        private bool _MediaLink_UpperCase = false;
 
         private ObservableCollection<MediaSessionInfo> _MediaSessions = new ObservableCollection<MediaSessionInfo>();
 
@@ -1677,6 +1686,100 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool MediaLink_TransientMode
+        {
+            get { return _MediaLink_TransientMode; }
+            set
+            {
+                _MediaLink_TransientMode = value;
+                NotifyPropertyChanged(nameof(MediaLink_TransientMode));
+            }
+        }
+
+        public double MediaLink_TransientDuration
+        {
+            get { return _MediaLink_TransientDuration; }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                _MediaLink_TransientDuration = value;
+                NotifyPropertyChanged(nameof(MediaLink_TransientDuration));
+            }
+        }
+
+        public string MediaLink_IconPlay
+        {
+            get { return _MediaLink_IconPlay; }
+            set
+            {
+                _MediaLink_IconPlay = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(MediaLink_IconPlay));
+            }
+        }
+
+        public string MediaLink_IconPause
+        {
+            get { return _MediaLink_IconPause; }
+            set
+            {
+                _MediaLink_IconPause = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(MediaLink_IconPause));
+            }
+        }
+
+        public string MediaLink_IconStop
+        {
+            get { return _MediaLink_IconStop; }
+            set
+            {
+                _MediaLink_IconStop = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(MediaLink_IconStop));
+            }
+        }
+
+        public string MediaLink_Separator
+        {
+            get { return _MediaLink_Separator; }
+            set
+            {
+                _MediaLink_Separator = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(MediaLink_Separator));
+            }
+        }
+
+        public string MediaLink_TextPlaying
+        {
+            get { return _MediaLink_TextPlaying; }
+            set
+            {
+                _MediaLink_TextPlaying = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(MediaLink_TextPlaying));
+            }
+        }
+
+        public string MediaLink_TextPaused
+        {
+            get { return _MediaLink_TextPaused; }
+            set
+            {
+                _MediaLink_TextPaused = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(MediaLink_TextPaused));
+            }
+        }
+
+        public bool MediaLink_UpperCase
+        {
+            get { return _MediaLink_UpperCase; }
+            set
+            {
+                _MediaLink_UpperCase = value;
+                NotifyPropertyChanged(nameof(MediaLink_UpperCase));
+            }
+        }
+
         public ObservableCollection<MediaSessionInfo> MediaSessions
         {
             get { return _MediaSessions; }
@@ -2179,6 +2282,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _ChatTopBarTxt = string.Empty;
         private bool _SpotifyActive = false;
         private bool _SpotifyPaused = false;
+        private DateTime _SpotifyLastChangeUtc = DateTime.UtcNow;
         private bool _IsVRRunning = false;
         private bool _MasterSwitch = true;
         private bool _PrefixTime = false;
@@ -4901,6 +5005,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _SpotifyPaused = value;
                 NotifyPropertyChanged(nameof(SpotifyPaused));
+            }
+        }
+
+        public DateTime SpotifyLastChangeUtc
+        {
+            get { return _SpotifyLastChangeUtc; }
+            set
+            {
+                _SpotifyLastChangeUtc = value;
+                NotifyPropertyChanged(nameof(SpotifyLastChangeUtc));
             }
         }
 

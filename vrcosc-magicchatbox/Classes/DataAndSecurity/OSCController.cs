@@ -123,59 +123,91 @@ public static class OSCController
 
     public static void AddMediaLink(List<string> Uncomplete)
     {
-        if (ViewModel.Instance.IntgrScanMediaLink)
+        if (!ViewModel.Instance.IntgrScanMediaLink)
         {
-            string x;
-            MediaSessionInfo mediaSession = ViewModel.Instance.MediaSessions.FirstOrDefault(item => item.IsActive);
+            return;
+        }
 
-            if (mediaSession != null)
+        if (ViewModel.Instance.MediaLink_TransientMode)
+        {
+            double elapsedSeconds = (DateTime.UtcNow - MediaLinkModule.LastMediaChangeTime).TotalSeconds;
+            if (elapsedSeconds > ViewModel.Instance.MediaLink_TransientDuration)
             {
-                var isPaused = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
-                var isPlaying = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+                return;
+            }
+        }
 
-                if (isPaused || isPlaying)
+        string x = string.Empty;
+        MediaSessionInfo mediaSession = ViewModel.Instance.MediaSessions.FirstOrDefault(item => item.IsActive);
+
+        if (mediaSession != null)
+        {
+            var isPaused = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
+            var isPlaying = mediaSession.PlaybackStatus == Windows.Media.Control.GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+
+            if (isPaused || isPlaying)
+            {
+                string actionText = ResolveMediaLinkActionText(mediaSession, isPlaying);
+                string playIcon = ResolveMediaLinkPlayIcon(mediaSession);
+                string pauseIcon = ResolveMediaLinkPauseIcon();
+
+                if (isPaused)
                 {
-                    var mediaType = mediaSession.IsVideo ? "Video" : "Music";
-                    var prefix = mediaSession.IsVideo ? "🎬" : "🎵";
-                    var mediaAction = mediaSession.IsVideo ? "Watching" : "Listening to";
-
-                    if (isPaused)
+                    if (ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic && !string.IsNullOrWhiteSpace(pauseIcon))
                     {
-                        x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic
-                            ? "⏸"
-                            : $"{mediaType} paused";
+                        x = pauseIcon;
                     }
                     else
                     {
-                        var mediaLinkTitle = CreateMediaLinkTitle(mediaSession);
-                        if (string.IsNullOrEmpty(mediaLinkTitle))
-                        {
-                            x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic
-                                ? "⏸"
-                                : "Paused";
-                        }
-                        else
-                        {
-                            x = ViewModel.Instance.PrefixIconMusic
-                                ? $"{prefix} '{mediaLinkTitle}'"
-                                : $"{mediaAction} '{mediaLinkTitle}'";
+                        x = actionText;
+                    }
+                }
+                else
+                {
+                    var mediaLinkTitle = CreateMediaLinkTitle(mediaSession);
+                    if (string.IsNullOrEmpty(mediaLinkTitle))
+                    {
+                        x = actionText;
+                    }
+                    else
+                    {
+                        x = ViewModel.Instance.PrefixIconMusic && !string.IsNullOrWhiteSpace(playIcon)
+                            ? $"{playIcon} {mediaLinkTitle}"
+                            : $"{actionText} {mediaLinkTitle}";
 
-                            if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
-                            {
-                                x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle, Uncomplete);
-                            }
+                        if (!mediaSession.IsLiveTime && mediaSession.TimePeekEnabled)
+                        {
+                            x = CreateTimeStamp(x, mediaSession, ViewModel.Instance.MediaLinkTimeSeekStyle, Uncomplete);
                         }
                     }
-
-                    TryAddToUncomplete(Uncomplete, x, "MediaLink");
                 }
+            }
+        }
+        else
+        {
+            string stopIcon = ResolveMediaLinkStopIcon();
+            string pausedText = ResolveMediaLinkPausedText();
+            if (ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic && !string.IsNullOrWhiteSpace(stopIcon))
+            {
+                x = stopIcon;
             }
             else
             {
-                x = ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic ? "⏸" : "Paused";
-                TryAddToUncomplete(Uncomplete, x, "MediaLink");
+                x = pausedText;
             }
         }
+
+        if (string.IsNullOrWhiteSpace(x))
+        {
+            return;
+        }
+
+        if (ViewModel.Instance.MediaLink_UpperCase)
+        {
+            x = x.ToUpper(CultureInfo.CurrentCulture);
+        }
+
+        TryAddToUncomplete(Uncomplete, x, "MediaLink");
     }
 
 
@@ -317,37 +349,60 @@ public static class OSCController
     // this function will build the spotify status message to be sent to VRChat and add it to the list of strings if the total length of the list is less than 144 characters
     public static void AddSpotifyStatus(List<string> Uncomplete)
     {
-        if (ViewModel.Instance.IntgrScanSpotify_OLD == true)
+        if (!ViewModel.Instance.IntgrScanSpotify_OLD || !ViewModel.Instance.SpotifyActive)
         {
-            if (ViewModel.Instance.SpotifyActive == true)
+            return;
+        }
+
+        if (ViewModel.Instance.MediaLink_TransientMode)
+        {
+            double elapsedSeconds = (DateTime.UtcNow - ViewModel.Instance.SpotifyLastChangeUtc).TotalSeconds;
+            if (elapsedSeconds > ViewModel.Instance.MediaLink_TransientDuration)
             {
-                string x;
-                if (ViewModel.Instance.SpotifyPaused)
-                {
-                    x = ViewModel.Instance.PauseIconMusic == true && ViewModel.Instance.PrefixIconMusic == true
-                        ? "⏸"
-                        : "Music paused";
-                    TryAddToUncomplete(Uncomplete, x, "Spotify");
-                }
-                else
-                {
-                    if (ViewModel.Instance.PlayingSongTitle.Length > 0)
-                    {
-                        x = ViewModel.Instance.PrefixIconMusic == true
-                            ? "🎵 '" + ViewModel.Instance.PlayingSongTitle + "'"
-                            : "Listening to '" + ViewModel.Instance.PlayingSongTitle + "'";
-                        TryAddToUncomplete(Uncomplete, x, "Spotify");
-                    }
-                    else
-                    {
-                        x = ViewModel.Instance.PauseIconMusic == true && ViewModel.Instance.PrefixIconMusic == true
-                            ? "⏸"
-                            : "Music paused";
-                        TryAddToUncomplete(Uncomplete, x, "Spotify");
-                    }
-                }
+                return;
             }
         }
+
+        string x = string.Empty;
+        if (ViewModel.Instance.SpotifyPaused)
+        {
+            if (ViewModel.Instance.PauseIconMusic && ViewModel.Instance.PrefixIconMusic)
+            {
+                x = ResolveMediaLinkPauseIcon();
+            }
+            else
+            {
+                x = ResolveMediaLinkPausedText();
+            }
+        }
+        else
+        {
+            string title = ApplySpotifySeparator(ViewModel.Instance.PlayingSongTitle);
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                x = ResolveMediaLinkPausedText();
+            }
+            else
+            {
+                string playIcon = ResolveSpotifyPlayIcon();
+                string actionText = ResolveSpotifyPlayingText();
+                x = ViewModel.Instance.PrefixIconMusic
+                    ? $"{playIcon} '{title}'"
+                    : $"{actionText} '{title}'";
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(x))
+        {
+            return;
+        }
+
+        if (ViewModel.Instance.MediaLink_UpperCase)
+        {
+            x = x.ToUpper(CultureInfo.CurrentCulture);
+        }
+
+        TryAddToUncomplete(Uncomplete, x, "Spotify");
     }
 
 
@@ -807,13 +862,102 @@ public static class OSCController
         {
             if (mediaLinkTitle.Length > 0)
             {
-                mediaLinkTitle.Append(" ᵇʸ ");
+                mediaLinkTitle.Append(ResolveMediaLinkSeparator());
             }
 
             mediaLinkTitle.Append(mediaSession.Artist);
         }
 
         return mediaLinkTitle.Length > 0 ? mediaLinkTitle.ToString() : string.Empty;
+    }
+
+    private static string ResolveMediaLinkActionText(MediaSessionInfo mediaSession, bool isPlaying)
+    {
+        if (isPlaying)
+        {
+            string playingText = ViewModel.Instance.MediaLink_TextPlaying;
+            if (!string.IsNullOrWhiteSpace(playingText))
+            {
+                return playingText;
+            }
+
+            return mediaSession.IsVideo ? "Watching" : "Listening to";
+        }
+
+        return ResolveMediaLinkPausedText();
+    }
+
+    private static string ResolveMediaLinkPausedText()
+    {
+        string pausedText = ViewModel.Instance.MediaLink_TextPaused;
+        return string.IsNullOrWhiteSpace(pausedText) ? "Paused" : pausedText;
+    }
+
+    private static string ResolveMediaLinkPlayIcon(MediaSessionInfo mediaSession)
+    {
+        string icon = ViewModel.Instance.MediaLink_IconPlay;
+        if (!string.IsNullOrWhiteSpace(icon))
+        {
+            return icon;
+        }
+
+        return mediaSession.IsVideo ? "🎬" : "🎵";
+    }
+
+    private static string ResolveMediaLinkPauseIcon()
+    {
+        string icon = ViewModel.Instance.MediaLink_IconPause;
+        if (!string.IsNullOrWhiteSpace(icon))
+        {
+            return icon;
+        }
+
+        return "⏸";
+    }
+
+    private static string ResolveMediaLinkStopIcon()
+    {
+        string icon = ViewModel.Instance.MediaLink_IconStop;
+        if (!string.IsNullOrWhiteSpace(icon))
+        {
+            return icon;
+        }
+
+        return "⏹️";
+    }
+
+    private static string ResolveMediaLinkSeparator()
+    {
+        string separator = ViewModel.Instance.MediaLink_Separator;
+        if (separator == null)
+        {
+            separator = " ᵇʸ ";
+        }
+
+        return separator.Replace("\\n", "\n").Replace("\\r", "\r");
+    }
+
+    private static string ResolveSpotifyPlayingText()
+    {
+        string playingText = ViewModel.Instance.MediaLink_TextPlaying;
+        return string.IsNullOrWhiteSpace(playingText) ? "Listening to" : playingText;
+    }
+
+    private static string ResolveSpotifyPlayIcon()
+    {
+        string icon = ViewModel.Instance.MediaLink_IconPlay;
+        return string.IsNullOrWhiteSpace(icon) ? "🎵" : icon;
+    }
+
+    private static string ApplySpotifySeparator(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return string.Empty;
+        }
+
+        string separator = ResolveMediaLinkSeparator();
+        return title.Replace(" ᵇʸ ", separator);
     }
 
     public static string FormatTimeSpan(System.TimeSpan timeSpan)

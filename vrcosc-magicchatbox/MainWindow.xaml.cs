@@ -1310,8 +1310,22 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                ViewModel.Instance.PlayingSongTitle = await Task.Run(() => SpotifyModule.CurrentPlayingSong()).ConfigureAwait(false);
-                ViewModel.Instance.SpotifyActive = await Task.Run(() => SpotifyModule.SpotifyIsRunning()).ConfigureAwait(false);
+                string previousTitle = ViewModel.Instance.PlayingSongTitle;
+                bool previousPaused = ViewModel.Instance.SpotifyPaused;
+                bool previousActive = ViewModel.Instance.SpotifyActive;
+
+                string newTitle = await Task.Run(() => SpotifyModule.CurrentPlayingSong()).ConfigureAwait(false);
+                bool newActive = await Task.Run(() => SpotifyModule.SpotifyIsRunning()).ConfigureAwait(false);
+
+                ViewModel.Instance.PlayingSongTitle = newTitle;
+                ViewModel.Instance.SpotifyActive = newActive;
+
+                if (!string.Equals(previousTitle, newTitle, StringComparison.Ordinal) ||
+                    previousPaused != ViewModel.Instance.SpotifyPaused ||
+                    previousActive != newActive)
+                {
+                    ViewModel.Instance.SpotifyLastChangeUtc = DateTime.UtcNow;
+                }
             }
             catch (Exception ex)
             {
