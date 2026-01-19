@@ -57,6 +57,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
             CenterWindowAtBottom();
             Topmost = true;
+            Activate();
+            Focus();
         }
 
         private void CenterWindowAtBottom()
@@ -78,11 +80,18 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         {
             oauthHandler = PulsoidOAuthHandler.Instance;
 
-            bool isValidToken = await oauthHandler.ValidateTokenAsync(Token.Password);
+            string token = ExtractAccessToken(Token.Password);
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                MessageBox.Show("Missing access token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            bool isValidToken = await oauthHandler.ValidateTokenAsync(token);
 
             if (isValidToken)
             {
-                ViewModel.Instance.PulsoidAccessTokenOAuth = Token.Password;
+                ViewModel.Instance.PulsoidAccessTokenOAuth = token;
                 ViewModel.Instance.PulsoidAuthConnected = true;
                 this.Close();
             }
@@ -95,22 +104,44 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void Token_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            string password = Token.Password;
-
-            if (IsValidGuid(password))
-            {
-                Connect.IsEnabled = true;
-            }
-            else
-            {
-                Connect.IsEnabled = false;
-            }
+            string token = ExtractAccessToken(Token.Password);
+            Connect.IsEnabled = !string.IsNullOrWhiteSpace(token);
         }
 
-        private bool IsValidGuid(string str)
+        private static string ExtractAccessToken(string input)
         {
-            Guid guidOutput;
-            return Guid.TryParse(str, out guidOutput);
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            string trimmed = input.Trim();
+
+            int hashIndex = trimmed.IndexOf('#');
+            if (hashIndex >= 0 && hashIndex < trimmed.Length - 1)
+            {
+                trimmed = trimmed.Substring(hashIndex + 1);
+            }
+
+            int queryIndex = trimmed.IndexOf('?');
+            if (queryIndex >= 0 && queryIndex < trimmed.Length - 1)
+            {
+                trimmed = trimmed.Substring(queryIndex + 1);
+            }
+
+            int tokenIndex = trimmed.IndexOf("access_token=", StringComparison.OrdinalIgnoreCase);
+            if (tokenIndex >= 0)
+            {
+                trimmed = trimmed.Substring(tokenIndex + "access_token=".Length);
+            }
+
+            int ampIndex = trimmed.IndexOf('&');
+            if (ampIndex >= 0)
+            {
+                trimmed = trimmed.Substring(0, ampIndex);
+            }
+
+            return trimmed.Trim();
         }
 
 

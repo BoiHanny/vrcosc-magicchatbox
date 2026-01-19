@@ -913,11 +913,12 @@ public class ComponentStatsModule
 
             string timeZoneDisplay = $" ({timezoneLabel}{offsetString})";
 
-            return GetFormattedTime(
+            string timeText = GetFormattedTime(
                 dateTimeWithZone,
                 ViewModel.Instance.Time24H,
                 ViewModel.Instance.TimeShowTimeZone,
                 timeZoneDisplay);
+            return timeText;
         }
         catch (Exception ex)
         {

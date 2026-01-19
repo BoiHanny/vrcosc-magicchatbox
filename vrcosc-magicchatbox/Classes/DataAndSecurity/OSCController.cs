@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Media;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -65,6 +66,23 @@ public static class OSCController
             }
             TryAddToUncomplete(Uncomplete, x, "NetworkStatistics");
         }
+    }
+
+    public static void AddWeather(List<string> Uncomplete)
+    {
+        if (!ViewModel.Instance.ShowWeatherInTime)
+        {
+            return;
+        }
+
+        WeatherService.TriggerRefreshIfNeeded();
+        string weatherText = WeatherService.BuildWeatherOnlyText();
+        if (string.IsNullOrWhiteSpace(weatherText))
+        {
+            return;
+        }
+
+        TryAddToUncomplete(Uncomplete, weatherText, "Weather");
     }
 
 
@@ -544,6 +562,15 @@ public static class OSCController
             },
 
             {
+                () => ViewModel.Instance.ShowWeatherInTime &&
+                (ViewModel.Instance.IntgrWeather_VR &&
+                ViewModel.Instance.IsVRRunning ||
+                ViewModel.Instance.IntgrWeather_DESKTOP &&
+                !ViewModel.Instance.IsVRRunning),
+                AddWeather
+            },
+
+            {
                 () => ViewModel.Instance.IntgrSpotifyStatus_VR &&
                 ViewModel.Instance.IsVRRunning ||
                 ViewModel.Instance.IntgrSpotifyStatus_DESKTOP &&
@@ -579,6 +606,7 @@ public static class OSCController
             SetOpacity("Window", "1");
             SetOpacity("Soundpad", "1");
             SetOpacity("Time", "1");
+            SetOpacity("Weather", "1");
             SetOpacity("MediaLink", "1");
 
             // Add the strings to the list if the total length of the list is less than 144 characters
@@ -789,6 +817,9 @@ public static class OSCController
                 break;
             case "Time":
                 ViewModel.Instance.Time_Opacity = opacity;
+                break;
+            case "Weather":
+                ViewModel.Instance.Weather_Opacity = opacity;
                 break;
             case "Spotify":
                 ViewModel.Instance.Spotify_Opacity = opacity;

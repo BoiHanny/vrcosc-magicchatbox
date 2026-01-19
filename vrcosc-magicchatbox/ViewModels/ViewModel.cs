@@ -95,6 +95,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IntgrCurrentTime_DESKTOP = false;
 
         private bool _IntgrCurrentTime_VR = true;
+        private bool _IntgrWeather_DESKTOP = false;
+        private bool _IntgrWeather_VR = true;
 
 
         private bool _IntgrHeartRate_DESKTOP = false;
@@ -271,6 +273,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_NetworkStatistics), value => Settings_NetworkStatistics = value },
                 { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
                 { nameof(Settings_TTS), value => Settings_TTS = value },
+                { nameof(Settings_Weather), value => Settings_Weather = value },
                 { nameof(Settings_Time), value => Settings_Time = value },
                 { nameof(Settings_HeartRate), value => Settings_HeartRate = value },
                 { nameof(Settings_Status), value => Settings_Status = value }
@@ -1122,6 +1125,26 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrCurrentTime_VR = value;
                 NotifyPropertyChanged(nameof(IntgrCurrentTime_VR));
+            }
+        }
+
+        public bool IntgrWeather_DESKTOP
+        {
+            get { return _IntgrWeather_DESKTOP; }
+            set
+            {
+                _IntgrWeather_DESKTOP = value;
+                NotifyPropertyChanged(nameof(IntgrWeather_DESKTOP));
+            }
+        }
+
+        public bool IntgrWeather_VR
+        {
+            get { return _IntgrWeather_VR; }
+            set
+            {
+                _IntgrWeather_VR = value;
+                NotifyPropertyChanged(nameof(IntgrWeather_VR));
             }
         }
 
@@ -2132,6 +2155,28 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _PrefixIconStatus = true;
         private bool _CountDownUI = true;
         private bool _Time24H = false;
+        private bool _ShowWeatherInTime = true;
+        private bool _ShowWeatherCondition = false;
+        private bool _ShowWeatherEmoji = false;
+        private bool _WeatherUseDecimal = false;
+        private bool _ShowWeatherHumidity = false;
+        private bool _ShowWeatherWind = false;
+        private bool _ShowWeatherFeelsLike = false;
+        private int _WeatherUpdateIntervalMinutes = 10;
+        private string _WeatherSeparator = " | ";
+        private string _WeatherStatsSeparator = " ";
+        private string _WeatherTemplate = string.Empty;
+        private string _WeatherLastSyncDisplay = "Last sync: Never";
+        private WeatherLayoutMode _WeatherLayoutMode = WeatherLayoutMode.SingleLine;
+        private WeatherOrder _WeatherOrder = WeatherOrder.TimeFirst;
+        private WeatherUnitOverride _WeatherUnitOverride = WeatherUnitOverride.UseGlobal;
+        private WeatherWindUnitOverride _WeatherWindUnitOverride = WeatherWindUnitOverride.UseGlobal;
+        private WeatherFallbackMode _WeatherFallbackMode = WeatherFallbackMode.Hide;
+        private WeatherLocationMode _WeatherLocationMode = WeatherLocationMode.CustomCity;
+        private bool _WeatherAllowIPLocation = false;
+        private string _WeatherLocationCity = "London";
+        private double _WeatherLocationLatitude = 0;
+        private double _WeatherLocationLongitude = 0;
         private string _OSCtoSent = string.Empty;
         private string _ApiStream = "b2t8DhYcLcu7Nu0suPcvc8MkHBjZNbEinG/3ybInlUK/5UkyNRVhK145nO7C4Mwhe1Zer1hBcG/F1b5f/BMcNFLXk4K6ozRcK7gHcebJZWnpxEDxjW6DyrZ/si913BPp";
         private Models.Version _AppVersion = new(DataController.GetApplicationVersion());
@@ -2163,6 +2208,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Status_Opacity = "1";
         private string _Window_Opacity = "1";
         private string _Time_Opacity = "1";
+        private string _Weather_Opacity = "1";
         private string _HeartRate_Opacity = "1";
         private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
@@ -2729,6 +2775,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _Settings_Weather = false;
+
+        public bool Settings_Weather
+        {
+            get { return _Settings_Weather; }
+            set
+            {
+                _Settings_Weather = value;
+                NotifyPropertyChanged(nameof(Settings_Weather));
+            }
+        }
+
         private bool _Settings_HeartRate = false;
 
         public bool Settings_HeartRate
@@ -2992,6 +3050,12 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         public IEnumerable<MediaLinkTimeSeekbar> AvailableTimeSeekbarStyles { get; } = Enum.GetValues(typeof(MediaLinkTimeSeekbar)).Cast<MediaLinkTimeSeekbar>().ToList();
+        public IEnumerable<WeatherLayoutMode> AvailableWeatherLayoutModes { get; } = Enum.GetValues(typeof(WeatherLayoutMode)).Cast<WeatherLayoutMode>().ToList();
+        public IEnumerable<WeatherOrder> AvailableWeatherOrders { get; } = Enum.GetValues(typeof(WeatherOrder)).Cast<WeatherOrder>().ToList();
+        public IEnumerable<WeatherUnitOverride> AvailableWeatherUnitOverrides { get; } = Enum.GetValues(typeof(WeatherUnitOverride)).Cast<WeatherUnitOverride>().ToList();
+        public IEnumerable<WeatherWindUnitOverride> AvailableWeatherWindUnitOverrides { get; } = Enum.GetValues(typeof(WeatherWindUnitOverride)).Cast<WeatherWindUnitOverride>().ToList();
+        public IEnumerable<WeatherFallbackMode> AvailableWeatherFallbackModes { get; } = Enum.GetValues(typeof(WeatherFallbackMode)).Cast<WeatherFallbackMode>().ToList();
+        public IEnumerable<WeatherLocationMode> AvailableWeatherLocationModes { get; } = Enum.GetValues(typeof(WeatherLocationMode)).Cast<WeatherLocationMode>().ToList();
 
 
         private bool _ApplicationHookV2 = true;
@@ -3653,6 +3717,247 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool ShowWeatherInTime
+        {
+            get { return _ShowWeatherInTime; }
+            set
+            {
+                _ShowWeatherInTime = value;
+                NotifyPropertyChanged(nameof(ShowWeatherInTime));
+            }
+        }
+
+        public string WeatherLastSyncDisplay
+        {
+            get { return _WeatherLastSyncDisplay; }
+            set
+            {
+                _WeatherLastSyncDisplay = value;
+                NotifyPropertyChanged(nameof(WeatherLastSyncDisplay));
+            }
+        }
+
+        public bool ShowWeatherCondition
+        {
+            get { return _ShowWeatherCondition; }
+            set
+            {
+                _ShowWeatherCondition = value;
+                NotifyPropertyChanged(nameof(ShowWeatherCondition));
+            }
+        }
+
+        public bool ShowWeatherEmoji
+        {
+            get { return _ShowWeatherEmoji; }
+            set
+            {
+                _ShowWeatherEmoji = value;
+                NotifyPropertyChanged(nameof(ShowWeatherEmoji));
+            }
+        }
+
+        public bool WeatherUseDecimal
+        {
+            get { return _WeatherUseDecimal; }
+            set
+            {
+                _WeatherUseDecimal = value;
+                NotifyPropertyChanged(nameof(WeatherUseDecimal));
+            }
+        }
+
+        public bool ShowWeatherHumidity
+        {
+            get { return _ShowWeatherHumidity; }
+            set
+            {
+                _ShowWeatherHumidity = value;
+                NotifyPropertyChanged(nameof(ShowWeatherHumidity));
+            }
+        }
+
+        public bool ShowWeatherWind
+        {
+            get { return _ShowWeatherWind; }
+            set
+            {
+                _ShowWeatherWind = value;
+                NotifyPropertyChanged(nameof(ShowWeatherWind));
+            }
+        }
+
+        public bool ShowWeatherFeelsLike
+        {
+            get { return _ShowWeatherFeelsLike; }
+            set
+            {
+                _ShowWeatherFeelsLike = value;
+                NotifyPropertyChanged(nameof(ShowWeatherFeelsLike));
+            }
+        }
+
+        public string WeatherSeparator
+        {
+            get { return _WeatherSeparator; }
+            set
+            {
+                _WeatherSeparator = string.IsNullOrWhiteSpace(value) ? " | " : value;
+                NotifyPropertyChanged(nameof(WeatherSeparator));
+            }
+        }
+
+        public string WeatherStatsSeparator
+        {
+            get { return _WeatherStatsSeparator; }
+            set
+            {
+                _WeatherStatsSeparator = string.IsNullOrWhiteSpace(value) ? " " : value;
+                NotifyPropertyChanged(nameof(WeatherStatsSeparator));
+            }
+        }
+
+        public string WeatherTemplate
+        {
+            get { return _WeatherTemplate; }
+            set
+            {
+                _WeatherTemplate = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(WeatherTemplate));
+                NotifyPropertyChanged(nameof(WeatherTemplateIsEmpty));
+                NotifyPropertyChanged(nameof(WeatherTemplateHasValue));
+            }
+        }
+
+        public bool WeatherTemplateIsEmpty => string.IsNullOrWhiteSpace(_WeatherTemplate);
+        public bool WeatherTemplateHasValue => !string.IsNullOrWhiteSpace(_WeatherTemplate);
+
+        public WeatherLayoutMode WeatherLayoutMode
+        {
+            get { return _WeatherLayoutMode; }
+            set
+            {
+                _WeatherLayoutMode = value;
+                NotifyPropertyChanged(nameof(WeatherLayoutMode));
+            }
+        }
+
+        public WeatherOrder WeatherOrder
+        {
+            get { return _WeatherOrder; }
+            set
+            {
+                _WeatherOrder = value;
+                NotifyPropertyChanged(nameof(WeatherOrder));
+            }
+        }
+
+        public WeatherUnitOverride WeatherUnitOverride
+        {
+            get { return _WeatherUnitOverride; }
+            set
+            {
+                _WeatherUnitOverride = value;
+                NotifyPropertyChanged(nameof(WeatherUnitOverride));
+            }
+        }
+
+        public WeatherWindUnitOverride WeatherWindUnitOverride
+        {
+            get { return _WeatherWindUnitOverride; }
+            set
+            {
+                _WeatherWindUnitOverride = value;
+                NotifyPropertyChanged(nameof(WeatherWindUnitOverride));
+            }
+        }
+
+        public WeatherFallbackMode WeatherFallbackMode
+        {
+            get { return _WeatherFallbackMode; }
+            set
+            {
+                _WeatherFallbackMode = value;
+                NotifyPropertyChanged(nameof(WeatherFallbackMode));
+            }
+        }
+
+        public WeatherLocationMode WeatherLocationMode
+        {
+            get { return _WeatherLocationMode; }
+            set
+            {
+                _WeatherLocationMode = value;
+                NotifyPropertyChanged(nameof(WeatherLocationMode));
+                NotifyPropertyChanged(nameof(WeatherLocationModeIsCustomCity));
+                NotifyPropertyChanged(nameof(WeatherLocationModeIsCustomCoordinates));
+                NotifyPropertyChanged(nameof(WeatherLocationModeIsIPBased));
+                NotifyPropertyChanged(nameof(WeatherIpConsentMissing));
+                NotifyPropertyChanged(nameof(WeatherLocationModeUsesCity));
+            }
+        }
+
+        public bool WeatherAllowIPLocation
+        {
+            get { return _WeatherAllowIPLocation; }
+            set
+            {
+                _WeatherAllowIPLocation = value;
+                NotifyPropertyChanged(nameof(WeatherAllowIPLocation));
+                NotifyPropertyChanged(nameof(WeatherIpConsentMissing));
+            }
+        }
+
+        public string WeatherLocationCity
+        {
+            get { return _WeatherLocationCity; }
+            set
+            {
+                _WeatherLocationCity = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(WeatherLocationCity));
+            }
+        }
+
+        public double WeatherLocationLatitude
+        {
+            get { return _WeatherLocationLatitude; }
+            set
+            {
+                _WeatherLocationLatitude = value;
+                NotifyPropertyChanged(nameof(WeatherLocationLatitude));
+            }
+        }
+
+        public double WeatherLocationLongitude
+        {
+            get { return _WeatherLocationLongitude; }
+            set
+            {
+                _WeatherLocationLongitude = value;
+                NotifyPropertyChanged(nameof(WeatherLocationLongitude));
+            }
+        }
+
+        public bool WeatherLocationModeIsCustomCity => _WeatherLocationMode == WeatherLocationMode.CustomCity;
+        public bool WeatherLocationModeIsCustomCoordinates => _WeatherLocationMode == WeatherLocationMode.CustomCoordinates;
+        public bool WeatherLocationModeIsIPBased => _WeatherLocationMode == WeatherLocationMode.IPBased;
+        public bool WeatherIpConsentMissing => _WeatherLocationMode == WeatherLocationMode.IPBased && !_WeatherAllowIPLocation;
+        public bool WeatherLocationModeUsesCity => _WeatherLocationMode == WeatherLocationMode.CustomCity || _WeatherLocationMode == WeatherLocationMode.IPBased;
+
+        public int WeatherUpdateIntervalMinutes
+        {
+            get { return _WeatherUpdateIntervalMinutes; }
+            set
+            {
+                if (value < 1)
+                {
+                    value = 10;
+                }
+                _WeatherUpdateIntervalMinutes = value;
+                NotifyPropertyChanged(nameof(WeatherUpdateIntervalMinutes));
+            }
+        }
+
         public string Spotify_Opacity
         {
             get { return _Spotify_Opacity; }
@@ -3703,6 +4008,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _Time_Opacity = value;
                 NotifyPropertyChanged(nameof(Time_Opacity));
+            }
+        }
+
+        public string Weather_Opacity
+        {
+            get { return _Weather_Opacity; }
+            set
+            {
+                _Weather_Opacity = value;
+                NotifyPropertyChanged(nameof(Weather_Opacity));
             }
         }
 

@@ -3110,10 +3110,481 @@
                                         Foreground="#FFB9B5C1"
                                         Text="Convert your local time to a standard time zone" />
                                 </StackPanel>
+                                
                             </StackPanel>
                         </Grid>
                     </Grid>
                     <Grid Grid.Row="3" Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Background>
+                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="#FF3A3053" />
+                                <GradientStop Offset="1" Color="#FF40365B" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Grid Grid.Row="3">
+                            <ToggleButton
+                                Width="Auto"
+                                Height="30"
+                                HorizontalAlignment="Left"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="#BDAEE2"
+                                IsChecked="{Binding Settings_Weather, Mode=TwoWay}"
+                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                Tag="Weather options"
+                                TextOptions.TextRenderingMode="ClearType" />
+                        </Grid>
+                        <Grid
+                            Grid.Row="1"
+                            Height="Auto"
+                            Margin="34,10,0,0"
+                            Visibility="{Binding Settings_Weather, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel>
+                                <CheckBox
+                                    x:Name="ShowWeatherInTime_checkbox"
+                                    Height="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="#FF2D1265"
+                                    Checked="Update_Click"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="18"
+                                    Foreground="#FFB9B5C1"
+                                    IsChecked="{Binding ShowWeatherInTime, Mode=TwoWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Unchecked="Update_Click">
+                                    Enable weather integration
+                                </CheckBox>
+                                <StackPanel
+                                    Width="auto"
+                                    Margin="0,0,0,15"
+                                    HorizontalAlignment="Left"
+                                    Visibility="{Binding ShowWeatherInTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBlock
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Weather refresh (minutes)" />
+                                    <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                        <TextBox
+                                            x:Name="WeatherRefreshInterval"
+                                            Width="40"
+                                            Height="26"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WeatherUpdateIntervalMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button
+                                            x:Name="WeatherSyncNow"
+                                            Width="60"
+                                            Height="26"
+                                            Margin="6,0,0,0"
+                                            Padding="6,0,6,0"
+                                            Click="WeatherSyncNow_Click"
+                                            Style="{StaticResource Status_Button_style}">
+                                            <TextBlock FontSize="12" Text="Sync" />
+                                        </Button>
+                                        <TextBlock
+                                            Margin="8,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="{Binding WeatherLastSyncDisplay}" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Location" />
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Location mode" />
+                                    <ComboBox
+                                        Width="220"
+                                        Height="25"
+                                        Margin="2,4"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding AvailableWeatherLocationModes}"
+                                        Opacity="0.3"
+                                        SelectedItem="{Binding WeatherLocationMode, Mode=TwoWay}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherLocationModeIsIPBased, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <CheckBox
+                                            x:Name="WeatherAllowIPLocation_checkbox"
+                                            Height="20"
+                                            Margin="0,0,0,0"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding WeatherAllowIPLocation, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Allow IP-based location (uses ipapi.co)
+                                        </CheckBox>
+                                        <TextBlock
+                                            Margin="0,2,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Without consent, weather uses your custom city."
+                                            Visibility="{Binding WeatherIpConsentMissing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherLocationModeUsesCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Custom city"
+                                            Visibility="{Binding WeatherLocationModeIsCustomCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Fallback city"
+                                            Visibility="{Binding WeatherLocationModeIsIPBased, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox
+                                            x:Name="WeatherCity"
+                                            Width="200"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WeatherLocationCity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Margin="0,2,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Default: London" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherLocationModeIsCustomCoordinates, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Coordinates (lat, lon)" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox
+                                                x:Name="WeatherLatitude"
+                                                Width="80"
+                                                Height="26"
+                                                Margin="0,3,6,0"
+                                                Padding="5,0,0,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding WeatherLocationLatitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox
+                                                x:Name="WeatherLongitude"
+                                                Width="80"
+                                                Height="26"
+                                                Margin="0,3,0,0"
+                                                Padding="5,0,0,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding WeatherLocationLongitude, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            Margin="0,2,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Example: 51.5074, -0.1278" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Layout and template" />
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Layout mode" />
+                                    <ComboBox
+                                        Width="200"
+                                        Height="25"
+                                        Margin="2,4"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding AvailableWeatherLayoutModes}"
+                                        Opacity="0.3"
+                                        SelectedItem="{Binding WeatherLayoutMode, Mode=TwoWay}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherTemplateIsEmpty, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock
+                                            Margin="0,6,0,0"
+                                            Padding="0,0,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="#FF9983AD"
+                                            Text="Weather stats separator" />
+                                        <TextBox
+                                            x:Name="WeatherStatsSeparator"
+                                            Width="120"
+                                            Height="26"
+                                            Margin="0,3,0,0"
+                                            Padding="5,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            Background="#FF7B7195"
+                                            BorderThickness="0"
+                                            FontSize="15"
+                                            Foreground="#FF240E54"
+                                            Text="{Binding WeatherStatsSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Margin="0,2,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="#FF9983AD"
+                                            Text="Used between temp/condition/feels/wind/humidity" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Template (use {time} {weather} {temp} {unit} {tempWithUnit} {condition} {humidity} {wind} {feels})" />
+                                    <TextBox
+                                        x:Name="WeatherTemplate"
+                                        Width="360"
+                                        Height="26"
+                                        Margin="0,3,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding WeatherTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="Separators are ignored while a template is set."
+                                        Visibility="{Binding WeatherTemplateHasValue, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="#FF9983AD"
+                                        Text="Tip: use \n for a new line in the template." />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Details" />
+                                    <CheckBox
+                                        x:Name="ShowWeatherCondition_checkbox"
+                                        Height="20"
+                                        Margin="0,12,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowWeatherCondition, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show condition text
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ShowWeatherEmoji_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowWeatherEmoji, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show weather icon
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="WeatherUseDecimal_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding WeatherUseDecimal, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Use 1 decimal for temperature and wind
+                                    </CheckBox>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Units" />
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Unit override" />
+                                    <ComboBox
+                                        Width="200"
+                                        Height="25"
+                                        Margin="2,4"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding AvailableWeatherUnitOverrides}"
+                                        Opacity="0.3"
+                                        SelectedItem="{Binding WeatherUnitOverride, Mode=TwoWay}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Wind unit" />
+                                    <ComboBox
+                                        Width="220"
+                                        Height="25"
+                                        Margin="2,4"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding AvailableWeatherWindUnitOverrides}"
+                                        Opacity="0.3"
+                                        SelectedItem="{Binding WeatherWindUnitOverride, Mode=TwoWay}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <CheckBox
+                                        x:Name="ShowWeatherHumidity_checkbox"
+                                        Height="20"
+                                        Margin="0,8,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowWeatherHumidity, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show humidity
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ShowWeatherWind_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowWeatherWind, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show wind speed
+                                    </CheckBox>
+                                    <CheckBox
+                                        x:Name="ShowWeatherFeelsLike_checkbox"
+                                        Height="20"
+                                        Margin="0,0,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding ShowWeatherFeelsLike, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show feels-like temperature
+                                    </CheckBox>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="Fallback behavior" />
+                                    <ComboBox
+                                        Width="200"
+                                        Height="25"
+                                        Margin="2,4"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding AvailableWeatherFallbackModes}"
+                                        Opacity="0.3"
+                                        SelectedItem="{Binding WeatherFallbackMode, Mode=TwoWay}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Grid.Row="4" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -3812,7 +4283,7 @@
                     </Grid>
                     <Grid
                         x:Name="CompLayer"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -4455,7 +4926,7 @@
                             </Border>
                         </StackPanel>
                     </Grid>
-                    <Grid Grid.Row="5" Margin="0,5,0,0">
+                    <Grid Grid.Row="6" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -4659,7 +5130,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="6" Margin="0,5,0,0">
+                    <Grid Grid.Row="7" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -4909,7 +5380,7 @@
                             </StackPanel>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="7" Margin="0,5,0,0">
+                    <Grid Grid.Row="8" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -5032,7 +5503,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="8" Margin="0,5,0,0">
+                    <Grid Grid.Row="9" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -5593,7 +6064,7 @@
                         </Grid>
 
                     </Grid>
-                    <Grid Grid.Row="9" Margin="0,5,0,0">
+                    <Grid Grid.Row="10" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -6102,7 +6573,7 @@
 
                     </Grid>
                     <Grid
-                        Grid.Row="10"
+                        Grid.Row="11"
                         Margin="0,5,0,0"
                         Visibility="{Binding Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Grid.RowDefinitions>
@@ -6153,7 +6624,7 @@
                             </CheckBox>
                         </Grid>
                     </Grid>
-                    <Grid Grid.Row="11" Margin="0,5,0,10">
+                    <Grid Grid.Row="13" Margin="0,5,0,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -9871,7 +10342,7 @@
                                         FontSize="20"
                                         Foreground="White"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="Current time"
+                                        Text="Time"
                                         TextWrapping="Wrap" />
                                     <ToggleButton
                                         Width="60"
@@ -9891,6 +10362,7 @@
                                         Content="VR"
                                         IsChecked="{Binding IntgrCurrentTime_VR, Mode=TwoWay}"
                                         Style="{StaticResource GlowyToggleButtonVR}" />
+
                                     <Button
                                         Margin="10,0,0,0"
                                         Command="{Binding ActivateSettingCommand}"
@@ -9911,14 +10383,15 @@
                                     </Button>
                                 </StackPanel>
 
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Displays local machine time and allows conversion to different time zones."
-                                    TextWrapping="Wrap">
+
+                                    <TextBlock
+                                        Margin="0,3,0,0"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="13"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Displays local time with optional time zone conversion."
+                                        TextWrapping="Wrap">
                                     <TextBlock.Foreground>
                                         <RadialGradientBrush>
                                             <GradientStop Color="White" />
@@ -9935,6 +10408,132 @@
                                     VerticalAlignment="Center"
                                     Click="Update_Click"
                                     IsChecked="{Binding IntgrScanWindowTime, Mode=TwoWay}"
+                                    Style="{DynamicResource Switch}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ListBoxItem>
+                <ListBoxItem Name="WeatherItem" Opacity="{Binding Weather_Opacity}">
+                    <Border Margin="5,0,5,5" CornerRadius="5">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Offset="0" Color="#FF5BA6D8" />
+                                <GradientStop Offset="1" Color="#FF6B4FA4" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#1B0E49" />
+                        </Border.Effect>
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Image  -->
+                            <Image
+                                Grid.Column="0"
+                                Width="35"
+                                Margin="5"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                Source="/Img/Icons/NetworkStats_ico.png" />
+                            <!--  Text Content  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <StackPanel
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="Weather"
+                                        TextWrapping="Wrap" />
+                                    <ToggleButton
+                                        Width="60"
+                                        Height="19"
+                                        Margin="10,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="DESKTOP"
+                                        IsChecked="{Binding IntgrWeather_DESKTOP, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButtonDT}" />
+                                    <ToggleButton
+                                        Width="30"
+                                        Height="19"
+                                        Margin="5,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Content="VR"
+                                        IsChecked="{Binding IntgrWeather_VR, Mode=TwoWay}"
+                                        Style="{StaticResource GlowyToggleButtonVR}" />
+                                    <Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Weather"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Style="{StaticResource CircleButton}">
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            Source="/Img/Icons/Next_ico.png" />
+                                        <Button.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="5"
+                                                Opacity="0.4"
+                                                ShadowDepth="0"
+                                                Color="#251153" />
+                                        </Button.Effect>
+                                    </Button>
+                                    <TextBlock
+                                        Margin="6,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Effect="{StaticResource TextBlockShadowEffect}"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="12"
+                                        Foreground="#D4D0E1"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding WeatherLastSyncDisplay}"
+                                        Visibility="{Binding ShowWeatherInTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Display local weather details like temperature, feels-like, wind, and humidity."
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Foreground>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="White" />
+                                            <GradientStop Offset="1" Color="#FFF0E7FF" />
+                                        </RadialGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                            <!--  Toggle Button  -->
+                            <Grid Grid.Column="2">
+                                <CheckBox
+                                    Name="Weather_switch"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="Update_Click"
+                                    IsChecked="{Binding ShowWeatherInTime, Mode=TwoWay}"
                                     Style="{DynamicResource Switch}" />
                             </Grid>
                         </Grid>

@@ -1,4 +1,6 @@
 ﻿
+using System.ComponentModel;
+
 namespace vrcosc_magicchatbox.ViewModels
 {
     public enum SortProperty
@@ -34,6 +36,61 @@ namespace vrcosc_magicchatbox.ViewModels
         SAST
     }
 
+    public enum WeatherLayoutMode
+    {
+        [Description("Single line")]
+        SingleLine,
+        [Description("Two lines")]
+        TwoLines
+    }
+
+    public enum WeatherOrder
+    {
+        [Description("Time first")]
+        TimeFirst,
+        [Description("Weather first")]
+        WeatherFirst
+    }
+
+    public enum WeatherUnitOverride
+    {
+        [Description("Use global unit")]
+        UseGlobal,
+        [Description("Celsius (C)")]
+        Celsius,
+        [Description("Fahrenheit (F)")]
+        Fahrenheit
+    }
+
+    public enum WeatherFallbackMode
+    {
+        [Description("Hide on error")]
+        Hide,
+        [Description("Keep last value")]
+        KeepLast,
+        [Description("Show N/A")]
+        ShowNA
+    }
+
+    public enum WeatherWindUnitOverride
+    {
+        [Description("Use global (based on temperature unit)")]
+        UseGlobal,
+        [Description("Kilometers per hour (km/h)")]
+        KilometersPerHour,
+        [Description("Miles per hour (mph)")]
+        MilesPerHour
+    }
+
+    public enum WeatherLocationMode
+    {
+        [Description("Custom city")]
+        CustomCity,
+        [Description("Custom coordinates")]
+        CustomCoordinates,
+        [Description("IP-based (requires consent)")]
+        IPBased
+    }
 
     public enum StatsComponentType
     {

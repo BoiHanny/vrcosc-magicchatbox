@@ -108,7 +108,7 @@
                     FontSize="20"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                    Text="Login and click 'Authorize app', copy and paste the token">
+                    Text="Login, click 'Authorize app', then paste the access_token (or the full redirect URL).">
                     <TextBlock.Effect>
                         <DropShadowEffect
                             BlurRadius="10"

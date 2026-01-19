@@ -1100,6 +1100,13 @@ namespace vrcosc_magicchatbox
             {
                 OSCController.BuildOSC();
             }
+
+            DataController.ManageSettingsXML(true);
+        }
+
+        private void WeatherSyncNow_Click(object sender, RoutedEventArgs e)
+        {
+            WeatherService.TriggerManualRefresh();
         }
 
         public static void ChangeMenuItem(int changeINT)
@@ -1494,7 +1501,7 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.MainWindowBlurEffect = 5;
             PulsoidAuthdialog.ShowDialog();
             ViewModel.Instance.MainWindowBlurEffect = 0;
-            Focus();
+            Activate();
         }
 
         private void MediaSessionPausePlay_Click(object sender, RoutedEventArgs e)

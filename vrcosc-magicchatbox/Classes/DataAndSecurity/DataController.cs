@@ -324,6 +324,44 @@ public static class DataController
                 return timezoneResult;
             return Timezone.UTC; // Default timezone
         }
+        if (targetType == typeof(WeatherLayoutMode))
+        {
+            if (Enum.TryParse(typeof(WeatherLayoutMode), value, out var layoutResult))
+                return layoutResult;
+            return WeatherLayoutMode.SingleLine;
+        }
+        if (targetType == typeof(WeatherOrder))
+        {
+            if (Enum.TryParse(typeof(WeatherOrder), value, out var orderResult))
+                return orderResult;
+            return WeatherOrder.TimeFirst;
+        }
+        if (targetType == typeof(WeatherUnitOverride))
+        {
+            if (Enum.TryParse(typeof(WeatherUnitOverride), value, out var unitResult))
+                return unitResult;
+            return WeatherUnitOverride.UseGlobal;
+        }
+        if (targetType == typeof(WeatherWindUnitOverride))
+        {
+            if (Enum.TryParse(typeof(WeatherWindUnitOverride), value, out var windUnitResult))
+                return windUnitResult;
+            return WeatherWindUnitOverride.UseGlobal;
+        }
+        if (targetType == typeof(WeatherFallbackMode))
+        {
+            if (Enum.TryParse(typeof(WeatherFallbackMode), value, out var fallbackResult))
+                return fallbackResult;
+            return WeatherFallbackMode.Hide;
+        }
+        if (targetType == typeof(WeatherLocationMode))
+        {
+            if (Enum.TryParse(typeof(WeatherLocationMode), value, out var locationResult))
+                return locationResult;
+            if (string.Equals(value, "DefaultCity", StringComparison.OrdinalIgnoreCase))
+                return WeatherLocationMode.CustomCity;
+            return WeatherLocationMode.CustomCity;
+        }
         if (targetType == typeof(MediaLinkTimeSeekbar))
         {
             if (Enum.TryParse(typeof(MediaLinkTimeSeekbar), value, out var seekbarResult))
@@ -425,6 +463,8 @@ public static class DataController
 
     { "IntgrCurrentTime_VR", (typeof(bool), "IntegrationToggles") },
     { "IntgrCurrentTime_DESKTOP", (typeof(bool), "IntegrationToggles") },
+    { "IntgrWeather_VR", (typeof(bool), "IntegrationToggles") },
+    { "IntgrWeather_DESKTOP", (typeof(bool), "IntegrationToggles") },
 
     { "IntgrSpotifyStatus_VR", (typeof(bool), "IntegrationToggles") },
     { "IntgrSpotifyStatus_DESKTOP", (typeof(bool), "IntegrationToggles") },
@@ -434,6 +474,27 @@ public static class DataController
 
     { "Time24H", (typeof(bool), "Time") },
     { "PrefixTime", (typeof(bool), "Time") },
+    { "ShowWeatherInTime", (typeof(bool), "Time") },
+    { "ShowWeatherCondition", (typeof(bool), "Time") },
+    { "ShowWeatherEmoji", (typeof(bool), "Time") },
+    { "WeatherUseDecimal", (typeof(bool), "Time") },
+    { "ShowWeatherHumidity", (typeof(bool), "Time") },
+    { "ShowWeatherWind", (typeof(bool), "Time") },
+    { "ShowWeatherFeelsLike", (typeof(bool), "Time") },
+    { "WeatherSeparator", (typeof(string), "Time") },
+    { "WeatherStatsSeparator", (typeof(string), "Time") },
+    { "WeatherTemplate", (typeof(string), "Time") },
+    { "WeatherLayoutMode", (typeof(WeatherLayoutMode), "Time") },
+    { "WeatherOrder", (typeof(WeatherOrder), "Time") },
+    { "WeatherUnitOverride", (typeof(WeatherUnitOverride), "Time") },
+    { "WeatherWindUnitOverride", (typeof(WeatherWindUnitOverride), "Time") },
+    { "WeatherFallbackMode", (typeof(WeatherFallbackMode), "Time") },
+    { "WeatherLocationMode", (typeof(WeatherLocationMode), "Time") },
+    { "WeatherAllowIPLocation", (typeof(bool), "Time") },
+    { "WeatherLocationCity", (typeof(string), "Time") },
+    { "WeatherLocationLatitude", (typeof(double), "Time") },
+    { "WeatherLocationLongitude", (typeof(double), "Time") },
+    { "WeatherUpdateIntervalMinutes", (typeof(int), "Time") },
     { "TimeShowTimeZone", (typeof(bool), "Time") },
     { "SelectedTimeZone", (typeof(Timezone), "Time") },
     { "UseDaylightSavingTime", (typeof(bool), "Time") },
@@ -545,6 +606,7 @@ public static class DataController
     { "Settings_OpenAI", (typeof(bool), "OptionsTabState") },
     { "Settings_HeartRate", (typeof(bool), "OptionsTabState") },
     { "Settings_Time", (typeof(bool), "OptionsTabState") },
+    { "Settings_Weather", (typeof(bool), "OptionsTabState") },
     { "Settings_ComponentStats", (typeof(bool), "OptionsTabState") },
     { "Settings_NetworkStatistics", (typeof(bool), "OptionsTabState") },
     { "Settings_Chatting", (typeof(bool), "OptionsTabState") },
@@ -555,6 +617,16 @@ public static class DataController
 
 };
     }
+
+    private static readonly Dictionary<string, object> SettingDefaultValues = new Dictionary<string, object>
+    {
+        { "IntgrWeather_VR", true },
+        { "ShowWeatherInTime", true },
+        { "WeatherLocationCity", "London" },
+        { "WeatherLocationMode", WeatherLocationMode.CustomCity },
+        { "WeatherStatsSeparator", " " },
+        { "WeatherWindUnitOverride", WeatherWindUnitOverride.UseGlobal }
+    };
 
     private static void LoadSettingFromXML(
 XmlNode categoryNode,
@@ -575,7 +647,7 @@ PropertyInfo property)
                 {
                     Logging.WriteException(new Exception($"Failed to convert setting '{setting.Key}' with value '{settingNode.InnerText}'", ex), MSGBox: false);
                     // Optionally set a default value
-                    SetDefaultValue(property, setting.Value.type);
+                    SetDefaultValue(property, setting.Value.type, setting.Key);
                 }
             }
             else
@@ -590,7 +662,7 @@ PropertyInfo property)
                 {
                     // For other settings, set default value
                     Logging.WriteInfo($"Setting '{setting.Key}' not found or empty in XML. Setting to default.");
-                    SetDefaultValue(property, setting.Value.type);
+                    SetDefaultValue(property, setting.Value.type, setting.Key);
                 }
             }
         }
@@ -603,9 +675,14 @@ PropertyInfo property)
 
 
 
-    private static void SetDefaultValue(PropertyInfo property, Type type)
+    private static void SetDefaultValue(PropertyInfo property, Type type, string settingKey)
     {
         object defaultValue;
+        if (!string.IsNullOrWhiteSpace(settingKey) && SettingDefaultValues.TryGetValue(settingKey, out var overrideValue))
+        {
+            property.SetValue(ViewModel.Instance, overrideValue);
+            return;
+        }
         if (type == typeof(ObservableCollection<string>))
         {
             // Initialize with an empty collection instead of null
