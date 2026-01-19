@@ -593,6 +593,11 @@ public static class DataController
     { "HideOpenAITools", (typeof(bool), "Chat") },
 
     { "SeperateWithENTERS", (typeof(bool), "Custom") },
+    { "OscMessagePrefix", (typeof(string), "Custom") },
+    { "OscMessageSeparator", (typeof(string), "Custom") },
+    { "OscMessageSuffix", (typeof(string), "Custom") },
+
+    { "IntegrationSortOrder", (typeof(ObservableCollection<string>), "AppOptions") },
 
     { "CountOculusSystemAsVR", (typeof(bool), "System") },
     { "Topmost", (typeof(bool), "Window") },
@@ -680,7 +685,11 @@ public static class DataController
         { "MediaLink_Separator", " ᵇʸ " },
         { "MediaLink_TextPlaying", "Listening to" },
         { "MediaLink_TextPaused", "Paused" },
-        { "MediaLink_UpperCase", false }
+        { "MediaLink_UpperCase", false },
+        { "IntegrationSortOrder", new ObservableCollection<string>(ViewModel.DefaultIntegrationSortOrder) },
+        { "OscMessagePrefix", string.Empty },
+        { "OscMessageSeparator", " ┆ " },
+        { "OscMessageSuffix", string.Empty }
     };
 
     private static void LoadSettingFromXML(

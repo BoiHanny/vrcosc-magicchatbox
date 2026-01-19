@@ -23,6 +23,20 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ViewModel : INotifyPropertyChanged
     {
 
+        public static readonly IReadOnlyList<string> DefaultIntegrationSortOrder = new[]
+        {
+            "Status",
+            "Window",
+            "HeartRate",
+            "Component",
+            "Network",
+            "Time",
+            "Weather",
+            "Twitch",
+            "Soundpad",
+            "Spotify",
+            "MediaLink"
+        };
         public static readonly ViewModel Instance = new ViewModel();
 
         private AfkModule _AfkModule;
@@ -2528,6 +2542,10 @@ namespace vrcosc_magicchatbox.ViewModels
             { SortProperty.FocusCount, true }
         };
 
+        private ObservableCollection<string> _IntegrationSortOrder = new ObservableCollection<string>(DefaultIntegrationSortOrder);
+        private string _OscMessagePrefix = string.Empty;
+        private string _OscMessageSeparator = " ┆ ";
+        private string _OscMessageSuffix = string.Empty;
         private bool _SeperateWithENTERS = true;
 
         public bool SeperateWithENTERS
@@ -2537,6 +2555,46 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _SeperateWithENTERS = value;
                 NotifyPropertyChanged(nameof(SeperateWithENTERS));
+            }
+        }
+
+        public ObservableCollection<string> IntegrationSortOrder
+        {
+            get { return _IntegrationSortOrder; }
+            set
+            {
+                _IntegrationSortOrder = value ?? new ObservableCollection<string>(DefaultIntegrationSortOrder);
+                NotifyPropertyChanged(nameof(IntegrationSortOrder));
+            }
+        }
+
+        public string OscMessagePrefix
+        {
+            get { return _OscMessagePrefix; }
+            set
+            {
+                _OscMessagePrefix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(OscMessagePrefix));
+            }
+        }
+
+        public string OscMessageSeparator
+        {
+            get { return _OscMessageSeparator; }
+            set
+            {
+                _OscMessageSeparator = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(OscMessageSeparator));
+            }
+        }
+
+        public string OscMessageSuffix
+        {
+            get { return _OscMessageSuffix; }
+            set
+            {
+                _OscMessageSuffix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(OscMessageSuffix));
             }
         }
 

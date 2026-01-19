@@ -7055,6 +7055,70 @@
                                     Style="{DynamicResource SettingsCheckbox}">
                                     Separate integrations using 'ENTER' instead of '┆'
                                 </CheckBox>
+                                <StackPanel Margin="0,0,0,15">
+                                    <TextBlock
+                                        Padding="0,0,0,3"
+                                        HorizontalAlignment="Left"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="OSC separator (when not using ENTER)" />
+                                    <TextBox
+                                        x:Name="OscMessageSeparator"
+                                        Width="140"
+                                        Height="26"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding OscMessageSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,15">
+                                    <TextBlock
+                                        Padding="0,0,0,3"
+                                        HorizontalAlignment="Left"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="OSC message prefix" />
+                                    <TextBox
+                                        x:Name="OscMessagePrefix"
+                                        Width="220"
+                                        Height="26"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding OscMessagePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,0,15">
+                                    <TextBlock
+                                        Padding="0,0,0,3"
+                                        HorizontalAlignment="Left"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="15"
+                                        Foreground="#FF9983AD"
+                                        Text="OSC message suffix" />
+                                    <TextBox
+                                        x:Name="OscMessageSuffix"
+                                        Width="220"
+                                        Height="26"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalContentAlignment="Center"
+                                        Background="#FF7B7195"
+                                        BorderThickness="0"
+                                        FontSize="15"
+                                        Foreground="#FF240E54"
+                                        Text="{Binding OscMessageSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
                                 <CheckBox
                                     x:Name="ToggleVoiceWithV"
                                     Height="21"
@@ -9738,14 +9802,41 @@
                             </Grid>
                         </Border>
                         <Button
+                            x:Name="ReorderIntegrationsButton"
+                            Width="auto"
+                            Height="27"
+                            Margin="0,5"
+                            Padding="5"
+                            HorizontalAlignment="Right"
+                            Click="ReorderIntegrations_Click"
+                            Style="{StaticResource Status_Button_style}">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image
+                                            Height="16"
+                                            Margin="0,0,5,0"
+                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                            Source="/Img/Icons/Edit_ico.png" />
+                                        <TextBlock
+                                            Margin="0,-1,5,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="13"
+                                            Text="Reorder integrations" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+                        <Button
                             x:Name="ToggleVoicebtn"
                             Width="101"
                             Height="27"
-                            Margin="0,5,0,0"
+                            Margin="0,0,0,0"
                             HorizontalAlignment="Right"
                             local:ButtonProperties.ShadowTrigger="{Binding TTSBtnShadow}"
                             Click="ToggleVoicebtn_Click"
                             Content="{Binding ToggleVoiceText}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                             Style="{DynamicResource Status_Button_style_Shadow}" />
 
                     </StackPanel>

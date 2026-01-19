@@ -578,97 +578,129 @@ public static class OSCController
         var Complete_msg = string.Empty;
         List<string> Uncomplete = new List<string>();
 
-        // Mapping the functions with their respective boolean properties
-        var functionMap = new Dictionary<Func<bool>, Action<List<string>>>
+        var functionMap = new Dictionary<string, (Func<bool> shouldAdd, Action<List<string>> add)>(StringComparer.OrdinalIgnoreCase)
         {
             {
-                () => ViewModel.Instance.IntgrStatus_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrStatus_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning || ViewModel.Instance.AfkModule.IsAfk && ViewModel.Instance.AfkModule.Settings.EnableAfkDetection,
-                AddStatusMessage
+                "Status",
+                (
+                    () => ViewModel.Instance.IntgrStatus_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrStatus_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning || ViewModel.Instance.AfkModule.IsAfk && ViewModel.Instance.AfkModule.Settings.EnableAfkDetection,
+                    AddStatusMessage
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrWindowActivity_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrWindowActivity_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddWindowActivity
+                "Window",
+                (
+                    () => ViewModel.Instance.IntgrWindowActivity_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrWindowActivity_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddWindowActivity
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrHeartRate_VR &&
-                ViewModel.Instance.IsVRRunning && ViewModel.Instance.PulsoidAuthConnected ||
-                ViewModel.Instance.IntgrHeartRate_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning && ViewModel.Instance.PulsoidAuthConnected,
-                AddHeartRate
+                "HeartRate",
+                (
+                    () => ViewModel.Instance.IntgrHeartRate_VR &&
+                    ViewModel.Instance.IsVRRunning && ViewModel.Instance.PulsoidAuthConnected ||
+                    ViewModel.Instance.IntgrHeartRate_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning && ViewModel.Instance.PulsoidAuthConnected,
+                    AddHeartRate
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrComponentStats_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrComponentStats_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddComponentStat
+                "Component",
+                (
+                    () => ViewModel.Instance.IntgrComponentStats_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrComponentStats_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddComponentStat
+                )
             },
 
             {
-                 () => ViewModel.Instance.IntgrNetworkStatistics_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrNetworkStatistics_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddNetworkStatistics
+                "Network",
+                (
+                     () => ViewModel.Instance.IntgrNetworkStatistics_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrNetworkStatistics_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddNetworkStatistics
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrCurrentTime_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrCurrentTime_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddCurrentTime
+                "Time",
+                (
+                    () => ViewModel.Instance.IntgrCurrentTime_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrCurrentTime_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddCurrentTime
+                )
             },
 
             {
-                () => ViewModel.Instance.ShowWeatherInTime &&
-                (ViewModel.Instance.IntgrWeather_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrWeather_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning),
-                AddWeather
+                "Weather",
+                (
+                    () => ViewModel.Instance.ShowWeatherInTime &&
+                    (ViewModel.Instance.IntgrWeather_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrWeather_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning),
+                    AddWeather
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrTwitch &&
-                (ViewModel.Instance.IntgrTwitch_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrTwitch_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning),
-                AddTwitch
+                "Twitch",
+                (
+                    () => ViewModel.Instance.IntgrTwitch &&
+                    (ViewModel.Instance.IntgrTwitch_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrTwitch_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning),
+                    AddTwitch
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrSpotifyStatus_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrSpotifyStatus_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddSpotifyStatus
+                "Soundpad",
+                (
+                    () => ViewModel.Instance.IntgrSoundpad_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrSoundpad_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddSoundpad
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrSoundpad_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrSoundpad_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddSoundpad
+                "Spotify",
+                (
+                    () => ViewModel.Instance.IntgrSpotifyStatus_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrSpotifyStatus_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddSpotifyStatus
+                )
             },
 
             {
-                () => ViewModel.Instance.IntgrMediaLink_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrMediaLink_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning,
-                AddMediaLink
+                "MediaLink",
+                (
+                    () => ViewModel.Instance.IntgrMediaLink_VR &&
+                    ViewModel.Instance.IsVRRunning ||
+                    ViewModel.Instance.IntgrMediaLink_DESKTOP &&
+                    !ViewModel.Instance.IsVRRunning,
+                    AddMediaLink
+                )
             },
         };
 
@@ -687,12 +719,37 @@ public static class OSCController
             SetOpacity("Twitch", "1");
             SetOpacity("MediaLink", "1");
 
+            IEnumerable<string> orderedKeys = ViewModel.Instance.IntegrationSortOrder?.Count > 0
+                ? ViewModel.Instance.IntegrationSortOrder
+                : ViewModel.DefaultIntegrationSortOrder;
+
+            var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             // Add the strings to the list if the total length of the list is less than 144 characters
+            foreach (var key in orderedKeys)
+            {
+                if (!functionMap.TryGetValue(key, out var entry))
+                {
+                    continue;
+                }
+
+                usedKeys.Add(key);
+                if (entry.shouldAdd.Invoke())
+                {
+                    entry.add.Invoke(Uncomplete);
+                }
+            }
+
             foreach (var kvp in functionMap)
             {
-                if (kvp.Key.Invoke())
+                if (usedKeys.Contains(kvp.Key))
                 {
-                    kvp.Value.Invoke(Uncomplete);
+                    continue;
+                }
+
+                if (kvp.Value.shouldAdd.Invoke())
+                {
+                    kvp.Value.add.Invoke(Uncomplete);
                 }
             }
         }
@@ -702,13 +759,12 @@ public static class OSCController
         }
 
         // Join the list of strings into one string and set the OSCtoSent property in the ViewModel to the final OSC message
-        if (ViewModel.Instance.SeperateWithENTERS)
+        string separator = GetOscSeparator();
+        Complete_msg = string.Join(separator, Uncomplete);
+
+        if (!string.IsNullOrEmpty(Complete_msg))
         {
-            Complete_msg = string.Join("\n", Uncomplete);
-        }
-        else
-        {
-            Complete_msg = string.Join(" ┆ ", Uncomplete);
+            Complete_msg = $"{ViewModel.Instance.OscMessagePrefix}{Complete_msg}{ViewModel.Instance.OscMessageSuffix}";
         }
 
 
@@ -745,12 +801,26 @@ public static class OSCController
         }
     }
 
+    private static string GetOscSeparator()
+    {
+        if (ViewModel.Instance.SeperateWithENTERS)
+        {
+            return "\n";
+        }
+
+        return ViewModel.Instance.OscMessageSeparator ?? " ┆ ";
+    }
+
     // this function calculates the length of the OSC message to be sent to VRChat and returns it as an int
     // it takes a list of strings and a string to add to the list as parameters
     public static int CalculateOSCMsgLength(List<string> content, string add)
     {
         List<string> list = new List<string>(content) { add };
-        string joinedString = string.Join(" | ", list);
+        string joinedString = string.Join(GetOscSeparator(), list);
+        if (!string.IsNullOrEmpty(joinedString))
+        {
+            joinedString = $"{ViewModel.Instance.OscMessagePrefix}{joinedString}{ViewModel.Instance.OscMessageSuffix}";
+        }
         return joinedString.Length;
     }
 

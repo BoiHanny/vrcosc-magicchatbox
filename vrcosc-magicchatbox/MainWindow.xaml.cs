@@ -119,6 +119,7 @@ namespace vrcosc_magicchatbox
         public MainWindow()
         {
             InitializeComponent();
+            ApplyIntegrationOrder();
             Closing += MainWindow_ClosingAsync;
 
             backgroundCheck.Tick += Timer;
@@ -135,6 +136,66 @@ namespace vrcosc_magicchatbox
             ViewModel.Instance.AfkModule.AfkDetected += AfkModule_AfkDetected;
 
 
+        }
+
+        public void ApplyIntegrationOrder()
+        {
+            if (IntegrationsList == null)
+            {
+                return;
+            }
+
+            var itemMap = new Dictionary<string, ListBoxItem>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Status", StatusItem },
+                { "Window", WindowActivityItem },
+                { "HeartRate", HeartRateItem },
+                { "Component", ComponentStatsItem },
+                { "Network", NetworkStatsItem },
+                { "Time", TimeItem },
+                { "Weather", WeatherItem },
+                { "Twitch", TwitchItem },
+                { "Soundpad", SoundpadItem },
+                { "Spotify", SpotifyItem },
+                { "MediaLink", MediaLinkItem }
+            };
+
+            IEnumerable<string> orderedKeys = ViewModel.Instance.IntegrationSortOrder?.Count > 0
+                ? ViewModel.Instance.IntegrationSortOrder
+                : ViewModel.DefaultIntegrationSortOrder;
+
+            var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            IntegrationsList.BeginInit();
+            IntegrationsList.Items.Clear();
+
+            foreach (var key in orderedKeys)
+            {
+                if (itemMap.TryGetValue(key, out var item))
+                {
+                    IntegrationsList.Items.Add(item);
+                    usedKeys.Add(key);
+                }
+            }
+
+            foreach (var kvp in itemMap)
+            {
+                if (!usedKeys.Contains(kvp.Key))
+                {
+                    IntegrationsList.Items.Add(kvp.Value);
+                }
+            }
+
+            IntegrationsList.EndInit();
+        }
+
+        private void ReorderIntegrations_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new UI.Dialogs.ReorderIntegrations
+            {
+                Owner = this
+            };
+            dialog.ShowDialog();
         }
 
         private void WhisperModule_SentChat()
