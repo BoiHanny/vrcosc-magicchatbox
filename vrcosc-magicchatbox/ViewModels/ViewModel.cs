@@ -140,7 +140,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _IsTemperatureSwitchEnabled = true;
 
-        private bool _IzuruBaeMode = false;
 
 
         private bool _JoinedAlphaChannel = true;
@@ -1575,15 +1574,6 @@ namespace vrcosc_magicchatbox.ViewModels
                     _statsManager.SetStatMaxValueShown(StatsComponentType.VRAM, false);
                 }
                 NotifyPropertyChanged(nameof(isVRAMMaxValueShown));
-            }
-        }
-        public bool IzuruBaeMode
-        {
-            get => _IzuruBaeMode;
-            set
-            {
-                _IzuruBaeMode = value;
-                NotifyPropertyChanged(nameof(IzuruBaeMode));
             }
         }
 

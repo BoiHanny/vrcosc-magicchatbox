@@ -1127,10 +1127,6 @@ PropertyInfo property)
         {
             ViewModel.Instance.Egg_Dev = true;
         }
-        if (statusList.Any(x => x.msg.Equals("izurubae", StringComparison.OrdinalIgnoreCase)))
-        {
-            ViewModel.Instance.IzuruBaeMode = true;
-        }
         if (statusList.Any(x => x.msg.Equals("bussyboys", StringComparison.OrdinalIgnoreCase)))
         {
             ViewModel.Instance.BussyBoysMode = true;

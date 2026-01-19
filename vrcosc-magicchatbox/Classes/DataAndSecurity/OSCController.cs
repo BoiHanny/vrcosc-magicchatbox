@@ -438,10 +438,6 @@ public static class OSCController
                 activeItem.LastUsed = DateTime.Now;
 
                 string icon = ViewModel.Instance.GetNextEmoji();
-                if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
-                {
-                    icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
-                }
 
                 string? x = ViewModel.Instance.PrefixIconStatus == true
                     ? $"{icon} " + activeItem.msg
@@ -769,10 +765,6 @@ public static class OSCController
             if (ViewModel.Instance.PrefixChat == true)
             {
                 string icon = ViewModel.Instance.GetNextEmoji(true);
-                if (ViewModel.Instance.IzuruBaeMode && !string.IsNullOrWhiteSpace(ViewModel.Instance.EggPrefixIconStatus))
-                {
-                    icon = ViewModel.Instance.EggPrefixIconStatus.Substring(0, char.IsSurrogatePair(ViewModel.Instance.EggPrefixIconStatus, 0) ? 2 : 1);
-                }
                 Complete_msg = icon + " " + ViewModel.Instance.NewChattingTxt;
             }
             else
