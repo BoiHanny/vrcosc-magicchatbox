@@ -1451,15 +1451,6 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Border Background="Transparent">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="10"
-                                    Direction="0"
-                                    Opacity="0.8"
-                                    RenderingBias="Performance"
-                                    ShadowDepth="0"
-                                    Color="black" />
-                            </Border.Effect>
                             <BulletDecorator x:Name="BulletDecoratorRoot">
                                 <BulletDecorator.Bullet>
                                     <Border

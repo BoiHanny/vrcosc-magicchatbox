@@ -29,16 +29,16 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             "Status",
             "Window",
+            "Twitch",
             "HeartRate",
             "Component",
-            "Network",
-            "Time",
-            "Weather",
-            "Twitch",
-            "Soundpad",
-            "Spotify",
             "TrackerBattery",
-            "MediaLink"
+            "Network",
+            "Weather",
+            "Time",
+            "Soundpad",
+            "MediaLink",
+            "Spotify"
         };
         public static readonly ViewModel Instance = new ViewModel();
 
@@ -183,8 +183,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _MediaSession_Timeout = 3;
-        private bool _MediaLink_TransientMode = false;
-        private double _MediaLink_TransientDuration = 5.0;
+        private bool _MediaLink_TransientMode = true;
+        private double _MediaLink_TransientDuration = 25.0;
         private string _MediaLink_IconPlay = "";
         private string _MediaLink_IconPause = "⏸";
         private string _MediaLink_IconStop = "⏹️";

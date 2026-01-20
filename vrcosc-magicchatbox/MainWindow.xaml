@@ -3294,11 +3294,11 @@
                                             Allow IP-based location (uses ipapi.co)
                                         </CheckBox>
                                         <TextBlock
-                                            Margin="0,2,0,0"
+                                            Margin="0,6,0,0"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="13"
                                             Foreground="#FF9983AD"
-                                            Text="Without consent, weather uses your custom city."
+                                            Text="✅ Without consent, weather uses your custom city."
                                             Visibility="{Binding WeatherIpConsentMissing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                     <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherLocationModeUsesCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -3330,9 +3330,9 @@
                                                 Style="{DynamicResource Editbutton}"
                                                 ToolTip="Edit city">
                                                 <Image
-                                                    Width="12"
-                                                    Height="12"
-                                                    Source="/Img/Icons/Edit_ico.png" />
+                                                    Width="19"
+                                                    Height="19"
+                                                    Source="/Img/Icons/admin.png" />
                                             </ToggleButton>
                                             <Grid
                                                 Width="200"
@@ -3855,9 +3855,9 @@
                                             Style="{DynamicResource Editbutton}"
                                             ToolTip="Edit client ID">
                                             <Image
-                                                Width="12"
-                                                Height="12"
-                                                Source="/Img/Icons/Edit_ico.png" />
+                                                Width="19"
+                                                Height="19"
+                                                Source="/Img/Icons/admin.png" />
                                         </ToggleButton>
                                         <Grid
                                             Width="260"
@@ -3929,9 +3929,9 @@
                                             Style="{DynamicResource Editbutton}"
                                             ToolTip="Edit access token">
                                             <Image
-                                                Width="12"
-                                                Height="12"
-                                                Source="/Img/Icons/Edit_ico.png" />
+                                                Width="19"
+                                                Height="19"
+                                                Source="/Img/Icons/admin.png" />
                                         </ToggleButton>
                                         <Grid
                                             Width="360"
@@ -11722,20 +11722,23 @@
                                 <StackPanel Margin="6">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock
+                                            VerticalAlignment="Center"
                                             FontFamily="Comfortaa Light"
                                             FontSize="13"
                                             Foreground="#BDAEE2"
                                             Text="Active devices" />
                                         <TextBlock
                                             Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="12"
+                                            FontSize="14"
                                             Foreground="#FF7D7397"
                                             Text="{Binding TrackerBattery_DeviceSummary}" />
                                         <TextBlock
                                             Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="12"
+                                            FontSize="13"
                                             Foreground="#FF7D7397"
                                             Text="{Binding TrackerBattery_LastScanDisplay}" />
                                     </StackPanel>
@@ -11802,13 +11805,13 @@
                                 </Grid.ColumnDefinitions>
                                 <Image
                                     Grid.Column="0"
-                                    Width="35"
-                                    Margin="5"
+                                    Width="38"
+                                    Margin="3"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Source="/Img/Icons/ComponentStats_ico.png" />
+                                    Source="/Img/Icons/VR_bat_ico.png" />
                                 <StackPanel
                                     Grid.Column="1"
                                     HorizontalAlignment="Stretch"
@@ -12563,6 +12566,58 @@
                                                 Color="#251153" />
                                         </Button.Effect>
                                     </Button>
+                                    <StackPanel Margin="8,0,0,0" Orientation="Horizontal">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding MasterSwitch}" Value="True" />
+                                                            <Condition Binding="{Binding IntgrTwitch}" Value="True" />
+                                                            <Condition Binding="{Binding IntgrTwitch_DESKTOP}" Value="True" />
+                                                            <Condition Binding="{Binding IsVRRunning}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding MasterSwitch}" Value="True" />
+                                                            <Condition Binding="{Binding IntgrTwitch}" Value="True" />
+                                                            <Condition Binding="{Binding IntgrTwitch_VR}" Value="True" />
+                                                            <Condition Binding="{Binding IsVRRunning}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="12"
+                                            Text="{Binding TwitchStatusMessage}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#C9C3D9" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding TwitchConnected}" Value="True">
+                                                            <Setter Property="Foreground" Value="#8FE1B6" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <TextBlock
+                                            Margin="8,0"
+                                            VerticalAlignment="Center"
+                                            Effect="{StaticResource TextBlockShadowEffect}"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="11"
+                                            Foreground="#D1C6E6"
+                                            Text="{Binding TwitchLastSyncDisplay}" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <TextBlock
                                     Margin="0,3,0,0"
@@ -12579,6 +12634,7 @@
                                         </RadialGradientBrush>
                                     </TextBlock.Foreground>
                                 </TextBlock>
+
                             </StackPanel>
                             <!--  Toggle Button  -->
                             <Grid Grid.Column="2">
