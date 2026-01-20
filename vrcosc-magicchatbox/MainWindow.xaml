@@ -8,7 +8,7 @@
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
     Width="900"
-    Height="675"
+    Height="775"
     MinWidth="1000"
     MinHeight="500"
     VerticalAlignment="Bottom"
@@ -10468,6 +10468,22 @@
                     Grid.Row="3"
                     Height="auto"
                     VerticalAlignment="Bottom">
+                    <TextBlock
+                        Margin="0,-8,0,0"
+                        HorizontalAlignment="Center"
+                        FontFamily="Papyrus"
+                        FontSize="12"
+                        FontWeight="DemiBold"
+                        Foreground="#42385C"
+                        Text="MagicChatbox V2 is on the way!">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="20"
+                                Opacity="0.4"
+                                ShadowDepth="0"
+                                Color="#432D62" />
+                        </TextBlock.Effect>
+                    </TextBlock>
                     <TextBlock
                         Padding="0,0,0,30"
                         HorizontalAlignment="Center"
