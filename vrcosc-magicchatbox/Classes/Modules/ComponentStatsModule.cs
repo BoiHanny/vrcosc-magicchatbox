@@ -137,12 +137,24 @@ public class ComponentStatsModule
 
     private static (string UsedMemory, string MaxMemory) FetchRAMStats()
     {
+        var current = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+
+        if (TryFetchWindowsMemory(out double usedMemoryVal, out double totalMemoryVal))
+        {
+            if (current?.RemoveNumberTrailing == true)
+            {
+                return ($"{(int)usedMemoryVal}", $"{(int)totalMemoryVal}");
+            }
+            else
+            {
+                return ($"{usedMemoryVal:F1}", $"{totalMemoryVal:F1}");
+            }
+        }
+
         string usedMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Used", statsComponentType: StatsComponentType.RAM);
         string availableMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Available", statsComponentType: StatsComponentType.RAM);
 
-        var current = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
-
-        if (double.TryParse(usedMemory, out double usedMemoryVal) && double.TryParse(availableMemory, out double availableMemoryVal))
+        if (double.TryParse(usedMemory, out usedMemoryVal) && double.TryParse(availableMemory, out double availableMemoryVal))
         {
             double totalMemory = usedMemoryVal + availableMemoryVal;
 
@@ -157,6 +169,41 @@ public class ComponentStatsModule
         }
 
         return ("N/A", "N/A");
+    }
+
+    private static bool TryFetchWindowsMemory(out double usedGiB, out double totalGiB)
+    {
+        usedGiB = 0;
+        totalGiB = 0;
+
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem");
+            foreach (ManagementObject queryObj in searcher.Get())
+            {
+                if (queryObj["TotalVisibleMemorySize"] == null || queryObj["FreePhysicalMemory"] == null)
+                {
+                    continue;
+                }
+
+                double totalKb = Convert.ToDouble(queryObj["TotalVisibleMemorySize"]);
+                double freeKb = Convert.ToDouble(queryObj["FreePhysicalMemory"]);
+                if (totalKb <= 0)
+                {
+                    continue;
+                }
+
+                totalGiB = totalKb / 1024.0 / 1024.0;
+                usedGiB = Math.Max(0, (totalKb - freeKb) / 1024.0 / 1024.0);
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+
+        return false;
     }
 
     private static string FetchStat(

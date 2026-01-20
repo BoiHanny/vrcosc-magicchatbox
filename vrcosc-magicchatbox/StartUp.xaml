@@ -119,17 +119,17 @@
                 BorderThickness="0,1,0,0">
                 <Grid>
                     <Grid.Background>
-                        <LinearGradientBrush EndPoint="1,1" StartPoint="1,0">
+                        <LinearGradientBrush StartPoint="1,0" EndPoint="1,1">
                             <LinearGradientBrush.RelativeTransform>
                                 <TransformGroup>
-                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                                    <SkewTransform CenterX="0.5" CenterY="0.5"/>
-                                    <RotateTransform Angle="-106.965" CenterX="0.5" CenterY="0.5"/>
-                                    <TranslateTransform/>
+                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                    <RotateTransform Angle="-106.965" CenterX="0.5" CenterY="0.5" />
+                                    <TranslateTransform />
                                 </TransformGroup>
                             </LinearGradientBrush.RelativeTransform>
-                            <GradientStop Color="#FF3B2075"/>
-                            <GradientStop Color="#FF562020" Offset="1"/>
+                            <GradientStop Color="#FF3B2075" />
+                            <GradientStop Offset="1" Color="#FF562020" />
                         </LinearGradientBrush>
                     </Grid.Background>
                     <StackPanel
@@ -149,7 +149,7 @@
                                     Direction="0"
                                     Opacity="0.7"
                                     ShadowDepth="0"
-                                    Color="#FFCE5050"/>
+                                    Color="#FFCE5050" />
                             </Button.Effect>
                         </Button>
                     </StackPanel>
@@ -180,8 +180,7 @@
                         VerticalAlignment="Top"
                         FontFamily="Albert Sans Thin"
                         FontSize="10"
-                        Foreground="#FF9AA1FF"
-                        >
+                        Foreground="#FF9AA1FF">
                         <TextBlock.Effect>
                             <DropShadowEffect
                                 BlurRadius="15"
@@ -189,7 +188,7 @@
                                 Opacity="1"
                                 ShadowDepth="0"
                                 Color="#FFE712FF" />
-                        </TextBlock.Effect><Run Language="en-gb" Text="ItsByMe"/></TextBlock>
+                        </TextBlock.Effect><Run Language="en-gb" Text="ItsByMe" /></TextBlock>
                 </Grid>
             </Border>
         </Grid>
