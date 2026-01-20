@@ -30,7 +30,7 @@
         <Border Grid.Row="0" Background="#FF2D1267" />
         <Grid x:Name="Drag_area" Grid.Row="0">
             <StackPanel Orientation="Horizontal">
-                <Image Margin="2" Source="/Img/MagicOSC_icon.png" />
+                <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
                 <TextBlock
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
