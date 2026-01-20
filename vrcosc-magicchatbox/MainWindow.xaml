@@ -46,6 +46,7 @@
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <local:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
             <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
+            <local:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />
 
             <Style TargetType="TextBox">
                 <Setter Property="Background" Value="Transparent" />
@@ -1039,16 +1040,6 @@
                             Click="SortEdited_Click"
                             Content="Edit date"
                             Style="{DynamicResource Status_Button_style}" />
-
-                        <ToggleButton
-                            Width="85"
-                            Height="25"
-                            Margin="3,0,3,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Content="Auto 💛 cycle"
-                            IsChecked="{Binding CycleStatus, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButton}" />
                         <Button
                             x:Name="Settings"
                             Width="auto"
@@ -1065,6 +1056,14 @@
                                     Source="/Img/Icons/Next_ico.png" />
                             </StackPanel>
                         </Button>
+                        <ToggleButton
+                            Width="85"
+                            Margin="3,0,3,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Content="Auto 💛 cycle"
+                            IsChecked="{Binding CycleStatus, Mode=TwoWay}"
+                            Style="{StaticResource GlowyToggleButton}" />
                     </StackPanel>
 
                 </Grid>
@@ -3317,19 +3316,74 @@
                                             Foreground="#FF9983AD"
                                             Text="Fallback city"
                                             Visibility="{Binding WeatherLocationModeIsIPBased, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBox
-                                            x:Name="WeatherCity"
-                                            Width="200"
-                                            Height="26"
-                                            Margin="0,3,0,0"
-                                            Padding="5,0,0,0"
-                                            HorizontalAlignment="Left"
-                                            VerticalContentAlignment="Center"
-                                            Background="#FF7B7195"
-                                            BorderThickness="0"
-                                            FontSize="15"
-                                            Foreground="#FF240E54"
-                                            Text="{Binding WeatherLocationCity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                            <ToggleButton
+                                                Width="26"
+                                                Height="26"
+                                                Margin="0,0,0,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Background="#483472"
+                                                BorderBrush="#7169B7"
+                                                Checked="WeatherCityEditToggle_Checked"
+                                                IsChecked="{Binding WeatherLocationEditing, Mode=TwoWay}"
+                                                Style="{DynamicResource Editbutton}"
+                                                ToolTip="Edit city">
+                                                <Image
+                                                    Width="12"
+                                                    Height="12"
+                                                    Source="/Img/Icons/Edit_ico.png" />
+                                            </ToggleButton>
+                                            <Grid
+                                                Width="200"
+                                                Height="26"
+                                                HorizontalAlignment="Left">
+
+                                                <TextBox
+                                                    x:Name="WeatherCityPreview"
+                                                    Padding="5,0,0,0"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    IsHitTestVisible="False"
+                                                    IsReadOnly="True"
+                                                    Text="{Binding WeatherLocationCity, Converter={StaticResource MaskedWeatherCityConverter}}">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding WeatherLocationEditing}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
+                                                <TextBox
+                                                    x:Name="WeatherCityEditor"
+                                                    Padding="5,0,0,0"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#FF7B7195"
+                                                    BorderThickness="0"
+                                                    FontSize="15"
+                                                    Foreground="#FF240E54"
+                                                    Text="{Binding WeatherLocationCity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding WeatherLocationEditing}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
+                                            </Grid>
+
+                                        </StackPanel>
                                         <TextBlock
                                             Margin="0,2,0,0"
                                             FontFamily="Albert Sans Thin"
@@ -3502,13 +3556,15 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="13"
                                         Foreground="#FF9983AD"
-                                        Text="Custom condition text" />
+                                        Text="Custom condition text"
+                                        Visibility="{Binding WeatherCustomOverridesEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}" />
                                     <TextBlock
                                         Margin="0,0,0,6"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="13"
                                         Foreground="#FF9983AD"
-                                        Text="Leave blank to use the default label." />
+                                        Text="Leave blank to use the default label."
+                                        Visibility="{Binding WeatherCustomOverridesEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}" />
                                     <ItemsControl
                                         Margin="0,2,0,8"
                                         IsEnabled="{Binding WeatherCustomOverridesEnabled}"
@@ -3617,7 +3673,7 @@
                                         Use 1 decimal for temperature and wind
                                     </CheckBox>
                                     <TextBlock
-                                        Margin="0,6,0,0"
+                                        Margin="0,8,0,0"
                                         Padding="0,0,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
@@ -3786,19 +3842,72 @@
                                         FontSize="15"
                                         Foreground="#FF9983AD"
                                         Text="Client ID" />
-                                    <TextBox
-                                        x:Name="TwitchClientId"
-                                        Width="260"
-                                        Height="26"
-                                        Margin="0,3,0,0"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding TwitchClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                        <ToggleButton
+                                            Width="26"
+                                            Height="26"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Background="#483472"
+                                            BorderBrush="#7169B7"
+                                            Checked="TwitchClientIdEditToggle_Checked"
+                                            IsChecked="{Binding TwitchClientIdEditing, Mode=TwoWay}"
+                                            Style="{DynamicResource Editbutton}"
+                                            ToolTip="Edit client ID">
+                                            <Image
+                                                Width="12"
+                                                Height="12"
+                                                Source="/Img/Icons/Edit_ico.png" />
+                                        </ToggleButton>
+                                        <Grid
+                                            Width="260"
+                                            Height="26"
+                                            Margin="0,0,0,0"
+                                            HorizontalAlignment="Left">
+                                            <TextBox
+                                                x:Name="TwitchClientIdPreview"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                IsHitTestVisible="False"
+                                                IsReadOnly="True"
+                                                Text="{Binding TwitchClientId, Converter={StaticResource MaskedWeatherCityConverter}}">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TwitchClientIdEditing}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
+                                            <TextBox
+                                                x:Name="TwitchClientIdEditor"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding TwitchClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TwitchClientIdEditing}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
+                                        </Grid>
+                                    </StackPanel>
                                     <TextBlock
                                         Margin="0,8,0,0"
                                         Padding="0,0,0,0"
@@ -3806,19 +3915,72 @@
                                         FontSize="15"
                                         Foreground="#FF9983AD"
                                         Text="Access token" />
-                                    <TextBox
-                                        x:Name="TwitchAccessToken"
-                                        Width="360"
-                                        Height="26"
-                                        Margin="0,3,0,0"
-                                        Padding="5,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalContentAlignment="Center"
-                                        Background="#FF7B7195"
-                                        BorderThickness="0"
-                                        FontSize="15"
-                                        Foreground="#FF240E54"
-                                        Text="{Binding TwitchAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                        <ToggleButton
+                                            Width="26"
+                                            Height="26"
+                                            Margin="0,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Background="#483472"
+                                            BorderBrush="#7169B7"
+                                            Checked="TwitchAccessTokenEditToggle_Checked"
+                                            IsChecked="{Binding TwitchAccessTokenEditing, Mode=TwoWay}"
+                                            Style="{DynamicResource Editbutton}"
+                                            ToolTip="Edit access token">
+                                            <Image
+                                                Width="12"
+                                                Height="12"
+                                                Source="/Img/Icons/Edit_ico.png" />
+                                        </ToggleButton>
+                                        <Grid
+                                            Width="360"
+                                            Height="26"
+                                            HorizontalAlignment="Left">
+                                            <TextBox
+                                                x:Name="TwitchAccessTokenPreview"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                IsHitTestVisible="False"
+                                                IsReadOnly="True"
+                                                Text="{Binding TwitchAccessToken, Converter={StaticResource MaskedWeatherCityConverter}}">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TwitchAccessTokenEditing}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
+                                            <TextBox
+                                                x:Name="TwitchAccessTokenEditor"
+                                                Padding="5,0,0,0"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding TwitchAccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TwitchAccessTokenEditing}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
+                                        </Grid>
+                                    </StackPanel>
                                     <TextBlock
                                         Margin="0,2,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -4149,7 +4311,7 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="13"
                                         Foreground="#FF9983AD"
-                                        Text="Tip: use \\n for a new line in the template." />
+                                        Text="Tip: use \n for a new line in the template." />
                                     <TextBlock
                                         Margin="0,12,0,0"
                                         Padding="0,0,0,0"
@@ -8543,9 +8705,7 @@
                                                                 Margin="6,0,0,0"
                                                                 Style="{StaticResource TrackerInputFrame}"
                                                                 Visibility="{Binding UseCustomLowThreshold, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                                                                <TextBox
-                                                                    Width="40"
-                                                                    Text="{Binding CustomLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                <TextBox Width="40" Text="{Binding CustomLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                             </Border>
                                                             <TextBlock
                                                                 Margin="4,0,0,0"
@@ -8733,7 +8893,7 @@
                                     </StackPanel>
                                 </Border>
 
-   
+
 
                             </StackPanel>
                         </Grid>

@@ -2354,12 +2354,17 @@ namespace vrcosc_magicchatbox.ViewModels
         private WeatherLocationMode _WeatherLocationMode = WeatherLocationMode.CustomCity;
         private bool _WeatherAllowIPLocation = false;
         private string _WeatherLocationCity = "London";
+        private string _WeatherLocationCityEncrypted = string.Empty;
+        private bool _WeatherLocationEditing = false;
         private double _WeatherLocationLatitude = 0;
         private double _WeatherLocationLongitude = 0;
         private string _TwitchChannelName = string.Empty;
         private string _TwitchClientId = string.Empty;
+        private string _TwitchClientIdEncrypted = string.Empty;
         private string _TwitchAccessTokenEncrypted = string.Empty;
         private string _TwitchAccessToken;
+        private bool _TwitchClientIdEditing = false;
+        private bool _TwitchAccessTokenEditing = false;
         private bool _TwitchShowViewerCount = true;
         private bool _TwitchShowGameName = true;
         private bool _TwitchShowLiveIndicator = true;
@@ -4499,7 +4504,38 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _WeatherLocationCity = value ?? string.Empty;
+                EncryptionMethods.TryProcessToken(ref _WeatherLocationCity, ref _WeatherLocationCityEncrypted, true);
                 NotifyPropertyChanged(nameof(WeatherLocationCity));
+                NotifyPropertyChanged(nameof(WeatherLocationCityEncrypted));
+            }
+        }
+
+        public string WeatherLocationCityEncrypted
+        {
+            get { return _WeatherLocationCityEncrypted; }
+            set
+            {
+                if (_WeatherLocationCityEncrypted != value)
+                {
+                    _WeatherLocationCityEncrypted = value ?? string.Empty;
+                    EncryptionMethods.TryProcessToken(ref _WeatherLocationCityEncrypted, ref _WeatherLocationCity, false);
+                    if (_WeatherLocationCity == null)
+                    {
+                        _WeatherLocationCity = string.Empty;
+                    }
+                    NotifyPropertyChanged(nameof(WeatherLocationCityEncrypted));
+                    NotifyPropertyChanged(nameof(WeatherLocationCity));
+                }
+            }
+        }
+
+        public bool WeatherLocationEditing
+        {
+            get { return _WeatherLocationEditing; }
+            set
+            {
+                _WeatherLocationEditing = value;
+                NotifyPropertyChanged(nameof(WeatherLocationEditing));
             }
         }
 
@@ -4559,7 +4595,38 @@ namespace vrcosc_magicchatbox.ViewModels
             set
             {
                 _TwitchClientId = value ?? string.Empty;
+                EncryptionMethods.TryProcessToken(ref _TwitchClientId, ref _TwitchClientIdEncrypted, true);
                 NotifyPropertyChanged(nameof(TwitchClientId));
+                NotifyPropertyChanged(nameof(TwitchClientIdEncrypted));
+            }
+        }
+
+        public string TwitchClientIdEncrypted
+        {
+            get { return _TwitchClientIdEncrypted; }
+            set
+            {
+                if (_TwitchClientIdEncrypted != value)
+                {
+                    _TwitchClientIdEncrypted = value ?? string.Empty;
+                    EncryptionMethods.TryProcessToken(ref _TwitchClientIdEncrypted, ref _TwitchClientId, false);
+                    if (_TwitchClientId == null)
+                    {
+                        _TwitchClientId = string.Empty;
+                    }
+                    NotifyPropertyChanged(nameof(TwitchClientIdEncrypted));
+                    NotifyPropertyChanged(nameof(TwitchClientId));
+                }
+            }
+        }
+
+        public bool TwitchClientIdEditing
+        {
+            get { return _TwitchClientIdEditing; }
+            set
+            {
+                _TwitchClientIdEditing = value;
+                NotifyPropertyChanged(nameof(TwitchClientIdEditing));
             }
         }
 
@@ -4588,6 +4655,16 @@ namespace vrcosc_magicchatbox.ViewModels
                     EncryptionMethods.TryProcessToken(ref _TwitchAccessToken, ref _TwitchAccessTokenEncrypted, true);
                     NotifyPropertyChanged(nameof(TwitchAccessToken));
                 }
+            }
+        }
+
+        public bool TwitchAccessTokenEditing
+        {
+            get { return _TwitchAccessTokenEditing; }
+            set
+            {
+                _TwitchAccessTokenEditing = value;
+                NotifyPropertyChanged(nameof(TwitchAccessTokenEditing));
             }
         }
 

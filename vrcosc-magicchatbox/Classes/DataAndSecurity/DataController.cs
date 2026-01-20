@@ -516,7 +516,7 @@ public static class DataController
     { "WeatherFallbackMode", (typeof(WeatherFallbackMode), "Time") },
     { "WeatherLocationMode", (typeof(WeatherLocationMode), "Time") },
     { "WeatherAllowIPLocation", (typeof(bool), "Time") },
-    { "WeatherLocationCity", (typeof(string), "Time") },
+    { "WeatherLocationCityEncrypted", (typeof(string), "Time") },
     { "WeatherLocationLatitude", (typeof(double), "Time") },
     { "WeatherLocationLongitude", (typeof(double), "Time") },
     { "WeatherUpdateIntervalMinutes", (typeof(int), "Time") },
@@ -530,7 +530,7 @@ public static class DataController
     { "BussyBoysMultiMODE", (typeof(bool), "Time") },
 
     { "TwitchChannelName", (typeof(string), "Twitch") },
-    { "TwitchClientId", (typeof(string), "Twitch") },
+    { "TwitchClientIdEncrypted", (typeof(string), "Twitch") },
     { "TwitchAccessTokenEncrypted", (typeof(string), "Twitch") },
     { "TwitchShowViewerCount", (typeof(bool), "Twitch") },
     { "TwitchShowGameName", (typeof(bool), "Twitch") },
@@ -706,7 +706,6 @@ public static class DataController
     {
       { "IntgrWeather_VR", true },
       { "ShowWeatherInTime", true },
-      { "WeatherLocationCity", "London" },
       { "WeatherLocationMode", WeatherLocationMode.CustomCity },
       { "WeatherStatsSeparator", " " },
       { "WeatherConditionOverrides", string.Empty },
@@ -786,7 +785,7 @@ PropertyInfo property)
             else
             {
                 // Setting node is missing or empty
-                if (setting.Key == "EmojiCollection")
+                if (setting.Key == "EmojiCollection" || ShouldRetainSettingValueOnMissing(setting.Key))
                 {
                     // Do NOT set to default. Retain existing value in ViewModel.
                     Logging.WriteInfo($"Setting '{setting.Key}' not found or empty in XML. Retaining existing value.");
@@ -842,6 +841,11 @@ PropertyInfo property)
     {
         try
         {
+            if (ShouldSkipSensitivePlainSave(setting.Key))
+            {
+                return;
+            }
+
             object value = property.GetValue(ViewModel.Instance);
             if (value != null)
             {
@@ -883,6 +887,16 @@ PropertyInfo property)
             Logging.WriteException(new Exception($"Error saving setting '{setting.Key}'", ex), MSGBox: false);
             // Continue processing other settings
         }
+    }
+
+    private static bool ShouldRetainSettingValueOnMissing(string settingKey)
+    {
+        return settingKey == "WeatherLocationCityEncrypted" || settingKey == "TwitchClientIdEncrypted";
+    }
+
+    private static bool ShouldSkipSensitivePlainSave(string settingKey)
+    {
+        return settingKey == "WeatherLocationCity" || settingKey == "TwitchClientId";
     }
 
 
@@ -1306,6 +1320,11 @@ PropertyInfo property)
 
             var settings = InitializeSettingsDictionary();
 
+            if (!saveSettings)
+            {
+                MigrateSensitiveSettings(rootNode);
+            }
+
             foreach (var setting in settings)
             {
                 try
@@ -1345,6 +1364,34 @@ PropertyInfo property)
         {
             Logging.WriteException(new Exception("Error managing settings XML.", ex), MSGBox: false);
         }
+    }
+
+    private static void MigrateSensitiveSettings(XmlNode rootNode)
+    {
+        if (rootNode == null || ViewModel.Instance == null)
+        {
+            return;
+        }
+
+        string legacyCity = GetSettingValue(rootNode, "Time", "WeatherLocationCity");
+        string encryptedCity = GetSettingValue(rootNode, "Time", "WeatherLocationCityEncrypted");
+        if (string.IsNullOrWhiteSpace(encryptedCity) && !string.IsNullOrWhiteSpace(legacyCity))
+        {
+            ViewModel.Instance.WeatherLocationCity = legacyCity;
+        }
+
+        string legacyClientId = GetSettingValue(rootNode, "Twitch", "TwitchClientId");
+        string encryptedClientId = GetSettingValue(rootNode, "Twitch", "TwitchClientIdEncrypted");
+        if (string.IsNullOrWhiteSpace(encryptedClientId) && !string.IsNullOrWhiteSpace(legacyClientId))
+        {
+            ViewModel.Instance.TwitchClientId = legacyClientId;
+        }
+    }
+
+    private static string GetSettingValue(XmlNode rootNode, string category, string key)
+    {
+        XmlNode categoryNode = rootNode.SelectSingleNode(category);
+        return categoryNode?.SelectSingleNode(key)?.InnerText;
     }
     public static bool PopulateOutputDevices()
     {

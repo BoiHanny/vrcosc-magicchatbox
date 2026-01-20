@@ -615,6 +615,33 @@ namespace vrcosc_magicchatbox
             }
         }
 
+        private void WeatherCityEditToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            if (WeatherCityEditor != null)
+            {
+                WeatherCityEditor.Focus();
+                WeatherCityEditor.CaretIndex = WeatherCityEditor.Text.Length;
+            }
+        }
+
+        private void TwitchClientIdEditToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            if (TwitchClientIdEditor != null)
+            {
+                TwitchClientIdEditor.Focus();
+                TwitchClientIdEditor.CaretIndex = TwitchClientIdEditor.Text.Length;
+            }
+        }
+
+        private void TwitchAccessTokenEditToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            if (TwitchAccessTokenEditor != null)
+            {
+                TwitchAccessTokenEditor.Focus();
+                TwitchAccessTokenEditor.CaretIndex = TwitchAccessTokenEditor.Text.Length;
+            }
+        }
+
         private void EditChatTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (ViewModel.Instance.RealTimeChatEdit)
