@@ -2383,7 +2383,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _TrackerBattery_GlobalEmergency = false;
         private int _TrackerBattery_LowThreshold = 20;
         private bool _TrackerBattery_ShowControllers = true;
-        private bool _TrackerBattery_ShowTrackers = true;
+        private bool _TrackerBattery_ShowHeadset = true;
+        private bool _TrackerBattery_ShowTrackers = false;
         private bool _TrackerBattery_ShowDisconnected = false;
         private string _TrackerBattery_OfflineBatteryText = "N/A";
         private string _TrackerBattery_OnlineText = "Online";
@@ -2394,7 +2395,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private TrackerBatterySortMode _TrackerBattery_SortMode = TrackerBatterySortMode.None;
         private string _TrackerBattery_DeviceSummary = "0/0 connected";
         private string _TrackerBattery_LastScanDisplay = "Last scan: Never";
-        private int _TrackerBattery_MaxEntries = 0;
+        private int _TrackerBattery_MaxEntries = 2;
         private bool _TrackerBattery_RotateOverflow = false;
         private int _TrackerBattery_RotationIntervalSeconds = 5;
         private int _TrackerBattery_MaxEntryLength = 0;
@@ -4836,6 +4837,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _TrackerBattery_ShowControllers = value;
                 NotifyPropertyChanged(nameof(TrackerBattery_ShowControllers));
+            }
+        }
+
+        public bool TrackerBattery_ShowHeadset
+        {
+            get { return _TrackerBattery_ShowHeadset; }
+            set
+            {
+                _TrackerBattery_ShowHeadset = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_ShowHeadset));
             }
         }
 

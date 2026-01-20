@@ -425,11 +425,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
             switch (deviceClass)
             {
                 case ETrackedDeviceClass.HMD:
-                    return string.Empty;
+                    return "H";
                 case ETrackedDeviceClass.Controller:
-                    return string.Empty;
+                    return "C";
                 case ETrackedDeviceClass.GenericTracker:
-                    return "O";
+                    return "T";
+                case ETrackedDeviceClass.TrackingReference:
+                    return "B";
                 default:
                     return "?";
             }
@@ -466,6 +468,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             if (device.DeviceKind == "Controller" && !ViewModel.Instance.TrackerBattery_ShowControllers)
+            {
+                return false;
+            }
+
+            if (device.DeviceKind == "HMD" && !ViewModel.Instance.TrackerBattery_ShowHeadset)
             {
                 return false;
             }
@@ -537,9 +544,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             var result = new List<TrackerDevice>();
-            for (int i = 0; i < maxEntries; i++)
+            int entriesRemaining = devices.Count - _rotationIndex;
+            int entriesToShow = Math.Min(maxEntries, entriesRemaining);
+            for (int i = 0; i < entriesToShow; i++)
             {
-                int index = (_rotationIndex + i) % devices.Count;
+                int index = _rotationIndex + i;
                 result.Add(devices[index]);
             }
 

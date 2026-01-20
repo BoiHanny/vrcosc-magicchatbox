@@ -8221,6 +8221,15 @@
                                                     FontFamily="Comfortaa Light"
                                                     FontSize="18"
                                                     Foreground="#FFB9B5C1"
+                                                    IsChecked="{Binding TrackerBattery_ShowHeadset}"
+                                                    Style="{DynamicResource SettingsCheckbox}">
+                                                    Show Headset
+                                                </CheckBox>
+                                                <CheckBox
+                                                    Margin="9,4"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="18"
+                                                    Foreground="#FFB9B5C1"
                                                     IsChecked="{Binding TrackerBattery_ShowTrackers}"
                                                     Style="{DynamicResource SettingsCheckbox}">
                                                     Show Trackers
@@ -8519,6 +8528,33 @@
                                                             Style="{DynamicResource SettingsCheckbox}">
                                                             Low only
                                                         </CheckBox>
+                                                        <StackPanel
+                                                            Margin="12,0,0,0"
+                                                            Orientation="Horizontal"
+                                                            Visibility="{Binding ShowOnlyOnLowBattery, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                                            <CheckBox
+                                                                FontSize="11"
+                                                                Foreground="#D4CEE2"
+                                                                IsChecked="{Binding UseCustomLowThreshold, Mode=TwoWay}"
+                                                                Style="{DynamicResource SettingsCheckbox}">
+                                                                Custom low
+                                                            </CheckBox>
+                                                            <Border
+                                                                Margin="6,0,0,0"
+                                                                Style="{StaticResource TrackerInputFrame}"
+                                                                Visibility="{Binding UseCustomLowThreshold, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                                                <TextBox
+                                                                    Width="40"
+                                                                    Text="{Binding CustomLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                            </Border>
+                                                            <TextBlock
+                                                                Margin="4,0,0,0"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="11"
+                                                                Foreground="#D4CEE2"
+                                                                Text="%"
+                                                                Visibility="{Binding UseCustomLowThreshold, Converter={StaticResource InverseBoolToHiddenConverter}}" />
+                                                        </StackPanel>
 
                                                     </WrapPanel>
                                                 </Grid>
@@ -8626,7 +8662,7 @@
                                                                 FontSize="14"
                                                                 FontStyle="Italic"
                                                                 Foreground="#FF9983AD"
-                                                                Text="Max Length (Chars)" />
+                                                                Text="Max Length (Chars, 0 = no limit)" />
                                                             <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
                                                                 <TextBox Width="60" Text="{Binding TrackerBattery_MaxEntryLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                             </Border>
