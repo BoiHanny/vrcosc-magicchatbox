@@ -19,6 +19,7 @@ public static class OSCSender
     private static UDPSender? _thirdOscSender;
     private static System.Timers.Timer cooldownTimer;
     private static bool isInCooldown = false;
+    private static bool _lastChatboxHadContent = false;
 
     private static System.Timers.Timer typingTimer;
 
@@ -181,10 +182,21 @@ public static class OSCSender
 
     public static async Task SendOSCMessage(bool FX, int delay = 0)
     {
-        if (!ViewModel.Instance.MasterSwitch || string.IsNullOrEmpty(ViewModel.Instance.OSCtoSent) || ViewModel.Instance.OSCtoSent.Length > 144)
+        if (!ViewModel.Instance.MasterSwitch || ViewModel.Instance.OSCtoSent.Length > 144)
             return;
 
+        if (string.IsNullOrEmpty(ViewModel.Instance.OSCtoSent))
+        {
+            if (_lastChatboxHadContent)
+            {
+                _lastChatboxHadContent = false;
+                await SentClearMessage(0);
+            }
+            return;
+        }
+
         await SendMessageAsync(PrepareMessage(FX), delay);
+        _lastChatboxHadContent = true;
     }
 
     public static void SendOscParam(string address, float value)
@@ -252,8 +264,12 @@ public static class OSCSender
 
     public static async Task SentClearMessage(int delay)
     {
+        if (!ViewModel.Instance.MasterSwitch)
+            return;
+
         var clearMessage = new OscMessage(CHATBOX_INPUT, "", true, false);
         await SendMessageAsync(clearMessage, delay);
+        _lastChatboxHadContent = false;
     }
 
     public static async Task ToggleVoice(bool force = false)
