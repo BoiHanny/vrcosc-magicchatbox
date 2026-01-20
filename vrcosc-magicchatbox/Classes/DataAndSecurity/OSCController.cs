@@ -612,6 +612,13 @@ public static class OSCController
                     AddHeartRate
                 )
             },
+            {
+                "TrackerBattery",
+                (
+                    () => ViewModel.Instance.IntgrTrackerBattery && ViewModel.Instance.IsVRRunning,
+                    AddTrackerBattery
+                )
+            },
 
             {
                 "Component",
@@ -710,6 +717,7 @@ public static class OSCController
             ViewModel.Instance.Char_Limit = "Hidden";
             SetOpacity("Spotify", "1");
             SetOpacity("HeartRate", "1");
+            SetOpacity("TrackerBattery", "1");
             SetOpacity("ComponentStat", "1");
             SetOpacity("NetworkStatistics", "1");
             SetOpacity("Window", "1");
@@ -764,7 +772,9 @@ public static class OSCController
 
         if (!string.IsNullOrEmpty(Complete_msg))
         {
-            Complete_msg = $"{ViewModel.Instance.OscMessagePrefix}{Complete_msg}{ViewModel.Instance.OscMessageSuffix}";
+            string prefix = ExpandOscNewlines(ViewModel.Instance.OscMessagePrefix);
+            string suffix = ExpandOscNewlines(ViewModel.Instance.OscMessageSuffix);
+            Complete_msg = $"{prefix}{Complete_msg}{suffix}";
         }
 
 
@@ -801,6 +811,20 @@ public static class OSCController
         }
     }
 
+    private static void AddTrackerBattery(List<string> list)
+    {
+        if (!ViewModel.Instance.IntgrTrackerBattery || ViewModel.Instance.TrackerBatteryModule == null)
+        {
+            return;
+        }
+
+        string trackerInfo = ViewModel.Instance.TrackerBatteryModule.BuildChatboxString();
+        if (!string.IsNullOrWhiteSpace(trackerInfo))
+        {
+            TryAddToUncomplete(list, trackerInfo, "TrackerBattery");
+        }
+    }
+
     private static string GetOscSeparator()
     {
         if (ViewModel.Instance.SeperateWithENTERS)
@@ -811,6 +835,16 @@ public static class OSCController
         return ViewModel.Instance.OscMessageSeparator ?? " ┆ ";
     }
 
+    private static string ExpandOscNewlines(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        return value.Replace("\\n", "\n").Replace("/n", "\n");
+    }
+
     // this function calculates the length of the OSC message to be sent to VRChat and returns it as an int
     // it takes a list of strings and a string to add to the list as parameters
     public static int CalculateOSCMsgLength(List<string> content, string add)
@@ -819,7 +853,9 @@ public static class OSCController
         string joinedString = string.Join(GetOscSeparator(), list);
         if (!string.IsNullOrEmpty(joinedString))
         {
-            joinedString = $"{ViewModel.Instance.OscMessagePrefix}{joinedString}{ViewModel.Instance.OscMessageSuffix}";
+            string prefix = ExpandOscNewlines(ViewModel.Instance.OscMessagePrefix);
+            string suffix = ExpandOscNewlines(ViewModel.Instance.OscMessageSuffix);
+            joinedString = $"{prefix}{joinedString}{suffix}";
         }
         return joinedString.Length;
     }
@@ -1062,6 +1098,9 @@ public static class OSCController
                 break;
             case "HeartRate":
                 ViewModel.Instance.HeartRate_Opacity = opacity;
+                break;
+            case "TrackerBattery":
+                ViewModel.Instance.TrackerBattery_Opacity = opacity;
                 break;
             case "ComponentStat":
                 ViewModel.Instance.ComponentStat_Opacity = opacity;

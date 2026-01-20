@@ -368,11 +368,30 @@ public static class DataController
                 return seekbarResult;
             return MediaLinkTimeSeekbar.SmallNumbers; // Default enum value
         }
+        if (targetType == typeof(TrackerBatterySortMode))
+        {
+            if (Enum.TryParse(typeof(TrackerBatterySortMode), value, out var sortResult))
+                return sortResult;
+            return TrackerBatterySortMode.None;
+        }
         if (targetType == typeof(DateTime))
         {
             if (DateTime.TryParse(value, out DateTime dateTimeResult))
                 return dateTimeResult;
-            return DateTime.MinValue; // Default for DateTime
+            return DateTime.MinValue;
+        }
+       
+        if (targetType == typeof(ObservableCollection<TrackerDevice>))
+        {
+            try
+            {
+                var list = JsonConvert.DeserializeObject<ObservableCollection<TrackerDevice>>(value);
+                return list ?? new ObservableCollection<TrackerDevice>();
+            }
+            catch (Exception)
+            {
+                return new ObservableCollection<TrackerDevice>();
+            }
         }
         // Handle ObservableCollection<string>
         if (targetType == typeof(ObservableCollection<string>))
@@ -442,6 +461,7 @@ public static class DataController
     { "IntgrComponentStats", (typeof(bool), "Integrations") },
     { "IntgrSoundpad", (typeof(bool), "Integrations") },
     { "IntgrTwitch", (typeof(bool), "Integrations") },
+    { "IntgrTrackerBattery", (typeof(bool), "Integrations") },
 
     { "IntgrComponentStats_VR", (typeof(bool), "IntegrationToggles") },
     { "IntgrComponentStats_DESKTOP", (typeof(bool), "IntegrationToggles") },
@@ -485,9 +505,11 @@ public static class DataController
     { "ShowWeatherWind", (typeof(bool), "Time") },
     { "ShowWeatherFeelsLike", (typeof(bool), "Time") },
     { "WeatherSeparator", (typeof(string), "Time") },
-    { "WeatherStatsSeparator", (typeof(string), "Time") },
-    { "WeatherTemplate", (typeof(string), "Time") },
-    { "WeatherLayoutMode", (typeof(WeatherLayoutMode), "Time") },
+      { "WeatherStatsSeparator", (typeof(string), "Time") },
+      { "WeatherTemplate", (typeof(string), "Time") },
+      { "WeatherConditionOverrides", (typeof(string), "Time") },
+      { "WeatherCustomOverridesEnabled", (typeof(bool), "Time") },
+      { "WeatherLayoutMode", (typeof(WeatherLayoutMode), "Time") },
     { "WeatherOrder", (typeof(WeatherOrder), "Time") },
     { "WeatherUnitOverride", (typeof(WeatherUnitOverride), "Time") },
     { "WeatherWindUnitOverride", (typeof(WeatherWindUnitOverride), "Time") },
@@ -527,6 +549,28 @@ public static class DataController
     { "TwitchSeparator", (typeof(string), "Twitch") },
     { "TwitchTemplate", (typeof(string), "Twitch") },
     { "TwitchUpdateIntervalSeconds", (typeof(int), "Twitch") },
+
+    { "TrackerDevices", (typeof(ObservableCollection<TrackerDevice>), "TrackerBattery") },
+    { "TrackerBattery_Template", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_Prefix", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_Suffix", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_Separator", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_GlobalEmergency", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_LowThreshold", (typeof(int), "TrackerBattery") },
+    { "TrackerBattery_ShowControllers", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_ShowTrackers", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_ShowDisconnected", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_OfflineBatteryText", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_OnlineText", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_OfflineText", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_LowTag", (typeof(string), "TrackerBattery") },
+    { "TrackerBattery_CompactWhitespace", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_UseSmallText", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_SortMode", (typeof(TrackerBatterySortMode), "TrackerBattery") },
+    { "TrackerBattery_MaxEntries", (typeof(int), "TrackerBattery") },
+    { "TrackerBattery_RotateOverflow", (typeof(bool), "TrackerBattery") },
+    { "TrackerBattery_RotationIntervalSeconds", (typeof(int), "TrackerBattery") },
+    { "TrackerBattery_MaxEntryLength", (typeof(int), "TrackerBattery") },
 
     { "CurrentMenuItem", (typeof(int), "Menu") },
 
@@ -659,12 +703,14 @@ public static class DataController
 
     private static readonly Dictionary<string, object> SettingDefaultValues = new Dictionary<string, object>
     {
-        { "IntgrWeather_VR", true },
-        { "ShowWeatherInTime", true },
-        { "WeatherLocationCity", "London" },
-        { "WeatherLocationMode", WeatherLocationMode.CustomCity },
-        { "WeatherStatsSeparator", " " },
-        { "WeatherWindUnitOverride", WeatherWindUnitOverride.UseGlobal },
+      { "IntgrWeather_VR", true },
+      { "ShowWeatherInTime", true },
+      { "WeatherLocationCity", "London" },
+      { "WeatherLocationMode", WeatherLocationMode.CustomCity },
+      { "WeatherStatsSeparator", " " },
+      { "WeatherConditionOverrides", string.Empty },
+      { "WeatherCustomOverridesEnabled", false },
+      { "WeatherWindUnitOverride", WeatherWindUnitOverride.UseGlobal },
         { "TwitchShowViewerCount", true },
         { "TwitchShowGameName", true },
         { "TwitchShowLiveIndicator", true },
@@ -677,6 +723,27 @@ public static class DataController
         { "TwitchUseSmallText", true },
         { "TwitchSeparator", " | " },
         { "TwitchUpdateIntervalSeconds", 60 },
+        { "TrackerDevices", new ObservableCollection<TrackerDevice>() },
+        { "TrackerBattery_Template", "{icon} {name} {batt}%" },
+        { "TrackerBattery_Prefix", "" },
+        { "TrackerBattery_Suffix", "" },
+        { "TrackerBattery_Separator", " | " },
+        { "TrackerBattery_GlobalEmergency", false },
+        { "TrackerBattery_LowThreshold", 20 },
+        { "TrackerBattery_ShowControllers", true },
+        { "TrackerBattery_ShowTrackers", true },
+        { "TrackerBattery_ShowDisconnected", false },
+        { "TrackerBattery_OfflineBatteryText", "N/A" },
+        { "TrackerBattery_OnlineText", "Online" },
+        { "TrackerBattery_OfflineText", "Offline" },
+        { "TrackerBattery_LowTag", "LOW" },
+        { "TrackerBattery_CompactWhitespace", true },
+        { "TrackerBattery_UseSmallText", false },
+        { "TrackerBattery_SortMode", TrackerBatterySortMode.None },
+        { "TrackerBattery_MaxEntries", 0 },
+        { "TrackerBattery_RotateOverflow", false },
+        { "TrackerBattery_RotationIntervalSeconds", 5 },
+        { "TrackerBattery_MaxEntryLength", 0 },
         { "MediaLink_TransientMode", false },
         { "MediaLink_TransientDuration", 5.0 },
         { "MediaLink_IconPlay", "" },
@@ -752,6 +819,10 @@ PropertyInfo property)
             // Initialize with an empty collection instead of null
             defaultValue = new ObservableCollection<string>();
         }
+        else if (type == typeof(ObservableCollection<TrackerDevice>))
+        {
+            defaultValue = new ObservableCollection<TrackerDevice>();
+        }
         else
         {
             defaultValue = type.IsValueType ? Activator.CreateInstance(type) : null;
@@ -779,11 +850,14 @@ PropertyInfo property)
                     // Serialize the collection to JSON
                     serializedValue = JsonConvert.SerializeObject(collection);
                 }
+                else if (value is ObservableCollection<TrackerDevice> trackerDevices)
+                {
+                    serializedValue = JsonConvert.SerializeObject(trackerDevices);
+                }
                 else
                 {
                     serializedValue = value.ToString();
                 }
-
                 if (!string.IsNullOrEmpty(serializedValue))
                 {
                     XmlNode settingNode = xmlDoc.CreateElement(setting.Key);
@@ -977,36 +1051,48 @@ PropertyInfo property)
                 return;
             }
 
+            // 1. Ensure the collection is initialized immediately to prevent null refs later
+            if (ViewModel.Instance.LastMessages == null)
+            {
+                ViewModel.Instance.LastMessages = new();
+            }
+
             if (File.Exists(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml")))
             {
                 string json = File.ReadAllText(Path.Combine(ViewModel.Instance.DataPath, "LastMessages.xml"));
-                if (json.ToLower().Equals("null"))
+                
+                // 2. Check for empty or "null" string content
+                if (string.IsNullOrWhiteSpace(json) || json.Trim().ToLower().Equals("null"))
                 {
-                    Logging.WriteInfo("LastMessages history is null, not problem :P");
-                    ViewModel.Instance.LastMessages = new();
+                    Logging.WriteInfo("LastMessages history is null or empty, not problem :P");
                     return;
                 }
-                ViewModel.Instance.LastMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
-                foreach (var item in ViewModel.Instance.LastMessages)
+
+                var loadedMessages = JsonConvert.DeserializeObject<ObservableCollection<ChatItem>>(json);
+                
+                // 3. Only assign if deserialization was successful
+                if (loadedMessages != null)
                 {
-                    item.CanLiveEdit = false;
+                    ViewModel.Instance.LastMessages = loadedMessages;
+                    foreach (var item in ViewModel.Instance.LastMessages)
+                    {
+                        item.CanLiveEdit = false;
+                    }
                 }
             }
             else
             {
                 Logging.WriteInfo("LastMessages history has never been created, not problem :P");
-                if (ViewModel.Instance.LastMessages == null)
-                {
-                    ViewModel.Instance.LastMessages = new();
-                }
             }
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            if (ViewModel.Instance.ScannedApps == null)
+            
+            // 4. FIX: Initialize LastMessages (not ScannedApps) if an error occurs
+            if (ViewModel.Instance?.LastMessages == null)
             {
-                ViewModel.Instance.ScannedApps = new();
+                ViewModel.Instance.LastMessages = new();
             }
         }
     }
@@ -1378,20 +1464,21 @@ PropertyInfo property)
     {
         try
         {
+            // 1. Check if ViewModel or LastMessages is null before proceeding
+            if (ViewModel.Instance?.LastMessages == null)
+            {
+                return;
+            }
+
             if (CreateIfMissing(ViewModel.Instance.DataPath) == true)
             {
-
-                if (ViewModel.Instance.LastMessages == null)
-                {
-                    return;
-                }
-
                 if (ViewModel.Instance.LastMessages.Count == 0)
                 {
                     return;
                 }
 
-                string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages);
+                // 2. Use formatting for safer JSON structure (optional, but good for debugging)
+                string json = JsonConvert.SerializeObject(ViewModel.Instance.LastMessages, Newtonsoft.Json.Formatting.Indented);
 
                 if (string.IsNullOrEmpty(json))
                 {

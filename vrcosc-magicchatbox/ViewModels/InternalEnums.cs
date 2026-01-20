@@ -110,4 +110,18 @@ namespace vrcosc_magicchatbox.ViewModels
         NotRunning,
         Unknown
     }
+
+    public enum TrackerBatterySortMode
+    {
+        [Description("As detected")]
+        None,
+        [Description("Name (A-Z)")]
+        Name,
+        [Description("Battery low to high")]
+        BatteryLowToHigh,
+        [Description("Battery high to low")]
+        BatteryHighToLow,
+        [Description("Type, then name")]
+        TypeThenName
+    }
 }

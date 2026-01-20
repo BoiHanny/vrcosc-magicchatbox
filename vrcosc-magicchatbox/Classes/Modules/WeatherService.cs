@@ -28,6 +28,68 @@ public static class WeatherService
     private static WeatherLocation _location;
     private static WeatherSnapshot _snapshot;
     private static string _locationCacheKey;
+    private static readonly IReadOnlyDictionary<int, string> DefaultConditionMap = new Dictionary<int, string>
+    {
+        { 0, "Clear" },
+        { 1, "Mostly clear" },
+        { 2, "Partly cloudy" },
+        { 3, "Overcast" },
+        { 45, "Fog" },
+        { 48, "Fog" },
+        { 51, "Drizzle" },
+        { 53, "Drizzle" },
+        { 55, "Drizzle" },
+        { 56, "Freezing drizzle" },
+        { 57, "Freezing drizzle" },
+        { 61, "Rain" },
+        { 63, "Rain" },
+        { 65, "Rain" },
+        { 66, "Freezing rain" },
+        { 67, "Freezing rain" },
+        { 71, "Snow" },
+        { 73, "Snow" },
+        { 75, "Snow" },
+        { 77, "Snow grains" },
+        { 80, "Showers" },
+        { 81, "Showers" },
+        { 82, "Showers" },
+        { 85, "Snow showers" },
+        { 86, "Snow showers" },
+        { 95, "Thunderstorm" },
+        { 96, "Hailstorm" },
+        { 99, "Hailstorm" }
+    };
+    private static readonly IReadOnlyDictionary<int, string> DefaultConditionIconMap = new Dictionary<int, string>
+    {
+        { 0, "☀" },
+        { 1, "🌤" },
+        { 2, "⛅" },
+        { 3, "☁" },
+        { 45, "🌫" },
+        { 48, "🌫" },
+        { 51, "🌦" },
+        { 53, "🌦" },
+        { 55, "🌦" },
+        { 56, "🌧" },
+        { 57, "🌧" },
+        { 61, "🌧" },
+        { 63, "🌧" },
+        { 65, "🌧" },
+        { 66, "🌧" },
+        { 67, "🌧" },
+        { 71, "❄" },
+        { 73, "❄" },
+        { 75, "❄" },
+        { 77, "❄" },
+        { 80, "🌧" },
+        { 81, "🌧" },
+        { 82, "🌧" },
+        { 85, "🌨" },
+        { 86, "🌨" },
+        { 95, "⛈" },
+        { 96, "⛈" },
+        { 99, "⛈" }
+    };
 
     static WeatherService()
     {
@@ -426,7 +488,7 @@ public static class WeatherService
 
     private static string GetConditionText(WeatherSnapshot snapshot)
     {
-        string condition = ViewModel.Instance.ShowWeatherCondition ? snapshot.Condition : string.Empty;
+        string condition = ViewModel.Instance.ShowWeatherCondition ? MapWeatherCode(snapshot.WeatherCode) : string.Empty;
         if (!ViewModel.Instance.ShowWeatherEmoji)
         {
             return condition;
@@ -622,50 +684,130 @@ public static class WeatherService
         return $"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,apparent_temperature&temperature_unit=celsius&timezone=auto";
     }
 
+    internal static IReadOnlyDictionary<int, string> GetDefaultConditionMap()
+    {
+        return DefaultConditionMap;
+    }
+
+    internal static IReadOnlyDictionary<int, string> GetDefaultConditionIconMap()
+    {
+        return DefaultConditionIconMap;
+    }
+
     private static string MapWeatherCode(int code)
     {
-        return code switch
+        if (!DefaultConditionMap.TryGetValue(code, out string defaultValue))
         {
-            0 => "Clear",
-            1 => "Mostly clear",
-            2 => "Partly cloudy",
-            3 => "Overcast",
-            45 or 48 => "Fog",
-            51 or 53 or 55 => "Drizzle",
-            56 or 57 => "Freezing drizzle",
-            61 or 63 or 65 => "Rain",
-            66 or 67 => "Freezing rain",
-            71 or 73 or 75 => "Snow",
-            77 => "Snow grains",
-            80 or 81 or 82 => "Showers",
-            85 or 86 => "Snow showers",
-            95 => "Thunderstorm",
-            96 or 99 => "Hailstorm",
-            _ => string.Empty
-        };
+            defaultValue = string.Empty;
+        }
+
+        return ApplyConditionOverride(code, defaultValue);
+    }
+
+    private static string ApplyConditionOverride(int code, string defaultValue)
+    {
+        if (!ViewModel.Instance.WeatherCustomOverridesEnabled)
+        {
+            return defaultValue;
+        }
+
+        string overrides = ViewModel.Instance.WeatherConditionOverrides;
+        if (string.IsNullOrWhiteSpace(overrides))
+        {
+            return defaultValue;
+        }
+
+        if (TryGetConditionOverride(overrides, code, out string iconOverride, out string textOverride) &&
+            !string.IsNullOrWhiteSpace(textOverride))
+        {
+            return textOverride;
+        }
+
+        return defaultValue;
+    }
+
+    private static string ApplyConditionIconOverride(int code, string defaultIcon)
+    {
+        if (!ViewModel.Instance.WeatherCustomOverridesEnabled)
+        {
+            return defaultIcon;
+        }
+
+        string overrides = ViewModel.Instance.WeatherConditionOverrides;
+        if (string.IsNullOrWhiteSpace(overrides))
+        {
+            return defaultIcon;
+        }
+
+        if (TryGetConditionOverride(overrides, code, out string iconOverride, out string textOverride) &&
+            !string.IsNullOrWhiteSpace(iconOverride))
+        {
+            return iconOverride;
+        }
+
+        return defaultIcon;
+    }
+
+    private static bool TryGetConditionOverride(string overrides, int code, out string iconOverride, out string textOverride)
+    {
+        iconOverride = string.Empty;
+        textOverride = string.Empty;
+        var separators = new[] { '\n', ';' };
+        var entries = overrides.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+        foreach (string entry in entries)
+        {
+            string trimmed = entry.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed))
+            {
+                continue;
+            }
+
+            int separatorIndex = trimmed.IndexOf('=');
+            if (separatorIndex < 0)
+            {
+                separatorIndex = trimmed.IndexOf(':');
+            }
+
+            if (separatorIndex < 0)
+            {
+                continue;
+            }
+
+            string codeText = trimmed.Substring(0, separatorIndex).Trim();
+            if (!int.TryParse(codeText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedCode))
+            {
+                continue;
+            }
+
+            string value = trimmed.Substring(separatorIndex + 1).Trim();
+            if (parsedCode == code)
+            {
+                int iconSeparatorIndex = value.IndexOf('|');
+                if (iconSeparatorIndex >= 0)
+                {
+                    iconOverride = value.Substring(0, iconSeparatorIndex).Trim();
+                    textOverride = value.Substring(iconSeparatorIndex + 1).Trim();
+                }
+                else
+                {
+                    textOverride = value;
+                }
+
+                return !string.IsNullOrWhiteSpace(iconOverride) || !string.IsNullOrWhiteSpace(textOverride);
+            }
+        }
+
+        return false;
     }
 
     private static string MapWeatherEmoji(int code)
     {
-        return code switch
+        if (!DefaultConditionIconMap.TryGetValue(code, out string defaultIcon))
         {
-            0 => "☀",
-            1 => "🌤",
-            2 => "⛅",
-            3 => "☁",
-            45 or 48 => "🌫",
-            51 or 53 or 55 => "🌦",
-            56 or 57 => "🌧",
-            61 or 63 or 65 => "🌧",
-            66 or 67 => "🌧",
-            71 or 73 or 75 => "❄",
-            77 => "❄",
-            80 or 81 or 82 => "🌧",
-            85 or 86 => "🌨",
-            95 => "⛈",
-            96 or 99 => "⛈",
-            _ => string.Empty
-        };
+            defaultIcon = string.Empty;
+        }
+
+        return ApplyConditionIconOverride(code, defaultIcon);
     }
 
     private sealed class WeatherTokens

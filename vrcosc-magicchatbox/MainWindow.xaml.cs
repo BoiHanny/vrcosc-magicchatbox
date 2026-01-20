@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -43,6 +44,7 @@ namespace vrcosc_magicchatbox
         public float samplingTime = 1;
         private DateTime _nextRun = DateTime.Now;
         private bool isProcessing = false;
+        private ObservableCollection<string> _integrationSortOrder;
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -119,6 +121,9 @@ namespace vrcosc_magicchatbox
         public MainWindow()
         {
             InitializeComponent();
+
+            ViewModel.Instance.PropertyChanged += ViewModel_PropertyChanged;
+            HookIntegrationSortOrder();
             ApplyIntegrationOrder();
             Closing += MainWindow_ClosingAsync;
 
@@ -140,6 +145,12 @@ namespace vrcosc_magicchatbox
 
         public void ApplyIntegrationOrder()
         {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(ApplyIntegrationOrder);
+                return;
+            }
+
             if (IntegrationsList == null)
             {
                 return;
@@ -150,6 +161,7 @@ namespace vrcosc_magicchatbox
                 { "Status", StatusItem },
                 { "Window", WindowActivityItem },
                 { "HeartRate", HeartRateItem },
+                { "TrackerBattery", TrackerBatteryItem },
                 { "Component", ComponentStatsItem },
                 { "Network", NetworkStatsItem },
                 { "Time", TimeItem },
@@ -187,6 +199,34 @@ namespace vrcosc_magicchatbox
             }
 
             IntegrationsList.EndInit();
+        }
+
+        private void HookIntegrationSortOrder()
+        {
+            if (_integrationSortOrder != null)
+            {
+                _integrationSortOrder.CollectionChanged -= IntegrationSortOrder_CollectionChanged;
+            }
+
+            _integrationSortOrder = ViewModel.Instance.IntegrationSortOrder;
+            if (_integrationSortOrder != null)
+            {
+                _integrationSortOrder.CollectionChanged += IntegrationSortOrder_CollectionChanged;
+            }
+        }
+
+        private void IntegrationSortOrder_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            ApplyIntegrationOrder();
+        }
+
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ViewModel.IntegrationSortOrder))
+            {
+                HookIntegrationSortOrder();
+                ApplyIntegrationOrder();
+            }
         }
 
         private void ReorderIntegrations_Click(object sender, RoutedEventArgs e)
@@ -1151,6 +1191,58 @@ namespace vrcosc_magicchatbox
         private void TwitchSyncNow_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.Instance.TwitchModule?.TriggerManualRefresh();
+        }
+
+        private void TrackerBatteryScan_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Instance.TrackerBatteryModule == null)
+            {
+                ViewModel.Instance.TrackerBatteryModule = new TrackerBatteryModule();
+            }
+
+            ViewModel.Instance.TrackerBatteryModule.UpdateDevices();
+            ViewModel.Instance.TrackerBatteryModule.BuildChatboxString();
+            DataController.ManageSettingsXML(true);
+        }
+
+        private void TrackerBatteryResetTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Instance.TrackerBattery_Template = "{icon} {name} {batt}%";
+            ViewModel.Instance.TrackerBattery_Prefix = string.Empty;
+            ViewModel.Instance.TrackerBattery_Separator = " | ";
+            ViewModel.Instance.TrackerBattery_Suffix = string.Empty;
+            ViewModel.Instance.TrackerBattery_LowTag = "LOW";
+            ViewModel.Instance.TrackerBattery_OnlineText = "Online";
+            ViewModel.Instance.TrackerBattery_OfflineText = "Offline";
+            ViewModel.Instance.TrackerBattery_OfflineBatteryText = "N/A";
+            ViewModel.Instance.TrackerBattery_CompactWhitespace = true;
+            ViewModel.Instance.TrackerBatteryModule?.BuildChatboxString();
+            DataController.ManageSettingsXML(true);
+        }
+
+        private void TrackerBatteryResetDevices_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Reset all tracker device customizations and forget known devices?",
+                "Reset devices",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            ViewModel.Instance.TrackerDevices.Clear();
+
+            if (ViewModel.Instance.TrackerBatteryModule == null)
+            {
+                ViewModel.Instance.TrackerBatteryModule = new TrackerBatteryModule();
+            }
+
+            ViewModel.Instance.TrackerBatteryModule.UpdateDevices();
+            ViewModel.Instance.TrackerBatteryModule.BuildChatboxString();
+            DataController.ManageSettingsXML(true);
         }
 
         public static void ChangeMenuItem(int changeINT)

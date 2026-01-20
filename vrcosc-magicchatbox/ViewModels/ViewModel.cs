@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -35,6 +37,7 @@ namespace vrcosc_magicchatbox.ViewModels
             "Twitch",
             "Soundpad",
             "Spotify",
+            "TrackerBattery",
             "MediaLink"
         };
         public static readonly ViewModel Instance = new ViewModel();
@@ -96,6 +99,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private TwitchModule _TwitchModule;
 
         private IntelliChatModule _IntelliChatModule;
+        private TrackerBatteryModule _TrackerBatteryModule;
 
         private bool _IntgrComponentStats = false;
 
@@ -121,6 +125,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IntgrHeartRate_OSC = false;
 
         private bool _IntgrHeartRate_VR = true;
+
+        private bool _IntgrTrackerBattery = false;
 
         private bool _IntgrMediaLink_DESKTOP = true;
 
@@ -212,7 +218,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _Settings_Dev = false;
 
-
         private bool _Settings_NetworkStatistics = false;
 
         private SoundpadModule _SoundpadModule;
@@ -264,6 +269,7 @@ namespace vrcosc_magicchatbox.ViewModels
             SortScannedAppsByApplyCustomAppNameCommand = new RelayCommand(() => SortScannedApps(SortProperty.ApplyCustomAppName));
 
             ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
+            TrackerBatteryScanCommand = new RelayCommand(ScanTrackerBatteryDevices);
 
             TimezoneFriendlyNames = new Dictionary<Timezone, string>
             {
@@ -295,6 +301,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 { nameof(Settings_OpenAI), value => Settings_OpenAI = value },
                 { nameof(Settings_Chatting), value => Settings_Chatting = value },
                 { nameof(Settings_ComponentStats), value => Settings_ComponentStats = value },
+                { nameof(Settings_TrackerBattery), value => Settings_TrackerBattery = value },
                 { nameof(Settings_NetworkStatistics), value => Settings_NetworkStatistics = value },
                 { nameof(Settings_AppOptions), value => Settings_AppOptions = value },
                 { nameof(Settings_TTS), value => Settings_TTS = value },
@@ -307,6 +314,17 @@ namespace vrcosc_magicchatbox.ViewModels
 
             ShuffleEmojis();
             CurrentEmoji = GetNextEmoji();
+        }
+
+        private void ScanTrackerBatteryDevices()
+        {
+            if (TrackerBatteryModule == null)
+            {
+                TrackerBatteryModule = new TrackerBatteryModule();
+            }
+
+            TrackerBatteryModule.UpdateDevices();
+            TrackerBatteryModule.BuildChatboxString();
         }
 
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -534,6 +552,7 @@ namespace vrcosc_magicchatbox.ViewModels
             HeartRateConnector = new PulsoidModule();
             SoundpadModule = new(1000);
             TwitchModule = new TwitchModule();
+            TrackerBatteryModule = new TrackerBatteryModule();
 
 
             PropertyChanged += HeartRateConnector.PropertyChangedHandler;
@@ -2041,6 +2060,16 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public TrackerBatteryModule TrackerBatteryModule
+        {
+            get { return _TrackerBatteryModule; }
+            set
+            {
+                _TrackerBatteryModule = value;
+                NotifyPropertyChanged(nameof(TrackerBatteryModule));
+            }
+        }
+
         public int StatusIndex
         {
             get { return _StatusIndex; }
@@ -2266,12 +2295,15 @@ namespace vrcosc_magicchatbox.ViewModels
         public ICommand SortScannedAppsByApplyCustomAppNameCommand { get; }
 
         public RelayCommand<string> ActivateSettingCommand { get; }
+        public ICommand TrackerBatteryScanCommand { get; }
         #endregion
 
 
         #region Properties
         private ObservableCollection<StatusItem> _StatusList = new ObservableCollection<StatusItem>();
         private ObservableCollection<ChatItem> _LastMessages = new ObservableCollection<ChatItem>();
+        private ObservableCollection<TrackerDevice> _TrackerDevices = new ObservableCollection<TrackerDevice>();
+        private ObservableCollection<TrackerDevice> _TrackerBatteryActiveDevices = new ObservableCollection<TrackerDevice>();
         private string _aesKey = "g5X5pFei6G8W6UwK6UaA6YhC6U8W6ZbP";
         private string _PlayingSongTitle = string.Empty;
         private bool _ScanPause = false;
@@ -2309,6 +2341,10 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _WeatherSeparator = " | ";
         private string _WeatherStatsSeparator = " ";
         private string _WeatherTemplate = string.Empty;
+        private string _WeatherConditionOverrides = string.Empty;
+        private ObservableCollection<WeatherConditionOverrideItem> _WeatherConditionOverrideItems;
+        private bool _isUpdatingWeatherConditionOverrides;
+        private bool _WeatherCustomOverridesEnabled = false;
         private string _WeatherLastSyncDisplay = "Last sync: Never";
         private WeatherLayoutMode _WeatherLayoutMode = WeatherLayoutMode.SingleLine;
         private WeatherOrder _WeatherOrder = WeatherOrder.TimeFirst;
@@ -2340,6 +2376,29 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _TwitchUseSmallText = true;
         private string _TwitchSeparator = " | ";
         private string _TwitchTemplate = string.Empty;
+        private string _TrackerBattery_Template = "{icon} {name} {batt}%";
+        private string _TrackerBattery_Prefix = string.Empty;
+        private string _TrackerBattery_Suffix = string.Empty;
+        private string _TrackerBattery_Separator = " | ";
+        private bool _TrackerBattery_GlobalEmergency = false;
+        private int _TrackerBattery_LowThreshold = 20;
+        private bool _TrackerBattery_ShowControllers = true;
+        private bool _TrackerBattery_ShowTrackers = true;
+        private bool _TrackerBattery_ShowDisconnected = false;
+        private string _TrackerBattery_OfflineBatteryText = "N/A";
+        private string _TrackerBattery_OnlineText = "Online";
+        private string _TrackerBattery_OfflineText = "Offline";
+        private string _TrackerBattery_LowTag = "LOW";
+        private bool _TrackerBattery_CompactWhitespace = true;
+        private bool _TrackerBattery_UseSmallText = false;
+        private TrackerBatterySortMode _TrackerBattery_SortMode = TrackerBatterySortMode.None;
+        private string _TrackerBattery_DeviceSummary = "0/0 connected";
+        private string _TrackerBattery_LastScanDisplay = "Last scan: Never";
+        private int _TrackerBattery_MaxEntries = 0;
+        private bool _TrackerBattery_RotateOverflow = false;
+        private int _TrackerBattery_RotationIntervalSeconds = 5;
+        private int _TrackerBattery_MaxEntryLength = 0;
+        private string _TrackerBattery_Preview = string.Empty;
         private int _TwitchUpdateIntervalSeconds = 60;
         private string _TwitchLastSyncDisplay = "Last sync: Never";
         private string _TwitchStatusMessage = "Not connected";
@@ -2378,6 +2437,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _Weather_Opacity = "1";
         private string _Twitch_Opacity = "1";
         private string _HeartRate_Opacity = "1";
+        private string _TrackerBattery_Opacity = "1";
         private string _MediaLink_Opacity = "1";
         private int _OSCPortOut = 9000;
         private int _OSCPOrtIN = 9001;
@@ -2563,9 +2623,73 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _IntegrationSortOrder; }
             set
             {
-                _IntegrationSortOrder = value ?? new ObservableCollection<string>(DefaultIntegrationSortOrder);
+                _IntegrationSortOrder = NormalizeIntegrationSortOrder(value);
                 NotifyPropertyChanged(nameof(IntegrationSortOrder));
             }
+        }
+
+        private static ObservableCollection<string> NormalizeIntegrationSortOrder(IEnumerable<string> order)
+        {
+            var canonicalMap = DefaultIntegrationSortOrder
+                .ToDictionary(key => key, StringComparer.OrdinalIgnoreCase);
+            var normalized = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (order != null)
+            {
+                foreach (var item in order)
+                {
+                    if (string.IsNullOrWhiteSpace(item))
+                    {
+                        continue;
+                    }
+
+                    if (canonicalMap.TryGetValue(item, out var canonical) && seen.Add(canonical))
+                    {
+                        normalized.Add(canonical);
+                    }
+                }
+            }
+
+            for (int defaultIndex = 0; defaultIndex < DefaultIntegrationSortOrder.Count; defaultIndex++)
+            {
+                string key = DefaultIntegrationSortOrder[defaultIndex];
+                if (seen.Contains(key))
+                {
+                    continue;
+                }
+
+                int insertIndex = FindIntegrationInsertIndex(normalized, defaultIndex);
+                normalized.Insert(insertIndex, key);
+                seen.Add(key);
+            }
+
+            return new ObservableCollection<string>(normalized);
+        }
+
+        private static int FindIntegrationInsertIndex(List<string> current, int defaultIndex)
+        {
+            for (int i = defaultIndex - 1; i >= 0; i--)
+            {
+                int position = current.FindIndex(item =>
+                    string.Equals(item, DefaultIntegrationSortOrder[i], StringComparison.OrdinalIgnoreCase));
+                if (position >= 0)
+                {
+                    return position + 1;
+                }
+            }
+
+            for (int i = defaultIndex + 1; i < DefaultIntegrationSortOrder.Count; i++)
+            {
+                int position = current.FindIndex(item =>
+                    string.Equals(item, DefaultIntegrationSortOrder[i], StringComparison.OrdinalIgnoreCase));
+                if (position >= 0)
+                {
+                    return position;
+                }
+            }
+
+            return current.Count;
         }
 
         public string OscMessagePrefix
@@ -2950,6 +3074,18 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        private bool _Settings_TrackerBattery = false;
+
+        public bool Settings_TrackerBattery
+        {
+            get { return _Settings_TrackerBattery; }
+            set
+            {
+                _Settings_TrackerBattery = value;
+                NotifyPropertyChanged(nameof(Settings_TrackerBattery));
+            }
+        }
+
 
         private bool _Settings_AppOptions = false;
 
@@ -3280,6 +3416,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public IEnumerable<WeatherWindUnitOverride> AvailableWeatherWindUnitOverrides { get; } = Enum.GetValues(typeof(WeatherWindUnitOverride)).Cast<WeatherWindUnitOverride>().ToList();
         public IEnumerable<WeatherFallbackMode> AvailableWeatherFallbackModes { get; } = Enum.GetValues(typeof(WeatherFallbackMode)).Cast<WeatherFallbackMode>().ToList();
         public IEnumerable<WeatherLocationMode> AvailableWeatherLocationModes { get; } = Enum.GetValues(typeof(WeatherLocationMode)).Cast<WeatherLocationMode>().ToList();
+        public IEnumerable<TrackerBatterySortMode> AvailableTrackerBatterySortModes { get; } = Enum.GetValues(typeof(TrackerBatterySortMode)).Cast<TrackerBatterySortMode>().ToList();
 
 
         private bool _ApplicationHookV2 = true;
@@ -3636,6 +3773,26 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _LastMessages = value;
                 NotifyPropertyChanged(nameof(LastMessages));
+            }
+        }
+
+        public ObservableCollection<TrackerDevice> TrackerDevices
+        {
+            get { return _TrackerDevices; }
+            set
+            {
+                _TrackerDevices = value;
+                NotifyPropertyChanged(nameof(TrackerDevices));
+            }
+        }
+
+        public ObservableCollection<TrackerDevice> TrackerBatteryActiveDevices
+        {
+            get { return _TrackerBatteryActiveDevices; }
+            set
+            {
+                _TrackerBatteryActiveDevices = value ?? new ObservableCollection<TrackerDevice>();
+                NotifyPropertyChanged(nameof(TrackerBatteryActiveDevices));
             }
         }
 
@@ -4053,8 +4210,211 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public string WeatherConditionOverrides
+        {
+            get { return _WeatherConditionOverrides; }
+            set
+            {
+                string normalized = value ?? string.Empty;
+                if (_WeatherConditionOverrides == normalized)
+                {
+                    return;
+                }
+
+                _WeatherConditionOverrides = normalized;
+                NotifyPropertyChanged(nameof(WeatherConditionOverrides));
+
+                if (!_isUpdatingWeatherConditionOverrides)
+                {
+                    EnsureWeatherConditionOverrideItems();
+                    ApplyWeatherConditionOverridesToItems(normalized);
+                }
+            }
+        }
+
+        public bool WeatherCustomOverridesEnabled
+        {
+            get { return _WeatherCustomOverridesEnabled; }
+            set
+            {
+                _WeatherCustomOverridesEnabled = value;
+                NotifyPropertyChanged(nameof(WeatherCustomOverridesEnabled));
+            }
+        }
+
+        public ObservableCollection<WeatherConditionOverrideItem> WeatherConditionOverrideItems
+        {
+            get
+            {
+                EnsureWeatherConditionOverrideItems();
+                return _WeatherConditionOverrideItems;
+            }
+        }
+
         public bool WeatherTemplateIsEmpty => string.IsNullOrWhiteSpace(_WeatherTemplate);
         public bool WeatherTemplateHasValue => !string.IsNullOrWhiteSpace(_WeatherTemplate);
+
+        private void EnsureWeatherConditionOverrideItems()
+        {
+            if (_WeatherConditionOverrideItems != null)
+            {
+                return;
+            }
+
+            _WeatherConditionOverrideItems = BuildWeatherConditionOverrideItems();
+            foreach (var item in _WeatherConditionOverrideItems)
+            {
+                item.PropertyChanged += WeatherConditionOverrideItem_PropertyChanged;
+            }
+
+            ApplyWeatherConditionOverridesToItems(_WeatherConditionOverrides);
+        }
+
+        private ObservableCollection<WeatherConditionOverrideItem> BuildWeatherConditionOverrideItems()
+        {
+            var items = new ObservableCollection<WeatherConditionOverrideItem>();
+            var defaultMap = WeatherService.GetDefaultConditionMap();
+            var defaultIconMap = WeatherService.GetDefaultConditionIconMap();
+            foreach (var entry in defaultMap.OrderBy(pair => pair.Key))
+            {
+                defaultIconMap.TryGetValue(entry.Key, out string icon);
+                items.Add(new WeatherConditionOverrideItem(entry.Key, icon, entry.Value));
+            }
+
+            return items;
+        }
+
+        private void WeatherConditionOverrideItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(WeatherConditionOverrideItem.CustomText))
+            {
+                return;
+            }
+
+            UpdateWeatherConditionOverridesFromItems();
+        }
+
+        private void UpdateWeatherConditionOverridesFromItems()
+        {
+            if (_isUpdatingWeatherConditionOverrides)
+            {
+                return;
+            }
+
+            _isUpdatingWeatherConditionOverrides = true;
+            _WeatherConditionOverrides = BuildWeatherConditionOverridesString(_WeatherConditionOverrideItems);
+            NotifyPropertyChanged(nameof(WeatherConditionOverrides));
+            _isUpdatingWeatherConditionOverrides = false;
+        }
+
+        private void ApplyWeatherConditionOverridesToItems(string overrides)
+        {
+            if (_WeatherConditionOverrideItems == null)
+            {
+                return;
+            }
+
+            var map = ParseWeatherConditionOverrides(overrides);
+            _isUpdatingWeatherConditionOverrides = true;
+            foreach (var item in _WeatherConditionOverrideItems)
+            {
+                if (map.TryGetValue(item.Code, out var overrideValue))
+                {
+                    item.CustomIcon = overrideValue.Icon;
+                    item.CustomText = overrideValue.Text;
+                }
+                else
+                {
+                    item.CustomIcon = string.Empty;
+                    item.CustomText = string.Empty;
+                }
+            }
+            _isUpdatingWeatherConditionOverrides = false;
+        }
+
+        private static string BuildWeatherConditionOverridesString(IEnumerable<WeatherConditionOverrideItem> items)
+        {
+            if (items == null)
+            {
+                return string.Empty;
+            }
+
+            var builder = new StringBuilder();
+            foreach (var item in items)
+            {
+                if (string.IsNullOrWhiteSpace(item.CustomText) && string.IsNullOrWhiteSpace(item.CustomIcon))
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.AppendLine();
+                }
+
+                builder.Append(item.Code.ToString(CultureInfo.InvariantCulture));
+                builder.Append('=');
+                builder.Append(item.CustomIcon?.Trim() ?? string.Empty);
+                builder.Append('|');
+                builder.Append(item.CustomText?.Trim() ?? string.Empty);
+            }
+
+            return builder.ToString();
+        }
+
+        private static Dictionary<int, (string Icon, string Text)> ParseWeatherConditionOverrides(string overrides)
+        {
+            var map = new Dictionary<int, (string Icon, string Text)>();
+            if (string.IsNullOrWhiteSpace(overrides))
+            {
+                return map;
+            }
+
+            var entries = overrides.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string entry in entries)
+            {
+                string trimmed = entry.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                {
+                    continue;
+                }
+
+                int separatorIndex = trimmed.IndexOf('=');
+                if (separatorIndex < 0)
+                {
+                    separatorIndex = trimmed.IndexOf(':');
+                }
+
+                if (separatorIndex < 0)
+                {
+                    continue;
+                }
+
+                string codeText = trimmed.Substring(0, separatorIndex).Trim();
+                if (!int.TryParse(codeText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int code))
+                {
+                    continue;
+                }
+
+                string value = trimmed.Substring(separatorIndex + 1).Trim();
+                string icon = string.Empty;
+                string text = string.Empty;
+                int iconSeparatorIndex = value.IndexOf('|');
+                if (iconSeparatorIndex >= 0)
+                {
+                    icon = value.Substring(0, iconSeparatorIndex).Trim();
+                    text = value.Substring(iconSeparatorIndex + 1).Trim();
+                }
+                else
+                {
+                    text = value;
+                }
+
+                map[code] = (icon, text);
+            }
+
+            return map;
+        }
 
         public WeatherLayoutMode WeatherLayoutMode
         {
@@ -4393,6 +4753,267 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public bool TwitchTemplateHasValue => !string.IsNullOrWhiteSpace(_TwitchTemplate);
 
+        public string TrackerBattery_Template
+        {
+            get { return _TrackerBattery_Template; }
+            set
+            {
+                _TrackerBattery_Template = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_Template));
+            }
+        }
+
+        public string TrackerBattery_Prefix
+        {
+            get { return _TrackerBattery_Prefix; }
+            set
+            {
+                _TrackerBattery_Prefix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_Prefix));
+            }
+        }
+
+        public string TrackerBattery_Suffix
+        {
+            get { return _TrackerBattery_Suffix; }
+            set
+            {
+                _TrackerBattery_Suffix = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_Suffix));
+            }
+        }
+
+        public string TrackerBattery_Separator
+        {
+            get { return _TrackerBattery_Separator; }
+            set
+            {
+                _TrackerBattery_Separator = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_Separator));
+            }
+        }
+
+        public bool TrackerBattery_GlobalEmergency
+        {
+            get { return _TrackerBattery_GlobalEmergency; }
+            set
+            {
+                _TrackerBattery_GlobalEmergency = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_GlobalEmergency));
+            }
+        }
+
+        public int TrackerBattery_LowThreshold
+        {
+            get { return _TrackerBattery_LowThreshold; }
+            set
+            {
+                if (value < 1)
+                {
+                    value = 1;
+                }
+                else if (value > 100)
+                {
+                    value = 100;
+                }
+
+                if (_TrackerBattery_LowThreshold != value)
+                {
+                    _TrackerBattery_LowThreshold = value;
+                    NotifyPropertyChanged(nameof(TrackerBattery_LowThreshold));
+                    foreach (var device in TrackerDevices)
+                    {
+                        device.NotifyIsLowBatteryChanged();
+                    }
+                }
+            }
+        }
+
+        public bool TrackerBattery_ShowControllers
+        {
+            get { return _TrackerBattery_ShowControllers; }
+            set
+            {
+                _TrackerBattery_ShowControllers = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_ShowControllers));
+            }
+        }
+
+        public bool TrackerBattery_ShowTrackers
+        {
+            get { return _TrackerBattery_ShowTrackers; }
+            set
+            {
+                _TrackerBattery_ShowTrackers = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_ShowTrackers));
+            }
+        }
+
+        public bool TrackerBattery_ShowDisconnected
+        {
+            get { return _TrackerBattery_ShowDisconnected; }
+            set
+            {
+                _TrackerBattery_ShowDisconnected = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_ShowDisconnected));
+            }
+        }
+
+        public string TrackerBattery_OfflineBatteryText
+        {
+            get { return _TrackerBattery_OfflineBatteryText; }
+            set
+            {
+                _TrackerBattery_OfflineBatteryText = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_OfflineBatteryText));
+            }
+        }
+
+        public string TrackerBattery_OnlineText
+        {
+            get { return _TrackerBattery_OnlineText; }
+            set
+            {
+                _TrackerBattery_OnlineText = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_OnlineText));
+            }
+        }
+
+        public string TrackerBattery_OfflineText
+        {
+            get { return _TrackerBattery_OfflineText; }
+            set
+            {
+                _TrackerBattery_OfflineText = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_OfflineText));
+            }
+        }
+
+        public string TrackerBattery_LowTag
+        {
+            get { return _TrackerBattery_LowTag; }
+            set
+            {
+                _TrackerBattery_LowTag = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_LowTag));
+            }
+        }
+
+        public bool TrackerBattery_CompactWhitespace
+        {
+            get { return _TrackerBattery_CompactWhitespace; }
+            set
+            {
+                _TrackerBattery_CompactWhitespace = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_CompactWhitespace));
+            }
+        }
+
+        public bool TrackerBattery_UseSmallText
+        {
+            get { return _TrackerBattery_UseSmallText; }
+            set
+            {
+                _TrackerBattery_UseSmallText = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_UseSmallText));
+            }
+        }
+
+        public TrackerBatterySortMode TrackerBattery_SortMode
+        {
+            get { return _TrackerBattery_SortMode; }
+            set
+            {
+                _TrackerBattery_SortMode = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_SortMode));
+            }
+        }
+
+        public string TrackerBattery_DeviceSummary
+        {
+            get { return _TrackerBattery_DeviceSummary; }
+            set
+            {
+                _TrackerBattery_DeviceSummary = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_DeviceSummary));
+            }
+        }
+
+        public string TrackerBattery_LastScanDisplay
+        {
+            get { return _TrackerBattery_LastScanDisplay; }
+            set
+            {
+                _TrackerBattery_LastScanDisplay = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_LastScanDisplay));
+            }
+        }
+
+        public int TrackerBattery_MaxEntries
+        {
+            get { return _TrackerBattery_MaxEntries; }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
+                _TrackerBattery_MaxEntries = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_MaxEntries));
+            }
+        }
+
+        public bool TrackerBattery_RotateOverflow
+        {
+            get { return _TrackerBattery_RotateOverflow; }
+            set
+            {
+                _TrackerBattery_RotateOverflow = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_RotateOverflow));
+            }
+        }
+
+        public int TrackerBattery_RotationIntervalSeconds
+        {
+            get { return _TrackerBattery_RotationIntervalSeconds; }
+            set
+            {
+                if (value < 1)
+                {
+                    value = 1;
+                }
+
+                _TrackerBattery_RotationIntervalSeconds = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_RotationIntervalSeconds));
+            }
+        }
+
+        public int TrackerBattery_MaxEntryLength
+        {
+            get { return _TrackerBattery_MaxEntryLength; }
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
+                _TrackerBattery_MaxEntryLength = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_MaxEntryLength));
+            }
+        }
+
+        public string TrackerBattery_Preview
+        {
+            get { return _TrackerBattery_Preview; }
+            set
+            {
+                _TrackerBattery_Preview = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TrackerBattery_Preview));
+            }
+        }
+
         public int TwitchUpdateIntervalSeconds
         {
             get { return _TwitchUpdateIntervalSeconds; }
@@ -4459,6 +5080,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _HeartRate_Opacity = value;
                 NotifyPropertyChanged(nameof(HeartRate_Opacity));
+            }
+        }
+
+        public string TrackerBattery_Opacity
+        {
+            get { return _TrackerBattery_Opacity; }
+            set
+            {
+                _TrackerBattery_Opacity = value;
+                NotifyPropertyChanged(nameof(TrackerBattery_Opacity));
             }
         }
 
@@ -4981,6 +5612,20 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _IntgrTwitch = value;
                 NotifyPropertyChanged(nameof(IntgrTwitch));
+            }
+        }
+
+        public bool IntgrTrackerBattery
+        {
+            get { return _IntgrTrackerBattery; }
+            set
+            {
+                _IntgrTrackerBattery = value;
+                if (_IntgrTrackerBattery && TrackerBatteryModule == null)
+                {
+                    TrackerBatteryModule = new TrackerBatteryModule();
+                }
+                NotifyPropertyChanged(nameof(IntgrTrackerBattery));
             }
         }
 
