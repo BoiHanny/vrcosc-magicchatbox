@@ -1015,6 +1015,11 @@ public static class OSCController
 
     private static string ResolveMediaLinkStopIcon()
     {
+        if (!ViewModel.Instance.MediaLink_ShowStopIcon)
+        {
+            return string.Empty;
+        }
+
         string icon = ViewModel.Instance.MediaLink_IconStop;
         if (!string.IsNullOrWhiteSpace(icon))
         {

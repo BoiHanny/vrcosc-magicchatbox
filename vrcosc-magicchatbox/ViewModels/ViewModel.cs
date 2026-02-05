@@ -188,6 +188,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _MediaLink_IconPlay = "";
         private string _MediaLink_IconPause = "⏸";
         private string _MediaLink_IconStop = "⏹️";
+        private bool _MediaLink_ShowStopIcon = true;
         private string _MediaLink_Separator = " ᵇʸ ";
         private string _MediaLink_TextPlaying = "Listening to";
         private string _MediaLink_TextPaused = "Paused";
@@ -1760,6 +1761,16 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _MediaLink_IconStop = value ?? string.Empty;
                 NotifyPropertyChanged(nameof(MediaLink_IconStop));
+            }
+        }
+
+        public bool MediaLink_ShowStopIcon
+        {
+            get { return _MediaLink_ShowStopIcon; }
+            set
+            {
+                _MediaLink_ShowStopIcon = value;
+                NotifyPropertyChanged(nameof(MediaLink_ShowStopIcon));
             }
         }
 
@@ -3787,7 +3798,8 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _TrackerDevices; }
             set
             {
-                _TrackerDevices = value;
+                _TrackerDevices = value ?? new ObservableCollection<TrackerDevice>();
+                TrackerBatteryModule.NormalizeLegacyIcons(_TrackerDevices);
                 NotifyPropertyChanged(nameof(TrackerDevices));
             }
         }
