@@ -183,7 +183,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private int _MediaSession_Timeout = 3;
-        private bool _MediaLink_TransientMode = true;
+        private bool _MediaLink_ShowOnlyOnChange = false;
         private double _MediaLink_TransientDuration = 25.0;
         private string _MediaLink_IconPlay = "";
         private string _MediaLink_IconPause = "⏸";
@@ -1709,13 +1709,13 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public bool MediaLink_TransientMode
+        public bool MediaLink_ShowOnlyOnChange
         {
-            get { return _MediaLink_TransientMode; }
+            get { return _MediaLink_ShowOnlyOnChange; }
             set
             {
-                _MediaLink_TransientMode = value;
-                NotifyPropertyChanged(nameof(MediaLink_TransientMode));
+                _MediaLink_ShowOnlyOnChange = value;
+                NotifyPropertyChanged(nameof(MediaLink_ShowOnlyOnChange));
             }
         }
 

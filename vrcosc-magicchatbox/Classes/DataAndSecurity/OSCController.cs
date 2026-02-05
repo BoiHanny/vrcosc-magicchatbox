@@ -128,7 +128,7 @@ public static class OSCController
             return;
         }
 
-        if (ViewModel.Instance.MediaLink_TransientMode)
+        if (ViewModel.Instance.MediaLink_ShowOnlyOnChange)
         {
             double elapsedSeconds = (DateTime.UtcNow - MediaLinkModule.LastMediaChangeTime).TotalSeconds;
             if (elapsedSeconds > ViewModel.Instance.MediaLink_TransientDuration)
@@ -354,7 +354,7 @@ public static class OSCController
             return;
         }
 
-        if (ViewModel.Instance.MediaLink_TransientMode)
+        if (ViewModel.Instance.MediaLink_ShowOnlyOnChange)
         {
             double elapsedSeconds = (DateTime.UtcNow - ViewModel.Instance.SpotifyLastChangeUtc).TotalSeconds;
             if (elapsedSeconds > ViewModel.Instance.MediaLink_TransientDuration)

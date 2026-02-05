@@ -1011,7 +1011,7 @@
 
         <Style x:Key="GlowyToggleButton" TargetType="{x:Type ToggleButton}">
             <Setter Property="Background" Value="#3A3644" />
-            <Setter Property="MaxHeight" Value="17" />
+            <Setter Property="MaxHeight" Value="18" />
             <Setter Property="Foreground" Value="#82829B" />
             <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
             <Setter Property="FontSize" Value="11" />
@@ -1028,6 +1028,7 @@
                             <TextBlock
                                 x:Name="buttonText"
                                 Padding="4"
+                                Margin="0,2,0,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground}"
