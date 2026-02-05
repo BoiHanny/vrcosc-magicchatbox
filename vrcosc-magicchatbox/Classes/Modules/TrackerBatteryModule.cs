@@ -14,6 +14,21 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public class TrackerBatteryModule
     {
+        private static readonly Dictionary<string, string> DefaultIconsByKind = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "HMD", "🥽" },
+            { "Controller", "🎮" },
+            { "Tracker", "📍" },
+            { "BaseStation", "📡" }
+        };
+
+        private static readonly Dictionary<string, string> LegacyIconsByKind = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "HMD", "H" },
+            { "Controller", "C" },
+            { "Tracker", "T" },
+            { "BaseStation", "B" }
+        };
         private CVRSystem _vrSystem;
         private bool _isInitialized;
         private int _rotationIndex;
@@ -122,6 +137,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 else
                 {
                     device.DeviceKind = ResolveDeviceKind(deviceClass);
+                    NormalizeLegacyIcon(device, device.DeviceKind);
                     if (string.IsNullOrWhiteSpace(device.CustomName))
                     {
                         string smartModel = SmartModelName(device.OriginalModelName, deviceClass);
@@ -422,19 +438,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private string SuggestIcon(ETrackedDeviceClass deviceClass)
         {
-            switch (deviceClass)
-            {
-                case ETrackedDeviceClass.HMD:
-                    return "H";
-                case ETrackedDeviceClass.Controller:
-                    return "C";
-                case ETrackedDeviceClass.GenericTracker:
-                    return "T";
-                case ETrackedDeviceClass.TrackingReference:
-                    return "B";
-                default:
-                    return "?";
-            }
+            return GetDefaultIcon(ResolveDeviceKind(deviceClass));
         }
 
         private string ResolveDeviceKind(ETrackedDeviceClass deviceClass)
@@ -452,6 +456,55 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 default:
                     return "Unknown";
             }
+        }
+
+        public static void NormalizeLegacyIcons(IEnumerable<TrackerDevice> devices)
+        {
+            if (devices == null)
+            {
+                return;
+            }
+
+            foreach (var device in devices)
+            {
+                NormalizeLegacyIcon(device, device?.DeviceKind);
+            }
+        }
+
+        private static void NormalizeLegacyIcon(TrackerDevice device, string deviceKind)
+        {
+            if (device == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(device.CustomIcon))
+            {
+                return;
+            }
+
+            if (!LegacyIconsByKind.TryGetValue(deviceKind ?? string.Empty, out var legacyIcon))
+            {
+                return;
+            }
+
+            if (!string.Equals(device.CustomIcon, legacyIcon, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            string defaultIcon = GetDefaultIcon(deviceKind);
+            device.CustomIcon = defaultIcon ?? string.Empty;
+        }
+
+        private static string GetDefaultIcon(string deviceKind)
+        {
+            if (DefaultIconsByKind.TryGetValue(deviceKind ?? string.Empty, out var icon))
+            {
+                return icon;
+            }
+
+            return string.Empty;
         }
 
         private bool ShouldIncludeDevice(TrackerDevice device)

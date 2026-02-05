@@ -271,6 +271,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
             ActivateSettingCommand = new RelayCommand<string>(ActivateSetting);
             TrackerBatteryScanCommand = new RelayCommand(ScanTrackerBatteryDevices);
+            TwitchSendAnnouncementCommand = new RelayCommand(SendTwitchAnnouncement);
+            TwitchSendShoutoutCommand = new RelayCommand(SendTwitchShoutout);
 
             TimezoneFriendlyNames = new Dictionary<Timezone, string>
             {
@@ -326,6 +328,62 @@ namespace vrcosc_magicchatbox.ViewModels
 
             TrackerBatteryModule.UpdateDevices();
             TrackerBatteryModule.BuildChatboxString();
+        }
+
+        private async void SendTwitchAnnouncement()
+        {
+            if (!TwitchAnnouncementsEnabled)
+            {
+                TwitchAnnouncementStatusMessage = "Announcements are disabled.";
+                return;
+            }
+
+            if (TwitchModule == null)
+            {
+                TwitchAnnouncementStatusMessage = "Twitch module not ready.";
+                return;
+            }
+
+            string message = TwitchAnnouncementMessage?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                TwitchAnnouncementStatusMessage = "Enter a message first.";
+                return;
+            }
+
+            TwitchAnnouncementStatusMessage = "Sending announcement...";
+            var result = await TwitchModule.SendAnnouncementAsync(message, TwitchAnnouncementColor);
+            TwitchAnnouncementStatusMessage = result.Message;
+        }
+
+        private async void SendTwitchShoutout()
+        {
+            if (!TwitchShoutoutsEnabled)
+            {
+                TwitchShoutoutStatusMessage = "Shoutouts are disabled.";
+                return;
+            }
+
+            if (TwitchModule == null)
+            {
+                TwitchShoutoutStatusMessage = "Twitch module not ready.";
+                return;
+            }
+
+            string target = TwitchShoutoutTarget?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                TwitchShoutoutStatusMessage = "Enter a channel name.";
+                return;
+            }
+
+            TwitchShoutoutStatusMessage = "Sending shoutout...";
+            var result = await TwitchModule.SendShoutoutAsync(
+                target,
+                TwitchShoutoutAlsoAnnounce,
+                TwitchShoutoutAnnouncementTemplate,
+                TwitchShoutoutAnnouncementColor);
+            TwitchShoutoutStatusMessage = result.Message;
         }
 
         private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -2307,6 +2365,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public RelayCommand<string> ActivateSettingCommand { get; }
         public ICommand TrackerBatteryScanCommand { get; }
+        public ICommand TwitchSendAnnouncementCommand { get; }
+        public ICommand TwitchSendShoutoutCommand { get; }
         #endregion
 
 
@@ -2389,9 +2449,23 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _TwitchShowViewerLabel = true;
         private string _TwitchViewerLabel = "viewers";
         private bool _TwitchViewerCountCompact = false;
+        private bool _TwitchShowFollowerCount = false;
+        private bool _TwitchShowFollowerLabel = true;
+        private string _TwitchFollowerLabel = "followers";
+        private bool _TwitchFollowerCountCompact = false;
         private bool _TwitchUseSmallText = true;
         private string _TwitchSeparator = " | ";
         private string _TwitchTemplate = string.Empty;
+        private bool _TwitchAnnouncementsEnabled = false;
+        private string _TwitchAnnouncementMessage = string.Empty;
+        private TwitchAnnouncementColor _TwitchAnnouncementColor = TwitchAnnouncementColor.Primary;
+        private string _TwitchAnnouncementStatusMessage = string.Empty;
+        private bool _TwitchShoutoutsEnabled = false;
+        private string _TwitchShoutoutTarget = string.Empty;
+        private bool _TwitchShoutoutAlsoAnnounce = true;
+        private string _TwitchShoutoutAnnouncementTemplate = "Go follow {user} at twitch.tv/{user}";
+        private TwitchAnnouncementColor _TwitchShoutoutAnnouncementColor = TwitchAnnouncementColor.Purple;
+        private string _TwitchShoutoutStatusMessage = string.Empty;
         private string _TrackerBattery_Template = "{icon} {name} {batt}%";
         private string _TrackerBattery_Prefix = string.Empty;
         private string _TrackerBattery_Suffix = string.Empty;
@@ -3434,6 +3508,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public IEnumerable<WeatherFallbackMode> AvailableWeatherFallbackModes { get; } = Enum.GetValues(typeof(WeatherFallbackMode)).Cast<WeatherFallbackMode>().ToList();
         public IEnumerable<WeatherLocationMode> AvailableWeatherLocationModes { get; } = Enum.GetValues(typeof(WeatherLocationMode)).Cast<WeatherLocationMode>().ToList();
         public IEnumerable<TrackerBatterySortMode> AvailableTrackerBatterySortModes { get; } = Enum.GetValues(typeof(TrackerBatterySortMode)).Cast<TrackerBatterySortMode>().ToList();
+        public IEnumerable<TwitchAnnouncementColor> AvailableTwitchAnnouncementColors { get; } = Enum.GetValues(typeof(TwitchAnnouncementColor)).Cast<TwitchAnnouncementColor>().ToList();
 
 
         private bool _ApplicationHookV2 = true;
@@ -4810,6 +4885,46 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        public bool TwitchShowFollowerCount
+        {
+            get { return _TwitchShowFollowerCount; }
+            set
+            {
+                _TwitchShowFollowerCount = value;
+                NotifyPropertyChanged(nameof(TwitchShowFollowerCount));
+            }
+        }
+
+        public bool TwitchShowFollowerLabel
+        {
+            get { return _TwitchShowFollowerLabel; }
+            set
+            {
+                _TwitchShowFollowerLabel = value;
+                NotifyPropertyChanged(nameof(TwitchShowFollowerLabel));
+            }
+        }
+
+        public string TwitchFollowerLabel
+        {
+            get { return _TwitchFollowerLabel; }
+            set
+            {
+                _TwitchFollowerLabel = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchFollowerLabel));
+            }
+        }
+
+        public bool TwitchFollowerCountCompact
+        {
+            get { return _TwitchFollowerCountCompact; }
+            set
+            {
+                _TwitchFollowerCountCompact = value;
+                NotifyPropertyChanged(nameof(TwitchFollowerCountCompact));
+            }
+        }
+
         public bool TwitchUseSmallText
         {
             get { return _TwitchUseSmallText; }
@@ -4817,6 +4932,106 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _TwitchUseSmallText = value;
                 NotifyPropertyChanged(nameof(TwitchUseSmallText));
+            }
+        }
+
+        public bool TwitchAnnouncementsEnabled
+        {
+            get { return _TwitchAnnouncementsEnabled; }
+            set
+            {
+                _TwitchAnnouncementsEnabled = value;
+                NotifyPropertyChanged(nameof(TwitchAnnouncementsEnabled));
+            }
+        }
+
+        public string TwitchAnnouncementMessage
+        {
+            get { return _TwitchAnnouncementMessage; }
+            set
+            {
+                _TwitchAnnouncementMessage = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchAnnouncementMessage));
+            }
+        }
+
+        public TwitchAnnouncementColor TwitchAnnouncementColor
+        {
+            get { return _TwitchAnnouncementColor; }
+            set
+            {
+                _TwitchAnnouncementColor = value;
+                NotifyPropertyChanged(nameof(TwitchAnnouncementColor));
+            }
+        }
+
+        public string TwitchAnnouncementStatusMessage
+        {
+            get { return _TwitchAnnouncementStatusMessage; }
+            set
+            {
+                _TwitchAnnouncementStatusMessage = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchAnnouncementStatusMessage));
+            }
+        }
+
+        public bool TwitchShoutoutsEnabled
+        {
+            get { return _TwitchShoutoutsEnabled; }
+            set
+            {
+                _TwitchShoutoutsEnabled = value;
+                NotifyPropertyChanged(nameof(TwitchShoutoutsEnabled));
+            }
+        }
+
+        public string TwitchShoutoutTarget
+        {
+            get { return _TwitchShoutoutTarget; }
+            set
+            {
+                _TwitchShoutoutTarget = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchShoutoutTarget));
+            }
+        }
+
+        public bool TwitchShoutoutAlsoAnnounce
+        {
+            get { return _TwitchShoutoutAlsoAnnounce; }
+            set
+            {
+                _TwitchShoutoutAlsoAnnounce = value;
+                NotifyPropertyChanged(nameof(TwitchShoutoutAlsoAnnounce));
+            }
+        }
+
+        public string TwitchShoutoutAnnouncementTemplate
+        {
+            get { return _TwitchShoutoutAnnouncementTemplate; }
+            set
+            {
+                _TwitchShoutoutAnnouncementTemplate = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchShoutoutAnnouncementTemplate));
+            }
+        }
+
+        public TwitchAnnouncementColor TwitchShoutoutAnnouncementColor
+        {
+            get { return _TwitchShoutoutAnnouncementColor; }
+            set
+            {
+                _TwitchShoutoutAnnouncementColor = value;
+                NotifyPropertyChanged(nameof(TwitchShoutoutAnnouncementColor));
+            }
+        }
+
+        public string TwitchShoutoutStatusMessage
+        {
+            get { return _TwitchShoutoutStatusMessage; }
+            set
+            {
+                _TwitchShoutoutStatusMessage = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(TwitchShoutoutStatusMessage));
             }
         }
 

@@ -124,4 +124,18 @@ namespace vrcosc_magicchatbox.ViewModels
         [Description("Type, then name")]
         TypeThenName
     }
+
+    public enum TwitchAnnouncementColor
+    {
+        [Description("Primary (Twitch purple)")]
+        Primary,
+        [Description("Blue")]
+        Blue,
+        [Description("Green")]
+        Green,
+        [Description("Orange")]
+        Orange,
+        [Description("Purple")]
+        Purple
+    }
 }

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.151</Version>
+	<Version>0.9.155</Version>
     <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -213,8 +213,8 @@
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
-    <PackageReference Include="NLog" Version="6.0.7" />
+    <PackageReference Include="NHotkey.Wpf" Version="4.0.0" />
+    <PackageReference Include="NLog" Version="6.1.0" />
 	  <PackageReference Include="OpenAI-DotNet" Version="8.8.8" />
 	  <PackageReference Include="System.Management" Version="10.0.2" />
     <PackageReference Include="TwitchLib.Api" Version="3.10.2" />

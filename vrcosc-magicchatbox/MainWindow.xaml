@@ -45,6 +45,7 @@
             <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <local:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+            <local:TwitchAnnouncementColorToBrushConverter x:Key="TwitchAnnouncementColorToBrushConverter" />
             <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
             <local:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />
 
@@ -4121,6 +4122,71 @@
                                         </CheckBox>
                                     </StackPanel>
                                     <CheckBox
+                                        x:Name="TwitchShowFollowerCount_checkbox"
+                                        Height="20"
+                                        Margin="0,6,0,0"
+                                        BorderBrush="#FF2D1265"
+                                        Checked="Update_Click"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="18"
+                                        Foreground="#FFB9B5C1"
+                                        IsChecked="{Binding TwitchShowFollowerCount, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        Unchecked="Update_Click">
+                                        Show follower count
+                                    </CheckBox>
+                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowFollowerCount, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <CheckBox
+                                            x:Name="TwitchShowFollowerLabel_checkbox"
+                                            Height="20"
+                                            Margin="0,0,0,0"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding TwitchShowFollowerLabel, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Show follower label
+                                        </CheckBox>
+                                        <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShowFollowerLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock
+                                                Padding="0,0,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="#FF9983AD"
+                                                Text="Follower label" />
+                                            <TextBox
+                                                x:Name="TwitchFollowerLabel"
+                                                Width="120"
+                                                Height="26"
+                                                Margin="0,3,0,0"
+                                                Padding="5,0,0,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="#FF7B7195"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="#FF240E54"
+                                                Text="{Binding TwitchFollowerLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <CheckBox
+                                            x:Name="TwitchFollowerCountCompact_checkbox"
+                                            Height="20"
+                                            Margin="0,6,0,0"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding TwitchFollowerCountCompact, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Use compact follower counts (1.2K)
+                                        </CheckBox>
+                                    </StackPanel>
+                                    <CheckBox
                                         x:Name="TwitchShowStreamTitle_checkbox"
                                         Height="20"
                                         Margin="0,6,0,0"
@@ -4225,7 +4291,8 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="15"
                                         Foreground="#FF9983AD"
-                                        Text="Template (use {live} {game} {gameWithLabel} {viewers} {viewerCount} {viewerLabel} {title} {titleWithLabel} {channel} {channelWithLabel} {status})" />
+                                        Text="Template (use {live} {game} {gameWithLabel} {viewers} {viewerCount} {viewerLabel} {followers} {followerCount} {followerLabel} {followersWithLabel} {title} {titleWithLabel} {channel} {channelWithLabel} {status})"
+                                        TextWrapping="Wrap" />
                                     <TextBox
                                         x:Name="TwitchTemplate"
                                         Width="480"
@@ -4271,6 +4338,304 @@
                                         FontSize="13"
                                         Foreground="#FF9983AD"
                                         Text="Leave empty to hide when offline." />
+                                    <TextBlock
+                                        Margin="0,14,0,0"
+                                        Padding="0,0,0,0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="16"
+                                        Foreground="#FFB9B5C1"
+                                        Text="Community tools" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        FontStyle="Italic"
+                                        Foreground="#FF9983AD"
+                                        Text="Announcements and shoutouts post directly to Twitch chat."
+                                        TextWrapping="Wrap" />
+                                    <Border
+                                        Margin="0,8,0,0"
+                                        Background="#FF3B3054"
+                                        CornerRadius="6">
+                                        <Grid Margin="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="6" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border
+                                                Grid.Column="0"
+                                                Background="{Binding TwitchAnnouncementColor, Converter={StaticResource TwitchAnnouncementColorToBrushConverter}}"
+                                                CornerRadius="3" />
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                <TextBlock
+                                                    Padding="0,0,0,0"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="16"
+                                                    Foreground="#FFB9B5C1"
+                                                    Text="Announcements" />
+                                                <TextBlock
+                                                    Margin="0,2,0,0"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    FontStyle="Italic"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Requires moderator:manage:announcements."
+                                                    TextWrapping="Wrap" />
+                                                <CheckBox
+                                                    x:Name="TwitchAnnouncementsEnabled_checkbox"
+                                                    Height="20"
+                                                    Margin="0,8,0,0"
+                                                    BorderBrush="#FF2D1265"
+                                                    Checked="Update_Click"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="18"
+                                                    Foreground="#FFB9B5C1"
+                                                    IsChecked="{Binding TwitchAnnouncementsEnabled, Mode=TwoWay}"
+                                                    Style="{DynamicResource SettingsCheckbox}"
+                                                    Unchecked="Update_Click">
+                                                    Enable announcements
+                                                </CheckBox>
+                                                <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchAnnouncementsEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBlock
+                                                        Padding="0,0,0,0"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="15"
+                                                        Foreground="#FF9983AD"
+                                                        Text="Message" />
+                                                    <Grid Margin="0,3,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBox
+                                                            x:Name="TwitchAnnouncementMessage"
+                                                            Grid.Column="0"
+                                                            Height="26"
+                                                            Padding="5,0,0,0"
+                                                            VerticalContentAlignment="Center"
+                                                            Background="#FF7B7195"
+                                                            BorderThickness="0"
+                                                            FontSize="15"
+                                                            Foreground="#FF240E54"
+                                                            Text="{Binding TwitchAnnouncementMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        <Button
+                                                            x:Name="TwitchSendAnnouncement"
+                                                            Grid.Column="1"
+                                                            Width="60"
+                                                            Height="26"
+                                                            Margin="6,0,0,0"
+                                                            Padding="6,0,6,0"
+                                                            Command="{Binding TwitchSendAnnouncementCommand}"
+                                                            Style="{StaticResource Status_Button_style}">
+                                                            <TextBlock FontSize="12" Text="Send" />
+                                                        </Button>
+                                                    </Grid>
+                                                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                                        <TextBlock
+                                                            Margin="0,4,0,0"
+                                                            FontFamily="Albert Sans Thin"
+                                                            FontSize="15"
+                                                            Foreground="#FF9983AD"
+                                                            Text="Color" />
+                                                        <Border
+                                                            Width="14"
+                                                            Height="14"
+                                                            Margin="8,6,0,0"
+                                                            Background="{Binding TwitchAnnouncementColor, Converter={StaticResource TwitchAnnouncementColorToBrushConverter}}"
+                                                            CornerRadius="7" />
+                                                        <ComboBox
+                                                            Width="160"
+                                                            Height="26"
+                                                            Margin="8,0,0,0"
+                                                            HorizontalAlignment="Left"
+                                                            ItemsSource="{Binding AvailableTwitchAnnouncementColors}"
+                                                            SelectedItem="{Binding TwitchAnnouncementColor, Mode=TwoWay}">
+                                                            <ComboBox.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <Border
+                                                                            Width="10"
+                                                                            Height="10"
+                                                                            Margin="0,0,6,0"
+                                                                            Background="{Binding Converter={StaticResource TwitchAnnouncementColorToBrushConverter}}"
+                                                                            CornerRadius="5" />
+                                                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ComboBox.ItemTemplate>
+                                                        </ComboBox>
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Margin="0,6,0,0"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="13"
+                                                        Foreground="#FF9983AD"
+                                                        Text="{Binding TwitchAnnouncementStatusMessage}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <Border
+                                        Margin="0,8,0,0"
+                                        Background="#FF3B3054"
+                                        CornerRadius="6">
+                                        <Grid Margin="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="6" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border
+                                                Grid.Column="0"
+                                                Background="{Binding TwitchShoutoutAnnouncementColor, Converter={StaticResource TwitchAnnouncementColorToBrushConverter}}"
+                                                CornerRadius="3" />
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                <TextBlock
+                                                    Padding="0,0,0,0"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="16"
+                                                    Foreground="#FFB9B5C1"
+                                                    Text="Shoutouts" />
+                                                <TextBlock
+                                                    Margin="0,2,0,0"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    FontStyle="Italic"
+                                                    Foreground="#FF9983AD"
+                                                    Text="Requires moderator:manage:shoutouts."
+                                                    TextWrapping="Wrap" />
+                                                <CheckBox
+                                                    x:Name="TwitchShoutoutsEnabled_checkbox"
+                                                    Height="20"
+                                                    Margin="0,8,0,0"
+                                                    BorderBrush="#FF2D1265"
+                                                    Checked="Update_Click"
+                                                    FontFamily="Comfortaa Light"
+                                                    FontSize="18"
+                                                    Foreground="#FFB9B5C1"
+                                                    IsChecked="{Binding TwitchShoutoutsEnabled, Mode=TwoWay}"
+                                                    Style="{DynamicResource SettingsCheckbox}"
+                                                    Unchecked="Update_Click">
+                                                    Enable shoutouts
+                                                </CheckBox>
+                                                <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShoutoutsEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBlock
+                                                        Padding="0,0,0,0"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="15"
+                                                        Foreground="#FF9983AD"
+                                                        Text="Target channel" />
+                                                    <Grid Margin="0,3,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBox
+                                                            x:Name="TwitchShoutoutTarget"
+                                                            Grid.Column="0"
+                                                            Height="26"
+                                                            Padding="5,0,0,0"
+                                                            VerticalContentAlignment="Center"
+                                                            Background="#FF7B7195"
+                                                            BorderThickness="0"
+                                                            FontSize="15"
+                                                            Foreground="#FF240E54"
+                                                            Text="{Binding TwitchShoutoutTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        <Button
+                                                            x:Name="TwitchSendShoutout"
+                                                            Grid.Column="1"
+                                                            Width="60"
+                                                            Height="26"
+                                                            Margin="6,0,0,0"
+                                                            Padding="6,0,6,0"
+                                                            Command="{Binding TwitchSendShoutoutCommand}"
+                                                            Style="{StaticResource Status_Button_style}">
+                                                            <TextBlock FontSize="12" Text="Send" />
+                                                        </Button>
+                                                    </Grid>
+                                                    <CheckBox
+                                                        x:Name="TwitchShoutoutAlsoAnnounce_checkbox"
+                                                        Height="20"
+                                                        Margin="0,6,0,0"
+                                                        BorderBrush="#FF2D1265"
+                                                        Checked="Update_Click"
+                                                        FontFamily="Comfortaa Light"
+                                                        FontSize="18"
+                                                        Foreground="#FFB9B5C1"
+                                                        IsChecked="{Binding TwitchShoutoutAlsoAnnounce, Mode=TwoWay}"
+                                                        Style="{DynamicResource SettingsCheckbox}"
+                                                        Unchecked="Update_Click">
+                                                        Also send announcement
+                                                    </CheckBox>
+                                                    <StackPanel Margin="0,6,0,0" Visibility="{Binding TwitchShoutoutAlsoAnnounce, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                        <TextBlock
+                                                            Padding="0,0,0,0"
+                                                            FontFamily="Albert Sans Thin"
+                                                            FontSize="15"
+                                                            Foreground="#FF9983AD"
+                                                            Text="Announcement template" />
+                                                        <TextBox
+                                                            x:Name="TwitchShoutoutAnnouncementTemplate"
+                                                            Height="26"
+                                                            Margin="0,3,0,0"
+                                                            Padding="5,0,0,0"
+                                                            VerticalContentAlignment="Center"
+                                                            Background="#FF7B7195"
+                                                            BorderThickness="0"
+                                                            FontSize="15"
+                                                            Foreground="#FF240E54"
+                                                            Text="{Binding TwitchShoutoutAnnouncementTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        <TextBlock
+                                                            Margin="0,2,0,0"
+                                                            FontFamily="Albert Sans Thin"
+                                                            FontSize="12"
+                                                            Foreground="#FF9983AD"
+                                                            Text="Tokens: {user} {url}" />
+                                                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                                            <TextBlock
+                                                                Margin="0,4,0,0"
+                                                                FontFamily="Albert Sans Thin"
+                                                                FontSize="15"
+                                                                Foreground="#FF9983AD"
+                                                                Text="Color" />
+                                                            <Border
+                                                                Width="14"
+                                                                Height="14"
+                                                                Margin="8,6,0,0"
+                                                                Background="{Binding TwitchShoutoutAnnouncementColor, Converter={StaticResource TwitchAnnouncementColorToBrushConverter}}"
+                                                                CornerRadius="7" />
+                                                            <ComboBox
+                                                                Width="160"
+                                                                Height="26"
+                                                                Margin="8,0,0,0"
+                                                                HorizontalAlignment="Left"
+                                                                ItemsSource="{Binding AvailableTwitchAnnouncementColors}"
+                                                                SelectedItem="{Binding TwitchShoutoutAnnouncementColor, Mode=TwoWay}">
+                                                                <ComboBox.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <Border
+                                                                                Width="10"
+                                                                                Height="10"
+                                                                                Margin="0,0,6,0"
+                                                                                Background="{Binding Converter={StaticResource TwitchAnnouncementColorToBrushConverter}}"
+                                                                                CornerRadius="5" />
+                                                                            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                                        </StackPanel>
+                                                                    </DataTemplate>
+                                                                </ComboBox.ItemTemplate>
+                                                            </ComboBox>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Margin="0,6,0,0"
+                                                        FontFamily="Albert Sans Thin"
+                                                        FontSize="13"
+                                                        Foreground="#FF9983AD"
+                                                        Text="{Binding TwitchShoutoutStatusMessage}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
@@ -6388,7 +6753,7 @@
                                             Text="Customization" />
                                         <TextBlock
                                             Width="auto"
-                                            Padding="2,3,0,5"
+                                            Padding="2,3,0,2"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="13"
@@ -6396,6 +6761,19 @@
                                             Foreground="#FF9983AD"
                                             Opacity="0.5"
                                             Text="Adjust icons, separators, and state text to match your style." />
+                                        <CheckBox
+                                            Height="20"
+                                            Margin="3,7,3,5"
+                                            BorderBrush="#FF2D1265"
+                                            Checked="Update_Click"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="18"
+                                            Foreground="#FFB9B5C1"
+                                            IsChecked="{Binding MediaLink_ShowStopIcon, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Unchecked="Update_Click">
+                                            Show stop icon
+                                        </CheckBox>
                                         <StackPanel Margin="0,5" Orientation="Horizontal">
                                             <StackPanel Margin="5,0">
                                                 <TextBlock
@@ -6414,7 +6792,9 @@
                                                     Foreground="#FF240E54"
                                                     Text="{Binding MediaLink_IconPause, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
-                                            <StackPanel Margin="5,0">
+                                            <StackPanel
+                                                Margin="5,0"
+                                                Visibility="{Binding MediaLink_ShowStopIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 <TextBlock
                                                     FontFamily="Albert Sans Thin"
                                                     FontSize="12"

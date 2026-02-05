@@ -374,6 +374,12 @@ public static class DataController
                 return sortResult;
             return TrackerBatterySortMode.None;
         }
+        if (targetType == typeof(TwitchAnnouncementColor))
+        {
+            if (Enum.TryParse(typeof(TwitchAnnouncementColor), value, out var colorResult))
+                return colorResult;
+            return TwitchAnnouncementColor.Primary;
+        }
         if (targetType == typeof(DateTime))
         {
             if (DateTime.TryParse(value, out DateTime dateTimeResult))
@@ -545,10 +551,22 @@ public static class DataController
     { "TwitchShowViewerLabel", (typeof(bool), "Twitch") },
     { "TwitchViewerLabel", (typeof(string), "Twitch") },
     { "TwitchViewerCountCompact", (typeof(bool), "Twitch") },
+    { "TwitchShowFollowerCount", (typeof(bool), "Twitch") },
+    { "TwitchShowFollowerLabel", (typeof(bool), "Twitch") },
+    { "TwitchFollowerLabel", (typeof(string), "Twitch") },
+    { "TwitchFollowerCountCompact", (typeof(bool), "Twitch") },
     { "TwitchUseSmallText", (typeof(bool), "Twitch") },
     { "TwitchSeparator", (typeof(string), "Twitch") },
     { "TwitchTemplate", (typeof(string), "Twitch") },
     { "TwitchUpdateIntervalSeconds", (typeof(int), "Twitch") },
+    { "TwitchAnnouncementsEnabled", (typeof(bool), "Twitch") },
+    { "TwitchAnnouncementMessage", (typeof(string), "Twitch") },
+    { "TwitchAnnouncementColor", (typeof(TwitchAnnouncementColor), "Twitch") },
+    { "TwitchShoutoutsEnabled", (typeof(bool), "Twitch") },
+    { "TwitchShoutoutTarget", (typeof(string), "Twitch") },
+    { "TwitchShoutoutAlsoAnnounce", (typeof(bool), "Twitch") },
+    { "TwitchShoutoutAnnouncementTemplate", (typeof(string), "Twitch") },
+    { "TwitchShoutoutAnnouncementColor", (typeof(TwitchAnnouncementColor), "Twitch") },
 
     { "TrackerDevices", (typeof(ObservableCollection<TrackerDevice>), "TrackerBattery") },
     { "TrackerBattery_Template", (typeof(string), "TrackerBattery") },
@@ -721,9 +739,21 @@ public static class DataController
         { "TwitchGamePrefix", "playing" },
         { "TwitchShowViewerLabel", true },
         { "TwitchViewerLabel", "viewers" },
+        { "TwitchShowFollowerCount", false },
+        { "TwitchShowFollowerLabel", true },
+        { "TwitchFollowerLabel", "followers" },
+        { "TwitchFollowerCountCompact", false },
         { "TwitchUseSmallText", true },
         { "TwitchSeparator", " | " },
         { "TwitchUpdateIntervalSeconds", 60 },
+        { "TwitchAnnouncementsEnabled", false },
+        { "TwitchAnnouncementMessage", string.Empty },
+        { "TwitchAnnouncementColor", TwitchAnnouncementColor.Primary },
+        { "TwitchShoutoutsEnabled", false },
+        { "TwitchShoutoutTarget", string.Empty },
+        { "TwitchShoutoutAlsoAnnounce", true },
+        { "TwitchShoutoutAnnouncementTemplate", "Go follow {user} at twitch.tv/{user}" },
+        { "TwitchShoutoutAnnouncementColor", TwitchAnnouncementColor.Purple },
         { "TrackerDevices", new ObservableCollection<TrackerDevice>() },
         { "TrackerBattery_Template", "{icon} {name} {batt}%" },
         { "TrackerBattery_Prefix", "" },
