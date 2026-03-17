@@ -76,9 +76,9 @@ _We are planning to fill the capacity this year!_
 
   - I’m a passionate technology strategist/solutions architect with 7 years of experience officially working in IT. Before that, I spent time working on smaller projects to fund my journey into the world of development, and now I specialize in building cutting-edge tools with technologies like C#, .NET, and Azure.
 
-### ◥◣ 𝗖𝗛𝗜𝗘𝗙 𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥 • Lyrikidionisos 𝑎𝑘𝑎. 𝐸𝑡ℎ𝑎𝑛
+### ◥◣ 𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥 • Lyrikidionisos 𝑎𝑘𝑎. 𝐸𝑡ℎ𝑎𝑛
 
-  - I have specialized experience in legal topics for 2 years and have worked as an administrator for 5 years, focusing on Java/Lua/Phyton and server management across various networks. Additionally, I have 1 year of experience as a former Administrator. I hold a C1 level in International Business English and possess advanced skills in cybersecurity, cloud computing, network architecture, and expertise in personnel management.
+  - I have two years of specialized experience in legal matters and five years of experience as an administrator, with a focus on Java, Lua, Python, and server management across multiple networks. In addition, I hold a degree in Business Development and have three years of professional experience in this field. I am certified at C1 level in International Business English and bring advanced expertise in cybersecurity, cloud computing, network architecture, as well as strong skills in personnel management.
  
 ### ◥◣ 𝗔𝗗𝗠𝗜𝗡𝗜𝗦𝗧𝗥𝗔𝗧𝗢𝗥 • ItsByMe 
   - Hi, for the past three years, I’ve been working on the technical side of things, helping to bring this amazing program to life. You’ll often find me online in public lobbies, where I love interacting with the community. I’m fluent in English and have extensive experience with Unity, Blender, and C#.
