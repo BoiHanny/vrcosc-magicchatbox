@@ -34,11 +34,14 @@ If you need any further help `setting up` the program, join our `Discord Server`
 > - 💭 Personal Status  
 > - 🧭 Window Activity  
 > - 🩵 Heart Rate  
-> - 🎛️ Component Stats  
+> - 🎛️ Component Stats
+> - 🔋 VR Gear Battery
+> - 🧑‍🧒‍🧒 Twitch Integration 
 > - 🧠 Chatting Module  
 > - ⚗️ OpenAI Module  
 > - ⛓️‍💥 Network Stats  
-> - 📆 Time Status  
+> - 📆 Time Status
+> - 🌤️ Weather Display  
 > - 🎶 Music Activity  
 > - 💤 AFK Module  
 > - 🎼 Soundpad  
