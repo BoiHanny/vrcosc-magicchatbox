@@ -8,7 +8,7 @@
 |---------------------------|------------------|------------------------|--------------------|------------------------|------------------|
 | 🆕 Latest Version         | 0.9.130          | 👥 Daily Active Users  | 13,000+             | 🛡️ Security Level      | NET-9             |
 | ⭐ Total Stars            | ★★★★★           | 🌐 Worlds Spotted    | 300+               | 🔧 Customization Options  | Extensive            |
-| 📥 Installations         | 721k             | ⏰ Average Session Time| 45 minutes         | 🕒 Average Response Time| < 60 minutes       |
+| 📥 Installations         | 571k             | ⏰ Average Session Time| 45 minutes         | 🕒 Average Response Time| < 60 minutes       |
 | 🌐 Community             | 5.6K members    | 🌎 Languages Supported | 1                | ⚙️ Compatibility       | Windows   |
 | 😊 Customer Satisfaction  | 98%              | 🔄 Updates This Year   | 13                 | 💬 Support Tickets Resolved | 800+           |
 | 🔒 Data Privacy Secured  | Yes              | 🛠️ Support Channels   | 24/7               | 📈 Growth Rate         | 12% per month    |
