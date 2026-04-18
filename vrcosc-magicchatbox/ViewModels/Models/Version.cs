@@ -3,6 +3,10 @@ using System.Linq;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// Normalizes an application version string to the <c>0.MINOR.BUILD</c> format used
+    /// for display and comparison across the app.
+    /// </summary>
     public class Version
     {
         public Version(string version)
@@ -37,13 +41,12 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
             if (parts.Length < 3)
             {
-                // If parts are less than 3, pad missing parts with zeros
                 Array.Resize(ref parts, 3);
             }
 
             parts[0] = "0"; // Always set the first part to 0
-            parts[1] = int.Parse(parts[1]).ToString(); // Ensure the middle part is an integer
-            parts[2] = int.Parse(parts[2]).ToString().PadLeft(3, '0'); // Ensure the last part is three digits, padding with zeros if necessary
+            parts[1] = int.Parse(parts[1]).ToString();
+            parts[2] = int.Parse(parts[2]).ToString().PadLeft(3, '0');
 
             return string.Join(".", parts);
         }

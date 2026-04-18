@@ -1,311 +1,96 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
-using OpenAI;
 using OpenAI.Chat;
-using OpenAI.Moderations;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Core.Messaging;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-[AttributeUsage(AttributeTargets.Field)]
-public class ModelTypeInfoAttribute : Attribute
+/// <summary>
+/// Provides AI-powered text enhancement features (completion, translation, grammar check, etc.)
+/// via the OpenAI chat API, integrated with the VRChat chatbox.
+/// </summary>
+public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<IntelliChatUiStatusMessage>
 {
+    private readonly IEnvironmentService _env;
+    private readonly ChatStatusDisplayState _chatStatus;
+    private readonly IMenuNavigationService _navService;
+    private readonly IMessenger _messenger;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly IOpenAiChatService _chatService;
 
-    public ModelTypeInfoAttribute(string modelType)
-    {
-        ModelType = modelType;
-    }
-
-    public string ModelType { get; }
-}
-
-public enum IntelliGPTModel
-{
-    [Description("gpt-5.2"), ModelTypeInfo("Chat")]
-    gpt5_2,
-
-    [Description("gpt-5.1"), ModelTypeInfo("Chat")]
-    gpt5_1,
-
-    [Description("gpt-5"), ModelTypeInfo("Chat")]
-    gpt5,
-
-    [Description("gpt-5-mini"), ModelTypeInfo("Chat")]
-    gpt5_mini,
-
-    [Description("gpt-5-nano"), ModelTypeInfo("Chat")]
-    gpt5_nano,
-
-    [Description("gpt-4.1"), ModelTypeInfo("Chat")]
-    gpt4_1,
-
-    [Description("gpt-4.1-mini"), ModelTypeInfo("Chat")]
-    gpt4_1_mini,
-
-    [Description("gpt-4.1-nano"), ModelTypeInfo("Chat")]
-    gpt4_1_nano,
-
-    [Description("gpt-4o"), ModelTypeInfo("Chat")]
-    gpt4o,
-
-    [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
-    gpt4omini,
-
-    [Description("o1"), ModelTypeInfo("Chat")]
-    o1,
-
-    [Description("o1-mini"), ModelTypeInfo("Chat")]
-    o1_mini,
-
-    [Description("o3"), ModelTypeInfo("Chat")]
-    o3,
-
-    [Description("o3-mini"), ModelTypeInfo("Chat")]
-    o3_mini,
-
-    [Description("whisper-1"), ModelTypeInfo("STT")]
-    whisper1,
-
-    [Description("gpt-4o-mini-transcribe"), ModelTypeInfo("STT")]
-    gpt_4o_mini_transcribe,
-
-    [Description("gpt-4o-transcribe"), ModelTypeInfo("STT")]
-    gpt_4o_transcribe,
-
-    [Description("gpt-4o-transcribe-diarize"), ModelTypeInfo("STT")]
-    gpt_4o_transcribe_diarize,
-
-    [Description("omni-moderation-latest"), ModelTypeInfo("Moderation")]
-    Moderation_Latest,
-}
-
-
-public partial class ModelTokenUsage : ObservableObject
-{
-
-    [ObservableProperty]
-    private int completionTokens;
-    [ObservableProperty]
-    private string modelName;
-
-    [ObservableProperty]
-    private int promptTokens;
-
-    public int TotalTokens => PromptTokens + CompletionTokens;
-}
-
-public partial class DailyTokenUsage : ObservableObject
-{
-
-    [ObservableProperty]
-    private DateTime date;
-
-    public DailyTokenUsage()
-    {
-        Date = DateTime.Today;
-        ModelUsages = new ObservableCollection<ModelTokenUsage>();
-    }
-
-    public ObservableCollection<ModelTokenUsage> ModelUsages { get; set; }
-
-    public int TotalDailyRequests => ModelUsages.Count;
-
-    public int TotalDailyTokens => ModelUsages.Sum(mu => mu.TotalTokens);
-}
-
-public class TokenUsageData : ObservableObject
-{
-    private string _lastRequestModelName;
-    private int _lastRequestTotalTokens;
-
-    public TokenUsageData()
-    {
-        DailyUsages = new ObservableCollection<DailyTokenUsage>();
-    }
-
-    public void AddTokenUsage(string modelName, int promptTokens, int completionTokens)
-    {
-        var today = DateTime.Today;
-        var todayUsage = DailyUsages.FirstOrDefault(du => du.Date == today);
-
-        if (todayUsage == null)
-        {
-            todayUsage = new DailyTokenUsage { Date = today };
-            DailyUsages.Add(todayUsage);
-        }
-
-        var modelUsage = todayUsage.ModelUsages.FirstOrDefault(mu => mu.ModelName == modelName);
-        if (modelUsage == null)
-        {
-            modelUsage = new ModelTokenUsage { ModelName = modelName };
-            todayUsage.ModelUsages.Add(modelUsage);
-        }
-
-        modelUsage.PromptTokens += promptTokens;
-        modelUsage.CompletionTokens += completionTokens;
-
-        // Update the last request total tokens
-        _lastRequestTotalTokens = promptTokens + completionTokens;
-        _lastRequestModelName = modelName;
-
-        // Notify UI about changes
-        OnPropertyChanged(nameof(TotalDailyTokens));
-        OnPropertyChanged(nameof(TotalDailyRequests));
-        OnPropertyChanged(nameof(LastRequestTotalTokens));
-        OnPropertyChanged(nameof(LastRequestModelName));
-    }
-
-    public ObservableCollection<DailyTokenUsage> DailyUsages { get; set; }
-
-    // Expose the last request's model name
-    public string LastRequestModelName => _lastRequestModelName;
-
-    // Expose the last request's total tokens
-    public int LastRequestTotalTokens => _lastRequestTotalTokens;
-    public int TotalDailyRequests => DailyUsages.LastOrDefault()?.TotalDailyRequests ?? 0;
-
-    public int TotalDailyTokens => DailyUsages.LastOrDefault()?.TotalDailyTokens ?? 0;
-}
-
-public partial class IntelliChatModuleSettings : ObservableObject
-{
-
-    [ObservableProperty]
-    private bool autolanguageSelection = true;
-
-    [ObservableProperty]
-    private IntelliGPTModel generateConversationStarterModel = IntelliGPTModel.gpt5_nano;
-
-    [ObservableProperty]
-    private bool intelliChatError = false;
-
-    [ObservableProperty]
-    private string intelliChatErrorTxt = string.Empty;
-
-    [ObservableProperty]
-    private bool intelliChatPerformModeration = true;
-
-    [ObservableProperty]
-    private int intelliChatPerformModerationTimeout = 7;
-
-    [ObservableProperty]
-    private int intelliChatTimeout = 10;
-
-    [ObservableProperty]
-    private string intelliChatTxt = string.Empty;
-
-    [ObservableProperty]
-    private bool intelliChatUILabel = false;
-
-    [ObservableProperty]
-    private string intelliChatUILabelTxt = string.Empty;
-
-    [ObservableProperty]
-    private bool intelliChatWaitingToAccept = false;
-
-    [ObservableProperty]
-    private IntelliGPTModel performBeautifySentenceModel = IntelliGPTModel.gpt5_nano;
-
-    [ObservableProperty]
-    private IntelliGPTModel performLanguageTranslationModel = IntelliGPTModel.gpt5_nano;
-
-    [ObservableProperty]
-    private IntelliGPTModel performModerationCheckModel = IntelliGPTModel.Moderation_Latest;
-
-    [ObservableProperty]
-    private IntelliGPTModel performShortenTextModel = IntelliGPTModel.gpt5_nano;
-    [ObservableProperty]
-    private IntelliGPTModel performSpellingCheckModel = IntelliGPTModel.gpt5_nano;
-
-    [ObservableProperty]
-    private IntelliGPTModel performTextCompletionModel = IntelliGPTModel.gpt5_nano;
-
-    [ObservableProperty]
-    private List<SupportedIntelliChatLanguage> selectedSupportedLanguages = new List<SupportedIntelliChatLanguage>();
-
-    [ObservableProperty]
-    private SupportedIntelliChatLanguage selectedTranslateLanguage;
-
-    [ObservableProperty]
-    private IntelliChatWritingStyle selectedWritingStyle;
-    [ObservableProperty]
-    private List<SupportedIntelliChatLanguage> supportedLanguages = new List<SupportedIntelliChatLanguage>();
-
-    [ObservableProperty]
-    private List<IntelliChatWritingStyle> supportedWritingStyles = new List<IntelliChatWritingStyle>();
-
-    [ObservableProperty]
-    private TokenUsageData tokenUsageData = new TokenUsageData();
-}
-
-public partial class SupportedIntelliChatLanguage : ObservableObject
-{
-    [ObservableProperty]
-    private int iD;
-
-    [ObservableProperty]
-    private bool isBuiltIn = false;
-
-
-    [ObservableProperty]
-    private bool isFavorite = false;
-
-    [ObservableProperty]
-    private string language;
-}
-
-public partial class IntelliChatWritingStyle : ObservableObject
-{
-    [ObservableProperty]
-    private int iD;
-
-    [ObservableProperty]
-    private bool isBuiltIn;
-
-    [ObservableProperty]
-    private bool isFavorite = false;
-
-    [ObservableProperty]
-    private string styleDescription;
-
-    [ObservableProperty]
-    private string styleName;
-
-    [ObservableProperty]
-    private double temperature;
-}
-
-public partial class IntelliChatModule : ObservableObject
-{
     private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
 
-    private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-    private static bool _isInitialized = false;
+    private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    private bool _isInitialized = false;
 
     [ObservableProperty]
     private IntelliChatModuleSettings settings = new IntelliChatModuleSettings();
 
+    public string Name => "IntelliChat";
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRunning => _isInitialized;
+    public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken ct = default) { CancelAllCurrentTasks(); return Task.CompletedTask; }
+    public void Dispose() => _messenger.UnregisterAll(this);
 
-    public IntelliChatModule()
+
+    public IntelliChatModule(IEnvironmentService env, ChatStatusDisplayState chatStatus, IMenuNavigationService navService, IOpenAiChatService chatService, IMessenger messenger, IUiDispatcher dispatcher)
     {
+        _env = env;
+        _chatStatus = chatStatus;
+        _navService = navService;
+        _chatService = chatService;
+        _messenger = messenger;
+        _dispatcher = dispatcher;
+
+        // Subscribe to cross-module status messages (e.g. from WhisperModule)
+        _messenger.RegisterAll(this);
+
         Initialize();
+    }
+
+    /// <summary>
+    /// Handles status messages from WhisperModule (and any future senders).
+    /// Applies text+visibility to IntelliChat UI label, with auto-hide for transient messages.
+    /// </summary>
+    public void Receive(IntelliChatUiStatusMessage message)
+    {
+        try
+        {
+            Settings.IntelliChatUILabelTxt = message.Text;
+            Settings.IntelliChatUILabel = true;
+
+            if (!message.ShowPermanently)
+            {
+                // Show briefly, then auto-hide after 2.5 s
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(Core.Constants.IntelliChatAutoHideDelay);
+                    _dispatcher.Invoke(() => Settings.IntelliChatUILabel = false);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Error handling IntelliChatUiStatusMessage: {ex.Message}");
+        }
     }
 
     private string AddEmojiToText(string text)
     {
-        // Use regex or other methods to identify places to insert emoji
-        // For example, you can add a smiley face after a joke or a heart after a compliment
-        // Implement your emoji insertion logic here
-
         return text;
     }
 
@@ -317,7 +102,7 @@ public partial class IntelliChatModule : ObservableObject
             UpdateErrorState(true, "IntelliChat not initialized.");
             return false;
         }
-        if (!OpenAIModule.Instance.IsInitialized)
+        if (!_chatService.IsClientAvailable)
         {
             UpdateErrorState(true, "OpenAI client not initialized.");
             return false;
@@ -342,15 +127,8 @@ public partial class IntelliChatModule : ObservableObject
 
     private string FormatTextForVRChat(string text)
     {
-        // Perform any necessary formatting or processing of the text for VRChat
-        // For example, you can add emoji, apply text effects, or limit the length
-
-        // Add some cool emoji
         text = AddEmojiToText(text);
-
-        // Limit the length to fit nicely in the VRChat chatbox
         text = LimitTextLength(text, 100);
-
         return text;
     }
 
@@ -467,7 +245,6 @@ public partial class IntelliChatModule : ObservableObject
         var defaultLanguages = GetDefaultLanguages();
         var defaultStyles = GetDefaultWritingStyles();
 
-        // Merge or update languages
         foreach (var lang in defaultLanguages)
         {
             if (!Settings.SupportedLanguages.Any(l => l.ID == lang.ID))
@@ -476,7 +253,6 @@ public partial class IntelliChatModule : ObservableObject
             }
         }
 
-        // Merge or update writing styles
         foreach (var style in defaultStyles)
         {
             var existingStyle = Settings.SupportedWritingStyles.FirstOrDefault(s => s.ID == style.ID);
@@ -486,16 +262,13 @@ public partial class IntelliChatModule : ObservableObject
             }
             else
             {
-                // Update existing built-in styles to ensure they are current
                 existingStyle.StyleName = style.StyleName;
                 existingStyle.Temperature = style.Temperature;
                 existingStyle.StyleDescription = style.StyleDescription;
-                // Mark as built-in in case it was changed
                 existingStyle.IsBuiltIn = true;
             }
         }
 
-        // Optionally, save settings if needed
         SaveSettings();
     }
 
@@ -527,9 +300,11 @@ public partial class IntelliChatModule : ObservableObject
         UpdateErrorState(true, ex.Message);
     }
 
-    private void ProcessResponse(ChatResponse? response)
+    private void ProcessResponse(ChatCompletion? completion)
     {
-        string rawResponse = response?.Choices?[0].Message.Content.GetString() ?? string.Empty;
+        string rawResponse = completion?.Content?.Count > 0
+            ? completion.Content[0].Text ?? string.Empty
+            : string.Empty;
         string sanitizedResponse = SanitizeShortenedText(rawResponse);
 
         Settings.IntelliChatUILabel = false;
@@ -538,7 +313,7 @@ public partial class IntelliChatModule : ObservableObject
         Settings.IntelliChatTxt = sanitizedResponse;
         Settings.IntelliChatWaitingToAccept = true;
 
-        ProcessUsedTokens(response);
+        ProcessUsedTokens(completion);
     }
 
     private string RemoveQuotationMarkAroundResponse(string response)
@@ -590,36 +365,38 @@ public partial class IntelliChatModule : ObservableObject
 
     public void AcceptIntelliChatSuggestion()
     {
-        ViewModel.Instance.NewChattingTxt = Settings.IntelliChatTxt;
+        _chatStatus.NewChattingTxt = Settings.IntelliChatTxt;
         Settings.IntelliChatTxt = string.Empty;
         Settings.IntelliChatWaitingToAccept = false;
 
 
     }
+    /// <summary>
+    /// Adds a user-defined writing style with the given parameters. Assigns IDs starting at 1000 to avoid
+    /// collisions with built-in style IDs (1–999).
+    /// </summary>
     public void AddWritingStyle(string styleName, string styleDescription, double temperature)
     {
         // Find the next available ID starting from 1000 for user-defined styles
         int nextId = Settings.SupportedWritingStyles.DefaultIfEmpty().Max(style => style?.ID ?? 999) + 1;
-        if (nextId < 1000) nextId = 1000; // Ensure starting from 1000
+        if (nextId < 1000) nextId = 1000;
 
-        // Check if the style name already exists
         if (Settings.SupportedWritingStyles.Any(style => style.StyleName.Equals(styleName, StringComparison.OrdinalIgnoreCase)))
         {
             throw new InvalidOperationException($"A writing style with the name \"{styleName}\" already exists.");
         }
 
-        // Add the new writing style
         var newStyle = new IntelliChatWritingStyle
         {
             ID = nextId,
             StyleName = styleName,
             StyleDescription = styleDescription,
             Temperature = temperature,
-            IsBuiltIn = false, // User-defined styles are not built-in
+            IsBuiltIn = false,
         };
         Settings.SupportedWritingStyles.Add(newStyle);
 
-        SaveSettings(); // Save the updated settings
+        SaveSettings();
     }
 
     public void CancelAllCurrentTasks()
@@ -637,9 +414,12 @@ public partial class IntelliChatModule : ObservableObject
     }
 
 
+    /// <summary>
+    /// Validates and corrects the selected writing style and language against the current supported lists,
+    /// and verifies that all model enum values are still defined.
+    /// </summary>
     public void EnsureValidSelections()
     {
-        // Update the selected writing style based on ID, ensuring it is part of the supported styles list.
         var selectedStyle = Settings.SelectedWritingStyle != null
             ? Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == Settings.SelectedWritingStyle.ID)
             : null;
@@ -652,7 +432,6 @@ public partial class IntelliChatModule : ObservableObject
 
         var defaultModel = IntelliGPTModel.gpt5_nano;
 
-        // Check if the selected models are still valid
         Settings.PerformSpellingCheckModel = Enum.IsDefined(typeof(IntelliGPTModel), Settings.PerformSpellingCheckModel)
             ? Settings.PerformSpellingCheckModel : defaultModel;
 
@@ -683,6 +462,9 @@ public partial class IntelliChatModule : ObservableObject
 
     }
 
+    /// <summary>
+    /// Generates an AI text completion or next-word prediction for <paramref name="inputText"/> using the selected writing style.
+    /// </summary>
     public async Task GenerateCompletionOrPredictionAsync(string inputText, bool isNextWordPrediction = false)
     {
         if (string.IsNullOrWhiteSpace(inputText))
@@ -700,34 +482,33 @@ public partial class IntelliChatModule : ObservableObject
         {
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = isNextWordPrediction ? "Predicting next word..." : "Generating completion...";
-            var modelName = GetModelDescription(Settings.PerformTextCompletionModel);
 
 
-            // Apply the selected writing style
             var writingStyle = Settings.SelectedWritingStyle;
-            var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : "Complete the following chat message, max 144 characters";
-            var messages = new List<Message>
+            var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : $"Complete the following chat message, max {Core.Constants.OscMaxMessageLength} characters";
+            var messages = new List<ChatMessage>
     {
-        new Message(Role.System, promptMessage +  $"Use a {writingStyle.StyleName} writing style."),
-        new Message(Role.User, inputText)
+        new SystemChatMessage(promptMessage +  $"Use a {writingStyle.StyleName} writing style."),
+        new UserChatMessage(inputText)
     };
 
-            // Customizing ChatRequest for the task
-            var chatRequest = new ChatRequest(
-                messages: messages,
-                model: modelName,
-                maxTokens: isNextWordPrediction ? 3 : 100, // Increased max tokens for better context
-                temperature: writingStyle.Temperature, // Use the temperature from the selected writing style
-                topP: 1,
-                frequencyPenalty: 0.3, // Slightly reduced to encourage more common phrases in VRChat
-                presencePenalty: 0.2 // Slightly reduced to allow some repetition, mimicking real chat
-            );
+            var modelName = GetModelDescription(Settings.PerformTextCompletionModel);
 
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint.GetCompletionAsync(chatRequest);
+            var completion = await _chatService.GetChatCompletionAsync(
+                messages,
+                modelName,
+                new ChatCompletionOptions
+                {
+                    MaxOutputTokenCount = isNextWordPrediction ? 3 : 100,
+                    Temperature = (float)writingStyle.Temperature,
+                    TopP = 1,
+                    FrequencyPenalty = 0.3f,
+                    PresencePenalty = 0.2f
+                });
 
-            if (response?.Choices?.Count > 0)
+            if (completion?.Content?.Count > 0)
             {
-                var generatedText = response.Choices[0].Message.Content.GetString();
+                var generatedText = completion.Content[0].Text;
 
                 if (!string.IsNullOrEmpty(generatedText))
                 {
@@ -754,11 +535,14 @@ public partial class IntelliChatModule : ObservableObject
 
 
 
+    /// <summary>
+    /// Generates a creative, context-aware conversation opener and places it in the waiting-to-accept queue.
+    /// </summary>
     public async Task GenerateConversationStarterAsync()
     {
-        if (!OpenAIModule.Instance.IsInitialized)
+        if (!_chatService.IsClientAvailable)
         {
-            ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            _navService.ActivateSetting("Settings_OpenAI");
         }
         if (!EnsureInitialized())
         {
@@ -770,48 +554,42 @@ public partial class IntelliChatModule : ObservableObject
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-            // Define the refined prompt
             var prompt = "You are an imaginative conversationalist specializing all directions. Generate a creative and engaging conversation starter that is 140 characters or fewer, incorporating subtle lewdness or double entendres without being explicit.";
 
             ResetCancellationToken(Settings.IntelliChatTimeout);
 
-            // Construct messages with role clarity
-            var messages = new List<Message>
+            var messages = new List<ChatMessage>
     {
-        new Message(Role.System, prompt)
+        new SystemChatMessage(prompt)
     };
 
-            // Include language considerations if applicable
             if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
             {
-                // Extracting the Language property from each SupportedIntelliChatLanguage object
                 var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
-
-                // Joining the language strings with commas
                 var languagesString = string.Join(", ", languages);
-
-                messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
 
             var modelName = GetModelDescription(Settings.GenerateConversationStarterModel);
 
-            // Adjusted model parameters
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(
-                    messages: messages,
-                    maxTokens: 20, // Sufficient for a 140-character response
-                    temperature: 0.7, // Balanced creativity and coherence
-                    model: modelName),
+            var completion = await _chatService.GetChatCompletionAsync(
+                    messages,
+                    modelName,
+                    new ChatCompletionOptions
+                    {
+                        MaxOutputTokenCount = 20,
+                        Temperature = 0.7f
+                    },
                 _cancellationTokenSource.Token);
 
-            if (response == null)
+            if (completion == null)
             {
                 throw new InvalidOperationException("The response from OpenAI was empty");
             }
             else
             {
-                ProcessResponse(response);
+                ProcessResponse(completion);
             }
         }
         catch (Exception ex)
@@ -833,7 +611,7 @@ public partial class IntelliChatModule : ObservableObject
             }
         }
 
-        return null; // Or a sensible default
+        return null;
     }
 
     public static string GetModelType(IntelliGPTModel model)
@@ -849,17 +627,19 @@ public partial class IntelliChatModule : ObservableObject
             }
         }
 
-        return "Unknown"; // Or any default value you see fit
+        return "Unknown";
     }
 
+    /// <summary>
+    /// Loads persisted <see cref="IntelliChatModuleSettings"/> from disk, merges built-in defaults, and validates selections.
+    /// </summary>
     public void LoadSettings()
     {
-        var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
+        var filePath = Path.Combine(_env.DataPath, IntelliChatSettingsFileName);
         if (File.Exists(filePath))
         {
             var jsonData = File.ReadAllText(filePath);
 
-            // Check if the JSON data is empty, contains only null characters, or is whitespace
             if (string.IsNullOrWhiteSpace(jsonData) || jsonData.All(c => c == '\0'))
             {
                 Logging.WriteInfo("The settings JSON file is empty or corrupted.");
@@ -907,6 +687,9 @@ public partial class IntelliChatModule : ObservableObject
 
 
 
+    /// <summary>
+    /// Submits <paramref name="text"/> to the OpenAI Moderations API and returns <see langword="true"/> if no policy violations are detected.
+    /// </summary>
     public async Task<bool> ModerationCheckPassedAsync(string text, bool cancelAllTasks = true)
     {
         if (cancelAllTasks)
@@ -923,9 +706,9 @@ public partial class IntelliChatModule : ObservableObject
 
             var modelName = GetModelDescription(Settings.PerformModerationCheckModel);
 
-            var moderationResponse = await OpenAIModule.Instance.OpenAIClient.ModerationsEndpoint.CreateModerationAsync(new ModerationsRequest(text, modelName), _cancellationTokenSource.Token);
+            var moderationResponse = await _chatService.ClassifyTextAsync(text, modelName, _cancellationTokenSource.Token);
 
-            if (moderationResponse?.Results.Any(r => r.Flagged) ?? false)
+            if (moderationResponse?.Flagged ?? false)
             {
                 Settings.IntelliChatUILabel = false;
 
@@ -950,11 +733,14 @@ public partial class IntelliChatModule : ObservableObject
     }
 
 
+    /// <summary>
+    /// Rewrites <paramref name="text"/> using the given writing style (or the currently selected style if null).
+    /// </summary>
     public async Task PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
     {
-        if (!OpenAIModule.Instance.IsInitialized)
+        if (!_chatService.IsClientAvailable)
         {
-            ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            _navService.ActivateSetting("Settings_OpenAI");
         }
 
         if (!EnsureInitializedAndNotEmpty(text))
@@ -971,37 +757,39 @@ public partial class IntelliChatModule : ObservableObject
 
             intelliChatWritingStyle = intelliChatWritingStyle ?? Settings.SelectedWritingStyle;
 
-            var messages = new List<Message>
+            var messages = new List<ChatMessage>
     {
-        new Message(Role.System, $"You are a helpful assistant that rewrites sentences in a {intelliChatWritingStyle.StyleDescription} style without adding any extra information."),
-        new Message(Role.User, text)
+        new SystemChatMessage($"You are a helpful assistant that rewrites sentences in a {intelliChatWritingStyle.StyleDescription} style without adding any extra information."),
+        new UserChatMessage(text)
     };
 
             if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
             {
                 var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
                 var languagesString = string.Join(", ", languages);
-                messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
             ResetCancellationToken(Settings.IntelliChatTimeout);
 
             var modelName = GetModelDescription(Settings.PerformBeautifySentenceModel);
 
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(
-                    messages: messages,
-                    maxTokens: 60,
-                    temperature: intelliChatWritingStyle.Temperature,
-                    model: modelName),
+            var completion = await _chatService.GetChatCompletionAsync(
+                    messages,
+                    modelName,
+                    new ChatCompletionOptions
+                    {
+                        MaxOutputTokenCount = 60,
+                        Temperature = (float)intelliChatWritingStyle.Temperature
+                    },
                 _cancellationTokenSource.Token);
 
-            if (response == null)
+            if (completion == null)
             {
                 throw new InvalidOperationException("The response from OpenAI was empty");
             }
 
-            ProcessResponse(response);
+            ProcessResponse(completion);
         }
         catch (Exception ex)
         {
@@ -1011,11 +799,14 @@ public partial class IntelliChatModule : ObservableObject
 
 
 
+    /// <summary>
+    /// Translates <paramref name="text"/> into the given target language (or the currently selected language if null).
+    /// </summary>
     public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
     {
-        if (!OpenAIModule.Instance.IsInitialized)
+        if (!_chatService.IsClientAvailable)
         {
-            ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            _navService.ActivateSetting("Settings_OpenAI");
         }
         if (!EnsureInitializedAndNotEmpty(text))
         {
@@ -1028,17 +819,17 @@ public partial class IntelliChatModule : ObservableObject
 
             SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? Settings.SelectedTranslateLanguage;
 
-            var messages = new List<Message>
+            var messages = new List<ChatMessage>
     {
-        new Message(Role.System, $"You are a professional translator. Translate the following text to {intelliChatLanguage.Language} accurately without adding any additional information or context."),
-        new Message(Role.User, text)
+        new SystemChatMessage($"You are a professional translator. Translate the following text to {intelliChatLanguage.Language} accurately without adding any additional information or context."),
+        new UserChatMessage(text)
     };
 
             if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
             {
                 var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
                 var languagesString = string.Join(", ", languages);
-                messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
             Settings.IntelliChatUILabel = true;
@@ -1048,22 +839,24 @@ public partial class IntelliChatModule : ObservableObject
 
             ResetCancellationToken(Settings.IntelliChatTimeout);
 
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(
-                    messages: messages,
-                    maxTokens: 120,
-                    temperature: 0.3,
-                    model: modelName),
+            var completion = await _chatService.GetChatCompletionAsync(
+                    messages,
+                    modelName,
+                    new ChatCompletionOptions
+                    {
+                        MaxOutputTokenCount = 120,
+                        Temperature = 0.3f
+                    },
                 _cancellationTokenSource.Token);
 
-            if (response == null)
+            if (completion == null)
             {
                 Settings.IntelliChatUILabel = false;
                 throw new InvalidOperationException("The response from OpenAI was empty");
             }
             else
             {
-                ProcessResponse(response);
+                ProcessResponse(completion);
             }
         }
         catch (Exception ex)
@@ -1074,11 +867,14 @@ public partial class IntelliChatModule : ObservableObject
 
 
 
+    /// <summary>
+    /// Corrects spelling and grammar in <paramref name="text"/> and places the result in the waiting-to-accept queue.
+    /// </summary>
     public async Task PerformSpellingAndGrammarCheckAsync(string text)
     {
-        if (!OpenAIModule.Instance.IsInitialized)
+        if (!_chatService.IsClientAvailable)
         {
-            ViewModel.Instance.ActivateSetting("Settings_OpenAI");
+            _navService.ActivateSetting("Settings_OpenAI");
         }
         if (!EnsureInitializedAndNotEmpty(text))
         {
@@ -1094,10 +890,10 @@ public partial class IntelliChatModule : ObservableObject
 
             IntelliChatWritingStyle intelliChatWritingStyle = Settings.SelectedWritingStyle;
 
-            var messages = new List<Message>
+            var messages = new List<ChatMessage>
     {
-        new Message(Role.System, "You are a professional editor. Correct any spelling and grammar errors in the following text without adding or removing any additional information."),
-        new Message(Role.User, text)
+        new SystemChatMessage("You are a professional editor. Correct any spelling and grammar errors in the following text without adding or removing any additional information."),
+        new UserChatMessage(text)
     };
 
             if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
@@ -1106,28 +902,30 @@ public partial class IntelliChatModule : ObservableObject
 
                 var languagesString = string.Join(", ", languages);
 
-                messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
             var modelName = GetModelDescription(Settings.PerformSpellingCheckModel);
 
             ResetCancellationToken(Settings.IntelliChatTimeout);
 
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(
-                    messages: messages,
-                    maxTokens: 60,
-                    temperature: 0.3,
-                    model: modelName),
+            var completion = await _chatService.GetChatCompletionAsync(
+                    messages,
+                    modelName,
+                    new ChatCompletionOptions
+                    {
+                        MaxOutputTokenCount = 60,
+                        Temperature = 0.3f
+                    },
                 _cancellationTokenSource.Token);
 
-            if (response == null)
+            if (completion == null)
             {
                 throw new InvalidOperationException("The response from OpenAI was empty");
             }
             else
             {
-                ProcessResponse(response);
+                ProcessResponse(completion);
             }
         }
         catch (Exception ex)
@@ -1136,17 +934,17 @@ public partial class IntelliChatModule : ObservableObject
         }
     }
 
-    public void ProcessUsedTokens(ChatResponse response)
+    public void ProcessUsedTokens(ChatCompletion? completion)
     {
-        if (response?.Usage == null)
+        if (completion?.Usage == null)
         {
-            Console.WriteLine("No response or usage data available.");
+            Logging.WriteInfo("No response or usage data available.");
             return;
         }
 
-        string modelName = response.Model;
-        int promptTokens = response.Usage.PromptTokens ?? 0;
-        int completionTokens = response.Usage.CompletionTokens ?? 0;
+        string modelName = completion.Model;
+        int promptTokens = completion.Usage.InputTokenCount;
+        int completionTokens = completion.Usage.OutputTokenCount;
 
         Settings.TokenUsageData.AddTokenUsage(modelName, promptTokens, completionTokens);
     }
@@ -1171,7 +969,7 @@ public partial class IntelliChatModule : ObservableObject
         }
 
         Settings.SupportedWritingStyles.Remove(styleToRemove);
-        SaveSettings(); // Save the updated settings
+        SaveSettings();
     }
 
     public void ResetCancellationToken(int timeoutInSeconds)
@@ -1182,11 +980,14 @@ public partial class IntelliChatModule : ObservableObject
     }
     public void SaveSettings()
     {
-        var filePath = Path.Combine(ViewModel.Instance.DataPath, IntelliChatSettingsFileName);
+        var filePath = Path.Combine(_env.DataPath, IntelliChatSettingsFileName);
         var jsonData = JsonConvert.SerializeObject(Settings, Formatting.Indented);
         File.WriteAllText(filePath, jsonData);
     }
 
+    /// <summary>
+    /// Condenses <paramref name="text"/> to 140 characters or fewer, retrying up to twice if the first response still exceeds the limit.
+    /// </summary>
     public async Task ShortenTextAsync(string text, int retryCount = 0)
     {
         if (!EnsureInitializedAndNotEmpty(text))
@@ -1208,48 +1009,43 @@ public partial class IntelliChatModule : ObservableObject
 
             var modelName = GetModelDescription(Settings.PerformShortenTextModel);
 
-            // Construct messages with role clarity
-            var messages = new List<Message>
+            var messages = new List<ChatMessage>
     {
-        new Message(Role.System, prompt)
+        new SystemChatMessage(prompt)
     };
 
             if (!Settings.AutolanguageSelection && Settings.SelectedSupportedLanguages.Count > 0)
             {
-                // Extracting the Language property from each SupportedIntelliChatLanguage object
                 var languages = Settings.SelectedSupportedLanguages.Select(lang => lang.Language).ToList();
-
-                // Joining the language strings with commas
                 var languagesString = string.Join(", ", languages);
-
-                messages.Add(new Message(Role.System, $"Consider these languages: {languagesString}"));
+                messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
             ResetCancellationToken(Settings.IntelliChatTimeout);
 
-            var response = await OpenAIModule.Instance.OpenAIClient.ChatEndpoint
-                .GetCompletionAsync(new ChatRequest(
-                    messages: messages,
-                    maxTokens: 60, // Adjusted for conciseness
-                    temperature: 0.3, // Reduced for determinism
-                    model: modelName),
+            var completion = await _chatService.GetChatCompletionAsync(
+                    messages,
+                    modelName,
+                    new ChatCompletionOptions
+                    {
+                        MaxOutputTokenCount = 60,
+                        Temperature = 0.3f
+                    },
                 _cancellationTokenSource.Token);
 
-            var shortenedText = response?.Choices?[0].Message.Content.ValueKind == System.Text.Json.JsonValueKind.String
-                ? response.Choices[0].Message.Content.GetString()
+            var shortenedText = completion?.Content?.Count > 0
+                ? completion.Content[0].Text ?? string.Empty
                 : string.Empty;
 
-            // Sanitize the shortened text
             string sanitizedShortenedText = SanitizeShortenedText(shortenedText);
 
-            // Check if the response is still over 140 characters and retry if necessary
             if (sanitizedShortenedText.Length > 140 && retryCount < 2) // Limiting to two retries
             {
                 await ShortenTextAsync(sanitizedShortenedText, retryCount + 1);
             }
             else
             {
-                ProcessResponse(response);
+                ProcessResponse(completion);
             }
         }
         catch (Exception ex)

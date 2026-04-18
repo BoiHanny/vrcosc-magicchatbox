@@ -3,6 +3,9 @@ using System.ComponentModel;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
+    /// <summary>
+    /// Represents a saved VRChat status message with metadata for cycling, favourites, and in-place editing.
+    /// </summary>
     public class StatusItem : INotifyPropertyChanged
     {
         private DateTime _CreationDate;
@@ -92,10 +95,11 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             get
             {
-                if(_LastEdited == null)
+                if (_LastEdited == null)
                 {
                     return _CreationDate;
-                } else
+                }
+                else
                 {
                     return _LastEdited;
                 }
@@ -144,7 +148,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void NotifyPropertyChanged(string name)
         {
-            if(PropertyChanged != null)
+            if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(name));
         }
         #endregion

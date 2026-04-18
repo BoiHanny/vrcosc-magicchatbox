@@ -4,6 +4,10 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Negates a boolean value in both directions (Convert and ConvertBack).
+    /// Throws <see cref="InvalidOperationException"/> if the value is not a boolean.
+    /// </summary>
     public class InvertBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

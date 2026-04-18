@@ -1,9 +1,14 @@
-using System.ComponentModel;
 using Newtonsoft.Json;
-using vrcosc_magicchatbox.ViewModels;
+using System;
+using System.ComponentModel;
+using vrcosc_magicchatbox.Classes.Modules;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// Represents a SteamVR/OpenVR tracked device (tracker, controller, headset) with
+    /// its live battery/charging state and user-defined display customizations.
+    /// </summary>
     public class TrackerDevice : INotifyPropertyChanged
     {
         private float _batteryLevel;
@@ -63,7 +68,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        // Live data (not saved)
         [JsonIgnore]
         public int DeviceIndex
         {
@@ -126,7 +130,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         [JsonIgnore]
         public int BatteryPercentage => (int)(_batteryLevel * 100);
 
-        // User customization (saved)
         public string CustomName
         {
             get => _customName;
@@ -212,9 +215,19 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         [JsonIgnore]
         public string DisplayName => string.IsNullOrWhiteSpace(CustomName) ? OriginalModelName : CustomName;
 
+        /// <summary>
+        /// Set once from App.OnStartup after DI is built.
+        /// Used by IsLowBattery calculation.
+        /// </summary>
+        internal static TrackerBatterySettings? DefaultTrackerSettings { get; set; }
+
+        [JsonIgnore]
+        private static TrackerBatterySettings TrackerSettings =>
+            DefaultTrackerSettings ?? throw new InvalidOperationException("TrackerDevice.DefaultTrackerSettings not initialized.");
+
         [JsonIgnore]
         public bool IsLowBattery => IsConnected &&
-            BatteryPercentage <= (UseCustomLowThreshold ? CustomLowThreshold : ViewModel.Instance.TrackerBattery_LowThreshold);
+            BatteryPercentage <= (UseCustomLowThreshold ? CustomLowThreshold : TrackerSettings.LowThreshold);
 
         public void NotifyIsLowBatteryChanged()
         {

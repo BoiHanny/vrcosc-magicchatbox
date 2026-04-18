@@ -1,23 +1,37 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using NLog;
+using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public partial class SoundpadModule : ObservableObject
+/// <summary>
+/// Module that interfaces with the Soundpad application over a named pipe, providing playback
+/// control and status monitoring.
+/// </summary>
+public partial class SoundpadModule : ObservableObject, IModule
 {
-    private static bool _isInitialized = false;
-    private static string _soundpadLocation;
-    private static Timer _stateTimer;
-    private static readonly object _updateLock = new object();
-    private static int ErrorCount = 0;
+    private bool _isInitialized = false;
+    private string _soundpadLocation;
+    private System.Timers.Timer _stateTimer;
+    private readonly object _updateLock = new object();
+    private int ErrorCount = 0;
+    private bool _disposed;
+    private readonly IAppState _appState;
+    private readonly IUiDispatcher _dispatcher;
+
+    private readonly IntegrationSettings _integrationSettings;
 
     [ObservableProperty]
     soundpadState currentSoundpadState = soundpadState.NotRunning;
@@ -43,9 +57,12 @@ public partial class SoundpadModule : ObservableObject
     [ObservableProperty]
     public string playingSong = string.Empty;
 
-    public SoundpadModule(int time)
+    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings)
     {
-        _stateTimer = new Timer(time)
+        _appState = appState;
+        _dispatcher = dispatcher;
+        _integrationSettings = integrationSettings;
+        _stateTimer = new System.Timers.Timer(time)
         {
             AutoReset = true,
             Enabled = false
@@ -54,28 +71,92 @@ public partial class SoundpadModule : ObservableObject
         InitializeSoundpadModuleAsync();
     }
 
+    public string Name => "Soundpad";
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRunning => _stateTimer?.Enabled ?? false;
+    public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken ct = default) { _stateTimer?.Stop(); return Task.CompletedTask; }
+    public void SaveSettings() { }
+
+    private const string PipeName = "sp_remote_control";
+
     private void ExecuteSoundpadCommand(string arguments)
     {
-        if (IsSoundpadRunning)
-        {
-            try
-            {
-                Process.Start(_soundpadLocation, arguments);
-                Error = false;
-                ErrorString = string.Empty;
-            }
-            catch (System.Exception ex)
-            {
-                Error = true;
-                ErrorString = "😞 Failed to execute Soundpad command.";
-                Logging.WriteException(ex, MSGBox: false);
-            }
-        }
-        else
+        if (!IsSoundpadRunning)
         {
             Error = true;
             ErrorString = "😞 Soundpad is not running.";
-            // Optionally handle the case when Soundpad is not running
+            return;
+        }
+
+        // Strip the "-rc " prefix — pipe protocol takes raw commands.
+        string command = arguments.StartsWith("-rc ", StringComparison.OrdinalIgnoreCase)
+            ? arguments[4..]
+            : arguments;
+
+        _ = SendPipeCommandAsync(command);
+    }
+
+    /// <summary>
+    /// Sends a command to Soundpad via named pipe (microsecond latency, zero process overhead).
+    /// Falls back to Process.Start if the pipe is unavailable.
+    /// </summary>
+    private async Task SendPipeCommandAsync(string command)
+    {
+        try
+        {
+            using var pipe = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            await pipe.ConnectAsync(1000).ConfigureAwait(false);
+
+            byte[] buffer = Encoding.UTF8.GetBytes(command);
+            await pipe.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            await pipe.FlushAsync().ConfigureAwait(false);
+
+            // Read response (Soundpad always sends one)
+            byte[] responseBuffer = new byte[4096];
+            int bytesRead = await pipe.ReadAsync(responseBuffer, 0, responseBuffer.Length).ConfigureAwait(false);
+
+            Error = false;
+            ErrorString = string.Empty;
+        }
+        catch (TimeoutException)
+        {
+            // Pipe not available — fall back to Process.Start
+            FallbackProcessStart(command);
+        }
+        catch (IOException)
+        {
+            FallbackProcessStart(command);
+        }
+        catch (Exception ex)
+        {
+            Error = true;
+            ErrorString = "😞 Failed to execute Soundpad command.";
+            Logging.WriteException(ex, MSGBox: false);
+        }
+    }
+
+    private void FallbackProcessStart(string command)
+    {
+        if (string.IsNullOrEmpty(_soundpadLocation)) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _soundpadLocation,
+                Arguments = $"-rc {command}",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+            });
+            Error = false;
+            ErrorString = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Error = true;
+            ErrorString = "😞 Failed to execute Soundpad command.";
+            Logging.WriteException(ex, MSGBox: false);
         }
     }
 
@@ -105,7 +186,7 @@ public partial class SoundpadModule : ObservableObject
         {
             if (!IsSoundpadRunning)
             {
-                UpdateSoundpadState(false); // Check if Soundpad is running
+                UpdateSoundpadState(false);
             }
             if (!_isInitialized && IsSoundpadRunning)
             {
@@ -135,8 +216,7 @@ public partial class SoundpadModule : ObservableObject
         // Removing the content inside brackets and the brackets themselves
         title = Regex.Replace(title, @"\s*\[.*?\]\s*", " ").Trim();
 
-        // Dispatch property updates to the UI thread
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        _dispatcher.Invoke(() =>
         {
             if (string.IsNullOrEmpty(title))
             {
@@ -169,7 +249,7 @@ public partial class SoundpadModule : ObservableObject
                 CurrentSoundpadState = soundpadState.Stopped;
                 PlayingNow = false;
                 Stopped = true;
-                PlayingSong = string.Empty; // Ensure the playing song is cleared when stopped
+                PlayingSong = string.Empty;
                 Error = false;
                 ErrorString = string.Empty;
             }
@@ -201,7 +281,6 @@ public partial class SoundpadModule : ObservableObject
             }
             catch (System.Exception ex)
             {
-                // Exception occurred while accessing MainWindowTitle
                 Error = true;
                 ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
                 Logging.WriteException(ex, MSGBox: false);
@@ -210,10 +289,9 @@ public partial class SoundpadModule : ObservableObject
         }
         else
         {
-            // Soundpad is not running
             Error = true;
             ErrorString = "😞 Soundpad is not running.";
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 CurrentSoundpadState = soundpadState.NotRunning;
                 PlayingNow = false;
@@ -232,8 +310,7 @@ public partial class SoundpadModule : ObservableObject
 
                 var soundpadProc = Process.GetProcessesByName("Soundpad").FirstOrDefault();
 
-                // Dispatch the updates to the UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                _dispatcher.Invoke(() =>
                 {
                     IsSoundpadRunning = soundpadProc != null;
                     UpdateCurrentStateBasedOnRunningStatus(soundpadProc);
@@ -258,10 +335,9 @@ public partial class SoundpadModule : ObservableObject
                 }
                 else
                 {
-                    // Also dispatch this update to the UI thread
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    _dispatcher.Invoke(() =>
                     {
-                        ViewModel.Instance.IntgrSoundpad = false;
+                        _integrationSettings.IntgrSoundpad = false;
                     });
                     ErrorCount = 0;
                 }
@@ -283,10 +359,10 @@ public partial class SoundpadModule : ObservableObject
 
     public bool IsRelevantPropertyChange(string propertyName)
     {
-        return propertyName == nameof(ViewModel.Instance.IntgrSoundpad) ||
-               propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
-               propertyName == nameof(ViewModel.Instance.IntgrSoundpad_VR) ||
-               propertyName == nameof(ViewModel.Instance.IntgrSoundpad_DESKTOP);
+        return propertyName == nameof(_integrationSettings.IntgrSoundpad) ||
+               propertyName == nameof(_appState.IsVRRunning) ||
+               propertyName == nameof(_integrationSettings.IntgrSoundpad_VR) ||
+               propertyName == nameof(_integrationSettings.IntgrSoundpad_DESKTOP);
     }
 
     public void PlayNextSound()
@@ -336,8 +412,8 @@ public partial class SoundpadModule : ObservableObject
 
     public bool ShouldStartMonitoring()
     {
-        return ViewModel.Instance.IntgrSoundpad && ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrSoundpad_VR ||
-               ViewModel.Instance.IntgrSoundpad && !ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrSoundpad_DESKTOP;
+        return _integrationSettings.IntgrSoundpad && _appState.IsVRRunning && _integrationSettings.IntgrSoundpad_VR ||
+               _integrationSettings.IntgrSoundpad && !_appState.IsVRRunning && _integrationSettings.IntgrSoundpad_DESKTOP;
     }
 
     public void StartModule()
@@ -373,5 +449,14 @@ public partial class SoundpadModule : ObservableObject
             ExecuteSoundpadCommand("-rc DoPlayCurrentSoundAgain()");
         else
             ExecuteSoundpadCommand("-rc DoTogglePause()");
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _stateTimer?.Stop();
+        _stateTimer?.Dispose();
     }
 }

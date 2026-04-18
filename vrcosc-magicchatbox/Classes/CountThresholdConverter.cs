@@ -6,6 +6,11 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Returns <c>true</c> when the bound count value meets or exceeds the threshold
+    /// supplied via <c>ConverterParameter</c>. Accepts <see cref="int"/>,
+    /// <see cref="System.Collections.ICollection"/>, or any <see cref="System.Collections.IEnumerable"/>.
+    /// </summary>
     public class CountThresholdConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

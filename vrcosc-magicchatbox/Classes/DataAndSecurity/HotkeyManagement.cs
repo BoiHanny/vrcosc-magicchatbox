@@ -7,28 +7,40 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
+/// <summary>
+/// Manages global and local hotkey registration, persistence, and dispatch.
+/// Configuration is stored as JSON in the user's data directory.
+/// </summary>
 public class HotkeyManagement
 {
-    private static HotkeyManagement _instance;
+    private readonly TtsSettings _ttsSettings;
+    private readonly IOscSender _oscSender;
+    private readonly IUiDispatcher _dispatcher;
+
     private Dictionary<string, HotkeyInfo> _hotkeyActions;
     private Window _mainWindow;
     private readonly string HotkeyConfigFile;
 
-    private HotkeyManagement()
+    public HotkeyManagement(IEnvironmentService env, IOscSender oscSender, ISettingsProvider<TtsSettings> ttsSettings, IUiDispatcher dispatcher)
     {
+        _oscSender = oscSender;
+        _ttsSettings = ttsSettings.Value;
+        _dispatcher = dispatcher;
         _hotkeyActions = new Dictionary<string, HotkeyInfo>();
-        HotkeyConfigFile = Path.Combine(ViewModel.Instance.DataPath, "HotkeyConfiguration.json");
+        HotkeyConfigFile = Path.Combine(env.DataPath, "HotkeyConfiguration.json");
         LoadHotkeyConfigurations();
     }
 
     private void AddDefaultHotkeys()
     {
         AddKeyBinding("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
-        // Add other default hotkeys here
     }
 
     private void AddKeyBinding(string name, Key key, ModifierKeys modifiers, Action action)
@@ -43,7 +55,6 @@ public class HotkeyManagement
         return hotkeyName switch
         {
             "ToggleVoiceGlobal" => ToggleVoice,
-            // Add other hotkey actions here
             _ => null
         };
     }
@@ -61,7 +72,6 @@ public class HotkeyManagement
 
             var json = File.ReadAllText(HotkeyConfigFile);
 
-            // Check if the JSON string is empty, contains only null characters, or is whitespace
             if (string.IsNullOrWhiteSpace(json) || json.All(c => c == '\0'))
             {
                 Logging.WriteException(new Exception("The hotkey configurations file is empty or corrupted."), MSGBox: false);
@@ -110,7 +120,7 @@ public class HotkeyManagement
         {
             if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
             {
-                Application.Current.Dispatcher.Invoke(hotkeyInfo.Action);
+                _dispatcher.Invoke(hotkeyInfo.Action);
             }
         }
         catch (Exception ex)
@@ -136,18 +146,16 @@ public class HotkeyManagement
         }
         catch (HotkeyAlreadyRegisteredException)
         {
-            // Handle already registered hotkey case
             Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose: true);
         }
         catch (Exception ex)
         {
-            // Handle other exceptions
             Logging.WriteException(ex: ex, MSGBox: false);
         }
     }
 
 
-    private static void SetupLocalHotkey(Window window)
+    private void SetupLocalHotkey(Window window)
     {
         window.KeyDown += (sender, e) =>
         {
@@ -162,9 +170,10 @@ public class HotkeyManagement
         };
     }
 
-    private static void ToggleVoice()
+    private void ToggleVoice()
     {
-        ViewModel.Instance.ToggleVoiceCommand.Execute(null);
+        if (_ttsSettings.ToggleVoiceWithV)
+            _oscSender.ToggleVoice(true);
     }
 
     public void Initialize(Window mainWindow)
@@ -193,8 +202,6 @@ public class HotkeyManagement
             Logging.WriteException(ex: ex, MSGBox: false);
         }
     }
-
-    public static HotkeyManagement Instance => _instance ?? (_instance = new HotkeyManagement());
 
     [JsonObject(MemberSerialization.OptIn)]
     private class HotkeyInfo

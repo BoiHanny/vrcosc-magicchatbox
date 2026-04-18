@@ -1,0 +1,112 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.OptionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:options="clr-namespace:vrcosc_magicchatbox.UI.Pages.Options"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:OptionsPageViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d"
+    Background="{StaticResource SurfaceCardBrush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <ScrollViewer>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <options:StatusSection Grid.Row="0"
+                                            DataContext="{Binding StatusSection}" />
+                    <options:PulsoidSection Grid.Row="1"
+                                            DataContext="{Binding PulsoidSection}" />
+                    <options:TimeOptionsSection Grid.Row="2"
+                                                DataContext="{Binding TimeOptionsSection}" />
+                    <options:WeatherSection Grid.Row="3"
+                                            DataContext="{Binding WeatherSection}" />
+
+                    <options:TwitchSection Grid.Row="4"
+                                           DataContext="{Binding TwitchSection}" />
+
+                    <options:OpenAISection Grid.Row="5"
+                                           DataContext="{Binding OpenAISection}" />
+                    <options:ComponentStatsSection Grid.Row="6"
+                                                  DataContext="{Binding ComponentStatsSection}" />
+                    <options:NetworkStatisticsSection Grid.Row="7"
+                                                      DataContext="{Binding NetworkStatisticsSection}" />
+                    <options:ChattingOptionsSection Grid.Row="8"
+                                                    DataContext="{Binding ChattingOptionsSection}" />
+                    <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" Grid.Row="9"
+                                               DataContext="{Binding TtsSection}" />
+                    <options:MediaLinkSection Grid.Row="10"
+                                             DataContext="{Binding MediaLinkSection}" />
+                    <options:AppOptionsSection Grid.Row="11"
+                                               DataContext="{Binding AppOptionsSection}" />
+                    <options:EggDevSection Grid.Row="12"
+                                           DataContext="{Binding EggDevSection}" />
+                    <options:WindowActivitySection Grid.Row="14"
+                                                    DataContext="{Binding WindowActivitySection}" />
+
+                    <!--  TRACKER BATTERY MANAGER SECTION  -->
+                    <options:TrackerBatterySection Grid.Row="13"
+                                                   DataContext="{Binding TrackerBatterySection}" />
+
+                    <options:PrivacySection Grid.Row="15"
+                                            DataContext="{Binding PrivacySection}" />
+
+                    <Grid Grid.Row="16" Margin="0,5,0,10">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            TextWrapping="Wrap">
+                            <Run Text="By using MagicChatbox, you agree to our" />
+                            <!--  Hyperlink to the Terms of Service  -->
+                            <Hyperlink
+                                Foreground="{StaticResource AccentTealBrush}"
+                                NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md"
+                                RequestNavigate="Hyperlink_RequestNavigate"
+                                ToolTip="View our Terms of Service">
+                                <Run Text="Terms of Service" />
+                            </Hyperlink>
+                            <Run Text="and" />
+                            <!--  Hyperlink to the Software License Agreement  -->
+                            <Hyperlink
+                                Foreground="{StaticResource AccentTealBrush}"
+                                NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md"
+                                RequestNavigate="Hyperlink_RequestNavigate"
+                                ToolTip="View our Software License Agreement">
+                                <Run Text="Software License Agreement" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </Grid>
+
+                </Grid>
+    </ScrollViewer>
+</UserControl>

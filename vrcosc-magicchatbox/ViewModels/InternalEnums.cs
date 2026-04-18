@@ -138,4 +138,14 @@ namespace vrcosc_magicchatbox.ViewModels
         [Description("Purple")]
         Purple
     }
+
+    public enum MediaLinkTimeSeekbar
+    {
+        [Description("Small numbers")]
+        SmallNumbers,
+        [Description("Custom")]
+        NumbersAndSeekBar,
+        [Description("None")]
+        None
+    }
 }

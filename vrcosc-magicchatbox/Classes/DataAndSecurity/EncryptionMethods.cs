@@ -1,75 +1,54 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
+/// <summary>
+/// Provides encryption/decryption using Windows DPAPI (ProtectedData).
+/// Data is bound to the current Windows user — no hardcoded keys or IVs.
+/// </summary>
 internal static class EncryptionMethods
 {
-
     public static string DecryptString(string cipherText)
     {
         try
         {
-            byte[] iv = new byte[16];
-            byte[] buffer = Convert.FromBase64String(cipherText);
+            if (string.IsNullOrEmpty(cipherText))
+                return null;
 
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(ViewModel.Instance.aesKey);
-                aes.IV = iv;
-
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream(buffer))
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream((System.IO.Stream)memoryStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (System.IO.StreamReader streamReader = new System.IO.StreamReader((System.IO.Stream)cryptoStream))
-                        {
-                            return streamReader.ReadToEnd();
-                        }
-                    }
-                }
-            }
+            byte[] encryptedBytes = Convert.FromBase64String(cipherText);
+            byte[] plainBytes = ProtectedData.Unprotect(
+                encryptedBytes, null, DataProtectionScope.CurrentUser);
+            return Encoding.UTF8.GetString(plainBytes);
+        }
+        catch (CryptographicException ex)
+        {
+            // Old AES-encrypted data or corrupted — token must be re-entered
+            Logging.WriteInfo($"Decryption failed (token may need re-entry): {ex.Message}");
+            return null;
+        }
+        catch (FormatException ex)
+        {
+            Logging.WriteInfo($"Decryption failed (invalid base64): {ex.Message}");
+            return null;
         }
         catch (Exception ex)
         {
-
             Logging.WriteException(ex, MSGBox: false);
             return null;
         }
-
     }
 
     public static string EncryptString(string plainText)
     {
-        byte[] iv = new byte[16];
-        byte[] array;
+        if (string.IsNullOrEmpty(plainText))
+            return null;
 
-        using (Aes aes = Aes.Create())
-        {
-            aes.Key = Encoding.UTF8.GetBytes(ViewModel.Instance.aesKey);
-            aes.IV = iv;
-
-            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-            using (System.IO.MemoryStream memoryStream = new System.IO.MemoryStream())
-            {
-                using (CryptoStream cryptoStream = new CryptoStream((System.IO.Stream)memoryStream, encryptor, CryptoStreamMode.Write))
-                {
-                    using (System.IO.StreamWriter streamWriter = new System.IO.StreamWriter((System.IO.Stream)cryptoStream))
-                    {
-                        streamWriter.Write(plainText);
-                    }
-
-                    array = memoryStream.ToArray();
-                }
-            }
-        }
-
-        return Convert.ToBase64String(array);
+        byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+        byte[] encryptedBytes = ProtectedData.Protect(
+            plainBytes, null, DataProtectionScope.CurrentUser);
+        return Convert.ToBase64String(encryptedBytes);
     }
 
     public static bool TryProcessToken(ref string source, ref string destination, bool isEncryption)
@@ -83,7 +62,7 @@ internal static class EncryptionMethods
             }
 
             destination = isEncryption ? EncryptString(source) : DecryptString(source);
-            return true;
+            return destination != null;
         }
         catch (Exception ex)
         {

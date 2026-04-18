@@ -2,6 +2,10 @@
 
 namespace vrcosc_magicchatbox.ViewModels
 {
+    /// <summary>
+    /// Represents a tracked Windows process with display customization options
+    /// for the Window Activity feature.
+    /// </summary>
     public class ProcessInfo : INotifyPropertyChanged
     {
         private bool _applyCustomAppName;

@@ -1,0 +1,169 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.NetworkStatisticsSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel, IsDesignTimeCreatable=True}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.Settings_NetworkStatistics, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="NetworkStatistics options"
+                TextOptions.TextRenderingMode="ClearType" />
+        </Grid>
+        <Grid
+            Grid.Row="1"
+            Height="Auto"
+            Margin="34,0,0,0"
+            Visibility="{Binding AppSettings.Settings_NetworkStatistics, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_UseInterfaceMaxSpeed"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.UseInterfaceMaxSpeed, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Use network interface as the max speed
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowCurrentDown_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowCurrentDown, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show current download speed
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowCurrentUp_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowCurrentUp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show current upload speed
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowMaxDown_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowMaxDown, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show max download speed
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowMaxUp_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowMaxUp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show max upload speed
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowTotalDown_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowTotalDown, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show total download
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowTotalUp_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowTotalUp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show total upload
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_ShowNetworkUtilization_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.ShowNetworkUtilization, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show network utilization
+                    </CheckBox>
+                </Border>
+                <Border
+                    Margin="0,0,0,5"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="5,0,0,5">
+                    <CheckBox
+                        x:Name="NetworkStats_StyledCharacters_checkbox"
+                        Height="20"
+                        Margin="5"
+                        IsChecked="{Binding NetworkStatsModule.Settings.StyledCharacters, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Stylized characters
+                    </CheckBox>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

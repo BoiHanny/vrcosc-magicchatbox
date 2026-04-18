@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+using System;
 using System.Windows;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -12,45 +10,35 @@ namespace vrcosc_magicchatbox.UI.Dialogs
     /// </summary>
     public partial class ManualPulsoidAuth : Window
     {
-        static PulsoidOAuthHandler oauthHandler;
-        public ManualPulsoidAuth()
+        private readonly PulsoidOAuthHandler _oauthHandler;
+        private readonly PulsoidModule _heartRateConnector;
+        private readonly Action<bool> _setPulsoidAuth;
+        private readonly INavigationService _nav;
+
+        public ManualPulsoidAuth(PulsoidModule heartRateConnector, Action<bool> setPulsoidAuth, PulsoidOAuthHandler oauthHandler, INavigationService nav)
         {
             InitializeComponent();
+            _heartRateConnector = heartRateConnector;
+            _setPulsoidAuth = setPulsoidAuth;
+            _oauthHandler = oauthHandler;
+            _nav = nav;
         }
 
         private void Button_close_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
-        
 
-        private static async Task ConnectPulSOidWebTask()
-        {
-            try
-            {
-                string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                const string clientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
-                const string redirectUri = "http://localhost:7384/";
-                const string scope = "data:heart_rate:read,profile:read,data:statistics:read";
-                var authorizationEndpoint = $"https://pulsoid.net/oauth2/authorize?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}&response_mode=web_page";
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = authorizationEndpoint,
-                    UseShellExecute = true
-                });
-
-
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-            }
-        }
 
         private void ConnectWithPulsoidWeb_Click(object sender, RoutedEventArgs e)
         {
-            _ = ConnectPulSOidWebTask();
+            string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            const string clientId = Core.Constants.PulsoidClientId;
+            const string redirectUri = Core.Constants.PulsoidOAuthRedirectUri;
+            const string scope = Core.Constants.PulsoidOAuthScope;
+            var authorizationEndpoint = $"{Core.Constants.PulsoidOAuthEndpoint}?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}&response_mode=web_page";
+
+            _nav.OpenUrl(authorizationEndpoint);
 
             FirstPage.Visibility = Visibility.Hidden;
             SecondPage.Visibility = Visibility.Visible;
@@ -63,10 +51,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void CenterWindowAtBottom()
         {
-            // Determine which screen the mouse cursor is on.
             var currentScreen = System.Windows.Forms.Screen.FromPoint(System.Windows.Forms.Cursor.Position);
 
-            // Calculate center and bottom coordinates.
             double centerX = currentScreen.WorkingArea.Left + currentScreen.WorkingArea.Width / 2;
             double bottomY = currentScreen.WorkingArea.Bottom;
 
@@ -78,8 +64,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private async void Connect_Click(object sender, RoutedEventArgs e)
         {
-            oauthHandler = PulsoidOAuthHandler.Instance;
-
             string token = ExtractAccessToken(Token.Password);
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -87,12 +71,12 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 return;
             }
 
-            bool isValidToken = await oauthHandler.ValidateTokenAsync(token);
+            bool isValidToken = await _oauthHandler.ValidateTokenAsync(token);
 
             if (isValidToken)
             {
-                ViewModel.Instance.PulsoidAccessTokenOAuth = token;
-                ViewModel.Instance.PulsoidAuthConnected = true;
+                _heartRateConnector.Settings.AccessTokenOAuth = token;
+                _setPulsoidAuth(true);
                 this.Close();
             }
             else

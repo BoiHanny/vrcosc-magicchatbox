@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
 	<Version>0.9.155</Version>
-    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>True</UseWPF>
@@ -203,22 +203,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.6" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.5" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.6" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+    <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NHotkey.Wpf" Version="4.0.0" />
-    <PackageReference Include="NLog" Version="6.1.0" />
-	  <PackageReference Include="OpenAI-DotNet" Version="8.8.8" />
-	  <PackageReference Include="System.Management" Version="10.0.2" />
+    <PackageReference Include="NLog" Version="6.1.2" />
+	  <PackageReference Include="OpenAI" Version="2.10.0" />
+	  <PackageReference Include="System.Management" Version="10.0.6" />
     <PackageReference Include="TwitchLib.Api" Version="3.10.2" />
     <PackageReference Include="OpenVR.NET" Version="0.8.5" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
+    <!-- Pin transitive dep to fix CVEs in 2.1.1 (from LibreHardwareMonitorLib) -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
   <ItemGroup>
@@ -246,6 +252,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Dialogs\OpenAIAuth.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Dialogs\TwitchAuth.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

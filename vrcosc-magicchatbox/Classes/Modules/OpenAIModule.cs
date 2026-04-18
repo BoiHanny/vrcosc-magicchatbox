@@ -1,24 +1,33 @@
-﻿using NAudio.Wave;
 using OpenAI;
 using OpenAI.Audio;
 using OpenAI.Chat;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public class OpenAIModule
+/// <summary>
+/// Wraps the OpenAI SDK client, handles authentication, and implements speech-to-text transcription for the app.
+/// </summary>
+public class OpenAIModule : ITranscriptionService
 {
+    private readonly ISettingsProvider<OpenAISettings> _settingsProvider;
+    private OpenAISettings Settings => _settingsProvider.Value;
+    private void SaveSettings() => _settingsProvider.Save();
 
+    private readonly OpenAIDisplayState _openAI;
 
-    private static readonly Lazy<OpenAIModule> instance = new Lazy<OpenAIModule>(() => new OpenAIModule());
-
-    private OpenAIModule()
-    { }
+    public OpenAIModule(ISettingsProvider<OpenAISettings> settingsProvider, OpenAIDisplayState openAI)
+    {
+        _settingsProvider = settingsProvider;
+        _openAI = openAI;
+    }
 
     private string CreateCustomOpenAIAccessErrorTxt(Exception ex)
     {
@@ -49,13 +58,14 @@ public class OpenAIModule
     {
 
         Logging.WriteException(ex, MSGBox: false);
-        ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
-        ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
-        ViewModel.Instance.OpenAIAccessToken = string.Empty;
-        ViewModel.Instance.OpenAIOrganizationID = string.Empty;
-        ViewModel.Instance.OpenAIConnected = false;
-        ViewModel.Instance.OpenAIAccessError = true;
-        ViewModel.Instance.OpenAIAccessErrorTxt = CreateCustomOpenAIAccessErrorTxt(ex);
+        Settings.AccessTokenEncrypted = string.Empty;
+        Settings.OrganizationIDEncrypted = string.Empty;
+        Settings.AccessToken = string.Empty;
+        Settings.OrganizationID = string.Empty;
+        SaveSettings();
+        _openAI.Connected = false;
+        _openAI.AccessError = true;
+        _openAI.AccessErrorTxt = CreateCustomOpenAIAccessErrorTxt(ex);
         OpenAIClient = null;
     }
 
@@ -64,11 +74,12 @@ public class OpenAIModule
     {
         try
         {
-            var testMessage = new Message(Role.User, "say: OK");
+            var chatClient = OpenAIClient!.GetChatClient("gpt-4o-mini");
+            var result = await chatClient.CompleteChatAsync(
+                [new UserChatMessage("say: OK")],
+                new ChatCompletionOptions { MaxOutputTokenCount = 1 });
 
-            var responseMessage = await OpenAIClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(messages: new List<Message> { testMessage }, maxTokens: 1));
-
-            AuthChecked = responseMessage != null;
+            AuthChecked = result?.Value != null;
 
             if (!AuthChecked)
             {
@@ -82,6 +93,9 @@ public class OpenAIModule
         }
     }
 
+    /// <summary>
+    /// Creates and tests an <see cref="OpenAIClient"/> with the supplied credentials, updating connection state on success or failure.
+    /// </summary>
     public async Task InitializeClient(string apiKey, string organizationID)
     {
         if (string.IsNullOrEmpty(apiKey))
@@ -94,34 +108,41 @@ public class OpenAIModule
             return;
         }
 
-        OpenAIClient = new OpenAIClient(new OpenAIAuthentication(apiKey, organizationID));
+        var options = new OpenAIClientOptions { OrganizationId = organizationID };
+        OpenAIClient = new OpenAIClient(new System.ClientModel.ApiKeyCredential(apiKey), options);
         await TestConnection();
-        ViewModel.Instance.OpenAIConnected = AuthChecked;
+        _openAI.Connected = AuthChecked;
     }
 
-    public async Task<string> TranscribeAudioToText(string audioFilePath)
+    // ITranscriptionService implementation — zero-disk I/O via Stream
+    public bool IsReady => OpenAIClient != null;
+
+    public async Task<string?> TranscribeAsync(
+        byte[] audioData,
+        string audioFilename,
+        string? model = null,
+        string? language = null,
+        CancellationToken ct = default)
     {
-        // Ensure the OpenAI client is initialized
         if (OpenAIClient == null)
-        {
             throw new InvalidOperationException("OpenAI client is not initialized.");
-        }
 
-        // Create a request for audio transcription
-        var request = new AudioTranscriptionRequest(Path.GetFullPath(audioFilePath), language: "en");
+        var audioClient = OpenAIClient.GetAudioClient(model ?? "whisper-1");
 
-        // Call the AudioEndpoint to transcribe the audio
-        var response = await OpenAIClient.AudioEndpoint.CreateTranscriptionTextAsync(request);
+        var options = new AudioTranscriptionOptions();
+        if (!string.IsNullOrEmpty(language))
+            options.Language = language;
 
-        // The response is expected to be a string containing the transcription
-        return response; // Directly return the response
+        using var stream = new MemoryStream(audioData);
+        var result = await audioClient.TranscribeAudioAsync(
+            stream, audioFilename, options, ct).ConfigureAwait(false);
+
+        return result.Value.Text;
     }
 
     public bool AuthChecked { get; private set; } = false;
 
-    public static OpenAIModule Instance => instance.Value;
-
     public bool IsInitialized => OpenAIClient != null;
-    public OpenAIClient OpenAIClient { get; set; } = null;
+    public OpenAIClient? OpenAIClient { get; set; } = null;
 
 }

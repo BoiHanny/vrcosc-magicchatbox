@@ -1,0 +1,343 @@
+<Window
+    x:Class="vrcosc_magicchatbox.UI.Dialogs.TwitchAuth"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:vrcosc_magicchatbox.UI.Dialogs"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Setup Twitch"
+    Width="700"
+    Height="390"
+    Background="#41375B"
+    ResizeMode="NoResize"
+    mc:Ignorable="d">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="55"
+            CornerRadius="0"
+            GlassFrameThickness="1"
+            ResizeBorderThickness="8"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform AngleX="-10" CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Offset="1" Color="#FF1A0842" />
+                    <GradientStop Color="{StaticResource SurfaceDarkColor}" />
+                    <GradientStop Offset="0.539" Color="#FF6441A5" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid x:Name="Drag_area" Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
+                <TextBlock
+                    Margin="6,1,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="White"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Text="Setup Twitch Integration">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="Black" />
+                    </TextBlock.Effect>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+
+            <!-- PAGE 1: Welcome + scope info -->
+            <Grid x:Name="FirstPage" d:Visibility="Visible">
+                <TextBlock
+                    Margin="20,14,20,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="15"
+                    Foreground="LightYellow"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap">
+                    <Run
+                        FontSize="22"
+                        FontWeight="DemiBold"
+                        Text="Setup your Twitch Integration 🎮" />
+                    <LineBreak />
+                    <LineBreak />
+                    <Run
+                        FontWeight="DemiBold"
+                        Foreground="White"
+                        Text="You need a Twitch Developer App and a User Access Token." />
+                    <LineBreak />
+                    <Run Foreground="#CCCCCC" Text="Required scope: " />
+                    <Run
+                        FontWeight="DemiBold"
+                        Foreground="#B39DDB"
+                        Text="moderator:read:followers" />
+                    <Run Foreground="#CCCCCC" Text=" (follower count)" />
+                    <LineBreak />
+                    <Run
+                        Foreground="#AAAAAA"
+                        Text="Optional: moderator:manage:announcements  •  moderator:manage:shoutouts" />
+                    <LineBreak />
+                    <LineBreak />
+                    <Run
+                        FontWeight="Light"
+                        Foreground="LightGray"
+                        Text="First, create or open an app in the Twitch Developer Console. Click below to open it." />
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <StackPanel
+                    Margin="0,0,0,22"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="OpenDevConsole"
+                        Width="220"
+                        Height="38"
+                        Margin="0,0,10,0"
+                        Click="OpenDevConsole_Click"
+                        Content="Open Dev Console ↗"
+                        Style="{StaticResource Status_Button_style}" />
+                    <Button
+                        x:Name="ToPage2"
+                        Width="140"
+                        Height="38"
+                        Click="ToPage2_Click"
+                        Content="Continue →"
+                        Style="{StaticResource Status_Button_style}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- PAGE 2: Client ID -->
+            <Grid x:Name="SecondPage" Visibility="Hidden">
+                <TextBlock
+                    Margin="25,14,25,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="18"
+                    Foreground="White"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Text="Step 1 — Enter Your Client ID">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <TextBlock
+                    Margin="40,55,40,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="13"
+                    Foreground="LightGray"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap"
+                    Text="In the Dev Console, click Manage on your app, then copy the Client ID shown on that page." />
+
+                <StackPanel
+                    Margin="0,20,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Border
+                        Width="520"
+                        Height="38"
+                        Background="{StaticResource InputBackgroundBrush}"
+                        BorderThickness="0"
+                        CornerRadius="5">
+                        <PasswordBox
+                            x:Name="ClientIdBox"
+                            Padding="8,0"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="15"
+                            Foreground="{StaticResource SurfaceDarkBrush}"
+                            PasswordChar="●"
+                            PasswordChanged="ClientIdBox_PasswordChanged" />
+                    </Border>
+                    <Button
+                        x:Name="PasteClientId"
+                        Width="80"
+                        Height="38"
+                        Margin="8,0,0,0"
+                        Click="PasteClientId_Click"
+                        Content="Paste"
+                        Style="{StaticResource Status_Button_style}" />
+                </StackPanel>
+
+                <StackPanel
+                    Margin="0,0,0,22"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BackToPage1"
+                        Width="100"
+                        Height="38"
+                        Margin="0,0,10,0"
+                        Click="BackToPage1_Click"
+                        Content="← Back"
+                        Style="{StaticResource Status_Button_style}" />
+                    <Button
+                        x:Name="ToPage3"
+                        Width="140"
+                        Height="38"
+                        IsEnabled="False"
+                        Click="ToPage3_Click"
+                        Content="Next →"
+                        Style="{StaticResource Status_Button_style}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- PAGE 3: Access Token + Test + Save -->
+            <Grid x:Name="ThirdPage" Visibility="Hidden">
+                <TextBlock
+                    Margin="25,14,25,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    FontFamily="Comfortaa Light"
+                    FontSize="18"
+                    Foreground="White"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Text="Step 2 — Enter Your Access Token">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <Button
+                    x:Name="OpenTokenGenerator"
+                    Width="270"
+                    Height="30"
+                    Margin="0,52,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Click="OpenTokenGenerator_Click"
+                    Content="Need a token? Open Token Generator ↗"
+                    Style="{StaticResource Status_Button_style}" />
+
+                <StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Border
+                        Width="520"
+                        Height="38"
+                        Background="{StaticResource InputBackgroundBrush}"
+                        BorderThickness="0"
+                        CornerRadius="5">
+                        <PasswordBox
+                            x:Name="TokenBox"
+                            Padding="8,0"
+                            HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="15"
+                            Foreground="{StaticResource SurfaceDarkBrush}"
+                            PasswordChar="●"
+                            PasswordChanged="TokenBox_PasswordChanged" />
+                    </Border>
+                    <Button
+                        x:Name="PasteToken"
+                        Width="80"
+                        Height="38"
+                        Margin="8,0,0,0"
+                        Click="PasteToken_Click"
+                        Content="Paste"
+                        Style="{StaticResource Status_Button_style}" />
+                </StackPanel>
+
+                <TextBlock
+                    x:Name="StatusText"
+                    Margin="20,0,20,72"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="13"
+                    MinHeight="20"
+                    Text=""
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+
+                <StackPanel
+                    Margin="0,0,0,22"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BackToPage2"
+                        Width="100"
+                        Height="38"
+                        Margin="0,0,8,0"
+                        Click="BackToPage2_Click"
+                        Content="← Back"
+                        Style="{StaticResource Status_Button_style}" />
+                    <Button
+                        x:Name="TestConnection"
+                        Width="160"
+                        Height="38"
+                        Margin="0,0,8,0"
+                        IsEnabled="False"
+                        Click="TestConnection_Click"
+                        Content="Test Connection"
+                        Style="{StaticResource Status_Button_style}" />
+                    <Button
+                        x:Name="SaveAndClose"
+                        Width="130"
+                        Height="38"
+                        IsEnabled="False"
+                        Click="SaveAndClose_Click"
+                        Content="Save &amp; Close"
+                        Style="{StaticResource Status_Button_style}" />
+                </StackPanel>
+            </Grid>
+
+        </Grid>
+    </Grid>
+</Window>

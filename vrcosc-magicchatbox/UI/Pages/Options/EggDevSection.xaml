@@ -1,0 +1,63 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.EggDevSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel, IsDesignTimeCreatable=True}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid
+        Margin="0,5,0,0"
+        Visibility="{Binding AppState.Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="#EA005E" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.SettingsDev, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyleDEV}"
+                Tag="EGG options"
+                TextOptions.TextRenderingMode="ClearType" />
+
+        </Grid>
+
+
+        <Grid
+            x:Name="Settings_Dev_Grid"
+            Grid.Row="1"
+            Height="Auto"
+            Margin="35,10,0,0"
+            Visibility="{Binding AppSettings.SettingsDev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <CheckBox
+                x:Name="BlankEgg_checkbox"
+                Height="20"
+                IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}"
+                Style="{DynamicResource SettingsCheckbox}">
+                ItsByMe MODE
+            </CheckBox>
+        </Grid>
+    </Grid>
+</UserControl>
