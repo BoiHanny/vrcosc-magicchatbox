@@ -1,24 +1,31 @@
-﻿using LibreHardwareMonitor.Hardware;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Management;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public class ComponentStatsModule
+/// <summary>
+/// Polls hardware sensors (CPU, GPU, RAM, VRAM) and generates the stats description string for the VRChat chatbox.
+/// </summary>
+public class ComponentStatsModule : IModule
 {
-    private static string FileName = null;
+    private string FileName = null;
 
     private static readonly StatsComponentType[] StatDisplayOrder =
     {
@@ -28,11 +35,103 @@ public class ComponentStatsModule
         StatsComponentType.RAM,
     };
 
+    private static readonly StatsComponentType[] SupportedComponentTypes =
+    {
+        StatsComponentType.CPU,
+        StatsComponentType.GPU,
+        StatsComponentType.VRAM,
+        StatsComponentType.RAM,
+    };
 
-    public static Computer CurrentSystem;
+    // GPU list cache — ObservableCollection so the ComboBox binding updates when items arrive
+    public ObservableCollection<string> GPUList { get; } = new();
+
+    private readonly IHardwareMonitorService _hwService;
     private readonly List<ComponentStatsItem> _componentStats = new List<ComponentStatsItem>();
     private string _ramDDRVersion = "Unknown";
     public bool started = false;
+
+    private readonly ISettingsProvider<ComponentStatsSettings> _settingsProvider;
+    public ComponentStatsSettings Settings => _settingsProvider.Value;
+    public void SaveSettings() => _settingsProvider.Save();
+
+    public string Name => "ComponentStats";
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRunning => started;
+    public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken ct = default) { _hwService.Close(); return Task.CompletedTask; }
+    public void Dispose() => _hwService.Close();
+
+    private ISettingsProvider<ComponentStatsSettings> _staticSettingsProvider;
+    private ComponentStatsSettings StaticSettings => _staticSettingsProvider.Value;
+
+    private TimeSettings _timeSettings;
+    private TimeSettings TS => _timeSettings;
+
+    private AppSettings _appSettings;
+    private AppSettings AS => _appSettings;
+
+    private IAppState _appState;
+
+    private IEnvironmentService _env;
+
+    private IntegrationDisplayState _integrationDisplay;
+
+    private ComponentStatsViewModel _statsVm;
+    private ComponentStatsViewModel StatsVm => _statsVm;
+
+    /// <summary>
+    /// Late-bound setter for ComponentStatsViewModel (avoids circular dependency).
+    /// </summary>
+    public void SetStatsViewModel(ComponentStatsViewModel vm) => _statsVm = vm;
+
+    private IntegrationSettings _integrationSettings;
+
+    private readonly IUiDispatcher _dispatcher;
+    private readonly Lazy<IStatePersistenceCoordinator> _persistence;
+    private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
+
+    public ComponentStatsModule(
+        ISettingsProvider<ComponentStatsSettings> settingsProvider,
+        ISettingsProvider<TimeSettings> timeSettingsProvider,
+        ISettingsProvider<AppSettings> appSettingsProvider,
+        IAppState appState,
+        IEnvironmentService env,
+        IntegrationDisplayState integrationDisplay,
+        ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
+        IUiDispatcher dispatcher,
+        Lazy<IStatePersistenceCoordinator> persistence,
+        IHardwareMonitorService hwService,
+        IPrivacyConsentService consentService,
+        IToastService? toast = null)
+    {
+        _settingsProvider = settingsProvider;
+        _staticSettingsProvider = settingsProvider;
+        _timeSettings = timeSettingsProvider.Value;
+        _appSettings = appSettingsProvider.Value;
+        _appState = appState;
+        _env = env;
+        _integrationDisplay = integrationDisplay;
+        _integrationSettings = integrationSettingsProvider.Value;
+        _dispatcher = dispatcher;
+        _persistence = persistence;
+        _hwService = hwService;
+        _consentService = consentService;
+        _toast = toast;
+
+        _consentService.ConsentChanged += (_, e) =>
+        {
+            if (e.Hook == PrivacyHook.HardwareMonitor && e.NewState == ConsentState.Denied)
+            {
+                if (_hwService.IsOpen)
+                    _hwService.Close();
+                _integrationDisplay.ComponentStatCombined = string.Empty;
+                _toast?.Show("🔒 Hardware Monitor", "Hardware monitoring paused — privacy consent revoked.", ToastType.Privacy, key: "hw-privacy-denied");
+            }
+        };
+    }
 
     private void FetchAndStoreDDRVersion()
     {
@@ -44,227 +143,280 @@ public class ComponentStatsModule
         }
     }
 
-    private static string FetchCPUStat() =>
-        FetchStat(HardwareType.Cpu, SensorType.Load, "CPU Total", statsComponentType: StatsComponentType.CPU);
-
-    private static string FetchFPSStat()
+    private string FetchCPUStat()
     {
-        // Replace with actual FPS fetching logic.
-        return "88";
-    }
-
-    private static string FetchGPUStat() =>
-        FetchStat(HardwareType.GpuNvidia, SensorType.Load, ViewModel.Instance.ComponentStatsGPU3DHook ? "D3D 3D" : "GPU Core", hardwarePredicate: h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.GPU);
-
-
-
-    private static string FetchHotspotTemperatureStat(IHardware hardware, ComponentStatsItem item)
-    {
-        foreach (var sensor in hardware.Sensors)
+        var current = StatsVm.ComponentStatsList.FirstOrDefault(s => s.ComponentType == StatsComponentType.CPU);
+        if (current == null) return "N/A";
+        try
         {
-            if (sensor.SensorType == SensorType.Temperature &&
-                (sensor.Name.Contains("Hot spot", StringComparison.InvariantCultureIgnoreCase) ||
-                 sensor.Name.Contains("Hotspot", StringComparison.InvariantCultureIgnoreCase)))
-            {
-                double temperatureCelsius = sensor.Value ?? 0.0;
-
-                if (temperatureCelsius == 0)
-                {
-                    item.cantShowHotSpotTemperature = true;
-                    return "N/A";
-                }
-
-                string unit = ViewModel.Instance.TemperatureUnit;
-                double temperature = unit == "F" ? temperatureCelsius * 9 / 5 + 32 : temperatureCelsius;
-
-                if (item.RemoveNumberTrailing)
-                {
-                    temperature = Math.Round(temperature);
-                }
-
-                string unitSymbol = unit == "F" ? "°F" : "°C";
-                string tempText = ViewModel.Instance.UseEmojisForTempAndPower ? "🔥" : "GPU HotSpot";
-                if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
-                {
-                    tempText = DataController.TransformToSuperscript(tempText);
-                }
-
-                string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
-                item.cantShowHotSpotTemperature = false;
-                return $"{tempText} {formattedTemperature}{DataController.TransformToSuperscript(unitSymbol)}";
-            }
+            float? load = _hwService.GetCpuLoad();
+            string name = _hwService.GetCpuName();
+            UpdateHardwareName(current, name);
+            if (load == null) return "N/A";
+            return current.RemoveNumberTrailing == true ? $"{(int)load}" : $"{load:F1}";
         }
-        item.cantShowHotSpotTemperature = true;
-        return "N/A";
-    }
-
-    private string FetchPowerStat(IHardware hardware, ComponentStatsItem item)
-    {
-        foreach (var sensor in hardware.Sensors)
+        catch (Exception ex)
         {
-            if (sensor.SensorType == SensorType.Power &&
-                (sensor.Name.Contains("Package", StringComparison.InvariantCultureIgnoreCase) ||
-                 sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
-            {
-                double power = sensor.Value ?? 0.0;
-
-                if (power == 0)
-                {
-                    item.cantShowWattage = true;
-                    return "N/A";
-                }
-
-                if (item.RemoveNumberTrailing)
-                {
-                    power = Math.Round(power);
-                }
-
-                string powerUnit = "W";
-                string powerText = ViewModel.Instance.UseEmojisForTempAndPower ? "⚡" : "power";
-                if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
-                {
-                    powerText = DataController.TransformToSuperscript(powerText);
-                }
-
-                string formattedPower = item.RemoveNumberTrailing ? $"{(int)power}" : $"{power:F1}";
-                item.cantShowWattage = false;
-                return $"{powerText} {formattedPower}{DataController.TransformToSuperscript(powerUnit)}";
-            }
+            Logging.WriteException(ex, MSGBox: false);
+            return "N/A";
         }
-        item.cantShowWattage = true;
-        return "N/A";
     }
 
-    private static (string UsedMemory, string MaxMemory) FetchRAMStats()
+    private string FetchCPUMaxCoreLoadStat(ComponentStatsItem item)
     {
-        var current = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+        float? maxCore = _hwService.GetCpuMaxCoreLoad();
+        if (maxCore == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "🔺" : "max core";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value = item.RemoveNumberTrailing ? $"{(int)maxCore.Value}" : $"{maxCore.Value:F1}";
+        return $"{label} {value}﹪";
+    }
 
-        if (TryFetchWindowsMemory(out double usedMemoryVal, out double totalMemoryVal))
+    private string FetchCpuClockStat(ComponentStatsItem item)
+    {
+        float? mhz = _hwService.GetCpuCoreClock();
+        if (mhz == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "⚡" : "clk";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value;
+        if (mhz.Value >= 1000f)
+            value = $"{mhz.Value / 1000f:F1}GHz";
+        else
+            value = $"{(int)mhz.Value}MHz";
+        return $"{label} {value}";
+    }
+
+    private string FetchGpuCoreClockStat(ComponentStatsItem item)
+    {
+        string gpuName = GetDedicatedGPUName();
+        float? mhz = _hwService.GetGpuCoreClock(gpuName);
+        if (mhz == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "🔄" : "core clk";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value = item.RemoveNumberTrailing ? $"{(int)mhz.Value}" : $"{mhz.Value:F0}";
+        return $"{label} {value}MHz";
+    }
+
+    private string FetchGpuFanSpeedStat(ComponentStatsItem item)
+    {
+        string gpuName = GetDedicatedGPUName();
+        float? rpm = _hwService.GetGpuFanSpeed(gpuName);
+        if (rpm == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "🌀" : "fan";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value = item.RemoveNumberTrailing ? $"{(int)rpm.Value}" : $"{rpm.Value:F0}";
+        return $"{label} {value}RPM";
+    }
+
+    private string FetchGpuMemoryClockStat(ComponentStatsItem item)
+    {
+        string gpuName = GetDedicatedGPUName();
+        float? mhz = _hwService.GetGpuMemoryClock(gpuName);
+        if (mhz == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "💾" : "mem clk";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value = item.RemoveNumberTrailing ? $"{(int)mhz.Value}" : $"{mhz.Value:F0}";
+        return $"{label} {value}MHz";
+    }
+
+    private string FetchGpuMemoryLoadStat(ComponentStatsItem item)
+    {
+        string gpuName = GetDedicatedGPUName();
+        float? load = _hwService.GetGpuMemoryLoad(gpuName);
+        if (load == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "📊" : "mem load";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value = item.RemoveNumberTrailing ? $"{(int)load.Value}" : $"{load.Value:F1}";
+        return $"{label} {value}﹪";
+    }
+
+    private string FetchGpuMemoryTemperatureStat(ComponentStatsItem item)
+    {
+        string gpuName = GetDedicatedGPUName();
+        float? rawCelsius = _hwService.GetGpuMemoryTemperature(gpuName);
+        if (rawCelsius == null || rawCelsius == 0) return null;
+        string unit = Settings.TemperatureUnit;
+        double temperature = unit == "F" ? rawCelsius.Value * 9.0 / 5.0 + 32 : rawCelsius.Value;
+        if (item.RemoveNumberTrailing)
+            temperature = Math.Round(temperature);
+        string unitSymbol = unit == "F" ? "°F" : "°C";
+        string tempText = Settings.UseEmojisForTempAndPower ? "🧊" : "mem temp";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            tempText = TextUtilities.TransformToSuperscript(tempText);
+        string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+        return $"{tempText} {formattedTemperature}{TextUtilities.TransformToSuperscript(unitSymbol)}";
+    }
+
+    private string FetchGPUStat()
+    {
+        var current = StatsVm.ComponentStatsList.FirstOrDefault(s => s.ComponentType == StatsComponentType.GPU);
+        if (current == null) return "N/A";
+        try
         {
+            string gpuName = GetDedicatedGPUName();
+            string sensorName = StaticSettings.GPU3DHook ? "D3D 3D" : "GPU Core";
+            float? load = _hwService.GetGpuLoad(gpuName, sensorName);
+            string resolvedName = _hwService.GetGpuName(gpuName);
+            UpdateHardwareName(current, resolvedName);
+            if (load == null) return "N/A";
+            return current.RemoveNumberTrailing == true ? $"{(int)load}" : $"{load:F1}";
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return "N/A";
+        }
+    }
+
+
+
+    private string FetchHotspotTemperatureStat(ComponentStatsItem item)
+    {
+        string gpuName = GetDedicatedGPUName();
+        float? rawCelsius = _hwService.GetGpuHotspotTemperature(gpuName);
+
+        if (rawCelsius == null || rawCelsius == 0)
+        {
+            item.cantShowHotSpotTemperature = true;
+            return "N/A";
+        }
+
+        string unit = StaticSettings.TemperatureUnit;
+        double temperature = unit == "F" ? rawCelsius.Value * 9.0 / 5.0 + 32 : rawCelsius.Value;
+
+        if (item.RemoveNumberTrailing)
+            temperature = Math.Round(temperature);
+
+        string unitSymbol = unit == "F" ? "°F" : "°C";
+        string tempText = StaticSettings.UseEmojisForTempAndPower ? "🔥" : "GPU HotSpot";
+        if (item.ShowSmallName && !StaticSettings.UseEmojisForTempAndPower)
+            tempText = TextUtilities.TransformToSuperscript(tempText);
+
+        string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+        item.cantShowHotSpotTemperature = false;
+        return $"{tempText} {formattedTemperature}{TextUtilities.TransformToSuperscript(unitSymbol)}";
+    }
+
+    private string FetchPowerStat(bool isCpu, ComponentStatsItem item)
+    {
+        string gpuName = isCpu ? null : GetDedicatedGPUName();
+        float? rawWatts = isCpu ? _hwService.GetCpuPower() : _hwService.GetGpuPower(gpuName);
+
+        if (rawWatts == null || rawWatts == 0)
+        {
+            item.cantShowWattage = true;
+            return "N/A";
+        }
+
+        double power = rawWatts.Value;
+        if (item.RemoveNumberTrailing)
+            power = Math.Round(power);
+
+        string powerUnit = "W";
+        string powerText = Settings.UseEmojisForTempAndPower ? "⚡" : "power";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            powerText = TextUtilities.TransformToSuperscript(powerText);
+
+        string formattedPower = item.RemoveNumberTrailing ? $"{(int)power}" : $"{power:F1}";
+        item.cantShowWattage = false;
+        return $"{powerText} {formattedPower}{TextUtilities.TransformToSuperscript(powerUnit)}";
+    }
+
+    private (string UsedMemory, string MaxMemory) FetchRAMStats()
+    {
+        var current = StatsVm.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+
+        // Try WMI first (more accurate on some systems)
+        var wmiMem = _hwService.GetWindowsMemoryInfo();
+        if (wmiMem.HasValue)
+        {
+            string name = _hwService.GetCpuName(); // RAM doesn't have its own hardware name
             if (current?.RemoveNumberTrailing == true)
-            {
-                return ($"{(int)usedMemoryVal}", $"{(int)totalMemoryVal}");
-            }
+                return ($"{(int)wmiMem.Value.usedGiB}", $"{(int)wmiMem.Value.totalGiB}");
             else
-            {
-                return ($"{usedMemoryVal:F1}", $"{totalMemoryVal:F1}");
-            }
+                return ($"{wmiMem.Value.usedGiB:F1}", $"{wmiMem.Value.totalGiB:F1}");
         }
 
-        string usedMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Used", statsComponentType: StatsComponentType.RAM);
-        string availableMemory = FetchStat(HardwareType.Memory, SensorType.Data, "Memory Available", statsComponentType: StatsComponentType.RAM);
-
-        if (double.TryParse(usedMemory, out usedMemoryVal) && double.TryParse(availableMemory, out double availableMemoryVal))
+        // Fallback to LibreHardwareMonitor
+        float? used = _hwService.GetRamUsed();
+        float? available = _hwService.GetRamAvailable();
+        if (used.HasValue && available.HasValue)
         {
-            double totalMemory = usedMemoryVal + availableMemoryVal;
-
+            double total = used.Value + available.Value;
             if (current?.RemoveNumberTrailing == true)
-            {
-                return ($"{(int)usedMemoryVal}", $"{(int)totalMemory}");
-            }
+                return ($"{(int)used.Value}", $"{(int)total}");
             else
-            {
-                return ($"{usedMemoryVal:F1}", $"{totalMemory:F1}");
-            }
+                return ($"{used.Value:F1}", $"{total:F1}");
         }
 
         return ("N/A", "N/A");
     }
 
-    private static bool TryFetchWindowsMemory(out double usedGiB, out double totalGiB)
+    /// <summary>
+    /// Updates display-name side-effects on a ComponentStatsItem when hardware name is resolved.
+    /// </summary>
+    private void UpdateHardwareName(ComponentStatsItem current, string hardwareName)
     {
-        usedGiB = 0;
-        totalGiB = 0;
-
-        try
+        if (current == null || string.IsNullOrEmpty(hardwareName)) return;
+        if (current.HardwareFriendlyName != hardwareName)
         {
-            using var searcher = new ManagementObjectSearcher("SELECT TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem");
-            foreach (ManagementObject queryObj in searcher.Get())
-            {
-                if (queryObj["TotalVisibleMemorySize"] == null || queryObj["FreePhysicalMemory"] == null)
-                {
-                    continue;
-                }
-
-                double totalKb = Convert.ToDouble(queryObj["TotalVisibleMemorySize"]);
-                double freeKb = Convert.ToDouble(queryObj["FreePhysicalMemory"]);
-                if (totalKb <= 0)
-                {
-                    continue;
-                }
-
-                totalGiB = totalKb / 1024.0 / 1024.0;
-                usedGiB = Math.Max(0, (totalKb - freeKb) / 1024.0 / 1024.0);
-                return true;
-            }
+            current.HardwareFriendlyName = hardwareName;
+            if (!current.ReplaceWithHardwareName)
+                current.HardwareFriendlyNameSmall = TextUtilities.TransformToSuperscript(hardwareName);
         }
-        catch (Exception ex)
+        if (current.ReplaceWithHardwareName || string.IsNullOrEmpty(current.HardwareFriendlyNameSmall))
         {
-            Logging.WriteException(ex, MSGBox: false);
+            current.CustomHardwarenameValueSmall = TextUtilities.TransformToSuperscript(current.CustomHardwarenameValue);
         }
-
-        return false;
     }
 
-    private static string FetchStat(
-        HardwareType hardwareType,
-        SensorType sensorType,
-        string sensorName,
-        Func<double, double> transform = null,
-        Func<IHardware, bool> hardwarePredicate = null,
-        StatsComponentType statsComponentType = StatsComponentType.Unknown)
+    private string FetchTemperatureStat(bool isCpu, ComponentStatsItem item)
     {
-        if (hardwareType == default || sensorType == default || string.IsNullOrWhiteSpace(sensorName))
+        string gpuName = isCpu ? null : GetDedicatedGPUName();
+        float? rawCelsius = isCpu ? _hwService.GetCpuTemperature() : _hwService.GetGpuTemperature(gpuName);
+
+        if (rawCelsius == null || rawCelsius == 0)
         {
+            item.cantShowTemperature = true;
             return "N/A";
         }
 
-        if (statsComponentType == StatsComponentType.Unknown)
-        {
-            return "N/A";
-        }
+        string unit = Settings.TemperatureUnit;
+        double temperature = unit == "F" ? rawCelsius.Value * 9.0 / 5.0 + 32 : rawCelsius.Value;
 
-        ComponentStatsItem current = null;
-        if (statsComponentType != StatsComponentType.Unknown)
-        {
-            current = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == statsComponentType);
-        }
+        if (item.RemoveNumberTrailing)
+            temperature = Math.Round(temperature);
 
+        string unitSymbol = unit == "F" ? "°F" : "°C";
+        string tempText = Settings.UseEmojisForTempAndPower ? "♨️" : "temp";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            tempText = TextUtilities.TransformToSuperscript(tempText);
+
+        string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+        item.cantShowTemperature = false;
+        return $"{tempText} {formattedTemperature}{TextUtilities.TransformToSuperscript(unitSymbol)}";
+    }
+
+    private string FetchVRAMMaxStat()
+    {
+        var current = StatsVm.ComponentStatsList.FirstOrDefault(s => s.ComponentType == StatsComponentType.VRAM);
+        if (current == null) return "N/A";
         try
         {
-            IHardware hardware = hardwarePredicate == null
-                ? CurrentSystem.Hardware.FirstOrDefault(h => h.HardwareType == hardwareType)
-                : CurrentSystem.Hardware.FirstOrDefault(hardwarePredicate);
-
-            if (hardware == null) return "N/A";
-
-            hardware.Update();
-            var sensor = hardware.Sensors
-                .FirstOrDefault(s => s.SensorType == sensorType && s.Name == sensorName);
-
-            if (current.HardwareFriendlyName != hardware.Name)
-            {
-                current.HardwareFriendlyName = hardware.Name;
-                if (!current.ReplaceWithHardwareName)
-                    current.HardwareFriendlyNameSmall = DataController.TransformToSuperscript(hardware.Name);
-            }
-            if (current.ReplaceWithHardwareName || string.IsNullOrEmpty(current.HardwareFriendlyNameSmall))
-            {
-                current.CustomHardwarenameValueSmall = DataController.TransformToSuperscript(current.CustomHardwarenameValue);
-            }
-
-            if (sensor?.Value == null) return "N/A";
-
-            var value = transform == null ? sensor.Value.Value : transform(sensor.Value.Value);
-
-            if (current?.RemoveNumberTrailing == true)
-            {
-                return ((int)value).ToString();
-            }
-            else
-            {
-                return $"{value:F1}";
-            }
+            string gpuName = GetDedicatedGPUName();
+            string sensorName = StaticSettings.GPU3DVRAMHook ? "D3D Dedicated Memory Total" : "GPU Memory Total";
+            float? rawMb = _hwService.GetGpuVramTotal(gpuName, sensorName);
+            string resolvedName = _hwService.GetGpuName(gpuName);
+            UpdateHardwareName(current, resolvedName);
+            if (rawMb == null) return "N/A";
+            double gb = rawMb.Value / 1024.0;
+            return current.RemoveNumberTrailing == true ? $"{(int)gb}" : $"{gb:F1}";
         }
         catch (Exception ex)
         {
@@ -273,170 +425,52 @@ public class ComponentStatsModule
         }
     }
 
-    private string FetchTemperatureStat(IHardware hardware, ComponentStatsItem item)
+    private string FetchVRAMStat()
     {
-        foreach (var sensor in hardware.Sensors)
-        {
-            if (sensor.SensorType == SensorType.Temperature &&
-                (sensor.Name.Contains("Package", StringComparison.InvariantCultureIgnoreCase) ||
-                 sensor.Name.Contains("Core", StringComparison.InvariantCultureIgnoreCase)))
-            {
-                double temperatureCelsius = sensor.Value ?? 0.0;
-
-                if (temperatureCelsius == 0)
-                {
-                    item.cantShowTemperature = true;
-                    return "N/A";
-                }
-
-                string unit = ViewModel.Instance.TemperatureUnit;
-                double temperature = unit == "F" ? temperatureCelsius * 9 / 5 + 32 : temperatureCelsius;
-
-                if (item.RemoveNumberTrailing)
-                {
-                    temperature = Math.Round(temperature);
-                }
-
-                string unitSymbol = unit == "F" ? "°F" : "°C";
-                string tempText = ViewModel.Instance.UseEmojisForTempAndPower ? "♨️" : "temp";
-                if (item.ShowSmallName && !ViewModel.Instance.UseEmojisForTempAndPower)
-                {
-                    tempText = DataController.TransformToSuperscript(tempText);
-                }
-
-                string formattedTemperature = item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
-                item.cantShowTemperature = false;
-                return $"{tempText} {formattedTemperature}{DataController.TransformToSuperscript(unitSymbol)}";
-            }
-        }
-        item.cantShowTemperature = true;
-        return "N/A";
-    }
-
-    private static string FetchVRAMMaxStat() =>
-        FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook ? "D3D Dedicated Memory Total" : "GPU Memory Total", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
-
-    private static string FetchVRAMStat() =>
-        FetchStat(HardwareType.GpuNvidia, SensorType.SmallData, ViewModel.Instance.ComponentStatsGPU3DVRAMHook ? "D3D Dedicated Memory Used" : "GPU Memory Used", val => val / 1024, h => h == GetDedicatedGPU(), statsComponentType: StatsComponentType.VRAM);
-
-    private static DateTimeOffset GetDateTimeWithZone(
-        bool autoSetDaylight,
-        bool timeShowTimeZone,
-        DateTimeOffset localDateTime,
-        TimeZoneInfo timeZoneInfo,
-        out TimeSpan timeZoneOffset)
-    {
-        DateTimeOffset dateTimeWithZone;
-
-        if (autoSetDaylight)
-        {
-            if (timeShowTimeZone)
-            {
-                timeZoneOffset = timeZoneInfo.GetUtcOffset(localDateTime);
-                dateTimeWithZone = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
-            }
-            else
-            {
-                timeZoneOffset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
-                dateTimeWithZone = localDateTime;
-            }
-        }
-        else
-        {
-            timeZoneOffset = timeZoneInfo.BaseUtcOffset;
-            if (ViewModel.Instance.UseDaylightSavingTime)
-            {
-                TimeSpan adjustment = timeZoneInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta ??
-                    TimeSpan.Zero;
-                timeZoneOffset = timeZoneOffset.Add(adjustment);
-            }
-            dateTimeWithZone = localDateTime.ToOffset(timeZoneOffset);
-        }
-        return dateTimeWithZone;
-    }
-
-    private string GetDDRVersionFromSMBIOSMemoryType(ushort smbiosMemoryType)
-    {
-        // Map the SMBIOSMemoryType to DDR version numbers 0-5
-        switch (smbiosMemoryType)
-        {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                return "ᴰᴰᴿ";
-            case 20:
-                return "ᴰᴰᴿ¹";
-            case 21:
-                return "ᴰᴰᴿ²";
-            case 24:
-                return "ᴰᴰᴿ³";
-            case 26:
-                return "ᴰᴰᴿ⁴";
-            case 34:
-                return "ᴰᴰᴿ⁵";
-            // Include other cases as needed
-            default:
-                return null;
-        }
-    }
-
-    private static Hardware GetDedicatedGPU()
-    {
+        var current = StatsVm.ComponentStatsList.FirstOrDefault(s => s.ComponentType == StatsComponentType.VRAM);
+        if (current == null) return "N/A";
         try
         {
-            // Ensure the GPU list in the ViewModel is populated.
-            if (ViewModel.Instance.GPUList == null || !ViewModel.Instance.GPUList.Any())
-            {
-                ViewModel.Instance.GPUList = CurrentSystem.Hardware
-                    .Where(h => h.HardwareType == HardwareType.GpuNvidia || h.HardwareType == HardwareType.GpuAmd || h.HardwareType == HardwareType.GpuIntel)
-                    .Select(h => h.Name)
-                    .ToList();
-            }
-
-            Hardware selectedHardware = null;
-
-            // Use AutoSelectGPU mechanism if SelectedGPU is not set or AutoSelectGPU is true.
-            if (string.IsNullOrEmpty(ViewModel.Instance.SelectedGPU) || ViewModel.Instance.AutoSelectGPU)
-            {
-                // Perform auto-selection of GPU based on predefined criteria.
-                foreach (var type in new[] { HardwareType.GpuNvidia, HardwareType.GpuAmd })
-                {
-                    selectedHardware = CurrentSystem.Hardware
-                        .FirstOrDefault(h => ViewModel.Instance.GPUList.Contains(h.Name) && h.HardwareType == type && !h.Name.ToLower().Contains("integrated")) as Hardware;
-                    if (selectedHardware != null)
-                    {
-                        ViewModel.Instance.SelectedGPU = selectedHardware.Name; // Update SelectedGPU with the auto-selected GPU name.
-                        break; // Break on finding the first dedicated GPU
-                    }
-                }
-
-                // Fallback to integrated GPU if no dedicated GPU is found.
-                if (selectedHardware == null)
-                {
-                    selectedHardware = CurrentSystem.Hardware
-                        .FirstOrDefault(h => ViewModel.Instance.GPUList.Contains(h.Name) && h.HardwareType == HardwareType.GpuIntel) as Hardware;
-                    if (selectedHardware != null)
-                    {
-                        ViewModel.Instance.SelectedGPU = selectedHardware.Name; // Update SelectedGPU with the auto-selected GPU name.
-                    }
-                }
-            }
-            else
-            {
-                // Attempt to use the manually selected GPU if AutoSelectGPU is false and a GPU is selected.
-                selectedHardware = CurrentSystem.Hardware
-                    .FirstOrDefault(h => h.Name.Equals(ViewModel.Instance.SelectedGPU, StringComparison.OrdinalIgnoreCase)) as Hardware;
-            }
-
-            return selectedHardware; // Return the selected or auto-selected GPU.
+            string gpuName = GetDedicatedGPUName();
+            string sensorName = StaticSettings.GPU3DVRAMHook ? "D3D Dedicated Memory Used" : "GPU Memory Used";
+            float? rawMb = _hwService.GetGpuVramUsed(gpuName, sensorName);
+            string resolvedName = _hwService.GetGpuName(gpuName);
+            UpdateHardwareName(current, resolvedName);
+            if (rawMb == null) return "N/A";
+            double gb = rawMb.Value / 1024.0;
+            return current.RemoveNumberTrailing == true ? $"{(int)gb}" : $"{gb:F1}";
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            return null; // Return null in case of any exceptions.
+            return "N/A";
+        }
+    }
+
+
+    private string GetDedicatedGPUName()
+    {
+        try
+        {
+            if (!GPUList.Any())
+                RefreshGpuList();
+
+            if (string.IsNullOrEmpty(StaticSettings.SelectedGPU) || StaticSettings.AutoSelectGPU)
+            {
+                string resolved = _hwService.GetGpuName(null);
+                if (!string.IsNullOrEmpty(resolved))
+                    StaticSettings.SelectedGPU = resolved;
+                return resolved;
+            }
+            else
+            {
+                return _hwService.GetGpuName(StaticSettings.SelectedGPU);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return null;
         }
     }
 
@@ -444,7 +478,7 @@ public class ComponentStatsModule
     {
         try
         {
-            foreach (StatsComponentType type in Enum.GetValues(typeof(StatsComponentType)))
+            foreach (StatsComponentType type in SupportedComponentTypes)
             {
                 var unit = "";
                 switch (type)
@@ -461,9 +495,6 @@ public class ComponentStatsModule
                     case StatsComponentType.VRAM:
                         unit = "ᵍᵇ";
                         break;
-                    case StatsComponentType.FPS:
-                        unit = "ᶠᵖˢ";
-                        break;
                 }
 
                 var component = new ComponentStatsItem(
@@ -472,9 +503,7 @@ public class ComponentStatsModule
                     type,
                     "",
                     "",
-                    !(type == StatsComponentType.FPS ||
-                      type == StatsComponentType.GPU ||
-                      type == StatsComponentType.CPU),
+                    !(type == StatsComponentType.GPU || type == StatsComponentType.CPU),
                     unit
                 );
 
@@ -490,10 +519,6 @@ public class ComponentStatsModule
                     component.ShowTemperature = false;
                 }
 
-                if (type == StatsComponentType.FPS)
-                {
-                    component.ShowUnit = false;
-                }
                 if (type == StatsComponentType.VRAM || type == StatsComponentType.RAM)
                 {
                     component.RemoveNumberTrailing = false;
@@ -501,7 +526,7 @@ public class ComponentStatsModule
                 }
                 _componentStats.Add(component);
             }
-            Application.Current.Dispatcher.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 started = true;
             });
@@ -512,64 +537,56 @@ public class ComponentStatsModule
         }
     }
 
-    private static void PerformStopActions()
+    private void PerformStopActions()
     {
-        var vm = ViewModel.Instance;
-        vm.ComponentStatsRunning = false;
+        _integrationDisplay.ComponentStatsRunning = false;
 
-        if (CurrentSystem != null)
+        if (_hwService.IsOpen)
         {
             StopMonitoringComponents();
         }
     }
 
-    private static void PerformUpdateActions()
+    private void PerformUpdateActions()
     {
-        var vm = ViewModel.Instance;
-        vm.ComponentStatsRunning = true;
+        _integrationDisplay.ComponentStatsRunning = true;
 
-        if (CurrentSystem == null)
+        bool driverApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
+
+        if (driverApproved)
         {
-            StartMonitoringComponents();
+            if (!_hwService.IsOpen)
+                StartMonitoringComponents();
+
+            _hwService.UpdateAll();
+            StatsVm.SyncComponentStatsList();
+
+            if (UpdateStats())
+                _integrationDisplay.ComponentStatCombined = StatsVm.Module.GenerateStatsDescription();
         }
-
-        vm.SyncComponentStatsList();
-
-        if (UpdateStats())
+        else
         {
-            vm.ComponentStatCombined = vm._statsManager.GenerateStatsDescription();
+            // Basic mode — RAM via performance counter (no kernel driver)
+            float? cpuLoad = _hwService.GetCpuLoadBasic();
+            var ramInfo = _hwService.GetWindowsMemoryInfo();
+            var parts = new System.Collections.Generic.List<string>();
+
+            if (cpuLoad.HasValue)
+                parts.Add($"CPU {(int)cpuLoad.Value}%");
+
+            if (ramInfo.HasValue)
+                parts.Add($"RAM {ramInfo.Value.usedGiB:F1}/{ramInfo.Value.totalGiB:F1}GB");
+
+            if (parts.Count > 0)
+                _integrationDisplay.ComponentStatCombined = string.Join(" · ", parts);
         }
     }
 
-    private async void RestartApplication()
+    private bool ShouldUpdateComponentStats()
     {
-        // Obtain the full path of the current application
-        string dllPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-
-        // Replace .dll with .exe to get the path to the executable
-        string exePath = dllPath.Replace(".dll", ".exe");
-
-        // Create a new process to start the application again
-        ProcessStartInfo psi = new ProcessStartInfo(exePath)
-        {
-            UseShellExecute = false
-        };
-
-        // Start the new process
-        Process.Start(psi);
-
-        // Wait for a short delay
-        await Task.Delay(500);
-
-        // Shut down the current application
-        Application.Current.Shutdown();
-    }
-
-    private static bool ShouldUpdateComponentStats()
-    {
-        var vm = ViewModel.Instance;
-        return vm.IntgrComponentStats && vm.IntgrComponentStats_VR && vm.IsVRRunning ||
-               vm.IntgrComponentStats && vm.IntgrComponentStats_DESKTOP && !vm.IsVRRunning;
+        var intgr = _integrationSettings;
+        return intgr.IntgrComponentStats && intgr.IntgrComponentStats_VR && _appState.IsVRRunning ||
+               intgr.IntgrComponentStats && intgr.IntgrComponentStats_DESKTOP && !_appState.IsVRRunning;
     }
 
     public void ActivateStateState(StatsComponentType type, bool state)
@@ -581,6 +598,14 @@ public class ComponentStatsModule
         }
     }
 
+    private string GetEffectiveSeparator()
+    {
+        return string.IsNullOrWhiteSpace(Settings.StatsSeparator) ? " ¦ " : Settings.StatsSeparator;
+    }
+
+    /// <summary>
+    /// Builds the combined stats string from all enabled component items for display in the chatbox.
+    /// </summary>
     public string GenerateStatsDescription()
     {
         List<string> descriptions = new List<string>();
@@ -593,40 +618,67 @@ public class ComponentStatsModule
                 string componentDescription = stat.GetDescription();
                 List<string> additionalInfoParts = new List<string>();
 
-                var cpuHardware = CurrentSystem.Hardware.FirstOrDefault(hw => hw.HardwareType == HardwareType.Cpu);
-                var gpuHardware = GetDedicatedGPU();
+                bool hasCpu = _hwService.GetCpuName() != null;
+                bool hasGpu = GetDedicatedGPUName() != null;
 
-                if (stat.ComponentType == StatsComponentType.CPU && cpuHardware != null)
+                if (stat.ComponentType == StatsComponentType.CPU && hasCpu)
                 {
-                    string cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(cpuHardware, stat) : "";
-                    string cpuPower = stat.ShowWattage ? FetchPowerStat(cpuHardware, stat) : "";
+                    string cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(true, stat) : "";
+                    string cpuPower = stat.ShowWattage ? FetchPowerStat(true, stat) : "";
 
                     if (!stat.cantShowTemperature && !string.IsNullOrWhiteSpace(cpuTemp))
-                    {
                         additionalInfoParts.Add(cpuTemp);
-                    }
                     if (!stat.cantShowWattage && !string.IsNullOrWhiteSpace(cpuPower))
-                    {
                         additionalInfoParts.Add(cpuPower);
+
+                    if (Settings.ShowCpuMaxCoreLoad)
+                    {
+                        var maxCore = FetchCPUMaxCoreLoadStat(stat);
+                        if (!string.IsNullOrWhiteSpace(maxCore)) additionalInfoParts.Add(maxCore);
+                    }
+                    if (Settings.ShowCpuClock)
+                    {
+                        var clk = FetchCpuClockStat(stat);
+                        if (!string.IsNullOrWhiteSpace(clk)) additionalInfoParts.Add(clk);
                     }
                 }
-                else if (stat.ComponentType == StatsComponentType.GPU && gpuHardware != null)
+                else if (stat.ComponentType == StatsComponentType.GPU && hasGpu)
                 {
-                    string gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(gpuHardware, stat) : "";
-                    string gpuHotSpotTemp = stat.ShowHotSpotTemperature ? FetchHotspotTemperatureStat(gpuHardware, stat) : "";
-                    string gpuPower = stat.ShowWattage ? FetchPowerStat(gpuHardware, stat) : "";
+                    string gpuTemp = stat.ShowTemperature ? FetchTemperatureStat(false, stat) : "";
+                    string gpuHotSpotTemp = stat.ShowHotSpotTemperature ? FetchHotspotTemperatureStat(stat) : "";
+                    string gpuPower = stat.ShowWattage ? FetchPowerStat(false, stat) : "";
 
                     if (!stat.cantShowTemperature && !string.IsNullOrWhiteSpace(gpuTemp))
-                    {
                         additionalInfoParts.Add(gpuTemp);
-                    }
                     if (!stat.cantShowHotSpotTemperature && !string.IsNullOrWhiteSpace(gpuHotSpotTemp))
-                    {
                         additionalInfoParts.Add(gpuHotSpotTemp);
-                    }
                     if (!stat.cantShowWattage && !string.IsNullOrWhiteSpace(gpuPower))
-                    {
                         additionalInfoParts.Add(gpuPower);
+
+                    if (Settings.ShowGpuMemoryTemperature)
+                    {
+                        var mt = FetchGpuMemoryTemperatureStat(stat);
+                        if (!string.IsNullOrWhiteSpace(mt)) additionalInfoParts.Add(mt);
+                    }
+                    if (Settings.ShowGpuFanSpeed)
+                    {
+                        var fan = FetchGpuFanSpeedStat(stat);
+                        if (!string.IsNullOrWhiteSpace(fan)) additionalInfoParts.Add(fan);
+                    }
+                    if (Settings.ShowGpuCoreClock)
+                    {
+                        var clk = FetchGpuCoreClockStat(stat);
+                        if (!string.IsNullOrWhiteSpace(clk)) additionalInfoParts.Add(clk);
+                    }
+                    if (Settings.ShowGpuMemoryClock)
+                    {
+                        var mclk = FetchGpuMemoryClockStat(stat);
+                        if (!string.IsNullOrWhiteSpace(mclk)) additionalInfoParts.Add(mclk);
+                    }
+                    if (Settings.ShowGpuMemoryLoad)
+                    {
+                        var ml = FetchGpuMemoryLoadStat(stat);
+                        if (!string.IsNullOrWhiteSpace(ml)) additionalInfoParts.Add(ml);
                     }
                 }
 
@@ -635,15 +687,12 @@ public class ComponentStatsModule
                     componentDescription += $" ⁽{stat.DDRVersion}⁾";
                 }
 
-                // Combine the additionalInfo parts with a single space
                 string additionalInfo = string.Join(" ", additionalInfoParts).Trim();
 
-                // Combine the component description with additional info if any
                 string fullComponentInfo = string.IsNullOrWhiteSpace(additionalInfo)
                     ? componentDescription
                     : $"{componentDescription} {additionalInfo}";
 
-                // Add the full component info to the list of descriptions
                 if (!string.IsNullOrEmpty(fullComponentInfo))
                 {
                     descriptions.Add(fullComponentInfo);
@@ -651,10 +700,9 @@ public class ComponentStatsModule
             }
         }
 
-        ViewModel.Instance.ComponentStatsLastUpdate = DateTime.Now;
+        _integrationDisplay.ComponentStatsLastUpdate = DateTime.Now;
 
-        // Join the descriptions with the separator, ensuring no leading separator when there's only one item
-        return string.Join(" ¦ ", descriptions);
+        return string.Join(GetEffectiveSeparator(), descriptions);
     }
 
     public IReadOnlyList<ComponentStatsItem> GetAllStats()
@@ -670,57 +718,31 @@ public class ComponentStatsModule
 
     public string GetDDRVersion()
     {
-        try
-        {
-            HashSet<string> ddrVersions = new HashSet<string>();
-
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory");
-            foreach (ManagementObject queryObj in searcher.Get())
-            {
-                ushort smbiosMemoryType = Convert.ToUInt16(queryObj["SMBIOSMemoryType"]);
-                string ddrVersion = GetDDRVersionFromSMBIOSMemoryType(smbiosMemoryType);
-                if (!string.IsNullOrEmpty(ddrVersion))
-                {
-                    ddrVersions.Add(ddrVersion);
-                }
-            }
-
-            if (ddrVersions.Count > 0)
-            {
-                // Return the unique DDR versions, joined by a slash if multiple
-                return string.Join("'", ddrVersions);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
-
-        // Return null if DDR version cannot be determined
-        return null;
+        string plain = _hwService.GetDdrVersion();
+        return ToSuperscript(plain);
     }
 
-
-    public static string GetFormattedTime(
-        DateTimeOffset dateTimeWithZone,
-        bool time24H,
-        bool timeShowTimeZone,
-        string timeZoneDisplay)
+    private static string ToSuperscript(string text)
     {
-        CultureInfo userCulture = ViewModel.Instance.UseSystemCulture ? CultureInfo.CurrentCulture : CultureInfo.InvariantCulture;
-        string timeFormat = time24H ? "HH:mm" : "hh:mm tt";
-
-        string formattedTime = dateTimeWithZone.ToString(timeFormat, userCulture);
-
-        if (timeShowTimeZone)
+        if (string.IsNullOrEmpty(text)) return text;
+        var sb = new System.Text.StringBuilder(text.Length);
+        foreach (char c in text)
         {
-            return formattedTime + timeZoneDisplay;
+            sb.Append(c switch
+            {
+                'D' => 'ᴰ',
+                'R' => 'ᴿ',
+                '1' => '¹',
+                '2' => '²',
+                '3' => '³',
+                '4' => '⁴',
+                '5' => '⁵',
+                _ => c,
+            });
         }
-        else
-        {
-            return formattedTime;
-        }
+        return sb.ToString();
     }
+
 
     public string GetHardwareName(StatsComponentType type)
     {
@@ -807,173 +829,9 @@ public class ComponentStatsModule
     }
 
 
-    public static string GetTime()
-    {
-        try
-        {
-            DateTimeOffset localDateTime = DateTimeOffset.Now;
-            TimeZoneInfo timeZoneInfo;
-            string standardAbbreviation = null;
-            string daylightAbbreviation = null;
-
-            switch (ViewModel.Instance.SelectedTimeZone)
-            {
-                case Timezone.UTC:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("UTC");
-                    standardAbbreviation = "UTC";
-                    daylightAbbreviation = "UTC";
-                    break;
-                case Timezone.GMT:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-                    standardAbbreviation = "GMT";
-                    daylightAbbreviation = "BST";
-                    break;
-                case Timezone.EST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                    standardAbbreviation = "EST";
-                    daylightAbbreviation = "EDT";
-                    break;
-                case Timezone.CST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
-                    standardAbbreviation = "CST";
-                    daylightAbbreviation = "CDT";
-                    break;
-                case Timezone.MST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time");
-                    standardAbbreviation = "MST";
-                    daylightAbbreviation = "MDT";
-                    break;
-                case Timezone.PST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                    standardAbbreviation = "PST";
-                    daylightAbbreviation = "PDT";
-                    break;
-                case Timezone.AKST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Alaskan Standard Time");
-                    standardAbbreviation = "AKST";
-                    daylightAbbreviation = "AKDT";
-                    break;
-                case Timezone.HST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Hawaiian Standard Time");
-                    standardAbbreviation = "HST";
-                    daylightAbbreviation = "HST";
-                    break;
-                case Timezone.CET:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-                    standardAbbreviation = "CET";
-                    daylightAbbreviation = "CEST";
-                    break;
-                case Timezone.EET:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. Europe Standard Time");
-                    standardAbbreviation = "EET";
-                    daylightAbbreviation = "EEST";
-                    break;
-                case Timezone.IST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                    standardAbbreviation = "IST";
-                    daylightAbbreviation = "IST";
-                    break;
-                case Timezone.CSTChina:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
-                    standardAbbreviation = "CST";
-                    daylightAbbreviation = "CST";
-                    break;
-                case Timezone.JST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-                    standardAbbreviation = "JST";
-                    daylightAbbreviation = "JST";
-                    break;
-                case Timezone.KST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Korea Standard Time");
-                    standardAbbreviation = "KST";
-                    daylightAbbreviation = "KST";
-                    break;
-                case Timezone.MSK:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
-                    standardAbbreviation = "MSK";
-                    daylightAbbreviation = "MSK";
-                    break;
-                case Timezone.AEST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
-                    standardAbbreviation = "AEST";
-                    daylightAbbreviation = "AEDT";
-                    break;
-                case Timezone.NZST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("New Zealand Standard Time");
-                    standardAbbreviation = "NZST";
-                    daylightAbbreviation = "NZDT";
-                    break;
-                case Timezone.BRT:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-                    standardAbbreviation = "BRT";
-                    daylightAbbreviation = "BRST";
-                    break;
-                case Timezone.SAST:
-                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
-                    standardAbbreviation = "SAST";
-                    daylightAbbreviation = "SAST";
-                    break;
-                default:
-                    timeZoneInfo = TimeZoneInfo.Local;
-                    standardAbbreviation = timeZoneInfo.StandardName;
-                    daylightAbbreviation = timeZoneInfo.DaylightName;
-                    break;
-            }
-
-            // Convert localDateTime to the selected time zone
-            DateTimeOffset targetDateTime = TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo);
-
-            // Determine if DST is in effect based on user settings
-            bool isDaylightSavingTime;
-
-            if (ViewModel.Instance.AutoSetDaylight)
-            {
-                // Use system's DST determination
-                isDaylightSavingTime = timeZoneInfo.IsDaylightSavingTime(targetDateTime);
-            }
-            else
-            {
-                // Use user's manual DST setting
-                isDaylightSavingTime = ViewModel.Instance.UseDaylightSavingTime;
-            }
-
-            // Select the appropriate time zone abbreviation
-            string timezoneLabel = isDaylightSavingTime ? daylightAbbreviation : standardAbbreviation;
-
-            TimeSpan timeZoneOffset;
-            var dateTimeWithZone = GetDateTimeWithZone(
-                ViewModel.Instance.AutoSetDaylight,
-                ViewModel.Instance.TimeShowTimeZone,
-                localDateTime,
-                timeZoneInfo,
-                out timeZoneOffset);
-
-            // Calculate offset sign and absolute values
-            string offsetSign = timeZoneOffset < TimeSpan.Zero ? "-" : "+";
-            int totalOffsetHours = (int)timeZoneOffset.TotalHours;
-            int offsetMinutes = Math.Abs(timeZoneOffset.Minutes);
-
-            // Format the offset string
-            string offsetString = offsetMinutes == 0
-                ? $"{offsetSign}{Math.Abs(totalOffsetHours)}"
-                : $"{offsetSign}{Math.Abs(totalOffsetHours)}:{offsetMinutes.ToString("00")}";
-
-            string timeZoneDisplay = $" ({timezoneLabel}{offsetString})";
-
-            string timeText = GetFormattedTime(
-                dateTimeWithZone,
-                ViewModel.Instance.Time24H,
-                ViewModel.Instance.TimeShowTimeZone,
-                timeZoneDisplay);
-            return timeText;
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-            return "00:00 XX";
-        }
-    }
-
+    /// <summary>
+    /// Returns a human-readable string listing components that have no data available.
+    /// </summary>
     public string GetWhitchComponentsAreNotAvailableString()
     {
         List<string> notAvailableComponents = new List<string>();
@@ -1040,23 +898,22 @@ public class ComponentStatsModule
         return false;
     }
 
-    public static bool IsVRRunning()
+    public bool IsVRRunning()
     {
         try
         {
             bool isSteamVRRunning = Process.GetProcessesByName("vrmonitor").Length > 0;
             bool isOculusRunning = false;
-            if (ViewModel.Instance.CountOculusSystemAsVR)
+            if (AS.CountOculusSystemAsVR)
             {
                 isOculusRunning = Process.GetProcessesByName("OVRServer_x64").Length > 0;
             }
 
             bool isVRRunning = isSteamVRRunning || isOculusRunning;
 
-            // Only set the property if the value has changed
-            if (isVRRunning != ViewModel.Instance.IsVRRunning)
+            if (isVRRunning != _appState.IsVRRunning)
             {
-                ViewModel.Instance.IsVRRunning = isVRRunning;
+                _appState.IsVRRunning = isVRRunning;
             }
 
             return isVRRunning;
@@ -1068,25 +925,23 @@ public class ComponentStatsModule
         }
     }
 
+    /// <summary>
+    /// Loads persisted component stats configuration from disk, or seeds defaults if none exists.
+    /// </summary>
     public void LoadComponentStats()
     {
         try
         {
-            FileName = Path.Combine(ViewModel.Instance.DataPath, "ComponentStatsV1.json");
+            FileName = Path.Combine(_env.DataPath, "ComponentStatsV1.json");
             if (!File.Exists(FileName))
             {
                 InitializeDefaultStats();
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MainWindow.FireExitSave();
-                    RestartApplication();
-                });
+                SaveComponentStats();
                 return;
             }
 
             var jsonData = File.ReadAllText(FileName);
 
-            // Check if the JSON string is empty, contains only null characters, or is whitespace
             if (string.IsNullOrWhiteSpace(jsonData) || jsonData.All(c => c == '\0'))
             {
                 Logging.WriteException(new Exception("The component stats file is empty or corrupted."), MSGBox: false);
@@ -1097,19 +952,52 @@ public class ComponentStatsModule
             var loadedStats = JsonConvert.DeserializeObject<List<ComponentStatsItem>>(jsonData);
             if (loadedStats != null)
             {
+                // Strip legacy FPS entries and normalize to exactly one item per supported type
+                var filtered = loadedStats
+                    .Where(s => s.ComponentType != StatsComponentType.FPS)
+                    .GroupBy(s => s.ComponentType)
+                    .ToDictionary(g => g.Key, g => g.First());
+
                 _componentStats.Clear();
-                _componentStats.AddRange(loadedStats);
+                bool needsResave = false;
+
+                foreach (var type in SupportedComponentTypes)
+                {
+                    if (filtered.TryGetValue(type, out var existing))
+                    {
+                        _componentStats.Add(existing);
+                    }
+                    else
+                    {
+                        // Add a sensible default for this newly supported type
+                        var unit = type == StatsComponentType.CPU || type == StatsComponentType.GPU ? "﹪" : "ᵍᵇ";
+                        var item = new ComponentStatsItem(
+                            type.ToString(), type.GetSmallName(), type, "", "", false, unit)
+                        {
+                            IsEnabled = false,
+                            RemoveNumberTrailing = type == StatsComponentType.RAM || type == StatsComponentType.VRAM ? false : true,
+                        };
+                        _componentStats.Add(item);
+                        needsResave = true;
+                    }
+                }
+
+                if (needsResave || loadedStats.Any(s => s.ComponentType == StatsComponentType.FPS))
+                    SaveComponentStats();
+
                 started = true;
             }
             else
             {
-                Logging.WriteException(new Exception("Failed to deserialize component stats."), MSGBox: true);
+                Logging.WriteException(new Exception("Failed to deserialize component stats."), MSGBox: false);
+                _toast?.Show("⚙️ Hardware Monitor", "Component stats file is corrupt — reset to defaults.", ToastType.Warning, key: "hw-stats-corrupt");
                 InitializeDefaultStats();
             }
         }
         catch (Exception ex)
         {
-            Logging.WriteException(ex, MSGBox: true);
+            Logging.WriteException(ex, MSGBox: false);
+            _toast?.Show("⚙️ Hardware Monitor", "Failed to load component stats configuration.", ToastType.Error, key: "hw-stats-load-failed");
         }
     }
 
@@ -1264,10 +1152,10 @@ public class ComponentStatsModule
 
     public void StartModule()
     {
-        if (ViewModel.Instance.IntgrComponentStats && ViewModel.Instance.IntgrComponentStats_VR &&
-                ViewModel.Instance.IsVRRunning || ViewModel.Instance.IntgrComponentStats &&
-                ViewModel.Instance.IntgrComponentStats_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning)
+        if (_integrationSettings.IntgrComponentStats && _integrationSettings.IntgrComponentStats_VR &&
+                _appState.IsVRRunning || _integrationSettings.IntgrComponentStats &&
+                _integrationSettings.IntgrComponentStats_DESKTOP &&
+                !_appState.IsVRRunning)
         {
             LoadComponentStats();
             FetchAndStoreDDRVersion();
@@ -1275,13 +1163,12 @@ public class ComponentStatsModule
 
     }
 
-    public static void StartMonitoringComponents()
+    public void StartMonitoringComponents()
     {
         try
         {
-            CurrentSystem = new Computer() { IsCpuEnabled = true, IsGpuEnabled = true, IsMemoryEnabled = true, };
-
-            CurrentSystem.Open();
+            _hwService.Open();
+            RefreshGpuList();
         }
         catch (Exception ex)
         {
@@ -1289,14 +1176,24 @@ public class ComponentStatsModule
         }
     }
 
-    public static void StopMonitoringComponents()
+    private void RefreshGpuList()
+    {
+        var gpus = _hwService.GetAvailableGpus();
+        _dispatcher.Invoke(() =>
+        {
+            GPUList.Clear();
+            foreach (var gpu in gpus)
+                GPUList.Add(gpu);
+        });
+    }
+
+    public void StopMonitoringComponents()
     {
         try
         {
-            ViewModel.Instance.SyncComponentStatsList();
-            ViewModel.Instance._statsManager.SaveComponentStats();
-            CurrentSystem.Close();
-            CurrentSystem = null;
+            StatsVm.SyncComponentStatsList();
+            StatsVm.Module.SaveComponentStats();
+            _hwService.Close();
         }
         catch (Exception ex)
         {
@@ -1304,7 +1201,10 @@ public class ComponentStatsModule
         }
     }
 
-    public static void TickAndUpdate()
+    /// <summary>
+    /// Checks if a stats update is due and, if so, polls hardware and regenerates the display string.
+    /// </summary>
+    public void TickAndUpdate()
     {
         if (ShouldUpdateComponentStats())
         {
@@ -1330,11 +1230,14 @@ public class ComponentStatsModule
 
 
 
-    public static bool UpdateStats()
+    /// <summary>
+    /// Refreshes all component stat values from the hardware service and returns <see langword="true"/> if any changed.
+    /// </summary>
+    public bool UpdateStats()
     {
         void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)
         {
-            var statItem = ViewModel.Instance.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type);
+            var statItem = StatsVm.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == type);
             if (statItem == null || !statItem.IsEnabled) return;
 
             string value = fetchStat();
@@ -1342,7 +1245,7 @@ public class ComponentStatsModule
 
             if (!value.Contains("N/A"))
             {
-                ViewModel.Instance.UpdateComponentStat(type, value);
+                StatsVm.UpdateComponentStat(type, value);
                 SetAvailability(type, true);
             }
             else
@@ -1352,7 +1255,7 @@ public class ComponentStatsModule
 
             if (maxValue != null && !maxValue.Contains("N/A"))
             {
-                ViewModel.Instance.SetComponentStatMaxValue(type, maxValue);
+                StatsVm.SetComponentStatMaxValue(type, maxValue);
                 SetAvailability(type, true);
             }
             else if (maxValue != null && statItem.ShowMaxValue)
@@ -1366,16 +1269,16 @@ public class ComponentStatsModule
             switch (type)
             {
                 case StatsComponentType.CPU:
-                    ViewModel.Instance.isCPUAvailable = value;
+                    StatsVm.isCPUAvailable = value;
                     break;
                 case StatsComponentType.GPU:
-                    ViewModel.Instance.IsGPUAvailable = value;
+                    StatsVm.IsGPUAvailable = value;
                     break;
                 case StatsComponentType.RAM:
-                    ViewModel.Instance.isRAMAvailable = value;
+                    StatsVm.isRAMAvailable = value;
                     break;
                 case StatsComponentType.VRAM:
-                    ViewModel.Instance.isVRAMAvailable = value;
+                    StatsVm.isVRAMAvailable = value;
                     break;
             }
         }
@@ -1383,9 +1286,9 @@ public class ComponentStatsModule
         {
             UpdateComponentStats(StatsComponentType.CPU, FetchCPUStat);
             UpdateComponentStats(StatsComponentType.GPU, FetchGPUStat);
-            UpdateComponentStats(StatsComponentType.RAM, () => FetchRAMStats().UsedMemory, () => FetchRAMStats().MaxMemory);
+            var ramResult = FetchRAMStats();
+            UpdateComponentStats(StatsComponentType.RAM, () => ramResult.UsedMemory, () => ramResult.MaxMemory);
             UpdateComponentStats(StatsComponentType.VRAM, FetchVRAMStat, FetchVRAMMaxStat);
-            UpdateComponentStats(StatsComponentType.FPS, FetchFPSStat);
         }
         catch (Exception ex)
         {

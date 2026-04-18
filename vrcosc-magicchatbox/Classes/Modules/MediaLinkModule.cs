@@ -1,53 +1,101 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.ViewModels.Models;
+using vrcosc_magicchatbox.ViewModels.State;
 using Windows.Media.Control;
 using WindowsMediaController;
 using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public class MediaLinkModule
+/// <summary>
+/// Manages Windows media sessions and exposes playback state and metadata for the VRChat chatbox.
+/// </summary>
+public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 {
-    private static MediaSession? currentSession = null;
-    private static readonly TimeSpan GracePeriod = TimeSpan.FromSeconds(ViewModel.Instance.MediaSession_Timeout);
-    // this is the main MediaManager object that will be used to get all the media sessions
-    private static MediaManager? mediaManager = null;
-    private static ConcurrentDictionary<string, (MediaSessionInfo, DateTime)> recentlyClosedSessions = new ConcurrentDictionary<string, (MediaSessionInfo, DateTime)>(
+    private readonly IAppState _appState;
+    private readonly MediaLinkDisplayState _mediaLink;
+
+    private readonly IntegrationSettings _integrationSettings;
+    private readonly MediaLinkSettings _mediaLinkSettings;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
+
+    private MediaSession? currentSession = null;
+    private TimeSpan GracePeriod => TimeSpan.FromSeconds(_mediaLinkSettings.SessionTimeout);
+    private MediaManager? mediaManager = null;
+    private ConcurrentDictionary<string, (MediaSessionInfo, DateTime)> recentlyClosedSessions = new ConcurrentDictionary<string, (MediaSessionInfo, DateTime)>(
         );
 
-    // this is a lookup of all sessions that have been opened by the MediaManager and their associated info
-    private static ConcurrentDictionary<MediaSession, MediaSessionInfo> sessionInfoLookup = new ConcurrentDictionary<MediaSession, MediaSessionInfo>(
+    private ConcurrentDictionary<MediaSession, MediaSessionInfo> sessionInfoLookup = new ConcurrentDictionary<MediaSession, MediaSessionInfo>(
         );
 
-    public static DateTime LastMediaChangeTime { get; private set; } = DateTime.UtcNow;
+    public DateTime LastMediaChangeTime { get; private set; } = DateTime.UtcNow;
 
 
-    // this is the main function that will be called when a new media session is opened
-    public MediaLinkModule(bool shouldStart)
+    /// <summary>
+    /// Initializes the module, wires property-change listeners, and optionally starts the media manager.
+    /// </summary>
+    public MediaLinkModule(
+        bool shouldStart,
+        IPrivacyConsentService consentService,
+        IAppState appState,
+        MediaLinkDisplayState mediaLink,
+        ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
+        ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
+        IUiDispatcher dispatcher,
+        IToastService? toast = null)
     {
-        ViewModel.Instance.PropertyChanged += ViewModel_PropertyChanged;
-        if (shouldStart)
+        _appState = appState;
+        _mediaLink = mediaLink;
+        _integrationSettings = integrationSettingsProvider.Value;
+        _mediaLinkSettings = mediaLinkSettingsProvider.Value;
+        _dispatcher = dispatcher;
+        _consentService = consentService;
+        _toast = toast;
+        _appState.PropertyChanged += ViewModel_PropertyChanged;
+        _integrationSettings.PropertyChanged += ViewModel_PropertyChanged;
+
+        _consentService.ConsentChanged += (_, e) =>
+        {
+            if (e.Hook == PrivacyHook.MediaSession)
+            {
+                if (e.NewState == ConsentState.Approved)
+                {
+                    if (shouldStart && mediaManager == null)
+                        Start();
+                }
+                else if (e.NewState == ConsentState.Denied)
+                {
+                    Dispose();
+                    _toast?.Show("🔒 Media Session", "Media session access paused — privacy consent revoked.", ToastType.Privacy, key: "medialink-privacy-denied");
+                }
+            }
+        };
+
+        if (shouldStart && _consentService.IsApproved(PrivacyHook.MediaSession))
             Start();
     }
 
-    // this function is used to automatically switch to a media session if the user has the auto switch setting enabled and the media session is playing and the media session is set to auto switch
-    private static void AutoSwitchMediaSession(MediaSessionInfo sessionInfo)
+    private void AutoSwitchMediaSession(MediaSessionInfo sessionInfo)
     {
-        if (ViewModel.Instance.MediaSession_AutoSwitch &&
+        if (_mediaLinkSettings.AutoSwitch &&
             sessionInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing &&
             sessionInfo.AutoSwitch)
         {
-            foreach (var item in ViewModel.Instance.MediaSessions)
+            foreach (var item in _mediaLink.MediaSessions)
             {
                 if (item.Session.Id == sessionInfo.Session.Id)
                 {
@@ -61,8 +109,7 @@ public class MediaLinkModule
         }
     }
 
-    // this funtion will clean up any expired sessions that have been closed for longer than the grace period.
-    private static void CleanupExpiredSessions()
+    private void CleanupExpiredSessions()
     {
         var expiredSessions = recentlyClosedSessions
             .Where(kvp => DateTime.Now - kvp.Value.Item2 > GracePeriod)
@@ -74,7 +121,7 @@ public class MediaLinkModule
         }
     }
 
-    private static TimeSpan GetSeekTime(MediaSessionInfo mediaSessionInfo, double progressbarValue)
+    private TimeSpan GetSeekTime(MediaSessionInfo mediaSessionInfo, double progressbarValue)
     {
         MediaSession S = mediaSessionInfo.Session;
 
@@ -88,8 +135,7 @@ public class MediaLinkModule
         return TimeSpan.FromSeconds(requestedPositionSeconds);
     }
 
-    // this function will be called when the user changes the media properties of a media session
-    private static void MediaManager_OnAnyMediaPropertyChanged(
+    private void MediaManager_OnAnyMediaPropertyChanged(
         MediaSession sender,
         GlobalSystemMediaTransportControlsSessionMediaProperties args)
     {
@@ -115,8 +161,7 @@ public class MediaLinkModule
         }
     }
 
-    // this function will be called when the user changes the playback state of a media session
-    private static void MediaManager_OnAnyPlaybackStateChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo args)
+    private void MediaManager_OnAnyPlaybackStateChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionPlaybackInfo args)
     {
         try
         {
@@ -128,67 +173,62 @@ public class MediaLinkModule
                     LastMediaChangeTime = DateTime.UtcNow;
                 }
 
-                // Update the playback status.
                 sessionInfo.PlaybackStatus = args.PlaybackStatus;
 
-                // If necessary, update the CurrentTime.
-                // This depends on how you decide to handle time updates.
-                // For example, you might reset the CurrentTime when playback stops.
                 if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped)
                 {
                     sessionInfo.CurrentTime = TimeSpan.Zero;
                 }
 
-                // If the session is playing, you might want to adjust CurrentTime based on other properties.
-                // This part is optional and depends on your specific requirements.
                 if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
                 {
-                    // Potentially update CurrentTime based on args (if needed)
                 }
 
-                // Handle any additional logic such as auto-switching media session.
                 AutoSwitchMediaSession(sessionInfo);
             }
         }
         catch (Exception ex)
         {
-            // Log the exception as per your logging mechanism.
             Logging.WriteException(ex, MSGBox: false);
         }
     }
 
 
 
-    // this function will be called when the user closes a media session, we temporarily store the session info in a dictionary so we can restore it if the user reopens the session within a certain time period
-    private static async void MediaManager_OnAnySessionClosed(MediaSession session)
+    private async void MediaManager_OnAnySessionClosed(MediaSession session)
     {
-        var sessionInfo = sessionInfoLookup.GetValueOrDefault(session);
-
-        if (sessionInfo != null)
+        try
         {
-            sessionInfo.TimeoutRestore = true;
-            recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
+            var sessionInfo = sessionInfoLookup.GetValueOrDefault(session);
 
-            Application.Current.Dispatcher
-                .Invoke(
-                    () =>
-                    {
-                        ViewModel.Instance.MediaSessions.Remove(sessionInfo);
-                    });
+            if (sessionInfo != null)
+            {
+                sessionInfo.TimeoutRestore = true;
+                recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
 
-            sessionInfoLookup.TryRemove(session, out _);
+                _dispatcher.Invoke(
+                        () =>
+                        {
+                            _mediaLink.MediaSessions.Remove(sessionInfo);
+                        });
+
+                sessionInfoLookup.TryRemove(session, out _);
+            }
+
+            if (currentSession == session)
+            {
+                currentSession = null;
+            }
+
+            await Task.Run(() => CleanupExpiredSessions());
         }
-
-        if (currentSession == session)
+        catch (Exception ex)
         {
-            currentSession = null;
+            Logging.WriteInfo($"Error handling media session closed: {ex.Message}");
         }
-
-        await Task.Run(() => CleanupExpiredSessions());
     }
 
-    // this fucntion will be called whe the user opens a new media session.
-    private static void MediaManager_OnAnySessionOpened(MediaSession session)
+    private void MediaManager_OnAnySessionOpened(MediaSession session)
     {
         MediaSessionInfo sessionInfo = null;
 
@@ -206,14 +246,13 @@ public class MediaLinkModule
 
         if (sessionInfo == null)
         {
-            sessionInfo = new MediaSessionInfo { Session = session };
+            sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
         }
 
-        Application.Current.Dispatcher
-            .Invoke(
+        _dispatcher.Invoke(
                 () =>
                 {
-                    ViewModel.Instance.MediaSessions.Add(sessionInfo);
+                    _mediaLink.MediaSessions.Add(sessionInfo);
                 });
 
         sessionInfoLookup[session] = sessionInfo;
@@ -222,10 +261,8 @@ public class MediaLinkModule
         LastMediaChangeTime = DateTime.UtcNow;
     }
 
-    // this function will be  called when the user changes the focused media session
-    private static void MediaManager_OnFocusedSessionChanged(MediaSession session) { currentSession = session; }
+    private void MediaManager_OnFocusedSessionChanged(MediaSession session) { currentSession = session; }
 
-    // this funion will be called when the user changes the setting to enable/disable the media link
     private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == "IntgrScanMediaLink" ||
@@ -233,12 +270,12 @@ public class MediaLinkModule
             e.PropertyName == "IntgrMediaLink_DESKTOP" ||
             e.PropertyName == "IsVRRunning")
         {
-            if (ViewModel.Instance.IntgrScanMediaLink &&
-                ViewModel.Instance.IntgrMediaLink_VR &&
-                ViewModel.Instance.IsVRRunning ||
-                ViewModel.Instance.IntgrScanMediaLink &&
-                ViewModel.Instance.IntgrMediaLink_DESKTOP &&
-                !ViewModel.Instance.IsVRRunning)
+            if (_integrationSettings.IntgrScanMediaLink &&
+                _integrationSettings.IntgrMediaLink_VR &&
+                _appState.IsVRRunning ||
+                _integrationSettings.IntgrScanMediaLink &&
+                _integrationSettings.IntgrMediaLink_DESKTOP &&
+                !_appState.IsVRRunning)
             {
                 if (mediaManager == null)
                     Start();
@@ -251,9 +288,14 @@ public class MediaLinkModule
         }
     }
 
-    // this function will stop the media manager and unsubscribe from all the events that we were listening to for media sessions
-    public static void Dispose()
+    /// <summary>
+    /// Unsubscribes all event handlers and disposes the underlying <see cref="MediaManager"/> instance.
+    /// </summary>
+    public void Dispose()
     {
+        _appState.PropertyChanged -= ViewModel_PropertyChanged;
+        _integrationSettings.PropertyChanged -= ViewModel_PropertyChanged;
+
         if (mediaManager != null)
         {
             mediaManager.OnAnySessionOpened -= MediaManager_OnAnySessionOpened;
@@ -264,12 +306,12 @@ public class MediaLinkModule
             mediaManager.OnAnyTimelinePropertyChanged -= MediaManager_OnAnyTimelinePropertyChanged;
 
             mediaManager.Dispose();
-            ViewModel.Instance.MediaSessions.Clear();
+            _mediaLink.MediaSessions.Clear();
             mediaManager = null;
         }
     }
 
-    public static void MediaManager_NextAsync(MediaSessionInfo sessionInfo)
+    public void MediaManager_NextAsync(MediaSessionInfo sessionInfo)
     {
         MediaSession S = sessionInfo.Session;
 
@@ -279,7 +321,10 @@ public class MediaLinkModule
         S?.ControlSession.TrySkipNextAsync();
     }
 
-    public static void MediaManager_OnAnyTimelinePropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionTimelineProperties args)
+    /// <summary>
+    /// Updates the current session's timeline properties (position and duration) from the Windows media API.
+    /// </summary>
+    public void MediaManager_OnAnyTimelinePropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionTimelineProperties args)
     {
         var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
 
@@ -298,7 +343,7 @@ public class MediaLinkModule
         }
     }
 
-    public static void MediaManager_PlayPauseAsync(MediaSessionInfo sessionInfo)
+    public void MediaManager_PlayPauseAsync(MediaSessionInfo sessionInfo)
     {
         MediaSession S = sessionInfo.Session;
 
@@ -308,7 +353,7 @@ public class MediaLinkModule
         S?.ControlSession.TryTogglePlayPauseAsync();
     }
 
-    public static async Task MediaManager_PreviousAsync(MediaSessionInfo sessionInfo)
+    public async Task MediaManager_PreviousAsync(MediaSessionInfo sessionInfo)
     {
         MediaSession S = sessionInfo.Session;
 
@@ -325,7 +370,7 @@ public class MediaLinkModule
 
 
 
-    public static async Task MediaManager_SeekTo(MediaSessionInfo sessionInfo, double position)
+    public async Task MediaManager_SeekTo(MediaSessionInfo sessionInfo, double position)
     {
         MediaSession S = sessionInfo.Session;
 
@@ -336,7 +381,6 @@ public class MediaLinkModule
         if (S == null)
             return;
 
-        //get the currentplayback position
         long currentPlaybackPosition = S.ControlSession.GetTimelineProperties().Position.Ticks;
 
         await S.ControlSession.TryChangePlaybackPositionAsync(requestedPlaybackPosition);
@@ -349,16 +393,18 @@ public class MediaLinkModule
 
 
 
-    public static void SessionRestore(MediaSessionInfo session)
+    /// <summary>
+    /// Restores persisted per-session display settings (title, artist, auto-switch, etc.) onto <paramref name="session"/>.
+    /// </summary>
+    public void SessionRestore(MediaSessionInfo session)
     {
         MediaSessionSettings savedSettings = new MediaSessionSettings();
 
-        MediaSessionSettings matchingSettings = ViewModel.Instance.SavedSessionSettings
+        MediaSessionSettings matchingSettings = _mediaLink.SavedSessionSettings
             .FirstOrDefault(s => s.SessionId == session.Session.Id);
 
         if (matchingSettings != null)
         {
-            // Copy the values from matchingSettings to savedSettings
             savedSettings.ShowTitle = matchingSettings.ShowTitle;
             savedSettings.AutoSwitch = matchingSettings.AutoSwitch;
             savedSettings.ShowArtist = matchingSettings.ShowArtist;
@@ -376,8 +422,10 @@ public class MediaLinkModule
         }
     }
 
-    // this function will start the media manager and subscribe to all the events that we need to listen to for media sessions
-    public static void Start()
+    /// <summary>
+    /// Starts the <see cref="MediaManager"/> and subscribes to all media session events.
+    /// </summary>
+    public void Start()
     {
         try
         {
@@ -398,17 +446,9 @@ public class MediaLinkModule
 
 
 
-    public enum MediaLinkTimeSeekbar
-    {
-        [Description("Small numbers")]
-        SmallNumbers,
-        [Description("Custom")]
-        NumbersAndSeekBar,
-        [Description("None")]
-        None
-    }
-
-
+    /// <summary>
+    /// Defines the progress-bar visual style (characters, length, time format) used by the media display.
+    /// </summary>
     public class MediaLinkStyle : INotifyPropertyChanged
     {
         private bool displayTime = true;
@@ -515,14 +555,13 @@ public class MediaLinkModule
 
                     if (ShowTimeInSuperscript)
                     {
-                        currentTime = DataController.TransformToSuperscript(currentTime);
-                        fullTime = DataController.TransformToSuperscript(fullTime);
+                        currentTime = TextUtilities.TransformToSuperscript(currentTime);
+                        fullTime = TextUtilities.TransformToSuperscript(fullTime);
                     }
 
                     int totalBlocks = ProgressBarLength;
                     int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
 
-                    // Ensure characters are not empty or null before accessing
                     string filledChar = !string.IsNullOrEmpty(FilledCharacter) ? FilledCharacter : "?";
                     string nonFilledChar = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter : "⁉️";
                     string middleChar = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter : "?";

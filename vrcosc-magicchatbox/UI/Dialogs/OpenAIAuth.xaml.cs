@@ -1,76 +1,56 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Windows;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.Classes;
-using vrcosc_magicchatbox.ViewModels;
-using Newtonsoft.Json.Linq;
+﻿using System.Windows;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
     /// <summary>
-    /// Interaction logic for ManualPulsoidAuth.xaml
+    /// Interaction logic for OpenAIAuth.xaml
     /// </summary>
     public partial class OpenAIAuth : Window
     {
-        public OpenAIAuth()
+        private readonly OpenAIDisplayState _openAIDisplay;
+        private readonly OpenAISettings _openAISettings;
+        private readonly OpenAIModule _openAIModule;
+        private readonly INavigationService _nav;
+
+        public OpenAIAuth(
+            OpenAIDisplayState openAIDisplay,
+            ISettingsProvider<OpenAISettings> openAISettingsProvider,
+            OpenAIModule openAIModule,
+            INavigationService nav)
         {
             InitializeComponent();
-            ViewModel.Instance.OpenAIConnected = false;
-            ViewModel.Instance.OpenAIAccessTokenEncrypted = string.Empty;
-            ViewModel.Instance.OpenAIOrganizationIDEncrypted = string.Empty;
+            _openAIDisplay = openAIDisplay;
+            _openAISettings = openAISettingsProvider.Value;
+            _openAIModule = openAIModule;
+            _nav = nav;
+            _openAIDisplay.Connected = false;
+            _openAISettings.AccessTokenEncrypted = string.Empty;
+            _openAISettings.OrganizationIDEncrypted = string.Empty;
         }
 
         private void Button_close_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
-        
 
-        private static async Task CreateOrganizationIDPage()
+
+        private void OpenOrganizationPage()
         {
-            try
-            {
-                var authorizationEndpoint = $"https://platform.openai.com/account/organization";
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = authorizationEndpoint,
-                    UseShellExecute = true
-                });
-
-
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-            }
+            _nav.OpenUrl(Core.Constants.OpenAiOrganizationUrl);
         }
 
-        private static async Task CreateApiKeyPage()
+        private void OpenApiKeyPage()
         {
-            try
-            {
-                var authorizationEndpoint = $"https://platform.openai.com/api-keys";
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = authorizationEndpoint,
-                    UseShellExecute = true
-                });
-
-
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-            }
+            _nav.OpenUrl(Core.Constants.OpenAiApiKeysUrl);
         }
 
         private void ConnectWithOpenAI_Click(object sender, RoutedEventArgs e)
         {
-            _ = CreateOrganizationIDPage();
+            OpenOrganizationPage();
 
             FirstPage.Visibility = Visibility.Hidden;
             SecondPage.Visibility = Visibility.Visible;
@@ -82,10 +62,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void CenterWindowAtBottom()
         {
-            // Determine which screen the mouse cursor is on.
             var currentScreen = System.Windows.Forms.Screen.FromPoint(System.Windows.Forms.Cursor.Position);
 
-            // Calculate center and bottom coordinates.
             double centerX = currentScreen.WorkingArea.Left + currentScreen.WorkingArea.Width / 2;
             double bottomY = currentScreen.WorkingArea.Bottom;
 
@@ -95,7 +73,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void NextStep_Click(object sender, RoutedEventArgs e)
         {
-            _ = CreateApiKeyPage();
+            OpenApiKeyPage();
 
             FirstPage.Visibility = Visibility.Hidden;
             SecondPage.Visibility = Visibility.Hidden;
@@ -107,7 +85,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void OrganizationID_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            if (OrganizationID.Password.Length > 0 && OrganizationID.Password.StartsWith("org-"))
+            if (OrganizationID.Password.Length > 0 && OrganizationID.Password.StartsWith(Core.Constants.OpenAiOrgIdPrefix))
             {
                 NextStep.IsEnabled = true;
             }
@@ -119,7 +97,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void OpenAIToken_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            if (OpenAIToken.Password.Length > 0 && OpenAIToken.Password.StartsWith("sk-"))
+            if (OpenAIToken.Password.Length > 0 && OpenAIToken.Password.StartsWith(Core.Constants.OpenAiApiKeyPrefix))
             {
                 Connect.IsEnabled = true;
             }
@@ -131,9 +109,9 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void Connect_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.OpenAIAccessToken = OpenAIToken.Password;
-            ViewModel.Instance.OpenAIOrganizationID = OrganizationID.Password;
-            OpenAIModule.Instance.InitializeClient(ViewModel.Instance.OpenAIAccessToken, ViewModel.Instance.OpenAIOrganizationID);
+            _openAISettings.AccessToken = OpenAIToken.Password;
+            _openAISettings.OrganizationID = OrganizationID.Password;
+            _openAIModule.InitializeClient(_openAISettings.AccessToken, _openAISettings.OrganizationID);
             this.Close();
         }
 

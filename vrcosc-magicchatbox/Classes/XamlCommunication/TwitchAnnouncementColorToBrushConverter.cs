@@ -6,6 +6,11 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Converts a <see cref="TwitchAnnouncementColor"/> enum value to a frozen
+    /// <see cref="SolidColorBrush"/> matching Twitch's announcement colour palette.
+    /// Returns <see cref="Brushes.Transparent"/> for unrecognised values.
+    /// </summary>
     public class TwitchAnnouncementColorToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

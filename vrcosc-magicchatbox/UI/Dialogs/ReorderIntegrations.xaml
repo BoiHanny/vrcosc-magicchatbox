@@ -39,7 +39,7 @@
                         </TransformGroup>
                     </LinearGradientBrush.RelativeTransform>
                     <GradientStop Offset="1" Color="#FF1A0842" />
-                    <GradientStop Color="#FF240E54" />
+                    <GradientStop Color="{StaticResource SurfaceDarkColor}" />
                     <GradientStop Offset="0.539" Color="#FF630FA0" />
                 </LinearGradientBrush>
             </Border.Background>
@@ -89,10 +89,10 @@
 
                 <ListBox
                     x:Name="OrderList"
-                    Background="#FF7B7195"
+                    Background="{StaticResource InputBackgroundBrush}"
                     BorderThickness="0"
                     FontSize="15"
-                    Foreground="#FF240E54"
+                    Foreground="{StaticResource SurfaceDarkBrush}"
                     ItemsSource="{Binding TempOrder}" />
 
                 <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">

@@ -1,14 +1,25 @@
-﻿using System;
+using CommunityToolkit.Mvvm.Input;
+using System;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Input;
-using vrcosc_magicchatbox.Classes;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
-    public class ChatItem : INotifyPropertyChanged
+    /// <summary>
+    /// Represents a single chat message item in the recent messages list,
+    /// with live-edit and resend support.
+    /// </summary>
+    public partial class ChatItem : INotifyPropertyChanged
     {
+        /// <summary>
+        /// Set once from App.OnStartup after DI is built.
+        /// Used by the parameterless ctor (JSON deserialization).
+        /// </summary>
+        internal static ChatStatusDisplayState? DefaultChatStatus { get; set; }
+
+        private readonly ChatStatusDisplayState _chatStatus;
         private bool _CancelLiveEdit = false;
 
         private bool _CanLiveEdit = false;
@@ -32,16 +43,27 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private string _Opacity_backup;
 
-        public ChatItem() { CopyToClipboardCommand = new RelayCommand(CopyToClipboard); }
+        public ChatItem(ChatStatusDisplayState chatStatus)
+        {
+            _chatStatus = chatStatus;
+        }
 
-        public void CopyToClipboard(object parameter)
+        /// <summary>Parameterless ctor for JSON deserialization only.</summary>
+        public ChatItem()
+        {
+            _chatStatus = DefaultChatStatus
+                ?? throw new InvalidOperationException("ChatItem.DefaultChatStatus must be set before deserialization.");
+        }
+
+        [RelayCommand]
+        private void CopyToClipboard(object parameter)
         {
             try
             {
                 if (parameter is string text)
                 {
                     Clipboard.SetDataObject(text);
-                    ViewModel.Instance.ChatFeedbackTxt = "Message copied";
+                    _chatStatus.ChatFeedbackTxt = "Message copied";
                 }
             }
             catch (Exception ex)
@@ -79,8 +101,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 NotifyPropertyChanged(nameof(CanLiveEditRun));
             }
         }
-
-        public ICommand CopyToClipboardCommand { get; }
 
         public DateTime CreationDate
         {

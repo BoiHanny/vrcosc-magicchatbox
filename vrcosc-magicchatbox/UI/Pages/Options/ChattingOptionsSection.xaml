@@ -1,0 +1,230 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.ChattingOptionsSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel, IsDesignTimeCreatable=True}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.Settings_Chatting, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="Chatting options"
+                TextOptions.TextRenderingMode="ClearType" />
+        </Grid>
+        <Grid
+            Grid.Row="1"
+            Height="Auto"
+            Margin="34,10,0,0"
+            Visibility="{Binding AppSettings.Settings_Chatting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel>
+                <TextBlock
+                    Grid.Column="0"
+                    Padding="0,0,0,0"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="15"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="Chat timeout" />
+                <TextBox
+                    x:Name="ScanPauseCountDown"
+                    Width="40"
+                    Height="26"
+                    Margin="0,3,0,12"
+                    Padding="5,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalContentAlignment="Center"
+                    Background="{StaticResource InputBackgroundBrush}"
+                    BorderThickness="0"
+                    FontSize="15"
+                    Foreground="{StaticResource TextDarkBrush}"
+                    Text="{Binding AppSettings.ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+
+
+                <CheckBox
+                    x:Name="ChatIconPrefix_checkbox"
+                    Height="22"
+                    Margin="0,0,0,10"
+                    IsChecked="{Binding ChatSettings.PrefixChat, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">
+                    Add 💬 as prefix for chat messages
+                </CheckBox>
+
+
+                <Grid Visibility="{Binding ChatSettings.PrefixChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox
+                        x:Name="EnableEmojiShuffleInChat_checkbox"
+                        Height="20"
+                        Margin="0,0,0,10"
+                        IsChecked="{Binding AppSettings.EnableEmojiShuffleInChats, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}"
+                        Visibility="{Binding AppSettings.EnableEmojiShuffle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        Use your custom icon shuffle as a prefix for chat messages
+                    </CheckBox>
+                </Grid>
+
+
+
+                <CheckBox
+                    x:Name="ChatFX_checkbox"
+                    Height="22"
+                    Margin="0,0,0,10"
+                    IsChecked="{Binding ChatSettings.ChatFX, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">
+                    Play FX sound for VRChat users when sending message
+                </CheckBox>
+                <CheckBox
+                    x:Name="ChatSendAgainFX_checkbox"
+                    Height="22"
+                    Margin="0,0,0,10"
+                    IsChecked="{Binding ChatSettings.ChatSendAgainFX, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}"
+                    Visibility="{Binding ChatSettings.ChatFX, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    Play FX when clicking resend
+                </CheckBox>
+                <CheckBox
+                    x:Name="ChatAddSmallDelay_checkbox"
+                    Height="22"
+                    IsChecked="{Binding ChatSettings.ChatAddSmallDelay, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">
+                    Small delay when sending message (prevents timeout)
+                </CheckBox>
+
+                <StackPanel Visibility="{Binding ChatSettings.ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBlock
+                        Width="auto"
+                        Padding="0,0"
+                        VerticalAlignment="Center"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="15"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="Delay before sending" />
+                    <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                        <Slider
+                            x:Name="ChatAddSmallDelaySensitivitySlider"
+                            Width="134.5"
+                            Height="12"
+                            Margin="2.2,0,4.5,0"
+                            IsSnapToTickEnabled="True"
+                            Maximum="2"
+                            Minimum="0.1"
+                            Style="{StaticResource CustomSlider}"
+                            TickFrequency="0.1"
+                            Value="{Binding Path=ChatSettings.ChatAddSmallDelayTIME, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Width="auto"
+                            Padding="5,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="{Binding ChatSettings.ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Width="auto"
+                            Margin="-2,5"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="sec" />
+                    </StackPanel>
+                </StackPanel>
+                <CheckBox
+                    x:Name="KeepUpdatingChat_checkbox"
+                    Height="22"
+                    Margin="0,0,0,10"
+                    IsChecked="{Binding ChatSettings.KeepUpdatingChat, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">
+                    Overide display time for chat messages (keep updating)
+                </CheckBox>
+                <StackPanel Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBlock
+                        Width="auto"
+                        Padding="0,0"
+                        VerticalAlignment="Center"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="15"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="Update rate of active chat message" />
+                    <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                        <Slider
+                            x:Name="ChattingUpdateRateSensitivitySlider"
+                            Width="134.5"
+                            Height="12"
+                            Margin="2.2,0,4.5,0"
+                            IsSnapToTickEnabled="True"
+                            Maximum="10"
+                            Minimum="2"
+                            Style="{StaticResource CustomSlider}"
+                            TickFrequency="0.1"
+                            Value="{Binding Path=ChatSettings.ChattingUpdateRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Width="auto"
+                            Padding="5,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="{Binding ChatSettings.ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Width="auto"
+                            Margin="-2,5"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="sec" />
+                    </StackPanel>
+                </StackPanel>
+                <CheckBox
+                    x:Name="ChatEdit_checkbox"
+                    Height="22"
+                    Margin="0,0,0,10"
+                    IsChecked="{Binding ChatSettings.ChatLiveEdit, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}"
+                    Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    Edit chat messages
+                </CheckBox>
+                <Grid Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox
+                        x:Name="ChatLiveEdit_checkbox"
+                        Height="22"
+                        Margin="0,0,0,10"
+                        IsChecked="{Binding ChatSettings.RealTimeChatEdit, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}"
+                        Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        Live editing
+                    </CheckBox>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

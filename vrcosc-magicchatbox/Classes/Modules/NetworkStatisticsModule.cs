@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -6,24 +6,29 @@ using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
+/// <summary>
+/// Monitors network interface throughput and generates formatted speed/utilization strings for the chatbox.
+/// </summary>
+public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 {
+    private readonly IAppState _appState;
+
     private NetworkInterface _activeNetworkInterface;
 
-    // CancellationTokenSource for asynchronous initialization
     private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
     private double _currentDownloadSpeedMbps;
     private double _currentUploadSpeedMbps;
-    private readonly Dispatcher _dispatcher;
+    private readonly IUiDispatcher _dispatcher;
     private readonly object _initLock = new object();
     private double _interval = 1000;
     private bool _isInitializing;
@@ -37,11 +42,37 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
     private double _totalUploadedMB;
     private Timer _updateTimer;
 
-    public NetworkStatisticsModule(double interval = 1000)
+    private readonly ISettingsProvider<NetworkStatsSettings> _settingsProvider;
+    public NetworkStatsSettings Settings => _settingsProvider.Value;
+    public void SaveSettings() => _settingsProvider.Save();
+
+    public string Name => "NetworkStatistics";
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRunning => _isMonitoring;
+    public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken ct = default) { StartModule(); return Task.CompletedTask; }
+    public Task StopAsync(CancellationToken ct = default) { StopModule(); return Task.CompletedTask; }
+
+    private readonly IntegrationSettings _integrationSettings;
+    private readonly IToastService? _toast;
+    private bool _networkErrorShown;
+
+    public NetworkStatisticsModule(
+        IAppState appState,
+        ISettingsProvider<NetworkStatsSettings> settingsProvider,
+        ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
+        IUiDispatcher dispatcher,
+        double interval = 1000,
+        IToastService? toast = null)
     {
+        _appState = appState;
+        _settingsProvider = settingsProvider;
+        _integrationSettings = integrationSettingsProvider.Value;
         Interval = interval;
-        _dispatcher = Application.Current.Dispatcher;
-        ViewModel.Instance.PropertyChanged += PropertyChangedHandler;
+        _dispatcher = dispatcher;
+        _toast = toast;
+        _appState.PropertyChanged += PropertyChangedHandler;
+        _integrationSettings.PropertyChanged += PropertyChangedHandler;
 
         InitializeNetworkStatsAsync().ConfigureAwait(false);
     }
@@ -50,9 +81,9 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
 
     private string ConvertToSuperScriptIfNeeded(string unitstring)
     {
-        if (ViewModel.Instance.NetworkStats_StyledCharacters)
+        if (Settings.StyledCharacters)
         {
-            return DataController.TransformToSuperscript(unitstring.Replace(":", ""));
+            return TextUtilities.TransformToSuperscript(unitstring.Replace(":", ""));
         }
         else
         {
@@ -83,58 +114,21 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
     }
 
     /// <summary>
-    /// Asynchronously determines the active network interface.
-    /// Includes only IPv4 statistics.
+    /// Determines the active network interface using priority-based selection.
+    /// No traffic measurement delay — instant selection.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The selected active NetworkInterface or null if none found.</returns>
-    private NetworkInterface GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
+    private Task<NetworkInterface> GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
     {
         var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
             .Where(ni =>
                 ni.OperationalStatus == OperationalStatus.Up &&
                 ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
                 ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
-                ni.GetIPProperties().UnicastAddresses.Any()).ToList();
+                ni.GetIPProperties().UnicastAddresses.Any())
+            .OrderByDescending(ni => GetInterfacePriority(ni))
+            .ToList();
 
-        if (networkInterfaces.Count == 0)
-            return null;
-
-        // If there's only one active network interface, return it directly
-        if (networkInterfaces.Count == 1)
-        {
-            return networkInterfaces.First();
-        }
-
-        // Prioritize network interfaces based on type (e.g., Ethernet over Wireless)
-        var prioritizedInterfaces = networkInterfaces.OrderByDescending(ni => GetInterfacePriority(ni)).ToList();
-
-        // Measure initial bytes sent/received for all interfaces
-        var interfaceStats = prioritizedInterfaces.Select(ni => new InterfaceStats
-        {
-            NetworkInterface = ni,
-            InitialBytesReceived = GetTotalBytes(ni).BytesReceived,
-            InitialBytesSent = GetTotalBytes(ni).BytesSent
-        }).ToList();
-
-        // Wait for a short interval asynchronously
-        Task.Delay(500, cancellationToken).Wait(cancellationToken);
-
-        // Measure bytes sent/received after the interval
-        foreach (var stat in interfaceStats)
-        {
-            var currentStats = GetTotalBytes(stat.NetworkInterface);
-            stat.BytesReceivedDiff = currentStats.BytesReceived - stat.InitialBytesReceived;
-            stat.BytesSentDiff = currentStats.BytesSent - stat.InitialBytesSent;
-            stat.TotalBytesDiff = stat.BytesReceivedDiff + stat.BytesSentDiff;
-        }
-
-        // Select the network interface with the highest total bytes difference
-        var mostActiveInterface = interfaceStats
-            .OrderByDescending(s => s.TotalBytesDiff)
-            .FirstOrDefault(s => s.TotalBytesDiff > 0);
-
-        return mostActiveInterface?.NetworkInterface ?? prioritizedInterfaces.FirstOrDefault();
+        return Task.FromResult(networkInterfaces.FirstOrDefault());
     }
 
     /// <summary>
@@ -217,19 +211,27 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
             }
             else
             {
-                // Handle the case when no active network interface is found
                 Logging.WriteException(new Exception("No active network interface found"), MSGBox: false);
                 IsInitialized = false;
+                if (!_networkErrorShown)
+                {
+                    _networkErrorShown = true;
+                    _toast?.Show("🌐 Network Stats", "No active network interface found. Network monitoring unavailable.", ToastType.Warning, key: "network-no-interface");
+                }
             }
         }
         catch (OperationCanceledException)
         {
-            // Initialization was canceled; do nothing.
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
             IsInitialized = false;
+            if (!_networkErrorShown)
+            {
+                _networkErrorShown = true;
+                _toast?.Show("🌐 Network Stats", "Network monitoring failed to initialize.", ToastType.Warning, key: "network-init-error");
+            }
         }
         finally
         {
@@ -242,10 +244,10 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
 
     private bool IsRelevantPropertyChange(string propertyName)
     {
-        return propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics) ||
-               propertyName == nameof(ViewModel.Instance.IsVRRunning) ||
-               propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_VR) ||
-               propertyName == nameof(ViewModel.Instance.IntgrNetworkStatistics_DESKTOP);
+        return propertyName == nameof(_integrationSettings.IntgrNetworkStatistics) ||
+               propertyName == nameof(_appState.IsVRRunning) ||
+               propertyName == nameof(_integrationSettings.IntgrNetworkStatistics_VR) ||
+               propertyName == nameof(_integrationSettings.IntgrNetworkStatistics_DESKTOP);
     }
 
     private void OnTimedEvent(object state)
@@ -259,34 +261,28 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
                     return;
             }
 
-            // Update UseInterfaceMaxSpeed based on ViewModel
-            if (UseInterfaceMaxSpeed != ViewModel.Instance.NetworkStats_UseInterfaceMaxSpeed)
+            if (UseInterfaceMaxSpeed != Settings.UseInterfaceMaxSpeed)
             {
-                UseInterfaceMaxSpeed = ViewModel.Instance.NetworkStats_UseInterfaceMaxSpeed;
+                UseInterfaceMaxSpeed = Settings.UseInterfaceMaxSpeed;
                 MaxDownloadSpeedMbps = 0;
                 MaxUploadSpeedMbps = 0;
             }
 
             var stats = GetTotalBytes(_activeNetworkInterface);
 
-            // Calculate the differences since the last check
             var bytesReceivedDiff = stats.BytesReceived - _previousBytesReceived;
             var bytesSentDiff = stats.BytesSent - _previousBytesSent;
 
-            // Update previous values
             _previousBytesReceived = stats.BytesReceived;
             _previousBytesSent = stats.BytesSent;
 
-            // Calculate speeds in Mbps
             var intervalInSeconds = Interval / 1000;
             var downloadSpeed = (bytesReceivedDiff * 8) / 1e6 / intervalInSeconds;
             var uploadSpeed = (bytesSentDiff * 8) / 1e6 / intervalInSeconds;
 
-            // Update total downloaded and uploaded data in MB
             var totalDownloaded = TotalDownloadedMB + (bytesReceivedDiff / 1e6);
             var totalUploaded = TotalUploadedMB + (bytesSentDiff / 1e6);
 
-            // Update maximum observed speeds if not using interface max speed
             if (!UseInterfaceMaxSpeed)
             {
                 if (downloadSpeed > MaxDownloadSpeedMbps)
@@ -296,7 +292,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
                     MaxUploadSpeedMbps = uploadSpeed;
             }
 
-            // Determine the max speed to use for utilization calculation
             var maxDownloadSpeed = UseInterfaceMaxSpeed
                 ? _activeNetworkInterface.Speed / 1e6
                 : MaxDownloadSpeedMbps;
@@ -305,13 +300,11 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
                 ? _activeNetworkInterface.Speed / 1e6
                 : MaxUploadSpeedMbps;
 
-            // Update network utilization
             var utilization = maxDownloadSpeed > 0
                 ? Math.Min(100, (downloadSpeed / maxDownloadSpeed) * 100)
                 : 0;
 
-            // Update properties on the UI thread
-            _dispatcher.BeginInvoke(new Action(() =>
+            _dispatcher.InvokeAsync(() =>
             {
                 CurrentDownloadSpeedMbps = downloadSpeed;
                 CurrentUploadSpeedMbps = uploadSpeed;
@@ -320,7 +313,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
                 NetworkUtilization = utilization;
                 MaxDownloadSpeedMbps = maxDownloadSpeed;
                 MaxUploadSpeedMbps = maxUploadSpeed;
-            }));
+            });
         }
         catch (Exception ex)
         {
@@ -345,16 +338,16 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
 
     private bool ShouldStartMonitoring()
     {
-        return ViewModel.Instance.IntgrNetworkStatistics &&
-               ((ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrNetworkStatistics_VR) ||
-                (!ViewModel.Instance.IsVRRunning && ViewModel.Instance.IntgrNetworkStatistics_DESKTOP));
+        return _integrationSettings.IntgrNetworkStatistics &&
+               ((_appState.IsVRRunning && _integrationSettings.IntgrNetworkStatistics_VR) ||
+                (!_appState.IsVRRunning && _integrationSettings.IntgrNetworkStatistics_DESKTOP));
     }
 
     protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
         if (!_dispatcher.CheckAccess())
         {
-            _dispatcher.BeginInvoke(() =>
+            _dispatcher.InvokeAsync(() =>
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             });
@@ -374,14 +367,21 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
         return true;
     }
 
+    /// <summary>
+    /// Disposes the timer, cancels any pending async initialization, and unregisters property-change handlers.
+    /// </summary>
     public void Dispose()
     {
         StopModule();
         _cancellationTokenSource.Cancel();
         _cancellationTokenSource.Dispose();
-        ViewModel.Instance.PropertyChanged -= PropertyChangedHandler;
+        _appState.PropertyChanged -= PropertyChangedHandler;
+        _integrationSettings.PropertyChanged -= PropertyChangedHandler;
     }
 
+    /// <summary>
+    /// Builds the network stats string from enabled metrics for display in the chatbox.
+    /// </summary>
     public string GenerateDescription()
     {
         const int maxLineWidth = 25;
@@ -389,28 +389,27 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
         List<string> lines = new List<string>();
         string currentLine = "";
 
-        // List to store individual network stats descriptions
         var networkStatsDescriptions = new List<string>();
 
-        if (ViewModel.Instance.NetworkStats_ShowCurrentDown)
+        if (Settings.ShowCurrentDown)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Down: ")} {FormatSpeed(CurrentDownloadSpeedMbps)}");
 
-        if (ViewModel.Instance.NetworkStats_ShowCurrentUp)
+        if (Settings.ShowCurrentUp)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Up: ")} {FormatSpeed(CurrentUploadSpeedMbps)}");
 
-        if (ViewModel.Instance.NetworkStats_ShowMaxDown)
+        if (Settings.ShowMaxDown)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Max Down: ")} {FormatSpeed(MaxDownloadSpeedMbps)}");
 
-        if (ViewModel.Instance.NetworkStats_ShowMaxUp)
+        if (Settings.ShowMaxUp)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Max Up: ")} {FormatSpeed(MaxUploadSpeedMbps)}");
 
-        if (ViewModel.Instance.NetworkStats_ShowTotalDown)
+        if (Settings.ShowTotalDown)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Down: ")} {FormatData(TotalDownloadedMB)}");
 
-        if (ViewModel.Instance.NetworkStats_ShowTotalUp)
+        if (Settings.ShowTotalUp)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Up: ")} {FormatData(TotalUploadedMB)}");
 
-        if (ViewModel.Instance.NetworkStats_ShowNetworkUtilization)
+        if (Settings.ShowNetworkUtilization)
             networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network Utilization: ")} {NetworkUtilization:N2} %");
 
         if (networkStatsDescriptions.Count == 0)
@@ -476,7 +475,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
         _isMonitoring = false;
     }
 
-    // Implement property getters and setters with OnPropertyChanged notifications
     public double CurrentDownloadSpeedMbps
     {
         get => _currentDownloadSpeedMbps;
@@ -535,22 +533,11 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IDisposable
         set => SetProperty(ref _totalUploadedMB, value);
     }
 
-    // New property to control max speed source
     public bool UseInterfaceMaxSpeed { get; set; } = false;
 
     private struct TotalBytes
     {
         public long BytesReceived;
         public long BytesSent;
-    }
-
-    private class InterfaceStats
-    {
-        public long BytesReceivedDiff { get; set; }
-        public long BytesSentDiff { get; set; }
-        public long InitialBytesReceived { get; set; }
-        public long InitialBytesSent { get; set; }
-        public NetworkInterface NetworkInterface { get; set; }
-        public long TotalBytesDiff { get; set; }
     }
 }

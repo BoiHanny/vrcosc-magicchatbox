@@ -1,45 +1,62 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using TwitchLib.Api;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules.Twitch;
+using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public sealed partial class TwitchModule : ObservableObject
+/// <summary>
+/// Module that polls the Twitch API for live stream status, viewer count, game, and channel info,
+/// then formats the data for display in VRChat chat.
+/// </summary>
+public sealed partial class TwitchModule : ObservableObject, IModule
 {
     private const int MinimumRefreshSeconds = 15;
     private const int MaximumRefreshSeconds = 3600;
     private static readonly TimeSpan TokenValidationInterval = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan FollowerRefreshInterval = TimeSpan.FromMinutes(2);
-    private static readonly HttpClient HelixClient = new HttpClient
-    {
-        BaseAddress = new Uri("https://api.twitch.tv/helix/"),
-        Timeout = TimeSpan.FromSeconds(10)
-    };
 
-    private readonly TwitchAPI api = new TwitchAPI();
+    private readonly TimeSettings _ts;
+    private TimeSettings TS => _ts;
+
+    private readonly ITwitchApiClient _apiClient;
+    private readonly ISettingsProvider<TwitchSettings> _settingsProvider;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly IntegrationSettings _integrationSettings;
+    private readonly IToastService? _toast;
+    private volatile bool _twitchErrorShown;
+
     private bool refreshInProgress;
     private DateTime lastRefreshUtc = DateTime.MinValue;
     private DateTime lastTokenValidationUtc = DateTime.MinValue;
     private DateTime lastFollowerRefreshUtc = DateTime.MinValue;
     private string lastValidatedAccessToken = string.Empty;
-    private string lastConfiguredClientId = string.Empty;
-    private string lastConfiguredAccessToken = string.Empty;
     private string cachedBroadcasterId = string.Empty;
     private string lastUsedChannelName = string.Empty;
     private string validatedUserId = string.Empty;
+
+    public TwitchSettings Settings => _settingsProvider.Value;
+    public void SaveSettings() => _settingsProvider.Save();
+
+    public string Name => "Twitch";
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRunning => _integrationSettings.IntgrTwitch;
+    public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public void Dispose() { }
 
     [ObservableProperty]
     private string outputString = string.Empty;
@@ -59,9 +76,106 @@ public sealed partial class TwitchModule : ObservableObject
     [ObservableProperty]
     private string streamTitle = string.Empty;
 
+    [ObservableProperty]
+    private bool connected;
+
+    [ObservableProperty]
+    private string statusMessage = "Not connected";
+
+    [ObservableProperty]
+    private string lastSyncDisplay = "Last sync: Never";
+
+    [ObservableProperty]
+    private string announcementStatusMessage = string.Empty;
+
+    [ObservableProperty]
+    private string shoutoutStatusMessage = string.Empty;
+
+    [RelayCommand]
+    private async Task SendAnnouncement() => await ExecuteSendAnnouncementAsync();
+
+    [RelayCommand]
+    private async Task SendShoutout() => await ExecuteSendShoutoutAsync();
+
+    public TwitchModule(
+        ISettingsProvider<TwitchSettings> settingsProvider,
+        TimeSettings timeSettings,
+        ITwitchApiClient apiClient,
+        IntegrationSettings integrationSettings,
+        IUiDispatcher dispatcher,
+        IToastService? toast = null)
+    {
+        _settingsProvider = settingsProvider;
+        _ts = timeSettings;
+        _apiClient = apiClient;
+        _integrationSettings = integrationSettings;
+        _dispatcher = dispatcher;
+        _toast = toast;
+    }
+
+    private async Task ExecuteSendAnnouncementAsync()
+    {
+        try
+        {
+            if (!Settings.AnnouncementsEnabled)
+            {
+                AnnouncementStatusMessage = "Announcements are disabled.";
+                return;
+            }
+
+            string message = Settings.AnnouncementMessage?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                AnnouncementStatusMessage = "Enter a message first.";
+                return;
+            }
+
+            AnnouncementStatusMessage = "Sending announcement...";
+            var result = await SendAnnouncementAsync(message, Settings.AnnouncementColor);
+            AnnouncementStatusMessage = result.Message;
+        }
+        catch (Exception ex)
+        {
+            AnnouncementStatusMessage = $"Error: {ex.Message}";
+            Logging.WriteInfo($"Error sending Twitch announcement: {ex.Message}");
+        }
+    }
+
+    private async Task ExecuteSendShoutoutAsync()
+    {
+        try
+        {
+            if (!Settings.ShoutoutsEnabled)
+            {
+                ShoutoutStatusMessage = "Shoutouts are disabled.";
+                return;
+            }
+
+            string target = Settings.ShoutoutTarget?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                ShoutoutStatusMessage = "Enter a channel name.";
+                return;
+            }
+
+            ShoutoutStatusMessage = "Sending shoutout...";
+            var result = await SendShoutoutAsync(
+                target,
+                Settings.ShoutoutAlsoAnnounce,
+                Settings.ShoutoutAnnouncementTemplate,
+                Settings.ShoutoutAnnouncementColor);
+            ShoutoutStatusMessage = result.Message;
+        }
+        catch (Exception ex)
+        {
+            ShoutoutStatusMessage = $"Error: {ex.Message}";
+            Logging.WriteInfo($"Error sending Twitch shoutout: {ex.Message}");
+        }
+    }
+
     public void TriggerRefreshIfNeeded()
     {
-        if (!ViewModel.Instance.IntgrTwitch || !HasConfiguration())
+        if (!_integrationSettings.IntgrTwitch || !HasConfiguration())
         {
             UpdateConnectionState(false, "Missing Twitch settings");
             return;
@@ -100,14 +214,14 @@ public sealed partial class TwitchModule : ObservableObject
 
     private bool HasConfiguration()
     {
-        return !string.IsNullOrWhiteSpace(ViewModel.Instance.TwitchChannelName) &&
-               !string.IsNullOrWhiteSpace(ViewModel.Instance.TwitchClientId) &&
-               !string.IsNullOrWhiteSpace(ViewModel.Instance.TwitchAccessToken);
+        return !string.IsNullOrWhiteSpace(Settings.ChannelName) &&
+               !string.IsNullOrWhiteSpace(Settings.ClientId) &&
+               !string.IsNullOrWhiteSpace(Settings.AccessToken);
     }
 
     private int GetRefreshIntervalSeconds()
     {
-        int interval = ViewModel.Instance.TwitchUpdateIntervalSeconds;
+        int interval = Settings.UpdateIntervalSeconds;
         if (interval < MinimumRefreshSeconds)
         {
             interval = MinimumRefreshSeconds;
@@ -122,28 +236,9 @@ public sealed partial class TwitchModule : ObservableObject
 
     private void ConfigureApi()
     {
-        string clientId = ViewModel.Instance.TwitchClientId?.Trim() ?? string.Empty;
-        string accessToken = ViewModel.Instance.TwitchAccessToken?.Trim() ?? string.Empty;
-
-        if (!string.Equals(api.Settings.ClientId, clientId, StringComparison.Ordinal))
-        {
-            api.Settings.ClientId = clientId;
-        }
-
-        if (!string.Equals(api.Settings.AccessToken, accessToken, StringComparison.Ordinal))
-        {
-            api.Settings.AccessToken = accessToken;
-        }
-
-        if (!string.Equals(lastConfiguredClientId, clientId, StringComparison.Ordinal) ||
-            !string.Equals(lastConfiguredAccessToken, accessToken, StringComparison.Ordinal))
-        {
-            lastConfiguredClientId = clientId;
-            lastConfiguredAccessToken = accessToken;
-            cachedBroadcasterId = string.Empty;
-            validatedUserId = string.Empty;
-            lastValidatedAccessToken = string.Empty;
-        }
+        string clientId = Settings.ClientId?.Trim() ?? string.Empty;
+        string accessToken = Settings.AccessToken?.Trim() ?? string.Empty;
+        _apiClient.Configure(clientId, accessToken);
     }
 
     private async Task RefreshAsync()
@@ -159,7 +254,7 @@ public sealed partial class TwitchModule : ObservableObject
         try
         {
             ConfigureApi();
-            string channelName = ViewModel.Instance.TwitchChannelName?.Trim() ?? string.Empty;
+            string channelName = Settings.ChannelName?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(channelName))
             {
                 UpdateSnapshot(false, 0, string.Empty, string.Empty);
@@ -177,10 +272,9 @@ public sealed partial class TwitchModule : ObservableObject
                 return;
             }
 
-            var streamsResponse = await api.Helix.Streams.GetStreamsAsync(userIds: new List<string> { cachedBroadcasterId }).ConfigureAwait(false);
-            var stream = streamsResponse?.Streams?.FirstOrDefault();
+            var snapshot = await _apiClient.GetStreamInfoAsync(cachedBroadcasterId).ConfigureAwait(false);
 
-            if (stream == null)
+            if (!snapshot.IsLive)
             {
                 UpdateSnapshot(false, 0, string.Empty, string.Empty);
                 UpdateConnectionState(true, "Offline");
@@ -189,7 +283,7 @@ public sealed partial class TwitchModule : ObservableObject
                 return;
             }
 
-            UpdateSnapshot(true, stream.ViewerCount, stream.GameName, stream.Title);
+            UpdateSnapshot(true, snapshot.ViewerCount, snapshot.GameName, snapshot.Title);
             UpdateConnectionState(true, "Live");
             UpdateLastSync(DateTime.UtcNow);
             await RefreshFollowerCountAsync().ConfigureAwait(false);
@@ -202,10 +296,12 @@ public sealed partial class TwitchModule : ObservableObject
                 cachedBroadcasterId = string.Empty;
                 lastValidatedAccessToken = string.Empty;
                 UpdateConnectionState(false, "Token invalid");
+                _toast?.Show("🎮 Twitch", "Access token expired — please re-authenticate in settings.", ToastType.Error, key: "twitch-token-invalid");
             }
             else
             {
                 UpdateConnectionState(false, "Refresh failed");
+                _toast?.Show("🎮 Twitch", "Failed to refresh stream data.", ToastType.Warning, key: "twitch-refresh-failed");
             }
         }
         finally
@@ -216,14 +312,13 @@ public sealed partial class TwitchModule : ObservableObject
 
     private void UpdateSnapshot(bool live, int viewers, string game, string title)
     {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher == null || dispatcher.CheckAccess())
+        if (_dispatcher.CheckAccess())
         {
             ApplySnapshot(live, viewers, game, title);
             return;
         }
 
-        dispatcher.BeginInvoke(new Action(() => ApplySnapshot(live, viewers, game, title)));
+        _dispatcher.Invoke(() => ApplySnapshot(live, viewers, game, title));
     }
 
     private void ApplySnapshot(bool live, int viewers, string game, string title)
@@ -247,29 +342,28 @@ public sealed partial class TwitchModule : ObservableObject
             return true;
         }
 
-        var usersResponse = await api.Helix.Users.GetUsersAsync(logins: new List<string> { channelName }).ConfigureAwait(false);
-        var user = usersResponse?.Users?.FirstOrDefault();
-        if (user == null)
+        string broadcasterId = await _apiClient.GetBroadcasterIdAsync(channelName).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(broadcasterId))
         {
             UpdateSnapshot(false, 0, string.Empty, string.Empty);
             UpdateConnectionState(false, "Channel not found");
+            _toast?.Show("🎮 Twitch", "Channel not found — check your channel name in settings.", ToastType.Warning, key: "twitch-channel-notfound");
             return false;
         }
 
-        cachedBroadcasterId = user.Id;
+        cachedBroadcasterId = broadcasterId;
         lastUsedChannelName = channelName;
         return true;
     }
 
     private bool ShouldFetchFollowerCount()
     {
-        var vm = ViewModel.Instance;
-        if (vm.TwitchShowFollowerCount)
+        if (Settings.ShowFollowerCount)
         {
             return true;
         }
 
-        string template = vm.TwitchTemplate;
+        string template = Settings.Template;
         if (string.IsNullOrWhiteSpace(template))
         {
             return false;
@@ -296,7 +390,7 @@ public sealed partial class TwitchModule : ObservableObject
             return;
         }
 
-        var result = await TryGetFollowerCountAsync(cachedBroadcasterId).ConfigureAwait(false);
+        var result = await _apiClient.GetFollowerCountAsync(cachedBroadcasterId, validatedUserId).ConfigureAwait(false);
         if (result.Success)
         {
             lastFollowerRefreshUtc = DateTime.UtcNow;
@@ -311,57 +405,27 @@ public sealed partial class TwitchModule : ObservableObject
             validatedUserId = string.Empty;
             UpdateConnectionState(false, "Token invalid");
         }
-    }
-
-    private async Task<(bool Success, int Count, bool Unauthorized, string Message)> TryGetFollowerCountAsync(string broadcasterId)
-    {
-        using var request = CreateHelixRequest(HttpMethod.Get, $"channels/followers?broadcaster_id={broadcasterId}");
-        using var response = await HelixClient.SendAsync(request).ConfigureAwait(false);
-
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        else if (result.Forbidden)
         {
-            return (false, 0, true, "Unauthorized");
+            Logging.WriteInfo("Twitch: Follower count requires moderator:read:followers scope.");
         }
-
-        if (!response.IsSuccessStatusCode)
-        {
-            return (false, 0, false, $"Followers request failed ({(int)response.StatusCode})");
-        }
-
-        await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
-        if (doc.RootElement.TryGetProperty("total", out var totalElement) && totalElement.TryGetInt32(out var total))
-        {
-            return (true, total, false, string.Empty);
-        }
-
-        return (false, 0, false, "Followers total missing");
     }
 
     private void UpdateFollowerCount(int count)
     {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher == null || dispatcher.CheckAccess())
+        if (_dispatcher.CheckAccess())
         {
             ApplyFollowerCount(count);
             return;
         }
 
-        dispatcher.BeginInvoke(new Action(() => ApplyFollowerCount(count)));
+        _dispatcher.Invoke(() => ApplyFollowerCount(count));
     }
 
     private void ApplyFollowerCount(int count)
     {
         FollowerCount = count;
         GetOutputString();
-    }
-
-    private HttpRequestMessage CreateHelixRequest(HttpMethod method, string relativeUrl)
-    {
-        var request = new HttpRequestMessage(method, relativeUrl);
-        request.Headers.Add("Client-Id", api.Settings.ClientId);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", api.Settings.AccessToken);
-        return request;
     }
 
     public async Task<(bool Success, string Message)> SendAnnouncementAsync(string message, TwitchAnnouncementColor color)
@@ -372,7 +436,15 @@ public sealed partial class TwitchModule : ObservableObject
             return (false, prep.Message);
         }
 
-        return await SendAnnouncementInternalAsync(prep.BroadcasterId, prep.ModeratorId, message, color).ConfigureAwait(false);
+        string colorValue = MapAnnouncementColor(color);
+        var result = await _apiClient.SendAnnouncementAsync(prep.BroadcasterId, prep.ModeratorId, message, colorValue).ConfigureAwait(false);
+
+        if (!result.Success && result.Message.Contains("Token invalid", StringComparison.OrdinalIgnoreCase))
+        {
+            InvalidateSession();
+        }
+
+        return (result.Success, result.Message);
     }
 
     public async Task<(bool Success, string Message)> SendShoutoutAsync(
@@ -393,38 +465,20 @@ public sealed partial class TwitchModule : ObservableObject
             return (false, "Enter a channel name.");
         }
 
-        string targetId = await ResolveUserIdAsync(normalizedLogin).ConfigureAwait(false);
+        string targetId = await _apiClient.ResolveUserIdAsync(normalizedLogin).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(targetId))
         {
             return (false, "Channel not found.");
         }
 
-        using var request = CreateHelixRequest(
-            HttpMethod.Post,
-            $"chat/shoutouts?from_broadcaster_id={prep.BroadcasterId}&to_broadcaster_id={targetId}&moderator_id={prep.ModeratorId}");
+        var shoutoutResult = await _apiClient.SendShoutoutAsync(prep.BroadcasterId, targetId, prep.ModeratorId).ConfigureAwait(false);
 
-        using var response = await HelixClient.SendAsync(request).ConfigureAwait(false);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        if (!shoutoutResult.Success)
         {
-            cachedBroadcasterId = string.Empty;
-            lastValidatedAccessToken = string.Empty;
-            validatedUserId = string.Empty;
-            return (false, "Token invalid.");
-        }
+            if (shoutoutResult.Message.Contains("Token invalid", StringComparison.OrdinalIgnoreCase))
+                InvalidateSession();
 
-        if (!response.IsSuccessStatusCode)
-        {
-            if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return (false, "Missing shoutout permission or scope.");
-            }
-
-            if ((int)response.StatusCode == 429)
-            {
-                return (false, "Rate limited. Try again soon.");
-            }
-
-            return (false, $"Shoutout failed ({(int)response.StatusCode}).");
+            return (false, shoutoutResult.Message);
         }
 
         if (alsoAnnounce)
@@ -432,11 +486,12 @@ public sealed partial class TwitchModule : ObservableObject
             string builtAnnouncement = BuildShoutoutAnnouncement(announcementTemplate, normalizedLogin);
             if (!string.IsNullOrWhiteSpace(builtAnnouncement))
             {
-                var announcementResult = await SendAnnouncementInternalAsync(
+                string colorValue = MapAnnouncementColor(announcementColor);
+                var announcementResult = await _apiClient.SendAnnouncementAsync(
                     prep.BroadcasterId,
                     prep.ModeratorId,
                     builtAnnouncement,
-                    announcementColor).ConfigureAwait(false);
+                    colorValue).ConfigureAwait(false);
                 if (!announcementResult.Success)
                 {
                     return (true, $"Shoutout sent. Announcement failed: {announcementResult.Message}");
@@ -447,6 +502,13 @@ public sealed partial class TwitchModule : ObservableObject
         return (true, "Shoutout sent!");
     }
 
+    private void InvalidateSession()
+    {
+        cachedBroadcasterId = string.Empty;
+        lastValidatedAccessToken = string.Empty;
+        validatedUserId = string.Empty;
+    }
+
     private async Task<(bool Success, string Message, string BroadcasterId, string ModeratorId)> PrepareChatActionAsync()
     {
         if (!HasConfiguration())
@@ -455,7 +517,7 @@ public sealed partial class TwitchModule : ObservableObject
         }
 
         ConfigureApi();
-        string channelName = ViewModel.Instance.TwitchChannelName?.Trim() ?? string.Empty;
+        string channelName = Settings.ChannelName?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(channelName))
         {
             return (false, "Missing channel name.", string.Empty, string.Empty);
@@ -477,70 +539,6 @@ public sealed partial class TwitchModule : ObservableObject
         }
 
         return (true, string.Empty, cachedBroadcasterId, validatedUserId);
-    }
-
-    private async Task<(bool Success, string Message)> SendAnnouncementInternalAsync(
-        string broadcasterId,
-        string moderatorId,
-        string message,
-        TwitchAnnouncementColor color)
-    {
-        string trimmed = message?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(trimmed))
-        {
-            return (false, "Announcement message is empty.");
-        }
-
-        string colorValue = MapAnnouncementColor(color);
-        var payload = new
-        {
-            message = trimmed,
-            color = colorValue
-        };
-
-        using var request = CreateHelixRequest(
-            HttpMethod.Post,
-            $"chat/announcements?broadcaster_id={broadcasterId}&moderator_id={moderatorId}");
-        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-
-        using var response = await HelixClient.SendAsync(request).ConfigureAwait(false);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            cachedBroadcasterId = string.Empty;
-            lastValidatedAccessToken = string.Empty;
-            validatedUserId = string.Empty;
-            return (false, "Token invalid.");
-        }
-
-        if (!response.IsSuccessStatusCode)
-        {
-            if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return (false, "Missing announcement permission or scope.");
-            }
-
-            if ((int)response.StatusCode == 429)
-            {
-                return (false, "Rate limited. Try again soon.");
-            }
-
-            return (false, $"Announcement failed ({(int)response.StatusCode}).");
-        }
-
-        return (true, "Announcement sent!");
-    }
-
-    private async Task<string> ResolveUserIdAsync(string login)
-    {
-        string normalized = NormalizeLogin(login);
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            return string.Empty;
-        }
-
-        var usersResponse = await api.Helix.Users.GetUsersAsync(logins: new List<string> { normalized }).ConfigureAwait(false);
-        var user = usersResponse?.Users?.FirstOrDefault();
-        return user?.Id ?? string.Empty;
     }
 
     private static string NormalizeLogin(string login)
@@ -586,11 +584,11 @@ public sealed partial class TwitchModule : ObservableObject
     {
         if (!IsLive)
         {
-            return ViewModel.Instance.TwitchOfflineMessage ?? string.Empty;
+            return Settings.OfflineMessage ?? string.Empty;
         }
 
         TwitchTokens tokens = BuildTokens();
-        string template = NormalizeTemplate(ViewModel.Instance.TwitchTemplate);
+        string template = NormalizeTemplate(Settings.Template);
         if (!string.IsNullOrWhiteSpace(template))
         {
             string templated = ApplyTemplate(template, tokens);
@@ -607,7 +605,7 @@ public sealed partial class TwitchModule : ObservableObject
             tokens.ChannelWithLabel
         };
 
-        string separator = NormalizeSeparator(ViewModel.Instance.TwitchSeparator);
+        string separator = NormalizeSeparator(Settings.Separator);
         if (string.IsNullOrWhiteSpace(separator))
         {
             separator = " | ";
@@ -616,7 +614,7 @@ public sealed partial class TwitchModule : ObservableObject
         return string.Join(separator, parts.Where(part => !string.IsNullOrWhiteSpace(part)));
     }
 
-    private static string FormatLastSync(DateTime utc)
+    private string FormatLastSync(DateTime utc)
     {
         if (utc == DateTime.MinValue)
         {
@@ -624,81 +622,85 @@ public sealed partial class TwitchModule : ObservableObject
         }
 
         DateTime local = utc.ToLocalTime();
-        string format = ViewModel.Instance.Time24H ? "HH:mm" : "h:mm tt";
+        string format = TS.Time24H ? "HH:mm" : "h:mm tt";
         return $"Last sync: {local.ToString(format, CultureInfo.CurrentCulture)}";
     }
 
     private void UpdateLastSync(DateTime utc)
     {
         string display = FormatLastSync(utc);
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher == null || dispatcher.CheckAccess())
+        if (_dispatcher.CheckAccess())
         {
-            ViewModel.Instance.TwitchLastSyncDisplay = display;
+            LastSyncDisplay = display;
             return;
         }
 
-        dispatcher.BeginInvoke(new Action(() =>
-        {
-            ViewModel.Instance.TwitchLastSyncDisplay = display;
-        }));
+        _dispatcher.Invoke(() => LastSyncDisplay = display);
     }
 
-    private static void UpdateConnectionState(bool isConnected, string message)
+    private void UpdateConnectionState(bool isConnected, string message)
     {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher == null || dispatcher.CheckAccess())
+        if (isConnected)
         {
-            ViewModel.Instance.TwitchConnected = isConnected;
-            ViewModel.Instance.TwitchStatusMessage = message;
+            _twitchErrorShown = false;
+        }
+        else if (_integrationSettings.IntgrTwitch && !_twitchErrorShown)
+        {
+            _twitchErrorShown = true;
+            _toast?.Show("🎮 Twitch", message, ToastType.Warning, key: "twitch-error");
+        }
+
+        if (_dispatcher.CheckAccess())
+        {
+            Connected = isConnected;
+            StatusMessage = message;
             return;
         }
 
-        dispatcher.BeginInvoke(new Action(() =>
+        _dispatcher.Invoke(() =>
         {
-            ViewModel.Instance.TwitchConnected = isConnected;
-            ViewModel.Instance.TwitchStatusMessage = message;
-        }));
+            Connected = isConnected;
+            StatusMessage = message;
+        });
     }
 
     private TwitchTokens BuildTokens()
     {
-        var vm = ViewModel.Instance;
-        bool useSmallText = vm.TwitchUseSmallText;
+        bool useSmallText = Settings.UseSmallText;
 
         string live = string.Empty;
-        if (vm.TwitchShowLiveIndicator)
+        if (Settings.ShowLiveIndicator)
         {
-            string livePrefix = string.IsNullOrWhiteSpace(vm.TwitchLivePrefix) ? string.Empty : vm.TwitchLivePrefix.Trim();
+            string livePrefix = string.IsNullOrWhiteSpace(Settings.LivePrefix) ? string.Empty : Settings.LivePrefix.Trim();
             live = useSmallText ? ToSmallTextPreserveEmoji(livePrefix) : livePrefix;
         }
 
-        string game = vm.TwitchShowGameName ? GameName : string.Empty;
-        string gameLabelSource = string.IsNullOrWhiteSpace(vm.TwitchGamePrefix) ? string.Empty : vm.TwitchGamePrefix.Trim();
+        string game = Settings.ShowGameName ? GameName : string.Empty;
+        string gameLabelSource = string.IsNullOrWhiteSpace(Settings.GamePrefix) ? string.Empty : Settings.GamePrefix.Trim();
         string gameLabel = useSmallText ? ToSmallTextPreserveEmoji(gameLabelSource) : gameLabelSource;
         string gameWithLabel = BuildLabeledValue(gameLabel, game);
 
-        string viewerCount = vm.TwitchShowViewerCount ? FormatViewerCount(ViewerCount, vm.TwitchViewerCountCompact) : string.Empty;
-        string viewerLabelSource = vm.TwitchShowViewerLabel && !string.IsNullOrWhiteSpace(vm.TwitchViewerLabel)
-            ? vm.TwitchViewerLabel.Trim()
+        string viewerCount = Settings.ShowViewerCount ? FormatViewerCount(ViewerCount, Settings.ViewerCountCompact) : string.Empty;
+        string viewerLabelSource = Settings.ShowViewerLabel && !string.IsNullOrWhiteSpace(Settings.ViewerLabel)
+            ? Settings.ViewerLabel.Trim()
             : string.Empty;
         string viewerLabel = useSmallText ? ToSmallTextPreserveEmoji(viewerLabelSource) : viewerLabelSource;
         string viewersWithLabel = BuildLabeledValue(viewerLabel, viewerCount);
 
-        string followerCount = vm.TwitchShowFollowerCount ? FormatViewerCount(FollowerCount, vm.TwitchFollowerCountCompact) : string.Empty;
-        string followerLabelSource = vm.TwitchShowFollowerLabel && !string.IsNullOrWhiteSpace(vm.TwitchFollowerLabel)
-            ? vm.TwitchFollowerLabel.Trim()
+        string followerCount = Settings.ShowFollowerCount ? FormatViewerCount(FollowerCount, Settings.FollowerCountCompact) : string.Empty;
+        string followerLabelSource = Settings.ShowFollowerLabel && !string.IsNullOrWhiteSpace(Settings.FollowerLabel)
+            ? Settings.FollowerLabel.Trim()
             : string.Empty;
         string followerLabel = useSmallText ? ToSmallTextPreserveEmoji(followerLabelSource) : followerLabelSource;
         string followersWithLabel = BuildLabeledValue(followerLabel, followerCount);
 
-        string title = vm.TwitchShowStreamTitle ? StreamTitle : string.Empty;
-        string titleLabelSource = string.IsNullOrWhiteSpace(vm.TwitchStreamTitlePrefix) ? string.Empty : vm.TwitchStreamTitlePrefix.Trim();
+        string title = Settings.ShowStreamTitle ? StreamTitle : string.Empty;
+        string titleLabelSource = string.IsNullOrWhiteSpace(Settings.StreamTitlePrefix) ? string.Empty : Settings.StreamTitlePrefix.Trim();
         string titleLabel = useSmallText ? ToSmallTextPreserveEmoji(titleLabelSource) : titleLabelSource;
         string titleWithLabel = BuildLabeledValue(titleLabel, title);
 
-        string channel = vm.TwitchShowChannelName ? vm.TwitchChannelName?.Trim() : string.Empty;
-        string channelLabelSource = string.IsNullOrWhiteSpace(vm.TwitchChannelPrefix) ? string.Empty : vm.TwitchChannelPrefix.Trim();
+        string channel = Settings.ShowChannelName ? Settings.ChannelName?.Trim() : string.Empty;
+        string channelLabelSource = string.IsNullOrWhiteSpace(Settings.ChannelPrefix) ? string.Empty : Settings.ChannelPrefix.Trim();
         string channelLabel = useSmallText ? ToSmallTextPreserveEmoji(channelLabelSource) : channelLabelSource;
         string channelWithLabel = BuildLabeledValue(channelLabel, channel);
 
@@ -822,14 +824,14 @@ public sealed partial class TwitchModule : ObservableObject
             {
                 string prefix = text.Substring(0, spaceIndex);
                 string rest = text.Substring(spaceIndex + 1);
-                string smallRest = DataController.TransformToSuperscript(rest);
+                string smallRest = TextUtilities.TransformToSuperscript(rest);
                 return string.IsNullOrWhiteSpace(smallRest) ? prefix : $"{prefix} {smallRest}";
             }
 
             return text;
         }
 
-        return DataController.TransformToSuperscript(text);
+        return TextUtilities.TransformToSuperscript(text);
     }
 
     private sealed class TwitchTokens
@@ -884,7 +886,7 @@ public sealed partial class TwitchModule : ObservableObject
 
     private async Task<bool> EnsureValidTokenAsync()
     {
-        string accessToken = ViewModel.Instance.TwitchAccessToken?.Trim() ?? string.Empty;
+        string accessToken = Settings.AccessToken?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(accessToken))
         {
             UpdateSnapshot(false, 0, string.Empty, string.Empty);
@@ -899,11 +901,11 @@ public sealed partial class TwitchModule : ObservableObject
             return true;
         }
 
-        var validation = await api.Auth.ValidateAccessTokenAsync(accessToken).ConfigureAwait(false);
+        var validation = await _apiClient.ValidateTokenAsync(accessToken).ConfigureAwait(false);
         lastTokenValidationUtc = DateTime.UtcNow;
         lastValidatedAccessToken = accessToken;
 
-        if (validation == null)
+        if (!validation.IsValid)
         {
             cachedBroadcasterId = string.Empty;
             validatedUserId = string.Empty;
@@ -912,8 +914,7 @@ public sealed partial class TwitchModule : ObservableObject
             return false;
         }
 
-        validatedUserId = validation.UserId ?? string.Empty;
-
+        validatedUserId = validation.UserId;
         return true;
     }
 

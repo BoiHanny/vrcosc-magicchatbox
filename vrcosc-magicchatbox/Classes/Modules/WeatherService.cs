@@ -5,30 +5,58 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public static class WeatherService
+/// <summary>
+/// Service that fetches weather data from the Open-Meteo API and formats it for display,
+/// supporting city name, GPS coordinates, and IP-based location lookup.
+/// </summary>
+public class WeatherService : IWeatherService
 {
     private const string DefaultCityName = "London";
     private const double DefaultCityLatitude = 51.5074;
     private const double DefaultCityLongitude = -0.1278;
     private const int DefaultRefreshMinutes = 10;
-    private static readonly HttpClient Client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-    private static readonly object SyncLock = new object();
 
-    private static bool _fetchInProgress;
-    private static DateTime _lastFetchUtc = DateTime.MinValue;
-    private static DateTime _lastSuccessUtc = DateTime.MinValue;
-    private static DateTime _lastLocationFetchUtc = DateTime.MinValue;
-    private static WeatherLocation _location;
-    private static WeatherSnapshot _snapshot;
-    private static string _locationCacheKey;
-    private static readonly IReadOnlyDictionary<int, string> DefaultConditionMap = new Dictionary<int, string>
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ISettingsProvider<WeatherSettings> _settingsProvider;
+    private readonly IntegrationDisplayState _integrationDisplay;
+    private readonly ComponentStatsSettings _componentStatsSettings;
+    private readonly TimeSettings _timeSettings;
+    private readonly ITimeFormattingService _timeFormatting;
+
+    private readonly IUiDispatcher _dispatcher;
+    private HttpClient _client;
+    private HttpClient Client => _client ??= _httpClientFactory.CreateClient("Weather");
+    private readonly object SyncLock = new object();
+
+    private IntegrationDisplayState IntDisplay => _integrationDisplay;
+
+    public WeatherSettings Settings => _settingsProvider.Value;
+
+    private TimeSettings TS => _timeSettings;
+    public void SaveSettings() => _settingsProvider.Save();
+
+    private readonly IToastService? _toast;
+    private volatile bool _weatherErrorShown;
+
+    private bool _fetchInProgress;
+    private DateTime _lastFetchUtc = DateTime.MinValue;
+    private DateTime _lastSuccessUtc = DateTime.MinValue;
+    private DateTime _lastLocationFetchUtc = DateTime.MinValue;
+    private WeatherLocation _location;
+    private WeatherSnapshot _snapshot;
+    private string _locationCacheKey;
+    private readonly IReadOnlyDictionary<int, string> DefaultConditionMap = new Dictionary<int, string>
     {
         { 0, "Clear" },
         { 1, "Mostly clear" },
@@ -59,7 +87,7 @@ public static class WeatherService
         { 96, "Hailstorm" },
         { 99, "Hailstorm" }
     };
-    private static readonly IReadOnlyDictionary<int, string> DefaultConditionIconMap = new Dictionary<int, string>
+    private readonly IReadOnlyDictionary<int, string> DefaultConditionIconMap = new Dictionary<int, string>
     {
         { 0, "☀" },
         { 1, "🌤" },
@@ -91,14 +119,30 @@ public static class WeatherService
         { 99, "⛈" }
     };
 
-    static WeatherService()
+    public WeatherService(
+        IHttpClientFactory httpClientFactory,
+        ISettingsProvider<WeatherSettings> settingsProvider,
+        ISettingsProvider<TimeSettings> timeSettingsProvider,
+        IntegrationDisplayState integrationDisplay,
+        ISettingsProvider<ComponentStatsSettings> componentStatsSettingsProvider,
+        IUiDispatcher dispatcher,
+        ITimeFormattingService timeFormatting,
+        IToastService? toast = null)
     {
+        _httpClientFactory = httpClientFactory;
+        _settingsProvider = settingsProvider;
+        _timeSettings = timeSettingsProvider.Value;
+        _integrationDisplay = integrationDisplay;
+        _componentStatsSettings = componentStatsSettingsProvider.Value;
+        _dispatcher = dispatcher;
+        _timeFormatting = timeFormatting;
+        _toast = toast;
         Client.DefaultRequestHeaders.UserAgent.ParseAdd("vrcosc-magicchatbox");
     }
 
-    public static void TriggerRefreshIfNeeded()
+    public void TriggerRefreshIfNeeded()
     {
-        if (!ViewModel.Instance.ShowWeatherInTime)
+        if (!Settings.ShowWeatherInTime)
         {
             return;
         }
@@ -106,9 +150,9 @@ public static class WeatherService
         StartRefresh(force: false);
     }
 
-    public static void TriggerManualRefresh()
+    public void TriggerManualRefresh()
     {
-        if (!ViewModel.Instance.ShowWeatherInTime)
+        if (!Settings.ShowWeatherInTime)
         {
             return;
         }
@@ -116,9 +160,9 @@ public static class WeatherService
         StartRefresh(force: true);
     }
 
-    private static void StartRefresh(bool force)
+    private void StartRefresh(bool force)
     {
-        int refreshMinutes = ViewModel.Instance.WeatherUpdateIntervalMinutes;
+        int refreshMinutes = Settings.WeatherUpdateIntervalMinutes;
         if (refreshMinutes <= 0)
         {
             refreshMinutes = DefaultRefreshMinutes;
@@ -143,19 +187,19 @@ public static class WeatherService
         _ = Task.Run(RefreshAsync);
     }
 
-    public static string BuildTimeWeatherText(string timeText)
+    public string BuildTimeWeatherText(string timeText)
     {
-        if (!ViewModel.Instance.ShowWeatherInTime)
+        if (!Settings.ShowWeatherInTime)
         {
             return timeText;
         }
 
-        string template = NormalizeTemplate(ViewModel.Instance.WeatherTemplate);
+        string template = NormalizeTemplate(Settings.WeatherTemplate);
         bool hasTemplate = !string.IsNullOrWhiteSpace(template);
         WeatherTokens tokens = BuildWeatherTokens(hasTemplate);
         if (tokens == null)
         {
-            if (ViewModel.Instance.WeatherFallbackMode != WeatherFallbackMode.ShowNA)
+            if (Settings.WeatherFallbackMode != WeatherFallbackMode.ShowNA)
             {
                 return timeText;
             }
@@ -174,23 +218,23 @@ public static class WeatherService
         }
 
         string separator = GetSeparator();
-        bool timeFirst = ViewModel.Instance.WeatherOrder == WeatherOrder.TimeFirst;
+        bool timeFirst = Settings.WeatherOrder == WeatherOrder.TimeFirst;
         return timeFirst ? $"{timeText}{separator}{tokens.Weather}" : $"{tokens.Weather}{separator}{timeText}";
     }
 
-    public static string BuildWeatherOnlyText()
+    public string BuildWeatherOnlyText()
     {
-        if (!ViewModel.Instance.ShowWeatherInTime)
+        if (!Settings.ShowWeatherInTime)
         {
             return string.Empty;
         }
 
-        string template = NormalizeTemplate(ViewModel.Instance.WeatherTemplate);
+        string template = NormalizeTemplate(Settings.WeatherTemplate);
         bool hasTemplate = !string.IsNullOrWhiteSpace(template);
         WeatherTokens tokens = BuildWeatherTokens(hasTemplate);
         if (tokens == null)
         {
-            if (ViewModel.Instance.WeatherFallbackMode != WeatherFallbackMode.ShowNA)
+            if (Settings.WeatherFallbackMode != WeatherFallbackMode.ShowNA)
             {
                 return string.Empty;
             }
@@ -200,14 +244,14 @@ public static class WeatherService
 
         if (hasTemplate)
         {
-            string timeText = ComponentStatsModule.GetTime();
+            string timeText = _timeFormatting.GetFormattedCurrentTime();
             return ApplyTemplate(template, timeText, tokens);
         }
 
         return tokens.Weather ?? string.Empty;
     }
 
-    private static WeatherTokens BuildWeatherTokens(bool ignoreCustomSeparators)
+    private WeatherTokens BuildWeatherTokens(bool ignoreCustomSeparators)
     {
         WeatherSnapshot snapshot;
         lock (SyncLock)
@@ -225,18 +269,18 @@ public static class WeatherService
 
         string tempValueRaw = FormatTemperature(useFahrenheit ? snapshot.TemperatureC * 9 / 5 + 32 : snapshot.TemperatureC);
         string feelsValueRaw = string.Empty;
-        if (ViewModel.Instance.ShowWeatherFeelsLike && snapshot.FeelsLikeC.HasValue)
+        if (Settings.ShowWeatherFeelsLike && snapshot.FeelsLikeC.HasValue)
         {
             double feelsConverted = useFahrenheit ? snapshot.FeelsLikeC.Value * 9 / 5 + 32 : snapshot.FeelsLikeC.Value;
             feelsValueRaw = FormatTemperature(feelsConverted);
         }
 
         string conditionText = GetConditionText(snapshot);
-        string humidityText = ViewModel.Instance.ShowWeatherHumidity && snapshot.HumidityPercent.HasValue
+        string humidityText = Settings.ShowWeatherHumidity && snapshot.HumidityPercent.HasValue
             ? $"{Math.Round(snapshot.HumidityPercent.Value)}"
             : string.Empty;
         string windText = string.Empty;
-        if (ViewModel.Instance.ShowWeatherWind && snapshot.WindSpeedKph.HasValue)
+        if (Settings.ShowWeatherWind && snapshot.WindSpeedKph.HasValue)
         {
             string windUnit = ResolveWindUnit();
             double windValue = ConvertWindSpeed(snapshot.WindSpeedKph.Value, windUnit);
@@ -265,7 +309,7 @@ public static class WeatherService
             weatherText);
     }
 
-    private static string BuildWeatherText(string tempWithUnit, string condition, string feels, string wind, string humidity, bool ignoreCustomSeparators)
+    private string BuildWeatherText(string tempWithUnit, string condition, string feels, string wind, string humidity, bool ignoreCustomSeparators)
     {
         var primaryParts = new List<string>();
         var secondaryParts = new List<string>();
@@ -283,15 +327,15 @@ public static class WeatherService
         {
             primaryParts.Add(condition);
         }
-        if (ViewModel.Instance.ShowWeatherFeelsLike && !string.IsNullOrWhiteSpace(feels))
+        if (Settings.ShowWeatherFeelsLike && !string.IsNullOrWhiteSpace(feels))
         {
             secondaryParts.Add($"{ToSmallText("Feels")} {feels}");
         }
-        if (ViewModel.Instance.ShowWeatherWind && !string.IsNullOrWhiteSpace(wind))
+        if (Settings.ShowWeatherWind && !string.IsNullOrWhiteSpace(wind))
         {
             secondaryParts.Add($"{ToSmallText("Wind")} {wind}");
         }
-        if (ViewModel.Instance.ShowWeatherHumidity && !string.IsNullOrWhiteSpace(humidity))
+        if (Settings.ShowWeatherHumidity && !string.IsNullOrWhiteSpace(humidity))
         {
             secondaryParts.Add($"{ToSmallText("Hum")} {humidity}");
         }
@@ -300,7 +344,7 @@ public static class WeatherService
         string primaryLine = string.Join(separator, primaryParts);
         string secondaryLine = string.Join(separator, secondaryParts);
 
-        if (ViewModel.Instance.WeatherLayoutMode == WeatherLayoutMode.TwoLines &&
+        if (Settings.WeatherLayoutMode == WeatherLayoutMode.TwoLines &&
             !string.IsNullOrWhiteSpace(primaryLine) &&
             !string.IsNullOrWhiteSpace(secondaryLine))
         {
@@ -320,28 +364,28 @@ public static class WeatherService
         return string.Join(separator, primaryParts.Concat(secondaryParts));
     }
 
-    private static string FormatTemperature(double value)
+    private string FormatTemperature(double value)
     {
-        return ViewModel.Instance.WeatherUseDecimal
+        return Settings.WeatherUseDecimal
             ? value.ToString("0.0", CultureInfo.InvariantCulture)
             : Math.Round(value).ToString("0", CultureInfo.InvariantCulture);
     }
 
-    private static string FormatWindSpeed(double value)
+    private string FormatWindSpeed(double value)
     {
-        return ViewModel.Instance.WeatherUseDecimal
+        return Settings.WeatherUseDecimal
             ? value.ToString("0.0", CultureInfo.InvariantCulture)
             : Math.Round(value).ToString("0", CultureInfo.InvariantCulture);
     }
 
-    private static double ConvertWindSpeed(double speedKph, string unit)
+    private double ConvertWindSpeed(double speedKph, string unit)
     {
         return unit == "mph" ? speedKph * 0.621371 : speedKph;
     }
 
-    private static string ResolveWindUnit()
+    private string ResolveWindUnit()
     {
-        return ViewModel.Instance.WeatherWindUnitOverride switch
+        return Settings.WeatherWindUnitOverride switch
         {
             WeatherWindUnitOverride.KilometersPerHour => "km/h",
             WeatherWindUnitOverride.MilesPerHour => "mph",
@@ -349,13 +393,13 @@ public static class WeatherService
         };
     }
 
-    private static string GetWeatherStatsSeparator()
+    private string GetWeatherStatsSeparator()
     {
-        string separator = ViewModel.Instance.WeatherStatsSeparator;
+        string separator = Settings.WeatherStatsSeparator;
         return string.IsNullOrWhiteSpace(separator) ? " " : separator;
     }
 
-    private static string FormatLastSync(DateTime utc)
+    private string FormatLastSync(DateTime utc)
     {
         if (utc == DateTime.MinValue)
         {
@@ -363,28 +407,25 @@ public static class WeatherService
         }
 
         DateTime local = utc.ToLocalTime();
-        string format = ViewModel.Instance.Time24H ? "HH:mm" : "h:mm tt";
+        string format = TS.Time24H ? "HH:mm" : "h:mm tt";
         return $"Last sync: {local.ToString(format, CultureInfo.CurrentCulture)}";
     }
 
-    private static void UpdateLastSync(DateTime utc)
+    private void UpdateLastSync(DateTime utc)
     {
+        _weatherErrorShown = false;
         _lastSuccessUtc = utc;
         string display = FormatLastSync(utc);
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher == null || dispatcher.CheckAccess())
+        if (_dispatcher.CheckAccess())
         {
-            ViewModel.Instance.WeatherLastSyncDisplay = display;
+            IntDisplay.WeatherLastSyncDisplay = display;
             return;
         }
 
-        dispatcher.BeginInvoke(new Action(() =>
-        {
-            ViewModel.Instance.WeatherLastSyncDisplay = display;
-        }));
+        _dispatcher.Invoke(() => IntDisplay.WeatherLastSyncDisplay = display);
     }
 
-    private static string NormalizeTemplate(string template)
+    private string NormalizeTemplate(string template)
     {
         if (string.IsNullOrWhiteSpace(template))
         {
@@ -394,7 +435,7 @@ public static class WeatherService
         return template.Replace("\\n", "\n").Replace("\\r", "\r");
     }
 
-    private static string ApplyTemplate(string template, string timeText, WeatherTokens tokens)
+    private string ApplyTemplate(string template, string timeText, WeatherTokens tokens)
     {
         return template
             .Replace("{time}", timeText ?? string.Empty)
@@ -408,12 +449,12 @@ public static class WeatherService
             .Replace("{feels}", tokens.FeelsLike ?? string.Empty);
     }
 
-    private static string ToSmallText(string text)
+    private string ToSmallText(string text)
     {
-        return string.IsNullOrWhiteSpace(text) ? string.Empty : DataController.TransformToSuperscript(text);
+        return string.IsNullOrWhiteSpace(text) ? string.Empty : TextUtilities.TransformToSuperscript(text);
     }
 
-    private static string ToSmallTextPreserveEmoji(string text)
+    private string ToSmallTextPreserveEmoji(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -437,7 +478,7 @@ public static class WeatherService
         return ToSmallText(text);
     }
 
-    private static bool TryExtractConditionIcon(string condition, out string iconPrefix, out string conditionText)
+    private bool TryExtractConditionIcon(string condition, out string iconPrefix, out string conditionText)
     {
         iconPrefix = string.Empty;
         conditionText = condition ?? string.Empty;
@@ -466,30 +507,30 @@ public static class WeatherService
         return false;
     }
 
-    private static string ResolveUnit()
+    private string ResolveUnit()
     {
-        return ViewModel.Instance.WeatherUnitOverride switch
+        return Settings.WeatherUnitOverride switch
         {
             WeatherUnitOverride.Celsius => "C",
             WeatherUnitOverride.Fahrenheit => "F",
-            _ => ViewModel.Instance.TemperatureUnit
+            _ => _componentStatsSettings.TemperatureUnit
         };
     }
 
-    private static string GetSeparator()
+    private string GetSeparator()
     {
-        if (ViewModel.Instance.WeatherLayoutMode == WeatherLayoutMode.TwoLines)
+        if (Settings.WeatherLayoutMode == WeatherLayoutMode.TwoLines)
         {
             return "\n";
         }
 
-        return string.IsNullOrWhiteSpace(ViewModel.Instance.WeatherSeparator) ? " | " : ViewModel.Instance.WeatherSeparator;
+        return string.IsNullOrWhiteSpace(Settings.WeatherSeparator) ? " | " : Settings.WeatherSeparator;
     }
 
-    private static string GetConditionText(WeatherSnapshot snapshot)
+    private string GetConditionText(WeatherSnapshot snapshot)
     {
-        string condition = ViewModel.Instance.ShowWeatherCondition ? MapWeatherCode(snapshot.WeatherCode) : string.Empty;
-        if (!ViewModel.Instance.ShowWeatherEmoji)
+        string condition = Settings.ShowWeatherCondition ? MapWeatherCode(snapshot.WeatherCode) : string.Empty;
+        if (!Settings.ShowWeatherEmoji)
         {
             return condition;
         }
@@ -503,7 +544,7 @@ public static class WeatherService
         return string.IsNullOrWhiteSpace(condition) ? emoji : $"{emoji} {condition}";
     }
 
-    private static async Task RefreshAsync()
+    private async Task RefreshAsync()
     {
         try
         {
@@ -551,6 +592,11 @@ public static class WeatherService
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
+            if (!_weatherErrorShown)
+            {
+                _weatherErrorShown = true;
+                _toast?.Show("⛅ Weather Error", ex.Message, ToastType.Error, key: "weather-error");
+            }
         }
         finally
         {
@@ -561,14 +607,14 @@ public static class WeatherService
         }
     }
 
-    private static async Task<WeatherLocation> GetLocationAsync()
+    private async Task<WeatherLocation> GetLocationAsync()
     {
         string cacheKey = BuildLocationCacheKey();
         lock (SyncLock)
         {
             if (_location != null &&
                 _locationCacheKey == cacheKey &&
-                DateTime.UtcNow - _lastLocationFetchUtc < TimeSpan.FromHours(12))
+                DateTime.UtcNow - _lastLocationFetchUtc < Core.Constants.WeatherCacheExpiry)
             {
                 return _location;
             }
@@ -590,39 +636,37 @@ public static class WeatherService
         return location;
     }
 
-    private static string BuildLocationCacheKey()
+    private string BuildLocationCacheKey()
     {
-        var vm = ViewModel.Instance;
-        return vm.WeatherLocationMode switch
+        return Settings.WeatherLocationMode switch
         {
-            WeatherLocationMode.CustomCoordinates => $"coords:{vm.WeatherLocationLatitude.ToString(CultureInfo.InvariantCulture)},{vm.WeatherLocationLongitude.ToString(CultureInfo.InvariantCulture)}",
-            WeatherLocationMode.CustomCity => $"city:{vm.WeatherLocationCity}",
-            WeatherLocationMode.IPBased => vm.WeatherAllowIPLocation ? "ip:true" : $"ip-fallback:{vm.WeatherLocationCity}",
-            _ => $"city:{vm.WeatherLocationCity}"
+            WeatherLocationMode.CustomCoordinates => $"coords:{Settings.WeatherLocationLatitude.ToString(CultureInfo.InvariantCulture)},{Settings.WeatherLocationLongitude.ToString(CultureInfo.InvariantCulture)}",
+            WeatherLocationMode.CustomCity => $"city:{Settings.WeatherLocationCity}",
+            WeatherLocationMode.IPBased => Settings.WeatherAllowIPLocation ? "ip:true" : $"ip-fallback:{Settings.WeatherLocationCity}",
+            _ => $"city:{Settings.WeatherLocationCity}"
         };
     }
 
-    private static async Task<WeatherLocation> ResolveLocationAsync()
+    private async Task<WeatherLocation> ResolveLocationAsync()
     {
-        var vm = ViewModel.Instance;
-        switch (vm.WeatherLocationMode)
+        switch (Settings.WeatherLocationMode)
         {
             case WeatherLocationMode.CustomCoordinates:
-                return BuildLocationFromCoordinates(vm.WeatherLocationLatitude, vm.WeatherLocationLongitude);
+                return BuildLocationFromCoordinates(Settings.WeatherLocationLatitude, Settings.WeatherLocationLongitude);
             case WeatherLocationMode.CustomCity:
-                return await BuildLocationFromCityAsync(vm.WeatherLocationCity).ConfigureAwait(false);
+                return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
             case WeatherLocationMode.IPBased:
-                if (!vm.WeatherAllowIPLocation)
+                if (!Settings.WeatherAllowIPLocation)
                 {
-                    return await BuildLocationFromCityAsync(vm.WeatherLocationCity).ConfigureAwait(false);
+                    return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
                 }
                 return await BuildLocationFromIPAsync().ConfigureAwait(false);
             default:
-                return await BuildLocationFromCityAsync(vm.WeatherLocationCity).ConfigureAwait(false);
+                return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
         }
     }
 
-    private static WeatherLocation BuildLocationFromCoordinates(double latitude, double longitude)
+    private WeatherLocation BuildLocationFromCoordinates(double latitude, double longitude)
     {
         if (!IsValidCoordinate(latitude, longitude))
         {
@@ -632,14 +676,14 @@ public static class WeatherService
         return new WeatherLocation(latitude, longitude);
     }
 
-    private static async Task<WeatherLocation> BuildLocationFromCityAsync(string cityName)
+    private async Task<WeatherLocation> BuildLocationFromCityAsync(string cityName)
     {
         string city = string.IsNullOrWhiteSpace(cityName) ? DefaultCityName : cityName.Trim();
         if (string.Equals(city, DefaultCityName, StringComparison.OrdinalIgnoreCase))
         {
             return BuildLocationFromCoordinates(DefaultCityLatitude, DefaultCityLongitude);
         }
-        string url = $"https://geocoding-api.open-meteo.com/v1/search?name={Uri.EscapeDataString(city)}&count=1&language=en&format=json";
+        string url = $"{Core.Constants.OpenMeteoGeocodingUrl}?name={Uri.EscapeDataString(city)}&count=1&language=en&format=json";
         string response = await Client.GetStringAsync(url).ConfigureAwait(false);
         var json = JObject.Parse(response);
         var result = json["results"]?.First;
@@ -658,9 +702,9 @@ public static class WeatherService
         return new WeatherLocation(latitude.Value, longitude.Value);
     }
 
-    private static async Task<WeatherLocation> BuildLocationFromIPAsync()
+    private async Task<WeatherLocation> BuildLocationFromIPAsync()
     {
-        string response = await Client.GetStringAsync("https://ipapi.co/json/").ConfigureAwait(false);
+        string response = await Client.GetStringAsync(Core.Constants.IpGeoLocationUrl).ConfigureAwait(false);
         var json = JObject.Parse(response);
         double? latitude = json.Value<double?>("latitude");
         double? longitude = json.Value<double?>("longitude");
@@ -672,29 +716,29 @@ public static class WeatherService
         return new WeatherLocation(latitude.Value, longitude.Value);
     }
 
-    private static bool IsValidCoordinate(double latitude, double longitude)
+    private bool IsValidCoordinate(double latitude, double longitude)
     {
         return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
     }
 
-    private static string BuildWeatherUrl(double latitude, double longitude)
+    private string BuildWeatherUrl(double latitude, double longitude)
     {
         string lat = latitude.ToString(CultureInfo.InvariantCulture);
         string lon = longitude.ToString(CultureInfo.InvariantCulture);
-        return $"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,apparent_temperature&temperature_unit=celsius&timezone=auto";
+        return $"{Core.Constants.OpenMeteoForecastUrl}?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,apparent_temperature&temperature_unit=celsius&timezone=auto";
     }
 
-    internal static IReadOnlyDictionary<int, string> GetDefaultConditionMap()
+    public IReadOnlyDictionary<int, string> GetDefaultConditionMap()
     {
         return DefaultConditionMap;
     }
 
-    internal static IReadOnlyDictionary<int, string> GetDefaultConditionIconMap()
+    public IReadOnlyDictionary<int, string> GetDefaultConditionIconMap()
     {
         return DefaultConditionIconMap;
     }
 
-    private static string MapWeatherCode(int code)
+    private string MapWeatherCode(int code)
     {
         if (!DefaultConditionMap.TryGetValue(code, out string defaultValue))
         {
@@ -704,14 +748,14 @@ public static class WeatherService
         return ApplyConditionOverride(code, defaultValue);
     }
 
-    private static string ApplyConditionOverride(int code, string defaultValue)
+    private string ApplyConditionOverride(int code, string defaultValue)
     {
-        if (!ViewModel.Instance.WeatherCustomOverridesEnabled)
+        if (!Settings.WeatherCustomOverridesEnabled)
         {
             return defaultValue;
         }
 
-        string overrides = ViewModel.Instance.WeatherConditionOverrides;
+        string overrides = Settings.WeatherConditionOverrides;
         if (string.IsNullOrWhiteSpace(overrides))
         {
             return defaultValue;
@@ -726,14 +770,14 @@ public static class WeatherService
         return defaultValue;
     }
 
-    private static string ApplyConditionIconOverride(int code, string defaultIcon)
+    private string ApplyConditionIconOverride(int code, string defaultIcon)
     {
-        if (!ViewModel.Instance.WeatherCustomOverridesEnabled)
+        if (!Settings.WeatherCustomOverridesEnabled)
         {
             return defaultIcon;
         }
 
-        string overrides = ViewModel.Instance.WeatherConditionOverrides;
+        string overrides = Settings.WeatherConditionOverrides;
         if (string.IsNullOrWhiteSpace(overrides))
         {
             return defaultIcon;
@@ -748,7 +792,7 @@ public static class WeatherService
         return defaultIcon;
     }
 
-    private static bool TryGetConditionOverride(string overrides, int code, out string iconOverride, out string textOverride)
+    private bool TryGetConditionOverride(string overrides, int code, out string iconOverride, out string textOverride)
     {
         iconOverride = string.Empty;
         textOverride = string.Empty;
@@ -800,7 +844,7 @@ public static class WeatherService
         return false;
     }
 
-    private static string MapWeatherEmoji(int code)
+    private string MapWeatherEmoji(int code)
     {
         if (!DefaultConditionIconMap.TryGetValue(code, out string defaultIcon))
         {

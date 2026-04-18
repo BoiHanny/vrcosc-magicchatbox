@@ -1,0 +1,228 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Controls.ToastOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toast="clr-namespace:vrcosc_magicchatbox.Core.Toast"
+    IsHitTestVisible="True"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis" />
+    </UserControl.Resources>
+
+    <ItemsControl
+        Width="320"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Bottom"
+        ItemsSource="{Binding Toasts}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Vertical" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type toast:ToastItemViewModel}">
+
+                <!--
+                    ClipToBounds="True" clips the accent strip Rectangle to the rounded corners.
+                    Opacity="0" sets the starting value; the entry animation fades/slides it in.
+                    Entry:  slide from X=360 + fade 0→1  (0.25 s EaseOut)
+                    Exit:   slide to  X=360 + fade 1→0  (0.22 s EaseIn, matches ExitAnimationMs)
+                -->
+                <Border
+                    Width="320"
+                    Margin="0,0,0,8"
+                    CornerRadius="12"
+                    ClipToBounds="True"
+                    BorderThickness="1"
+                    Opacity="0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Offset="0" Color="#FF1C1245" />
+                            <GradientStop Offset="1" Color="#FF251660" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <SolidColorBrush Color="#FF4A3E78" />
+                    </Border.BorderBrush>
+                    <Border.Effect>
+                        <DropShadowEffect
+                            BlurRadius="22"
+                            Direction="270"
+                            Opacity="0.65"
+                            ShadowDepth="6"
+                            Color="#FF180E42" />
+                    </Border.Effect>
+                    <Border.RenderTransform>
+                        <TranslateTransform X="0" />
+                    </Border.RenderTransform>
+
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+
+                                <!-- Entry: slide in from right + fade in -->
+                                <EventTrigger RoutedEvent="Border.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0" To="1"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                From="360" To="0"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+
+                                <!-- Exit: slide out right + fade out (0.22 s = ExitAnimationMs) -->
+                                <DataTrigger Binding="{Binding IsExiting}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.22">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseIn" />
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                    To="360"
+                                                    Duration="0:0:0.22">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseIn" />
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                </DataTrigger>
+
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left accent colour strip — clipped to rounded corners by ClipToBounds on the outer Border -->
+                        <Rectangle Grid.Column="0" Fill="{Binding AccentBrush}" />
+
+                        <!-- Content: title + message + optional action button -->
+                        <StackPanel Grid.Column="1" Margin="12,10,4,10">
+
+                            <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="12.5"
+                                    FontWeight="DemiBold"
+                                    Foreground="White"
+                                    Text="{Binding Title}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <TextBlock
+                                FontFamily="Albert Sans Thin"
+                                FontSize="11"
+                                Foreground="#FFB5ABC9"
+                                LineHeight="16"
+                                Text="{Binding Message}"
+                                TextWrapping="Wrap" />
+
+                            <!-- Action button with custom template matching app's purple palette -->
+                            <Button
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Left"
+                                Height="26"
+                                Padding="10,0"
+                                Command="{Binding ExecuteActionCommand}"
+                                Content="{Binding Action.Label}"
+                                Cursor="Hand"
+                                FontFamily="Comfortaa Light"
+                                FontSize="11"
+                                Foreground="#FFC3A9FF"
+                                Visibility="{Binding HasAction, Converter={StaticResource BoolVis}}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border
+                                            x:Name="bg"
+                                            Background="#FF3A1F73"
+                                            CornerRadius="6"
+                                            Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bg" Property="Background" Value="#FF2D1265" />
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="bg" Property="Background" Value="#FF1E0D4A" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                        </StackPanel>
+
+                        <!-- Close (✕) button -->
+                        <Button
+                            Grid.Column="2"
+                            Width="24"
+                            Height="24"
+                            Margin="0,8,8,0"
+                            VerticalAlignment="Top"
+                            Command="{Binding DismissCommand}"
+                            Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bg" Background="Transparent" CornerRadius="4">
+                                        <TextBlock
+                                            x:Name="txt"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="10"
+                                            Foreground="#FF7F759A"
+                                            Text="✕" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="txt" Property="Foreground" Value="White" />
+                                            <Setter TargetName="bg" Property="Background" Value="#22FFFFFF" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                    </Grid>
+                </Border>
+
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+
+    </ItemsControl>
+</UserControl>

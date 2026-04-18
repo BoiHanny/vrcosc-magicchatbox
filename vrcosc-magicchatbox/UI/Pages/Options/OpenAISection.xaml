@@ -1,0 +1,692 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.OpenAISection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:OpenAISectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.Background>
+                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <ToggleButton
+                                Width="Auto"
+                                Height="30"
+                                HorizontalAlignment="Left"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource TextSectionHeaderBrush}"
+                                IsChecked="{Binding AppSettings.Settings_OpenAI, Mode=TwoWay}"
+                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                                Tag="OpenAI options"
+                                TextOptions.TextRenderingMode="ClearType" />
+                            <TextBlock
+                                x:Name="LearnMoreAboutOpenAIbtn"
+                                Width="auto"
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource AccentTealBrush}"
+                                MouseUp="LearnMoreAboutOpenAIbtn_MouseUp"
+                                Text="Terms of use"
+                                TextDecorations="Underline" />
+                            <TextBlock
+                                x:Name="MyUsageBtn"
+                                Width="auto"
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource AccentTealBrush}"
+                                MouseUp="MyUsageBtn_MouseUp"
+                                Text="My usage"
+                                TextDecorations="Underline" />
+
+                        </StackPanel>
+                        <Grid
+                            Grid.Row="1"
+                            Height="Auto"
+                            Margin="34,0,0,0"
+                            Visibility="{Binding AppSettings.Settings_OpenAI, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel>
+
+                                <Border
+                                    Margin="0,5,0,10"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button
+                                            x:Name="ConnectWithOpenAI"
+                                            Width="auto"
+                                            Height="30"
+                                            Padding="5"
+                                            Click="ConnectWithOpenAI_Click"
+                                            Style="{StaticResource Status_Button_style}"
+                                            Visibility="{Binding OpenAI.Connected, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Width="21"
+                                                            Height="18"
+                                                            Margin="0,0,3,0"
+                                                            RenderOptions.BitmapScalingMode="HighQuality"
+                                                            Source="/Img/Icons/OpenAI.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Text="Connect with OpenAI" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button
+                                            x:Name="ConnectedWithOpenAI"
+                                            Width="185"
+                                            Height="30"
+                                            Padding="5"
+                                            HorizontalAlignment="Left"
+                                            d:Visibility="Visible"
+                                            Style="{StaticResource Status_Button_style}"
+                                            Visibility="{Binding OpenAI.Connected, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Button.ContentTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            Margin="2,0,5,0"
+                                                            VerticalAlignment="Center"
+                                                            Source="/Img/Icons/yes.png" />
+                                                        <TextBlock
+                                                            Margin="0,-2,5,0"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            Text="Connected with OpenAI" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </Button.ContentTemplate>
+                                        </Button>
+                                        <Button
+                                            x:Name="DisconnectOpenAI"
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Width="20"
+                                            Height="30"
+                                            Margin="-5,0,0,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            d:Visibility="Visible"
+                                            Background="{StaticResource StatusErrorDarkerBrush}"
+                                            BorderThickness="0"
+                                            Command="{Binding DisconnectOpenAICommand}"
+                                            Cursor="Hand"
+                                            Style="{DynamicResource DisconnectPulsoid}"
+                                            Visibility="{Binding OpenAI.Connected, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <Grid>
+                                                <Image
+                                                    Width="15"
+                                                    Height="15"
+                                                    RenderOptions.BitmapScalingMode="Linear"
+                                                    Source="/Img/Icons/Cross_v1_ico.png" />
+                                            </Grid>
+                                        </Button>
+                                        <TextBlock
+                                            Width="400"
+                                            Padding="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="PaleVioletRed"
+                                            Text="{Binding OpenAI.AccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding OpenAI.AccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="PerformModerationCheck"
+                                            Height="20"
+                                            IsChecked="{Binding Modules.IntelliChat.Settings.IntelliChatPerformModeration, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Enable free moderation checks to safeguard your content and OpenAI account
+                                        </CheckBox>
+
+                                    </StackPanel>
+                                </Border>
+
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Magic improve" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Opacity="0.5"
+                                            Text="With Magic improve, you can transform your chat message in anything you can think of" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,14,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Select your preferred writing style for the quick-access button in the chat window below" />
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <ComboBox
+                                                x:Name="WritingStylesComboBox"
+                                                Width="200"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                DisplayMemberPath="StyleName"
+                                                ItemsSource="{Binding Modules.IntelliChat.Settings.SupportedWritingStyles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Opacity="0.3"
+                                                SelectedItem="{Binding Modules.IntelliChat.Settings.SelectedWritingStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="2,2,0,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="12"
+                                                FontWeight="DemiBold"
+                                                Foreground="{StaticResource TextLabelBrush}"
+                                                Text="{Binding Modules.IntelliChat.Settings.SelectedWritingStyle.StyleDescription}" />
+                                        </StackPanel>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.IntelliChat.Settings.PerformBeautifySentenceModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+
+
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Magic translate" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Opacity="0.5"
+                                            Text="With translation, you can pick every language you can think of or that is known by the AI (that a lot!)" />
+
+                                        <CheckBox
+                                            x:Name="AutoDetectLang"
+                                            Height="20"
+                                            Margin="2,14,0,0"
+                                            IsChecked="{Binding Modules.IntelliChat.Settings.AutolanguageSelection, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}"
+                                            Visibility="Collapsed">
+                                            Automatically detect language (less tokens)
+                                        </CheckBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,14,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Select your preferred language for the quick-access button in the chat window below" />
+
+                                        <ComboBox
+                                            x:Name="SelectedTranslateLanguageComboBox"
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            DisplayMemberPath="Language"
+                                            ItemsSource="{Binding Modules.IntelliChat.Settings.SupportedLanguages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Opacity="0.3"
+                                            SelectedItem="{Binding Modules.IntelliChat.Settings.SelectedTranslateLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.IntelliChat.Settings.PerformLanguageTranslationModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Speech to text" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Opacity="0.5"
+                                            Text="With speech to text, you can transform your voice into text" />
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,14,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Select your preferred recording device to use for text to speech" />
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <ComboBox
+                                                x:Name="SelectedDeviceComboBox"
+                                                Width="200"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                DisplayMemberPath="DeviceName"
+                                                ItemsSource="{Binding Modules.Whisper.Settings.AvailableDevices}"
+                                                Opacity="0.3"
+                                                SelectedValue="{Binding Modules.Whisper.Settings.SelectedDeviceIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                SelectedValuePath="DeviceIndex" />
+
+                                        </StackPanel>
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="OpenAI STT Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.Whisper.Settings.AvailableSTTModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.Whisper.Settings.SpeechToTextModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBlock
+                                            Width="600"
+                                            Padding="2,14,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="You can speak any language you want, the AI will try to understand it. If you want to translate it."
+                                            TextWrapping="Wrap" />
+                                        <TextBlock
+                                            Width="600"
+                                            Padding="2,0,0,5"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Only works in Whisper"
+                                            TextWrapping="Wrap" />
+                                        <CheckBox
+                                            x:Name="TranslateToCustomLanguage"
+                                            Height="20"
+                                            Margin="4,0,4,4"
+                                            IsChecked="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Enable translation
+                                        </CheckBox>
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,8,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Select your preferred speech to text language"
+                                            Visibility="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        <StackPanel
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBox
+                                                x:Name="SelectedSpeechToTextLanguageComboBox"
+                                                Width="200"
+                                                Height="25"
+                                                Margin="2,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                DisplayMemberPath="Language"
+                                                ItemsSource="{Binding Modules.Whisper.Settings.SpeechToTextLanguages}"
+                                                Opacity="0.3"
+                                                SelectedValue="{Binding Modules.Whisper.Settings.SelectedSpeechToTextLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,5,0,4" Orientation="Horizontal">
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="3,10,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="{StaticResource TextLabelBrush}"
+                                                Text="Disable after" />
+                                            <TextBox
+                                                x:Name="SilenceAutoTurnOffDurationINT"
+                                                Width="auto"
+                                                Height="26"
+                                                Margin="4,3,3,0"
+                                                Padding="3,0,3,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalContentAlignment="Center"
+                                                Background="{StaticResource InputBackgroundBrush}"
+                                                BorderThickness="0"
+                                                FontSize="15"
+                                                Foreground="{StaticResource TextDarkBrush}"
+                                                Text="{Binding Modules.Whisper.Settings.SilenceAutoTurnOffDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="0,10,0,0"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="{StaticResource TextLabelBrush}"
+                                                Text="milliseconds of silence" />
+
+
+                                        </StackPanel>
+
+                                        <CheckBox
+                                            x:Name="SendAftersilence"
+                                            Height="20"
+                                            Margin="4,10,4,4"
+                                            IsChecked="{Binding Modules.Whisper.Settings.SendAftersilence, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Sent Speech to text after silence
+                                        </CheckBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="4,16,0,5"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Adjust the noise gate threshold" />
+
+                                        <StackPanel Margin="4,0,0,7" Orientation="Horizontal">
+                                            <Slider
+                                                x:Name="NoiseGateThreshold"
+                                                Width="134.5"
+                                                Height="12"
+                                                Margin="2.2,0,4.5,0"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="1.0"
+                                                Minimum="0.0"
+                                                SmallChange="0.01"
+                                                Style="{StaticResource CustomSlider}"
+                                                TickFrequency="0.01"
+                                                Value="{Binding Modules.Whisper.Settings.NoiseGateThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="15"
+                                                Foreground="{StaticResource BorderMutedBrush}"
+                                                Text="{Binding Modules.Whisper.Settings.NoiseGateThreshold, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        </StackPanel>
+
+
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <TextBlock
+                                            Padding="2,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="20"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Other AI functions" />
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,3,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            FontStyle="Italic"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Opacity="0.5"
+                                            Text="Here u can change the model of the IntelliChat AI function" />
+
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Conversation starter OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.IntelliChat.Settings.GenerateConversationStarterModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Shorten text OpenAI Model:" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.IntelliChat.Settings.PerformShortenTextModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Spelling / grammar correction OpenAI Model" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.IntelliChat.Settings.PerformSpellingCheckModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <TextBlock
+                                            Width="auto"
+                                            Padding="2,7,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Next word prediction OpenAI Model" />
+                                        <ComboBox
+                                            Width="200"
+                                            Height="25"
+                                            Margin="2,4"
+                                            HorizontalAlignment="Left"
+                                            ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
+                                            Opacity="0.3"
+                                            SelectedValue="{Binding Modules.IntelliChat.Settings.PerformTextCompletionModel, Mode=TwoWay}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+
+
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    Margin="0,0,0,5"
+                                    Background="{StaticResource SurfaceCardBrush}"
+                                    CornerRadius="5,0,0,5">
+                                    <StackPanel Margin="5">
+                                        <CheckBox
+                                            x:Name="HideOpenAITools"
+                                            Height="20"
+                                            IsChecked="{Binding ChatSettings.HideOpenAITools, Mode=TwoWay}"
+                                            Style="{DynamicResource SettingsCheckbox}">
+                                            Hide OpenAI toolbar in chatting tab
+                                        </CheckBox>
+
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+</UserControl>

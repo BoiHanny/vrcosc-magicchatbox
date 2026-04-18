@@ -1,0 +1,251 @@
+<Window
+    x:Class="vrcosc_magicchatbox.UI.Dialogs.TosAndPrivacyWizard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Data Access &amp; Permissions"
+    Width="760"
+    Height="680"
+    MinWidth="620"
+    MinHeight="500"
+    Background="#41375B"
+    ResizeMode="CanResizeWithGrip"
+    mc:Ignorable="d">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="55"
+            CornerRadius="0"
+            GlassFrameThickness="1"
+            ResizeBorderThickness="8"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="80" />
+        </Grid.RowDefinitions>
+
+        <!--  Header bar  -->
+        <Border Grid.Row="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform AngleX="-10" CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Offset="1" Color="#FF1A0842" />
+                    <GradientStop Color="#FF251540" />
+                    <GradientStop Offset="0.539" Color="#FF6441A5" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid x:Name="Drag_area" Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
+                <TextBlock
+                    x:Name="HeaderTextBlock"
+                    Margin="6,1,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="White"
+                    Text="Data Access &amp; Permissions">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="Black" />
+                    </TextBlock.Effect>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <!--  Permissions content  -->
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="0"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24,16,24,8">
+
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontFamily="Comfortaa Light"
+                    FontSize="17"
+                    Foreground="LightYellow"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap">
+                    <Run
+                        FontSize="20"
+                        FontWeight="DemiBold"
+                        Text="Welcome to MagicChatbox 🎉" />
+                    <LineBreak /><LineBreak />
+                    <Run Foreground="#CCCCCC" Text="Choose which features may access your system or the internet." />
+                    <LineBreak />
+                    <Run
+                        FontSize="13"
+                        Foreground="#AAAAAA"
+                        Text="You can change these at any time in Settings → Privacy &amp; Permissions." />
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <ItemsControl x:Name="HookList" Margin="0,16,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button
+                                Margin="0,0,0,10"
+                                Command="{Binding ToggleCommand}"
+                                Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border
+                                            Padding="14,12"
+                                            Background="#2A2040"
+                                            CornerRadius="8">
+                                            <ContentPresenter />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        FontFamily="Comfortaa Light"
+                                        FontSize="15"
+                                        FontWeight="DemiBold"
+                                        Foreground="White"
+                                        Text="{Binding Title}" />
+
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Margin="0,4,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="#BBBBBB"
+                                        Text="{Binding Description}"
+                                        TextWrapping="Wrap" />
+
+                                    <TextBlock
+                                        Grid.Row="2"
+                                        Grid.Column="0"
+                                        Margin="0,6,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="#FF8C8C"
+                                        Text="{Binding Warning}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{Binding WarningVisibility}" />
+
+                                    <CheckBox
+                                        Grid.Row="0"
+                                        Grid.RowSpan="3"
+                                        Grid.Column="1"
+                                        Width="24"
+                                        Height="24"
+                                        VerticalAlignment="Center"
+                                        IsChecked="{Binding IsApproved, Mode=OneWay}"
+                                        IsHitTestVisible="False"
+                                        Style="{DynamicResource SettingsCheckbox}"
+                                        ToolTip="Allow this permission" />
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  Footer: two centred rows — links on top, button below  -->
+        <Grid Grid.Row="2" Background="#2A1F42">
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Vertical">
+
+                <!--  Row 1: TOS & SLA hyperlinks  -->
+                <StackPanel
+                    Margin="0,0,0,10"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="#666666"
+                        Text="By continuing you agree to our  " />
+                    <TextBlock VerticalAlignment="Center">
+                        <Hyperlink
+                            x:Name="TosLink"
+                            Click="TosLink_Click"
+                            Foreground="#7B5EA7">
+                            <Run
+                                FontFamily="Albert Sans Thin"
+                                FontSize="11"
+                                Text="Terms of Service" />
+                        </Hyperlink>
+                    </TextBlock>
+                    <TextBlock
+                        Margin="4,0"
+                        VerticalAlignment="Center"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="#666666"
+                        Text="&amp;" />
+                    <TextBlock VerticalAlignment="Center">
+                        <Hyperlink
+                            x:Name="SlaLink"
+                            Click="SlaLink_Click"
+                            Foreground="#7B5EA7">
+                            <Run
+                                FontFamily="Albert Sans Thin"
+                                FontSize="11"
+                                Text="Software License" />
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+
+                <!--  Row 2: Accept button  -->
+                <Button
+                    x:Name="AcceptButton"
+                    Width="200"
+                    Height="38"
+               
+                    HorizontalAlignment="Center"
+                    Click="Accept_Click"
+                    Content="Accept &amp; Continue"
+                    Style="{StaticResource Status_Button_style}" />
+
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Window>

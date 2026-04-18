@@ -2,11 +2,17 @@ using System.ComponentModel;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// User-defined override for a weather condition code, allowing a custom icon and text label.
+    /// </summary>
     public class WeatherConditionOverrideItem : INotifyPropertyChanged
     {
         private string _customIcon = string.Empty;
         private string _customText = string.Empty;
 
+        /// <summary>
+        /// Initializes a new <see cref="WeatherConditionOverrideItem"/> for the given weather condition code.
+        /// </summary>
         public WeatherConditionOverrideItem(int code, string defaultIcon, string defaultText)
         {
             Code = code;

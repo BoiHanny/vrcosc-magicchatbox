@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="vrcosc_magicchatbox.StartUp"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -24,7 +24,7 @@
     </Window.Resources>
     <Border
         Margin="15"
-        Background="#FF2D1267"
+        Background="{StaticResource SurfacePrimaryBrush}"
         Effect="{StaticResource ShadowEffect}"
         SnapsToDevicePixels="True">
         <Grid>
@@ -35,7 +35,7 @@
             </Grid.RowDefinitions>
             <StackPanel
                 Grid.Row="0"
-                Background="#FF2D1267"
+                Background="{StaticResource SurfacePrimaryBrush}"
                 Orientation="Horizontal">
                 <Grid
                     x:Name="grabhandle"
@@ -73,7 +73,7 @@
                         FontFamily="Albert Sans Thin"
                         FontSize="12"
                         Foreground="White"
-                        Text="{Binding AppVersion.VersionNumber}">
+                        Text="{Binding UpdateState.AppVersion.VersionNumber}">
                         <TextBlock.Effect>
                             <DropShadowEffect
                                 BlurRadius="15"
@@ -115,7 +115,7 @@
             </Grid>
             <Border
                 Grid.Row="2"
-                BorderBrush="#FF7F759A"
+                BorderBrush="{StaticResource TextSubtleBrush}"
                 BorderThickness="0,1,0,0">
                 <Grid>
                     <Grid.Background>
@@ -161,7 +161,7 @@
                         VerticalAlignment="Top"
                         FontFamily="Albert Sans Thin"
                         FontSize="12"
-                        Foreground="#FF9AA1FF"
+                        Foreground="{StaticResource TextAccentBlueBrush}"
                         Text="By BoiHanny">
                         <TextBlock.Effect>
                             <DropShadowEffect
@@ -180,7 +180,7 @@
                         VerticalAlignment="Top"
                         FontFamily="Albert Sans Thin"
                         FontSize="10"
-                        Foreground="#FF9AA1FF">
+                        Foreground="{StaticResource TextAccentBlueBrush}">
                         <TextBlock.Effect>
                             <DropShadowEffect
                                 BlurRadius="15"

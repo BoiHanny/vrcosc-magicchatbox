@@ -2,6 +2,9 @@
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// Extension methods for <see cref="StatsComponentType"/> providing compact Unicode superscript labels.
+    /// </summary>
     public static class StatsComponentTypeExtensions
     {
         public static string GetSmallName(this StatsComponentType type)

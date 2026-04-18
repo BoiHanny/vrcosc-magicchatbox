@@ -1,21 +1,32 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.ViewModels.State;
 using Windows.Media.Control;
 using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// Represents an active media playback session, exposing properties for title, artist,
+    /// playback status, seek position, and per-session user preferences.
+    /// </summary>
     [DebuggerDisplay("{FriendlyAppName} - {TimePeekEnabled} - {TimePosition}/{CurrentTime}/{FullTime} live:{IsLiveTime}")]
-    public class MediaSessionInfo : INotifyPropertyChanged
+    public class MediaSessionInfo : INotifyPropertyChanged, IDisposable
     {
-        private bool _AutoSwitch = ViewModel.Instance.MediaSession_AutoSwitchSpawn;
+        private readonly MediaLinkSettings _mediaLinkSettings;
+
+        private readonly MediaLinkDisplayState _mediaLink;
+
+        private bool _AutoSwitch;
 
         private Timer _updateTimer;
+        private bool _disposed;
 
         private bool _IsActive;
 
@@ -71,7 +82,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             if (_KeepSaved)
             {
-                var savedSettings = ViewModel.Instance.SavedSessionSettings
+                var savedSettings = _mediaLink.SavedSessionSettings
                     .FirstOrDefault(s => s.SessionId == Session.Id);
                 if (savedSettings != null)
                 {
@@ -83,7 +94,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 }
                 else
                 {
-                    ViewModel.Instance.SavedSessionSettings
+                    _mediaLink.SavedSessionSettings
                         .Add(
                             new MediaSessionSettings
                             {
@@ -98,11 +109,11 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
             else
             {
-                var savedSettings = ViewModel.Instance.SavedSessionSettings
+                var savedSettings = _mediaLink.SavedSessionSettings
                     .FirstOrDefault(s => s.SessionId == Session.Id);
                 if (savedSettings != null)
                 {
-                    ViewModel.Instance.SavedSessionSettings.Remove(savedSettings);
+                    _mediaLink.SavedSessionSettings.Remove(savedSettings);
                 }
             }
         }
@@ -126,8 +137,8 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                     if (id.Contains(".exe"))
                     {
                         id = Path.GetFileNameWithoutExtension(id);
-                    }             
-                    if(id.Contains("OperaSoftware"))
+                    }
+                    if (id.Contains("OperaSoftware"))
                     {
                         FriendlyAppName = "Opera";
                     }
@@ -233,9 +244,12 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        public MediaSessionInfo()
+        public MediaSessionInfo(MediaLinkSettings mediaLinkSettings, MediaLinkDisplayState mediaLink)
         {
-            _updateTimer = new Timer(UpdateCurrentTime, null, 0, 1000); 
+            _mediaLinkSettings = mediaLinkSettings;
+            _mediaLink = mediaLink;
+            _AutoSwitch = _mediaLinkSettings.AutoSwitchSpawn;
+            _updateTimer = new Timer(UpdateCurrentTime, null, 0, 1000);
         }
 
         private TimeSpan _FullTime = new TimeSpan(0, 0, 0);
@@ -307,9 +321,21 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            _updateTimer?.Dispose();
+            _updateTimer = null;
+        }
+
+
     }
 
+    /// <summary>
+    /// Stores persisted user preferences for a media session, keyed by session ID.
+    /// </summary>
     public class MediaSessionSettings
     {
         public bool AutoSwitch { get; set; }

@@ -1,0 +1,882 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.StatusPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:StatusPageViewModel,
+                                     IsDesignTimeCreatable=False}"
+    Background="{StaticResource SurfaceCardBrush}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <!--  Toolbar  -->
+            <RowDefinition Height="*" />
+            <!--  Status list  -->
+            <RowDefinition Height="40" />
+            <!--  Status bar  -->
+            <RowDefinition Height="auto" />
+            <!--  Input  -->
+        </Grid.RowDefinitions>
+
+        <!--  ═══════════════ Row 0: Toolbar ═══════════════  -->
+        <Grid Grid.Row="0" Background="{StaticResource SurfaceVariantBrush}">
+            <Grid.Effect>
+                <DropShadowEffect
+                    BlurRadius="10"
+                    Direction="-90"
+                    Opacity="0.5"
+                    RenderingBias="Performance"
+                    ShadowDepth="5"
+                    Color="{StaticResource TextSubtleColor}" />
+            </Grid.Effect>
+
+            <!--  Normal toolbar (hidden in selection mode)  -->
+            <Grid Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  LEFT: Sort ComboBox + direction button  -->
+                <StackPanel
+                    Grid.Column="0"
+                    Margin="8,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ComboBox
+                        x:Name="SortCombo"
+                        Width="115"
+                        Height="25"
+                        VerticalContentAlignment="Center"
+                        Opacity="0.5"
+                        SelectionChanged="SortCombo_SelectionChanged">
+                        <ComboBoxItem Content="Recently used" Tag="0" />
+                        <ComboBoxItem Content="My 💛 cycles" Tag="1" />
+                        <ComboBoxItem
+                            Content="Creation date"
+                            IsSelected="True"
+                            Tag="2" />
+                        <ComboBoxItem Content="Edit date" Tag="3" />
+                    </ComboBox>
+                    <Button
+                        Width="25"
+                        Height="25"
+                        Margin="3,0,0,0"
+                        Command="{Binding ToggleSortDirectionCommand}"
+                        Content="{Binding SortDirectionSymbol}"
+                        FontSize="13"
+                        Style="{DynamicResource Status_Button_style}"
+                        ToolTip="Toggle sort direction" />
+                </StackPanel>
+
+                <!--  CENTER: Group dropdown  -->
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ToggleButton
+                        x:Name="GroupToggle"
+                        Height="25"
+                        MinWidth="110"
+                        Padding="8,0"
+                        Content="{Binding SelectedGroupDisplayName}"
+                        FontSize="12"
+                        IsChecked="{Binding IsGroupDropdownOpen, Mode=TwoWay}"
+                        Style="{StaticResource Status_Toggle_style}" />
+                    <Popup
+                        DataContext="{Binding DataContext, ElementName=GroupToggle}"
+                        IsOpen="{Binding IsGroupDropdownOpen, Mode=TwoWay}"
+                        Placement="Bottom"
+                        PlacementTarget="{Binding ElementName=GroupToggle}"
+                        StaysOpen="False">
+                        <Border
+                            MinWidth="200"
+                            Background="#1E1B33"
+                            BorderBrush="#3F2970"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="14"
+                                    Opacity="0.8"
+                                    ShadowDepth="3"
+                                    Color="Black" />
+                            </Border.Effect>
+                            <StackPanel>
+                                <!--  "All groups" shortcut  -->
+                                <Button
+                                    Margin="2,2,2,4"
+                                    Padding="6,5"
+                                    HorizontalContentAlignment="Left"
+                                    Command="{Binding SelectGroupCommand}"
+                                    CommandParameter="{x:Null}"
+                                    Content="☰  All groups"
+                                    Style="{DynamicResource Status_Button_style}" />
+                                <Separator Margin="4,0,4,6" Background="#3F2970" />
+                                <!--  Group rows  -->
+                                <ItemsControl x:Name="GroupListControl" ItemsSource="{Binding ChatStatus.GroupList}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                Margin="2,2"
+                                                Padding="3"
+                                                CornerRadius="4">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="22" />
+                                                        <ColumnDefinition Width="auto" />
+                                                        <ColumnDefinition Width="auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <!--  Display name (normal)  -->
+                                                    <Button
+                                                        Grid.Column="0"
+                                                        Padding="4,3"
+                                                        HorizontalContentAlignment="Left"
+                                                        Command="{Binding DataContext.SelectGroupCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{DynamicResource LINK_Button_style}"
+                                                        Visibility="{Binding IsRenaming, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                                        <TextBlock
+                                                            FontSize="13"
+                                                            Foreground="WhiteSmoke"
+                                                            Text="{Binding Name}" />
+                                                    </Button>
+                                                    <!--  Rename TextBox  -->
+                                                    <TextBox
+                                                        Grid.Column="0"
+                                                        Padding="4,2"
+                                                        VerticalContentAlignment="Center"
+                                                        Background="#2C2148"
+                                                        BorderBrush="#7C5CBF"
+                                                        BorderThickness="1"
+                                                        FontSize="13"
+                                                        Foreground="WhiteSmoke"
+                                                        KeyDown="RenameGroupTextBox_KeyDown"
+                                                        Tag="{Binding}"
+                                                        Text="{Binding RenameBuffer, UpdateSourceTrigger=PropertyChanged}"
+                                                        Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <TextBox.Resources>
+                                                            <Style TargetType="{x:Type Border}">
+                                                                <Setter Property="CornerRadius" Value="3" />
+                                                            </Style>
+                                                        </TextBox.Resources>
+                                                    </TextBox>
+                                                    <!--  Cycle active toggle  -->
+                                                    <ToggleButton
+                                                        Grid.Column="1"
+                                                        Width="20"
+                                                        Height="20"
+                                                        Command="{Binding DataContext.ToggleGroupCycleActiveCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="♻"
+                                                        FontSize="9"
+                                                        IsChecked="{Binding IsActiveForCycle}"
+                                                        Style="{StaticResource GlowyToggleButton}"
+                                                        ToolTip="Include in auto-cycle" />
+                                                    <!--  Rename button (hidden for Default group)  -->
+                                                    <ToggleButton
+                                                        Grid.Column="2"
+                                                        Width="20"
+                                                        Height="20"
+                                                        Click="BeginRenameGroup_Click"
+                                                        Style="{DynamicResource Editbutton}"
+                                                        Tag="{Binding}"
+                                                        ToolTip="Rename group"
+                                                        Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                                        <Image
+                                                            Width="11"
+                                                            Height="11"
+                                                            Source="/Img/Icons/Edit_ico.png" />
+                                                    </ToggleButton>
+                                                    <!--  Delete button (hidden for Default group)  -->
+                                                    <Button
+                                                        Grid.Column="3"
+                                                        Width="20"
+                                                        Height="20"
+                                                        Command="{Binding DataContext.DeleteGroupCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{DynamicResource Deletebutton}"
+                                                        ToolTip="Delete group"
+                                                        Visibility="{Binding IsDefault, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                                        <Image
+                                                            Width="11"
+                                                            Height="11"
+                                                            Source="/Img/Icons/Delete_ico.png" />
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Separator Margin="4,6,4,4" Background="#3F2970" />
+                                <!--  Add new group  -->
+                                <StackPanel
+                                    Margin="2,2"
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <TextBox
+                                        x:Name="NewGroupTextBox"
+                                        Width="135"
+                                        Height="26"
+                                        Padding="5,0"
+                                        VerticalContentAlignment="Center"
+                                        Background="#2C2148"
+                                        BorderBrush="#7C5CBF"
+                                        BorderThickness="1"
+                                        FontSize="12"
+                                        Foreground="WhiteSmoke"
+                                        KeyDown="NewGroupTextBox_KeyDown"
+                                        Text="{Binding NewGroupName, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBox.Resources>
+                                            <Style TargetType="{x:Type Border}">
+                                                <Setter Property="CornerRadius" Value="4" />
+                                            </Style>
+                                        </TextBox.Resources>
+                                    </TextBox>
+                                    <Button
+                                        Width="30"
+                                        Height="26"
+                                        Margin="3,0,0,0"
+                                        Command="{Binding ConfirmAddGroupCommand}"
+                                        Content="+"
+                                        FontSize="16"
+                                        Style="{DynamicResource Status_Button_style}"
+                                        ToolTip="Create group" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+
+                <!--  RIGHT: Select + AutoCycle + Settings  -->
+                <StackPanel
+                    Grid.Column="2"
+                    Margin="0,0,8,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Button
+                        Height="25"
+                        Margin="0,0,3,0"
+                        Padding="6,0"
+                        Command="{Binding EnterSelectionModeCommand}"
+                        Content="☐  Select"
+                        Style="{DynamicResource Status_Button_style}"
+                        ToolTip="Enter selection mode" />
+                    <ToggleButton
+                        Width="90"
+                        Height="25"
+                        Margin="0,0,3,0"
+                        Content="Auto 💛 cycle"
+                        IsChecked="{Binding AppSettings.CycleStatus, Mode=TwoWay}"
+                        Style="{StaticResource GlowyToggleButton}" />
+                    <Button
+                        Margin="0"
+                        Command="{Binding ActivateSettingCommand}"
+                        CommandParameter="Settings_Status"
+                        Opacity="0.6"
+                        Style="{DynamicResource LINK_Button_style}">
+                        <Image
+                            Width="18"
+                            Height="18"
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            Source="/Img/Icons/Next_ico.png" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!--  Selection mode toolbar  -->
+            <Grid Visibility="{Binding IsSelectionMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    Grid.Column="0"
+                    Height="25"
+                    Margin="8,0,0,0"
+                    Padding="8,0"
+                    Command="{Binding ExitSelectionModeCommand}"
+                    Content="✕  Cancel"
+                    Style="{DynamicResource Status_Button_style}" />
+                <TextBlock
+                    Grid.Column="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="13"
+                    Foreground="#AAA3B7"
+                    Text="{Binding SelectedItems.Count, StringFormat='{}{0} selected'}" />
+                <StackPanel
+                    Grid.Column="2"
+                    Margin="0,0,8,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Button
+                        Height="25"
+                        Margin="0,0,3,0"
+                        Padding="6,0"
+                        Command="{Binding DeleteSelectedCommand}"
+                        Content="🗑 Delete"
+                        Style="{DynamicResource Status_Button_style}" />
+                    <Button
+                        Height="25"
+                        Margin="0,0,3,0"
+                        Padding="6,0"
+                        Command="{Binding CloneSelectedCommand}"
+                        Content="⧉ Clone"
+                        Style="{DynamicResource Status_Button_style}" />
+                    <ToggleButton
+                        x:Name="MoveToGroupToggle"
+                        Height="25"
+                        Padding="6,0"
+                        Content="Move to…"
+                        Style="{StaticResource Status_Toggle_style}" />
+                    <Popup
+                        DataContext="{Binding DataContext, ElementName=MoveToGroupToggle}"
+                        IsOpen="{Binding IsChecked, ElementName=MoveToGroupToggle}"
+                        Placement="Bottom"
+                        PlacementTarget="{Binding ElementName=MoveToGroupToggle}"
+                        StaysOpen="False">
+                        <Border
+                            MinWidth="140"
+                            Padding="4"
+                            Background="#1E1B33"
+                            BorderBrush="#3F2970"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="12"
+                                    Opacity="0.7"
+                                    ShadowDepth="2"
+                                    Color="Black" />
+                            </Border.Effect>
+                            <ItemsControl ItemsSource="{Binding ChatStatus.GroupList}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button
+                                            Margin="2,2"
+                                            Padding="8,5"
+                                            HorizontalContentAlignment="Left"
+                                            Command="{Binding DataContext.MoveSelectedToGroupCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="{Binding Name}"
+                                            Style="{DynamicResource Status_Button_style}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!--  ═══════════════ Row 1: Status list ═══════════════  -->
+        <ListBox
+            Name="Statusitems"
+            Grid.Row="1"
+            Width="710"
+            Margin="5"
+            Background="Transparent"
+            BorderThickness="0"
+            ItemsSource="{Binding FilteredView}"
+            ScrollViewer.CanContentScroll="True"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            ScrollViewer.IsDeferredScrollingEnabled="True"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            VirtualizingPanel.CacheLength="2"
+            VirtualizingPanel.CacheLengthUnit="Page"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling">
+            <ListBox.Resources>
+                <local:CountThresholdConverter x:Key="StatusEffectThresholdConverter" />
+                <DropShadowEffect
+                    x:Key="StatusCardShadow"
+                    BlurRadius="8"
+                    Direction="0"
+                    Opacity="0.9"
+                    RenderingBias="Performance"
+                    ShadowDepth="0"
+                    Color="Black" />
+                <DropShadowEffect
+                    x:Key="StatusTextShadow"
+                    BlurRadius="18"
+                    Opacity="0.7"
+                    RenderingBias="Performance"
+                    ShadowDepth="0"
+                    Color="WhiteSmoke" />
+                <DropShadowEffect
+                    x:Key="StatusEditTextShadow"
+                    BlurRadius="18"
+                    Opacity="0.9"
+                    RenderingBias="Performance"
+                    ShadowDepth="0"
+                    Color="{StaticResource AccentLightBlueColor}" />
+                <DropShadowEffect
+                    x:Key="StatusActiveIconShadow"
+                    BlurRadius="15"
+                    RenderingBias="Performance"
+                    ShadowDepth="0"
+                    Color="LimeGreen" />
+                <Style x:Key="ActiveStatusText" TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource TextSuccessLightBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                            <Setter Property="Foreground" Value="LightGray" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <Style x:Key="ActiveStatusTextEdit" TargetType="TextBox">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource TextSuccessLightBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                            <Setter Property="Foreground" Value="LightGray" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <Style x:Key="StatusShadowBorder" TargetType="Border">
+                    <Setter Property="Effect" Value="{StaticResource StatusCardShadow}" />
+                    <Setter Property="CacheMode">
+                        <Setter.Value>
+                            <BitmapCache RenderAtScale="1.0" />
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                            <Setter Property="Effect" Value="{x:Null}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <Style
+                    x:Key="ActiveStatusTextShadow"
+                    BasedOn="{StaticResource ActiveStatusText}"
+                    TargetType="TextBlock">
+                    <Setter Property="Effect" Value="{StaticResource StatusTextShadow}" />
+                    <Setter Property="CacheMode">
+                        <Setter.Value>
+                            <BitmapCache RenderAtScale="1.0" />
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                            <Setter Property="Effect" Value="{x:Null}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <Style
+                    x:Key="ActiveStatusTextEditShadow"
+                    BasedOn="{StaticResource ActiveStatusTextEdit}"
+                    TargetType="TextBox">
+                    <Setter Property="Effect" Value="{StaticResource StatusEditTextShadow}" />
+                    <Setter Property="CacheMode">
+                        <Setter.Value>
+                            <BitmapCache RenderAtScale="1.0" />
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                            <Setter Property="Effect" Value="{x:Null}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <Style x:Key="ActiveStatusIconStyle" TargetType="Image">
+                    <Setter Property="Effect" Value="{StaticResource StatusActiveIconShadow}" />
+                    <Setter Property="CacheMode">
+                        <Setter.Value>
+                            <BitmapCache RenderAtScale="1.0" />
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=200}" Value="True">
+                            <Setter Property="Effect" Value="{x:Null}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Resources>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="5" CornerRadius="5">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="DarkSlateBlue" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="Background" Value="#3F2C7A" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Grid>
+                            <Border
+                                Width="auto"
+                                Height="auto"
+                                Background="DarkSlateBlue"
+                                BorderThickness="0"
+                                CornerRadius="5"
+                                Style="{StaticResource StatusShadowBorder}" />
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="35" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="35" />
+                                    <!--  Col 0: Activate / Checkbox  -->
+                                    <ColumnDefinition Width="30" />
+                                    <!--  Col 1: Delete  -->
+                                    <ColumnDefinition Width="*" />
+                                    <!--  Col 2: Text  -->
+                                    <ColumnDefinition Width="25" />
+                                    <!--  Col 3: Edit  -->
+                                    <ColumnDefinition Width="62" />
+                                    <!--  Col 4: Group  -->
+                                    <ColumnDefinition Width="35" />
+                                    <!--  Col 5: Fav  -->
+                                </Grid.ColumnDefinitions>
+
+                                <!--  Col 0: Normal mode — activated icon + activate button  -->
+                                <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                    <Border Background="{StaticResource SurfaceButtonDarkBrush}">
+                                        <Image
+                                            Width="22"
+                                            Height="22"
+                                            Source="/Img/Icons/ActivatedStatus_ico.png"
+                                            Stretch="Uniform"
+                                            Style="{StaticResource ActiveStatusIconStyle}" />
+                                    </Border>
+                                    <Button
+                                        Name="Activatebutton"
+                                        Width="35"
+                                        Height="35"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Background="{StaticResource SurfaceButtonDarkBrush}"
+                                        BorderThickness="0"
+                                        Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        CommandParameter="{Binding}"
+                                        Cursor="Hand"
+                                        Style="{DynamicResource Activatebutton}"
+                                        Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                        <Image
+                                            Width="22"
+                                            Height="22"
+                                            Source="/Img/Icons/ActivateStatus_ico.png"
+                                            Stretch="Uniform" />
+                                    </Button>
+                                </Grid>
+
+                                <!--  Col 0: Selection mode — checkbox  -->
+                                <CheckBox
+                                    Grid.Column="0"
+                                    Margin="6,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="StatusItemCheckBox_Click"
+                                    IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                    Style="{DynamicResource SettingsCheckbox}"
+                                    Tag="{Binding}"
+                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                <!--  Col 1: Delete (normal mode only)  -->
+                                <Button
+                                    x:Name="Deletebutton"
+                                    Grid.Column="1"
+                                    Width="30"
+                                    Height="35"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Background="#3F2970"
+                                    BorderThickness="0"
+                                    Click="DeleteButton_Click"
+                                    Cursor="Hand"
+                                    Style="{DynamicResource Deletebutton}"
+                                    Tag="{Binding}"
+                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                    <Image
+                                        Width="20"
+                                        Height="20"
+                                        Source="/Img/Icons/Delete_ico.png" />
+                                </Button>
+
+                                <!--  Col 2: Status text (read mode)  -->
+                                <TextBlock
+                                    Grid.Column="2"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="16"
+                                    Foreground="DarkSlateBlue"
+                                    Style="{StaticResource ActiveStatusTextShadow}"
+                                    Text="{Binding msg}"
+                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="16"
+                                    Style="{StaticResource ActiveStatusText}"
+                                    Text="{Binding msg}"
+                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                <!--  Col 2: Edit text box  -->
+                                <TextBox
+                                    x:Name="EditTextBox"
+                                    Grid.Column="2"
+                                    Margin="7,0,30,0"
+                                    VerticalAlignment="Center"
+                                    local:TextBoxBehaviour.HandleEnterKey="True"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="16"
+                                    FontWeight="Medium"
+                                    IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ActiveStatusTextEditShadow}"
+                                    Text="{Binding editMsg}"
+                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                <!--  Col 2: Cancel edit button  -->
+                                <Button
+                                    x:Name="CancelEditbutton"
+                                    Grid.Column="2"
+                                    Width="20"
+                                    Height="20"
+                                    Margin="0,0,5,0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource StatusErrorDarkBrush}"
+                                    BorderThickness="0"
+                                    Click="CancelEditbutton_Click"
+                                    Cursor="Hand"
+                                    Style="{DynamicResource CancelEditbutton}"
+                                    Tag="{Binding}"
+                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <Image
+                                        Width="15"
+                                        Height="15"
+                                        Source="/Img/Icons/Cross_ico.png" />
+                                </Button>
+
+                                <!--  Col 3: Edit toggle  -->
+                                <ToggleButton
+                                    x:Name="Editbutton"
+                                    Grid.Column="3"
+                                    Width="25"
+                                    Height="35"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource SurfaceButtonPanelBrush}"
+                                    BorderThickness="0"
+                                    Checked="Editbutton_Checked"
+                                    Cursor="Hand"
+                                    IsChecked="{Binding IsEditing}"
+                                    Style="{DynamicResource Editbutton}"
+                                    Tag="{Binding}"
+                                    Unchecked="Editbutton_Checked">
+                                    <Image
+                                        Width="15"
+                                        Height="15"
+                                        RenderOptions.BitmapScalingMode="Linear"
+                                        Source="/Img/Icons/Edit_ico.png" />
+                                </ToggleButton>
+
+                                <!--  Col 4: Group assign (ComboBox)  -->
+                                <ComboBox
+                                    Grid.Column="4"
+                                    Width="auto"
+                                    Height="34"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    DisplayMemberPath="Name"
+                                    FontSize="13"
+                                    ItemsSource="{Binding DataContext.ChatStatus.GroupList, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    Opacity="0.5"
+                                    SelectedValue="{Binding GroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectedValuePath="GroupId"
+                                    ToolTip="Assign to group" />
+
+                                <!--  Col 5: Fav/Cycle toggle  -->
+                                <Button
+                                    Name="Favbutton"
+                                    Grid.Column="5"
+                                    Width="35"
+                                    Height="35"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource SurfaceButtonDarkBrush}"
+                                    BorderThickness="0"
+                                    Click="Favbutton_Click"
+                                    Cursor="Hand"
+                                    Style="{DynamicResource Favbutton}">
+                                    <Image Width="22" Height="22">
+                                        <Image.Style>
+                                            <Style>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="True">
+                                                        <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="False">
+                                                        <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!--  ═══════════════ Row 2: Status bar ═══════════════  -->
+        <Grid
+            Grid.Row="2"
+            HorizontalAlignment="Stretch"
+            Background="{StaticResource SurfaceVariantBrush}">
+            <Grid.Effect>
+                <DropShadowEffect
+                    BlurRadius="10"
+                    Direction="90"
+                    Opacity="0.5"
+                    RenderingBias="Performance"
+                    ShadowDepth="5"
+                    Color="{StaticResource TextSubtleColor}" />
+            </Grid.Effect>
+            <TextBlock
+                Margin="16,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                FontFamily="Albert Sans Thin"
+                FontSize="16"
+                Foreground="{StaticResource TextLabelBrush}"
+                Text="{Binding ChatStatus.StatusTopBarTxt}" />
+        </Grid>
+
+        <!--  ═══════════════ Row 3: Input ═══════════════  -->
+        <Grid
+            Grid.Row="3"
+            Width="auto"
+            Height="auto"
+            Margin="0,10"
+            HorizontalAlignment="Center">
+            <Button
+                x:Name="AddFav"
+                Width="75"
+                HorizontalAlignment="Right"
+                Click="AddFav_Click"
+                Content="Create"
+                Style="{DynamicResource Status_Button_style}" />
+            <StackPanel Orientation="Horizontal">
+                <Grid>
+                    <TextBox
+                        x:Name="NewFavText"
+                        Width="630"
+                        MinHeight="40"
+                        Margin="-15,0,70,0"
+                        Padding="8,0,58,0"
+                        HorizontalContentAlignment="Left"
+                        VerticalContentAlignment="Center"
+                        Background="{StaticResource InputBackgroundBrush}"
+                        BorderThickness="0"
+                        FontSize="15"
+                        Foreground="{StaticResource SurfaceDarkBrush}"
+                        KeyDown="FavBox_KeyDown"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Text="{Binding ChatStatus.NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        TextAlignment="Left"
+                        TextChanged="NewFavText_TextChanged">
+                        <TextBox.Resources>
+                            <Style TargetType="{x:Type Border}">
+                                <Setter Property="CornerRadius" Value="5" />
+                            </Style>
+                        </TextBox.Resources>
+                        <TextBox.Effect>
+                            <DropShadowEffect
+                                BlurRadius="5"
+                                Direction="-23"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="DarkBlue" />
+                        </TextBox.Effect>
+                    </TextBox>
+                    <TextBlock
+                        Width="auto"
+                        Margin="0,0,78,0"
+                        Padding="0,3,0,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="{Binding ChatStatus.StatusBoxColor}"
+                        Text="{Binding ChatStatus.StatusBoxCount}" />
+                    <TextBlock
+                        Width="630"
+                        Height="40"
+                        Margin="-15,0,70,0"
+                        Padding="8,9,5,0"
+                        VerticalAlignment="Center"
+                        FontSize="15"
+                        Foreground="{StaticResource TextDarkMutedBrush}"
+                        IsHitTestVisible="False"
+                        Text="Create here a new status"
+                        TextAlignment="Left">
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=NewFavText}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ElementName=NewFavText, Path=IsFocused}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

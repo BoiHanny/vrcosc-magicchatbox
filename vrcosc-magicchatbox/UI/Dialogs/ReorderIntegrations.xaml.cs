@@ -1,7 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using vrcosc_magicchatbox.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -11,14 +12,20 @@ namespace vrcosc_magicchatbox.UI.Dialogs
     public partial class ReorderIntegrations : Window
     {
         public ObservableCollection<string> TempOrder { get; }
+        private readonly IntegrationDisplayState _integrationDisplay;
+        private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
 
-        public ReorderIntegrations()
+        public ReorderIntegrations(
+            IntegrationDisplayState integrationDisplay,
+            ISettingsProvider<IntegrationSettings> integrationSettingsProvider)
         {
             InitializeComponent();
+            _integrationDisplay = integrationDisplay;
+            _integrationSettingsProvider = integrationSettingsProvider;
 
-            var sourceOrder = ViewModel.Instance.IntegrationSortOrder?.Count > 0
-                ? ViewModel.Instance.IntegrationSortOrder
-                : ViewModel.DefaultIntegrationSortOrder;
+            var sourceOrder = _integrationDisplay.IntegrationSortOrder?.Count > 0
+                ? _integrationDisplay.IntegrationSortOrder
+                : IntegrationDisplayState.DefaultSortOrder;
 
             TempOrder = new ObservableCollection<string>(sourceOrder);
             DataContext = this;
@@ -47,7 +54,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
             TempOrder.Clear();
-            foreach (var key in ViewModel.DefaultIntegrationSortOrder)
+            foreach (var key in IntegrationDisplayState.DefaultSortOrder)
             {
                 TempOrder.Add(key);
             }
@@ -55,14 +62,16 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Instance.IntegrationSortOrder = new ObservableCollection<string>(TempOrder);
+            _integrationDisplay.IntegrationSortOrder = new ObservableCollection<string>(TempOrder);
 
             if (Owner is MainWindow mainWindow)
             {
                 mainWindow.ApplyIntegrationOrder();
             }
 
-            DataController.ManageSettingsXML(true);
+            var provider = _integrationSettingsProvider;
+            provider.Value.SavedSortOrder = _integrationDisplay.IntegrationSortOrder;
+            provider.Save();
             Close();
         }
 

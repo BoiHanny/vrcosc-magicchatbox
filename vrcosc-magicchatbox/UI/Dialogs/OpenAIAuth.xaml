@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="vrcosc_magicchatbox.UI.Dialogs.OpenAIAuth"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -39,7 +39,7 @@
                         </TransformGroup>
                     </LinearGradientBrush.RelativeTransform>
                     <GradientStop Offset="1" Color="#FF1A0842" />
-                    <GradientStop Color="#FF240E54" />
+                    <GradientStop Color="{StaticResource SurfaceDarkColor}" />
                     <GradientStop Offset="0.539" Color="#FF630FA0" />
                 </LinearGradientBrush>
             </Border.Background>
@@ -144,7 +144,7 @@
                 <Border
                     Width="600"
                     Height="40"
-                    Background="#FF7B7195"
+                    Background="{StaticResource InputBackgroundBrush}"
                     BorderThickness="0"
                     CornerRadius="5">
                     <PasswordBox
@@ -155,7 +155,7 @@
                         Background="Transparent"
                         BorderThickness="0"
                         FontSize="20"
-                        Foreground="#FF240E54"
+                        Foreground="{StaticResource SurfaceDarkBrush}"
                         PasswordChanged="OrganizationID_PasswordChanged"
                         PasswordChar="●" />
                 </Border>
@@ -229,7 +229,7 @@
                 <Border
                     Width="600"
                     Height="40"
-                    Background="#FF7B7195"
+                    Background="{StaticResource InputBackgroundBrush}"
                     BorderThickness="0"
                     CornerRadius="5">
                     <PasswordBox
@@ -240,7 +240,7 @@
                         Background="Transparent"
                         BorderThickness="0"
                         FontSize="20"
-                        Foreground="#FF240E54"
+                        Foreground="{StaticResource SurfaceDarkBrush}"
                         PasswordChanged="OpenAIToken_PasswordChanged"
                         PasswordChar="●" />
                 </Border>

@@ -1,0 +1,20 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="clr-namespace:vrcosc_magicchatbox.Classes">
+
+    <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+    <conv:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
+    <conv:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
+    <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+    <conv:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+    <conv:InvertBooleanConverter x:Key="InvertBooleanConverter" />
+    <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+    <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+    <conv:TwitchAnnouncementColorToBrushConverter x:Key="TwitchAnnouncementColorToBrushConverter" />
+    <conv:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <conv:ColumnWidthConverter x:Key="ColumnWidthConverter" />
+    <conv:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />
+
+</ResourceDictionary>

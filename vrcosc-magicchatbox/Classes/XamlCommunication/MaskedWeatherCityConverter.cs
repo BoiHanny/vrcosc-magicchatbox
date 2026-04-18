@@ -4,6 +4,11 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Masks a weather city string for display, showing the first 3 characters,
+    /// three asterisks, and the last character (e.g. <c>"Lon***n"</c>).
+    /// Short strings (≤ 3 chars) are shown as-is.
+    /// </summary>
     public class MaskedWeatherCityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

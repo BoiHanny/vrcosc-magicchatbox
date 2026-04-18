@@ -1,14 +1,19 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
-using Newtonsoft.Json;
-using vrcosc_magicchatbox.ViewModels;
+using System.Threading;
+using System.Threading.Tasks;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
+/// <summary>Persisted settings for the AFK detection module.</summary>
 public partial class AfkModuleSettings : ObservableObject
 {
     public event EventHandler SettingsChanged;
@@ -29,7 +34,7 @@ public partial class AfkModuleSettings : ObservableObject
     }
 
     private const string SettingsFileName = "AfkModuleSettings.json";
-    private static readonly string SettingsPath = Path.Combine(ViewModel.Instance.DataPath, SettingsFileName);
+    internal string _settingsPath;
 
     [ObservableProperty]
     private int afkTimeout = 120;
@@ -61,41 +66,53 @@ public partial class AfkModuleSettings : ObservableObject
     [ObservableProperty]
     private bool overrideAfk = false;
 
-    public static AfkModuleSettings LoadSettings()
+    public static AfkModuleSettings LoadSettings(string settingsPath)
     {
-        if (File.Exists(SettingsPath))
+        if (File.Exists(settingsPath))
         {
             try
             {
-                var settingsJson = File.ReadAllText(SettingsPath);
+                var settingsJson = File.ReadAllText(settingsPath);
                 var settings = JsonConvert.DeserializeObject<AfkModuleSettings>(settingsJson);
-                return settings ?? new AfkModuleSettings();
+                if (settings != null) settings._settingsPath = settingsPath;
+                return settings ?? new AfkModuleSettings { _settingsPath = settingsPath };
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"Error parsing settings JSON: {ex.Message}");
-                return new AfkModuleSettings();
+                Logging.WriteInfo($"Error parsing AFK settings JSON: {ex.Message}");
+                return new AfkModuleSettings { _settingsPath = settingsPath };
             }
         }
         else
         {
-            return new AfkModuleSettings();
+            return new AfkModuleSettings { _settingsPath = settingsPath };
         }
     }
 
     public void SaveSettings()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath));
+        Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath));
         var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-        File.WriteAllText(SettingsPath, settingsJson);
+        File.WriteAllText(_settingsPath, settingsJson);
     }
 }
 
-public partial class AfkModule : ObservableObject
+/// <summary>
+/// Detects user AFK state via system idle time and manages AFK display in VRChat chatbox.
+/// </summary>
+public partial class AfkModule : ObservableObject, IModule
 {
-    private readonly DispatcherTimer afkTimer = new DispatcherTimer();
+    private readonly IAppState _appState;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly TimeSettings _ts;
+    private TimeSettings TS => _ts;
+    private readonly IPrivacyConsentService _consentService;
+
+    private Timer _afkTimer;
     private DateTime lastActionTime;
     private bool overrideAfkStarted = false;
+    private bool _disposed;
+    private bool _timerRunning;
 
     public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
 
@@ -119,11 +136,24 @@ public partial class AfkModule : ObservableObject
     [ObservableProperty]
     private bool isAfk;
 
-    public AfkModule()
+    public string Name => "AFK";
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRunning => _timerRunning;
+    public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken ct = default) { InitializeAfkDetection(); return Task.CompletedTask; }
+    public Task StopAsync(CancellationToken ct = default) { StopTimer(); return Task.CompletedTask; }
+    public void SaveSettings() => Settings?.SaveSettings();
+
+    public AfkModule(IAppState appState, IUiDispatcher dispatcher, TimeSettings timeSettings, IEnvironmentService env, IPrivacyConsentService consentService)
     {
-        Settings = AfkModuleSettings.LoadSettings();
+        _appState = appState;
+        _dispatcher = dispatcher;
+        _ts = timeSettings;
+        _consentService = consentService;
+        var settingsPath = Path.Combine(env.DataPath, "AfkModuleSettings.json");
+        Settings = AfkModuleSettings.LoadSettings(settingsPath);
         Settings.SettingsChanged += Settings_SettingsChanged;
-        ViewModel.Instance.PropertyChanged += ViewModel_PropertyChanged;
+        _appState.PropertyChanged += ViewModel_PropertyChanged;
         lastActionTime = DateTime.Now;
         InitializeAfkDetection();
     }
@@ -146,20 +176,19 @@ public partial class AfkModule : ObservableObject
     {
         if (Settings.EnableAfkDetection)
         {
-            if (!afkTimer.IsEnabled)
-            {
-                afkTimer.Interval = TimeSpan.FromSeconds(1);
-                afkTimer.Tick += AfkTimer_Tick;
-                afkTimer.Start();
-            }
+            if (!_timerRunning)
+                StartTimer();
         }
-        else if (afkTimer.IsEnabled)
+        else if (_timerRunning)
         {
-            afkTimer.Stop();
+            StopTimer();
             ExitAfkMode();
         }
     }
 
+    /// <summary>
+    /// Builds the AFK status string from current settings and elapsed AFK time.
+    /// </summary>
     public string GenerateAFKString()
     {
         string afkString = "";
@@ -184,11 +213,21 @@ public partial class AfkModule : ObservableObject
     private void InitializeAfkDetection()
     {
         if (Settings.EnableAfkDetection)
-        {
-            afkTimer.Interval = TimeSpan.FromSeconds(1);
-            afkTimer.Tick += AfkTimer_Tick;
-            afkTimer.Start();
-        }
+            StartTimer();
+    }
+
+    private void StartTimer()
+    {
+        _afkTimer?.Dispose();
+        _afkTimer = new Timer(_ => _dispatcher.Invoke(AfkTimer_Tick), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        _timerRunning = true;
+    }
+
+    private void StopTimer()
+    {
+        _afkTimer?.Dispose();
+        _afkTimer = null;
+        _timerRunning = false;
     }
 
     public void OnApplicationClosing()
@@ -196,22 +235,22 @@ public partial class AfkModule : ObservableObject
         Settings?.SaveSettings();
     }
 
-    private void AfkTimer_Tick(object sender, EventArgs e)
+    private void AfkTimer_Tick()
     {
         OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
 
-        if (ViewModel.Instance.IsVRRunning && !Settings.ActivateInVR)
+        if (_appState.IsVRRunning && !Settings.ActivateInVR)
         {
             VRModeLabelActive = true;
 
             if (!Settings.OverrideAfk)
             {
-                if (IsAfk) 
+                if (IsAfk)
                 {
                     ExitAfkMode();
                 }
 
-                
+
                 return;
             }
         }
@@ -220,7 +259,6 @@ public partial class AfkModule : ObservableObject
             VRModeLabelActive = false;
         }
 
-        // Handle override logic
         if (Settings.OverrideAfk)
         {
             VRModeLabelActive = false;
@@ -286,6 +324,9 @@ public partial class AfkModule : ObservableObject
         OverrideButtonVisible = true;
     }
 
+    /// <summary>
+    /// Formats a <see cref="TimeSpan"/> into a compact human-readable string (e.g. "1ʰ 2ᵐ 3ˢ").
+    /// </summary>
     public static string FormatDuration(TimeSpan duration, bool useSmallLetters)
     {
         var parts = new List<string>();
@@ -331,13 +372,16 @@ public partial class AfkModule : ObservableObject
         return string.Join(" ", parts);
     }
 
-    private static uint GetIdleTime()
+    private uint GetIdleTime()
     {
-        if (ViewModel.Instance.BussyBoysMode && ViewModel.Instance.BussyBoysDateEnable)
+        if (_appState.BussyBoysMode && TS.BussyBoysDateEnable)
         {
-            TimeSpan elapsedSinceBussyBoysDate = DateTime.Now - ViewModel.Instance.BussyBoysDate;
+            TimeSpan elapsedSinceBussyBoysDate = DateTime.Now - TS.BussyBoysDate;
             return (uint)elapsedSinceBussyBoysDate.TotalSeconds;
         }
+
+        if (_consentService == null || !_consentService.IsApproved(PrivacyHook.AfkSensor))
+            return 0;
 
         LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO)) };
         GetLastInputInfo(ref lastInputInfo);
@@ -352,5 +396,15 @@ public partial class AfkModule : ObservableObject
     {
         public uint cbSize;
         public uint dwTime;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        StopTimer();
+        Settings.SettingsChanged -= Settings_SettingsChanged;
+        _appState.PropertyChanged -= ViewModel_PropertyChanged;
     }
 }

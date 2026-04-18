@@ -3,16 +3,25 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Windows;
+using System.Threading;
+using System.Threading.Tasks;
 using Valve.VR;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
-    public class TrackerBatteryModule
+    /// <summary>
+    /// Module that reads SteamVR tracker, controller, and headset battery levels via OpenVR and formats them for display.
+    /// </summary>
+    public class TrackerBatteryModule : IModule
     {
         private static readonly Dictionary<string, string> DefaultIconsByKind = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -35,6 +44,41 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private DateTime _lastRotationUtc = DateTime.MinValue;
         private readonly StringBuilder _stringBuilder = new StringBuilder(256);
 
+        private readonly ISettingsProvider<TrackerBatterySettings> _settingsProvider;
+        public TrackerBatterySettings Settings => _settingsProvider.Value;
+        public void SaveSettings() => _settingsProvider.Save();
+
+        public string Name => "TrackerBattery";
+        public bool IsEnabled { get; set; } = true;
+        public bool IsRunning => _isInitialized;
+        public Task InitializeAsync(CancellationToken ct = default) { Initialize(); return Task.CompletedTask; }
+        public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+        public Task StopAsync(CancellationToken ct = default) { ShutdownOpenVR("StopAsync"); return Task.CompletedTask; }
+        public void Dispose() => ShutdownOpenVR("Dispose");
+
+        private readonly IAppState _appState;
+        private readonly TrackerDisplayState _tracker;
+        private readonly IntegrationDisplayState _integrationDisplay;
+        private readonly IUiDispatcher _dispatcher;
+        private readonly IToastService? _toast;
+        private volatile bool _trackerErrorShown;
+
+        public TrackerBatteryModule(
+            ISettingsProvider<TrackerBatterySettings> settingsProvider,
+            IAppState appState,
+            TrackerDisplayState tracker,
+            IntegrationDisplayState integrationDisplay,
+            IUiDispatcher dispatcher,
+            IToastService? toast = null)
+        {
+            _settingsProvider = settingsProvider;
+            _appState = appState;
+            _tracker = tracker;
+            _integrationDisplay = integrationDisplay;
+            _dispatcher = dispatcher;
+            _toast = toast;
+        }
+
         public void Initialize()
         {
             if (_isInitialized)
@@ -53,22 +97,29 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     if (error != EVRInitError.Init_NoServerForBackgroundApp)
                     {
                         Logging.WriteInfo($"OpenVR Init Failed: {error}");
+                        if (!_trackerErrorShown)
+                        {
+                            _trackerErrorShown = true;
+                            _toast?.Show("📍 VR Tracker", $"OpenVR failed to initialize: {error}", ToastType.Warning, key: "tracker-error");
+                        }
                     }
                     return;
                 }
 
                 _isInitialized = true;
+                _trackerErrorShown = false;
             }
             catch (Exception ex)
             {
                 _vrSystem = null;
                 Logging.WriteException(ex, MSGBox: false);
+                _toast?.Show("📍 VR Tracker", $"OpenVR initialization error: {ex.Message}", ToastType.Warning, key: "tracker-error");
             }
         }
 
         public void UpdateDevices()
         {
-            if (!ViewModel.Instance.IsVRRunning)
+            if (!_appState.IsVRRunning)
             {
                 ShutdownOpenVR("VR not running");
                 return;
@@ -114,7 +165,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 currentSerialNumbers.Add(serial);
 
-                TrackerDevice device = ViewModel.Instance.TrackerDevices
+                TrackerDevice device = _tracker.TrackerDevices
                     .FirstOrDefault(d => string.Equals(d.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
 
                 if (device == null)
@@ -131,8 +182,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         UseCustomLowThreshold = false
                     };
 
-                    Application.Current.Dispatcher.Invoke(() =>
-                        ViewModel.Instance.TrackerDevices.Add(device));
+                    _dispatcher.Invoke(() =>
+                        _tracker.TrackerDevices.Add(device));
                 }
                 else
                 {
@@ -181,7 +232,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-            foreach (var device in ViewModel.Instance.TrackerDevices)
+            foreach (var device in _tracker.TrackerDevices)
             {
                 if (!currentSerialNumbers.Contains(device.SerialNumber))
                 {
@@ -205,8 +256,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     Valve.VR.OpenVR.Shutdown();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logging.WriteInfo($"OpenVR shutdown error (non-fatal): {ex.Message}");
                 }
 
                 _vrSystem = null;
@@ -216,7 +268,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void MarkAllDisconnected()
         {
-            foreach (var device in ViewModel.Instance.TrackerDevices)
+            foreach (var device in _tracker.TrackerDevices)
             {
                 device.IsConnected = false;
                 device.DeviceIndex = -1;
@@ -228,17 +280,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             UpdateDevices();
 
-            bool globalEmergency = ViewModel.Instance.TrackerBattery_GlobalEmergency;
+            bool globalEmergency = Settings.GlobalEmergency;
 
-            string template = string.IsNullOrWhiteSpace(ViewModel.Instance.TrackerBattery_Template)
+            string template = string.IsNullOrWhiteSpace(Settings.Template)
                 ? "{icon} {name} {batt}%"
-                : ViewModel.Instance.TrackerBattery_Template;
+                : Settings.Template;
 
-            string separator = string.IsNullOrWhiteSpace(ViewModel.Instance.TrackerBattery_Separator)
+            string separator = string.IsNullOrWhiteSpace(Settings.Separator)
                 ? " | "
-                : ViewModel.Instance.TrackerBattery_Separator;
+                : Settings.Separator;
 
-            IEnumerable<TrackerDevice> activeDevices = ViewModel.Instance.TrackerDevices
+            IEnumerable<TrackerDevice> activeDevices = _tracker.TrackerDevices
                 .Where(ShouldIncludeDevice);
 
             IEnumerable<TrackerDevice> orderedDevices = ApplySort(activeDevices);
@@ -285,15 +337,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 {
                     batteryText = device.IsConnected
                         ? device.BatteryPercentage.ToString(CultureInfo.InvariantCulture)
-                        : ViewModel.Instance.TrackerBattery_OfflineBatteryText;
+                        : Settings.OfflineBatteryText;
                 }
 
                 string statusText = device.IsConnected
-                    ? (device.IsCharging ? "Charging" : ViewModel.Instance.TrackerBattery_OnlineText)
-                    : ViewModel.Instance.TrackerBattery_OfflineText;
+                    ? (device.IsCharging ? "Charging" : Settings.OnlineText)
+                    : Settings.OfflineText;
 
                 string lowTag = (isLow && !device.IsCharging)
-                    ? ViewModel.Instance.TrackerBattery_LowTag
+                    ? Settings.LowTag
                     : string.Empty;
 
                 string entry = template
@@ -306,12 +358,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     .Replace("{serial}", device.SerialNumber ?? string.Empty)
                     .Replace("{model}", device.OriginalModelName ?? string.Empty);
 
-                if (ViewModel.Instance.TrackerBattery_CompactWhitespace)
+                if (Settings.CompactWhitespace)
                 {
                     entry = CompactWhitespace(entry);
                 }
 
-                entry = TrimEntry(entry, ViewModel.Instance.TrackerBattery_MaxEntryLength);
+                entry = TrimEntry(entry, Settings.MaxEntryLength);
 
                 if (!string.IsNullOrWhiteSpace(entry))
                 {
@@ -321,17 +373,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             string message = entries.Count == 0 ? string.Empty : string.Join(separator, entries);
 
-            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(ViewModel.Instance.TrackerBattery_Prefix))
+            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Prefix))
             {
-                message = $"{ViewModel.Instance.TrackerBattery_Prefix} {message}";
+                message = $"{Settings.Prefix} {message}";
             }
 
-            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(ViewModel.Instance.TrackerBattery_Suffix))
+            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Suffix))
             {
-                message = $"{message} {ViewModel.Instance.TrackerBattery_Suffix}";
+                message = $"{message} {Settings.Suffix}";
             }
 
-            if (!string.IsNullOrWhiteSpace(message) && ViewModel.Instance.TrackerBattery_UseSmallText)
+            if (!string.IsNullOrWhiteSpace(message) && Settings.UseSmallText)
             {
                 message = ToSmallTextPreserveSymbols(message);
             }
@@ -342,13 +394,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void UpdateSummary(string scanStatus)
         {
-            int total = ViewModel.Instance.TrackerDevices.Count;
-            int connected = ViewModel.Instance.TrackerDevices.Count(d => d.IsConnected);
+            int total = _tracker.TrackerDevices.Count;
+            int connected = _tracker.TrackerDevices.Count(d => d.IsConnected);
 
-            Application.Current.Dispatcher.InvokeAsync(() =>
+            _dispatcher.InvokeAsync(() =>
             {
-                ViewModel.Instance.TrackerBattery_DeviceSummary = $"{connected}/{total} connected";
-                ViewModel.Instance.TrackerBattery_LastScanDisplay = scanStatus == "VR not running"
+                _integrationDisplay.TrackerBatteryDeviceSummary = $"{connected}/{total} connected";
+                _integrationDisplay.TrackerBatteryLastScanDisplay = scanStatus == "VR not running"
                     ? "Last scan: VR not running"
                     : $"Last scan: {DateTime.Now:T}";
             });
@@ -514,23 +566,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return false;
             }
 
-            bool showDisconnected = ViewModel.Instance.TrackerBattery_ShowDisconnected;
+            bool showDisconnected = Settings.ShowDisconnected;
             if (!showDisconnected && !device.IsConnected)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "Controller" && !ViewModel.Instance.TrackerBattery_ShowControllers)
+            if (device.DeviceKind == "Controller" && !Settings.ShowControllers)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "HMD" && !ViewModel.Instance.TrackerBattery_ShowHeadset)
+            if (device.DeviceKind == "HMD" && !Settings.ShowHeadset)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "Tracker" && !ViewModel.Instance.TrackerBattery_ShowTrackers)
+            if (device.DeviceKind == "Tracker" && !Settings.ShowTrackers)
             {
                 return false;
             }
@@ -542,12 +594,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             return device.UseCustomLowThreshold
                 ? device.CustomLowThreshold
-                : ViewModel.Instance.TrackerBattery_LowThreshold;
+                : Settings.LowThreshold;
         }
 
         private IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices)
         {
-            switch (ViewModel.Instance.TrackerBattery_SortMode)
+            switch (Settings.SortMode)
             {
                 case TrackerBatterySortMode.Name:
                     return devices.OrderBy(d => d.DisplayName);
@@ -566,19 +618,19 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private List<TrackerDevice> ApplyEntryLimit(List<TrackerDevice> devices)
         {
-            int maxEntries = ViewModel.Instance.TrackerBattery_MaxEntries;
+            int maxEntries = Settings.MaxEntries;
             if (maxEntries <= 0 || devices.Count <= maxEntries)
             {
                 _rotationIndex = 0;
                 return devices;
             }
 
-            if (!ViewModel.Instance.TrackerBattery_RotateOverflow)
+            if (!Settings.RotateOverflow)
             {
                 return devices.Take(maxEntries).ToList();
             }
 
-            int intervalSeconds = Math.Max(1, ViewModel.Instance.TrackerBattery_RotationIntervalSeconds);
+            int intervalSeconds = Math.Max(1, Settings.RotationIntervalSeconds);
             DateTime now = DateTime.UtcNow;
 
             if ((now - _lastRotationUtc).TotalSeconds >= intervalSeconds)
@@ -610,9 +662,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void UpdateActiveDevices(IReadOnlyList<TrackerDevice> devices)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
+            _dispatcher.InvokeAsync(() =>
             {
-                var target = ViewModel.Instance.TrackerBatteryActiveDevices;
+                var target = _tracker.TrackerBatteryActiveDevices;
                 target.Clear();
                 foreach (var device in devices)
                 {
@@ -623,9 +675,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void UpdatePreview(string message)
         {
-            Application.Current.Dispatcher.InvokeAsync(() =>
+            _dispatcher.InvokeAsync(() =>
             {
-                ViewModel.Instance.TrackerBattery_Preview = message ?? string.Empty;
+                _integrationDisplay.TrackerBatteryPreview = message ?? string.Empty;
             });
         }
 
@@ -672,7 +724,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 if (IsSuperscriptCandidate(character))
                 {
-                    string transformed = DataController.TransformToSuperscript(character.ToString());
+                    string transformed = TextUtilities.TransformToSuperscript(character.ToString());
                     builder.Append(string.IsNullOrEmpty(transformed) ? character.ToString() : transformed);
                 }
                 else
