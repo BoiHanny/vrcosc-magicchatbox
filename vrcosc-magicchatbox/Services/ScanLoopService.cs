@@ -185,7 +185,8 @@ public sealed class ScanLoopService : IDisposable
             if (_integrationSettings.IntgrScanWindowActivity)
                 tasks.Add(_faultTracker.RunGuardedAsync("WindowActivity", UpdateFocusedWindowAsync));
 
-            tasks.Add(_faultTracker.RunGuardedAsync("HardwareStats", () => Task.Run(() => _statsModule.TickAndUpdate())));
+            if (_integrationSettings.IntgrComponentStats)
+                tasks.Add(_faultTracker.RunGuardedAsync("HardwareStats", () => Task.Run(() => _statsModule.TickAndUpdate())));
 
             if (_integrationSettings.IntgrScanWindowTime)
                 tasks.Add(_faultTracker.RunGuardedAsync("TimeFormat", UpdateCurrentTimeAsync));

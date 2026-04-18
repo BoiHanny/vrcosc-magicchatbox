@@ -360,6 +360,24 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         return found ? max : null;
     }
 
+    public float? GetCpuCoreClock()
+    {
+        var hw = FindHardware(HardwareType.Cpu);
+        if (hw == null) return null;
+        // Priority 1: any sensor named "CPU Core #N" under Clock type
+        var coreSensor = hw.Sensors.FirstOrDefault(s =>
+            s.SensorType == SensorType.Clock &&
+            s.Name.StartsWith("CPU Core #", StringComparison.OrdinalIgnoreCase));
+        if (coreSensor?.Value != null) return coreSensor.Value;
+        // Priority 2: bus speed clock sensor
+        var busSensor = hw.Sensors.FirstOrDefault(s =>
+            s.SensorType == SensorType.Clock &&
+            s.Name.Contains("Bus", StringComparison.OrdinalIgnoreCase));
+        if (busSensor?.Value != null) return busSensor.Value;
+        // Priority 3: any available Clock sensor on the CPU hardware
+        return hw.Sensors.FirstOrDefault(s => s.SensorType == SensorType.Clock)?.Value;
+    }
+
     private IHardware ResolveGpu(string gpuName)
     {
         lock (_lock)

@@ -68,15 +68,16 @@
                                                DataContext="{Binding AppOptionsSection}" />
                     <options:EggDevSection Grid.Row="12"
                                            DataContext="{Binding EggDevSection}" />
-                    <options:WindowActivitySection Grid.Row="14"
-                                                    DataContext="{Binding WindowActivitySection}" />
 
                     <!--  TRACKER BATTERY MANAGER SECTION  -->
                     <options:TrackerBatterySection Grid.Row="13"
                                                    DataContext="{Binding TrackerBatterySection}" />
 
-                    <options:PrivacySection Grid.Row="15"
+                    <options:PrivacySection Grid.Row="14"
                                             DataContext="{Binding PrivacySection}" />
+
+                    <options:WindowActivitySection Grid.Row="15"
+                                                    DataContext="{Binding WindowActivitySection}" />
 
                     <Grid Grid.Row="16" Margin="0,5,0,10">
                         <TextBlock

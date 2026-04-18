@@ -30,7 +30,7 @@ public sealed class WindowOscProvider : IOscProvider
     public int Priority => 30;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => isVR ? _intgr.IntgrWindowActivity_VR : _intgr.IntgrWindowActivity_DESKTOP;
+        => _intgr.IntgrScanWindowActivity && (isVR ? _intgr.IntgrWindowActivity_VR : _intgr.IntgrWindowActivity_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

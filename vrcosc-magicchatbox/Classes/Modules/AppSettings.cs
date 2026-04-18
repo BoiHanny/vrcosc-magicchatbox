@@ -61,4 +61,7 @@ public partial class AppSettings : VersionedSettings
 
     [ObservableProperty] private int _profileNumber;
     [ObservableProperty] private bool _useCustomProfile;
+
+    // TOS acceptance tracking — compared against Constants.TosVersion on startup
+    [ObservableProperty] private string _acceptedTosVersion = string.Empty;
 }

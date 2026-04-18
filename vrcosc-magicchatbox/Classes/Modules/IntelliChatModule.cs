@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Messaging;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -41,13 +42,16 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     public string Name => "IntelliChat";
     public bool IsEnabled { get; set; } = true;
     public bool IsRunning => _isInitialized;
+    private readonly IToastService? _toast;
+    private volatile bool _intelliChatErrorShown;
+
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task StopAsync(CancellationToken ct = default) { CancelAllCurrentTasks(); return Task.CompletedTask; }
     public void Dispose() => _messenger.UnregisterAll(this);
 
 
-    public IntelliChatModule(IEnvironmentService env, ChatStatusDisplayState chatStatus, IMenuNavigationService navService, IOpenAiChatService chatService, IMessenger messenger, IUiDispatcher dispatcher)
+    public IntelliChatModule(IEnvironmentService env, ChatStatusDisplayState chatStatus, IMenuNavigationService navService, IOpenAiChatService chatService, IMessenger messenger, IUiDispatcher dispatcher, IToastService? toast = null)
     {
         _env = env;
         _chatStatus = chatStatus;
@@ -55,6 +59,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         _chatService = chatService;
         _messenger = messenger;
         _dispatcher = dispatcher;
+        _toast = toast;
 
         // Subscribe to cross-module status messages (e.g. from WhisperModule)
         _messenger.RegisterAll(this);
@@ -361,6 +366,16 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     {
         Settings.IntelliChatError = hasError;
         Settings.IntelliChatErrorTxt = errorMessage;
+
+        if (hasError && !_intelliChatErrorShown)
+        {
+            _intelliChatErrorShown = true;
+            _toast?.Show("🤖 AI Chat Error", errorMessage, ToastType.Error, key: "intellichat-error");
+        }
+        else if (!hasError)
+        {
+            _intelliChatErrorShown = false;
+        }
     }
 
     public void AcceptIntelliChatSuggestion()

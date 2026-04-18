@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.Models;
 
@@ -25,6 +26,8 @@ public partial class PulsoidModule : ObservableObject, IModule
     private bool _disposed;
     private readonly IAppState _appState;
     private readonly IUiDispatcher _dispatcher;
+    private readonly IToastService? _toast;
+    private volatile bool _pulsoidErrorShown;
 
     private readonly IOscSender _oscSender;
     private IOscSender OscSender => _oscSender;
@@ -97,7 +100,7 @@ public partial class PulsoidModule : ObservableObject, IModule
     public async Task StopAsync(CancellationToken ct = default) { await StopMonitoringHeartRateAsync(); }
     public void SaveSettings() => Settings?.SaveSettings();
 
-    public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, IEnvironmentService env)
+    public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, IEnvironmentService env, IToastService? toast = null)
     {
         _appState = appState;
         _client = client;
@@ -105,6 +108,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         _oscSender = oscSender;
         _integrationSettings = integrationSettings;
         _oAuth = oAuth;
+        _toast = toast;
         var settingsPath = Path.Combine(env.DataPath, "PulsoidModuleSettings.json");
         Settings = PulsoidModuleSettings.LoadSettings(settingsPath);
         RefreshTrendSymbols();
@@ -135,6 +139,12 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     private void OnConnectionFailed(PulsoidConnectionError error, string message)
     {
+        if (!_pulsoidErrorShown)
+        {
+            _pulsoidErrorShown = true;
+            _toast?.Show("💓 Pulsoid Error", message, ToastType.Error, key: "pulsoid-error");
+        }
+
         _dispatcher.Invoke(() =>
         {
             PulsoidAccessError = true;
@@ -148,6 +158,7 @@ public partial class PulsoidModule : ObservableObject, IModule
     {
         if (connected)
         {
+            _pulsoidErrorShown = false;
             _dispatcher.Invoke(() =>
             {
                 PulsoidAccessError = false;
@@ -387,6 +398,11 @@ public partial class PulsoidModule : ObservableObject, IModule
                 TriggerPulsoidAuthConnected(false);
                 PulsoidAccessErrorTxt = "No Pulsoid connection found. Please connect with the Pulsoid Authentication server.";
             });
+            if (!_pulsoidErrorShown)
+            {
+                _pulsoidErrorShown = true;
+                _toast?.Show("💓 Pulsoid", "No Pulsoid connection. Please connect your account.", ToastType.Warning, key: "pulsoid-error");
+            }
             return;
         }
 
@@ -400,6 +416,11 @@ public partial class PulsoidModule : ObservableObject, IModule
                 TriggerPulsoidAuthConnected(false);
                 PulsoidAccessErrorTxt = "Expired access token. Please reconnect.";
             });
+            if (!_pulsoidErrorShown)
+            {
+                _pulsoidErrorShown = true;
+                _toast?.Show("💓 Pulsoid", "Expired access token. Please reconnect.", ToastType.Warning, key: "pulsoid-error");
+            }
             return;
         }
 

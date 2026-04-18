@@ -14,6 +14,7 @@ using vrcosc_magicchatbox.Core.Osc.Providers;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Sections;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -36,6 +37,9 @@ public static class ServiceRegistration
         services.AddSingleton<IBanEnforcementService, BanEnforcementService>();
         services.AddSingleton<IEnvironmentService, EnvironmentService>();
 
+        // In-app toast notification system
+        services.AddSingleton<IToastService, ToastService>();
+
         // Messenger — pub/sub for cross-module communication (replaces direct module refs)
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
@@ -44,7 +48,9 @@ public static class ServiceRegistration
 
         // API clients — pure HTTP logic separated from module coordinators
         services.AddSingleton<Classes.Modules.Twitch.ITwitchApiClient, Classes.Modules.Twitch.TwitchApiClient>();
-        services.AddSingleton<IOpenAiChatService, OpenAiChatService>();
+        services.AddSingleton<IOpenAiChatService>(sp => new OpenAiChatService(
+            sp.GetRequiredService<Classes.Modules.OpenAIModule>(),
+            sp.GetRequiredService<IPrivacyConsentService>()));
         services.AddSingleton<IPulsoidTokenValidator>(sp => sp.GetRequiredService<Classes.Modules.PulsoidOAuthHandler>());
         services.AddSingleton<IPulsoidClient, PulsoidApiClient>();
 
@@ -63,7 +69,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IEnvironmentService>(),
             sp.GetRequiredService<IUiDispatcher>(),
-            sp.GetRequiredService<IPrivacyConsentService>()));
+            sp.GetRequiredService<IPrivacyConsentService>(),
+            sp.GetRequiredService<IToastService>()));
 
         // Time formatting — extracted from ComponentStatsModule.GetTime() to break static coupling
         services.AddSingleton<ITimeFormattingService, TimeFormattingService>();
@@ -147,7 +154,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<TrackerDisplayState>(),
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IMenuNavigationService>(),
-            sp.GetRequiredService<IPrivacyConsentService>()));
+            sp.GetRequiredService<IPrivacyConsentService>(),
+            sp.GetRequiredService<IToastService>()));
         services.AddSingleton<WindowActivitySectionViewModel>();
         services.AddSingleton<MediaLinkSectionViewModel>(sp => new MediaLinkSectionViewModel(
             new Lazy<IMediaLinkPersistenceService>(() => sp.GetRequiredService<IMediaLinkPersistenceService>()),
@@ -265,7 +273,8 @@ public static class ServiceRegistration
             new Lazy<TTSModule>(() => sp.GetRequiredService<TTSModule>()),
             sp.GetRequiredService<TtsAudioDisplayState>(),
             sp.GetRequiredService<ChatStatusDisplayState>(),
-            sp.GetRequiredService<ISettingsProvider<TtsSettings>>()));
+            sp.GetRequiredService<ISettingsProvider<TtsSettings>>(),
+            sp.GetRequiredService<IPrivacyConsentService>()));
 
         // ── State Persistence Coordinator — extracted from ScanLoopService ──
         services.AddSingleton<IStatePersistenceCoordinator>(sp => new StatePersistenceCoordinator(
@@ -312,7 +321,10 @@ public static class ServiceRegistration
         services.AddSingleton<Classes.DataAndSecurity.HotkeyManagement>();
 
         // OpenAI module — DI singleton (replaces OpenAIModule.Instance)
-        services.AddSingleton<Classes.Modules.OpenAIModule>();
+        services.AddSingleton<Classes.Modules.OpenAIModule>(sp => new Classes.Modules.OpenAIModule(
+            sp.GetRequiredService<ISettingsProvider<OpenAISettings>>(),
+            sp.GetRequiredService<OpenAIDisplayState>(),
+            sp.GetRequiredService<IPrivacyConsentService>()));
         services.AddSingleton<ITranscriptionService>(sp => sp.GetRequiredService<Classes.Modules.OpenAIModule>());
 
         // Pulsoid OAuth handler — DI singleton (replaces PulsoidOAuthHandler.Instance)

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Messaging;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules
@@ -271,8 +272,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly IMessenger _messenger;
         private readonly IMenuNavigationService _navService;
         private readonly IUiDispatcher _dispatcher;
-
         private readonly ITranscriptionService _transcription;
+        private readonly IToastService? _toast;
 
         // Thread-safe audio stream plus lock.
         private readonly MemoryStream audioStream = new MemoryStream();
@@ -309,12 +310,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
         /// </summary>
         public event Action SentChatMessage;
 
-        public WhisperModule(IMenuNavigationService navService, ITranscriptionService transcription, IUiDispatcher dispatcher, IMessenger messenger)
+        public WhisperModule(IMenuNavigationService navService, ITranscriptionService transcription, IUiDispatcher dispatcher, IMessenger messenger, IToastService? toast = null)
         {
             _navService = navService;
             _transcription = transcription;
             _dispatcher = dispatcher;
             _messenger = messenger;
+            _toast = toast;
             settings = WhisperModuleSettings.LoadSettings();
             settings.PropertyChanged += Settings_PropertyChanged;
             InitializeWaveIn();
@@ -418,6 +420,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (e.Exception != null)
             {
                 Logging.WriteInfo($"Recording stopped due to error: {e.Exception.Message}");
+                _toast?.Show("🎙 Recording Error", e.Exception.Message, ToastType.Error, key: "whisper-recording-error");
             }
             else
             {
@@ -598,6 +601,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             if (!_transcription.IsReady)
             {
+                _toast?.Show("🎙 Speech to Text", "OpenAI not initialized. Check your API key in settings.", ToastType.Warning,
+                    new ToastAction("Settings", () => { _navService.ActivateSetting("Settings_OpenAI"); return Task.CompletedTask; }),
+                    key: "whisper-openai-error");
                 _navService.ActivateSetting("Settings_OpenAI");
                 _ = UpdateUI("OpenAI not initialized. Please check settings.", false);
                 return;
@@ -624,6 +630,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             catch (Exception ex)
             {
                 Logging.WriteInfo($"StartRecording error: {ex}");
+                _toast?.Show("🎙 Recording Error", $"Failed to start: {ex.Message}", ToastType.Error, key: "whisper-recording-error");
                 _ = UpdateUI($"Error starting recording: {ex.Message}", false);
             }
         }

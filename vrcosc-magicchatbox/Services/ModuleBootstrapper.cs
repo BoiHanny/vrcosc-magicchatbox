@@ -6,6 +6,7 @@ using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
@@ -37,6 +38,7 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TwitchSettings> _twitchSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService _toast;
 
     public ModuleBootstrapper(
         IModuleHost host,
@@ -59,7 +61,8 @@ public class ModuleBootstrapper
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         ISettingsProvider<TwitchSettings> twitchSettingsProvider,
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
-        IPrivacyConsentService consentService)
+        IPrivacyConsentService consentService,
+        IToastService toast)
     {
         _host = host;
         _appState = appState;
@@ -82,6 +85,7 @@ public class ModuleBootstrapper
         _twitchSettingsProvider = twitchSettingsProvider;
         _trackerSettingsProvider = trackerSettingsProvider;
         _consentService = consentService;
+        _toast = toast;
     }
 
     /// <summary>
@@ -106,7 +110,8 @@ public class ModuleBootstrapper
             _menuNav,
             _chatService,
             _messenger,
-            _dispatcher);
+            _dispatcher,
+            _toast);
         _host.IntelliChat = module;
         _host.RegisterModule(module);
         return module;
@@ -128,20 +133,23 @@ public class ModuleBootstrapper
             _oscSender,
             integrationSettings,
             _pulsoidOAuth,
-            _env);
-        var soundpad = new SoundpadModule(1000, _appState, _dispatcher, integrationSettings);
+            _env,
+            _toast);
+        var soundpad = new SoundpadModule(1000, _appState, _dispatcher, integrationSettings, _toast);
         var twitch = new TwitchModule(
             _twitchSettingsProvider,
             timeSettings,
             _twitchApiClient,
             integrationSettings,
-            _dispatcher);
+            _dispatcher,
+            _toast);
         var tracker = new TrackerBatteryModule(
             _trackerSettingsProvider,
             _appState,
             _trackerDisplay,
             _integrationDisplay,
-            _dispatcher);
+            _dispatcher,
+            _toast);
 
         _host.Pulsoid = pulsoid;
         _host.Soundpad = soundpad;
@@ -178,7 +186,8 @@ public class ModuleBootstrapper
             _menuNav,
             _transcription,
             _dispatcher,
-            _messenger);
+            _messenger,
+            _toast);
         _host.Whisper = whisper;
         _host.RegisterModule(whisper);
 

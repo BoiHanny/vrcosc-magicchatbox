@@ -10,6 +10,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -59,19 +60,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly TrackerDisplayState _tracker;
         private readonly IntegrationDisplayState _integrationDisplay;
         private readonly IUiDispatcher _dispatcher;
+        private readonly IToastService? _toast;
+        private volatile bool _trackerErrorShown;
 
         public TrackerBatteryModule(
             ISettingsProvider<TrackerBatterySettings> settingsProvider,
             IAppState appState,
             TrackerDisplayState tracker,
             IntegrationDisplayState integrationDisplay,
-            IUiDispatcher dispatcher)
+            IUiDispatcher dispatcher,
+            IToastService? toast = null)
         {
             _settingsProvider = settingsProvider;
             _appState = appState;
             _tracker = tracker;
             _integrationDisplay = integrationDisplay;
             _dispatcher = dispatcher;
+            _toast = toast;
         }
 
         public void Initialize()
@@ -92,11 +97,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     if (error != EVRInitError.Init_NoServerForBackgroundApp)
                     {
                         Logging.WriteInfo($"OpenVR Init Failed: {error}");
+                        if (!_trackerErrorShown)
+                        {
+                            _trackerErrorShown = true;
+                            _toast?.Show("📍 VR Tracker", $"OpenVR failed to initialize: {error}", ToastType.Warning, key: "tracker-error");
+                        }
                     }
                     return;
                 }
 
                 _isInitialized = true;
+                _trackerErrorShown = false;
             }
             catch (Exception ex)
             {

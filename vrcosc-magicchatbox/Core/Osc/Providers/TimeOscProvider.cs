@@ -29,7 +29,7 @@ public sealed class TimeOscProvider : IOscProvider
     public int Priority => 90;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => isVR ? _intgr.IntgrCurrentTime_VR : _intgr.IntgrCurrentTime_DESKTOP;
+        => _intgr.IntgrScanWindowTime && (isVR ? _intgr.IntgrCurrentTime_VR : _intgr.IntgrCurrentTime_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

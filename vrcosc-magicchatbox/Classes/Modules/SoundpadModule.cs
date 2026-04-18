@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -28,6 +29,8 @@ public partial class SoundpadModule : ObservableObject, IModule
     private readonly object _updateLock = new object();
     private int ErrorCount = 0;
     private bool _disposed;
+    private readonly IToastService? _toast;
+    private volatile bool _soundpadErrorShown;
     private readonly IAppState _appState;
     private readonly IUiDispatcher _dispatcher;
 
@@ -57,18 +60,20 @@ public partial class SoundpadModule : ObservableObject, IModule
     [ObservableProperty]
     public string playingSong = string.Empty;
 
-    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings)
+    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings, IToastService? toast = null)
     {
         _appState = appState;
         _dispatcher = dispatcher;
         _integrationSettings = integrationSettings;
+        _toast = toast;
         _stateTimer = new System.Timers.Timer(time)
         {
             AutoReset = true,
             Enabled = false
         };
         _stateTimer.Elapsed += (sender, e) => UpdateSoundpadState(false);
-        InitializeSoundpadModuleAsync();
+        if (ShouldStartMonitoring())
+            InitializeSoundpadModuleAsync();
     }
 
     public string Name => "Soundpad";
@@ -458,5 +463,21 @@ public partial class SoundpadModule : ObservableObject, IModule
 
         _stateTimer?.Stop();
         _stateTimer?.Dispose();
+    }
+
+    partial void OnErrorChanged(bool value)
+    {
+        if (!value)
+            _soundpadErrorShown = false;
+    }
+
+    partial void OnErrorStringChanged(string value)
+    {
+        if (!ShouldStartMonitoring()) return;
+        if (error && !string.IsNullOrEmpty(value) && !_soundpadErrorShown)
+        {
+            _soundpadErrorShown = true;
+            _toast?.Show("🎵 Soundpad", value, ToastType.Warning, key: "soundpad-error");
+        }
     }
 }

@@ -120,7 +120,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="🪟  Window Activity" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="📋  Window Activity" />
                         <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Active app name + window title (UIAutomation)" />
                     </StackPanel>
 
@@ -214,7 +214,7 @@
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                         <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="🌐  Internet Access" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather service" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
                     </StackPanel>
 
                     <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">

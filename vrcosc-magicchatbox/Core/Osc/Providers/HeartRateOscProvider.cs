@@ -31,10 +31,9 @@ public sealed class HeartRateOscProvider : IOscProvider
     public int Priority => 40;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => _appState.PulsoidAuthConnected
-           && (isVR
-               ? _intgr.IntgrHeartRate_VR
-               : _intgr.IntgrHeartRate_DESKTOP);
+        => _intgr.IntgrHeartRate
+           && _appState.PulsoidAuthConnected
+           && (isVR ? _intgr.IntgrHeartRate_VR : _intgr.IntgrHeartRate_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

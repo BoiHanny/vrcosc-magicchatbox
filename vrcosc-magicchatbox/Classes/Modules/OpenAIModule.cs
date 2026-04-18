@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -22,11 +23,16 @@ public class OpenAIModule : ITranscriptionService
     private void SaveSettings() => _settingsProvider.Save();
 
     private readonly OpenAIDisplayState _openAI;
+    private readonly IPrivacyConsentService _consent;
 
-    public OpenAIModule(ISettingsProvider<OpenAISettings> settingsProvider, OpenAIDisplayState openAI)
+    public OpenAIModule(
+        ISettingsProvider<OpenAISettings> settingsProvider,
+        OpenAIDisplayState openAI,
+        IPrivacyConsentService consent)
     {
         _settingsProvider = settingsProvider;
         _openAI = openAI;
+        _consent = consent;
     }
 
     private string CreateCustomOpenAIAccessErrorTxt(Exception ex)
@@ -98,6 +104,15 @@ public class OpenAIModule : ITranscriptionService
     /// </summary>
     public async Task InitializeClient(string apiKey, string organizationID)
     {
+        if (!_consent.IsApproved(PrivacyHook.InternetAccess))
+        {
+            OpenAIClient = null;
+            _openAI.Connected = false;
+            _openAI.AccessError = true;
+            _openAI.AccessErrorTxt = "Internet Access permission required";
+            return;
+        }
+
         if (string.IsNullOrEmpty(apiKey))
         {
             return;

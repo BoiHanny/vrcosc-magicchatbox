@@ -66,4 +66,7 @@ public interface IHardwareMonitorService : IDisposable
 
     /// <summary>Highest loaded CPU core as a percentage. Returns null if not available.</summary>
     float? GetCpuMaxCoreLoad();
+
+    /// <summary>CPU core clock in MHz. Returns null if not available.</summary>
+    float? GetCpuCoreClock();
 }

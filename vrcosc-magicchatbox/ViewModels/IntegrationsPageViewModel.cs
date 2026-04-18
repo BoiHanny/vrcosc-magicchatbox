@@ -12,6 +12,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -32,6 +33,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
     private readonly IMenuNavigationService _menuNav;
     private readonly IPrivacyConsentService _consent;
+    private readonly IToastService _toast;
     public ISettingsProvider<IntegrationSettings> IntegrationSettingsProvider => _integrationSettingsProvider;
     private IMediaLinkService? _mediaLinkSvc;
     private IMediaLinkService MediaLink => _mediaLinkSvc ??= App.ApplicationMediaController;
@@ -74,7 +76,8 @@ public partial class IntegrationsPageViewModel : ObservableObject
         TrackerDisplayState tracker,
         IAppState appState,
         IMenuNavigationService menuNav,
-        IPrivacyConsentService consent)
+        IPrivacyConsentService consent,
+        IToastService toast)
     {
         _chatStatus = chatStatus;
         _moduleHost = moduleHost;
@@ -92,25 +95,44 @@ public partial class IntegrationsPageViewModel : ObservableObject
         AppState = appState;
         _menuNav = menuNav;
         _consent = consent;
+        _toast = toast;
+
+        // Guard map: property name → (required hook, value getter, revert action).
+        // Note: ComponentStats is intentionally excluded — it has a basic-mode fallback
+        // (CPU%/RAM) that runs without the kernel driver, even when HardwareMonitor is denied.
+        _guardMap = new Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)>
+        {
+            { nameof(IntegrationSettings.IntgrScanWindowActivity), (PrivacyHook.WindowActivity,   () => IntegrationSettings.IntgrScanWindowActivity, () => IntegrationSettings.IntgrScanWindowActivity = false) },
+            { nameof(IntegrationSettings.IntgrScanMediaLink),      (PrivacyHook.MediaSession,     () => IntegrationSettings.IntgrScanMediaLink,       () => IntegrationSettings.IntgrScanMediaLink = false) },
+            { nameof(IntegrationSettings.IntgrTwitch),             (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrTwitch,              () => IntegrationSettings.IntgrTwitch = false) },
+            { nameof(IntegrationSettings.IntgrHeartRate),          (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrHeartRate,           () => IntegrationSettings.IntgrHeartRate = false) },
+            { nameof(IntegrationSettings.IntgrTrackerBattery),     (PrivacyHook.VrTrackerBattery, () => IntegrationSettings.IntgrTrackerBattery,      () => IntegrationSettings.IntgrTrackerBattery = false) },
+            { nameof(IntegrationSettings.IntgrNetworkStatistics),  (PrivacyHook.NetworkStats,     () => IntegrationSettings.IntgrNetworkStatistics,   () => IntegrationSettings.IntgrNetworkStatistics = false) },
+            { nameof(IntegrationSettings.IntgrSoundpad),           (PrivacyHook.SoundpadBridge,   () => IntegrationSettings.IntgrSoundpad,            () => IntegrationSettings.IntgrSoundpad = false) },
+        };
 
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
     }
 
-    private static readonly Dictionary<string, PrivacyHook> _integrationHookMap = new()
-    {
-        { nameof(IntegrationSettings.IntgrTwitch), PrivacyHook.InternetAccess },
-        { nameof(IntegrationSettings.IntgrHeartRate), PrivacyHook.InternetAccess },
-        { nameof(IntegrationSettings.IntgrTrackerBattery), PrivacyHook.VrTrackerBattery },
-        { nameof(IntegrationSettings.IntgrNetworkStatistics), PrivacyHook.NetworkStats },
-        { nameof(IntegrationSettings.IntgrSoundpad), PrivacyHook.SoundpadBridge },
-    };
+    // Instance guard map built in constructor so closures capture the correct IntegrationSettings instance.
+    private readonly Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)> _guardMap;
 
     private void OnIntegrationSettingChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == null) return;
-        if (!_integrationHookMap.TryGetValue(e.PropertyName, out var hook)) return;
-        if (!_consent.IsApproved(hook))
-            _menuNav.NavigateToPrivacy();
+        if (!_guardMap.TryGetValue(e.PropertyName, out var guard)) return;
+        if (!guard.GetValue()) return; // only enforce when being turned ON
+        if (_consent.IsApproved(guard.Hook)) return;
+
+        guard.Revert(); // flip the toggle back to false (safe: SetProperty is no-op when value unchanged)
+        var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
+        _toast.Show(
+            "🔒 Permission Required",
+            $"{icon} {name} access is needed. Enable it in Privacy & Permissions.",
+            ToastType.Warning,
+            new ToastAction("Open Privacy & Permissions", () => { _menuNav.NavigateToPrivacy(); return Task.CompletedTask; }),
+            durationMs: 6000,
+            key: $"consent-{guard.Hook}");
     }
 
     [RelayCommand]

@@ -9,6 +9,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -44,6 +45,9 @@ public class WeatherService : IWeatherService
 
     private TimeSettings TS => _timeSettings;
     public void SaveSettings() => _settingsProvider.Save();
+
+    private readonly IToastService? _toast;
+    private volatile bool _weatherErrorShown;
 
     private bool _fetchInProgress;
     private DateTime _lastFetchUtc = DateTime.MinValue;
@@ -122,7 +126,8 @@ public class WeatherService : IWeatherService
         IntegrationDisplayState integrationDisplay,
         ISettingsProvider<ComponentStatsSettings> componentStatsSettingsProvider,
         IUiDispatcher dispatcher,
-        ITimeFormattingService timeFormatting)
+        ITimeFormattingService timeFormatting,
+        IToastService? toast = null)
     {
         _httpClientFactory = httpClientFactory;
         _settingsProvider = settingsProvider;
@@ -131,6 +136,7 @@ public class WeatherService : IWeatherService
         _componentStatsSettings = componentStatsSettingsProvider.Value;
         _dispatcher = dispatcher;
         _timeFormatting = timeFormatting;
+        _toast = toast;
         Client.DefaultRequestHeaders.UserAgent.ParseAdd("vrcosc-magicchatbox");
     }
 
@@ -407,6 +413,7 @@ public class WeatherService : IWeatherService
 
     private void UpdateLastSync(DateTime utc)
     {
+        _weatherErrorShown = false;
         _lastSuccessUtc = utc;
         string display = FormatLastSync(utc);
         if (_dispatcher.CheckAccess())
@@ -585,6 +592,11 @@ public class WeatherService : IWeatherService
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
+            if (!_weatherErrorShown)
+            {
+                _weatherErrorShown = true;
+                _toast?.Show("⛅ Weather Error", ex.Message, ToastType.Error, key: "weather-error");
+            }
         }
         finally
         {

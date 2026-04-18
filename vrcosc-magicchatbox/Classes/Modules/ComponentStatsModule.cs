@@ -168,6 +168,21 @@ public class ComponentStatsModule : IModule
         return $"{label} {value}﹪";
     }
 
+    private string FetchCpuClockStat(ComponentStatsItem item)
+    {
+        float? mhz = _hwService.GetCpuCoreClock();
+        if (mhz == null) return null;
+        string label = Settings.UseEmojisForTempAndPower ? "⚡" : "clk";
+        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
+            label = TextUtilities.TransformToSuperscript(label);
+        string value;
+        if (mhz.Value >= 1000f)
+            value = $"{mhz.Value / 1000f:F1}GHz";
+        else
+            value = $"{(int)mhz.Value}MHz";
+        return $"{label} {value}";
+    }
+
     private string FetchGpuCoreClockStat(ComponentStatsItem item)
     {
         string gpuName = GetDedicatedGPUName();
@@ -615,6 +630,11 @@ public class ComponentStatsModule : IModule
                     {
                         var maxCore = FetchCPUMaxCoreLoadStat(stat);
                         if (!string.IsNullOrWhiteSpace(maxCore)) additionalInfoParts.Add(maxCore);
+                    }
+                    if (Settings.ShowCpuClock)
+                    {
+                        var clk = FetchCpuClockStat(stat);
+                        if (!string.IsNullOrWhiteSpace(clk)) additionalInfoParts.Add(clk);
                     }
                 }
                 else if (stat.ComponentType == StatsComponentType.GPU && hasGpu)

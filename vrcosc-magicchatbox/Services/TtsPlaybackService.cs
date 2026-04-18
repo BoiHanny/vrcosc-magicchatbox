@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
@@ -19,18 +20,21 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly TtsSettings _ttsSettings;
+    private readonly IPrivacyConsentService _consent;
     private readonly List<CancellationTokenSource> _activeCancellationTokens = new();
 
     public TtsPlaybackService(
         Lazy<TTSModule> tts,
         TtsAudioDisplayState ttsAudio,
         ChatStatusDisplayState chatStatus,
-        ISettingsProvider<TtsSettings> ttsSettingsProvider)
+        ISettingsProvider<TtsSettings> ttsSettingsProvider,
+        IPrivacyConsentService consent)
     {
         _tts = tts;
         _ttsAudio = ttsAudio;
         _chatStatus = chatStatus;
         _ttsSettings = ttsSettingsProvider.Value;
+        _consent = consent;
     }
 
     public void CancelAllTts()
@@ -42,6 +46,12 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
 
     public async Task PlayTtsAsync(string chat, bool resent = false)
     {
+        if (!_consent.IsApproved(PrivacyHook.InternetAccess))
+        {
+            _chatStatus.ChatFeedbackTxt = "TTS requires Internet Access permission";
+            return;
+        }
+
         try
         {
             if (_ttsSettings.TtsCutOff)

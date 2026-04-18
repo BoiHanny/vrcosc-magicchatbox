@@ -26,7 +26,7 @@ public sealed class NetworkStatsOscProvider : IOscProvider
     public int Priority => 80;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => isVR ? _intgr.IntgrNetworkStatistics_VR : _intgr.IntgrNetworkStatistics_DESKTOP;
+        => _intgr.IntgrNetworkStatistics && (isVR ? _intgr.IntgrNetworkStatistics_VR : _intgr.IntgrNetworkStatistics_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

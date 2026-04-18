@@ -60,6 +60,9 @@ public static class Constants
     public const string GitHubSecurityUrl = "https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md";
     public const string GitHubLicenseUrl = "https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md";
 
+    // TOS version identifier — bump when terms require re-acceptance
+    public const string TosVersion = "2025.03.22";
+
     public const string WikiMusicDisplayUrl = GitHubWikiBaseUrl + "%F0%9F%8E%BC-Music-Display";
     public const string WikiHeartRateUrl = GitHubWikiBaseUrl + "%F0%9F%A9%B5-Heart-Rate";
     public const string WikiPulsoidDiscountUrl = GitHubWikiBaseUrl + "Unlock-a-15%25-Discount-on-Pulsoid's-BRO-Plan";

@@ -56,7 +56,7 @@ public sealed class StatusOscProvider : IOscProvider
         bool afkActive = afk != null && afk.IsAfk && afk.Settings.EnableAfkDetection;
         if (afkActive) return true;
 
-        return isVR ? _intgr.IntgrStatus_VR : _intgr.IntgrStatus_DESKTOP;
+        return _intgr.IntgrStatus && (isVR ? _intgr.IntgrStatus_VR : _intgr.IntgrStatus_DESKTOP);
     }
 
     public OscSegment? TryBuild(OscBuildContext context)

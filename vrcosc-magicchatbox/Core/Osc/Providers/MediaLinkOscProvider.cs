@@ -46,7 +46,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
     public int Priority => 20;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => isVR ? _intgr.IntgrMediaLink_VR : _intgr.IntgrMediaLink_DESKTOP;
+        => _intgr.IntgrScanMediaLink && (isVR ? _intgr.IntgrMediaLink_VR : _intgr.IntgrMediaLink_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

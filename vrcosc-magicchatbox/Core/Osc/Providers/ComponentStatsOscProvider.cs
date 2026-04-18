@@ -26,7 +26,7 @@ public sealed class ComponentStatsOscProvider : IOscProvider
     public int Priority => 70;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => isVR ? _intgr.IntgrComponentStats_VR : _intgr.IntgrComponentStats_DESKTOP;
+        => _intgr.IntgrComponentStats && (isVR ? _intgr.IntgrComponentStats_VR : _intgr.IntgrComponentStats_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

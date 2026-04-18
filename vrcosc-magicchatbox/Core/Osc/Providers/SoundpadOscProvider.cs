@@ -30,7 +30,7 @@ public sealed class SoundpadOscProvider : IOscProvider
     public int Priority => 75;
 
     public bool IsEnabledForCurrentMode(bool isVR)
-        => isVR ? _intgr.IntgrSoundpad_VR : _intgr.IntgrSoundpad_DESKTOP;
+        => _intgr.IntgrSoundpad && (isVR ? _intgr.IntgrSoundpad_VR : _intgr.IntgrSoundpad_DESKTOP);
 
     public OscSegment? TryBuild(OscBuildContext context)
     {

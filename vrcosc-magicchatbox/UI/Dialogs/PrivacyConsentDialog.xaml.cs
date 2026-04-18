@@ -35,7 +35,7 @@ public partial class PrivacyConsentDialog : Window
             isApproved: _consentService.IsApproved(hook)),
 
         PrivacyHook.WindowActivity => new HookItem(hook,
-            title: "🪟  Window Activity  (active app · window title)",
+            title: "📋  Window Activity  (active app · window title)",
             description: "Reads the name and title of your currently focused window using the Windows " +
                          "accessibility API (UIAutomation + GetForegroundWindow). No screenshots are taken.",
             warning: null,
@@ -56,9 +56,10 @@ public partial class PrivacyConsentDialog : Window
             isApproved: _consentService.IsApproved(hook)),
 
         PrivacyHook.InternetAccess => new HookItem(hook,
-            title: "🌐  Internet Access  (Twitch · Pulsoid · Weather)",
+            title: "🌐  Internet Access  (Twitch · Pulsoid · Weather · OpenAI · TTS · Speech)",
             description: "Allows outbound HTTP requests to third-party services: Twitch API for chat/stats, " +
-                         "Pulsoid for heart-rate data, and a weather provider for current conditions. " +
+                         "Pulsoid for heart-rate data, a weather provider for current conditions, " +
+                         "OpenAI for IntelliChat, TikTok TTS for text-to-speech, and speech detection. " +
                          "Only data you configure is requested — no telemetry.",
             warning: null,
             isApproved: _consentService.IsApproved(hook)),

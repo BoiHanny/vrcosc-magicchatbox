@@ -24,6 +24,7 @@ public partial class ComponentStatsSettings : VersionedSettings
     [ObservableProperty] private bool _showGpuMemoryTemperature = false;
     [ObservableProperty] private bool _showGpuMemoryLoad = false;
     [ObservableProperty] private bool _showCpuMaxCoreLoad = false;
+    [ObservableProperty] private bool _showCpuClock = false;
     [ObservableProperty] private string _statsSeparator = " ¦ ";
 
     public int TemperatureDisplaySwitchInterval { get; set; } = 5;

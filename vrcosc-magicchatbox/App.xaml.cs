@@ -12,6 +12,7 @@ using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
@@ -150,10 +151,27 @@ namespace vrcosc_magicchatbox
                 }
             }
 
+            // Show TOS + Privacy wizard if TOS version has changed or was never accepted
+            bool tosJustAccepted = false;
+            {
+                var appSettingsProvider = Services.GetRequiredService<ISettingsProvider<AppSettings>>();
+                var consentService = Services.GetRequiredService<IPrivacyConsentService>();
+                if (appSettingsProvider.Value.AcceptedTosVersion != Core.Constants.TosVersion)
+                {
+                    var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider)
+                    {
+                        Owner = loadingWindow,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner
+                    };
+                    tosJustAccepted = wizard.ShowDialog() == true;
+                    // If wizard was dismissed, fall through to per-hook consent dialog below
+                }
+            }
+
             // Show privacy consent dialog for any hooks that have Unknown state
             {
                 var consentService = Services.GetRequiredService<IPrivacyConsentService>();
-                var allHooks = new[] { PrivacyHook.HardwareMonitor, PrivacyHook.WindowActivity, PrivacyHook.MediaSession, PrivacyHook.AfkSensor };
+                var allHooks = System.Enum.GetValues<PrivacyHook>();
                 var pendingHooks = consentService.GetHooksRequiringConsent(allHooks);
                 if (pendingHooks.Count > 0)
                 {
@@ -183,6 +201,33 @@ namespace vrcosc_magicchatbox
             Services.GetRequiredService<HotkeyManagement>().Initialize(mainWindow);
             mainWindow.Show();
 
+            // Wire toast notifications for runtime consent changes (subscribed AFTER mainWindow.Show so
+            // wizard-time consent saves don't fire premature toasts on a hidden window).
+            var toastSvc = Services.GetRequiredService<IToastService>();
+            var consentSvc = Services.GetRequiredService<IPrivacyConsentService>();
+            consentSvc.ConsentChanged += (_, args) =>
+            {
+                var (name, icon) = PrivacyHookInfo.Get(args.Hook);
+                switch (args.NewState)
+                {
+                    case ConsentState.Approved:
+                        toastSvc.Show($"{icon} Permission Enabled", $"{name} is now active.", ToastType.Privacy,
+                            key: $"consent-change-{args.Hook}");
+                        break;
+                    case ConsentState.Denied:
+                        toastSvc.Show("🚫 Permission Revoked", $"{name} has been disabled.", ToastType.Warning,
+                            key: $"consent-change-{args.Hook}");
+                        break;
+                }
+            };
+
+            if (tosJustAccepted)
+                toastSvc.Show(
+                    "Welcome to MagicChatbox! 🎉",
+                    "Your permissions are saved. Adjust them anytime in Options → Privacy & Permissions.",
+                    ToastType.Success,
+                    durationMs: 7000);
+
             InitializeUserMonitoring();
 
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
@@ -211,6 +256,8 @@ namespace vrcosc_magicchatbox
         {
             Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true, log: false);
         }
+
+
 
         private void InitializeUserMonitoring()
         {

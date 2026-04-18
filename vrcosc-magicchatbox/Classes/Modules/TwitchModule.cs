@@ -11,6 +11,7 @@ using vrcosc_magicchatbox.Classes.Modules.Twitch;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -34,6 +35,8 @@ public sealed partial class TwitchModule : ObservableObject, IModule
     private readonly ISettingsProvider<TwitchSettings> _settingsProvider;
     private readonly IUiDispatcher _dispatcher;
     private readonly IntegrationSettings _integrationSettings;
+    private readonly IToastService? _toast;
+    private volatile bool _twitchErrorShown;
 
     private bool refreshInProgress;
     private DateTime lastRefreshUtc = DateTime.MinValue;
@@ -99,13 +102,15 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         TimeSettings timeSettings,
         ITwitchApiClient apiClient,
         IntegrationSettings integrationSettings,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        IToastService? toast = null)
     {
         _settingsProvider = settingsProvider;
         _ts = timeSettings;
         _apiClient = apiClient;
         _integrationSettings = integrationSettings;
         _dispatcher = dispatcher;
+        _toast = toast;
     }
 
     private async Task ExecuteSendAnnouncementAsync()
@@ -632,6 +637,16 @@ public sealed partial class TwitchModule : ObservableObject, IModule
 
     private void UpdateConnectionState(bool isConnected, string message)
     {
+        if (isConnected)
+        {
+            _twitchErrorShown = false;
+        }
+        else if (_integrationSettings.IntgrTwitch && !_twitchErrorShown)
+        {
+            _twitchErrorShown = true;
+            _toast?.Show("🎮 Twitch", message, ToastType.Warning, key: "twitch-error");
+        }
+
         if (_dispatcher.CheckAccess())
         {
             Connected = isConnected;

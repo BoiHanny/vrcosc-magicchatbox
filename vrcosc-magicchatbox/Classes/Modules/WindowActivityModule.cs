@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,6 +10,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -34,12 +35,11 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     public void SaveSettings() => _settingsProvider.Save();
 
     private readonly WindowActivityDisplayState WA;
-
     private readonly IAppState AppState;
-
     private readonly IUiDispatcher _dispatcher;
-
     private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
+    private DateTime _waLastErrorToast = DateTime.MinValue;
 
     public WindowActivityModule(
         ISettingsProvider<WindowActivitySettings> settingsProvider,
@@ -47,7 +47,8 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         IAppState appState,
         IEnvironmentService environmentService,
         IUiDispatcher dispatcher,
-        IPrivacyConsentService consentService)
+        IPrivacyConsentService consentService,
+        IToastService? toast = null)
     {
         _settingsProvider = settingsProvider;
         WA = windowActivityDisplay;
@@ -55,6 +56,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         _vrChatDirectory = environmentService.VrcPath;
         _dispatcher = dispatcher;
         _consentService = consentService;
+        _toast = toast;
 
         _consentService.ConsentChanged += (_, e) =>
         {
@@ -97,6 +99,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             string errormsg = $"Error in AddNewProcessToViewModel: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
         }
     }
 
@@ -160,6 +163,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             string errormsg = $"Error in ConstructReturnString: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return processName;
         }
 
@@ -222,6 +226,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             string errormsg = $"Error in GetNameFromAutomationElement (HandleID:{hwnd}): {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "Unknown";
         }
     }
@@ -273,6 +278,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             string errormsg = $"Error in GetProcessName ({processName}): {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return processName;
         }
 
@@ -307,6 +313,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             string errormsg = $"Error in GetWindowTitle: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "";
         }
 
@@ -437,6 +444,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
             Logging.WriteException(new Exception(errormsg), MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "'An app'";
 
         }
@@ -452,6 +460,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             }
 
             WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "'An app'";
         }
     }
@@ -492,6 +501,14 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 }
             }
         }
+    }
+
+    private void FireWaErrorToast()
+    {
+        if (_toast == null) return;
+        if ((DateTime.UtcNow - _waLastErrorToast).TotalSeconds < 60) return;
+        _waLastErrorToast = DateTime.UtcNow;
+        _toast.Show("🪟 Window Activity", WA.ErrorInWindowActivityMsg, ToastType.Warning, key: "window-activity-error");
     }
 
 

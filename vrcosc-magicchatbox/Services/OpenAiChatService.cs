@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Privacy;
 
 namespace vrcosc_magicchatbox.Services;
 
@@ -16,10 +17,12 @@ namespace vrcosc_magicchatbox.Services;
 public sealed class OpenAiChatService : IOpenAiChatService
 {
     private readonly OpenAIModule _openAi;
+    private readonly IPrivacyConsentService _consent;
 
-    public OpenAiChatService(OpenAIModule openAi)
+    public OpenAiChatService(OpenAIModule openAi, IPrivacyConsentService consent)
     {
         _openAi = openAi ?? throw new ArgumentNullException(nameof(openAi));
+        _consent = consent ?? throw new ArgumentNullException(nameof(consent));
     }
 
     public bool IsClientAvailable => _openAi.IsInitialized;
@@ -30,6 +33,9 @@ public sealed class OpenAiChatService : IOpenAiChatService
         ChatCompletionOptions? options = null,
         CancellationToken ct = default)
     {
+        if (!_consent.IsApproved(PrivacyHook.InternetAccess))
+            return null;
+
         if (!IsClientAvailable)
             throw new InvalidOperationException("OpenAI client is not initialized. Configure your API key first.");
 
@@ -48,6 +54,9 @@ public sealed class OpenAiChatService : IOpenAiChatService
 
     public async Task<ModerationResult?> ClassifyTextAsync(string text, string model, CancellationToken ct = default)
     {
+        if (!_consent.IsApproved(PrivacyHook.InternetAccess))
+            return null;
+
         if (!IsClientAvailable)
             throw new InvalidOperationException("OpenAI client is not initialized. Configure your API key first.");
 
