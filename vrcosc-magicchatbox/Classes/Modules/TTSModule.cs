@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -24,13 +25,15 @@ public class TTSModule
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOscSender _oscSender;
+    private readonly IToastService? _toast;
 
-    public TTSModule(TtsSettings ttsSettings, TtsAudioDisplayState ttsAudio, IHttpClientFactory httpClientFactory, IOscSender oscSender)
+    public TTSModule(TtsSettings ttsSettings, TtsAudioDisplayState ttsAudio, IHttpClientFactory httpClientFactory, IOscSender oscSender, IToastService? toast = null)
     {
         _ttsSettings = ttsSettings;
         _ttsAudio = ttsAudio;
         _httpClientFactory = httpClientFactory;
         _oscSender = oscSender;
+        _toast = toast;
     }
 
     public async Task<byte[]> GetAudioBytesFromTikTokAPI(string text)
@@ -65,8 +68,10 @@ public class TTSModule
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
+            _toast?.Show("🔊 TTS", "Failed to generate speech audio. Check your internet connection.", ToastType.Warning, key: "tts-generation-failed");
             return audioBytes;
         }
+
         return audioBytes;
     }
 
@@ -113,6 +118,7 @@ public class TTSModule
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
+            _toast?.Show("🔊 TTS", "Audio playback failed. Check your audio device settings.", ToastType.Warning, key: "tts-playback-failed");
         }
     }
 }

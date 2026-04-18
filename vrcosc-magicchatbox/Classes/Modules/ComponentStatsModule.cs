@@ -12,6 +12,7 @@ using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -90,6 +91,7 @@ public class ComponentStatsModule : IModule
     private readonly IUiDispatcher _dispatcher;
     private readonly Lazy<IStatePersistenceCoordinator> _persistence;
     private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
 
     public ComponentStatsModule(
         ISettingsProvider<ComponentStatsSettings> settingsProvider,
@@ -102,7 +104,8 @@ public class ComponentStatsModule : IModule
         IUiDispatcher dispatcher,
         Lazy<IStatePersistenceCoordinator> persistence,
         IHardwareMonitorService hwService,
-        IPrivacyConsentService consentService)
+        IPrivacyConsentService consentService,
+        IToastService? toast = null)
     {
         _settingsProvider = settingsProvider;
         _staticSettingsProvider = settingsProvider;
@@ -116,6 +119,7 @@ public class ComponentStatsModule : IModule
         _persistence = persistence;
         _hwService = hwService;
         _consentService = consentService;
+        _toast = toast;
 
         _consentService.ConsentChanged += (_, e) =>
         {
@@ -124,6 +128,7 @@ public class ComponentStatsModule : IModule
                 if (_hwService.IsOpen)
                     _hwService.Close();
                 _integrationDisplay.ComponentStatCombined = string.Empty;
+                _toast?.Show("🔒 Hardware Monitor", "Hardware monitoring paused — privacy consent revoked.", ToastType.Privacy, key: "hw-privacy-denied");
             }
         };
     }
@@ -984,13 +989,15 @@ public class ComponentStatsModule : IModule
             }
             else
             {
-                Logging.WriteException(new Exception("Failed to deserialize component stats."), MSGBox: true);
+                Logging.WriteException(new Exception("Failed to deserialize component stats."), MSGBox: false);
+                _toast?.Show("⚙️ Hardware Monitor", "Component stats file is corrupt — reset to defaults.", ToastType.Warning, key: "hw-stats-corrupt");
                 InitializeDefaultStats();
             }
         }
         catch (Exception ex)
         {
-            Logging.WriteException(ex, MSGBox: true);
+            Logging.WriteException(ex, MSGBox: false);
+            _toast?.Show("⚙️ Hardware Monitor", "Failed to load component stats configuration.", ToastType.Error, key: "hw-stats-load-failed");
         }
     }
 

@@ -100,14 +100,18 @@ public partial class TosAndPrivacyWizard : Window
     /// <summary>
     /// Returns the effective approved state for a hook:
     /// - If the user has already made a decision, honour it.
-    /// - On first run (Unknown), default WindowActivity and MediaSession to ON; everything else OFF.
+    /// - On first run (Unknown), default WindowActivity, MediaSession, AfkSensor,
+    ///   and InternetAccess to ON; everything else OFF.
     /// </summary>
     private bool DefaultApproved(PrivacyHook hook) =>
         _consentService.GetState(hook) switch
         {
             ConsentState.Approved => true,
             ConsentState.Denied   => false,
-            _                     => hook is PrivacyHook.WindowActivity or PrivacyHook.MediaSession,
+            _                     => hook is PrivacyHook.WindowActivity
+                                      or PrivacyHook.MediaSession
+                                      or PrivacyHook.AfkSensor
+                                      or PrivacyHook.InternetAccess,
         };
 
     private void Accept_Click(object sender, RoutedEventArgs e)

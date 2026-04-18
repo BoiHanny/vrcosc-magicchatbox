@@ -1932,10 +1932,11 @@
                                             IsChecked="{Binding IntegrationSettings.IntgrMediaLink_VR, Mode=TwoWay}"
                                             Style="{StaticResource GlowyToggleButtonVR}" />
                                         <ToggleButton
-                                            Margin="5,3,0,0"
+                                            Margin="5,2,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Top"
                                             Content="Transient"
+                                            Height="19"
                                             IsChecked="{Binding MediaLinkSettings.ShowOnlyOnChange, Mode=TwoWay}"
                                             Style="{StaticResource GlowyToggleButton}" />
                                         <Button

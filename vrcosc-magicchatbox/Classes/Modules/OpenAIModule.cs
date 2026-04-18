@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -24,15 +25,18 @@ public class OpenAIModule : ITranscriptionService
 
     private readonly OpenAIDisplayState _openAI;
     private readonly IPrivacyConsentService _consent;
+    private readonly IToastService? _toast;
 
     public OpenAIModule(
         ISettingsProvider<OpenAISettings> settingsProvider,
         OpenAIDisplayState openAI,
-        IPrivacyConsentService consent)
+        IPrivacyConsentService consent,
+        IToastService? toast = null)
     {
         _settingsProvider = settingsProvider;
         _openAI = openAI;
         _consent = consent;
+        _toast = toast;
     }
 
     private string CreateCustomOpenAIAccessErrorTxt(Exception ex)
@@ -62,7 +66,6 @@ public class OpenAIModule : ITranscriptionService
 
     private void ReportTestConnectionError(Exception ex)
     {
-
         Logging.WriteException(ex, MSGBox: false);
         Settings.AccessTokenEncrypted = string.Empty;
         Settings.OrganizationIDEncrypted = string.Empty;
@@ -73,6 +76,7 @@ public class OpenAIModule : ITranscriptionService
         _openAI.AccessError = true;
         _openAI.AccessErrorTxt = CreateCustomOpenAIAccessErrorTxt(ex);
         OpenAIClient = null;
+        _toast?.Show("🤖 OpenAI", CreateCustomOpenAIAccessErrorTxt(ex), ToastType.Error, key: "openai-auth-failed");
     }
 
 
@@ -110,6 +114,7 @@ public class OpenAIModule : ITranscriptionService
             _openAI.Connected = false;
             _openAI.AccessError = true;
             _openAI.AccessErrorTxt = "Internet Access permission required";
+            _toast?.Show("🔒 OpenAI", "Internet Access permission required for OpenAI features.", ToastType.Privacy, key: "openai-privacy-denied");
             return;
         }
 

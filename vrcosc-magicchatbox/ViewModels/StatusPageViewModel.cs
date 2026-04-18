@@ -1,23 +1,26 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
     /// <summary>
-    /// Page-specific ViewModel for the Status page. Owns status add/delete/edit,
-    /// activation, sorting, persistence, and character counting logic.
-    /// Used as DataContext for StatusPage.xaml.
+    /// Page ViewModel for the Status page. Owns add/delete/edit, sorting, groups, selection mode, and cycling.
     /// </summary>
     public partial class StatusPageViewModel : ObservableObject
     {
@@ -26,13 +29,37 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly IStatusListService _statusListService;
         private readonly IMenuNavigationService _menuNav;
 
+        private ICollectionView? _filteredView;
+        private readonly Dictionary<StatusSortField, bool> _sortDirections = new();
+
+        [ObservableProperty] private StatusGroup? _selectedGroup;
+        [ObservableProperty] private StatusSortField _currentSortField = StatusSortField.CreationDate;
+        [ObservableProperty] private bool _isGroupDropdownOpen;
+        [ObservableProperty] private bool _isSelectionMode;
+        [ObservableProperty] private string _newGroupName = string.Empty;
+
         public ChatStatusDisplayState ChatStatus { get; }
         public AppSettings AppSettings { get; }
+        public ObservableCollection<StatusItem> SelectedItems { get; } = new();
 
-        /// <summary>
-        /// Initializes the status page ViewModel with chat state, app state, status module,
-        /// navigation, and settings services.
-        /// </summary>
+        public ICollectionView? FilteredView
+        {
+            get => _filteredView;
+            private set { _filteredView = value; OnPropertyChanged(); }
+        }
+
+        public string SortDirectionSymbol
+        {
+            get
+            {
+                bool descending = _sortDirections.GetValueOrDefault(CurrentSortField, true);
+                return descending ? "↓" : "↑";
+            }
+        }
+
+        public string SelectedGroupDisplayName
+            => SelectedGroup?.Name ?? "All groups";
+
         public StatusPageViewModel(
             ChatStatusDisplayState chatStatus,
             IAppState appState,
@@ -46,7 +73,242 @@ namespace vrcosc_magicchatbox.ViewModels
             _menuNav = menuNav;
             ChatStatus = chatStatus;
             AppSettings = appSettingsProvider.Value;
+
+            chatStatus.PropertyChanged += OnChatStatusPropertyChanged;
+            RebuildFilteredView();
         }
+
+        private void OnChatStatusPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(ChatStatusDisplayState.StatusList)
+                               or nameof(ChatStatusDisplayState.GroupList))
+            {
+                Application.Current?.Dispatcher.Invoke(RebuildFilteredView);
+            }
+        }
+
+        private void RebuildFilteredView()
+        {
+            foreach (var item in _chatStatus.StatusList)
+                item.PropertyChanged -= OnItemPropertyChanged;
+
+            _chatStatus.StatusList.CollectionChanged -= OnStatusListCollectionChanged;
+
+            var view = CollectionViewSource.GetDefaultView(_chatStatus.StatusList);
+            view.Filter = FilterItem;
+
+            foreach (var item in _chatStatus.StatusList)
+                item.PropertyChanged += OnItemPropertyChanged;
+
+            _chatStatus.StatusList.CollectionChanged += OnStatusListCollectionChanged;
+
+            ApplySortDescriptions(view);
+            FilteredView = view;
+
+            if (SelectedGroup == null && _chatStatus.GroupList.Count > 0)
+                SelectedGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default")
+                                ?? _chatStatus.GroupList.FirstOrDefault();
+        }
+
+        private void OnStatusListCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+                foreach (StatusItem item in e.NewItems) item.PropertyChanged += OnItemPropertyChanged;
+            if (e.OldItems != null)
+                foreach (StatusItem item in e.OldItems) item.PropertyChanged -= OnItemPropertyChanged;
+        }
+
+        private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(StatusItem.GroupId))
+                _filteredView?.Refresh();
+        }
+
+        private bool FilterItem(object obj)
+        {
+            if (obj is not StatusItem item) return false;
+            if (SelectedGroup == null) return true;
+            return item.GroupId == SelectedGroup.GroupId;
+        }
+
+        private void ApplySortDescriptions(ICollectionView view)
+        {
+            view.SortDescriptions.Clear();
+            bool descending = _sortDirections.GetValueOrDefault(CurrentSortField, true);
+            var dir = descending ? ListSortDirection.Descending : ListSortDirection.Ascending;
+
+            string prop = CurrentSortField switch
+            {
+                StatusSortField.LastUsed => nameof(StatusItem.LastUsed),
+                StatusSortField.MyCycles => nameof(StatusItem.UseInCycle),
+                StatusSortField.CreationDate => nameof(StatusItem.CreationDate),
+                StatusSortField.LastEdited => nameof(StatusItem.LastEdited),
+                _ => nameof(StatusItem.CreationDate)
+            };
+            view.SortDescriptions.Add(new SortDescription(prop, dir));
+        }
+
+        // ── sort ──────────────────────────────────────────────────────────────
+
+        [RelayCommand]
+        private void SortByField(StatusSortField field)
+        {
+            CurrentSortField = field;
+            if (_filteredView != null) ApplySortDescriptions(_filteredView);
+            OnPropertyChanged(nameof(SortDirectionSymbol));
+        }
+
+        [RelayCommand]
+        private void ToggleSortDirection()
+        {
+            bool current = _sortDirections.GetValueOrDefault(CurrentSortField, true);
+            _sortDirections[CurrentSortField] = !current;
+            if (_filteredView != null) ApplySortDescriptions(_filteredView);
+            OnPropertyChanged(nameof(SortDirectionSymbol));
+        }
+
+        partial void OnCurrentSortFieldChanged(StatusSortField value)
+            => OnPropertyChanged(nameof(SortDirectionSymbol));
+
+        // ── group commands ────────────────────────────────────────────────────
+
+        [RelayCommand]
+        private void SelectGroup(StatusGroup? group)
+        {
+            SelectedGroup = group;
+            IsGroupDropdownOpen = false;
+        }
+
+        partial void OnSelectedGroupChanged(StatusGroup? value)
+        {
+            _filteredView?.Refresh();
+            OnPropertyChanged(nameof(SelectedGroupDisplayName));
+        }
+
+        [RelayCommand]
+        private void ConfirmAddGroup()
+        {
+            if (string.IsNullOrWhiteSpace(NewGroupName)) return;
+            _statusListService.AddGroup(NewGroupName.Trim());
+            NewGroupName = string.Empty;
+        }
+
+        [RelayCommand]
+        private void BeginRenameGroup(StatusGroup? group)
+        {
+            if (group == null || group.Name == "Default") return;
+            group.RenameBuffer = group.Name;
+            group.IsRenaming = true;
+        }
+
+        [RelayCommand]
+        private void ConfirmRenameGroup(StatusGroup? group)
+        {
+            if (group == null || string.IsNullOrWhiteSpace(group.RenameBuffer)) return;
+            _statusListService.RenameGroup(group.GroupId, group.RenameBuffer);
+            group.IsRenaming = false;
+            OnPropertyChanged(nameof(SelectedGroupDisplayName));
+        }
+
+        [RelayCommand]
+        private void CancelRenameGroup(StatusGroup? group)
+        {
+            if (group == null) return;
+            group.IsRenaming = false;
+            group.RenameBuffer = string.Empty;
+        }
+
+        [RelayCommand]
+        private void DeleteGroup(StatusGroup? group)
+        {
+            if (group == null || group.Name == "Default") return;
+            if (SelectedGroup?.GroupId == group.GroupId)
+                SelectedGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default");
+            _statusListService.DeleteGroup(group.GroupId);
+            IsGroupDropdownOpen = false;
+        }
+
+        [RelayCommand]
+        private void ToggleGroupCycleActive(StatusGroup? group)
+        {
+            if (group == null) return;
+            group.IsActiveForCycle = !group.IsActiveForCycle;
+            _statusListService.SaveStatusList();
+        }
+
+        // ── selection mode ────────────────────────────────────────────────────
+
+        [RelayCommand]
+        private void EnterSelectionMode()
+        {
+            SelectedItems.Clear();
+            foreach (var item in _chatStatus.StatusList) item.IsSelected = false;
+            IsSelectionMode = true;
+        }
+
+        [RelayCommand]
+        private void ExitSelectionMode()
+        {
+            IsSelectionMode = false;
+            SelectedItems.Clear();
+            foreach (var item in _chatStatus.StatusList) item.IsSelected = false;
+        }
+
+        [RelayCommand]
+        private void ToggleItemSelected(StatusItem? item)
+        {
+            if (item == null) return;
+            item.IsSelected = !item.IsSelected;
+            if (item.IsSelected) SelectedItems.Add(item);
+            else SelectedItems.Remove(item);
+        }
+
+        [RelayCommand]
+        private void DeleteSelected()
+        {
+            foreach (var item in SelectedItems.ToList())
+            {
+                HandleEggDelete(item);
+                _chatStatus.StatusList.Remove(item);
+            }
+            SelectedItems.Clear();
+            IsSelectionMode = false;
+            _statusListService.SaveStatusList();
+        }
+
+        [RelayCommand]
+        private void CloneSelected()
+        {
+            var rand = new Random();
+            string? defaultGroupId = _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default")?.GroupId;
+            foreach (var item in SelectedItems.ToList())
+            {
+                _chatStatus.StatusList.Add(new StatusItem
+                {
+                    CreationDate = DateTime.Now,
+                    IsActive = false,
+                    IsFavorite = item.IsFavorite,
+                    UseInCycle = item.UseInCycle,
+                    msg = item.msg,
+                    MSGID = rand.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax),
+                    GroupId = item.GroupId ?? defaultGroupId
+                });
+            }
+            ExitSelectionMode();
+            _statusListService.SaveStatusList();
+        }
+
+        [RelayCommand]
+        private void MoveSelectedToGroup(StatusGroup? group)
+        {
+            if (group == null) return;
+            foreach (var item in SelectedItems)
+                item.GroupId = group.GroupId;
+            ExitSelectionMode();
+            _statusListService.SaveStatusList();
+        }
+
+        // ── navigation ────────────────────────────────────────────────────────
 
         [RelayCommand]
         private void ActivateSetting(string settingName)
@@ -56,26 +318,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private void ClearStatusInput()
             => _chatStatus.NewStatusItemTxt = string.Empty;
 
-        [RelayCommand]
-        private void SortStatusByDate()
-            => _chatStatus.StatusList = new ObservableCollection<StatusItem>(
-                _chatStatus.StatusList.OrderByDescending(x => x.CreationDate));
-
-        [RelayCommand]
-        private void SortStatusByEdited()
-            => _chatStatus.StatusList = new ObservableCollection<StatusItem>(
-                _chatStatus.StatusList.OrderByDescending(x => x.LastEdited));
-
-        [RelayCommand]
-        private void SortStatusByFav()
-            => _chatStatus.StatusList = new ObservableCollection<StatusItem>(
-                _chatStatus.StatusList.OrderByDescending(x => x.UseInCycle)
-                    .ThenByDescending(x => x.LastUsed));
-
-        [RelayCommand]
-        private void SortStatusByUsed()
-            => _chatStatus.StatusList = new ObservableCollection<StatusItem>(
-                _chatStatus.StatusList.OrderByDescending(x => x.LastUsed));
+        // ── CRUD ──────────────────────────────────────────────────────────────
 
         public void SaveStatusList() => _statusListService.SaveStatusList();
 
@@ -85,8 +328,10 @@ namespace vrcosc_magicchatbox.ViewModels
             string text = _chatStatus.NewStatusItemTxt;
             if (text.Length <= 0 || text.Length >= Core.Constants.MaxChatMessageLength) return;
 
-            Random random = new Random();
+            var rand = new Random();
             bool isActive = _chatStatus.StatusList.Count == 0;
+            string? groupId = SelectedGroup?.GroupId
+                              ?? _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default")?.GroupId;
 
             _chatStatus.StatusList.Add(new StatusItem
             {
@@ -94,13 +339,10 @@ namespace vrcosc_magicchatbox.ViewModels
                 IsActive = isActive,
                 IsFavorite = false,
                 msg = text,
-                MSGID = random.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax)
+                MSGID = rand.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax),
+                GroupId = groupId
             });
 
-            _chatStatus.StatusList = new ObservableCollection<StatusItem>(
-                _chatStatus.StatusList.OrderByDescending(x => x.CreationDate));
-
-            // Easter eggs
             string lower = text.ToLower();
             if (lower == "sr4 series" || lower == "boihanny")
             {
@@ -125,19 +367,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (item == null) return;
             try
             {
-                string lower = item.msg.ToLower();
-                if (lower == "sr4 series" || lower == "boihanny")
-                {
-                    _appState.Egg_Dev = false;
-                    MessageBox.Show("damn u left the dev egggmoooodeee", "Egg",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                if (lower == "bussyboys")
-                {
-                    _appState.BussyBoysMode = false;
-                    MessageBox.Show("damn u left the bussyboys mode", "Egg",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+                HandleEggDelete(item);
                 _chatStatus.StatusList.Remove(item);
                 SaveStatusList();
             }
@@ -163,10 +393,6 @@ namespace vrcosc_magicchatbox.ViewModels
             SaveStatusList();
         }
 
-        /// <summary>
-        /// Updates the status box character count and color state.
-        /// Called from code-behind TextChanged handler.
-        /// </summary>
         public void UpdateStatusBoxCount(int count)
         {
             _chatStatus.StatusBoxCount = $"{count}/140";
@@ -197,15 +423,8 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 foreach (var i in _chatStatus.StatusList)
                 {
-                    if (i == item)
-                    {
-                        i.IsActive = true;
-                        i.LastUsed = DateTime.Now;
-                    }
-                    else
-                    {
-                        i.IsActive = false;
-                    }
+                    i.IsActive = i == item;
+                    if (i == item) i.LastUsed = DateTime.Now;
                 }
                 _statusListService.SaveStatusList();
             }
@@ -215,18 +434,8 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>
-        /// Prepares a status item for editing (copies msg to editMsg).
-        /// Code-behind handles the focus/caret UI concern.
-        /// </summary>
-        public void BeginEdit(StatusItem item)
-        {
-            item.editMsg = item.msg;
-        }
+        public void BeginEdit(StatusItem item) => item.editMsg = item.msg;
 
-        /// <summary>
-        /// Confirms the edit, validates, and saves.
-        /// </summary>
         public void ConfirmEdit(StatusItem item)
         {
             if (item.editMsg.Length < 145 && !string.IsNullOrEmpty(item.editMsg))
@@ -236,6 +445,23 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.editMsg = string.Empty;
                 item.LastEdited = DateTime.Now;
                 SaveStatusList();
+            }
+        }
+
+        private void HandleEggDelete(StatusItem item)
+        {
+            string lower = item.msg.ToLower();
+            if (lower == "sr4 series" || lower == "boihanny")
+            {
+                _appState.Egg_Dev = false;
+                MessageBox.Show("damn u left the dev egggmoooodeee", "Egg",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            if (lower == "bussyboys")
+            {
+                _appState.BussyBoysMode = false;
+                MessageBox.Show("damn u left the bussyboys mode", "Egg",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }

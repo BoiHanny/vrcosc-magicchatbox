@@ -6,10 +6,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.UI.Pages
 {
-    /// <summary>Code-behind for the status page, handling inline editing and favorite toggling for status items.</summary>
+    /// <summary>Code-behind for the status page, handling inline editing, favorite toggling, groups, sorting, and selection mode.</summary>
     public partial class StatusPage : UserControl
     {
         private StatusPageViewModel VM => (StatusPageViewModel)DataContext;
@@ -44,7 +45,6 @@ namespace vrcosc_magicchatbox.UI.Pages
 
                 if ((bool)button.IsChecked)
                 {
-                    // Begin edit — business logic in VM, then focus the textbox
                     VM.BeginEdit(item);
 
                     var parent = VisualTreeHelper.GetParent(button);
@@ -84,6 +84,52 @@ namespace vrcosc_magicchatbox.UI.Pages
         {
             var textBox = sender as TextBox;
             VM.UpdateStatusBoxCount(textBox?.Text.Length ?? 0);
+        }
+
+        // ── Sort ──────────────────────────────────────────────────────────────
+
+        private void SortCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is not StatusPageViewModel vm) return;
+            if (sender is ComboBox combo && combo.SelectedIndex >= 0)
+                vm.SortByFieldCommand.Execute((StatusSortField)combo.SelectedIndex);
+        }
+
+        // ── Group rename ──────────────────────────────────────────────────────
+
+        private void BeginRenameGroup_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is StatusGroup group)
+                VM.BeginRenameGroupCommand.Execute(group);
+        }
+
+        private void RenameGroupTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is TextBox tb && tb.Tag is StatusGroup group)
+            {
+                if (e.Key == Key.Enter)
+                    VM.ConfirmRenameGroupCommand.Execute(group);
+                else if (e.Key == Key.Escape)
+                    VM.CancelRenameGroupCommand.Execute(group);
+            }
+        }
+
+        // ── New group text box ────────────────────────────────────────────────
+
+        private void NewGroupTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                VM.ConfirmAddGroupCommand.Execute(null);
+            else if (e.Key == Key.Escape)
+                VM.NewGroupName = string.Empty;
+        }
+
+        // ── Selection mode checkboxes ─────────────────────────────────────────
+
+        private void StatusItemCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox cb && cb.Tag is StatusItem item)
+                VM.ToggleItemSelectedCommand.Execute(item);
         }
     }
 }

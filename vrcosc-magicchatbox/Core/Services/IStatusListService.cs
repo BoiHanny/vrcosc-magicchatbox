@@ -1,12 +1,21 @@
 namespace vrcosc_magicchatbox.Core.Services;
 
 /// <summary>
-/// Manages status list persistence and CRUD (StatusList.json).
-/// Load populates ChatStatusDisplayState.StatusList.
+/// Manages status list and group persistence and CRUD (StatusList.json).
+/// Load populates ChatStatusDisplayState.StatusList and GroupList.
 /// Save serializes the current shared state.
 /// </summary>
 public interface IStatusListService
 {
     void LoadStatusList();
     void SaveStatusList();
+
+    /// <summary>Add a new group with the given name. Saves immediately.</summary>
+    void AddGroup(string name);
+
+    /// <summary>Rename the group with the given ID. Saves immediately.</summary>
+    void RenameGroup(string groupId, string newName);
+
+    /// <summary>Delete a group. Items in the group are moved to the Default group. Saves immediately.</summary>
+    void DeleteGroup(string groupId);
 }

@@ -346,7 +346,8 @@ namespace vrcosc_magicchatbox
                 Services.GetRequiredService<MediaLinkDisplayState>(),
                 Services.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
                 Services.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
-                Services.GetRequiredService<IUiDispatcher>());
+                Services.GetRequiredService<IUiDispatcher>(),
+                Services.GetRequiredService<IToastService>());
 
             loadingWindow.UpdateProgress("Starting the modules... Ready, set, go!", 96);
             await Task.Run(() => bootMods.CreateRuntimeModules());

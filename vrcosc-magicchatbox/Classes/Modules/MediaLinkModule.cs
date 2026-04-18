@@ -10,6 +10,7 @@ using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 using Windows.Media.Control;
@@ -30,6 +31,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     private readonly MediaLinkSettings _mediaLinkSettings;
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
 
     private MediaSession? currentSession = null;
     private TimeSpan GracePeriod => TimeSpan.FromSeconds(_mediaLinkSettings.SessionTimeout);
@@ -53,7 +55,8 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         MediaLinkDisplayState mediaLink,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        IToastService? toast = null)
     {
         _appState = appState;
         _mediaLink = mediaLink;
@@ -61,6 +64,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         _mediaLinkSettings = mediaLinkSettingsProvider.Value;
         _dispatcher = dispatcher;
         _consentService = consentService;
+        _toast = toast;
         _appState.PropertyChanged += ViewModel_PropertyChanged;
         _integrationSettings.PropertyChanged += ViewModel_PropertyChanged;
 
@@ -76,6 +80,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 else if (e.NewState == ConsentState.Denied)
                 {
                     Dispose();
+                    _toast?.Show("🔒 Media Session", "Media session access paused — privacy consent revoked.", ToastType.Privacy, key: "medialink-privacy-denied");
                 }
             }
         };

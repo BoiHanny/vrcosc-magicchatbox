@@ -324,7 +324,8 @@ public static class ServiceRegistration
         services.AddSingleton<Classes.Modules.OpenAIModule>(sp => new Classes.Modules.OpenAIModule(
             sp.GetRequiredService<ISettingsProvider<OpenAISettings>>(),
             sp.GetRequiredService<OpenAIDisplayState>(),
-            sp.GetRequiredService<IPrivacyConsentService>()));
+            sp.GetRequiredService<IPrivacyConsentService>(),
+            sp.GetRequiredService<IToastService>()));
         services.AddSingleton<ITranscriptionService>(sp => sp.GetRequiredService<Classes.Modules.OpenAIModule>());
 
         // Pulsoid OAuth handler — DI singleton (replaces PulsoidOAuthHandler.Instance)
@@ -441,7 +442,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IUiDispatcher>(),
             new Lazy<IStatePersistenceCoordinator>(() => sp.GetRequiredService<IStatePersistenceCoordinator>()),
             sp.GetRequiredService<IHardwareMonitorService>(),
-            sp.GetRequiredService<IPrivacyConsentService>()));
+            sp.GetRequiredService<IPrivacyConsentService>(),
+            sp.GetRequiredService<IToastService>()));
         services.AddSingleton<ComponentStatsViewModel>(sp =>
         {
             var statsModule = sp.GetRequiredService<ComponentStatsModule>();
@@ -456,14 +458,16 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<NetworkStatsSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<IUiDispatcher>(),
-            1000));
+            1000,
+            sp.GetRequiredService<IToastService>()));
 
         // TTSModule — text-to-speech using TikTok API
         services.AddSingleton<TTSModule>(sp => new TTSModule(
             sp.GetRequiredService<ISettingsProvider<TtsSettings>>().Value,
             sp.GetRequiredService<TtsAudioDisplayState>(),
             sp.GetRequiredService<IHttpClientFactory>(),
-            sp.GetRequiredService<IOscSender>()));
+            sp.GetRequiredService<IOscSender>(),
+            sp.GetRequiredService<IToastService>()));
 
         // ChatStateManager — chat creation and history management
         services.AddSingleton<Classes.DataAndSecurity.ChatStateManager>(sp =>

@@ -44,6 +44,13 @@ public partial class ChatStatusDisplayState : ObservableObject
         set { _statusList = value; OnPropertyChanged(); }
     }
 
+    private ObservableCollection<StatusGroup> _groupList = new();
+    public ObservableCollection<StatusGroup> GroupList
+    {
+        get => _groupList;
+        set { _groupList = value; OnPropertyChanged(); }
+    }
+
     private ObservableCollection<ChatItem> _lastMessages = new();
     public ObservableCollection<ChatItem> LastMessages
     {
@@ -65,3 +72,4 @@ public partial class ChatStatusDisplayState : ObservableObject
         }
     }
 }
+

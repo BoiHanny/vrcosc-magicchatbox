@@ -10,6 +10,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
@@ -53,19 +54,23 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
     public Task StopAsync(CancellationToken ct = default) { StopModule(); return Task.CompletedTask; }
 
     private readonly IntegrationSettings _integrationSettings;
+    private readonly IToastService? _toast;
+    private bool _networkErrorShown;
 
     public NetworkStatisticsModule(
         IAppState appState,
         ISettingsProvider<NetworkStatsSettings> settingsProvider,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         IUiDispatcher dispatcher,
-        double interval = 1000)
+        double interval = 1000,
+        IToastService? toast = null)
     {
         _appState = appState;
         _settingsProvider = settingsProvider;
         _integrationSettings = integrationSettingsProvider.Value;
         Interval = interval;
         _dispatcher = dispatcher;
+        _toast = toast;
         _appState.PropertyChanged += PropertyChangedHandler;
         _integrationSettings.PropertyChanged += PropertyChangedHandler;
 
@@ -208,6 +213,11 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             {
                 Logging.WriteException(new Exception("No active network interface found"), MSGBox: false);
                 IsInitialized = false;
+                if (!_networkErrorShown)
+                {
+                    _networkErrorShown = true;
+                    _toast?.Show("🌐 Network Stats", "No active network interface found. Network monitoring unavailable.", ToastType.Warning, key: "network-no-interface");
+                }
             }
         }
         catch (OperationCanceledException)
@@ -217,6 +227,11 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         {
             Logging.WriteException(ex, MSGBox: false);
             IsInitialized = false;
+            if (!_networkErrorShown)
+            {
+                _networkErrorShown = true;
+                _toast?.Show("🌐 Network Stats", "Network monitoring failed to initialize.", ToastType.Warning, key: "network-init-error");
+            }
         }
         finally
         {

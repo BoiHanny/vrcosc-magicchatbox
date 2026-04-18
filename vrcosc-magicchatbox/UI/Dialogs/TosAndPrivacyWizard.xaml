@@ -5,10 +5,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Data Access &amp; Permissions"
-    MinWidth="620"
-    MinHeight="500"
     Width="760"
     Height="680"
+    MinWidth="620"
+    MinHeight="500"
     Background="#41375B"
     ResizeMode="CanResizeWithGrip"
     mc:Ignorable="d">
@@ -26,10 +26,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="64" />
+            <RowDefinition Height="80" />
         </Grid.RowDefinitions>
 
-        <!-- Header bar -->
+        <!--  Header bar  -->
         <Border Grid.Row="0">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
@@ -52,26 +52,31 @@
             <StackPanel Orientation="Horizontal">
                 <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
                 <TextBlock
+                    x:Name="HeaderTextBlock"
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     FontFamily="Albert Sans Thin"
                     FontSize="14"
                     Foreground="White"
-                    x:Name="HeaderTextBlock"
                     Text="Data Access &amp; Permissions">
                     <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="15" Direction="315" Opacity="1" ShadowDepth="0" Color="Black" />
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="Black" />
                     </TextBlock.Effect>
                 </TextBlock>
             </StackPanel>
         </Grid>
 
-        <!-- Permissions content -->
+        <!--  Permissions content  -->
         <ScrollViewer
             Grid.Row="1"
-            VerticalScrollBarVisibility="Auto"
-            Margin="0">
+            Margin="0"
+            VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,16,24,8">
 
                 <TextBlock
@@ -81,13 +86,23 @@
                     Foreground="LightYellow"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
-                    <Run FontSize="20" FontWeight="DemiBold" Text="Welcome to MagicChatbox 🎉" />
+                    <Run
+                        FontSize="20"
+                        FontWeight="DemiBold"
+                        Text="Welcome to MagicChatbox 🎉" />
                     <LineBreak /><LineBreak />
                     <Run Foreground="#CCCCCC" Text="Choose which features may access your system or the internet." />
                     <LineBreak />
-                    <Run Foreground="#AAAAAA" FontSize="13" Text="You can change these at any time in Settings → Privacy &amp; Permissions." />
+                    <Run
+                        FontSize="13"
+                        Foreground="#AAAAAA"
+                        Text="You can change these at any time in Settings → Privacy &amp; Permissions." />
                     <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="10" Opacity="1" ShadowDepth="0" Color="#251153" />
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
                     </TextBlock.Effect>
                 </TextBlock>
 
@@ -120,7 +135,8 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock
-                                        Grid.Row="0" Grid.Column="0"
+                                        Grid.Row="0"
+                                        Grid.Column="0"
                                         FontFamily="Comfortaa Light"
                                         FontSize="15"
                                         FontWeight="DemiBold"
@@ -128,27 +144,32 @@
                                         Text="{Binding Title}" />
 
                                     <TextBlock
-                                        Grid.Row="1" Grid.Column="0"
+                                        Grid.Row="1"
+                                        Grid.Column="0"
                                         Margin="0,4,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="12"
                                         Foreground="#BBBBBB"
-                                        TextWrapping="Wrap"
-                                        Text="{Binding Description}" />
+                                        Text="{Binding Description}"
+                                        TextWrapping="Wrap" />
 
                                     <TextBlock
-                                        Grid.Row="2" Grid.Column="0"
+                                        Grid.Row="2"
+                                        Grid.Column="0"
                                         Margin="0,6,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="11"
                                         Foreground="#FF8C8C"
+                                        Text="{Binding Warning}"
                                         TextWrapping="Wrap"
-                                        Visibility="{Binding WarningVisibility}"
-                                        Text="{Binding Warning}" />
+                                        Visibility="{Binding WarningVisibility}" />
 
                                     <CheckBox
-                                        Grid.Row="0" Grid.Column="1" Grid.RowSpan="3"
-                                        Width="24" Height="24"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="3"
+                                        Grid.Column="1"
+                                        Width="24"
+                                        Height="24"
                                         VerticalAlignment="Center"
                                         IsChecked="{Binding IsApproved, Mode=OneWay}"
                                         IsHitTestVisible="False"
@@ -163,14 +184,14 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Footer: two centred rows — links on top, button below -->
+        <!--  Footer: two centred rows — links on top, button below  -->
         <Grid Grid.Row="2" Background="#2A1F42">
             <StackPanel
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Orientation="Vertical">
 
-                <!-- Row 1: TOS & SLA hyperlinks -->
+                <!--  Row 1: TOS & SLA hyperlinks  -->
                 <StackPanel
                     Margin="0,0,0,10"
                     HorizontalAlignment="Center"
@@ -182,8 +203,14 @@
                         Foreground="#666666"
                         Text="By continuing you agree to our  " />
                     <TextBlock VerticalAlignment="Center">
-                        <Hyperlink x:Name="TosLink" Click="TosLink_Click" Foreground="#7B5EA7">
-                            <Run FontFamily="Albert Sans Thin" FontSize="11" Text="Terms of Service" />
+                        <Hyperlink
+                            x:Name="TosLink"
+                            Click="TosLink_Click"
+                            Foreground="#7B5EA7">
+                            <Run
+                                FontFamily="Albert Sans Thin"
+                                FontSize="11"
+                                Text="Terms of Service" />
                         </Hyperlink>
                     </TextBlock>
                     <TextBlock
@@ -194,17 +221,24 @@
                         Foreground="#666666"
                         Text="&amp;" />
                     <TextBlock VerticalAlignment="Center">
-                        <Hyperlink x:Name="SlaLink" Click="SlaLink_Click" Foreground="#7B5EA7">
-                            <Run FontFamily="Albert Sans Thin" FontSize="11" Text="Software License" />
+                        <Hyperlink
+                            x:Name="SlaLink"
+                            Click="SlaLink_Click"
+                            Foreground="#7B5EA7">
+                            <Run
+                                FontFamily="Albert Sans Thin"
+                                FontSize="11"
+                                Text="Software License" />
                         </Hyperlink>
                     </TextBlock>
                 </StackPanel>
 
-                <!-- Row 2: Accept button -->
+                <!--  Row 2: Accept button  -->
                 <Button
                     x:Name="AcceptButton"
                     Width="200"
                     Height="38"
+               
                     HorizontalAlignment="Center"
                     Click="Accept_Click"
                     Content="Accept &amp; Continue"

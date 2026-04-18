@@ -103,7 +103,17 @@ public sealed class StatusOscProvider : IOscProvider
         if (_chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
             return;
 
-        var cycleItems = _chatStatus.StatusList.Where(item => item.UseInCycle).ToList();
+        // Build candidate list: UseInCycle AND group must be active for cycling
+        var activeGroupIds = _chatStatus.GroupList
+            .Where(g => g.IsActiveForCycle)
+            .Select(g => g.GroupId)
+            .ToHashSet();
+
+        var cycleItems = _chatStatus.StatusList
+            .Where(item => item.UseInCycle
+                           && (item.GroupId == null || activeGroupIds.Contains(item.GroupId)))
+            .ToList();
+
         if (cycleItems.Count == 0) return;
 
         if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
@@ -141,6 +151,13 @@ public sealed class StatusOscProvider : IOscProvider
                 int next = (idx + 1) % cycleItems.Count;
                 activeItem.IsActive = false;
                 cycleItems[next].IsActive = true;
+                _oscDisplay.LastSwitchCycle = DateTime.Now;
+            }
+            else
+            {
+                // Active item is outside cycle candidates — advance to first eligible
+                foreach (var item in _chatStatus.StatusList) item.IsActive = false;
+                cycleItems[0].IsActive = true;
                 _oscDisplay.LastSwitchCycle = DateTime.Now;
             }
         }

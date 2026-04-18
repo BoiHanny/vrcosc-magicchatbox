@@ -113,6 +113,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 _vrSystem = null;
                 Logging.WriteException(ex, MSGBox: false);
+                _toast?.Show("📍 VR Tracker", $"OpenVR initialization error: {ex.Message}", ToastType.Warning, key: "tracker-error");
             }
         }
 

@@ -296,10 +296,12 @@ public sealed partial class TwitchModule : ObservableObject, IModule
                 cachedBroadcasterId = string.Empty;
                 lastValidatedAccessToken = string.Empty;
                 UpdateConnectionState(false, "Token invalid");
+                _toast?.Show("🎮 Twitch", "Access token expired — please re-authenticate in settings.", ToastType.Error, key: "twitch-token-invalid");
             }
             else
             {
                 UpdateConnectionState(false, "Refresh failed");
+                _toast?.Show("🎮 Twitch", "Failed to refresh stream data.", ToastType.Warning, key: "twitch-refresh-failed");
             }
         }
         finally
@@ -345,6 +347,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         {
             UpdateSnapshot(false, 0, string.Empty, string.Empty);
             UpdateConnectionState(false, "Channel not found");
+            _toast?.Show("🎮 Twitch", "Channel not found — check your channel name in settings.", ToastType.Warning, key: "twitch-channel-notfound");
             return false;
         }
 

@@ -26,6 +26,34 @@ namespace vrcosc_magicchatbox.ViewModels
 
 
         private bool _UseInCycle = false;
+        private string? _groupId;
+        private bool _isSelected;
+
+        public string? GroupId
+        {
+            get { return _groupId; }
+            set
+            {
+                if (_groupId != value)
+                {
+                    _groupId = value;
+                    NotifyPropertyChanged(nameof(GroupId));
+                }
+            }
+        }
+
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    NotifyPropertyChanged(nameof(IsSelected));
+                }
+            }
+        }
 
         public bool UseInCycle
         {
