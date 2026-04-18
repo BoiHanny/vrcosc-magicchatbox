@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '10.0.x'
 
     # Step 1: Extract version from the csproj
     - name: Extract Version from csproj
@@ -77,17 +77,36 @@ jobs:
       if: steps.check_release.outputs.release_exists == 'false'
       run: dotnet restore ${{ env.Solution_Name }}
 
-    # Step 5: Build Solution (only if release doesn't exist)
-    - name: Build Solution
+    # Step 5: Publish application to a stable output folder (only if release doesn't exist)
+    - name: Publish Application
       if: steps.check_release.outputs.release_exists == 'false'
-      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
+      shell: pwsh
+      run: |
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        if (Test-Path -LiteralPath $publishDir) {
+          Remove-Item -LiteralPath $publishDir -Recurse -Force
+        }
+
+        dotnet publish "${{ env.Project_Path }}" `
+          --configuration Release `
+          --no-restore `
+          -p:Platform="Any CPU" `
+          --output $publishDir
 
     # Step 6: Create ZIP of artifacts
     - name: Create Zip File
       if: steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net9.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        $archiveSource = Join-Path $publishDir '*'
+
+        if (-not (Test-Path -LiteralPath $publishDir)) {
+          Write-Error "Publish output directory not found: $publishDir"
+          exit 1
+        }
+
+        Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
     # Step 7: [Optional] Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
@@ -177,7 +196,7 @@ jobs:
           </div>
 
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 9**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-9.0.4-windows-x64-installer) installed on your system.
+          2. Make sure you have the [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.
