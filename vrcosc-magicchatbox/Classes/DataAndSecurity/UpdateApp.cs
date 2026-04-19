@@ -24,9 +24,11 @@ public class UpdateApp
 {
     private static readonly SemaphoreSlim PrepareUpdateGate = new(1, 1);
     private const string ExecutableName = "MagicChatbox.exe";
+    private const int UpdateLocationMetadataVersion = 2;
     private string backupPath;
     private string currentAppPath;
     private readonly string dataPath;
+    private string maintenanceRunnerPath;
     private string magicChatboxExePath;
     private string tempPath;
     private string unzipPath;
@@ -48,6 +50,12 @@ public class UpdateApp
         string sourceRoot = ResolveApplicationDirectory(unzipPath);
         CopyDirectoryContents(new DirectoryInfo(sourceRoot), currentAppDirectory);
     }
+
+    private static bool PathsEqual(string left, string right) =>
+        string.Equals(
+            Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            StringComparison.OrdinalIgnoreCase);
 
     private void CopyDirectory(DirectoryInfo source, DirectoryInfo target)
     {
@@ -171,6 +179,32 @@ public class UpdateApp
         {
             return fallbackPath;
         }
+    }
+
+    private static void ClearAndRecreateDirectory(string path, string operationName)
+    {
+        ExecuteWithRetry(() =>
+        {
+            if (Directory.Exists(path))
+            {
+                DirectoryInfo directory = new(path);
+                NormalizeAttributes(directory);
+
+                foreach (FileInfo file in directory.GetFiles("*", System.IO.SearchOption.AllDirectories))
+                {
+                    file.Attributes = FileAttributes.Normal;
+                }
+
+                foreach (DirectoryInfo subDirectory in directory.GetDirectories("*", System.IO.SearchOption.AllDirectories))
+                {
+                    subDirectory.Attributes = FileAttributes.Normal;
+                }
+
+                directory.Delete(true);
+            }
+
+            Directory.CreateDirectory(path);
+        }, operationName);
     }
 
     private string ResolveApplicationDirectory(string extractedRoot)
@@ -323,12 +357,25 @@ public class UpdateApp
         Logging.WriteException(new Exception("Access denied while applying files. Try running MagicChatbox as administrator."), MSGBox: true, autoclose: true);
     }
 
+    private void PrepareMaintenanceRunner()
+    {
+        string sourceDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        if (PathsEqual(sourceDirectory, maintenanceRunnerPath))
+        {
+            return;
+        }
+
+        ClearAndRecreateDirectory(maintenanceRunnerPath, "Prepare maintenance runner");
+        CopyDirectoryContents(new DirectoryInfo(sourceDirectory), new DirectoryInfo(maintenanceRunnerPath));
+    }
+
     private void InitializePaths(bool createNewAppLocation)
     {
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
         string actualCurrentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         string defaultTempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
         string defaultUnzipPath = Path.Combine(defaultTempPath, "update_unzip");
+        string defaultMaintenanceRunnerPath = Path.Combine(defaultTempPath, "maintenance_runner");
         string defaultExePath = Path.Combine(defaultUnzipPath, ExecutableName);
         string defaultBackupPath = Path.Combine(dataPath, "backup");
 
@@ -368,6 +415,7 @@ public class UpdateApp
                     currentAppPath = NormalizePathOrFallback(appLocation["currentAppPath"]?.ToString(), actualCurrentAppPath, requireExistingDirectory: true);
                     tempPath = NormalizePathOrFallback(appLocation["tempPath"]?.ToString(), defaultTempPath);
                     unzipPath = NormalizePathOrFallback(appLocation["unzipPath"]?.ToString(), defaultUnzipPath);
+                    maintenanceRunnerPath = NormalizePathOrFallback(appLocation["maintenanceRunnerPath"]?.ToString(), defaultMaintenanceRunnerPath);
                     magicChatboxExePath = NormalizeFilePathOrFallback(appLocation["magicChatboxExePath"]?.ToString(), defaultExePath);
                     backupPath = NormalizePathOrFallback(appLocation["backupPath"]?.ToString(), defaultBackupPath);
                 }
@@ -390,6 +438,12 @@ public class UpdateApp
         {
             Directory.CreateDirectory(unzipPath);
             Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
+        }
+
+        if (!Directory.Exists(maintenanceRunnerPath))
+        {
+            Directory.CreateDirectory(maintenanceRunnerPath);
+            Logging.WriteInfo($"Created maintenance runner directory at: {maintenanceRunnerPath}");
         }
 
         if (!Directory.Exists(backupPath))
@@ -429,16 +483,14 @@ public class UpdateApp
     private void SaveUpdateLocation(string backupPath = null)
     {
         JObject appLocation = new JObject(
+            new JProperty("metadataVersion", UpdateLocationMetadataVersion),
             new JProperty("currentAppPath", currentAppPath),
             new JProperty("tempPath", tempPath),
             new JProperty("unzipPath", unzipPath),
+            new JProperty("maintenanceRunnerPath", maintenanceRunnerPath),
+            new JProperty("backupPath", backupPath ?? this.backupPath),
             new JProperty("magicChatboxExePath", magicChatboxExePath)
         );
-
-        if (backupPath != null)
-        {
-            appLocation.Add(new JProperty("backupPath", backupPath));
-        }
 
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
         File.WriteAllText(jsonFilePath, appLocation.ToString());
@@ -449,6 +501,7 @@ public class UpdateApp
         currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
         unzipPath = Path.Combine(tempPath, "update_unzip");
+        maintenanceRunnerPath = Path.Combine(tempPath, "maintenance_runner");
         magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
         backupPath = Path.Combine(dataPath, "backup");
 
@@ -462,6 +515,12 @@ public class UpdateApp
         {
             Directory.CreateDirectory(unzipPath);
             Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
+        }
+
+        if (!Directory.Exists(maintenanceRunnerPath))
+        {
+            Directory.CreateDirectory(maintenanceRunnerPath);
+            Logging.WriteInfo($"Created maintenance runner directory at: {maintenanceRunnerPath}");
         }
 
         if (!Directory.Exists(backupPath))
@@ -485,6 +544,13 @@ public class UpdateApp
 
             Directory.CreateDirectory(unzipPath);
         }, "Prepare update workspace");
+    }
+
+    private void StartMaintenanceRunner(string argument)
+    {
+        PrepareMaintenanceRunner();
+        SaveUpdateLocation();
+        StartNewApplication(argument, maintenanceRunnerPath);
     }
 
     private void StartNewApplication()
@@ -622,7 +688,7 @@ public class UpdateApp
             string launchDirectory = ResolveApplicationDirectory(unzipPath);
             magicChatboxExePath = Path.Combine(launchDirectory, ExecutableName);
             SaveUpdateLocation(backupPath);
-            StartNewApplication("-update", launchDirectory);
+            StartMaintenanceRunner("-update");
         }
         catch (Exception ex)
         {
@@ -660,6 +726,19 @@ public class UpdateApp
                 return;
             }
 
+            string rollbackRecoveryPath = Path.Combine(dataPath, "rollback_recovery");
+            UpdateStatus("Backing up current version", startUp, 60);
+            try
+            {
+                ClearAndRecreateDirectory(rollbackRecoveryPath, "Prepare rollback recovery backup");
+                CopyDirectory(new DirectoryInfo(currentAppPath), new DirectoryInfo(rollbackRecoveryPath));
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+            {
+                HandleAccessIssues(admin, "-rollbackadmin");
+                return;
+            }
+
             UpdateStatus("Clearing current app path", startUp, 75);
             try
             {
@@ -668,17 +747,36 @@ public class UpdateApp
                 UpdateStatus("Restoring from backup", startUp, 90);
                 CopyDirectory(new DirectoryInfo(rollbackSourcePath), new DirectoryInfo(currentAppPath));
                 magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
-                SaveUpdateLocation();
+
+                UpdateStatus("Preserving rollback path", startUp, 95);
+                ClearAndRecreateDirectory(backupPath, "Refresh backup directory after rollback");
+                CopyDirectory(new DirectoryInfo(rollbackRecoveryPath), new DirectoryInfo(backupPath));
+                SaveUpdateLocation(backupPath);
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
                 HandleAccessIssues(admin, "-rollbackadmin");
                 return;
             }
+            finally
+            {
+                try
+                {
+                    if (Directory.Exists(rollbackRecoveryPath))
+                    {
+                        ClearDirectoryContents(rollbackRecoveryPath);
+                        Directory.Delete(rollbackRecoveryPath, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteInfo($"Rollback recovery cleanup skipped: {ex.Message}");
+                }
+            }
 
             UpdateStatus("Starting application", startUp, 100);
             Thread.Sleep(500);
-            StartNewApplication("-clearbackup", currentAppPath);
+            StartNewApplication();
         }
         else
         {
@@ -712,7 +810,7 @@ public class UpdateApp
     {
         if (CheckIfBackupExists())
         {
-            StartNewApplication("-rollback", backupPath);
+            StartMaintenanceRunner("-rollback");
             return;
         }
 

@@ -1447,12 +1447,14 @@
             <SolidColorBrush x:Key="OptionMark.Disabled.Glyph1" Color="#FF707070" />
 
             <Style x:Key="SettingsCheckbox" TargetType="{x:Type CheckBox}">
-                <Setter Property="SnapsToDevicePixels" Value="False" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="UseLayoutRounding" Value="True" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="Height" Value="21" />
+                <Setter Property="MinHeight" Value="26" />
+                <Setter Property="Padding" Value="0,2,0,2" />
                 <Setter Property="Margin" Value="0,0,0,15" />
                 <Setter Property="BorderBrush" Value="#FF2D1265" />
                 <Setter Property="FontFamily" Value="Comfortaa Light" />

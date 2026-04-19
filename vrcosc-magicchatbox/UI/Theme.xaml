@@ -1,72 +1,71 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- 
-    Semantic Theme Brushes for MagicChatbox
-    Usage: Replace inline hex colors with these brush keys.
-    Example: Foreground="#FF9983AD" → Foreground="{StaticResource TextLabelBrush}"
+    <!--
+        Semantic Theme Brushes for MagicChatbox
+        Usage: Replace inline hex colors with these brush keys.
+        Example: Foreground="#FF9983AD" → Foreground="{StaticResource TextLabelBrush}"
     -->
 
-    <!-- ═══ Text Brushes ═══ -->
-    <!-- Section/setting labels, descriptions (most used: 202 occurrences) -->
+    <!--  ═══ Text Brushes ═══  -->
+    <!--  Section/setting labels, descriptions (most used: 202 occurrences)  -->
     <SolidColorBrush x:Key="TextLabelBrush" Color="#FF9983AD" />
-    <!-- Primary text on settings, list items (175 occurrences) -->
+    <!--  Primary text on settings, list items (175 occurrences)  -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFB9B5C1" />
-    <!-- Muted/secondary text, disabled labels (87 occurrences) -->
+    <!--  Muted/secondary text, disabled labels (87 occurrences)  -->
     <SolidColorBrush x:Key="TextMutedBrush" Color="#FF7B7195" />
-    <!-- Accent text, active highlights -->
+    <!--  Accent text, active highlights  -->
     <SolidColorBrush x:Key="TextAccentBrush" Color="#BDAEE2" />
-    <!-- Dark text on light backgrounds -->
+    <!--  Dark text on light backgrounds  -->
     <SolidColorBrush x:Key="TextDarkBrush" Color="#FF240E54" />
 
-    <!-- ═══ Surface / Background Brushes ═══ -->
-    <!-- Primary dark background (157 occurrences) -->
+    <!--  ═══ Surface / Background Brushes ═══  -->
+    <!--  Primary dark background (157 occurrences)  -->
     <SolidColorBrush x:Key="SurfacePrimaryBrush" Color="#FF2D1265" />
-    <!-- Darker surface variant (98 occurrences) -->
+    <!--  Darker surface variant (98 occurrences)  -->
     <SolidColorBrush x:Key="SurfaceDarkBrush" Color="#FF240E54" />
-    <!-- Card/panel background (58 occurrences) -->
+    <!--  Card/panel background (58 occurrences)  -->
     <SolidColorBrush x:Key="SurfaceCardBrush" Color="#FF3B3054" />
-    <!-- Section header gradient start -->
+    <!--  Section header gradient start  -->
     <SolidColorBrush x:Key="SurfaceGradientStartBrush" Color="#FF3A3053" />
     <Color x:Key="SurfaceGradientStartColor">#FF3A3053</Color>
-    <!-- Section header gradient end -->
+    <!--  Section header gradient end  -->
     <SolidColorBrush x:Key="SurfaceGradientEndBrush" Color="#FF40365B" />
     <Color x:Key="SurfaceGradientEndColor">#FF40365B</Color>
 
-    <!-- ═══ Interactive / Control Brushes ═══ -->
-    <!-- Input background (TextBox, ComboBox) -->
+    <!--  ═══ Interactive / Control Brushes ═══  -->
+    <!--  Input background (TextBox, ComboBox)  -->
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF7B7195" />
-    <!-- Checkbox/toggle border -->
+    <!--  Checkbox/toggle border  -->
     <SolidColorBrush x:Key="ControlBorderBrush" Color="#FF2D1265" />
-    <!-- Button accent text -->
+    <!--  Button accent text  -->
     <SolidColorBrush x:Key="ButtonTextBrush" Color="#9B90D1" />
-    <!-- Muted border/separator (ComboBox, dividers) -->
+    <!--  Muted border/separator (ComboBox, dividers)  -->
     <SolidColorBrush x:Key="BorderMutedBrush" Color="#FF7D7397" />
-    <!-- Teal accent for active toggles, checkmarks -->
+    <!--  Teal accent for active toggles, checkmarks  -->
     <SolidColorBrush x:Key="AccentTealBrush" Color="#FF31B7B4" />
-    <!-- Deep purple used on integration badges/headers -->
+    <!--  Deep purple used on integration badges/headers  -->
     <SolidColorBrush x:Key="AccentDeepPurpleBrush" Color="#FF302573" />
-    <!-- Light purple accent for integration highlights -->
+    <!--  Light purple accent for integration highlights  -->
     <SolidColorBrush x:Key="AccentLightPurpleBrush" Color="#FFC3A9FF" />
-    <!-- Secondary text (lighter purple, nav items) -->
+    <!--  Secondary text (lighter purple, nav items)  -->
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF8D7DB9" />
-    <!-- Lighter nav/subtitle text -->
+    <!--  Lighter nav/subtitle text  -->
     <SolidColorBrush x:Key="TextSubtleBrush" Color="#FF7F759A" />
-    <!-- Dark surface variant (section backgrounds, panels) -->
+    <!--  Dark surface variant (section backgrounds, panels)  -->
     <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FF493F65" />
 
-    <!-- ═══ Status Brushes ═══ -->
+    <!--  ═══ Status Brushes ═══  -->
     <SolidColorBrush x:Key="StatusSuccessBrush" Color="#FF4CAF50" />
     <SolidColorBrush x:Key="StatusWarningBrush" Color="#FFFFC107" />
     <SolidColorBrush x:Key="StatusErrorBrush" Color="#FFE53935" />
     <SolidColorBrush x:Key="StatusErrorDarkBrush" Color="#FF6B0000" />
 
-    <!-- ═══ Gradient Colors (for GradientStop usage) ═══ -->
+    <!--  ═══ Gradient Colors (for GradientStop usage) ═══  -->
     <Color x:Key="GradientDeepPurpleColor">#FF251153</Color>
     <Color x:Key="GradientNavyBlueColor">#FF10178C</Color>
     <Color x:Key="GradientTransparentDarkColor">#00240E54</Color>
 
-    <!-- ═══ Color companions for Brush resources (required by DropShadowEffect.Color / GradientStop.Color) ═══ -->
+    <!--  ═══ Color companions for Brush resources (required by DropShadowEffect.Color / GradientStop.Color) ═══  -->
     <Color x:Key="TextSubtleColor">#FF7F759A</Color>
     <Color x:Key="SurfaceDarkColor">#FF240E54</Color>
     <Color x:Key="AccentDeepPurpleColor">#FF302573</Color>
@@ -74,58 +73,58 @@
     <Color x:Key="SurfaceCardColor">#FF3B3054</Color>
     <Color x:Key="SurfacePrimaryColor">#FF2D1265</Color>
 
-    <!-- ═══ Additional UI Brushes ═══ -->
-    <!-- Chat interface accent text (ChattingPage) -->
+    <!--  ═══ Additional UI Brushes ═══  -->
+    <!--  Chat interface accent text (ChattingPage)  -->
     <SolidColorBrush x:Key="TextChatAccentBrush" Color="#FF94CCBF" />
-    <!-- Button/highlight background (MainWindow nav) -->
+    <!--  Button/highlight background (MainWindow nav)  -->
     <SolidColorBrush x:Key="ButtonHighlightBrush" Color="#FFAEA7ED" />
-    <!-- Dark purple button/panel surface -->
+    <!--  Dark purple button/panel surface  -->
     <SolidColorBrush x:Key="SurfaceButtonDarkBrush" Color="#FF3A1F73" />
-    <!-- Blue-purple accent text (startup, links) -->
+    <!--  Blue-purple accent text (startup, links)  -->
     <SolidColorBrush x:Key="TextAccentBlueBrush" Color="#FF9AA1FF" />
-    <!-- Light purple label text -->
+    <!--  Light purple label text  -->
     <SolidColorBrush x:Key="TextLabelLightBrush" Color="#FF9D91D2" />
-    <!-- Green active/connected text -->
+    <!--  Green active/connected text  -->
     <SolidColorBrush x:Key="TextSuccessLightBrush" Color="#FF9DDAA8" />
-    <!-- Dark muted foreground text -->
+    <!--  Dark muted foreground text  -->
     <SolidColorBrush x:Key="TextDarkMutedBrush" Color="#FF3D2F5F" />
-    <!-- Mid-purple surface (panel headers, borders) -->
+    <!--  Mid-purple surface (panel headers, borders)  -->
     <SolidColorBrush x:Key="SurfaceMidPurpleBrush" Color="#FF41375C" />
-    <!-- Dark purple background variant -->
+    <!--  Dark purple background variant  -->
     <SolidColorBrush x:Key="SurfaceDarkPurpleBrush" Color="#FF3B2075" />
-    <!-- Mid-purple gradient surface -->
+    <!--  Mid-purple gradient surface  -->
     <SolidColorBrush x:Key="SurfaceMidGradientBrush" Color="#FF403670" />
     <Color x:Key="SurfaceMidGradientColor">#FF403670</Color>
-    <!-- Light blue accent for status/info -->
+    <!--  Light blue accent for status/info  -->
     <SolidColorBrush x:Key="AccentLightBlueBrush" Color="#FFB0E6FC" />
     <Color x:Key="AccentLightBlueColor">#FFB0E6FC</Color>
-    <!-- Button panel background -->
+    <!--  Button panel background  -->
     <SolidColorBrush x:Key="SurfaceButtonPanelBrush" Color="#FF483472" />
 
-    <!-- Section header text (light lavender) -->
+    <!--  Section header text (light lavender)  -->
     <SolidColorBrush x:Key="TextSectionHeaderBrush" Color="#FFBDAEE2" />
-    <!-- Muted grey text -->
+    <!--  Muted grey text  -->
     <SolidColorBrush x:Key="TextMutedGrayBrush" Color="#FF9AA3B5" />
-    <!-- Soft purple text -->
+    <!--  Soft purple text  -->
     <SolidColorBrush x:Key="TextSoftPurpleBrush" Color="#FFB5ABC9" />
-    <!-- Light purple text -->
+    <!--  Light purple text  -->
     <SolidColorBrush x:Key="TextLightPurpleBrush" Color="#FFD4CEE2" />
-    <!-- Blue gradient accent for progress bars -->
+    <!--  Blue gradient accent for progress bars  -->
     <Color x:Key="AccentBlueGradientColor">#FF63A8F9</Color>
-    <!-- Dim label text -->
+    <!--  Dim label text  -->
     <SolidColorBrush x:Key="TextDimLabelBrush" Color="#FF8F86A9" />
-    <!-- Tracker highlight colors -->
+    <!--  Tracker highlight colors  -->
     <SolidColorBrush x:Key="TextHighlightCyanBrush" Color="#FF7ED6FF" />
     <SolidColorBrush x:Key="TextDangerRedBrush" Color="#FFFF6B6B" />
-    <!-- Dark tracker card surface -->
+    <!--  Dark tracker card surface  -->
     <SolidColorBrush x:Key="SurfaceCardDarkBrush" Color="#FF3A2F54" />
-    <!-- Accent purple border -->
+    <!--  Accent purple border  -->
     <SolidColorBrush x:Key="BorderAccentPurpleBrush" Color="#FF7169B7" />
-    <!-- Subtle purple text -->
+    <!--  Subtle purple text  -->
     <SolidColorBrush x:Key="TextSubtlePurpleBrush" Color="#FF9B90D1" />
-    <!-- Darker error surface -->
+    <!--  Darker error surface  -->
     <SolidColorBrush x:Key="StatusErrorDarkerBrush" Color="#FF8A0000" />
-    <!-- Pulsoid brand accent -->
+    <!--  Pulsoid brand accent  -->
     <Color x:Key="AccentPulsoidColor">#FF05B4A8</Color>
 
 </ResourceDictionary>

@@ -238,6 +238,31 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
             loadingWindow.Close();
 
+            if (vm.AppSettingsInstance.CheckUpdateOnStartup)
+            {
+                _ = RunDeferredStartupUpdateCheckAsync();
+            }
+
+        }
+
+        private async Task RunDeferredStartupUpdateCheckAsync()
+        {
+            try
+            {
+                if (Dispatcher.HasShutdownStarted)
+                    return;
+
+                await Task.Delay(1200);
+
+                if (Dispatcher.HasShutdownStarted)
+                    return;
+
+                await Services.GetRequiredService<IVersionService>().CheckForUpdateAndWait();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
         }
 
 
