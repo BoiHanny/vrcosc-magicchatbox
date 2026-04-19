@@ -1,7 +1,9 @@
 using MagicChatboxAPI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
+using NLog.Common;
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -158,11 +160,8 @@ namespace vrcosc_magicchatbox
                 var consentService = Services.GetRequiredService<IPrivacyConsentService>();
                 if (appSettingsProvider.Value.AcceptedTosVersion != Core.Constants.TosVersion)
                 {
-                    var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider)
-                    {
-                        Owner = loadingWindow,
-                        WindowStartupLocation = WindowStartupLocation.CenterOwner
-                    };
+                    var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider);
+                    DialogWindowHelper.PrepareModal(wizard, loadingWindow);
                     tosJustAccepted = wizard.ShowDialog() == true;
                     // If wizard was dismissed, fall through to per-hook consent dialog below
                 }
@@ -175,11 +174,8 @@ namespace vrcosc_magicchatbox
                 var pendingHooks = consentService.GetHooksRequiringConsent(allHooks);
                 if (pendingHooks.Count > 0)
                 {
-                    var dialog = new PrivacyConsentDialog(consentService, pendingHooks)
-                    {
-                        Owner = loadingWindow,
-                        WindowStartupLocation = WindowStartupLocation.CenterOwner
-                    };
+                    var dialog = new PrivacyConsentDialog(consentService, pendingHooks);
+                    DialogWindowHelper.PrepareModal(dialog, loadingWindow);
                     dialog.ShowDialog();
                 }
             }
@@ -277,14 +273,20 @@ namespace vrcosc_magicchatbox
         private async Task InitializeComponentsWithProgress(StartUp loadingWindow)
         {
             var vm = Services.GetRequiredService<ViewModel>();
+            var env = Services.GetRequiredService<IEnvironmentService>();
 
             loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 7);
-            await Task.Run(() => LogManager.LoadConfiguration("NLog.config"));
+            await Task.Run(() =>
+            {
+                Directory.CreateDirectory(env.LogPath);
+                InternalLogger.LogLevel = LogLevel.Warn;
+                InternalLogger.LogFile = Path.Combine(env.LogPath, "internal-nlog.txt");
+                LogManager.LoadConfiguration("NLog.config");
+            });
 
             loadingWindow.UpdateProgress("Migrating settings to the new world order...", 15);
             await Task.Run(() =>
             {
-                var env = Services.GetRequiredService<IEnvironmentService>();
                 SettingsMigrationService.RunAll(env.DataPath);
             });
 

@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Windows;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.UI.Dialogs;
 
@@ -48,7 +47,7 @@ public partial class PrivacySectionViewModel : ObservableObject
     private void ManageHook(PrivacyHook hook)
     {
         var dialog = new PrivacyConsentDialog(_consentService, new[] { hook });
-        dialog.Owner = Application.Current.MainWindow;
+        DialogWindowHelper.PrepareModal(dialog);
         dialog.ShowDialog();
     }
 

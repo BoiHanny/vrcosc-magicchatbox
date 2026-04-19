@@ -22,8 +22,7 @@ public partial class PulsoidSection : UserControl
                 auth => vm.PulsoidAuthConnected = auth,
                 vm.PulsoidOAuth,
                 vm.Navigation);
-            dialog.Owner = Window.GetWindow(this);
-            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            DialogWindowHelper.PrepareModal(dialog, Window.GetWindow(this));
             dialog.ShowDialog();
         }
     }

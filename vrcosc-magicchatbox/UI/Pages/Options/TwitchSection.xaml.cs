@@ -18,8 +18,7 @@ public partial class TwitchSection : UserControl
         if (DataContext is TwitchSectionViewModel vm)
         {
             var dialog = new TwitchAuth(vm.TwitchSettingsProvider, vm.Navigation);
-            dialog.Owner = Window.GetWindow(this);
-            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            DialogWindowHelper.PrepareModal(dialog, Window.GetWindow(this));
             dialog.ShowDialog();
         }
     }

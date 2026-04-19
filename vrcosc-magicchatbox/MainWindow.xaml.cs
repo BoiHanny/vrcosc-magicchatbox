@@ -7,6 +7,7 @@ using System.Windows.Shell;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 
@@ -125,10 +126,8 @@ namespace vrcosc_magicchatbox
 
         private void ReorderIntegrations_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new UI.Dialogs.ReorderIntegrations(VM.Integrations.IntegrationDisplay, VM.Integrations.IntegrationSettingsProvider)
-            {
-                Owner = this
-            };
+            var dialog = new UI.Dialogs.ReorderIntegrations(VM.Integrations.IntegrationDisplay, VM.Integrations.IntegrationSettingsProvider);
+            DialogWindowHelper.PrepareModal(dialog, this);
             dialog.ShowDialog();
         }
 

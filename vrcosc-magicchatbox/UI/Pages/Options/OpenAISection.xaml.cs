@@ -18,8 +18,7 @@ public partial class OpenAISection : UserControl
         if (DataContext is OpenAISectionViewModel vm)
         {
             var dialog = new OpenAIAuth(vm.OpenAI, vm.OpenAISettingsProvider, vm.OpenAIModuleInstance, vm.Navigation);
-            dialog.Owner = Window.GetWindow(this);
-            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            DialogWindowHelper.PrepareModal(dialog, Window.GetWindow(this));
             dialog.ShowDialog();
         }
     }
