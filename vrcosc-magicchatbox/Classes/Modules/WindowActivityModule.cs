@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -235,9 +236,15 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     {
         if (string.IsNullOrEmpty(processName) || processName == "Unknown")
         {
+            string? processPath = TryGetProcessPath(process);
+            if (string.IsNullOrEmpty(processPath))
+            {
+                return processName;
+            }
+
             SHFILEINFO shinfo = new SHFILEINFO();
             IntPtr result = SHGetFileInfo(
-                process.MainModule.FileName,
+                processPath,
                 FILE_ATTRIBUTE_NORMAL,
                 ref shinfo,
                 (uint)System.Runtime.InteropServices.Marshal.SizeOf(shinfo),
@@ -326,6 +333,26 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             : processName;
     }
 
+    private static string? TryGetProcessPath(Process process)
+    {
+        try
+        {
+            return process.MainModule?.FileName;
+        }
+        catch (Win32Exception)
+        {
+            return null;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+        catch (NotSupportedException)
+        {
+            return null;
+        }
+    }
+
     [System.Runtime.InteropServices.DllImport("shell32.dll")]
     private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
 
@@ -333,19 +360,36 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     {
         if (Settings.ApplicationHookV2)
         {
-            try
+            string? processPath = TryGetProcessPath(process);
+            if (!string.IsNullOrEmpty(processPath))
             {
                 _usedNewMethod = true;
-                return GetFileDescription(process.MainModule.FileName);
-            }
-            catch (System.ComponentModel.Win32Exception ex)
-            {
-                _usedNewMethod = false;
-                return process.ProcessName;
+                return GetFileDescription(processPath);
             }
         }
         _usedNewMethod = false;
         return process.ProcessName;
+    }
+
+    private Process? TryFindOscServerProcess(out string? processPath)
+    {
+        foreach (var process in Process.GetProcessesByName("install"))
+        {
+            string? candidatePath = TryGetProcessPath(process);
+            if (string.IsNullOrEmpty(candidatePath))
+            {
+                continue;
+            }
+
+            if (candidatePath.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                processPath = candidatePath;
+                return process;
+            }
+        }
+
+        processPath = null;
+        return null;
     }
 
     public int CleanAndKeepAppsWithSettings()
@@ -467,12 +511,9 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     public bool IsOSCServerSuspended()
     {
-        var process = Process.GetProcessesByName("install")
-                             .FirstOrDefault(p => p.MainModule.FileName.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase));
-
+        var process = TryFindOscServerProcess(out string? processPath);
         if (process != null)
         {
-            var processPath = process.MainModule?.FileName;
             if (!string.IsNullOrEmpty(processPath) && Path.GetDirectoryName(processPath) == _vrChatDirectory)
             {
                 if (File.Exists(Path.Combine(_vrChatDirectory, _vrChatExecutable)))
@@ -487,12 +528,9 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     public void KillOSCServer()
     {
-        var process = Process.GetProcessesByName("install")
-                             .FirstOrDefault(p => p.MainModule.FileName.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase));
-
+        var process = TryFindOscServerProcess(out string? processPath);
         if (process != null)
         {
-            var processPath = process.MainModule?.FileName;
             if (!string.IsNullOrEmpty(processPath) && Path.GetDirectoryName(processPath) == _vrChatDirectory)
             {
                 if (File.Exists(Path.Combine(_vrChatDirectory, _vrChatExecutable)))

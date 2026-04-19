@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Common;
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.ExceptionServices;
@@ -93,7 +95,9 @@ namespace vrcosc_magicchatbox
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
+#if DEBUG
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+#endif
 
             UpdateApp updater = new UpdateApp(
                 Services.GetRequiredService<AppUpdateState>(),
@@ -138,6 +142,11 @@ namespace vrcosc_magicchatbox
                             case "-rollback":
                                 loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
                                 await Task.Run(() => updater.RollbackApplication(loadingWindow));
+                                Shutdown();
+                                return;
+                            case "-rollbackadmin":
+                                loadingWindow.UpdateProgress("Rollback with admin powers engaged.", 55);
+                                await Task.Run(() => updater.RollbackApplication(loadingWindow, true));
                                 Shutdown();
                                 return;
                             case "-clearbackup":
@@ -235,12 +244,45 @@ namespace vrcosc_magicchatbox
 
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
-
-            if (e.Exception.Message.Contains("The process cannot access the file"))
+            if (!ShouldLogFirstChanceException(e.Exception))
             {
                 return;
             }
+
             Logging.WriteInfo(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+        }
+
+        private static bool ShouldLogFirstChanceException(Exception ex)
+        {
+            if (ex is OperationCanceledException)
+                return false;
+
+            if (ex is Win32Exception win32Ex &&
+                win32Ex.Message.Contains("Access is denied", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (ex is IOException ioEx &&
+                ioEx.Message.Contains("The process cannot access the file", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (ex is HttpRequestException httpEx &&
+                httpEx.Message.Contains("Unable to read data from the transport connection", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (ex is InvalidCastException castEx &&
+                castEx.Message.Contains("ComboBoxAutomationPeer", StringComparison.OrdinalIgnoreCase) &&
+                castEx.Message.Contains("IScrollProvider", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return Debugger.IsAttached;
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
