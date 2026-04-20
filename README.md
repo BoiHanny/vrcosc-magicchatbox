@@ -37,7 +37,8 @@ If you need any further help `setting up` the program, join our `Discord Server`
 > - 🎛️ Component Stats
 > - 🔋 VR Gear Battery
 > - 🧑‍🧒‍🧒 Twitch Integration 
-> - 🧠 Chatting Module  
+> - 🧠 Chatting Module
+> - 📶 VRChat Radar
 > - ⚗️ OpenAI Module  
 > - ⛓️‍💥 Network Stats  
 > - 📆 Time Status
