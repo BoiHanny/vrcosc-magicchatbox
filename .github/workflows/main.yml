@@ -108,38 +108,86 @@ jobs:
 
         Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
-    # Step 7: [Optional] Upload & Scan with VirusTotal
+    # Step 7: Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
       id: virustotal_scan
       shell: pwsh
       run: |
-        $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
-        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $filePath = Join-Path $env:GITHUB_WORKSPACE "MagicChatbox-${{ env.VERSION }}.zip"
+        $apiKey = "${{ secrets.VIRUSTOTAL_API_KEY }}"
 
-        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{
-          "x-apikey" = $api_key
-        } -Form @{
-          "file" = Get-Item $file_path
+        if (-not (Test-Path -LiteralPath $filePath)) {
+          Write-Error "File not found: $filePath"
+          exit 1
         }
 
-        $scan_id = $response.data.id
-        echo "::set-output name=SCAN_ID::$scan_id"
+        $fileInfo = Get-Item $filePath
 
-    - name: Get VirusTotal Scan Report
-      if: steps.check_release.outputs.release_exists == 'false'
+        if ($fileInfo.Length -gt 32MB) {
+          Write-Error "VirusTotal standard upload only supports files up to 32 MB. Use /files/upload_url for larger files."
+          exit 1
+        }
+
+        $response = Invoke-RestMethod `
+          -Uri "https://www.virustotal.com/api/v3/files" `
+          -Method Post `
+          -Headers @{
+            "x-apikey" = $apiKey
+          } `
+          -Form @{
+            "file" = $fileInfo
+          }
+
+        $analysisId = $response.data.id
+        "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Wait for VirusTotal Scan Report
+      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
       id: virustotal_report
       shell: pwsh
       run: |
-        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
-        $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
+        $apiKey = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $analysisId = "${{ steps.virustotal_scan.outputs.scan_id }}"
 
-        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/analyses/$scan_id" -Headers @{
-          "x-apikey" = $api_key
+        if ([string]::IsNullOrWhiteSpace($analysisId)) {
+          Write-Error "No VirusTotal analysis ID was returned."
+          exit 1
         }
 
-        $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
-        echo "::set-output name=REPORT_URL::$report_url"
+        $maxAttempts = 20
+        $delaySeconds = 15
+        $sha256 = $null
+
+        for ($i = 1; $i -le $maxAttempts; $i++) {
+          Write-Host "Checking VirusTotal analysis status (attempt $i/$maxAttempts)..."
+
+          $response = Invoke-RestMethod `
+            -Uri "https://www.virustotal.com/api/v3/analyses/$analysisId" `
+            -Method Get `
+            -Headers @{
+              "x-apikey" = $apiKey
+            }
+
+          $status = $response.data.attributes.status
+          $sha256 = $response.meta.file_info.sha256
+
+          if ($status -eq "completed" -and -not [string]::IsNullOrWhiteSpace($sha256)) {
+            Write-Host "VirusTotal analysis completed. SHA256: $sha256"
+            break
+          }
+
+          Write-Host "Status: $status — waiting ${delaySeconds}s..."
+          Start-Sleep -Seconds $delaySeconds
+        }
+
+        if ([string]::IsNullOrWhiteSpace($sha256)) {
+          Write-Error "VirusTotal report was not ready after $maxAttempts attempts."
+          exit 1
+        }
+
+        $reportUrl = "https://www.virustotal.com/gui/file/$sha256/detection"
+        "report_url=$reportUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     # Step 8: Determine if this is a pre-release or final release
     - name: Determine Release Type
@@ -182,7 +230,7 @@ jobs:
               <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
               </a>
-              <a href="${{ steps.virustotal_report.outputs.REPORT_URL }}">
+              <a href="${{ steps.virustotal_report.outputs.report_url }}">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Virus%20Scan%20Result-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
               </a>
             </p>
