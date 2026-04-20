@@ -110,12 +110,14 @@ jobs:
 
     # Step 7: Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
-      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
+      if: steps.check_release.outputs.release_exists == 'false' && env.VIRUSTOTAL_API_KEY != ''
       id: virustotal_scan
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       shell: pwsh
       run: |
         $filePath = Join-Path $env:GITHUB_WORKSPACE "MagicChatbox-${{ env.VERSION }}.zip"
-        $apiKey = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $apiKey = $env:VIRUSTOTAL_API_KEY
 
         if (-not (Test-Path -LiteralPath $filePath)) {
           Write-Error "File not found: $filePath"
@@ -143,11 +145,13 @@ jobs:
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Wait for VirusTotal Scan Report
-      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
+      if: steps.check_release.outputs.release_exists == 'false' && env.VIRUSTOTAL_API_KEY != ''
       id: virustotal_report
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       shell: pwsh
       run: |
-        $apiKey = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $apiKey = $env:VIRUSTOTAL_API_KEY
         $analysisId = "${{ steps.virustotal_scan.outputs.scan_id }}"
 
         if ([string]::IsNullOrWhiteSpace($analysisId)) {
