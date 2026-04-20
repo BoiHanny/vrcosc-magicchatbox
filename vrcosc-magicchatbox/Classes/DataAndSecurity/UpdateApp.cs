@@ -693,7 +693,7 @@ public class UpdateApp
         catch (Exception ex)
         {
             UpdateStatus("Update failed.");
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 _updateState.CanUpdate = true;
                 _updateState.CanUpdateLabel = true;
@@ -850,7 +850,7 @@ public class UpdateApp
 
     public void UpdateStatus(string message, StartUp startUp = null, double proc = 50)
     {
-        _dispatcher.Invoke(() =>
+        _dispatcher.BeginInvoke(() =>
         {
             if (startUp != null)
                 startUp.UpdateProgress(message, proc);

@@ -52,7 +52,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private bool sendAftersilence = true;
 
         [ObservableProperty]
-        private int selectedDeviceIndex;
+        private int selectedDeviceIndex = -1;
 
         [ObservableProperty]
         private SpeechToTextLanguage selectedSpeechToTextLanguage;
@@ -77,7 +77,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private WhisperModuleSettings()
         {
-            RefreshDevices();
+            availableDevices = new List<RecordingDeviceInfo>();
             RefreshSpeechToTextLanguages();
         }
 
@@ -190,7 +190,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     var settings = JsonConvert.DeserializeObject<WhisperModuleSettings>(settingsJson);
                     if (settings != null)
                     {
-                        settings.RefreshDevices();
                         settings.RefreshSpeechToTextLanguages();
                         return settings;
                     }
@@ -218,17 +217,46 @@ namespace vrcosc_magicchatbox.Classes.Modules
         /// </summary>
         public void RefreshDevices()
         {
-            availableDevices = new List<RecordingDeviceInfo>();
-            for (int n = 0; n < WaveIn.DeviceCount; n++)
+            AvailableDevices = GetAvailableDevicesSafe();
+            NormalizeSelectedDeviceIndex();
+        }
+
+        public static List<RecordingDeviceInfo> GetAvailableDevicesSafe()
+        {
+            var devices = new List<RecordingDeviceInfo>();
+
+            try
             {
-                var caps = WaveIn.GetCapabilities(n);
-                availableDevices.Add(new RecordingDeviceInfo(n, caps.ProductName));
+                for (int n = 0; n < WaveIn.DeviceCount; n++)
+                {
+                    var caps = WaveIn.GetCapabilities(n);
+                    devices.Add(new RecordingDeviceInfo(n, caps.ProductName));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Failed to enumerate whisper recording devices: {ex.Message}");
             }
 
-            if (selectedDeviceIndex >= availableDevices.Count)
+            return devices;
+        }
+
+        public void ApplyAvailableDevices(List<RecordingDeviceInfo> devices)
+        {
+            AvailableDevices = devices ?? new List<RecordingDeviceInfo>();
+            NormalizeSelectedDeviceIndex();
+        }
+
+        private void NormalizeSelectedDeviceIndex()
+        {
+            if (!availableDevices.Any())
             {
-                SelectedDeviceIndex = availableDevices.Any() ? 0 : -1;
+                SelectedDeviceIndex = -1;
+                return;
             }
+
+            if (selectedDeviceIndex < 0 || selectedDeviceIndex >= availableDevices.Count)
+                SelectedDeviceIndex = 0;
         }
 
         /// <summary>
@@ -320,6 +348,17 @@ namespace vrcosc_magicchatbox.Classes.Modules
             settings = WhisperModuleSettings.LoadSettings();
             settings.PropertyChanged += Settings_PropertyChanged;
             InitializeWaveIn();
+            _ = WarmUpRecordingDevicesAsync();
+        }
+
+        private async Task WarmUpRecordingDevicesAsync()
+        {
+            var devices = await Task.Run(WhisperModuleSettings.GetAvailableDevicesSafe);
+            await _dispatcher.InvokeAsync(() =>
+            {
+                settings.ApplyAvailableDevices(devices);
+                InitializeWaveIn();
+            });
         }
 
         /// <summary>
@@ -374,23 +413,31 @@ namespace vrcosc_magicchatbox.Classes.Modules
         /// </summary>
         private void InitializeWaveIn()
         {
-            waveIn?.Dispose();
-
-            if (settings.SelectedDeviceIndex == -1)
+            try
             {
-                _ = UpdateUI("No valid audio input device selected.", false);
-                return;
+                waveIn?.Dispose();
+
+                if (settings.SelectedDeviceIndex == -1)
+                {
+                    _ = UpdateUI("No valid audio input device selected.", false);
+                    return;
+                }
+
+                waveIn = new WaveInEvent
+                {
+                    DeviceNumber = settings.SelectedDeviceIndex,
+                    WaveFormat = new WaveFormat(16000, 16, 1), // best for speech
+                    BufferMilliseconds = 350  // shorter buffer => faster partial updates
+                };
+
+                waveIn.DataAvailable += OnDataAvailable;
+                waveIn.RecordingStopped += OnRecordingStopped;
             }
-
-            waveIn = new WaveInEvent
+            catch (Exception ex)
             {
-                DeviceNumber = settings.SelectedDeviceIndex,
-                WaveFormat = new WaveFormat(16000, 16, 1), // best for speech
-                BufferMilliseconds = 350  // shorter buffer => faster partial updates
-            };
-
-            waveIn.DataAvailable += OnDataAvailable;
-            waveIn.RecordingStopped += OnRecordingStopped;
+                Logging.WriteInfo($"Failed to initialize whisper recording device: {ex.Message}");
+                _ = UpdateUI("Audio input initialization failed.", false);
+            }
         }
 
         /// <summary>

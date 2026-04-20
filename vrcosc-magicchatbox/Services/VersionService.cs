@@ -101,7 +101,7 @@ public sealed class VersionService : IVersionService
                     client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Token {token}");
             }
 
-            var responseLatest = await client.GetAsync(urlLatest);
+            using var responseLatest = await client.GetAsync(urlLatest);
             var jsonLatest = await responseLatest.Content.ReadAsStringAsync();
             JObject releaseLatest = JObject.Parse(jsonLatest);
             string latestVersion = releaseLatest.Value<string>("tag_name");
@@ -115,7 +115,7 @@ public sealed class VersionService : IVersionService
                 _updateState.LatestReleaseURL = assetsLatest[0].Value<string>("browser_download_url");
             }
 
-            var responsePreRelease = await client.GetAsync(urlPreRelease);
+            using var responsePreRelease = await client.GetAsync(urlPreRelease);
             var jsonPreRelease = await responsePreRelease.Content.ReadAsStringAsync();
             JArray releases = JArray.Parse(jsonPreRelease);
 
@@ -162,7 +162,7 @@ public sealed class VersionService : IVersionService
         try
         {
             var client = _httpClientFactory.CreateClient("GitHub");
-            var response = await client.GetAsync(Core.Constants.GitHubRateLimitUrl);
+            using var response = await client.GetAsync(Core.Constants.GitHubRateLimitUrl);
             var data = JsonConvert.DeserializeObject<JObject>(await response.Content.ReadAsStringAsync());
 
             var remaining = (int)data["resources"]["core"]["remaining"];

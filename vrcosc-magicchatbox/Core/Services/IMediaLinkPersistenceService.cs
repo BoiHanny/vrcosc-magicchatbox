@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace vrcosc_magicchatbox.Core.Services;
 
 /// <summary>
@@ -6,9 +8,9 @@ namespace vrcosc_magicchatbox.Core.Services;
 /// </summary>
 public interface IMediaLinkPersistenceService
 {
-    void LoadMediaSessions();
+    Task LoadMediaSessionsAsync();
     void SaveMediaSessions();
-    void LoadSeekbarStyles();
+    Task LoadSeekbarStylesAsync();
     void SaveSeekbarStyles();
     void AddNewSeekbarStyle();
     void DeleteSelectedSeekbarStyleAndSelectDefault();

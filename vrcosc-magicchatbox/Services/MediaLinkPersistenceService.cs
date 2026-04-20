@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
@@ -21,6 +23,7 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
     private readonly MediaLinkDisplayState _mediaLink;
     private readonly WindowActivityDisplayState _windowActivity;
     private readonly IAppHistoryService _appHistory;
+    private readonly IUiDispatcher _dispatcher;
 
     private const string MediaLinkStylesFileName = "MediaLinkStyles.json";
 
@@ -28,18 +31,22 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         IEnvironmentService env,
         MediaLinkDisplayState mediaLink,
         WindowActivityDisplayState windowActivity,
-        IAppHistoryService appHistory)
+        IAppHistoryService appHistory,
+        IUiDispatcher dispatcher)
     {
         _env = env;
         _mediaLink = mediaLink;
         _windowActivity = windowActivity;
         _appHistory = appHistory;
+        _dispatcher = dispatcher;
     }
 
-    public void LoadMediaSessions()
+    public async Task LoadMediaSessionsAsync()
     {
         try
         {
+            List<MediaSessionSettings>? loadedSessions = null;
+
             if (File.Exists(Path.Combine(_env.DataPath, "LastMediaLinkSessions.json"))
                 || File.Exists(Path.Combine(_env.DataPath, "LastMediaLinkSessions.xml")))
             {
@@ -47,30 +54,33 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
                     .ReadAllText(File.Exists(Path.Combine(_env.DataPath, "LastMediaLinkSessions.json"))
                         ? Path.Combine(_env.DataPath, "LastMediaLinkSessions.json")
                         : Path.Combine(_env.DataPath, "LastMediaLinkSessions.xml"));
-                if (json.ToLower().Equals("null"))
+                if (json.Equals("null", StringComparison.OrdinalIgnoreCase))
                 {
                     Logging.WriteInfo("LastMediaLinkSessions history is null, not problem :P");
-                    _mediaLink.SavedSessionSettings = new List<MediaSessionSettings>();
-                    return;
+                    loadedSessions = new List<MediaSessionSettings>();
                 }
-                _mediaLink.SavedSessionSettings = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
+                else
+                {
+                    loadedSessions = JsonConvert.DeserializeObject<List<MediaSessionSettings>>(json);
+                }
             }
             else
             {
                 Logging.WriteInfo("LastMediaSessions history has never been created, not problem :P");
-                if (_mediaLink.SavedSessionSettings == null)
-                {
-                    _mediaLink.SavedSessionSettings = new List<MediaSessionSettings>();
-                }
+                loadedSessions = _mediaLink.SavedSessionSettings ?? new List<MediaSessionSettings>();
             }
+
+            loadedSessions ??= new List<MediaSessionSettings>();
+            await _dispatcher.InvokeAsync(() => _mediaLink.SavedSessionSettings = loadedSessions);
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            if (_windowActivity.ScannedApps == null)
+            await _dispatcher.InvokeAsync(() =>
             {
-                _windowActivity.ScannedApps = new ObservableCollection<ViewModels.ProcessInfo>();
-            }
+                if (_windowActivity.ScannedApps == null)
+                    _windowActivity.ScannedApps = new ObservableCollection<ViewModels.ProcessInfo>();
+            });
         }
     }
 
@@ -96,11 +106,12 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         }
     }
 
-    public void LoadSeekbarStyles()
+    public async Task LoadSeekbarStylesAsync()
     {
         try
         {
-            LoadMediaLinkStyles();
+            var snapshot = ReadMediaLinkStylesSnapshot();
+            await _dispatcher.InvokeAsync(() => ApplyMediaLinkStyles(snapshot));
         }
         catch (Exception ex)
         {
@@ -174,12 +185,13 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         return Path.Combine(_env.DataPath, MediaLinkStylesFileName);
     }
 
-    private void LoadMediaLinkStyles()
+    private MediaLinkStylesSnapshot ReadMediaLinkStylesSnapshot()
     {
-        _mediaLink.MediaLinkSeekbarStyles = DefaultMediaLinkStyles();
+        List<MediaLinkStyle> styles = DefaultMediaLinkStyles().ToList();
         Logging.WriteInfo("Default media link styles loaded.");
 
         string filePath = GetMediaLinkStylesFilePath();
+        int? selectedStyleId = null;
 
         if (File.Exists(filePath))
         {
@@ -192,40 +204,57 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
                 {
                     foreach (var style in data.CustomStyles)
                     {
-                        if (!_mediaLink.MediaLinkSeekbarStyles.Any(s => s.ID == style.ID))
+                        if (!styles.Any(s => s.ID == style.ID))
                         {
-                            _mediaLink.MediaLinkSeekbarStyles.Add(style);
+                            styles.Add(style);
                         }
                     }
                     Logging.WriteInfo("Custom media link styles loaded.");
                 }
 
-                if (data?.SelectedStyleId != null)
-                {
-                    var selectedStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.ID == data.SelectedStyleId);
-                    if (selectedStyle != null)
-                    {
-                        _mediaLink.SelectedMediaLinkSeekbarStyle = selectedStyle;
-                        Logging.WriteInfo("Selected media link style loaded.");
-                    }
-                    else
-                    {
-                        _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
-                        Logging.WriteInfo("Selected media link style not found in the loaded styles.");
-                    }
-                }
+                selectedStyleId = data?.SelectedStyleId;
             }
             catch (Exception ex)
             {
-                _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
                 Logging.WriteException(ex, MSGBox: false);
             }
         }
         else
         {
             Logging.WriteInfo($"Custom media link styles file '{filePath}' not found, no problem!");
-            _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
         }
+
+        return new MediaLinkStylesSnapshot
+        {
+            Styles = styles,
+            SelectedStyleId = selectedStyleId
+        };
+    }
+
+    private void ApplyMediaLinkStyles(MediaLinkStylesSnapshot snapshot)
+    {
+        _mediaLink.MediaLinkSeekbarStyles = new ObservableCollection<MediaLinkStyle>(snapshot.Styles);
+
+        if (snapshot.SelectedStyleId != null)
+        {
+            var selectedStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.ID == snapshot.SelectedStyleId);
+            if (selectedStyle != null)
+            {
+                _mediaLink.SelectedMediaLinkSeekbarStyle = selectedStyle;
+                Logging.WriteInfo("Selected media link style loaded.");
+                return;
+            }
+
+            Logging.WriteInfo("Selected media link style not found in the loaded styles.");
+        }
+
+        _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
+    }
+
+    private sealed class MediaLinkStylesSnapshot
+    {
+        public required List<MediaLinkStyle> Styles { get; init; }
+        public int? SelectedStyleId { get; init; }
     }
 
     private void SaveMediaLinkStyles()

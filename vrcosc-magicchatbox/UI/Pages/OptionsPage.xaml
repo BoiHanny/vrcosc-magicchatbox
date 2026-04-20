@@ -18,7 +18,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <ScrollViewer>
+    <ScrollViewer x:Name="OptionsScrollViewer">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -38,48 +38,55 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <options:StatusSection Grid.Row="0"
+                    <options:StatusSection x:Name="Section_Status" Grid.Row="0"
                                             DataContext="{Binding StatusSection}" />
-                    <options:PulsoidSection Grid.Row="1"
+                    <options:VrcRadarSection x:Name="Section_VrcRadar" Grid.Row="1"
+                                             DataContext="{Binding VrcRadarSection}" />
+                    <options:PulsoidSection x:Name="Section_HeartRate" Grid.Row="2"
                                             DataContext="{Binding PulsoidSection}" />
-                    <options:TimeOptionsSection Grid.Row="2"
+                    <options:TimeOptionsSection x:Name="Section_Time" Grid.Row="3"
                                                 DataContext="{Binding TimeOptionsSection}" />
-                    <options:WeatherSection Grid.Row="3"
+                    <options:WeatherSection x:Name="Section_Weather" Grid.Row="4"
                                             DataContext="{Binding WeatherSection}" />
 
-                    <options:TwitchSection Grid.Row="4"
+                    <options:TwitchSection x:Name="Section_Twitch" Grid.Row="5"
                                            DataContext="{Binding TwitchSection}" />
 
-                    <options:OpenAISection Grid.Row="5"
+                    <options:DiscordSection x:Name="Section_Discord" Grid.Row="6"
+                                            DataContext="{Binding DiscordSection}" />
+
+                    <options:OpenAISection x:Name="Section_OpenAI" Grid.Row="7"
                                            DataContext="{Binding OpenAISection}" />
-                    <options:ComponentStatsSection Grid.Row="6"
+                    <options:ComponentStatsSection x:Name="Section_ComponentStats" Grid.Row="8"
                                                   DataContext="{Binding ComponentStatsSection}" />
-                    <options:NetworkStatisticsSection Grid.Row="7"
+                    <options:NetworkStatisticsSection x:Name="Section_NetworkStatistics" Grid.Row="9"
                                                       DataContext="{Binding NetworkStatisticsSection}" />
-                    <options:ChattingOptionsSection Grid.Row="8"
+                    <options:ChattingOptionsSection x:Name="Section_Chatting" Grid.Row="10"
                                                     DataContext="{Binding ChattingOptionsSection}" />
-                    <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" Grid.Row="9"
+                    <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" Grid.Row="11"
                                                DataContext="{Binding TtsSection}" />
-                    <options:MediaLinkSection Grid.Row="10"
+                    <options:MediaLinkSection x:Name="Section_MediaLink" Grid.Row="12"
                                              DataContext="{Binding MediaLinkSection}" />
-                    <options:AppOptionsSection Grid.Row="11"
+                    <options:AppOptionsSection x:Name="Section_AppOptions" Grid.Row="13"
                                                DataContext="{Binding AppOptionsSection}" />
-                    <options:EggDevSection Grid.Row="12"
+                    <options:EggDevSection Grid.Row="14"
                                            DataContext="{Binding EggDevSection}" />
 
                     <!--  TRACKER BATTERY MANAGER SECTION  -->
-                    <options:TrackerBatterySection Grid.Row="13"
+                    <options:TrackerBatterySection x:Name="Section_TrackerBattery" Grid.Row="15"
                                                    DataContext="{Binding TrackerBatterySection}" />
 
-                    <options:PrivacySection Grid.Row="14"
+                    <options:PrivacySection Grid.Row="16"
                                             DataContext="{Binding PrivacySection}" />
 
-                    <options:WindowActivitySection Grid.Row="15"
+                    <options:WindowActivitySection x:Name="Section_WindowActivity" Grid.Row="17"
                                                     DataContext="{Binding WindowActivitySection}" />
 
-                    <Grid Grid.Row="16" Margin="0,5,0,10">
+                    <Grid Grid.Row="18" Margin="0,5,0,10">
                         <TextBlock
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"

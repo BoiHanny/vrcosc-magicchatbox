@@ -422,7 +422,7 @@ public class WeatherService : IWeatherService
             return;
         }
 
-        _dispatcher.Invoke(() => IntDisplay.WeatherLastSyncDisplay = display);
+        _dispatcher.BeginInvoke(() => IntDisplay.WeatherLastSyncDisplay = display);
     }
 
     private string NormalizeTemplate(string template)

@@ -15,8 +15,8 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-
-                    <Grid Margin="0,5,0,0">
+
+    <Grid Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -58,7 +58,6 @@
 
                                     <CheckBox
                                         x:Name="StatusIconPrefix_checkbox"
-                                        Height="20"
                                         Margin="5"
                                         IsChecked="{Binding AppSettings.PrefixIconStatus, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
@@ -73,7 +72,6 @@
                                     <StackPanel>
                                         <CheckBox
                                             x:Name="EnableEmojiShuffle_checkbox"
-                                            Height="20"
                                             Margin="5"
                                             IsChecked="{Binding AppSettings.EnableEmojiShuffle, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
@@ -89,17 +87,13 @@
                                                 Foreground="{StaticResource TextLabelBrush}"
                                                 Text="Make sure to add the emojis you want to cycle through in the text box below, separated by a space a comma." />
                                             <TextBox
-                                                Height="26"
                                                 MinWidth="50"
                                                 MaxWidth="630"
                                                 Margin="4,3,0,10"
                                                 Padding="5,0,5,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalContentAlignment="Center"
-                                                Background="{StaticResource InputBackgroundBrush}"
-                                                BorderThickness="0"
                                                 FontSize="15"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 Text="{Binding Emojis.EmojiListString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock
                                                 Width="auto"
@@ -120,10 +114,7 @@
                                                     Padding="5,0,5,0"
                                                     HorizontalAlignment="Left"
                                                     VerticalContentAlignment="Center"
-                                                    Background="{StaticResource InputBackgroundBrush}"
-                                                    BorderThickness="0"
                                                     FontSize="15"
-                                                    Foreground="{StaticResource TextDarkBrush}"
                                                     PreviewKeyUp="EmojiNew_PreviewKeyUp"
                                                     Text="" />
                                                 <Button
@@ -169,7 +160,6 @@
                                     CornerRadius="5,0,0,5">
                                     <CheckBox
                                         x:Name="CycleStatus_checkbox"
-                                        Height="20"
                                         Margin="5"
                                         IsChecked="{Binding AppSettings.CycleStatus, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
@@ -184,7 +174,6 @@
 
                                     <CheckBox
                                         x:Name="IsRandomCycling_checkbox"
-                                        Height="20"
                                         Margin="5"
                                         IsChecked="{Binding AppSettings.IsRandomCycling, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
@@ -215,10 +204,7 @@
                                             Padding="5,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding AppSettings.SwitchStatusInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             TextAlignment="Center" />
                                         <TextBlock
@@ -259,7 +245,6 @@
 
                                         <CheckBox
                                             x:Name="EnableAFKDetectCheck"
-                                            Height="20"
                                             Margin="4,5,4,4"
                                             IsChecked="{Binding Afk.Settings.EnableAfkDetection, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
@@ -267,7 +252,6 @@
                                         </CheckBox>
 
                                         <CheckBox
-                                            Height="20"
                                             Margin="4,5,4,4"
                                             IsChecked="{Binding Afk.Settings.ActivateInVR, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
@@ -291,10 +275,7 @@
                                                 Padding="5,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalContentAlignment="Center"
-                                                Background="{StaticResource InputBackgroundBrush}"
-                                                BorderThickness="0"
                                                 FontSize="15"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 Text="{Binding Afk.Settings.AfkTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 TextAlignment="Center" />
 
@@ -318,7 +299,6 @@
                                         </StackPanel>
 
                                         <CheckBox
-                                            Height="20"
                                             Margin="4,5,4,4"
                                             IsChecked="{Binding Afk.Settings.ShowPrefixIcon, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
@@ -326,14 +306,12 @@
                                         </CheckBox>
 
                                         <CheckBox
-                                            Height="20"
                                             Margin="4,5,4,4"
                                             IsChecked="{Binding Afk.Settings.ShowAFKTime, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Show how long you are AFK
                                         </CheckBox>
                                         <CheckBox
-                                            Height="20"
                                             Margin="4,5,4,4"
                                             IsChecked="{Binding Afk.Settings.UseSmallLettersForDuration, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
@@ -351,44 +329,40 @@
 
                                             <TextBox
                                                 Width="auto"
-                                                Height="26"
                                                 Margin="0,3,0,0"
                                                 Padding="5,0,5,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalContentAlignment="Center"
-                                                Background="{StaticResource InputBackgroundBrush}"
-                                                BorderThickness="0"
                                                 FontSize="15"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 Text="{Binding Afk.Settings.AfkPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Visibility="{Binding Afk.Settings.ShowPrefixIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBox
                                                 Width="auto"
-                                                Height="26"
                                                 Margin="5,3,0,0"
                                                 Padding="5,0,5,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalContentAlignment="Center"
-                                                Background="{StaticResource InputBackgroundBrush}"
-                                                BorderThickness="0"
                                                 FontSize="15"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 Text="{Binding Afk.Settings.AfkMessageForTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Visibility="{Binding Afk.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBox
                                                 Width="auto"
-                                                Height="26"
                                                 Margin="4,3,0,0"
                                                 Padding="5,0,5,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalContentAlignment="Center"
-                                                Background="{StaticResource InputBackgroundBrush}"
-                                                BorderThickness="0"
                                                 FontSize="15"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 Text="{Binding Afk.Settings.AfkMessageWithoutTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Visibility="{Binding Afk.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
+                                        <TextBlock
+                                            Margin="4,2,0,0"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="10"
+                                            FontStyle="Italic"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Opacity="0.4"
+                                            Text="Use \n for new line" />
                                         <StackPanel Visibility="{Binding AppState.BussyBoysMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                                             <TextBlock
@@ -400,7 +374,6 @@
                                                 Text="Bussy Boys (custom counting from date and more)" />
 
                                             <CheckBox
-                                                Height="20"
                                                 Margin="4,5,4,4"
                                                 IsChecked="{Binding TimeSettings.BussyBoysMultiMODE, Mode=TwoWay}"
                                                 Style="{DynamicResource SettingsCheckbox}">
@@ -408,7 +381,6 @@
                                             </CheckBox>
 
                                             <CheckBox
-                                                Height="20"
                                                 Margin="4,5,4,4"
                                                 IsChecked="{Binding TimeSettings.BussyBoysDateEnable, Mode=TwoWay}"
                                                 Style="{DynamicResource SettingsCheckbox}">
@@ -420,7 +392,6 @@
                                                 Margin="3,5,4,4"
                                                 HorizontalAlignment="Left"
                                                 BorderThickness="0"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 IsTodayHighlighted="True"
                                                 Opacity="0.5"
                                                 SelectedDate="{Binding TimeSettings.BussyBoysDate, Mode=TwoWay}" />

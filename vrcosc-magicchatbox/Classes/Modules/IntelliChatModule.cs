@@ -83,8 +83,15 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 // Show briefly, then auto-hide after 2.5 s
                 _ = Task.Run(async () =>
                 {
-                    await Task.Delay(Core.Constants.IntelliChatAutoHideDelay);
-                    _dispatcher.Invoke(() => Settings.IntelliChatUILabel = false);
+                    try
+                    {
+                        await Task.Delay(Core.Constants.IntelliChatAutoHideDelay);
+                        _dispatcher.BeginInvoke(() => Settings.IntelliChatUILabel = false);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"IntelliChat auto-hide failed: {ex.Message}");
+                    }
                 });
             }
         }

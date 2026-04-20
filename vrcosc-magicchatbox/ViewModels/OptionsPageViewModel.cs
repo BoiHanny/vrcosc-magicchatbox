@@ -24,6 +24,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public MediaLinkSectionViewModel MediaLinkSection { get; }
         public WeatherSectionViewModel WeatherSection { get; }
         public TwitchSectionViewModel TwitchSection { get; }
+        public DiscordSectionViewModel DiscordSection { get; }
         public TrackerBatterySectionViewModel TrackerBatterySection { get; }
         public PulsoidSectionViewModel PulsoidSection { get; }
         public OpenAISectionViewModel OpenAISection { get; }
@@ -36,6 +37,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public AppOptionsSectionViewModel AppOptionsSection { get; }
         public EggDevSectionViewModel EggDevSection { get; }
         public PrivacySectionViewModel PrivacySection { get; }
+        public VrcRadarSectionViewModel VrcRadarSection { get; }
 
         public INavigationService Navigation { get; }
 
@@ -52,6 +54,7 @@ namespace vrcosc_magicchatbox.ViewModels
             MediaLinkSectionViewModel mediaLinkSection,
             WeatherSectionViewModel weatherSection,
             TwitchSectionViewModel twitchSection,
+            DiscordSectionViewModel discordSection,
             TrackerBatterySectionViewModel trackerBatterySection,
             PulsoidSectionViewModel pulsoidSection,
             OpenAISectionViewModel openAISection,
@@ -63,7 +66,8 @@ namespace vrcosc_magicchatbox.ViewModels
             StatusSectionViewModel statusSection,
             AppOptionsSectionViewModel appOptionsSection,
             EggDevSectionViewModel eggDevSection,
-            PrivacySectionViewModel privacySection)
+            PrivacySectionViewModel privacySection,
+            VrcRadarSectionViewModel vrcRadarSection)
         {
             _chatStatus = chatStatus;
             _osc = osc;
@@ -74,6 +78,7 @@ namespace vrcosc_magicchatbox.ViewModels
             MediaLinkSection = mediaLinkSection;
             WeatherSection = weatherSection;
             TwitchSection = twitchSection;
+            DiscordSection = discordSection;
             TrackerBatterySection = trackerBatterySection;
             PulsoidSection = pulsoidSection;
             OpenAISection = openAISection;
@@ -86,6 +91,7 @@ namespace vrcosc_magicchatbox.ViewModels
             AppOptionsSection = appOptionsSection;
             EggDevSection = eggDevSection;
             PrivacySection = privacySection;
+            VrcRadarSection = vrcRadarSection;
         }
 
         /// <summary>
@@ -97,5 +103,12 @@ namespace vrcosc_magicchatbox.ViewModels
                 _osc.Value.BuildOSC();
             _integrationSettingsProvider.Save();
         }
+
+        /// <summary>Raised when ActivateSetting opens a section and the view should scroll to it.</summary>
+        public event Action<string>? ScrollToSectionRequested;
+
+        /// <summary>Request the Options page to scroll to the named setting section.</summary>
+        public void RequestScrollToSection(string settingName)
+            => ScrollToSectionRequested?.Invoke(settingName);
     }
 }

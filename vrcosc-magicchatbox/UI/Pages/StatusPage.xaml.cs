@@ -15,6 +15,10 @@ namespace vrcosc_magicchatbox.UI.Pages
     {
         private StatusPageViewModel VM => (StatusPageViewModel)DataContext;
 
+        // Debounce for popup close→toggle reopen issue
+        private DateTime _groupPopupClosedAt;
+        private DateTime _movePopupClosedAt;
+
         public StatusPage()
         {
             InitializeComponent();
@@ -40,20 +44,26 @@ namespace vrcosc_magicchatbox.UI.Pages
             try
             {
                 var button = sender as ToggleButton;
-                var item = button?.Tag as StatusItem;
+                if (button == null) return;
+                var item = button.Tag as StatusItem;
                 if (item == null) return;
 
-                if ((bool)button.IsChecked)
+                if (button.IsChecked == true)
                 {
                     VM.BeginEdit(item);
 
                     var parent = VisualTreeHelper.GetParent(button);
-                    while (!(parent is ContentPresenter))
+                    while (parent != null && parent is not ContentPresenter)
                         parent = VisualTreeHelper.GetParent(parent);
-                    var contentPresenter = parent as ContentPresenter;
-                    var editTextBox = (TextBox)contentPresenter.ContentTemplate.FindName("EditTextBox", contentPresenter);
-                    editTextBox.Focus();
-                    editTextBox.CaretIndex = editTextBox.Text.Length;
+                    if (parent is ContentPresenter contentPresenter)
+                    {
+                        var editTextBox = contentPresenter.ContentTemplate.FindName("EditTextBox", contentPresenter) as TextBox;
+                        if (editTextBox != null)
+                        {
+                            editTextBox.Focus();
+                            editTextBox.CaretIndex = editTextBox.Text.Length;
+                        }
+                    }
                 }
                 else
                 {
@@ -130,6 +140,45 @@ namespace vrcosc_magicchatbox.UI.Pages
         {
             if (sender is CheckBox cb && cb.Tag is StatusItem item)
                 VM.ToggleItemSelectedCommand.Execute(item);
+        }
+
+        private void StatusItemRow_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (!VM.IsSelectionMode) return;
+            // Don't toggle if the click was on a button or checkbox
+            if (e.OriginalSource is System.Windows.Controls.Primitives.ButtonBase
+                || e.OriginalSource is CheckBox)
+                return;
+            if (sender is Border border && border.Tag is StatusItem item)
+            {
+                VM.ToggleItemSelectedCommand.Execute(item);
+                e.Handled = true;
+            }
+        }
+
+        // ── Popup close/reopen debounce ──────────────────────────────────────
+        private void GroupPopup_Closed(object sender, EventArgs e)
+            => _groupPopupClosedAt = DateTime.UtcNow;
+
+        private void GroupToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton tb && tb.IsChecked == true
+                && (DateTime.UtcNow - _groupPopupClosedAt).TotalMilliseconds < 300)
+            {
+                tb.IsChecked = false;
+            }
+        }
+
+        private void MovePopup_Closed(object sender, EventArgs e)
+            => _movePopupClosedAt = DateTime.UtcNow;
+
+        private void MoveToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton tb && tb.IsChecked == true
+                && (DateTime.UtcNow - _movePopupClosedAt).TotalMilliseconds < 300)
+            {
+                tb.IsChecked = false;
+            }
         }
     }
 }

@@ -17,6 +17,13 @@ public interface IUiDispatcher
     bool CheckAccess();
 
     /// <summary>
+    /// Fire-and-forget dispatch to the UI thread.
+    /// Does NOT block the calling thread — use instead of Invoke
+    /// when the caller doesn't need to wait for the result.
+    /// </summary>
+    void BeginInvoke(Action action);
+
+    /// <summary>
     /// Shuts down the application gracefully.
     /// </summary>
     void Shutdown();

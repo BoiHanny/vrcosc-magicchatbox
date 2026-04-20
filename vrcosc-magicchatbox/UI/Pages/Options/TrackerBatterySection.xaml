@@ -164,29 +164,30 @@
                                                     <!--  Prefix  -->
                                                     <StackPanel Grid.Column="0" Margin="0,0,10,0">
                                                         <TextBlock Style="{StaticResource TrackerLabelText}" Text="Start (Prefix)" />
-                                                        <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                            <TextBox Width="90" Text="{Binding Modules.TrackerBattery.Settings.Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                        </Border>
+                                                        <TextBox
+                                                            Width="90"
+                                                            Margin="0,4,0,0"
+                                                            Text="{Binding Modules.TrackerBattery.Settings.Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
 
                                                     <!--  Main Template  -->
                                                     <StackPanel Grid.Column="1">
                                                         <TextBlock Style="{StaticResource TrackerLabelText}" Text="Device Loop Template" />
-                                                        <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                            <TextBox
-                                                                FontSize="15"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{StaticResource TextHighlightCyanBrush}"
-                                                                Text="{Binding Modules.TrackerBattery.Settings.Template, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                        </Border>
+                                                        <TextBox
+                                                            Margin="0,4,0,0"
+                                                            FontSize="15"
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{StaticResource TextHighlightCyanBrush}"
+                                                            Text="{Binding Modules.TrackerBattery.Settings.Template, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
 
                                                     <!--  Suffix  -->
                                                     <StackPanel Grid.Column="2" Margin="10,0,0,0">
                                                         <TextBlock Style="{StaticResource TrackerLabelText}" Text="End (Suffix)" />
-                                                        <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                            <TextBox Width="90" Text="{Binding Modules.TrackerBattery.Settings.Suffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                        </Border>
+                                                        <TextBox
+                                                            Width="90"
+                                                            Margin="0,4,0,0"
+                                                            Text="{Binding Modules.TrackerBattery.Settings.Suffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
                                                 </Grid>
 
@@ -226,13 +227,11 @@
                                                         Opacity="0.5"
                                                         Text="Separator between devices" />
 
-                                                    <Border
+                                                    <TextBox
                                                         Width="45"
                                                         Margin="4,3,0,0"
                                                         HorizontalAlignment="Left"
-                                                        Style="{StaticResource TrackerInputFrame}">
-                                                        <TextBox Text="{Binding Modules.TrackerBattery.Settings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                    </Border>
+                                                        Text="{Binding Modules.TrackerBattery.Settings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 </StackPanel>
 
                                                 <!--  Alerts Card  -->
@@ -291,8 +290,8 @@
                                 <Border
                                     Margin="0,0,0,12"
                                     Padding="12"
-                                    Background="#221A36"
-                                    BorderBrush="#3E3058"
+                                    Background="{StaticResource SurfaceDarkBrush}"
+                                    BorderBrush="{StaticResource SurfaceVariantBrush}"
                                     BorderThickness="1"
                                     CornerRadius="8">
                                     <Grid>
@@ -336,7 +335,7 @@
                                                 CornerRadius="12">
                                                 <Border.Background>
                                                     <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                                        <GradientStop Color="DarkSlateBlue" />
+                                                        <GradientStop Color="{StaticResource AccentSlateBlueColor}" />
                                                         <GradientStop Offset="1" Color="{StaticResource AccentDeepPurpleColor}" />
                                                     </LinearGradientBrush>
                                                 </Border.Background>
@@ -387,7 +386,7 @@
                                                             Height="38"
                                                             HorizontalAlignment="Left"
                                                             VerticalAlignment="Top"
-                                                            Background="#3A2D55"
+                                                            Background="{StaticResource SurfaceCardBrush}"
                                                             BorderThickness="0"
                                                             CornerRadius="8">
 
@@ -397,7 +396,6 @@
                                                                 HorizontalContentAlignment="Center"
                                                                 VerticalContentAlignment="Center"
                                                                 Background="Transparent"
-                                                                BorderThickness="0"
                                                                 FontSize="20"
                                                                 Text="{Binding CustomIcon, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                 TextAlignment="Center" />
@@ -412,9 +410,7 @@
                                                             FontSize="10"
                                                             Foreground="{StaticResource TextMutedGrayBrush}"
                                                             Text="Custom Name" />
-                                                        <Border Margin="0,0,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                            <TextBox Text="{Binding CustomName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                        </Border>
+                                                        <TextBox Text="{Binding CustomName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock
                                                                 Margin="0,2,0,0"
@@ -448,7 +444,7 @@
                                                         <Border
                                                             Margin="0,0,0,4"
                                                             Padding="6,2"
-                                                            Background="#231A35"
+                                                            Background="{StaticResource SurfaceDarkBrush}"
                                                             BorderThickness="0"
                                                             CornerRadius="6">
                                                             <TextBlock Style="{StaticResource TrackerBatteryValueText}" Text="{Binding BatteryPercentage, StringFormat='{}{0}%'}" />
@@ -510,12 +506,11 @@
                                                                 Style="{DynamicResource SettingsCheckbox}">
                                                                 Custom low
                                                             </CheckBox>
-                                                            <Border
+                                                            <TextBox
+                                                                Width="40"
                                                                 Margin="6,0,0,0"
-                                                                Style="{StaticResource TrackerInputFrame}"
-                                                                Visibility="{Binding UseCustomLowThreshold, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                                                                <TextBox Width="40" Text="{Binding CustomLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                                Text="{Binding CustomLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                Visibility="{Binding UseCustomLowThreshold, Converter={StaticResource InverseBoolToHiddenConverter}}" />
                                                             <TextBlock
                                                                 Margin="4,0,0,0"
                                                                 VerticalAlignment="Center"
@@ -566,10 +561,8 @@
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Sort Order" />
                                                             <ComboBox
-                                                                Height="26"
                                                                 Margin="0,4,0,0"
                                                                 ItemsSource="{Binding Source={x:Static modules:TrackerBatterySettings.AvailableSortModes}}"
-                                                                Opacity="0.3"
                                                                 SelectedItem="{Binding Modules.TrackerBattery.Settings.SortMode, Mode=TwoWay}" />
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="1" Margin="0,20,0,0">
@@ -592,9 +585,7 @@
                                                                     FontStyle="Italic"
                                                                     Foreground="{StaticResource TextLabelBrush}"
                                                                     Text="Rotate every" />
-                                                                <Border Margin="4,0" Style="{StaticResource TrackerInputFrame}">
-                                                                    <TextBox Text="{Binding Modules.TrackerBattery.Settings.RotationIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                </Border>
+                                                                <TextBox Margin="4,0" Text="{Binding Modules.TrackerBattery.Settings.RotationIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                 <TextBlock
                                                                     VerticalAlignment="Center"
                                                                     FontFamily="Albert Sans Thin"
@@ -617,9 +608,10 @@
                                                                 FontStyle="Italic"
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Max Entries" />
-                                                            <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                                <TextBox Width="60" Text="{Binding Modules.TrackerBattery.Settings.MaxEntries, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                            <TextBox
+                                                                Width="60"
+                                                                Margin="0,4,0,0"
+                                                                Text="{Binding Modules.TrackerBattery.Settings.MaxEntries, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                         <StackPanel Margin="0,0,20,8">
                                                             <TextBlock
@@ -630,9 +622,10 @@
                                                                 FontStyle="Italic"
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Max Length (Chars, 0 = no limit)" />
-                                                            <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                                <TextBox Width="60" Text="{Binding Modules.TrackerBattery.Settings.MaxEntryLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                            <TextBox
+                                                                Width="60"
+                                                                Margin="0,4,0,0"
+                                                                Text="{Binding Modules.TrackerBattery.Settings.MaxEntryLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                     </WrapPanel>
 
@@ -653,9 +646,10 @@
                                                                 FontStyle="Italic"
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Online State" />
-                                                            <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                                <TextBox Width="110" Text="{Binding Modules.TrackerBattery.Settings.OnlineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                            <TextBox
+                                                                Width="110"
+                                                                Margin="0,4,0,0"
+                                                                Text="{Binding Modules.TrackerBattery.Settings.OnlineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                         <StackPanel Margin="0,0,15,12">
                                                             <TextBlock
@@ -665,9 +659,10 @@
                                                                 FontStyle="Italic"
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Offline State" />
-                                                            <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                                <TextBox Width="110" Text="{Binding Modules.TrackerBattery.Settings.OfflineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                            <TextBox
+                                                                Width="110"
+                                                                Margin="0,4,0,0"
+                                                                Text="{Binding Modules.TrackerBattery.Settings.OfflineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                         <StackPanel Margin="0,0,15,12">
                                                             <TextBlock
@@ -677,9 +672,10 @@
                                                                 FontStyle="Italic"
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Offline Battery" />
-                                                            <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                                <TextBox Width="110" Text="{Binding Modules.TrackerBattery.Settings.OfflineBatteryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                            <TextBox
+                                                                Width="110"
+                                                                Margin="0,4,0,0"
+                                                                Text="{Binding Modules.TrackerBattery.Settings.OfflineBatteryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                         <StackPanel Margin="0,0,15,12">
                                                             <TextBlock
@@ -689,9 +685,10 @@
                                                                 FontStyle="Italic"
                                                                 Foreground="{StaticResource TextLabelBrush}"
                                                                 Text="Low Battery Tag" />
-                                                            <Border Margin="0,4,0,0" Style="{StaticResource TrackerInputFrame}">
-                                                                <TextBox Width="90" Text="{Binding Modules.TrackerBattery.Settings.LowTag, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </Border>
+                                                            <TextBox
+                                                                Width="90"
+                                                                Margin="0,4,0,0"
+                                                                Text="{Binding Modules.TrackerBattery.Settings.LowTag, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </StackPanel>
                                                     </WrapPanel>
                                                 </StackPanel>

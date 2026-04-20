@@ -85,6 +85,13 @@ public partial class PrivacyConsentDialog : Window
             warning: null,
             isApproved: _consentService.IsApproved(hook)),
 
+        PrivacyHook.VrcLogReader => new HookItem(hook,
+            title: "📡  VRChat Log Reader  (file read)",
+            description: "Reads VRChat's output_log.txt to extract world info, player events, and session stats. " +
+                         "All data stays local — nothing is sent externally.",
+            warning: null,
+            isApproved: _consentService.IsApproved(hook)),
+
         _ => new HookItem(hook, hook.ToString(), string.Empty, null, _consentService.IsApproved(hook)),
     };
 

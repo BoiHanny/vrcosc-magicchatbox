@@ -56,23 +56,17 @@
                 <TextBox
                     x:Name="ScanPauseCountDown"
                     Width="40"
-                    Height="26"
                     Margin="0,3,0,12"
                     Padding="5,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalContentAlignment="Center"
-                    Background="{StaticResource InputBackgroundBrush}"
-                    BorderThickness="0"
                     FontSize="15"
-                    Foreground="{StaticResource TextDarkBrush}"
                     Text="{Binding AppSettings.ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 
 
                 <CheckBox
                     x:Name="ChatIconPrefix_checkbox"
-                    Height="22"
-                    Margin="0,0,0,10"
                     IsChecked="{Binding ChatSettings.PrefixChat, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Add 💬 as prefix for chat messages
@@ -82,8 +76,6 @@
                 <Grid Visibility="{Binding ChatSettings.PrefixChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox
                         x:Name="EnableEmojiShuffleInChat_checkbox"
-                        Height="20"
-                        Margin="0,0,0,10"
                         IsChecked="{Binding AppSettings.EnableEmojiShuffleInChats, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}"
                         Visibility="{Binding AppSettings.EnableEmojiShuffle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -95,16 +87,12 @@
 
                 <CheckBox
                     x:Name="ChatFX_checkbox"
-                    Height="22"
-                    Margin="0,0,0,10"
                     IsChecked="{Binding ChatSettings.ChatFX, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Play FX sound for VRChat users when sending message
                 </CheckBox>
                 <CheckBox
                     x:Name="ChatSendAgainFX_checkbox"
-                    Height="22"
-                    Margin="0,0,0,10"
                     IsChecked="{Binding ChatSettings.ChatSendAgainFX, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}"
                     Visibility="{Binding ChatSettings.ChatFX, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -112,7 +100,6 @@
                 </CheckBox>
                 <CheckBox
                     x:Name="ChatAddSmallDelay_checkbox"
-                    Height="22"
                     IsChecked="{Binding ChatSettings.ChatAddSmallDelay, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Small delay when sending message (prevents timeout)
@@ -159,8 +146,6 @@
                 </StackPanel>
                 <CheckBox
                     x:Name="KeepUpdatingChat_checkbox"
-                    Height="22"
-                    Margin="0,0,0,10"
                     IsChecked="{Binding ChatSettings.KeepUpdatingChat, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Overide display time for chat messages (keep updating)
@@ -206,8 +191,6 @@
                 </StackPanel>
                 <CheckBox
                     x:Name="ChatEdit_checkbox"
-                    Height="22"
-                    Margin="0,0,0,10"
                     IsChecked="{Binding ChatSettings.ChatLiveEdit, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}"
                     Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -216,8 +199,6 @@
                 <Grid Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <CheckBox
                         x:Name="ChatLiveEdit_checkbox"
-                        Height="22"
-                        Margin="0,0,0,10"
                         IsChecked="{Binding ChatSettings.RealTimeChatEdit, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}"
                         Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">

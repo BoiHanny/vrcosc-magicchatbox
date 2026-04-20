@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Text;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Services;
@@ -70,6 +71,8 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                     IsCpuEnabled = true,
                     IsGpuEnabled = true,
                     IsMemoryEnabled = true,
+                    IsMotherboardEnabled = true,
+                    IsControllerEnabled = true,
                 };
                 _computer.Open();
                 _gpuCache = null;
@@ -101,7 +104,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             if (_computer == null) return;
             foreach (var hw in _computer.Hardware)
             {
-                hw.Update();
+                UpdateHardwareTree(hw);
             }
         }
     }
@@ -118,24 +121,22 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     public float? GetCpuTemperature()
     {
         var hw = FindHardware(HardwareType.Cpu);
-        if (hw == null) return null;
-        return FindTemperatureSensor(hw)?.Value;
+        var sensor = hw == null ? null : FindTemperatureSensor(hw);
+        sensor ??= FindCpuTemperatureFallbackSensor();
+        return sensor?.Value;
     }
 
     public float? GetCpuPower()
     {
         var hw = FindHardware(HardwareType.Cpu);
-        if (hw == null) return null;
-        return FindPowerSensor(hw)?.Value;
+        var sensor = hw == null ? null : FindPowerSensor(hw);
+        sensor ??= FindCpuPowerFallbackSensor();
+        return sensor?.Value;
     }
 
     public string GetCpuName()
     {
-        lock (_lock)
-        {
-            if (_computer == null) return null;
-            return _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu)?.Name;
-        }
+        return GetHardwareSnapshot().FirstOrDefault(h => h.HardwareType == HardwareType.Cpu)?.Name;
     }
 
     public float? GetGpuLoad(string gpuName, string sensorName)
@@ -231,25 +232,44 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     {
         lock (_lock)
         {
-            if (_computer == null) return Array.Empty<string>();
-            _gpuCache ??= _computer.Hardware
-                .Where(h => h.HardwareType == HardwareType.GpuNvidia ||
-                            h.HardwareType == HardwareType.GpuAmd ||
-                            h.HardwareType == HardwareType.GpuIntel)
-                .Select(h => h.Name)
-                .ToList();
-            return _gpuCache;
+            if (_computer != null)
+            {
+                _gpuCache ??= GetHardwareSnapshot()
+                    .Where(h => h.HardwareType == HardwareType.GpuNvidia ||
+                                h.HardwareType == HardwareType.GpuAmd ||
+                                h.HardwareType == HardwareType.GpuIntel)
+                    .Select(h => h.Name)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (_gpuCache.Count > 0)
+                    return _gpuCache;
+            }
         }
+
+        return GetAvailableGpusFromWindows();
     }
 
     /// <summary>
-    /// DDR version via WMI — called once at startup, not per-tick. WMI overhead acceptable here.
+    /// DDR version via WMI — queried lazily and with a timeout so a bad WMI provider
+    /// cannot stall the entire app startup path.
     /// </summary>
     public string GetDdrVersion()
     {
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory");
+            var options = new EnumerationOptions
+            {
+                ReturnImmediately = false,
+                Rewindable = false,
+                Timeout = TimeSpan.FromSeconds(2)
+            };
+
+            using var searcher = new ManagementObjectSearcher(
+                "root\\CIMV2",
+                "SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory",
+                options);
+
             foreach (ManagementObject obj in searcher.Get())
             {
                 if (obj["SMBIOSMemoryType"] == null) continue;
@@ -269,10 +289,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     private IHardware FindHardware(HardwareType type)
     {
-        lock (_lock)
-        {
-            return _computer?.Hardware.FirstOrDefault(h => h.HardwareType == type);
-        }
+        return GetHardwareSnapshot().FirstOrDefault(h => h.HardwareType == type);
     }
 
     public float? GetCpuLoadBasic()
@@ -380,49 +397,318 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     private IHardware ResolveGpu(string gpuName)
     {
-        lock (_lock)
+        var gpus = GetHardwareSnapshot()
+            .Where(h => h.HardwareType == HardwareType.GpuNvidia ||
+                        h.HardwareType == HardwareType.GpuAmd ||
+                        h.HardwareType == HardwareType.GpuIntel)
+            .ToList();
+
+        if (!string.IsNullOrEmpty(gpuName))
         {
-            if (_computer == null) return null;
-            var gpus = _computer.Hardware
-                .Where(h => h.HardwareType == HardwareType.GpuNvidia ||
-                            h.HardwareType == HardwareType.GpuAmd ||
-                            h.HardwareType == HardwareType.GpuIntel)
-                .ToList();
+            var match = gpus.FirstOrDefault(g => g.Name.Equals(gpuName, StringComparison.OrdinalIgnoreCase));
+            if (match != null) return match;
 
-            if (!string.IsNullOrEmpty(gpuName))
+            string normalizedRequested = NormalizeHardwareName(gpuName);
+
+            match = gpus.FirstOrDefault(g =>
+                NormalizeHardwareName(g.Name).Equals(normalizedRequested, StringComparison.OrdinalIgnoreCase));
+            if (match != null) return match;
+
+            match = gpus.FirstOrDefault(g =>
             {
-                var match = gpus.FirstOrDefault(g => g.Name.Equals(gpuName, StringComparison.OrdinalIgnoreCase));
-                if (match != null) return match;
-            }
+                string candidate = NormalizeHardwareName(g.Name);
+                return candidate.Contains(normalizedRequested, StringComparison.OrdinalIgnoreCase) ||
+                       normalizedRequested.Contains(candidate, StringComparison.OrdinalIgnoreCase);
+            });
+            if (match != null) return match;
+        }
 
-            var nvidia = gpus.FirstOrDefault(g =>
-                g.HardwareType == HardwareType.GpuNvidia &&
-                !g.Name.Contains("integrated", StringComparison.OrdinalIgnoreCase));
-            if (nvidia != null) return nvidia;
+        var nvidia = gpus.FirstOrDefault(g =>
+            g.HardwareType == HardwareType.GpuNvidia &&
+            !g.Name.Contains("integrated", StringComparison.OrdinalIgnoreCase));
+        if (nvidia != null) return nvidia;
 
-            var amd = gpus.FirstOrDefault(g =>
-                g.HardwareType == HardwareType.GpuAmd &&
-                !g.Name.Contains("integrated", StringComparison.OrdinalIgnoreCase));
-            if (amd != null) return amd;
+        var amd = gpus.FirstOrDefault(g =>
+            g.HardwareType == HardwareType.GpuAmd &&
+            !g.Name.Contains("integrated", StringComparison.OrdinalIgnoreCase));
+        if (amd != null) return amd;
 
-            return gpus.FirstOrDefault();
+        return gpus.FirstOrDefault();
+    }
+
+    private IReadOnlyList<string> GetAvailableGpusFromWindows()
+    {
+        try
+        {
+            var options = new EnumerationOptions
+            {
+                ReturnImmediately = false,
+                Rewindable = false,
+                Timeout = TimeSpan.FromSeconds(2)
+            };
+
+            using var searcher = new ManagementObjectSearcher(
+                "root\\CIMV2",
+                "SELECT Name FROM Win32_VideoController",
+                options);
+
+            return searcher.Get()
+                .Cast<ManagementObject>()
+                .Select(obj => obj["Name"]?.ToString())
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(name => name!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return Array.Empty<string>();
         }
     }
 
+    private static string NormalizeHardwareName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var builder = new StringBuilder(value.Length);
+        foreach (char ch in value)
+        {
+            if (char.IsLetterOrDigit(ch))
+                builder.Append(char.ToLowerInvariant(ch));
+            else if (builder.Length > 0 && builder[^1] != ' ')
+                builder.Append(' ');
+        }
+
+        return builder.ToString().Trim();
+    }
+
+    private List<IHardware> GetHardwareSnapshot()
+    {
+        lock (_lock)
+        {
+            if (_computer == null) return new List<IHardware>();
+
+            var hardware = new List<IHardware>();
+            foreach (var root in _computer.Hardware)
+            {
+                CollectHardware(root, hardware);
+            }
+
+            return hardware;
+        }
+    }
+
+    private static void UpdateHardwareTree(IHardware hardware)
+    {
+        hardware.Update();
+        foreach (var subHardware in hardware.SubHardware)
+        {
+            UpdateHardwareTree(subHardware);
+        }
+    }
+
+    private static void CollectHardware(IHardware hardware, List<IHardware> hardwareList)
+    {
+        hardwareList.Add(hardware);
+        foreach (var subHardware in hardware.SubHardware)
+        {
+            CollectHardware(subHardware, hardwareList);
+        }
+    }
+
+    private static IEnumerable<ISensor> EnumerateSensors(IHardware hardware)
+    {
+        foreach (var node in EnumerateHardwareTree(hardware))
+        {
+            foreach (var sensor in node.Sensors)
+            {
+                yield return sensor;
+            }
+        }
+    }
+
+    private static IEnumerable<IHardware> EnumerateHardwareTree(IHardware hardware)
+    {
+        yield return hardware;
+
+        foreach (var subHardware in hardware.SubHardware)
+        {
+            foreach (var nested in EnumerateHardwareTree(subHardware))
+            {
+                yield return nested;
+            }
+        }
+    }
+
+    private IEnumerable<ISensor> EnumerateAllSensors()
+    {
+        return GetHardwareSnapshot().SelectMany(EnumerateSensors);
+    }
+
     private static ISensor FindSensor(IHardware hw, SensorType type, string name) =>
-        hw.Sensors.FirstOrDefault(s => s.SensorType == type && s.Name == name);
+        EnumerateSensors(hw).FirstOrDefault(s =>
+            s.SensorType == type &&
+            s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
     private static ISensor FindTemperatureSensor(IHardware hw) =>
-        hw.Sensors.FirstOrDefault(s =>
-            s.SensorType == SensorType.Temperature &&
-            (s.Name.Contains("Package", StringComparison.OrdinalIgnoreCase) ||
-             s.Name.Contains("Core", StringComparison.OrdinalIgnoreCase)));
+        PickBestSensor(EnumerateSensors(hw), SensorType.Temperature, GetPreferredTemperatureScore);
 
     private static ISensor FindPowerSensor(IHardware hw) =>
-        hw.Sensors.FirstOrDefault(s =>
-            s.SensorType == SensorType.Power &&
-            (s.Name.Contains("Package", StringComparison.OrdinalIgnoreCase) ||
-             s.Name.Contains("Core", StringComparison.OrdinalIgnoreCase)));
+        PickBestSensor(EnumerateSensors(hw), SensorType.Power, GetPreferredPowerScore);
+
+    private ISensor FindCpuTemperatureFallbackSensor() =>
+        PickBestSensor(EnumerateAllSensors(), SensorType.Temperature, GetCpuTemperatureFallbackScore, requirePositiveScore: true);
+
+    private ISensor FindCpuPowerFallbackSensor() =>
+        PickBestSensor(EnumerateAllSensors(), SensorType.Power, GetCpuPowerFallbackScore, requirePositiveScore: true);
+
+    private static ISensor PickBestSensor(
+        IEnumerable<ISensor> sensors,
+        SensorType sensorType,
+        Func<string, int> scoreSelector,
+        bool requirePositiveScore = false)
+    {
+        ISensor bestSensor = null;
+        int bestScore = int.MinValue;
+
+        foreach (var sensor in sensors)
+        {
+            if (sensor.SensorType != sensorType || !sensor.Value.HasValue)
+            {
+                continue;
+            }
+
+            int score = scoreSelector(sensor.Name);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestSensor = sensor;
+            }
+        }
+
+        if (bestSensor != null && (!requirePositiveScore || bestScore > 0))
+        {
+            return bestSensor;
+        }
+
+        return requirePositiveScore
+            ? null
+            : sensors.FirstOrDefault(s => s.SensorType == sensorType && s.Value.HasValue);
+    }
+
+    private static int GetPreferredTemperatureScore(string sensorName)
+    {
+        int score = 0;
+
+        if (ContainsAny(sensorName, "tctl", "tdie", "package"))
+            score = 100;
+        else if (ContainsAny(sensorName, "core", "edge"))
+            score = 90;
+        else if (ContainsAny(sensorName, "cpu", "gpu"))
+            score = 80;
+        else if (sensorName.Contains("ccd", StringComparison.OrdinalIgnoreCase))
+            score = 75;
+        else if (ContainsAny(sensorName, "junction", "hot spot", "hotspot"))
+            score = 35;
+        else if (ContainsAny(sensorName, "memory", "vram"))
+            score = 20;
+
+        if (sensorName.Contains("limit", StringComparison.OrdinalIgnoreCase))
+            score -= 40;
+
+        return score;
+    }
+
+    private static int GetPreferredPowerScore(string sensorName)
+    {
+        int score = 0;
+
+        if (sensorName.Contains("package", StringComparison.OrdinalIgnoreCase))
+            score = 100;
+        else if (sensorName.Contains("board", StringComparison.OrdinalIgnoreCase))
+            score = 95;
+        else if (sensorName.Contains("core+s o c", StringComparison.OrdinalIgnoreCase) ||
+                 sensorName.Contains("core+soc", StringComparison.OrdinalIgnoreCase))
+            score = 92;
+        else if (ContainsAny(sensorName, "cores", "core", "cpu", "gpu"))
+            score = 85;
+        else if (ContainsAny(sensorName, "ppt", "total"))
+            score = 80;
+        else if (sensorName.Contains("soc", StringComparison.OrdinalIgnoreCase))
+            score = 70;
+        else if (ContainsAny(sensorName, "memory", "vram"))
+            score = 20;
+
+        if (sensorName.Contains("limit", StringComparison.OrdinalIgnoreCase))
+            score -= 50;
+
+        return score;
+    }
+
+    private static int GetCpuTemperatureFallbackScore(string sensorName)
+    {
+        int score = 0;
+
+        if (ContainsAny(sensorName, "tctl", "tdie"))
+            score = 100;
+        else if (sensorName.Contains("cpu package", StringComparison.OrdinalIgnoreCase))
+            score = 98;
+        else if (sensorName.Contains("package", StringComparison.OrdinalIgnoreCase))
+            score = 90;
+        else if (sensorName.Contains("ccd", StringComparison.OrdinalIgnoreCase))
+            score = 88;
+        else if (sensorName.Contains("cpu", StringComparison.OrdinalIgnoreCase) &&
+                 !sensorName.Contains("gpu", StringComparison.OrdinalIgnoreCase))
+            score = 82;
+        else if (sensorName.Contains("core", StringComparison.OrdinalIgnoreCase))
+            score = 75;
+
+        if (sensorName.Contains("limit", StringComparison.OrdinalIgnoreCase))
+            score -= 40;
+
+        return score;
+    }
+
+    private static int GetCpuPowerFallbackScore(string sensorName)
+    {
+        int score = 0;
+
+        if (sensorName.Contains("cpu package", StringComparison.OrdinalIgnoreCase))
+            score = 100;
+        else if (sensorName.Contains("package", StringComparison.OrdinalIgnoreCase))
+            score = 95;
+        else if (sensorName.Contains("core+soc", StringComparison.OrdinalIgnoreCase))
+            score = 92;
+        else if (sensorName.Contains("ppt", StringComparison.OrdinalIgnoreCase))
+            score = 90;
+        else if (sensorName.Contains("cpu", StringComparison.OrdinalIgnoreCase) &&
+                 !sensorName.Contains("gpu", StringComparison.OrdinalIgnoreCase))
+            score = 85;
+        else if (sensorName.Contains("core", StringComparison.OrdinalIgnoreCase))
+            score = 80;
+        else if (sensorName.Contains("soc", StringComparison.OrdinalIgnoreCase))
+            score = 65;
+
+        if (sensorName.Contains("limit", StringComparison.OrdinalIgnoreCase))
+            score -= 60;
+
+        return score;
+    }
+
+    private static bool ContainsAny(string source, params string[] values)
+    {
+        foreach (var value in values)
+        {
+            if (source.Contains(value, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static string MapSmbiostoDdr(ushort smbiosMemoryType) => smbiosMemoryType switch
     {

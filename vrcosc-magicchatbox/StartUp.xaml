@@ -91,10 +91,12 @@
                         FontSize="13"
                         Text="Sit back, relax, and let us prepare your app"
                         TextWrapping="Wrap" />
+
+                    <!-- Progress bar with smooth animation -->
                     <ProgressBar
                         x:Name="ProgressBar"
                         Height="9"
-                        Margin="0,15"
+                        Margin="0,12,0,6"
                         RenderTransformOrigin="0.5,0.5">
                         <ProgressBar.RenderTransform>
                             <TransformGroup>
@@ -105,12 +107,72 @@
                             </TransformGroup>
                         </ProgressBar.RenderTransform>
                     </ProgressBar>
-                    <TextBlock
-                        x:Name="ProgressMessage"
-                        Height="39"
-                        FontSize="13"
-                        Text=""
-                        TextWrapping="Wrap" />
+
+                    <!-- Rolling 3-strip step display -->
+                    <Grid Height="60" ClipToBounds="True">
+                        <StackPanel x:Name="StepPanel" Margin="0,0,0,0">
+                            <!-- Previous step (faded) -->
+                            <Grid Height="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="PrevStepText"
+                                    Grid.Column="0"
+                                    FontSize="11"
+                                    Foreground="#333333"
+                                    Opacity="0.5"
+                                    Text=""
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    x:Name="PrevStepTime"
+                                    Grid.Column="1"
+                                    Margin="8,0,0,0"
+                                    FontSize="10"
+                                    Foreground="#555555"
+                                    Opacity="0.5"
+                                    Text="" />
+                            </Grid>
+                            <!-- Current step (full opacity) -->
+                            <Grid Height="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="CurrentStepText"
+                                    Grid.Column="0"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="#111111"
+                                    Text=""
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    x:Name="CurrentStepTime"
+                                    Grid.Column="1"
+                                    Margin="8,0,0,0"
+                                    FontSize="10"
+                                    Foreground="#444444"
+                                    Text="" />
+                            </Grid>
+                            <!-- Next step (faded preview) -->
+                            <Grid Height="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="NextStepText"
+                                    Grid.Column="0"
+                                    FontSize="11"
+                                    Foreground="#333333"
+                                    Opacity="0.5"
+                                    Text=""
+                                    TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Grid>
             <Border

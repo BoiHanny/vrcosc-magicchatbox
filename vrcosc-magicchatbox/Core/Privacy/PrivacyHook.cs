@@ -25,4 +25,7 @@ public enum PrivacyHook
 
     /// <summary>Named pipe IPC — connects to the Soundpad desktop application for playback control.</summary>
     SoundpadBridge = 7,
+
+    /// <summary>File read — parses VRChat output_log.txt for world info, player events, and session stats.</summary>
+    VrcLogReader = 8,
 }

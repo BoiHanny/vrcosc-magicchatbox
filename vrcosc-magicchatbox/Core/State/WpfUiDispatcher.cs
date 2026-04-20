@@ -26,6 +26,16 @@ public sealed class WpfUiDispatcher : IUiDispatcher
         return Application.Current.Dispatcher.Invoke(func);
     }
 
+    public void BeginInvoke(Action action)
+    {
+        if (Application.Current?.Dispatcher == null)
+        {
+            action();
+            return;
+        }
+        Application.Current.Dispatcher.BeginInvoke(action);
+    }
+
     public async Task InvokeAsync(Action action)
     {
         if (Application.Current?.Dispatcher == null)

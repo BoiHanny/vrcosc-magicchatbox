@@ -69,15 +69,11 @@
                     <TextBox
                         x:Name="TwitchChannelName"
                         Width="200"
-                        Height="26"
                         Margin="0,3,0,0"
                         Padding="5,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalContentAlignment="Center"
-                        Background="{StaticResource InputBackgroundBrush}"
-                        BorderThickness="0"
                         FontSize="15"
-                        Foreground="{StaticResource TextDarkBrush}"
                         Text="{Binding Modules.Twitch.Settings.ChannelName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,8,0,0"
@@ -104,22 +100,18 @@
                         </ToggleButton>
                         <Grid
                             Width="260"
-                            Height="26"
                             Margin="0,0,0,0"
                             HorizontalAlignment="Left">
                             <TextBox
                                 x:Name="TwitchClientIdPreview"
                                 Padding="5,0,0,0"
                                 VerticalContentAlignment="Center"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderThickness="0"
                                 FontSize="15"
-                                Foreground="{StaticResource TextDarkBrush}"
                                 IsHitTestVisible="False"
                                 IsReadOnly="True"
                                 Text="{Binding Modules.Twitch.Settings.ClientId, Converter={StaticResource MaskedWeatherCityConverter}}">
                                 <TextBox.Style>
-                                    <Style TargetType="TextBox">
+                                    <Style BasedOn="{StaticResource TileRightTextBox}" TargetType="TextBox">
                                         <Setter Property="Visibility" Value="Visible" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Modules.Twitch.Settings.ClientIdEditing}" Value="True">
@@ -133,13 +125,10 @@
                                 x:Name="TwitchClientIdEditor"
                                 Padding="5,0,0,0"
                                 VerticalContentAlignment="Center"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderThickness="0"
                                 FontSize="15"
-                                Foreground="{StaticResource TextDarkBrush}"
                                 Text="{Binding Modules.Twitch.Settings.ClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                 <TextBox.Style>
-                                    <Style TargetType="TextBox">
+                                    <Style BasedOn="{StaticResource TileRightTextBox}" TargetType="TextBox">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Modules.Twitch.Settings.ClientIdEditing}" Value="True">
@@ -177,21 +166,17 @@
                         </ToggleButton>
                         <Grid
                             Width="360"
-                            Height="26"
                             HorizontalAlignment="Left">
                             <TextBox
                                 x:Name="TwitchAccessTokenPreview"
                                 Padding="5,0,0,0"
                                 VerticalContentAlignment="Center"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderThickness="0"
                                 FontSize="15"
-                                Foreground="{StaticResource TextDarkBrush}"
                                 IsHitTestVisible="False"
                                 IsReadOnly="True"
                                 Text="{Binding Modules.Twitch.Settings.AccessToken, Converter={StaticResource MaskedWeatherCityConverter}}">
                                 <TextBox.Style>
-                                    <Style TargetType="TextBox">
+                                    <Style BasedOn="{StaticResource TileRightTextBox}" TargetType="TextBox">
                                         <Setter Property="Visibility" Value="Visible" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Modules.Twitch.Settings.AccessTokenEditing}" Value="True">
@@ -205,13 +190,10 @@
                                 x:Name="TwitchAccessTokenEditor"
                                 Padding="5,0,0,0"
                                 VerticalContentAlignment="Center"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderThickness="0"
                                 FontSize="15"
-                                Foreground="{StaticResource TextDarkBrush}"
                                 Text="{Binding Modules.Twitch.Settings.AccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                 <TextBox.Style>
-                                    <Style TargetType="TextBox">
+                                    <Style BasedOn="{StaticResource TileRightTextBox}" TargetType="TextBox">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Modules.Twitch.Settings.AccessTokenEditing}" Value="True">
@@ -240,14 +222,10 @@
                         <TextBox
                             x:Name="TwitchRefreshInterval"
                             Width="40"
-                            Height="26"
                             Padding="5,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalContentAlignment="Center"
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderThickness="0"
                             FontSize="15"
-                            Foreground="{StaticResource TextDarkBrush}"
                             Text="{Binding Modules.Twitch.Settings.UpdateIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             x:Name="TwitchSyncNow"
@@ -282,7 +260,6 @@
                         Text="Output" />
                     <CheckBox
                         x:Name="TwitchUseSmallText_checkbox"
-                        Height="20"
                         Margin="0,6,0,0"
                         IsChecked="{Binding Modules.Twitch.Settings.UseSmallText, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -290,7 +267,6 @@
                     </CheckBox>
                     <CheckBox
                         x:Name="TwitchShowLiveIndicator_checkbox"
-                        Height="20"
                         Margin="0,6,0,0"
                         IsChecked="{Binding Modules.Twitch.Settings.ShowLiveIndicator, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -306,20 +282,15 @@
                         <TextBox
                             x:Name="TwitchLivePrefix"
                             Width="120"
-                            Height="26"
                             Margin="0,3,0,0"
                             Padding="5,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalContentAlignment="Center"
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderThickness="0"
                             FontSize="15"
-                            Foreground="{StaticResource TextDarkBrush}"
                             Text="{Binding Modules.Twitch.Settings.LivePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <CheckBox
                         x:Name="TwitchShowGameName_checkbox"
-                        Height="20"
                         Margin="0,6,0,6"
                         IsChecked="{Binding Modules.Twitch.Settings.ShowGameName, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -335,20 +306,15 @@
                         <TextBox
                             x:Name="TwitchGamePrefix"
                             Width="120"
-                            Height="26"
                             Margin="0,3,0,0"
                             Padding="5,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalContentAlignment="Center"
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderThickness="0"
                             FontSize="15"
-                            Foreground="{StaticResource TextDarkBrush}"
                             Text="{Binding Modules.Twitch.Settings.GamePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <CheckBox
                         x:Name="TwitchShowViewerCount_checkbox"
-                        Height="20"
                         Margin="0,0,0,0"
                         IsChecked="{Binding Modules.Twitch.Settings.ShowViewerCount, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -357,7 +323,6 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowViewerCount, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="TwitchShowViewerLabel_checkbox"
-                            Height="20"
                             Margin="0,0,0,0"
                             IsChecked="{Binding Modules.Twitch.Settings.ShowViewerLabel, Mode=TwoWay}"
                             Style="{DynamicResource SettingsCheckbox}">
@@ -373,20 +338,15 @@
                             <TextBox
                                 x:Name="TwitchViewerLabel"
                                 Width="120"
-                                Height="26"
                                 Margin="0,3,0,0"
                                 Padding="5,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalContentAlignment="Center"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderThickness="0"
                                 FontSize="15"
-                                Foreground="{StaticResource TextDarkBrush}"
                                 Text="{Binding Modules.Twitch.Settings.ViewerLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                         <CheckBox
                             x:Name="TwitchViewerCountCompact_checkbox"
-                            Height="20"
                             Margin="0,6,0,0"
                             IsChecked="{Binding Modules.Twitch.Settings.ViewerCountCompact, Mode=TwoWay}"
                             Style="{DynamicResource SettingsCheckbox}">
@@ -395,7 +355,6 @@
                     </StackPanel>
                     <CheckBox
                         x:Name="TwitchShowFollowerCount_checkbox"
-                        Height="20"
                         Margin="0,6,0,0"
                         IsChecked="{Binding Modules.Twitch.Settings.ShowFollowerCount, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -404,7 +363,6 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowFollowerCount, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="TwitchShowFollowerLabel_checkbox"
-                            Height="20"
                             Margin="0,0,0,0"
                             IsChecked="{Binding Modules.Twitch.Settings.ShowFollowerLabel, Mode=TwoWay}"
                             Style="{DynamicResource SettingsCheckbox}">
@@ -420,20 +378,15 @@
                             <TextBox
                                 x:Name="TwitchFollowerLabel"
                                 Width="120"
-                                Height="26"
                                 Margin="0,3,0,0"
                                 Padding="5,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalContentAlignment="Center"
-                                Background="{StaticResource InputBackgroundBrush}"
-                                BorderThickness="0"
                                 FontSize="15"
-                                Foreground="{StaticResource TextDarkBrush}"
                                 Text="{Binding Modules.Twitch.Settings.FollowerLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                         <CheckBox
                             x:Name="TwitchFollowerCountCompact_checkbox"
-                            Height="20"
                             Margin="0,6,0,0"
                             IsChecked="{Binding Modules.Twitch.Settings.FollowerCountCompact, Mode=TwoWay}"
                             Style="{DynamicResource SettingsCheckbox}">
@@ -442,7 +395,6 @@
                     </StackPanel>
                     <CheckBox
                         x:Name="TwitchShowStreamTitle_checkbox"
-                        Height="20"
                         Margin="0,6,0,0"
                         IsChecked="{Binding Modules.Twitch.Settings.ShowStreamTitle, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -458,20 +410,15 @@
                         <TextBox
                             x:Name="TwitchStreamTitlePrefix"
                             Width="120"
-                            Height="26"
                             Margin="0,3,0,0"
                             Padding="5,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalContentAlignment="Center"
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderThickness="0"
                             FontSize="15"
-                            Foreground="{StaticResource TextDarkBrush}"
                             Text="{Binding Modules.Twitch.Settings.StreamTitlePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <CheckBox
                         x:Name="TwitchShowChannelName_checkbox"
-                        Height="20"
                         Margin="0,6,0,0"
                         IsChecked="{Binding Modules.Twitch.Settings.ShowChannelName, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
@@ -487,15 +434,11 @@
                         <TextBox
                             x:Name="TwitchChannelPrefix"
                             Width="120"
-                            Height="26"
                             Margin="0,3,0,0"
                             Padding="5,0,0,0"
                             HorizontalAlignment="Left"
                             VerticalContentAlignment="Center"
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderThickness="0"
                             FontSize="15"
-                            Foreground="{StaticResource TextDarkBrush}"
                             Text="{Binding Modules.Twitch.Settings.ChannelPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <TextBlock
@@ -509,15 +452,11 @@
                     <TextBox
                         x:Name="TwitchSeparator"
                         Width="120"
-                        Height="26"
                         Margin="0,3,0,0"
                         Padding="5,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalContentAlignment="Center"
-                        Background="{StaticResource InputBackgroundBrush}"
-                        BorderThickness="0"
                         FontSize="15"
-                        Foreground="{StaticResource TextDarkBrush}"
                         Text="{Binding Modules.Twitch.Settings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Visibility="{Binding Modules.Twitch.Settings.TemplateHasValue, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
@@ -538,15 +477,11 @@
                     <TextBox
                         x:Name="TwitchTemplate"
                         Width="480"
-                        Height="26"
                         Margin="0,3,0,0"
                         Padding="5,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalContentAlignment="Center"
-                        Background="{StaticResource InputBackgroundBrush}"
-                        BorderThickness="0"
                         FontSize="15"
-                        Foreground="{StaticResource TextDarkBrush}"
                         Text="{Binding Modules.Twitch.Settings.Template, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,2,0,0"
@@ -564,15 +499,11 @@
                     <TextBox
                         x:Name="TwitchOfflineMessage"
                         Width="240"
-                        Height="26"
                         Margin="0,3,0,0"
                         Padding="5,0,0,0"
                         HorizontalAlignment="Left"
                         VerticalContentAlignment="Center"
-                        Background="{StaticResource InputBackgroundBrush}"
-                        BorderThickness="0"
                         FontSize="15"
-                        Foreground="{StaticResource TextDarkBrush}"
                         Text="{Binding Modules.Twitch.Settings.OfflineMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,2,0,0"
@@ -625,7 +556,6 @@
                                     TextWrapping="Wrap" />
                                 <CheckBox
                                     x:Name="TwitchAnnouncementsEnabled_checkbox"
-                                    Height="20"
                                     Margin="0,8,0,0"
                                     IsChecked="{Binding Modules.Twitch.Settings.AnnouncementsEnabled, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}">
@@ -646,13 +576,9 @@
                                         <TextBox
                                             x:Name="TwitchAnnouncementMessage"
                                             Grid.Column="0"
-                                            Height="26"
                                             Padding="5,0,0,0"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding Modules.Twitch.Settings.AnnouncementMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <Button
                                             x:Name="TwitchSendAnnouncement"
@@ -681,7 +607,6 @@
                                             CornerRadius="7" />
                                         <ComboBox
                                             Width="160"
-                                            Height="26"
                                             Margin="8,0,0,0"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.Twitch.Settings.AvailableAnnouncementColors}"
@@ -741,7 +666,6 @@
                                     TextWrapping="Wrap" />
                                 <CheckBox
                                     x:Name="TwitchShoutoutsEnabled_checkbox"
-                                    Height="20"
                                     Margin="0,8,0,0"
                                     IsChecked="{Binding Modules.Twitch.Settings.ShoutoutsEnabled, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}">
@@ -762,13 +686,9 @@
                                         <TextBox
                                             x:Name="TwitchShoutoutTarget"
                                             Grid.Column="0"
-                                            Height="26"
                                             Padding="5,0,0,0"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding Modules.Twitch.Settings.ShoutoutTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <Button
                                             x:Name="TwitchSendShoutout"
@@ -784,7 +704,6 @@
                                     </Grid>
                                     <CheckBox
                                         x:Name="TwitchShoutoutAlsoAnnounce_checkbox"
-                                        Height="20"
                                         Margin="0,6,0,0"
                                         IsChecked="{Binding Modules.Twitch.Settings.ShoutoutAlsoAnnounce, Mode=TwoWay}"
                                         Style="{DynamicResource SettingsCheckbox}">
@@ -799,14 +718,10 @@
                                             Text="Announcement template" />
                                         <TextBox
                                             x:Name="TwitchShoutoutAnnouncementTemplate"
-                                            Height="26"
                                             Margin="0,3,0,0"
                                             Padding="5,0,0,0"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding Modules.Twitch.Settings.ShoutoutAnnouncementTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock
                                             Margin="0,2,0,0"
@@ -829,7 +744,6 @@
                                                 CornerRadius="7" />
                                             <ComboBox
                                                 Width="160"
-                                                Height="26"
                                                 Margin="8,0,0,0"
                                                 HorizontalAlignment="Left"
                                                 ItemsSource="{Binding Modules.Twitch.Settings.AvailableAnnouncementColors}"

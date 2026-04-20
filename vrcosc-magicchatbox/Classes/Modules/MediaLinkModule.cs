@@ -206,7 +206,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 sessionInfo.TimeoutRestore = true;
                 recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
 
-                _dispatcher.Invoke(
+                _dispatcher.BeginInvoke(
                         () =>
                         {
                             _mediaLink.MediaSessions.Remove(sessionInfo);
@@ -249,7 +249,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
         }
 
-        _dispatcher.Invoke(
+        _dispatcher.BeginInvoke(
                 () =>
                 {
                     _mediaLink.MediaSessions.Add(sessionInfo);

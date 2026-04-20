@@ -5,7 +5,6 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
-using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs;
 
@@ -94,6 +93,13 @@ public partial class TosAndPrivacyWizard : Window
             warning: null,
             isApproved: DefaultApproved(hook)),
 
+        PrivacyHook.VrcLogReader => new HookItem(hook,
+            title: "📡  VRChat Log Reader  (file read)",
+            description: "Reads VRChat's output_log.txt to extract world info, player events, and session stats. " +
+                         "All data stays local — nothing is sent externally.",
+            warning: null,
+            isApproved: DefaultApproved(hook)),
+
         _ => new HookItem(hook, hook.ToString(), string.Empty, null, DefaultApproved(hook)),
     };
 
@@ -107,8 +113,8 @@ public partial class TosAndPrivacyWizard : Window
         _consentService.GetState(hook) switch
         {
             ConsentState.Approved => true,
-            ConsentState.Denied   => false,
-            _                     => hook is PrivacyHook.WindowActivity
+            ConsentState.Denied => false,
+            _ => hook is PrivacyHook.WindowActivity
                                       or PrivacyHook.MediaSession
                                       or PrivacyHook.AfkSensor
                                       or PrivacyHook.InternetAccess,

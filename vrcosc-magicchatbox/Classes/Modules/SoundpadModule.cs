@@ -221,7 +221,7 @@ public partial class SoundpadModule : ObservableObject, IModule
         // Removing the content inside brackets and the brackets themselves
         title = Regex.Replace(title, @"\s*\[.*?\]\s*", " ").Trim();
 
-        _dispatcher.Invoke(() =>
+        _dispatcher.BeginInvoke(() =>
         {
             if (string.IsNullOrEmpty(title))
             {
@@ -296,7 +296,7 @@ public partial class SoundpadModule : ObservableObject, IModule
         {
             Error = true;
             ErrorString = "😞 Soundpad is not running.";
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 CurrentSoundpadState = soundpadState.NotRunning;
                 PlayingNow = false;
@@ -315,7 +315,7 @@ public partial class SoundpadModule : ObservableObject, IModule
 
                 var soundpadProc = Process.GetProcessesByName("Soundpad").FirstOrDefault();
 
-                _dispatcher.Invoke(() =>
+                _dispatcher.BeginInvoke(() =>
                 {
                     IsSoundpadRunning = soundpadProc != null;
                     UpdateCurrentStateBasedOnRunningStatus(soundpadProc);
@@ -340,7 +340,7 @@ public partial class SoundpadModule : ObservableObject, IModule
                 }
                 else
                 {
-                    _dispatcher.Invoke(() =>
+                    _dispatcher.BeginInvoke(() =>
                     {
                         _integrationSettings.IntgrSoundpad = false;
                     });
@@ -387,7 +387,7 @@ public partial class SoundpadModule : ObservableObject, IModule
 
     public void PlaySound(int index, bool speakers, bool mic)
     {
-        ExecuteSoundpadCommand($"-rc DoPlaySound({index},{speakers.ToString().ToLower()},{mic.ToString().ToLower()})");
+        ExecuteSoundpadCommand($"-rc DoPlaySound({index},{speakers.ToString().ToLowerInvariant()},{mic.ToString().ToLowerInvariant()})");
     }
 
     public void PlaySoundByIndex(int index)

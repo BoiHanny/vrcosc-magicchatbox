@@ -15,10 +15,24 @@ namespace vrcosc_magicchatbox.UI.Pages
     {
         private ChattingPageViewModel VM => (ChattingPageViewModel)DataContext;
 
+        private Action? _scrollToEndHandler;
+
         public ChattingPage()
         {
             InitializeComponent();
-            Loaded += (_, _) => VM.ScrollToEndRequested += () => RecentScroll.ScrollToEnd();
+            // Wire scroll-to-end when DataContext arrives (may be deferred past Show).
+            DataContextChanged += (_, args) =>
+            {
+                // Unsubscribe from old DataContext
+                if (args.OldValue is ChattingPageViewModel oldVm && _scrollToEndHandler != null)
+                    oldVm.ScrollToEndRequested -= _scrollToEndHandler;
+
+                if (args.NewValue is ChattingPageViewModel vm)
+                {
+                    _scrollToEndHandler = () => RecentScroll.ScrollToEnd();
+                    vm.ScrollToEndRequested += _scrollToEndHandler;
+                }
+            };
         }
 
         public void SendChat() => ButtonChattingTxt_Click(null, null);
@@ -76,21 +90,27 @@ namespace vrcosc_magicchatbox.UI.Pages
             try
             {
                 var button = sender as ToggleButton;
-                var item = button?.Tag as ChatItem;
+                if (button == null) return;
+                var item = button.Tag as ChatItem;
                 if (item == null) return;
 
-                if ((bool)button.IsChecked)
+                if (button.IsChecked == true)
                 {
                     VM.BeginChatEdit(item);
 
                     // Focus the edit textbox (UI concern)
                     var parent = VisualTreeHelper.GetParent(button);
-                    while (!(parent is ContentPresenter))
+                    while (parent != null && parent is not ContentPresenter)
                         parent = VisualTreeHelper.GetParent(parent);
-                    var contentPresenter = parent as ContentPresenter;
-                    var EditChatTextBox = (TextBox)contentPresenter.ContentTemplate.FindName("EditChatTextBox", contentPresenter);
-                    EditChatTextBox.Focus();
-                    EditChatTextBox.CaretIndex = EditChatTextBox.Text.Length;
+                    if (parent is ContentPresenter contentPresenter)
+                    {
+                        var editTextBox = contentPresenter.ContentTemplate.FindName("EditChatTextBox", contentPresenter) as TextBox;
+                        if (editTextBox != null)
+                        {
+                            editTextBox.Focus();
+                            editTextBox.CaretIndex = editTextBox.Text.Length;
+                        }
+                    }
                 }
                 else
                 {

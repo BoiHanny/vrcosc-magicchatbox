@@ -94,7 +94,8 @@ public sealed class OscOutputBuilder
             if (segment == null || string.IsNullOrEmpty(segment.Text))
                 return;
 
-            collected.Add((segment.Text, provider.UiKey, provider.Priority));
+            string text = ExpandNewlines(segment.Text);
+            collected.Add((text, provider.UiKey, provider.Priority));
         }
 
         foreach (var key in orderedKeys)

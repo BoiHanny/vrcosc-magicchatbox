@@ -35,6 +35,7 @@ public sealed class ScanLoopService : IDisposable
     private DateTime _lastOSCMessageTime = DateTime.MinValue;
     private bool _isProcessing;
     private bool _disposed;
+    private int _tickQueued;
 
     private readonly ChatSettings CS;
     private readonly AppSettings AS;
@@ -87,7 +88,11 @@ public sealed class ScanLoopService : IDisposable
         if (_started) return;
         _started = true;
         _currentInterval = TimeSpan.FromMilliseconds(AS.ScanningInterval * 1000);
-        _backgroundCheck = new Timer(_ => _dispatcher.Invoke(OnBackgroundTick), null, _currentInterval, _currentInterval);
+        _backgroundCheck = new Timer(_ =>
+        {
+            if (Interlocked.CompareExchange(ref _tickQueued, 1, 0) == 0)
+                _dispatcher.InvokeAsync(OnBackgroundTick);
+        }, null, _currentInterval, _currentInterval);
     }
 
     public void Stop()
@@ -105,6 +110,8 @@ public sealed class ScanLoopService : IDisposable
     /// </summary>
     private void OnBackgroundTick()
     {
+        Interlocked.Exchange(ref _tickQueued, 0);
+
         bool chatItemActive = _chatStatus.LastMessages != null
             && _chatStatus.LastMessages.Any(x => x.IsRunning);
 
@@ -269,7 +276,7 @@ public sealed class ScanLoopService : IDisposable
             var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             _chatStatus.ScanPauseCountDown--;
 
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 _chatStatus.ScanPauseCountDown = _chatStatus.ScanPauseCountDown;
                 if (lastSendChat != null)
@@ -293,7 +300,7 @@ public sealed class ScanLoopService : IDisposable
                 OscSend.SendOSCMessage(false);
 
                 // Re-trigger the main loop
-                _dispatcher.Invoke(() => OnBackgroundTick());
+                _dispatcher.BeginInvoke(() => OnBackgroundTick());
             }
         }
         catch (Exception ex)

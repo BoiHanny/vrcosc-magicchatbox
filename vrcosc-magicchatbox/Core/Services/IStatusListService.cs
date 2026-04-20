@@ -10,6 +10,9 @@ public interface IStatusListService
     void LoadStatusList();
     void SaveStatusList();
 
+    /// <summary>Schedule a debounced save (2 seconds). Resets if called again within the window.</summary>
+    void RequestSave();
+
     /// <summary>Add a new group with the given name. Saves immediately.</summary>
     void AddGroup(string name);
 

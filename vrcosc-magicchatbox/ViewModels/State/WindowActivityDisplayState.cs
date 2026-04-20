@@ -108,7 +108,7 @@ public partial class WindowActivityDisplayState : ObservableObject
     {
         if (e.PropertyName == "FocusCount")
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
             });
@@ -169,7 +169,7 @@ public partial class WindowActivityDisplayState : ObservableObject
 
             if (tempList != null)
             {
-                _dispatcher.Invoke(() =>
+                _dispatcher.BeginInvoke(() =>
                 {
                     ScannedApps = tempList;
                 });

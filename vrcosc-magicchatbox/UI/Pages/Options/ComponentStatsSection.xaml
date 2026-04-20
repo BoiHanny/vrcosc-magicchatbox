@@ -57,7 +57,6 @@
                 <StackPanel>
                     <CheckBox
                         x:Name="IsTemperatureSwitchEnabled_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Autoswitch temperature units"
                         IsChecked="{Binding StatsManager.Settings.IsTemperatureSwitchEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -65,7 +64,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="UseEmojisForTempAndPower_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Use emojis for temperature and power"
                         IsChecked="{Binding StatsManager.Settings.UseEmojisForTempAndPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -88,16 +86,12 @@
                             Margin="5,0"
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            Background="{StaticResource InputBackgroundBrush}"
-                            BorderThickness="0"
                             FontSize="15"
-                            Foreground="{StaticResource TextDarkBrush}"
                             Text="{Binding StatsManager.Settings.StatsSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             ToolTip="Separator between component stats (e.g. ' ¦ '). Leave blank to use the default." />
                     </StackPanel>
                     <CheckBox
                         x:Name="ComponentStatAutoSelectGPU_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Auto-select GPU"
                         IsChecked="{Binding StatsManager.Settings.AutoSelectGPU, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -106,11 +100,9 @@
                     <ComboBox
                         x:Name="ComponentStatSelectedGPUComboBox"
                         Width="186"
-                        Height="25"
                         Margin="5,5"
                         HorizontalAlignment="Left"
                         ItemsSource="{Binding StatsManager.GPUList}"
-                        Opacity="0.5"
                         SelectedItem="{Binding StatsManager.Settings.SelectedGPU, Mode=TwoWay}"
                         Visibility="{Binding StatsManager.Settings.AutoSelectGPU, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
@@ -135,7 +127,6 @@
                     </TextBlock>
                     <CheckBox
                         x:Name="ComponentStatCPUWattageVisible_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show CPU wattage"
                         IsChecked="{Binding ComponentStats.ComponentStatCPUWattageVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -143,7 +134,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="ComponentStatCPUTempVisible_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show CPU temperature"
                         IsChecked="{Binding ComponentStats.ComponentStatCPUTempVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -151,7 +141,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="CPU_SmallName_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Stylized uppercase letters"
                         IsChecked="{Binding ComponentStats.CPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -159,7 +148,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="CPU_ShowMaxCoreLoad_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show highest loaded CPU core (%)"
                         IsChecked="{Binding StatsManager.Settings.ShowCpuMaxCoreLoad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -167,7 +155,6 @@
                         ToolTip="Appends the utilisation of the most loaded CPU core (e.g. 'max core 94﹪')." />
                     <CheckBox
                         x:Name="CPU_ShowClock_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show CPU clock frequency"
                         IsChecked="{Binding StatsManager.Settings.ShowCpuClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -176,7 +163,6 @@
 
                     <CheckBox
                         x:Name="CPU_EnableHardwareTitle_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Display model name instead of 'CPU'"
                         IsChecked="{Binding ComponentStats.CPU_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -184,7 +170,6 @@
                         ToolTip="When checked, the CPU usage label will display the model name of the CPU (e.g., 'Intel Core i7') instead of just 'CPU'." />
                     <CheckBox
                         x:Name="CPU_NumberTrailingZeros_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Round off CPU usage percentage"
                         IsChecked="{Binding ComponentStats.CPU_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -193,7 +178,6 @@
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.CPU_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="CPU_PrefixHardwareTitle_checkbox"
-                            Height="20"
                             Content="Set custom CPU model name"
                             IsChecked="{Binding ComponentStats.CPU_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Style="{DynamicResource SettingsCheckbox}"
@@ -216,10 +200,7 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderThickness="0"
                                     FontSize="15"
-                                    Foreground="{StaticResource TextDarkBrush}"
                                     Text="{Binding ComponentStats.CPUCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
@@ -253,7 +234,6 @@
 
                     <CheckBox
                         x:Name="ComponentStatGPUWattageVisible_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU wattage"
                         IsChecked="{Binding ComponentStats.ComponentStatGPUWattageVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -261,7 +241,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="ComponentStatGPUTempVisible_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU temperature"
                         IsChecked="{Binding ComponentStats.ComponentStatGPUTempVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -269,7 +248,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="ComponentStatGPUHotSpotVisible_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU hotspot temperature"
                         IsChecked="{Binding ComponentStats.ComponentStatGPUHotSpotVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -277,7 +255,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="GPU_SmallName_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Stylized uppercase letters"
                         IsChecked="{Binding ComponentStats.GPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -285,7 +262,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="GPU_Core3DHook_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Utilization is based on the 3D usage"
                         IsChecked="{Binding StatsManager.Settings.GPU3DHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -293,7 +269,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="GPU_ShowFanSpeed_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU fan speed (RPM)"
                         IsChecked="{Binding StatsManager.Settings.ShowGpuFanSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -301,7 +276,6 @@
                         ToolTip="Appends GPU fan speed in RPM (e.g. 'fan 1200RPM'). Not available on all GPUs." />
                     <CheckBox
                         x:Name="GPU_ShowCoreClock_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU core clock (MHz)"
                         IsChecked="{Binding StatsManager.Settings.ShowGpuCoreClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -309,7 +283,6 @@
                         ToolTip="Appends GPU core clock frequency (e.g. 'core clk 2100MHz')." />
                     <CheckBox
                         x:Name="GPU_ShowMemClock_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU memory clock (MHz)"
                         IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -317,7 +290,6 @@
                         ToolTip="Appends VRAM clock frequency (e.g. 'mem clk 9500MHz')." />
                     <CheckBox
                         x:Name="GPU_ShowMemTemp_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU memory temperature"
                         IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryTemperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -325,7 +297,6 @@
                         ToolTip="Appends VRAM die temperature. Available on GDDR6X and some newer GPUs." />
                     <CheckBox
                         x:Name="GPU_ShowMemLoad_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show GPU memory controller load (%)"
                         IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryLoad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -333,7 +304,6 @@
                         ToolTip="Appends the GPU memory controller utilisation as a percentage." />
                     <CheckBox
                         x:Name="GPU_EnableHardwareTitle_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Display model name instead of 'GPU'"
                         IsChecked="{Binding ComponentStats.GPU_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -341,7 +311,6 @@
                         ToolTip="When checked, the GPU usage label will display the model name of the GPU (e.g., 'NVIDIA RTX 4090') instead of just 'GPU'." />
                     <CheckBox
                         x:Name="GPU_NumberTrailingZeros_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Round off GPU usage percentage"
                         Style="{DynamicResource SettingsCheckbox}"
@@ -349,7 +318,6 @@
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.GPU_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="GPU_PrefixHardwareTitle_checkbox"
-                            Height="20"
                             Content="Set custom GPU model name"
                             IsChecked="{Binding ComponentStats.GPU_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Style="{DynamicResource SettingsCheckbox}"
@@ -372,10 +340,7 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderThickness="0"
                                     FontSize="15"
-                                    Foreground="{StaticResource TextDarkBrush}"
                                     Text="{Binding ComponentStats.GPUCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
@@ -408,7 +373,6 @@
                     </TextBlock>
                     <CheckBox
                         x:Name="VRAM_SmallName_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Stylized uppercase letters"
                         IsChecked="{Binding ComponentStats.VRAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -416,7 +380,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="ComponentStatsGPU3DVRAMHook_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="VRAM usage is based on the 3D usage"
                         IsChecked="{Binding StatsManager.Settings.GPU3DVRAMHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -424,7 +387,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="VRAM_EnableHardwareTitle_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Display model name instead of 'VRAM'"
                         IsChecked="{Binding ComponentStats.VRAM_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -432,7 +394,6 @@
                         ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
                     <CheckBox
                         x:Name="VRAM_ShowMaxValue_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show max VRAM capacity"
                         IsChecked="{Binding ComponentStats.VRAM_ShowMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -440,7 +401,6 @@
                         ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
                     <CheckBox
                         x:Name="VRAM_NumberTrailingZeros_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Round off GPU VRAM usage in GBs"
                         IsChecked="{Binding ComponentStats.VRAM_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -449,7 +409,6 @@
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.VRAM_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="VRAM_PrefixHardwareTitle_checkbox"
-                            Height="20"
                             Content="Set custom VRAM name"
                             IsChecked="{Binding ComponentStats.VRAM_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Style="{DynamicResource SettingsCheckbox}"
@@ -472,10 +431,7 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderThickness="0"
                                     FontSize="15"
-                                    Foreground="{StaticResource TextDarkBrush}"
                                     Text="{Binding ComponentStats.VRAMCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
@@ -508,7 +464,6 @@
                     </TextBlock>
                     <CheckBox
                         x:Name="RAM_SmallName_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Stylized uppercase letters"
                         IsChecked="{Binding ComponentStats.RAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -516,7 +471,6 @@
                         ToolTip="" />
                     <CheckBox
                         x:Name="RAM_EnableHardwareTitle_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Display model name instead of 'RAM'"
                         IsChecked="{Binding ComponentStats.RAM_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -524,7 +478,6 @@
                         ToolTip="When checked, the RAM usage label will display the model name of ur RAM." />
                     <CheckBox
                         x:Name="RAM_ShowMaxValue_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show max RAM capacity"
                         IsChecked="{Binding ComponentStats.RAM_ShowMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -532,7 +485,6 @@
                         ToolTip="When checked, the VRAM usage label will display the model name of ur GPU." />
                     <CheckBox
                         x:Name="RAM_ShowDDRVersion_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Show RAM DDR version"
                         IsChecked="{Binding ComponentStats.RAM_ShowDDRVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -540,7 +492,6 @@
                         ToolTip="When checked, the DDR version of the RAM will be displayed." />
                     <CheckBox
                         x:Name="RAM_NumberTrailingZeros_checkbox"
-                        Height="20"
                         Margin="5,5"
                         Content="Round off RAM usage in GBs"
                         IsChecked="{Binding ComponentStats.RAM_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -549,7 +500,6 @@
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.RAM_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="RAM_PrefixHardwareTitle_checkbox"
-                            Height="20"
                             Content="Set custom GPU model name"
                             IsChecked="{Binding ComponentStats.RAM_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Style="{DynamicResource SettingsCheckbox}"
@@ -572,10 +522,7 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    Background="{StaticResource InputBackgroundBrush}"
-                                    BorderThickness="0"
                                     FontSize="15"
-                                    Foreground="{StaticResource TextDarkBrush}"
                                     Text="{Binding ComponentStats.RAMCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>

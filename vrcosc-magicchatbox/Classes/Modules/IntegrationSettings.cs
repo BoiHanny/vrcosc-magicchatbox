@@ -22,6 +22,8 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrComponentStats = false;
     [ObservableProperty] private bool _intgrSoundpad = false;
     [ObservableProperty] private bool _intgrTwitch = false;
+    [ObservableProperty] private bool _intgrDiscord = false;
+    [ObservableProperty] private bool _intgrVrcRadar = false;
     [ObservableProperty] private bool _intgrTrackerBattery = false;
 
     [ObservableProperty] private bool _intgrComponentStats_VR = true;
@@ -57,6 +59,12 @@ public partial class IntegrationSettings : VersionedSettings
 
     [ObservableProperty] private bool _intgrTwitch_VR = true;
     [ObservableProperty] private bool _intgrTwitch_DESKTOP = true;
+
+    [ObservableProperty] private bool _intgrDiscord_VR = true;
+    [ObservableProperty] private bool _intgrDiscord_DESKTOP = true;
+
+    [ObservableProperty] private bool _intgrVrcRadar_VR = true;
+    [ObservableProperty] private bool _intgrVrcRadar_DESKTOP = true;
 
     /// <summary>
     /// Persisted integration sort order — restored across restarts.

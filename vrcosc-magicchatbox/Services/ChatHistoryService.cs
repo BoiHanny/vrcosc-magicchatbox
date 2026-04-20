@@ -42,7 +42,7 @@ public sealed class ChatHistoryService : IChatHistoryService
                     : Path.Combine(_env.DataPath, "LastMessages.xml");
                 string json = File.ReadAllText(lastMsgPath);
 
-                if (string.IsNullOrWhiteSpace(json) || json.Trim().ToLower().Equals("null"))
+                if (string.IsNullOrWhiteSpace(json) || json.Trim().Equals("null", StringComparison.OrdinalIgnoreCase))
                 {
                     Logging.WriteInfo("LastMessages history is null or empty, not problem :P");
                     return;

@@ -182,7 +182,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         UseCustomLowThreshold = false
                     };
 
-                    _dispatcher.Invoke(() =>
+                    _dispatcher.BeginInvoke(() =>
                         _tracker.TrackerDevices.Add(device));
                 }
                 else

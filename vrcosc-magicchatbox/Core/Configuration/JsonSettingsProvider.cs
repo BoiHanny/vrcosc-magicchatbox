@@ -24,6 +24,7 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     private readonly object _lock = new();
     private Timer _debounceTimer;
     private const int DebounceDelayMs = 2000;
+    private volatile bool _loaded;
 
     public event EventHandler SettingsChanged;
 
@@ -31,10 +32,27 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _filePath = Path.Combine(appData, "Vrcosc-MagicChatbox", $"{typeof(T).Name}.json");
-        Reload();
+        _settings = null!;
     }
 
-    public T Value => _settings;
+    public T Value
+    {
+        get
+        {
+            if (!_loaded)
+            {
+                lock (_lock)
+                {
+                    if (!_loaded)
+                    {
+                        Reload();
+                        _loaded = true;
+                    }
+                }
+            }
+            return _settings;
+        }
+    }
 
     public void Reload()
     {

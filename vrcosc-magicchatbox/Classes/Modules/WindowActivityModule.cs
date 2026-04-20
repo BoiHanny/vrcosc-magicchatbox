@@ -63,7 +63,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         {
             if (e.Hook == PrivacyHook.WindowActivity && e.NewState == ConsentState.Denied)
             {
-                _dispatcher.Invoke(() =>
+                _dispatcher.BeginInvoke(() =>
                 {
                     WA.ScannedApps.Clear();
                     WA.LastProcessFocused = null;
@@ -76,7 +76,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     {
         try
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 ProcessInfo processInfo = new ProcessInfo
                 {
@@ -172,11 +172,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     private string FormatWindowTitle(string fullTitle)
     {
-        int index = fullTitle.LastIndexOf(" - ");
-        if (index > 0)
-        {
-            fullTitle = fullTitle.Substring(0, index);
-        }
+        fullTitle = fullTitle?.Trim() ?? string.Empty;
 
         if (Settings.LimitTitleOnApp && fullTitle.Length > Settings.MaxShowTitleCount)
         {

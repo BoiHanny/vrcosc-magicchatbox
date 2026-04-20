@@ -1,5 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
+using System;
 using System.Net.Http;
+using System.Threading.Tasks;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -17,6 +20,8 @@ namespace vrcosc_magicchatbox.Services;
 /// </summary>
 public class ModuleBootstrapper
 {
+    private static readonly TimeSpan RuntimeModuleCreationTimeout = TimeSpan.FromSeconds(6);
+
     private readonly IModuleHost _host;
     private readonly IAppState _appState;
     private readonly IEnvironmentService _env;
@@ -37,8 +42,17 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
     private readonly ISettingsProvider<TwitchSettings> _twitchSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
+    private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
+    private readonly ISettingsProvider<VrcLogSettings> _vrcLogSettingsProvider;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
+    private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    /// <summary>
+    /// Signals that all startup initialization is complete.
+    /// Modules waiting for auto-start should await this before connecting.
+    /// </summary>
+    public void SignalStartupComplete() => _startupComplete.TrySetResult();
 
     public ModuleBootstrapper(
         IModuleHost host,
@@ -61,6 +75,8 @@ public class ModuleBootstrapper
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         ISettingsProvider<TwitchSettings> twitchSettingsProvider,
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
+        ISettingsProvider<DiscordSettings> discordSettingsProvider,
+        ISettingsProvider<VrcLogSettings> vrcLogSettingsProvider,
         IPrivacyConsentService consentService,
         IToastService toast)
     {
@@ -84,6 +100,8 @@ public class ModuleBootstrapper
         _integrationSettingsProvider = integrationSettingsProvider;
         _twitchSettingsProvider = twitchSettingsProvider;
         _trackerSettingsProvider = trackerSettingsProvider;
+        _discordSettingsProvider = discordSettingsProvider;
+        _vrcLogSettingsProvider = vrcLogSettingsProvider;
         _consentService = consentService;
         _toast = toast;
     }
@@ -121,12 +139,12 @@ public class ModuleBootstrapper
     /// Phase 3: Create runtime modules (Pulsoid, Soundpad, Twitch, TrackerBattery).
     /// These subscribe to IntegrationSettings.PropertyChanged for toggle reactivity.
     /// </summary>
-    public void CreateRuntimeModules()
+    public async Task CreateRuntimeModulesAsync()
     {
         var timeSettings = _timeSettingsProvider.Value;
         var integrationSettings = _integrationSettingsProvider.Value;
 
-        var pulsoid = new PulsoidModule(
+        var pulsoid = await CreateRuntimeModuleAsync("Pulsoid", () => new PulsoidModule(
             _appState,
             _pulsoidClient,
             _dispatcher,
@@ -134,44 +152,167 @@ public class ModuleBootstrapper
             integrationSettings,
             _pulsoidOAuth,
             _env,
-            _toast);
-        var soundpad = new SoundpadModule(1000, _appState, _dispatcher, integrationSettings, _toast);
-        var twitch = new TwitchModule(
+            _toast));
+        var soundpad = await CreateRuntimeModuleAsync("Soundpad", () => new SoundpadModule(
+            1000,
+            _appState,
+            _dispatcher,
+            integrationSettings,
+            _toast));
+        var twitch = await CreateRuntimeModuleAsync("Twitch", () => new TwitchModule(
             _twitchSettingsProvider,
             timeSettings,
             _twitchApiClient,
             integrationSettings,
             _dispatcher,
-            _toast);
-        var tracker = new TrackerBatteryModule(
+            _toast));
+        var discord = await CreateRuntimeModuleAsync("Discord", () => new DiscordModule(
+            _discordSettingsProvider,
+            _oscSender,
+            _dispatcher));
+        var tracker = await CreateRuntimeModuleAsync("TrackerBattery", () => new TrackerBatteryModule(
             _trackerSettingsProvider,
             _appState,
             _trackerDisplay,
             _integrationDisplay,
             _dispatcher,
-            _toast);
+            _toast));
+        var vrcRadar = await CreateRuntimeModuleAsync("VrcRadar", () => new VrcLogModule(
+            _vrcLogSettingsProvider,
+            integrationSettings,
+            _appState,
+            _oscSender,
+            _dispatcher));
 
-        _host.Pulsoid = pulsoid;
-        _host.Soundpad = soundpad;
-        _host.Twitch = twitch;
-        _host.TrackerBattery = tracker;
-
-        _host.RegisterModule(pulsoid);
-        _host.RegisterModule(soundpad);
-        _host.RegisterModule(twitch);
-        _host.RegisterModule(tracker);
-
-        // Wire up static IntegrationSettings reference for MediaLinkSettings POCO
-        MediaLinkSettings.SetIntegrationSettings(integrationSettings);
-
-        integrationSettings.PropertyChanged += pulsoid.PropertyChangedHandler;
-        integrationSettings.PropertyChanged += soundpad.PropertyChangedHandler;
-
-        // ViewModel.PropertyChanged carries IsVRRunning and PulsoidAuthConnected changes
-        if (_appState is System.ComponentModel.INotifyPropertyChanged notifier)
+        await _dispatcher.InvokeAsync(() =>
         {
-            notifier.PropertyChanged += pulsoid.PropertyChangedHandler;
-            notifier.PropertyChanged += soundpad.PropertyChangedHandler;
+            if (pulsoid != null)
+            {
+                _host.Pulsoid = pulsoid;
+                _host.RegisterModule(pulsoid);
+                integrationSettings.PropertyChanged += pulsoid.PropertyChangedHandler;
+            }
+
+            if (soundpad != null)
+            {
+                _host.Soundpad = soundpad;
+                _host.RegisterModule(soundpad);
+                integrationSettings.PropertyChanged += soundpad.PropertyChangedHandler;
+            }
+
+            if (twitch != null)
+            {
+                _host.Twitch = twitch;
+                _host.RegisterModule(twitch);
+            }
+
+            if (discord != null)
+            {
+                _host.Discord = discord;
+                _host.RegisterModule(discord);
+            }
+
+            if (tracker != null)
+            {
+                _host.TrackerBattery = tracker;
+                _host.RegisterModule(tracker);
+            }
+
+            if (vrcRadar != null)
+            {
+                _host.VrcRadar = vrcRadar;
+                _host.RegisterModule(vrcRadar);
+                integrationSettings.PropertyChanged += vrcRadar.PropertyChangedHandler;
+            }
+
+            // Wire up static IntegrationSettings reference for MediaLinkSettings POCO
+            MediaLinkSettings.SetIntegrationSettings(integrationSettings);
+
+            // ViewModel.PropertyChanged carries IsVRRunning and PulsoidAuthConnected changes
+            if (_appState is System.ComponentModel.INotifyPropertyChanged notifier)
+            {
+                if (pulsoid != null)
+                    notifier.PropertyChanged += pulsoid.PropertyChangedHandler;
+
+                if (soundpad != null)
+                    notifier.PropertyChanged += soundpad.PropertyChangedHandler;
+
+                if (vrcRadar != null)
+                    notifier.PropertyChanged += vrcRadar.PropertyChangedHandler;
+            }
+        });
+
+        // Discord auto-connect: start the module if user has a saved token and auto-connect enabled
+        if (discord != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _startupComplete.Task; // wait for full startup instead of fixed delay
+                    if (discord.Settings.AutoConnectOnStartup &&
+                        !string.IsNullOrWhiteSpace(discord.Settings.AccessToken))
+                    {
+                        Logging.WriteInfo("Discord: Auto-connecting on startup...");
+                        await discord.StartAsync();
+                    }
+                    else
+                    {
+                        Logging.WriteInfo($"Discord: Auto-connect skipped (enabled={discord.Settings.AutoConnectOnStartup}, hasToken={!string.IsNullOrWhiteSpace(discord.Settings.AccessToken)})");
+                    }
+                }
+                catch (Exception ex) { Logging.WriteInfo($"Discord auto-connect failed: {ex.Message}"); }
+            });
+        }
+
+        // VrcRadar auto-start: begin log tailing if integration toggles are enabled
+        if (vrcRadar != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _startupComplete.Task; // wait for full startup instead of fixed delay
+                    if (vrcRadar.ShouldBeRunning())
+                    {
+                        Logging.WriteInfo("VrcRadar: Auto-starting on startup...");
+                        await vrcRadar.StartAsync();
+                    }
+                    else
+                    {
+                        Logging.WriteInfo($"VrcRadar: Auto-start skipped (enabled={_integrationSettingsProvider.Value.IntgrVrcRadar})");
+                    }
+                }
+                catch (Exception ex) { Logging.WriteInfo($"VrcRadar auto-start failed: {ex.Message}"); }
+            });
+        }
+    }
+
+    private static async Task<T?> CreateRuntimeModuleAsync<T>(string moduleName, Func<T> factory)
+        where T : class
+    {
+        Logging.WriteInfo($"Creating runtime module: {moduleName}");
+
+        try
+        {
+            var createTask = Task.Run(factory);
+            var completedTask = await Task.WhenAny(createTask, Task.Delay(RuntimeModuleCreationTimeout)).ConfigureAwait(false);
+
+            if (completedTask != createTask)
+            {
+                Logging.WriteInfo(
+                    $"Runtime module '{moduleName}' timed out after {RuntimeModuleCreationTimeout.TotalSeconds:0}s and will be skipped.");
+                return null;
+            }
+
+            var module = await createTask.ConfigureAwait(false);
+            Logging.WriteInfo($"Created runtime module: {moduleName}");
+            return module;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(new Exception($"Failed to create runtime module '{moduleName}'.", ex), MSGBox: false);
+            return null;
         }
     }
 

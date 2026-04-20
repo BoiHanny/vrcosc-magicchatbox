@@ -30,9 +30,9 @@ public partial class ChatStatusDisplayState : ObservableObject
     [ObservableProperty] private string _statusTopBarTxt = string.Empty;
     [ObservableProperty] private string _chatTopBarTxt = string.Empty;
     [ObservableProperty] private string _statusBoxCount = "0/140";
-    [ObservableProperty] private string _statusBoxColor = "#FF504767";
+    [ObservableProperty] private string _statusBoxColor = "#230E52";
     [ObservableProperty] private string _chatBoxCount = "0/140";
-    [ObservableProperty] private string _chatBoxColor = "#FF504767";
+    [ObservableProperty] private string _chatBoxColor = "#230E52";
     [ObservableProperty] private bool _typingIndicator;
     [ObservableProperty] private bool _countDownUI = true;
     [ObservableProperty] private bool _intelliChatRequesting = false;

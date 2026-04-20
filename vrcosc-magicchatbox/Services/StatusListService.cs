@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
@@ -19,16 +20,19 @@ namespace vrcosc_magicchatbox.Services;
 /// JSON format (v2): { "version": 2, "groups": [...], "items": [...] }
 /// Legacy format (v1): raw array [...] — auto-migrated to Default group on first load.
 /// </summary>
-public sealed class StatusListService : IStatusListService
+public sealed class StatusListService : IStatusListService, IDisposable
 {
     private const int CurrentSchemaVersion = 2;
     private const string DefaultGroupName = "Default";
+    private const int DebounceSaveDelayMs = 2000;
 
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly IAppState _appState;
     private readonly IEnvironmentService _env;
     private readonly IUiDispatcher _dispatcher;
     private readonly IToastService _toast;
+    private Timer? _debounceTimer;
+    private readonly object _saveLock = new();
 
     public StatusListService(ChatStatusDisplayState chatStatus, IAppState appState, IEnvironmentService env, IUiDispatcher dispatcher, IToastService toast)
     {
@@ -67,26 +71,46 @@ public sealed class StatusListService : IStatusListService
 
     public void SaveStatusList()
     {
-        try
+        _debounceTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+        SaveStatusListCore();
+    }
+
+    public void RequestSave()
+    {
+        _debounceTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+        _debounceTimer ??= new Timer(_ => SaveStatusListCore(), null, Timeout.Infinite, Timeout.Infinite);
+        _debounceTimer.Change(DebounceSaveDelayMs, Timeout.Infinite);
+    }
+
+    private void SaveStatusListCore()
+    {
+        lock (_saveLock)
         {
-            var dataPath = _env.DataPath;
-            if (string.IsNullOrEmpty(dataPath)) return;
-
-            Directory.CreateDirectory(dataPath);
-
-            var bundle = new StatusBundle
+            try
             {
-                Version = CurrentSchemaVersion,
-                Groups = _chatStatus.GroupList.ToList(),
-                Items = _chatStatus.StatusList.ToList()
-            };
-            var json = JsonConvert.SerializeObject(bundle, Formatting.Indented);
-            File.WriteAllText(Path.Combine(dataPath, "StatusList.json"), json);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-            _toast.Show("💾 Status List", "Failed to save status list changes.", ToastType.Warning, key: "status-list-save-failed");
+                var dataPath = _env.DataPath;
+                if (string.IsNullOrEmpty(dataPath)) return;
+
+                Directory.CreateDirectory(dataPath);
+
+                var bundle = new StatusBundle
+                {
+                    Version = CurrentSchemaVersion,
+                    Groups = _chatStatus.GroupList.ToList(),
+                    Items = _chatStatus.StatusList.ToList()
+                };
+                var json = JsonConvert.SerializeObject(bundle, Formatting.Indented);
+
+                var filePath = Path.Combine(dataPath, "StatusList.json");
+                var tempPath = filePath + ".tmp";
+                File.WriteAllText(tempPath, json);
+                File.Move(tempPath, filePath, overwrite: true);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                _toast.Show("💾 Status List", "Failed to save status list changes.", ToastType.Warning, key: "status-list-save-failed");
+            }
         }
     }
 
@@ -99,7 +123,7 @@ public sealed class StatusListService : IStatusListService
             IsActiveForCycle = true,
             CreationDate = DateTime.Now
         };
-        _dispatcher.Invoke(() => _chatStatus.GroupList.Add(group));
+        _dispatcher.BeginInvoke(() => _chatStatus.GroupList.Add(group));
         SaveStatusList();
     }
 
@@ -124,7 +148,7 @@ public sealed class StatusListService : IStatusListService
         foreach (var item in _chatStatus.StatusList.Where(i => i.GroupId == groupId))
             item.GroupId = defaultGroup.GroupId;
 
-        _dispatcher.Invoke(() => _chatStatus.GroupList.Remove(group));
+        _dispatcher.BeginInvoke(() => _chatStatus.GroupList.Remove(group));
         SaveStatusList();
     }
 
@@ -222,7 +246,7 @@ public sealed class StatusListService : IStatusListService
             if (checkEggs) CheckForSpecialMessages(items);
         }
 
-        if (!_dispatcher.CheckAccess()) _dispatcher.Invoke(Apply);
+        if (!_dispatcher.CheckAccess()) _dispatcher.BeginInvoke(Apply);
         else Apply();
     }
 
@@ -265,9 +289,16 @@ public sealed class StatusListService : IStatusListService
     }
 
     private static int GenerateRandomId()
+        => Random.Shared.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax);
+
+    public void Dispose()
     {
-        var random = new Random();
-        return random.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax);
+        if (_debounceTimer != null)
+        {
+            _debounceTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _debounceTimer.Dispose();
+            _debounceTimer = null;
+        }
     }
 
     // ── inner DTO ─────────────────────────────────────────────────────────────

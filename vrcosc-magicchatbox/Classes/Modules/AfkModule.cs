@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -207,7 +207,7 @@ public partial class AfkModule : ObservableObject, IModule
             afkString += Settings.AfkMessageWithoutTimeStamp;
         }
 
-        return afkString;
+        return afkString.Replace("\\n", "\n").Replace("/n", "\n");
     }
 
     private void InitializeAfkDetection()
@@ -219,7 +219,7 @@ public partial class AfkModule : ObservableObject, IModule
     private void StartTimer()
     {
         _afkTimer?.Dispose();
-        _afkTimer = new Timer(_ => _dispatcher.Invoke(AfkTimer_Tick), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        _afkTimer = new Timer(_ => _dispatcher.BeginInvoke(AfkTimer_Tick), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
         _timerRunning = true;
     }
 

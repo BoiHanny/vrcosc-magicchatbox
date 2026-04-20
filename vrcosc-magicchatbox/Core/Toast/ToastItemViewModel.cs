@@ -28,18 +28,18 @@ public partial class ToastItemViewModel : ObservableObject
     {
         ToastType.Success => new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)),
         ToastType.Warning => new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07)),
-        ToastType.Error   => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),
+        ToastType.Error => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),
         ToastType.Privacy => new SolidColorBrush(Color.FromRgb(0xC3, 0xA9, 0xFF)),
-        _                 => new SolidColorBrush(Color.FromRgb(0x31, 0xB7, 0xB4)), // Info = teal
+        _ => new SolidColorBrush(Color.FromRgb(0x31, 0xB7, 0xB4)), // Info = teal
     };
 
     public string TypeIcon => Type switch
     {
         ToastType.Success => "✅",
         ToastType.Warning => "⚠️",
-        ToastType.Error   => "❌",
+        ToastType.Error => "❌",
         ToastType.Privacy => "🔒",
-        _                 => "ℹ️",
+        _ => "ℹ️",
     };
 
     public ToastItemViewModel(string title, string message, ToastType type, ToastAction? action, IToastService service, string? key = null)

@@ -89,8 +89,6 @@
 
                 <ListBox
                     x:Name="OrderList"
-                    Background="{StaticResource InputBackgroundBrush}"
-                    BorderThickness="0"
                     FontSize="15"
                     Foreground="{StaticResource SurfaceDarkBrush}"
                     ItemsSource="{Binding TempOrder}" />
@@ -185,7 +183,6 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Background="#004D0606"
-                BorderThickness="0"
                 Click="Button_close_Click"
                 Cursor="Hand"
                 Style="{DynamicResource CloseButtonStyle}"

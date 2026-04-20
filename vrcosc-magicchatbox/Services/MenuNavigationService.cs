@@ -15,6 +15,7 @@ public sealed class MenuNavigationService : IMenuNavigationService
     private readonly Action<int> _setPageIndex;
     private readonly IUiDispatcher _dispatcher;
     private Action? _expandPrivacy;
+    private Action<string>? _scrollToSection;
 
     public MenuNavigationService(AppSettings appSettings, Action<int> setPageIndex, IUiDispatcher dispatcher)
     {
@@ -33,14 +34,19 @@ public sealed class MenuNavigationService : IMenuNavigationService
             { "Settings_TTS", v => appSettings.Settings_TTS = v },
             { "Settings_Weather", v => appSettings.Settings_Weather = v },
             { "Settings_Twitch", v => appSettings.Settings_Twitch = v },
+            { "Settings_Discord", v => appSettings.Settings_Discord = v },
             { "Settings_Time", v => appSettings.Settings_Time = v },
             { "Settings_HeartRate", v => appSettings.Settings_HeartRate = v },
-            { "Settings_Status", v => appSettings.Settings_Status = v }
+            { "Settings_Status", v => appSettings.Settings_Status = v },
+            { "Settings_VrcRadar", v => appSettings.Settings_VrcRadar = v }
         };
     }
 
     /// <summary>Wires the action that expands the Privacy section in the Options page.</summary>
     public void SetExpandPrivacyAction(Action expandPrivacy) => _expandPrivacy = expandPrivacy;
+
+    /// <summary>Wires the callback that scrolls the Options page to a named section.</summary>
+    public void SetScrollToSectionAction(Action<string> scrollToSection) => _scrollToSection = scrollToSection;
 
     public void ActivateSetting(string settingName)
     {
@@ -51,18 +57,19 @@ public sealed class MenuNavigationService : IMenuNavigationService
                 setting.Value(setting.Key == settingName);
             }
             NavigateToPage(3);
+            _scrollToSection?.Invoke(settingName);
         }
     }
 
     public void NavigateToPage(int pageIndex)
     {
         if (pageIndex >= 0 && pageIndex <= 3)
-            _dispatcher.Invoke(() => _setPageIndex(pageIndex));
+            _dispatcher.BeginInvoke(() => _setPageIndex(pageIndex));
     }
 
     public void NavigateToPrivacy()
     {
-        _dispatcher.Invoke(() =>
+        _dispatcher.BeginInvoke(() =>
         {
             _setPageIndex(3);
             _expandPrivacy?.Invoke();

@@ -32,6 +32,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
     private readonly HotkeyManagement _hotkeyMgmt;
     private readonly IWindowActivityService _windowActivity;
     private readonly IWeatherService _weatherSvc;
+    private readonly IStatusListService _statusListSvc;
 
     public StatePersistenceCoordinator(
         Lazy<IOscSender> oscSender,
@@ -51,7 +52,8 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         Lazy<IMediaLinkPersistenceService> mediaLinkSvc,
         HotkeyManagement hotkeyMgmt,
         IWindowActivityService windowActivity,
-        IWeatherService weatherSvc)
+        IWeatherService weatherSvc,
+        IStatusListService statusListSvc)
     {
         _oscSender = oscSender;
         _intSettingsProvider = intSettingsProvider;
@@ -71,6 +73,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         _hotkeyMgmt = hotkeyMgmt;
         _windowActivity = windowActivity;
         _weatherSvc = weatherSvc;
+        _statusListSvc = statusListSvc;
     }
 
     public void PersistAllState()
@@ -96,7 +99,8 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
             _timeSettingsProvider.Save();
             _ttsSettingsProvider.Save();
             _appSettingsProvider.Save();
-            _intSettingsProvider.Save();
+
+            _statusListSvc.SaveStatusList();
 
             foreach (var module in _modules.Value.AllModules)
             {

@@ -1,5 +1,5 @@
-using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using System.Windows.Controls;
 using vrcosc_magicchatbox.Core.Toast;
 
 namespace vrcosc_magicchatbox.UI.Controls;

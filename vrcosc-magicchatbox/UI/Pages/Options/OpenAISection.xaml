@@ -176,7 +176,6 @@
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="PerformModerationCheck"
-                                            Height="20"
                                             IsChecked="{Binding Modules.IntelliChat.Settings.IntelliChatPerformModeration, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Enable free moderation checks to safeguard your content and OpenAI account
@@ -221,13 +220,11 @@
                                             <ComboBox
                                                 x:Name="WritingStylesComboBox"
                                                 Width="200"
-                                                Height="25"
                                                 Margin="2,4"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
                                                 DisplayMemberPath="StyleName"
                                                 ItemsSource="{Binding Modules.IntelliChat.Settings.SupportedWritingStyles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Opacity="0.3"
                                                 SelectedItem="{Binding Modules.IntelliChat.Settings.SelectedWritingStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock
                                                 Width="auto"
@@ -250,11 +247,9 @@
                                             Text="OpenAI Model:" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.IntelliChat.Settings.PerformBeautifySentenceModel, Mode=TwoWay}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -293,7 +288,6 @@
 
                                         <CheckBox
                                             x:Name="AutoDetectLang"
-                                            Height="20"
                                             Margin="2,14,0,0"
                                             IsChecked="{Binding Modules.IntelliChat.Settings.AutolanguageSelection, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}"
@@ -313,12 +307,10 @@
                                         <ComboBox
                                             x:Name="SelectedTranslateLanguageComboBox"
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             DisplayMemberPath="Language"
                                             ItemsSource="{Binding Modules.IntelliChat.Settings.SupportedLanguages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            Opacity="0.3"
                                             SelectedItem="{Binding Modules.IntelliChat.Settings.SelectedTranslateLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 
@@ -332,11 +324,9 @@
                                             Text="OpenAI Model:" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.IntelliChat.Settings.PerformLanguageTranslationModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -383,13 +373,11 @@
                                             <ComboBox
                                                 x:Name="SelectedDeviceComboBox"
                                                 Width="200"
-                                                Height="25"
                                                 Margin="2,4"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
                                                 DisplayMemberPath="DeviceName"
                                                 ItemsSource="{Binding Modules.Whisper.Settings.AvailableDevices}"
-                                                Opacity="0.3"
                                                 SelectedValue="{Binding Modules.Whisper.Settings.SelectedDeviceIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 SelectedValuePath="DeviceIndex" />
 
@@ -404,11 +392,9 @@
                                             Text="OpenAI STT Model:" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.Whisper.Settings.AvailableSTTModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.Whisper.Settings.SpeechToTextModel, Mode=TwoWay}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -438,7 +424,6 @@
                                             TextWrapping="Wrap" />
                                         <CheckBox
                                             x:Name="TranslateToCustomLanguage"
-                                            Height="20"
                                             Margin="4,0,4,4"
                                             IsChecked="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
@@ -460,13 +445,11 @@
                                             <ComboBox
                                                 x:Name="SelectedSpeechToTextLanguageComboBox"
                                                 Width="200"
-                                                Height="25"
                                                 Margin="2,4"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
                                                 DisplayMemberPath="Language"
                                                 ItemsSource="{Binding Modules.Whisper.Settings.SpeechToTextLanguages}"
-                                                Opacity="0.3"
                                                 SelectedValue="{Binding Modules.Whisper.Settings.SelectedSpeechToTextLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                                         </StackPanel>
@@ -482,15 +465,11 @@
                                             <TextBox
                                                 x:Name="SilenceAutoTurnOffDurationINT"
                                                 Width="auto"
-                                                Height="26"
                                                 Margin="4,3,3,0"
                                                 Padding="3,0,3,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalContentAlignment="Center"
-                                                Background="{StaticResource InputBackgroundBrush}"
-                                                BorderThickness="0"
                                                 FontSize="15"
-                                                Foreground="{StaticResource TextDarkBrush}"
                                                 Text="{Binding Modules.Whisper.Settings.SilenceAutoTurnOffDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock
                                                 Width="auto"
@@ -505,7 +484,6 @@
 
                                         <CheckBox
                                             x:Name="SendAftersilence"
-                                            Height="20"
                                             Margin="4,10,4,4"
                                             IsChecked="{Binding Modules.Whisper.Settings.SendAftersilence, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
@@ -583,11 +561,9 @@
                                             Text="Conversation starter OpenAI Model:" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.IntelliChat.Settings.GenerateConversationStarterModel, Mode=TwoWay}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -606,11 +582,9 @@
                                             Text="Shorten text OpenAI Model:" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.IntelliChat.Settings.PerformShortenTextModel, Mode=TwoWay}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -629,11 +603,9 @@
                                             Text="Spelling / grammar correction OpenAI Model" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.IntelliChat.Settings.PerformSpellingCheckModel, Mode=TwoWay}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -652,11 +624,9 @@
                                             Text="Next word prediction OpenAI Model" />
                                         <ComboBox
                                             Width="200"
-                                            Height="25"
                                             Margin="2,4"
                                             HorizontalAlignment="Left"
                                             ItemsSource="{Binding Modules.IntelliChat.AvailableChatModels}"
-                                            Opacity="0.3"
                                             SelectedValue="{Binding Modules.IntelliChat.Settings.PerformTextCompletionModel, Mode=TwoWay}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -677,7 +647,6 @@
                                     <StackPanel Margin="5">
                                         <CheckBox
                                             x:Name="HideOpenAITools"
-                                            Height="20"
                                             IsChecked="{Binding ChatSettings.HideOpenAITools, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Hide OpenAI toolbar in chatting tab

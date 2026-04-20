@@ -83,16 +83,14 @@
                 <Border
                     Width="600"
                     Height="40"
-                    Background="{StaticResource InputBackgroundBrush}"
-                    BorderThickness="0"
                     CornerRadius="5">
                     <PasswordBox
                         x:Name="Token"
+                        MaxLength="200"
                         Padding="5,0"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Background="Transparent"
-                        BorderThickness="0"
                         FontSize="20"
                         Foreground="{StaticResource SurfaceDarkBrush}"
                         PasswordChanged="Token_PasswordChanged"
@@ -173,7 +171,6 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Background="#004D0606"
-                BorderThickness="0"
                 Click="Button_close_Click"
                 Cursor="Hand"
                 Style="{DynamicResource CloseButtonStyle}"

@@ -54,50 +54,50 @@ namespace vrcosc_magicchatbox
         {
             base.OnStartup(e);
 
-            Services = ServiceRegistration.ConfigureServices();
-
-            // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
-            Logging.Initialize(
-                Services.GetRequiredService<AppUpdateState>(),
-                Services.GetRequiredService<IEnvironmentService>(),
-                Services.GetRequiredService<IHttpClientFactory>(),
-                Services.GetRequiredService<IUiDispatcher>(),
-                Services.GetRequiredService<IVersionService>(),
-                Services.GetRequiredService<INavigationService>());
-
-            // Run legacy XML→JSON migration BEFORE any settings provider is resolved from DI.
-            // JsonSettingsProvider<T> loads from disk in its constructor — migration must write
-            // files first so providers pick up the migrated values immediately.
-            {
-                var env = Services.GetRequiredService<IEnvironmentService>();
-                SettingsMigrationService.RunAll(env.DataPath);
-            }
-
-            // Initialize static defaults for model classes (eliminates service locator in models)
-            ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
-            TrackerDevice.DefaultTrackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
-
-            var vm = Services.GetRequiredService<ViewModel>();
-
-            var bootstrapper = Services.GetRequiredService<ModuleBootstrapper>();
-            bootstrapper.RegisterComponentStats(Services.GetRequiredService<ComponentStatsModule>());
-
-            await Task.Run(() =>
-            {
-                var env = Services.GetRequiredService<IEnvironmentService>();
-                var appHistorySvc = Services.GetRequiredService<IAppHistoryService>();
-                if (appHistorySvc.CreateIfMissing(env.DataPath))
-                    Logging.WriteInfo("Application started at: " + DateTime.Now);
-            });
-
-            StartUp loadingWindow = new StartUp();
-            loadingWindow.Show();
-
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
 #if DEBUG
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #endif
+
+            StartUp? loadingWindow = null;
+            try
+            {
+                Services = ServiceRegistration.ConfigureServices();
+
+                // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
+                Logging.Initialize(
+                    Services.GetRequiredService<AppUpdateState>(),
+                    Services.GetRequiredService<IEnvironmentService>(),
+                    Services.GetRequiredService<IHttpClientFactory>(),
+                    Services.GetRequiredService<IUiDispatcher>(),
+                    Services.GetRequiredService<IVersionService>(),
+                    Services.GetRequiredService<INavigationService>());
+
+                {
+                    var env = Services.GetRequiredService<IEnvironmentService>();
+                    SettingsMigrationService.RunAll(env.DataPath);
+                }
+
+                // Initialize static defaults for model classes (eliminates service locator in models)
+                ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
+                TrackerDevice.DefaultTrackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
+
+                var vm = Services.GetRequiredService<ViewModel>();
+
+                var bootstrapper = Services.GetRequiredService<ModuleBootstrapper>();
+                bootstrapper.RegisterComponentStats(Services.GetRequiredService<ComponentStatsModule>());
+
+                await Task.Run(() =>
+                {
+                    var env = Services.GetRequiredService<IEnvironmentService>();
+                    var appHistorySvc = Services.GetRequiredService<IAppHistoryService>();
+                    if (appHistorySvc.CreateIfMissing(env.DataPath))
+                        Logging.WriteInfo("Application started at: " + DateTime.Now);
+                });
+
+                loadingWindow = new StartUp();
+                loadingWindow.Show();
 
             UpdateApp updater = new UpdateApp(
                 Services.GetRequiredService<AppUpdateState>(),
@@ -191,23 +191,59 @@ namespace vrcosc_magicchatbox
 
             await InitializeComponentsWithProgress(loadingWindow);
 
+            loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
+            Logging.WriteInfo("Creating MainWindow instance.");
             MainWindow mainWindow = new MainWindow(
                 Services.GetRequiredService<ScanLoopService>(),
                 Services.GetRequiredService<ModuleBootstrapper>(),
                 Services.GetRequiredService<Core.Services.IModuleHost>(),
                 Services.GetRequiredService<IStatePersistenceCoordinator>());
-            mainWindow.DataContext = vm;
+            // DataContext is NOT set yet — Show() renders an empty shell in ~570ms
+            // instead of hanging while WPF evaluates every binding + automation peer.
+            Logging.WriteInfo("MainWindow instance created.");
 
-            // Initialize the main window now that DataContext (VM) has been assigned.
-            // InitializeAsync depends on VM and UI elements and must run after DataContext is set.
-            await mainWindow.InitializeAsync();
-
-            loadingWindow.UpdateProgress("Setting up the hotkeys... Hotkey, hotkey, hotkey!", 97);
-            Services.GetRequiredService<HotkeyManagement>().Initialize(mainWindow);
+            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
+            loadingWindow.Topmost = true;
+            Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
             mainWindow.Show();
+            Logging.WriteInfo("[Startup] MainWindow shown.");
 
-            // Wire toast notifications for runtime consent changes (subscribed AFTER mainWindow.Show so
-            // wizard-time consent saves don't fire premature toasts on a hidden window).
+            mainWindow.UpdateOverlayProgress("Connecting data bindings...", 30, "Wiring up modules...");
+
+            Logging.WriteInfo("[Startup] Assigning DataContext...");
+            mainWindow.DataContext = vm;
+            Logging.WriteInfo("[Startup] DataContext assigned.");
+
+            mainWindow.UpdateOverlayProgress("Wiring up modules...", 55, "Initializing components...");
+
+            // Initialize (creates late modules, wires events, sets selected page).
+            loadingWindow.UpdateProgress("Wiring up the final UI bits... Almost there!", 100);
+            await mainWindow.InitializeAsync();
+            Logging.WriteInfo("MainWindow.InitializeAsync completed.");
+
+            mainWindow.UpdateOverlayProgress("Initializing components...", 75, "Registering hotkeys...");
+
+            Logging.WriteInfo("[Startup] Registering hotkeys...");
+            Services.GetRequiredService<HotkeyManagement>().Initialize(mainWindow);
+            Logging.WriteInfo("[Startup] Hotkeys registered.");
+
+            mainWindow.UpdateOverlayProgress("Registering hotkeys...", 85, "Rendering interface...");
+            
+            Logging.WriteInfo("[Startup] Waiting for initial render...");
+            await Task.Delay(150);
+            Logging.WriteInfo("[Startup] Initial render completed.");
+
+            mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
+
+            loadingWindow.Close();
+            Logging.WriteInfo("[Startup] Splash closed.");
+
+            mainWindow.HideStartupOverlay();
+
+            // Signal that startup is complete — modules waiting for auto-start can now proceed
+            Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
+            Logging.WriteInfo("[Startup] Startup-complete signal fired.");
+
             var toastSvc = Services.GetRequiredService<IToastService>();
             var consentSvc = Services.GetRequiredService<IPrivacyConsentService>();
             consentSvc.ConsentChanged += (_, args) =>
@@ -233,16 +269,43 @@ namespace vrcosc_magicchatbox
                     ToastType.Success,
                     durationMs: 7000);
 
+            Logging.WriteInfo("[Startup] Initializing user monitoring...");
             InitializeUserMonitoring();
+            Logging.WriteInfo("[Startup] User monitoring initialized.");
 
-            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 100);
-            loadingWindow.Close();
+            // Start background scan loop LAST — after window is visible and splash is gone
+            Logging.WriteInfo("[Startup] Starting background scan loop...");
+            mainWindow.StartBackgroundProcessing();
+            Logging.WriteInfo("[Startup] Background processing started.");
 
             if (vm.AppSettingsInstance.CheckUpdateOnStartup)
             {
                 _ = RunDeferredStartupUpdateCheckAsync();
             }
 
+            }
+            catch (Exception ex)
+            {
+                // If logging is available, use it; otherwise fall back to MessageBox
+                try
+                {
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+                catch { /* logging itself may have failed */ }
+
+                try
+                {
+                    loadingWindow?.Close();
+                }
+                catch { /* window may not be open */ }
+
+                MessageBox.Show(
+                    $"MagicChatbox failed to start:\n\n{ex.Message}\n\nPlease report this error.",
+                    "Startup Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Shutdown();
+            }
         }
 
         private async Task RunDeferredStartupUpdateCheckAsync()
@@ -327,11 +390,10 @@ namespace vrcosc_magicchatbox
             var allowedService = Services.GetRequiredService<IAllowedForUsingService>();
             allowedService.BanDetected += (sender, args) =>
             {
-                Dispatcher.Invoke(() =>
+                Dispatcher.BeginInvoke(() =>
                 {
                     Services.GetRequiredService<IBanEnforcementService>().ProcessBan(args.UserId, args.Reason);
                 });
-
             };
             allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval);
         }
@@ -339,10 +401,14 @@ namespace vrcosc_magicchatbox
 
         private async Task InitializeComponentsWithProgress(StartUp loadingWindow)
         {
+            var sw = Stopwatch.StartNew();
             var vm = Services.GetRequiredService<ViewModel>();
             var env = Services.GetRequiredService<IEnvironmentService>();
 
-            loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 7);
+            void LogStep(string name) => Logging.WriteInfo($"[Startup] {name} completed in {sw.ElapsedMilliseconds}ms");
+
+            // ── Prerequisites (sequential — everything else depends on these) ──
+            loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 5, "Migrating settings to the new world order...");
             await Task.Run(() =>
             {
                 Directory.CreateDirectory(env.LogPath);
@@ -350,64 +416,95 @@ namespace vrcosc_magicchatbox
                 InternalLogger.LogFile = Path.Combine(env.LogPath, "internal-nlog.txt");
                 LogManager.LoadConfiguration("NLog.config");
             });
+            LogStep("NLog config");
 
-            loadingWindow.UpdateProgress("Migrating settings to the new world order...", 15);
-            await Task.Run(() =>
-            {
-                SettingsMigrationService.RunAll(env.DataPath);
-            });
+            loadingWindow.UpdateProgress("Migrating settings to the new world order...", 10, "Loading your saved data... Parallel turbo mode!");
+            await Task.Run(() => SettingsMigrationService.RunAll(env.DataPath));
+            LogStep("Settings migration");
 
             Services.GetRequiredService<WeatherOverrideState>().Initialize(_weatherSettings);
 
-            loadingWindow.UpdateProgress("Restoring your saved settings...", 20);
-            await Task.Run(() =>
-            {
-                // Sync persisted JSON settings → runtime display states
-                var intSettings = Services.GetRequiredService<ISettingsProvider<IntegrationSettings>>().Value;
-                Services.GetRequiredService<IntegrationDisplayState>().IntegrationSortOrder = intSettings.SavedSortOrder;
+            // ── Wave 1: File I/O (all independent, run in parallel) ──
+            loadingWindow.UpdateProgress("Loading your saved data... Parallel turbo mode!", 20, "Firing up modules... All engines go!");
+            await Task.WhenAll(
+                Task.Run(() =>
+                {
+                    var intSettings = Services.GetRequiredService<ISettingsProvider<IntegrationSettings>>().Value;
+                    Services.GetRequiredService<IntegrationDisplayState>().IntegrationSortOrder = intSettings.SavedSortOrder;
 
-                var trackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
-                Services.GetRequiredService<TrackerDisplayState>().TrackerDevices = trackerSettings.SavedDevices;
-            });
+                    var trackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
+                    Services.GetRequiredService<TrackerDisplayState>().TrackerDevices = trackerSettings.SavedDevices;
+                    LogStep("Settings restore");
+                }),
+                Task.Run(() =>
+                {
+                    Services.GetRequiredService<IStatusListService>().LoadStatusList();
+                    LogStep("Status list");
+                }),
+                Task.Run(() =>
+                {
+                    Services.GetRequiredService<IChatHistoryService>().LoadChatHistory();
+                    LogStep("Chat history");
+                }),
+                Task.Run(() =>
+                {
+                    Services.GetRequiredService<IAppHistoryService>().LoadAppHistory();
+                    LogStep("App history");
+                }),
+                Task.Run(() =>
+                {
+                    Services.GetRequiredService<IMediaLinkPersistenceService>().LoadMediaSessionsAsync();
+                    LogStep("MediaLink sessions");
+                })
+            );
+            LogStep("Wave 1 complete");
 
-            loadingWindow.UpdateProgress("Gathering status items like a squirrel with nuts!", 30);
-            await Task.Run(() => Services.GetRequiredService<IStatusListService>().LoadStatusList());
-
-            loadingWindow.UpdateProgress("Detective on the hunt for last session's chat messages... Elementary, my dear Watson!", 40);
-            await Task.Run(() => Services.GetRequiredService<IChatHistoryService>().LoadChatHistory());
-
-            loadingWindow.UpdateProgress("Going on a treasure hunt for MediaLink settings... Ahoy, Captain!", 50);
-            await Task.Run(() => Services.GetRequiredService<IMediaLinkPersistenceService>().LoadMediaSessions());
-
-            loadingWindow.UpdateProgress("Selecting recent apps for window integration, like picking the A-Team!", 60);
-            await Task.Run(() => Services.GetRequiredService<IAppHistoryService>().LoadAppHistory());
-
-            if (_integrationSettings.IntgrComponentStats)
-            {
-                loadingWindow.UpdateProgress("Lighting up ComponentStats like it's the 4th of July. Ka-boom!", 65);
-                await Task.Run(() => App.Services.GetRequiredService<ComponentStatsModule>().StartModule());
-            }
-
-            loadingWindow.UpdateProgress("Initializing Network Statistics Module", 66);
-            var netStats = await Task.Run(() => App.Services.GetRequiredService<NetworkStatisticsModule>());
-            App.Services.GetRequiredService<IModuleHost>().RegisterModule(netStats);
-
-            loadingWindow.UpdateProgress("Initializing OpenAI like a rocket launch. 3... 2... 1... Blast off!", 70);
-            var openAIModule = App.Services.GetRequiredService<OpenAIModule>();
-            var openAISettings = App.Services.GetRequiredService<ISettingsProvider<OpenAISettings>>().Value;
-            await Task.Run(() => openAIModule.InitializeClient(openAISettings.AccessToken, openAISettings.OrganizationID));
-
-            loadingWindow.UpdateProgress("Initializing IntelliSense like a psychic. What's on your mind?", 72);
+            // ── Wave 2: Module initialization (independent, run in parallel) ──
+            loadingWindow.UpdateProgress("Firing up modules... All engines go!", 55, "Turbocharging the final modules... Almost there!");
             var bootMods = Services.GetRequiredService<ModuleBootstrapper>();
-            await Task.Run(() => bootMods.CreateIntelliChat());
 
-            loadingWindow.UpdateProgress("Warming up the TTS voices. Ready for the vocal Olympics!", 75);
-            vm.TtsAudio.TikTokTTSVoices = await Task.Run(() => Services.GetRequiredService<IAudioService>().ReadTikTokTTSVoices());
+            await Task.WhenAll(
+                Task.Run(() =>
+                {
+                    if (_integrationSettings.IntgrComponentStats)
+                    {
+                        Services.GetRequiredService<ComponentStatsModule>().StartModule();
+                        LogStep("ComponentStats");
+                    }
+                }),
+                Task.Run(() =>
+                {
+                    var netStats = Services.GetRequiredService<NetworkStatisticsModule>();
+                    Services.GetRequiredService<IModuleHost>().RegisterModule(netStats);
+                    LogStep("NetworkStats");
+                }),
+                Task.Run(() =>
+                {
+                    var openAIModule = Services.GetRequiredService<OpenAIModule>();
+                    var openAISettings = Services.GetRequiredService<ISettingsProvider<OpenAISettings>>().Value;
+                    openAIModule.InitializeClient(openAISettings.AccessToken, openAISettings.OrganizationID);
+                    LogStep("OpenAI");
+                }),
+                Task.Run(() =>
+                {
+                    bootMods.CreateIntelliChat();
+                    LogStep("IntelliChat");
+                }),
+                Task.Run(() =>
+                {
+                    vm.TtsAudio.TikTokTTSVoices = Services.GetRequiredService<IAudioService>().ReadTikTokTTSVoices();
+                    LogStep("TTS voices");
+                }),
+                Task.Run(() =>
+                {
+                    Services.GetRequiredService<IAudioService>().PopulateOutputDevices();
+                    LogStep("Audio devices");
+                })
+            );
+            LogStep("Wave 2 complete");
 
-            loadingWindow.UpdateProgress("Selecting your audio devices like a DJ choosing beats. Drop the bass!", 80);
-            await Task.Run(() => Services.GetRequiredService<IAudioService>().PopulateOutputDevices());
-
-            loadingWindow.UpdateProgress("Turbocharging MediaLink engines... Fast & Furious: Data Drift!", 95);
+            // ── Wave 3: Final wiring (MediaLink + runtime modules + seekbar) ──
+            loadingWindow.UpdateProgress("Turbocharging the final modules... Almost there!", 85, "Starting runtime modules... Ready, set, go!");
             ApplicationMediaController = new MediaLinkModule(
                 _integrationSettings.IntgrScanMediaLink,
                 Services.GetRequiredService<IPrivacyConsentService>(),
@@ -417,13 +514,20 @@ namespace vrcosc_magicchatbox
                 Services.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
                 Services.GetRequiredService<IUiDispatcher>(),
                 Services.GetRequiredService<IToastService>());
+            LogStep("MediaLinkModule");
 
-            loadingWindow.UpdateProgress("Starting the modules... Ready, set, go!", 96);
-            await Task.Run(() => bootMods.CreateRuntimeModules());
-            // Modules are now accessed via VM.Modules (IModuleHost) — no need to copy refs
+            loadingWindow.UpdateProgress("Starting runtime modules... Ready, set, go!", 90, "Building the main window shell...");
+            await Task.WhenAll(
+                bootMods.CreateRuntimeModulesAsync(),
+                Task.Run(() =>
+                {
+                    Services.GetRequiredService<IMediaLinkPersistenceService>().LoadSeekbarStylesAsync();
+                    LogStep("Seekbar styles");
+                })
+            );
+            LogStep("Runtime modules + seekbar");
 
-            loadingWindow.UpdateProgress("Loading MediaLink styles... Fashion show, here we come!", 98);
-            await Task.Run(() => Services.GetRequiredService<IMediaLinkPersistenceService>().LoadSeekbarStyles());
+            Logging.WriteInfo($"[Startup] All components initialized in {sw.ElapsedMilliseconds}ms");
         }
     }
 }

@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:vrcosc_magicchatbox.UI.Dialogs"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Application Error"
+    Icon="/Img/MagicOSC_icon.ico"
     Width="700"
     Height="auto"
     ResizeMode="NoResize"
@@ -170,7 +171,12 @@
                 </Button>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Image Margin="2" Source="/Img/Icons/error.png" />
+                <Image
+                    Width="20"
+                    Height="20"
+                    Margin="2"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    Source="/Img/Icons/MagicChatbox_ico.png" />
                 <TextBlock
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"

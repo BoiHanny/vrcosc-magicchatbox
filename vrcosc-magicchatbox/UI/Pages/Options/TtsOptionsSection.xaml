@@ -95,18 +95,15 @@
 
                 <StackPanel
                     Width="auto"
-                    Height="22"
-                    Margin="0,0,0,15"
+                    Margin="0,8,0,8"
                     HorizontalAlignment="Left"
                     Orientation="Horizontal">
                     <ComboBox
                         x:Name="PlaybackOutputDeviceComboBox"
                         Width="186"
-                        Height="25"
                         Margin="0"
                         DisplayMemberPath="FriendlyName"
                         ItemsSource="{Binding TtsAudio.PlaybackOutputDevices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        Opacity="0.4"
                         SelectedItem="{Binding TtsAudio.SelectedPlaybackOutputDevice, Mode=TwoWay}"
                         SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" />
                     <TextBlock

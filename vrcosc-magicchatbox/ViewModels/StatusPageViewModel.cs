@@ -24,6 +24,10 @@ namespace vrcosc_magicchatbox.ViewModels
     /// </summary>
     public partial class StatusPageViewModel : ObservableObject
     {
+        private const string DefaultGroupName = "Default";
+        private const string BoxColorNormal = "#FF6B5F98";
+        private const string BoxColorWarning = "#FFFF9393";
+
         private readonly ChatStatusDisplayState _chatStatus;
         private readonly IAppState _appState;
         private readonly IStatusListService _statusListService;
@@ -31,6 +35,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private ICollectionView? _filteredView;
         private readonly Dictionary<StatusSortField, bool> _sortDirections = new();
+        private bool _initialGroupRestored;
 
         [ObservableProperty] private StatusGroup? _selectedGroup;
         [ObservableProperty] private StatusSortField _currentSortField = StatusSortField.CreationDate;
@@ -41,6 +46,9 @@ namespace vrcosc_magicchatbox.ViewModels
         public ChatStatusDisplayState ChatStatus { get; }
         public AppSettings AppSettings { get; }
         public ObservableCollection<StatusItem> SelectedItems { get; } = new();
+
+        /// <summary>True when any item is currently being inline-edited.</summary>
+        public bool IsAnyItemEditing => _chatStatus.StatusList.Any(i => i.IsEditing);
 
         public ICollectionView? FilteredView
         {
@@ -83,7 +91,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (e.PropertyName is nameof(ChatStatusDisplayState.StatusList)
                                or nameof(ChatStatusDisplayState.GroupList))
             {
-                Application.Current?.Dispatcher.Invoke(RebuildFilteredView);
+                Application.Current?.Dispatcher.BeginInvoke(RebuildFilteredView);
             }
         }
 
@@ -105,9 +113,22 @@ namespace vrcosc_magicchatbox.ViewModels
             ApplySortDescriptions(view);
             FilteredView = view;
 
-            if (SelectedGroup == null && _chatStatus.GroupList.Count > 0)
-                SelectedGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default")
-                                ?? _chatStatus.GroupList.FirstOrDefault();
+            if (!_initialGroupRestored && _chatStatus.GroupList.Count > 0)
+            {
+                _initialGroupRestored = true;
+                string savedId = AppSettings.LastSelectedGroupId;
+                if (string.IsNullOrEmpty(savedId))
+                {
+                    // "All groups" was selected
+                    SelectedGroup = null;
+                }
+                else
+                {
+                    SelectedGroup = _chatStatus.GroupList.FirstOrDefault(g => g.GroupId == savedId)
+                                    ?? _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName)
+                                    ?? _chatStatus.GroupList.FirstOrDefault();
+                }
+            }
         }
 
         private void OnStatusListCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -121,7 +142,15 @@ namespace vrcosc_magicchatbox.ViewModels
         private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(StatusItem.GroupId))
+            {
                 _filteredView?.Refresh();
+                _statusListService.RequestSave();
+            }
+            if (e.PropertyName == nameof(StatusItem.IsEditing))
+            {
+                OnPropertyChanged(nameof(IsAnyItemEditing));
+                EnterSelectionModeCommand.NotifyCanExecuteChanged();
+            }
         }
 
         private bool FilterItem(object obj)
@@ -183,20 +212,35 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             _filteredView?.Refresh();
             OnPropertyChanged(nameof(SelectedGroupDisplayName));
+            OnPropertyChanged(nameof(IsAllGroupsSelected));
+
+            // Persist selected group across restarts
+            AppSettings.LastSelectedGroupId = value?.GroupId ?? "";
+
+            if (AppSettings.CycleOverrideCurrentGroup)
+                AppSettings.CycleOverrideGroupId = value?.GroupId ?? "";
+
+            // Update popup visual selection indicator
+            foreach (var g in _chatStatus.GroupList)
+                g.IsPopupSelected = (g == value);
         }
+
+        /// <summary>True when "All groups" is the active filter (SelectedGroup is null).</summary>
+        public bool IsAllGroupsSelected => SelectedGroup == null;
 
         [RelayCommand]
         private void ConfirmAddGroup()
         {
-            if (string.IsNullOrWhiteSpace(NewGroupName)) return;
-            _statusListService.AddGroup(NewGroupName.Trim());
+            string trimmed = NewGroupName?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.Length > 50) return;
+            _statusListService.AddGroup(trimmed);
             NewGroupName = string.Empty;
         }
 
         [RelayCommand]
         private void BeginRenameGroup(StatusGroup? group)
         {
-            if (group == null || group.Name == "Default") return;
+            if (group == null || group.Name == DefaultGroupName) return;
             group.RenameBuffer = group.Name;
             group.IsRenaming = true;
         }
@@ -221,9 +265,9 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         private void DeleteGroup(StatusGroup? group)
         {
-            if (group == null || group.Name == "Default") return;
+            if (group == null || group.Name == DefaultGroupName) return;
             if (SelectedGroup?.GroupId == group.GroupId)
-                SelectedGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default");
+                SelectedGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName);
             _statusListService.DeleteGroup(group.GroupId);
             IsGroupDropdownOpen = false;
         }
@@ -232,19 +276,31 @@ namespace vrcosc_magicchatbox.ViewModels
         private void ToggleGroupCycleActive(StatusGroup? group)
         {
             if (group == null) return;
-            group.IsActiveForCycle = !group.IsActiveForCycle;
+            // IsActiveForCycle is already toggled by the ToggleButton's IsChecked binding
             _statusListService.SaveStatusList();
+        }
+
+        [RelayCommand]
+        private void ToggleCycleOverride()
+        {
+            // IsChecked TwoWay binding already toggled CycleOverrideCurrentGroup
+            if (AppSettings.CycleOverrideCurrentGroup && SelectedGroup != null)
+                AppSettings.CycleOverrideGroupId = SelectedGroup.GroupId;
+            else if (!AppSettings.CycleOverrideCurrentGroup)
+                AppSettings.CycleOverrideGroupId = "";
         }
 
         // ── selection mode ────────────────────────────────────────────────────
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanEnterSelectionMode))]
         private void EnterSelectionMode()
         {
             SelectedItems.Clear();
             foreach (var item in _chatStatus.StatusList) item.IsSelected = false;
             IsSelectionMode = true;
         }
+
+        private bool CanEnterSelectionMode() => !IsAnyItemEditing && _chatStatus.StatusList.Count > 0;
 
         [RelayCommand]
         private void ExitSelectionMode()
@@ -264,6 +320,27 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         [RelayCommand]
+        private void SelectAll()
+        {
+            foreach (var item in _chatStatus.StatusList)
+            {
+                if (!item.IsSelected)
+                {
+                    item.IsSelected = true;
+                    SelectedItems.Add(item);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void SelectNone()
+        {
+            foreach (var item in SelectedItems.ToList())
+                item.IsSelected = false;
+            SelectedItems.Clear();
+        }
+
+        [RelayCommand]
         private void DeleteSelected()
         {
             foreach (var item in SelectedItems.ToList())
@@ -279,7 +356,6 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         private void CloneSelected()
         {
-            var rand = new Random();
             string? defaultGroupId = _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default")?.GroupId;
             foreach (var item in SelectedItems.ToList())
             {
@@ -290,7 +366,7 @@ namespace vrcosc_magicchatbox.ViewModels
                     IsFavorite = item.IsFavorite,
                     UseInCycle = item.UseInCycle,
                     msg = item.msg,
-                    MSGID = rand.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax),
+                    MSGID = Random.Shared.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax),
                     GroupId = item.GroupId ?? defaultGroupId
                 });
             }
@@ -325,13 +401,12 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         public void AddStatus()
         {
-            string text = _chatStatus.NewStatusItemTxt;
-            if (text.Length <= 0 || text.Length >= Core.Constants.MaxChatMessageLength) return;
+            string text = _chatStatus.NewStatusItemTxt?.Trim() ?? "";
+            if (text.Length <= 0 || text.Length > Core.Constants.MaxChatMessageLength) return;
 
-            var rand = new Random();
             bool isActive = _chatStatus.StatusList.Count == 0;
             string? groupId = SelectedGroup?.GroupId
-                              ?? _chatStatus.GroupList.FirstOrDefault(g => g.Name == "Default")?.GroupId;
+                              ?? _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName)?.GroupId;
 
             _chatStatus.StatusList.Add(new StatusItem
             {
@@ -339,18 +414,18 @@ namespace vrcosc_magicchatbox.ViewModels
                 IsActive = isActive,
                 IsFavorite = false,
                 msg = text,
-                MSGID = rand.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax),
+                MSGID = Random.Shared.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax),
                 GroupId = groupId
             });
 
-            string lower = text.ToLower();
-            if (lower == "sr4 series" || lower == "boihanny")
+            if (text.Equals("sr4 series", StringComparison.OrdinalIgnoreCase) ||
+                text.Equals("boihanny", StringComparison.OrdinalIgnoreCase))
             {
                 _appState.Egg_Dev = true;
                 MessageBox.Show("u found the dev egggmoooodeee go to options", "Egg",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            if (lower == "bussyboys")
+            if (text.Equals("bussyboys", StringComparison.OrdinalIgnoreCase))
             {
                 _appState.BussyBoysMode = true;
                 MessageBox.Show("Bussy Boysss letsss goooo, go to afk options", "Egg",
@@ -374,6 +449,8 @@ namespace vrcosc_magicchatbox.ViewModels
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
+                try { _statusListService.LoadStatusList(); }
+                catch { /* best-effort reload */ }
             }
         }
 
@@ -390,7 +467,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             if (item == null) return;
             item.UseInCycle = !item.UseInCycle;
-            SaveStatusList();
+            _statusListService.RequestSave();
         }
 
         public void UpdateStatusBoxCount(int count)
@@ -399,17 +476,17 @@ namespace vrcosc_magicchatbox.ViewModels
             if (count > 140)
             {
                 int overmax = count - 140;
-                _chatStatus.StatusBoxColor = "#FFFF9393";
+                _chatStatus.StatusBoxColor = BoxColorWarning;
                 _chatStatus.StatusTopBarTxt = $"You're soaring past the 140 char limit by {overmax}. Reign in that message!";
             }
             else if (count == 0)
             {
-                _chatStatus.StatusBoxColor = "#FF504767";
+                _chatStatus.StatusBoxColor = BoxColorNormal;
                 _chatStatus.StatusTopBarTxt = string.Empty;
             }
             else
             {
-                _chatStatus.StatusBoxColor = "#FF2C2148";
+                _chatStatus.StatusBoxColor = BoxColorNormal;
                 _chatStatus.StatusTopBarTxt = count > 22
                     ? "Buckle up! Keep it tight to 20-25 or integrations may suffer."
                     : string.Empty;
@@ -434,13 +511,19 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        public void BeginEdit(StatusItem item) => item.editMsg = item.msg;
-
-        public void ConfirmEdit(StatusItem item)
+        public void BeginEdit(StatusItem? item)
         {
-            if (item.editMsg.Length < 145 && !string.IsNullOrEmpty(item.editMsg))
+            if (item == null) return;
+            item.editMsg = item.msg;
+        }
+
+        public void ConfirmEdit(StatusItem? item)
+        {
+            if (item == null) return;
+            string trimmed = item.editMsg?.Trim() ?? "";
+            if (trimmed.Length > 0 && trimmed.Length < 145)
             {
-                item.msg = item.editMsg;
+                item.msg = trimmed;
                 item.IsEditing = false;
                 item.editMsg = string.Empty;
                 item.LastEdited = DateTime.Now;
@@ -450,14 +533,14 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private void HandleEggDelete(StatusItem item)
         {
-            string lower = item.msg.ToLower();
-            if (lower == "sr4 series" || lower == "boihanny")
+            if (item.msg.Equals("sr4 series", StringComparison.OrdinalIgnoreCase) ||
+                item.msg.Equals("boihanny", StringComparison.OrdinalIgnoreCase))
             {
                 _appState.Egg_Dev = false;
                 MessageBox.Show("damn u left the dev egggmoooodeee", "Egg",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            if (lower == "bussyboys")
+            if (item.msg.Equals("bussyboys", StringComparison.OrdinalIgnoreCase))
             {
                 _appState.BussyBoysMode = false;
                 MessageBox.Show("damn u left the bussyboys mode", "Egg",

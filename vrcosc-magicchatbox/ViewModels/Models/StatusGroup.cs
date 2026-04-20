@@ -15,6 +15,7 @@ public class StatusGroup : INotifyPropertyChanged
     private DateTime _creationDate = DateTime.Now;
     private bool _isRenaming;
     private string _renameBuffer = string.Empty;
+    private bool _isPopupSelected;
 
     public string GroupId
     {
@@ -54,6 +55,14 @@ public class StatusGroup : INotifyPropertyChanged
     {
         get => _renameBuffer;
         set { _renameBuffer = value; Notify(); }
+    }
+
+    /// <summary>Transient — not persisted. True when this group is the currently selected/viewed group in the popup.</summary>
+    [Newtonsoft.Json.JsonIgnore]
+    public bool IsPopupSelected
+    {
+        get => _isPopupSelected;
+        set { if (_isPopupSelected != value) { _isPopupSelected = value; Notify(); } }
     }
 
     /// <summary>Computed — true when this is the protected Default group (cannot be renamed or deleted).</summary>

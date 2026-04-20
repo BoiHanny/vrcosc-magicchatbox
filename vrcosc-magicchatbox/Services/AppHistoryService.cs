@@ -44,7 +44,7 @@ public sealed class AppHistoryService : IAppHistoryService
                 if (!string.IsNullOrWhiteSpace(json))
                 {
                     var scannedApps = JsonConvert.DeserializeObject<ObservableCollection<ProcessInfo>>(json);
-                    _dispatcher.Invoke(() =>
+                    _dispatcher.BeginInvoke(() =>
                     {
                         _windowActivity.ScannedApps = scannedApps ?? new();
                     });
@@ -53,7 +53,7 @@ public sealed class AppHistoryService : IAppHistoryService
             else
             {
                 Logging.WriteInfo("AppHistory history has never been created, not a problem :P");
-                _dispatcher.Invoke(() =>
+                _dispatcher.BeginInvoke(() =>
                 {
                     _windowActivity.ScannedApps = new();
                 });
@@ -62,7 +62,7 @@ public sealed class AppHistoryService : IAppHistoryService
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 _windowActivity.ScannedApps = new();
             });

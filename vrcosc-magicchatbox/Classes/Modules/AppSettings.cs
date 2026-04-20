@@ -33,7 +33,12 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private string _eggPrefixIconStatus = "🥚";
     [ObservableProperty] private bool _isRandomCycling = false;
     [ObservableProperty] private bool _cycleStatus = false;
+    [ObservableProperty] private bool _cycleOverrideCurrentGroup = false;
+    [ObservableProperty] private string _cycleOverrideGroupId = "";
+    [ObservableProperty] private string _lastSelectedGroupId = "";
     [ObservableProperty] private bool _blankEgg = false;
+
+    [ObservableProperty] private bool _statusRoundCorners = true;
 
     [ObservableProperty] private int _currentMenuItem = 0;
 
@@ -43,6 +48,7 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_Time = false;
     [ObservableProperty] private bool _settings_Weather = false;
     [ObservableProperty] private bool _settings_Twitch = false;
+    [ObservableProperty] private bool _settings_Discord = false;
     [ObservableProperty] private bool _settings_ComponentStats = false;
     [ObservableProperty] private bool _settings_NetworkStatistics = false;
     [ObservableProperty] private bool _settings_Chatting = false;
@@ -50,9 +56,9 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_MediaLink = false;
     [ObservableProperty] private bool _settings_AppOptions = false;
     [ObservableProperty] private bool _settings_WindowActivity = false;
+    [ObservableProperty] private bool _settings_VrcRadar = false;
     [ObservableProperty] private bool _settings_TrackerBattery = false;
 
-    // Developer settings (moved from ViewModel — these are persisted toggles, not runtime flags)
     [ObservableProperty] private bool _settingsDev = false;
     [ObservableProperty] private bool _avatarSyncExecute = true;
 
@@ -62,6 +68,5 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private int _profileNumber;
     [ObservableProperty] private bool _useCustomProfile;
 
-    // TOS acceptance tracking — compared against Constants.TosVersion on startup
     [ObservableProperty] private string _acceptedTosVersion = string.Empty;
 }

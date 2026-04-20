@@ -2,11 +2,11 @@
     x:Class="vrcosc_magicchatbox.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pages="clr-namespace:vrcosc_magicchatbox.UI.Pages"
-    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
     Width="900"
@@ -32,78 +32,546 @@
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <!-- DataContext is set in App.xaml.cs to ViewModel.Instance -->
+    <!--  DataContext is set in App.xaml.cs to ViewModel.Instance  -->
 
 
-    <Border
-        HorizontalAlignment="Stretch"
-        VerticalAlignment="Stretch"
-        Background="{StaticResource SurfaceDarkBrush}"
-        BorderBrush="{StaticResource SurfaceDarkBrush}"
-        BorderThickness="1">
-        <Border.Effect>
-            <BlurEffect
-                d:Radius="0"
-                KernelType="Gaussian"
-                Radius="{Binding MainWindowBlurEffect}" />
-        </Border.Effect>
-        <Grid HorizontalAlignment="Stretch" Background="{StaticResource SurfaceCardBrush}">
+    <Grid>
+        <Border
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="{StaticResource SurfaceDarkBrush}"
+            BorderBrush="{StaticResource SurfaceDarkBrush}"
+            BorderThickness="1">
+            <Border.Effect>
+                <BlurEffect
+                    d:Radius="0"
+                    KernelType="Gaussian"
+                    Radius="{Binding MainWindowBlurEffect}" />
+            </Border.Effect>
+            <Grid HorizontalAlignment="Stretch" Background="{StaticResource SurfaceCardBrush}">
 
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="55" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="55" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="225" />
-            </Grid.ColumnDefinitions>
-
-
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="225" />
+                </Grid.ColumnDefinitions>
 
 
-            <pages:StatusPage
-                Grid.Row="1"
-                DataContext="{Binding Status}"
-                d:Visibility="Collapsed"
-                Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
 
 
-            <pages:OptionsPage
-                Grid.Row="1"
-                x:Name="optionsPage"
-                DataContext="{Binding Options}"
-                d:Visibility="Collapsed"
-                Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}" />
+                <pages:StatusPage
+                    Grid.Row="1"
+                    d:Visibility="Collapsed"
+                    DataContext="{Binding Status}"
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
 
 
-            <pages:ChattingPage
-                x:Name="chattingPage"
-                Grid.Row="1"
-                DataContext="{Binding Chatting}"
-                d:Visibility="Visible"
-                Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+                <pages:OptionsPage
+                    x:Name="optionsPage"
+                    Grid.Row="1"
+                    d:Visibility="Collapsed"
+                    DataContext="{Binding Options}"
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}" />
 
-            <Grid Margin="-10,0,0,0" Visibility="{Binding OscDisplay.CharLimit}">
-                <Grid.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Offset="1" Color="{StaticResource SurfaceCardColor}" />
-                        <GradientStop Offset="0" Color="#FF41375C" />
-                    </LinearGradientBrush>
-                </Grid.Background>
-                <StackPanel
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    RenderOptions.BitmapScalingMode="NearestNeighbor">
+
+                <pages:ChattingPage
+                    x:Name="chattingPage"
+                    Grid.Row="1"
+                    d:Visibility="Visible"
+                    DataContext="{Binding Chatting}"
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+
+                <Grid Margin="-10,0,0,0" Visibility="{Binding OscDisplay.CharLimit}">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Offset="1" Color="{StaticResource SurfaceCardColor}" />
+                            <GradientStop Offset="0" Color="#FF41375C" />
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                        <TextBlock
+                            Grid.Column="0"
+                            Margin="0,3,0,0"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="16"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            Text="Some integrations can't be showed because a limit on characters">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Opacity="1"
+                                    ShadowDepth="0"
+                                    Color="{StaticResource GradientDeepPurpleColor}" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+
+
+
+
+
+                <!--  Toast notification overlay — above all content, bottom-right  -->
+                <controls:ToastOverlay
+                    Grid.Row="1"
+                    Grid.ColumnSpan="2"
+                    Margin="0,0,12,12"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Panel.ZIndex="100" />
+
+
+                <Grid Grid.ColumnSpan="2" Background="{StaticResource SurfacePrimaryBrush}">
+
+                    <Grid.Effect>
+                        <DropShadowEffect
+                            BlurRadius="12"
+                            Direction="-120"
+                            Opacity="0.2"
+                            RenderingBias="Performance"
+                            ShadowDepth="5"
+                            Color="black" />
+                    </Grid.Effect>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="143" />
+                        <ColumnDefinition Width="123" />
+                        <ColumnDefinition Width="123" />
+                        <ColumnDefinition Width="122" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Border>
+                        <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
+                            <TextBlock
+                                Grid.Column="0"
+                                Padding="0,12,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="16"
+                                Foreground="White"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="MagicChatbox">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="15"
+                                        Direction="315"
+                                        Opacity="1"
+                                        ShadowDepth="0"
+                                        Color="LightBlue" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock
+                                Grid.Column="0"
+                                Padding="20,12,0,0"
+                                HorizontalAlignment="left"
+                                VerticalAlignment="top"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="10"
+                                Foreground="MediumPurple"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="VRC OSC">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="15"
+                                        Direction="315"
+                                        Opacity="1"
+                                        ShadowDepth="0"
+                                        Color="LightBlue" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+
+                    <Grid
+                        Grid.Column="1"
+                        Margin="3,0,3,0"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button
+                            Name="MenuButton_0"
+                            Margin="0,0,0,0"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            BorderThickness="0"
+                            Command="{Binding ChangeMenuCommand}"
+                            CommandParameter="0"
+                            Content="Integrations"
+                            Cursor="Hand"
+                            FontFamily="Comfortaa Light"
+                            FontSize="18"
+                            FontWeight="Normal"
+                            Foreground="White"
+                            Style="{DynamicResource MenuItemStyle}" />
+                        <Border
+                            Height="4"
+                            VerticalAlignment="Top"
+                            Background="{StaticResource ButtonHighlightBrush}"
+                            IsHitTestVisible="False"
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" />
+                    </Grid>
+                    <Grid
+                        Grid.Column="2"
+                        Margin="3,0,3,0"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button
+                            Name="MenuButton_1"
+                            Margin="0,0,0,0"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            BorderThickness="0"
+                            Command="{Binding ChangeMenuCommand}"
+                            CommandParameter="1"
+                            Content="Status"
+                            Cursor="Hand"
+                            FontFamily="Comfortaa Light"
+                            FontSize="18"
+                            FontWeight="Normal"
+                            Foreground="White"
+                            Style="{DynamicResource MenuItemStyle}" />
+                        <Border
+                            Height="4"
+                            VerticalAlignment="Top"
+                            Background="{StaticResource ButtonHighlightBrush}"
+                            IsHitTestVisible="False"
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
+                    </Grid>
+                    <Grid
+                        Grid.Column="3"
+                        Margin="3,0,3,0"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button
+                            Name="MenuButton_2"
+                            Margin="0,0,0,0"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            BorderThickness="0"
+                            Command="{Binding ChangeMenuCommand}"
+                            CommandParameter="2"
+                            Content="Chatting"
+                            Cursor="Hand"
+                            FontFamily="Comfortaa Light"
+                            FontSize="18"
+                            FontWeight="Normal"
+                            Foreground="White"
+                            Style="{DynamicResource MenuItemStyle}" />
+                        <Border
+                            Height="4"
+                            VerticalAlignment="Top"
+                            Background="{StaticResource ButtonHighlightBrush}"
+                            IsHitTestVisible="False"
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+                    </Grid>
+                    <Grid
+                        Grid.Column="4"
+                        Margin="3,0,3,0"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button
+                            Name="MenuButton_3"
+                            Margin="0,0,0,0"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            BorderThickness="0"
+                            Command="{Binding ChangeMenuCommand}"
+                            CommandParameter="3"
+                            Content="Options"
+                            Cursor="Hand"
+                            FontFamily="Comfortaa Light"
+                            FontSize="18"
+                            FontWeight="Normal"
+                            Foreground="White"
+                            Style="{DynamicResource MenuItemStyle}" />
+                        <Border
+                            Height="4"
+                            VerticalAlignment="Top"
+                            Background="{StaticResource ButtonHighlightBrush}"
+                            IsHitTestVisible="False"
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}" />
+                    </Grid>
+
+                    <Grid Grid.Column="6" HorizontalAlignment="Right">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="45" />
+                            <ColumnDefinition Width="50" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            Name="Button_close"
+                            Grid.Column="2"
+                            Width="45"
+                            Height="22"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Background="#004D0606"
+                            BorderThickness="0"
+                            Click="Button_close_Click"
+                            Cursor="Hand"
+                            Style="{DynamicResource CloseButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Image Margin="2" Source="img/icons/Close_ico.png" />
+                        </Button>
+                        <Button
+                            Name="Button_minimize"
+                            Grid.Column="1"
+                            Width="45"
+                            Height="22"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Background="#00473C89"
+                            BorderThickness="0"
+                            Click="Button_minimize_Click"
+                            Cursor="Hand"
+                            Style="{DynamicResource SubtractButtonStyle}"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Image Margin="2" Source="img/icons/subtract_ico.png" />
+                        </Button>
+                        <Grid
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="-5,22,0,0">
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <LinearGradientBrush.RelativeTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                            <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                            <RotateTransform Angle="180" CenterX="0.5" CenterY="0.5" />
+                                            <TranslateTransform />
+                                        </TransformGroup>
+                                    </LinearGradientBrush.RelativeTransform>
+                                    <GradientStop Color="#FF431F91" />
+                                    <GradientStop Offset="1" Color="{StaticResource SurfacePrimaryColor}" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Orientation="Vertical">
+                                <TextBlock
+                                    Width="53"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="DemiBold"
+                                    Text="Running">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                            <GradientStop Offset="0.006" Color="#FF411E8C" />
+                                            <GradientStop Offset="1" Color="#FFA28FCE" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                                <TextBlock
+                                    Width="18"
+                                    Margin="0,-5,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="Bold"
+                                    Text="VR"
+                                    Visibility="{Binding IsVRRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                            <GradientStop Offset="0.106" Color="#FF3A1A7E" />
+                                            <GradientStop Offset="0.627" Color="#FFCA577C" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                                <TextBlock
+                                    Margin="0,-5,0,0"
+                                    FontSize="18"
+                                    FontWeight="Bold"
+                                    Text="DESKTOP"
+                                    Visibility="{Binding IsVRRunning, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                            <GradientStop Offset="0.109" Color="#FF38197C" />
+                                            <GradientStop Offset="0.827" Color="#FF54B955" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+
+                        </Grid>
+
+                        <Grid Grid.Column="0" WindowChrome.IsHitTestVisibleInChrome="True">
+                            <StackPanel
+                                Margin="0,0,5,0"
+                                Background="{StaticResource SurfaceDarkPurpleBrush}"
+                                Orientation="Vertical">
+                                <TextBlock
+                                    Margin="0,5,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="#FFB3B0B9"
+                                    Text="Send to VRChat" />
+                                <CheckBox
+                                    Name="MasterSwitch"
+                                    Width="62"
+                                    Margin="0,5,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Click="MasterSwitch_Click"
+                                    IsChecked="{Binding MasterSwitch, Mode=TwoWay}"
+                                    Opacity="0.90"
+                                    Style="{DynamicResource Switch}" />
+                            </StackPanel>
+
+                        </Grid>
+                    </Grid>
+
+                </Grid>
+                <Grid
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Width="225"
+                    Background="#FF42385D">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+
+                    </Grid.RowDefinitions>
+                    <Grid.Effect>
+                        <DropShadowEffect
+                            BlurRadius="5"
+                            Direction="-100"
+                            Opacity="0.1"
+                            RenderingBias="Performance"
+                            ShadowDepth="15"
+                            Color="DarkBlue" />
+                    </Grid.Effect>
+                    <Grid
+                        Grid.Row="3"
+                        Height="auto"
+                        VerticalAlignment="Bottom">
+                        <TextBlock
+                            Margin="0,-8,0,0"
+                            HorizontalAlignment="Center"
+                            FontFamily="Papyrus"
+                            FontSize="12"
+                            FontWeight="DemiBold"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="MagicChatbox V2 is on the way!" />
+                        <TextBlock
+                            Padding="0,0,0,30"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Stretch"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="{Binding UpdateState.UpdateStatustxt}" />
+
+                        <StackPanel VerticalAlignment="Bottom">
+                            <TextBlock
+                                x:Name="GitHubChanges"
+                                Width="auto"
+                                Margin="0,0,0,10"
+                                HorizontalAlignment="Center"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="8.5"
+                                Foreground="#26A1FA"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="View changes on GitHub"
+                                TextDecorations="Underline"
+                                Visibility="{Binding UpdateState.CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Command="{Binding OpenGitHubChangesCommand}" MouseAction="LeftClick" />
+                                </TextBlock.InputBindings>
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Opacity="0.3"
+                                        ShadowDepth="0"
+                                        Color="{StaticResource GradientDeepPurpleColor}" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                <Button
+                                    x:Name="CheckUpdateBtnn"
+                                    Margin="0,-3"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding CheckUpdateCommand}"
+                                    Style="{StaticResource CircleButton}">
+                                    <Image
+                                        Width="12"
+                                        Height="12"
+                                        RenderOptions.BitmapScalingMode="Linear"
+                                        Source="/Img/Icons/Load_ico.png" />
+
+                                </Button>
+                                <TextBlock
+                                    Margin="5,0.5,5,5"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Stretch"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextLabelLightBrush}"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="{Binding UpdateState.AppVersion.VersionNumber}">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="15"
+                                            Opacity="0.9"
+                                            ShadowDepth="0"
+                                            Color="{Binding UpdateState.VersionTxtColor}" />
+                                    </TextBlock.Effect>
+
+                                </TextBlock>
+                                <TextBlock
+                                    Name="NewVersion"
+                                    Margin="0,0.5,5,8"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Bottom"
+                                    Cursor="Hand"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{Binding UpdateState.VersionTxtColor}"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="{Binding UpdateState.VersionTxt}">
+                                    <TextBlock.InputBindings>
+                                        <MouseBinding Command="{Binding StartUpdateCommand}" MouseAction="LeftClick" />
+                                    </TextBlock.InputBindings>
+                                    <TextBlock.Style>
+                                        <Style TargetType="{x:Type TextBlock}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
+                                                    <Setter Property="TextDecorations" Value="Underline" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="15"
+                                            Opacity="0.7"
+                                            ShadowDepth="0"
+                                            Color="{Binding UpdateState.VersionTxtColor}" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </Grid>
                     <TextBlock
                         Grid.Column="0"
-                        Margin="0,3,0,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
                         FontFamily="Albert Sans Thin"
                         FontSize="16"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="Some integrations can't be showed because a limit on characters">
+                        Foreground="White"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Text="Preview">
                         <TextBlock.Effect>
                             <DropShadowEffect
                                 BlurRadius="10"
@@ -112,511 +580,458 @@
                                 Color="{StaticResource GradientDeepPurpleColor}" />
                         </TextBlock.Effect>
                     </TextBlock>
-                </StackPanel>
-            </Grid>
-
-
-
-
-
-            <!-- Toast notification overlay — above all content, bottom-right -->
-            <controls:ToastOverlay
-                Grid.Row="1"
-                Grid.ColumnSpan="2"
-                VerticalAlignment="Bottom"
-                HorizontalAlignment="Right"
-                Margin="0,0,12,12"
-                Panel.ZIndex="100" />
-
-
-            <Grid Grid.ColumnSpan="2" Background="{StaticResource SurfacePrimaryBrush}">
-
-                <Grid.Effect>
-                    <DropShadowEffect
-                        BlurRadius="12"
-                        Direction="-120"
-                        Opacity="0.2"
-                        RenderingBias="Performance"
-                        ShadowDepth="5"
-                        Color="black" />
-                </Grid.Effect>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="143" />
-                    <ColumnDefinition Width="123" />
-                    <ColumnDefinition Width="123" />
-                    <ColumnDefinition Width="122" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Border>
-                    <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
-                        <TextBlock
-                            Grid.Column="0"
-                            Padding="0,12,0,0"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="16"
-                            Foreground="White"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="MagicChatbox">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Direction="315"
-                                    Opacity="1"
-                                    ShadowDepth="0"
-                                    Color="LightBlue" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                        <TextBlock
-                            Grid.Column="0"
-                            Padding="20,12,0,0"
-                            HorizontalAlignment="left"
-                            VerticalAlignment="top"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="10"
-                            Foreground="MediumPurple"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="VRC OSC">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Direction="315"
-                                    Opacity="1"
-                                    ShadowDepth="0"
-                                    Color="LightBlue" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                    </Grid>
-                </Border>
-
-                <Grid
-                    Grid.Column="1"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_0"
-                        Margin="0,0,0,0"
-                        Background="{StaticResource SurfaceDarkBrush}"
-                        BorderThickness="0"
-                        Command="{Binding ChangeMenuCommand}"
-                        CommandParameter="0"
-                        Content="Integrations"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="{StaticResource ButtonHighlightBrush}"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" />
-                </Grid>
-                <Grid
-                    Grid.Column="2"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_1"
-                        Margin="0,0,0,0"
-                        Background="{StaticResource SurfaceDarkBrush}"
-                        BorderThickness="0"
-                        Command="{Binding ChangeMenuCommand}"
-                        CommandParameter="1"
-                        Content="Status"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="{StaticResource ButtonHighlightBrush}"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
-                </Grid>
-                <Grid
-                    Grid.Column="3"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_2"
-                        Margin="0,0,0,0"
-                        Background="{StaticResource SurfaceDarkBrush}"
-                        BorderThickness="0"
-                        Command="{Binding ChangeMenuCommand}"
-                        CommandParameter="2"
-                        Content="Chatting"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="{StaticResource ButtonHighlightBrush}"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
-                </Grid>
-                <Grid
-                    Grid.Column="4"
-                    Margin="3,0,3,0"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button
-                        Name="MenuButton_3"
-                        Margin="0,0,0,0"
-                        Background="{StaticResource SurfaceDarkBrush}"
-                        BorderThickness="0"
-                        Command="{Binding ChangeMenuCommand}"
-                        CommandParameter="3"
-                        Content="Options"
-                        Cursor="Hand"
-                        FontFamily="Comfortaa Light"
-                        FontSize="18"
-                        FontWeight="Normal"
-                        Foreground="White"
-                        Style="{DynamicResource MenuItemStyle}" />
-                    <Border
-                        Height="4"
-                        VerticalAlignment="Top"
-                        Background="{StaticResource ButtonHighlightBrush}"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}" />
-                </Grid>
-
-                <Grid Grid.Column="6" HorizontalAlignment="Right">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130" />
-                        <ColumnDefinition Width="45" />
-                        <ColumnDefinition Width="50" />
-                    </Grid.ColumnDefinitions>
-                    <Button
-                        Name="Button_close"
-                        Grid.Column="2"
-                        Width="45"
-                        Height="22"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Background="#004D0606"
-                        BorderThickness="0"
-                        Click="Button_close_Click"
-                        Cursor="Hand"
-                        Style="{DynamicResource CloseButtonStyle}"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Image Margin="2" Source="img/icons/Close_ico.png" />
-                    </Button>
-                    <Button
-                        Name="Button_minimize"
-                        Grid.Column="1"
-                        Width="45"
-                        Height="22"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Background="#00473C89"
-                        BorderThickness="0"
-                        Click="Button_minimize_Click"
-                        Cursor="Hand"
-                        Style="{DynamicResource SubtractButtonStyle}"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Image Margin="2" Source="img/icons/subtract_ico.png" />
-                    </Button>
-                    <Grid
-                        Grid.Column="1"
-                        Grid.ColumnSpan="2"
-                        Margin="-5,22,0,0">
-                        <Grid.Background>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <LinearGradientBrush.RelativeTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                                        <SkewTransform CenterX="0.5" CenterY="0.5" />
-                                        <RotateTransform Angle="180" CenterX="0.5" CenterY="0.5" />
-                                        <TranslateTransform />
-                                    </TransformGroup>
-                                </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#FF431F91" />
-                                <GradientStop Offset="1" Color="{StaticResource SurfacePrimaryColor}" />
-                            </LinearGradientBrush>
-                        </Grid.Background>
-
-                        <StackPanel
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Bottom"
-                            Orientation="Vertical">
-                            <TextBlock
-                                Width="53"
-                                VerticalAlignment="Center"
-                                FontSize="14"
-                                FontWeight="DemiBold"
-                                Text="Running">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                        <GradientStop Offset="0.006" Color="#FF411E8C" />
-                                        <GradientStop Offset="1" Color="#FFA28FCE" />
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
-                            </TextBlock>
-                            <TextBlock
-                                Width="18"
-                                Margin="0,-5,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="14"
-                                FontWeight="Bold"
-                                Text="VR"
-                                Visibility="{Binding IsVRRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                        <GradientStop Offset="0.106" Color="#FF3A1A7E" />
-                                        <GradientStop Offset="0.627" Color="#FFCA577C" />
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
-                            </TextBlock>
-                            <TextBlock
-                                Margin="0,-5,0,0"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Text="DESKTOP"
-                                Visibility="{Binding IsVRRunning, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                        <GradientStop Offset="0.109" Color="#FF38197C" />
-                                        <GradientStop Offset="0.827" Color="#FF54B955" />
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
-                            </TextBlock>
-                        </StackPanel>
-
-                    </Grid>
-
-                    <Grid Grid.Column="0" WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel
-                            Margin="0,0,5,0"
-                            Background="{StaticResource SurfaceDarkPurpleBrush}"
-                            Orientation="Vertical">
-                            <TextBlock
-                                Margin="0,5,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="12"
-                                Foreground="#FFB3B0B9"
-                                Text="Send to VRChat" />
-                            <CheckBox
-                                Name="MasterSwitch"
-                                Width="62"
-                                Margin="0,5,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Command="{Binding OnMasterSwitchToggledCommand}"
-                                IsChecked="{Binding MasterSwitch, Mode=TwoWay}"
-                                Opacity="0.90"
-                                Style="{DynamicResource Switch}" />
-                        </StackPanel>
-
-                    </Grid>
-                </Grid>
-
-            </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="1"
-                Width="225"
-                Background="#FF42385D">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition />
-
-                </Grid.RowDefinitions>
-                <Grid.Effect>
-                    <DropShadowEffect
-                        BlurRadius="5"
-                        Direction="-100"
-                        Opacity="0.1"
-                        RenderingBias="Performance"
-                        ShadowDepth="15"
-                        Color="DarkBlue" />
-                </Grid.Effect>
-                <Grid
-                    Grid.Row="3"
-                    Height="auto"
-                    VerticalAlignment="Bottom">
                     <TextBlock
-                        Margin="0,-8,0,0"
-                        HorizontalAlignment="Center"
-                        FontFamily="Papyrus"
-                        FontSize="12"
-                        FontWeight="DemiBold"
-                        Foreground="#42385C"
-                        Text="MagicChatbox V2 is on the way!">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="20"
-                                Opacity="0.4"
-                                ShadowDepth="0"
-                                Color="#432D62" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                    <TextBlock
-                        Padding="0,0,0,30"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Stretch"
+                        Grid.Column="0"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
                         FontFamily="Albert Sans Thin"
                         FontSize="12"
-                        Foreground="{StaticResource BorderMutedBrush}"
-                        Text="{Binding UpdateState.UpdateStatustxt}" />
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Text="{Binding OscDisplay.OscMsgCountUI}">
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                                BlurRadius="10"
+                                Opacity="1"
+                                ShadowDepth="0"
+                                Color="{StaticResource GradientDeepPurpleColor}" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <StackPanel Grid.Row="2" VerticalAlignment="Top">
 
-                    <StackPanel VerticalAlignment="Bottom">
-                        <TextBlock
-                            x:Name="GitHubChanges"
-                            Width="auto"
-                            Margin="0,0,0,10"
+                        <StackPanel
+                            Width="214"
                             HorizontalAlignment="Center"
-                            Cursor="Hand"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="8.5"
-                            Foreground="#26A1FA"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="View changes on GitHub"
-                            TextDecorations="Underline"
-                            Visibility="{Binding UpdateState.CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <TextBlock.InputBindings>
-                                <MouseBinding Command="{Binding OpenGitHubChangesCommand}" MouseAction="LeftClick" />
-                            </TextBlock.InputBindings>
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="10"
-                                    Opacity="0.3"
-                                    ShadowDepth="0"
-                                    Color="{StaticResource GradientDeepPurpleColor}" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <Button
-                                x:Name="CheckUpdateBtnn"
-                                Margin="0,-3"
-                                Padding="0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top"
-                                Command="{Binding CheckUpdateCommand}"
-                                Style="{StaticResource CircleButton}">
-                                <Image
-                                    Width="12"
-                                    Height="12"
-                                    RenderOptions.BitmapScalingMode="Linear"
-                                    Source="/Img/Icons/Load_ico.png" />
-
-                            </Button>
-                            <TextBlock
-                                Margin="5,0.5,5,5"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Stretch"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelLightBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="{Binding UpdateState.AppVersion.VersionNumber}">
-                                <TextBlock.Effect>
+                            VerticalAlignment="Top"
+                            Orientation="Vertical">
+                            <Border CornerRadius="0,0,15,15" Visibility="{Binding Modules.Afk.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                        <GradientStop Color="#FF2E1565" />
+                                        <GradientStop Offset="1" Color="#FF523E64" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
                                     <DropShadowEffect
-                                        BlurRadius="15"
-                                        Opacity="0.9"
+                                        BlurRadius="5"
+                                        Direction="-23"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
-                                        Color="{Binding UpdateState.VersionTxtColor}" />
-                                </TextBlock.Effect>
+                                        Color="DarkBlue" />
+                                </Border.Effect>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <StackPanel
+                                            Margin="5,3,0,3"
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                FontWeight="SemiBold"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                Text="Away from keyboard:">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <!--  Default values  -->
+                                                        <Setter Property="Foreground" Value="#B49AD1" />
+                                                        <Setter Property="Text" Value="Inactive" />
+                                                        <Setter Property="Opacity" Value="0.7" />
+                                                        <Setter Property="Effect">
+                                                            <Setter.Value>
+                                                                <DropShadowEffect
+                                                                    BlurRadius="5"
+                                                                    Direction="315"
+                                                                    Opacity="1"
+                                                                    ShadowDepth="0"
+                                                                    Color="Black" />
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <!--  Change values based on Modules.Afk.IsAfk  -->
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                                <Setter Property="Foreground" Value="#7DD9AA" />
+                                                                <Setter Property="Text" Value="Active" />
+                                                                <Setter Property="Opacity" Value="0.9" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect
+                                                        BlurRadius="5"
+                                                        Direction="315"
+                                                        Opacity="1"
+                                                        ShadowDepth="0"
+                                                        Color="Black" />
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                            <TextBlock
+                                                Padding="5,0,0,0"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="14"
+                                                FontWeight="SemiBold"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <!--  Default values  -->
+                                                        <Setter Property="Foreground" Value="#D38D9C" />
+                                                        <Setter Property="Text" Value="Inactive" />
+                                                        <Setter Property="Opacity" Value="0.7" />
+                                                        <Setter Property="Effect">
+                                                            <Setter.Value>
+                                                                <DropShadowEffect
+                                                                    BlurRadius="5"
+                                                                    Direction="315"
+                                                                    Opacity="1"
+                                                                    ShadowDepth="0"
+                                                                    Color="Black" />
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <!--  Change values based on Modules.Afk.IsAfk  -->
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                                <Setter Property="Foreground" Value="#7DF8AA" />
+                                                                <Setter Property="Text" Value="Active" />
+                                                                <Setter Property="Opacity" Value="1" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
 
-                            </TextBlock>
+                                        </StackPanel>
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <!--  Default values  -->
+                                                <Setter Property="Background" Value="#391E72" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                        <Setter Property="Background" Value="#562EAD" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                    </Grid>
+                                    <Grid Grid.Row="1">
+                                        <StackPanel
+                                            Margin="0,5,0,5"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <StackPanel
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock
+                                                    Padding="0,0,1,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    FontWeight="SemiBold"
+                                                    RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <!--  Default values  -->
+                                                            <Setter Property="Foreground" Value="#B49AD1" />
+                                                            <Setter Property="Text" Value="Will be AFK in:" />
+                                                            <Setter Property="Opacity" Value="0.7" />
+                                                            <Setter Property="Effect">
+                                                                <Setter.Value>
+                                                                    <DropShadowEffect
+                                                                        BlurRadius="5"
+                                                                        Direction="315"
+                                                                        Opacity="1"
+                                                                        ShadowDepth="0"
+                                                                        Color="Black" />
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <!--  Change values based on Modules.Afk.IsAfk  -->
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                                    <Setter Property="Text" Value="You are AFK for:" />
+                                                                    <Setter Property="Opacity" Value="0.9" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="5"
+                                                            Direction="315"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="Black" />
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <TextBlock
+                                                    Padding="3,0,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Albert Sans Thin"
+                                                    FontSize="12"
+                                                    FontWeight="SemiBold"
+                                                    RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <!--  Default values  -->
+                                                            <Setter Property="Foreground" Value="#BEBED3" />
+                                                            <Setter Property="Text" Value="{Binding Modules.Afk.RemainingTimeUntilAFK}" />
+                                                            <Setter Property="Opacity" Value="0.7" />
+                                                            <Setter Property="Effect">
+                                                                <Setter.Value>
+                                                                    <DropShadowEffect
+                                                                        BlurRadius="5"
+                                                                        Direction="315"
+                                                                        Opacity="1"
+                                                                        ShadowDepth="0"
+                                                                        Color="Black" />
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <!--  Change values based on Modules.Afk.IsAfk  -->
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                                    <Setter Property="Text" Value="{Binding Modules.Afk.TimeCurrentlyAFK}" />
+                                                                    <Setter Property="Opacity" Value="0.9" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect
+                                                            BlurRadius="5"
+                                                            Direction="315"
+                                                            Opacity="1"
+                                                            ShadowDepth="0"
+                                                            Color="Black" />
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                <TextBlock
+                                                    Padding="5,0"
+                                                    FontSize="12"
+                                                    Foreground="#B49AD1"
+                                                    Text="Paused, VR active" />
+                                            </StackPanel>
+
+
+                                            <CheckBox
+                                                Width="50"
+                                                Height="18"
+                                                Margin="0,0,0,0"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding Integrations.ManualBuildOscCommand}"
+                                                Content="AFK now"
+                                                IsChecked="{Binding Modules.Afk.Settings.OverrideAfk}"
+                                                Style="{DynamicResource GlowyToggleButton}"
+                                                Visibility="{Binding Modules.Afk.OverrideButtonVisible, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+
+                                    </Grid>
+
+
+                                </Grid>
+                            </Border>
+                            <Button
+                                x:Name="ReorderIntegrationsButton"
+                                Width="auto"
+                                Height="27"
+                                Margin="0,5"
+                                Padding="5"
+                                HorizontalAlignment="Right"
+                                Click="ReorderIntegrations_Click"
+                                Style="{StaticResource Status_Button_style}">
+                                <Button.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image
+                                                Height="16"
+                                                Margin="0,0,5,0"
+                                                RenderOptions.BitmapScalingMode="HighQuality"
+                                                Source="/Img/Icons/Edit_ico.png" />
+                                            <TextBlock
+                                                Margin="0,-1,5,0"
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Text="Reorder integrations" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Button.ContentTemplate>
+                            </Button>
+                            <Button
+                                x:Name="ToggleVoicebtn"
+                                Width="auto"
+                                Height="27"
+                                Margin="0,0,0,0"
+                                Padding="10,0"
+                                HorizontalAlignment="Right"
+                                local:ButtonProperties.ShadowTrigger="{Binding TtsAudio.TTSBtnShadow}"
+                                Command="{Binding ToggleVoiceCommand}"
+                                Content="{Binding TtsAudio.ToggleVoiceText}"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Style="{DynamicResource Status_Button_style_Shadow}" />
+
+                        </StackPanel>
+
+
+                        <StackPanel
+                            Margin="0,8,0,2"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
                             <TextBlock
-                                Name="NewVersion"
-                                Margin="0,0.5,5,8"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Bottom"
-                                Cursor="Hand"
+                                VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
                                 FontSize="12"
-                                Foreground="{Binding UpdateState.VersionTxtColor}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="{Binding UpdateState.VersionTxt}">
-                                <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding StartUpdateCommand}" MouseAction="LeftClick" />
-                                </TextBlock.InputBindings>
-                                <TextBlock.Style>
-                                    <Style TargetType="{x:Type TextBlock}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
-                                                <Setter Property="TextDecorations" Value="Underline" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Opacity="0.7"
-                                        ShadowDepth="0"
-                                        Color="{Binding UpdateState.VersionTxtColor}" />
-                                </TextBlock.Effect>
-                            </TextBlock>
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                Opacity="0.7"
+                                Text="TopMost" />
+                            <CheckBox
+                                Margin="4,0,0,0"
+                                FontSize="12"
+                                IsChecked="{Binding AppSettingsInstance.Topmost, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}" />
                         </StackPanel>
+                        <StackPanel
+                            Margin="0,2"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                Opacity="0.7"
+                                Text="Live edit chats"
+                                Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox
+                                Margin="4,0,0,0"
+                                FontSize="12"
+                                IsChecked="{Binding ChatSettings.RealTimeChatEdit, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel
+                            Margin="0,2"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                Opacity="0.7"
+                                Text="Text to speech" />
+                            <CheckBox
+                                Margin="4,0,0,0"
+                                IsChecked="{Binding TtsSettingsInstance.TtsTikTokEnabled, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding TtsSettingsInstance.TtsTikTokEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <StackPanel
+                                Width="176"
+                                Margin="0,5"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                                <TextBlock
+                                    Margin="0,0,5,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="Voice">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="{StaticResource GradientDeepPurpleColor}" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <ComboBox
+                                    x:Name="TikTokTTSVoices_combo"
+                                    Width="135"
+                                    BorderBrush="#FF020000"
+                                    DisplayMemberPath="DisplayName"
+                                    FontSize="11.5"
+                                    ItemsSource="{Binding TtsAudio.TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Opacity="0.4"
+                                    SelectedItem="{Binding TtsAudio.SelectedTikTokTTSVoice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectedValuePath="ApiName"
+                                    SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" />
+                            </StackPanel>
+
+                            <StackPanel
+                                Width="211"
+                                Height="22"
+                                Margin="0,0,0,0"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                                <TextBlock
+                                    Width="69"
+                                    Margin="0,0,0,3"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="TTS volume">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.5"
+                                            ShadowDepth="0"
+                                            Color="{StaticResource GradientDeepPurpleColor}" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <Slider
+                                    x:Name="VolumeSlider"
+                                    Width="134.5"
+                                    Height="12"
+                                    Margin="2.2,0,4.5,0"
+                                    Maximum="1"
+                                    Minimum="0"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Style="{StaticResource CustomSlider}"
+                                    Value="{Binding TtsSettingsInstance.TtsVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                    <Slider.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.3"
+                                            ShadowDepth="0"
+                                            Color="{StaticResource GradientDeepPurpleColor}" />
+                                    </Slider.Effect>
+                                </Slider>
+                            </StackPanel>
+                        </StackPanel>
+
                     </StackPanel>
 
-                </Grid>
-                <TextBlock
-                    Grid.Column="0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
-                    FontSize="16"
-                    Foreground="White"
-                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                    Text="Preview">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="10"
-                            Opacity="1"
-                            ShadowDepth="0"
-                            Color="{StaticResource GradientDeepPurpleColor}" />
-                    </TextBlock.Effect>
-                </TextBlock>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="0,0,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
-                    FontSize="12"
-                    Foreground="{StaticResource TextSecondaryBrush}"
-                    Text="{Binding OscDisplay.OscMsgCountUI}">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="10"
-                            Opacity="1"
-                            ShadowDepth="0"
-                            Color="{StaticResource GradientDeepPurpleColor}" />
-                    </TextBlock.Effect>
-                </TextBlock>
-                <StackPanel Grid.Row="3" VerticalAlignment="Top">
-
-                    <StackPanel
-                        Width="214"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Orientation="Vertical">
-                        <Border CornerRadius="0,0,15,15" Visibility="{Binding Modules.Afk.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                    <GradientStop Color="#FF2E1565" />
-                                    <GradientStop Offset="1" Color="#FF523E64" />
-                                </LinearGradientBrush>
-                            </Border.Background>
+                    <Grid
+                        Grid.Row="1"
+                        Height="157"
+                        Margin="5,0,6,0"
+                        VerticalAlignment="Top">
+                        <Border Background="{StaticResource TextSubtleBrush}">
                             <Border.Effect>
                                 <DropShadowEffect
                                     BlurRadius="5"
@@ -625,565 +1040,192 @@
                                     ShadowDepth="0"
                                     Color="DarkBlue" />
                             </Border.Effect>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto" />
-                                    <RowDefinition Height="auto" />
-                                    <RowDefinition Height="auto" />
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Column="0">
-                                    <StackPanel
-                                        Margin="5,3,0,3"
-                                        HorizontalAlignment="Center"
-                                        Orientation="Horizontal">
-                                        <TextBlock
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            FontWeight="SemiBold"
-                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                            Text="Away from keyboard:">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <!--  Default values  -->
-                                                    <Setter Property="Foreground" Value="#B49AD1" />
-                                                    <Setter Property="Text" Value="Inactive" />
-                                                    <Setter Property="Opacity" Value="0.7" />
-                                                    <Setter Property="Effect">
-                                                        <Setter.Value>
-                                                            <DropShadowEffect
-                                                                BlurRadius="5"
-                                                                Direction="315"
-                                                                Opacity="1"
-                                                                ShadowDepth="0"
-                                                                Color="Black" />
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                    <!--  Change values based on Modules.Afk.IsAfk  -->
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                            <Setter Property="Foreground" Value="#7DD9AA" />
-                                                            <Setter Property="Text" Value="Active" />
-                                                            <Setter Property="Opacity" Value="0.9" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                            <TextBlock.Effect>
-                                                <DropShadowEffect
-                                                    BlurRadius="5"
-                                                    Direction="315"
-                                                    Opacity="1"
-                                                    ShadowDepth="0"
-                                                    Color="Black" />
-                                            </TextBlock.Effect>
-                                        </TextBlock>
-                                        <TextBlock
-                                            Padding="5,0,0,0"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="14"
-                                            FontWeight="SemiBold"
-                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <!--  Default values  -->
-                                                    <Setter Property="Foreground" Value="#D38D9C" />
-                                                    <Setter Property="Text" Value="Inactive" />
-                                                    <Setter Property="Opacity" Value="0.7" />
-                                                    <Setter Property="Effect">
-                                                        <Setter.Value>
-                                                            <DropShadowEffect
-                                                                BlurRadius="5"
-                                                                Direction="315"
-                                                                Opacity="1"
-                                                                ShadowDepth="0"
-                                                                Color="Black" />
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                    <!--  Change values based on Modules.Afk.IsAfk  -->
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                            <Setter Property="Foreground" Value="#7DF8AA" />
-                                                            <Setter Property="Text" Value="Active" />
-                                                            <Setter Property="Opacity" Value="1" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-
-                                    </StackPanel>
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <!--  Default values  -->
-                                            <Setter Property="Background" Value="#391E72" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                    <Setter Property="Background" Value="#562EAD" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
-                                </Grid>
-                                <Grid Grid.Row="1">
-                                    <StackPanel
-                                        Margin="0,5,0,5"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Orientation="Horizontal">
-                                        <StackPanel
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal"
-                                            Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <TextBlock
-                                                Padding="0,0,1,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="12"
-                                                FontWeight="SemiBold"
-                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <!--  Default values  -->
-                                                        <Setter Property="Foreground" Value="#B49AD1" />
-                                                        <Setter Property="Text" Value="Will be AFK in:" />
-                                                        <Setter Property="Opacity" Value="0.7" />
-                                                        <Setter Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect
-                                                                    BlurRadius="5"
-                                                                    Direction="315"
-                                                                    Opacity="1"
-                                                                    ShadowDepth="0"
-                                                                    Color="Black" />
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <!--  Change values based on Modules.Afk.IsAfk  -->
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                                <Setter Property="Text" Value="You are AFK for:" />
-                                                                <Setter Property="Opacity" Value="0.9" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="5"
-                                                        Direction="315"
-                                                        Opacity="1"
-                                                        ShadowDepth="0"
-                                                        Color="Black" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-                                            <TextBlock
-                                                Padding="3,0,5,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="12"
-                                                FontWeight="SemiBold"
-                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <!--  Default values  -->
-                                                        <Setter Property="Foreground" Value="#BEBED3" />
-                                                        <Setter Property="Text" Value="{Binding Modules.Afk.RemainingTimeUntilAFK}" />
-                                                        <Setter Property="Opacity" Value="0.7" />
-                                                        <Setter Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect
-                                                                    BlurRadius="5"
-                                                                    Direction="315"
-                                                                    Opacity="1"
-                                                                    ShadowDepth="0"
-                                                                    Color="Black" />
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <!--  Change values based on Modules.Afk.IsAfk  -->
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                                <Setter Property="Text" Value="{Binding Modules.Afk.TimeCurrentlyAFK}" />
-                                                                <Setter Property="Opacity" Value="0.9" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="5"
-                                                        Direction="315"
-                                                        Opacity="1"
-                                                        ShadowDepth="0"
-                                                        Color="Black" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal"
-                                            Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <TextBlock
-                                                Padding="5,0"
-                                                FontSize="12"
-                                                Foreground="#B49AD1"
-                                                Text="Paused, VR active" />
-                                        </StackPanel>
-
-
-                                        <CheckBox
-                                            Width="50"
-                                            Height="18"
-                                            Margin="0,0,0,0"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            Command="{Binding Integrations.ManualBuildOscCommand}"
-                                            Content="AFK now"
-                                            IsChecked="{Binding Modules.Afk.Settings.OverrideAfk}"
-                                            Style="{DynamicResource GlowyToggleButton}"
-                                            Visibility="{Binding Modules.Afk.OverrideButtonVisible, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                    </StackPanel>
-
-
-                                </Grid>
-
-
-                            </Grid>
                         </Border>
-                        <Button
-                            x:Name="ReorderIntegrationsButton"
-                            Width="auto"
-                            Height="27"
-                            Margin="0,5"
-                            Padding="5"
-                            HorizontalAlignment="Right"
-                            Click="ReorderIntegrations_Click"
-                            Style="{StaticResource Status_Button_style}">
-                            <Button.ContentTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image
-                                            Height="16"
-                                            Margin="0,0,5,0"
-                                            RenderOptions.BitmapScalingMode="HighQuality"
-                                            Source="/Img/Icons/Edit_ico.png" />
-                                        <TextBlock
-                                            Margin="0,-1,5,0"
-                                            VerticalAlignment="Center"
-                                            FontSize="13"
-                                            Text="Reorder integrations" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </Button.ContentTemplate>
-                        </Button>
-                        <Button
-                            x:Name="ToggleVoicebtn"
-                            Width="101"
-                            Height="27"
-                            Margin="0,0,0,0"
-                            HorizontalAlignment="Right"
-                            local:ButtonProperties.ShadowTrigger="{Binding TtsAudio.TTSBtnShadow}"
-                            Command="{Binding ToggleVoiceCommand}"
-                            Content="{Binding TtsAudio.ToggleVoiceText}"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Style="{DynamicResource Status_Button_style_Shadow}" />
-
-                    </StackPanel>
-
-
-                    <StackPanel
-                        Width="80"
-                        Height="20"
-                        Margin="0,5"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Orientation="Horizontal">
-                        <TextBlock
-                            Margin="0,2,5,0"
-                            VerticalAlignment="Center"
+                        <TextBox
+                            Margin="8,8,8,5"
+                            VerticalAlignment="Top"
+                            d:Text="This song is paused 💖💬⏸🎵"
+                            AllowDrop="False"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Focusable="False"
                             FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource BorderMutedBrush}"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="TopMost">
-                            <TextBlock.Effect>
+                            FontSize="14"
+                            Foreground="#7E7498"
+                            IsHitTestVisible="False"
+                            IsReadOnly="True"
+                            IsTabStop="False"
+                            MaxLength="144"
+                            Text="{Binding OscDisplay.OscToSent}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap">
+                            <TextBox.Effect>
                                 <DropShadowEffect
-                                    BlurRadius="10"
-                                    Opacity="0.5"
+                                    BlurRadius="13"
+                                    Opacity="0.8"
                                     ShadowDepth="0"
-                                    Color="{StaticResource GradientDeepPurpleColor}" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                        <CheckBox
-                            Width="20"
-                            FontSize="12"
-                            IsChecked="{Binding AppSettingsInstance.Topmost, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}" />
-                    </StackPanel>
-                    <StackPanel
-                        Width="auto"
-                        Height="auto"
-                        Margin="5,0"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal"
-                        Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
-                        <StackPanel Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-
-
-                            <TextBlock
-                                Margin="0,3,5,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Live edit chats">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.5"
-                                        ShadowDepth="0"
-                                        Color="{StaticResource GradientDeepPurpleColor}" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                        </StackPanel>
-
-                        <CheckBox
-                            Width="20"
-                            FontSize="12"
-                            IsChecked="{Binding ChatSettings.RealTimeChatEdit, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
-                    <StackPanel
-                        Width="auto"
-                        Height="auto"
-                        Margin="5,5"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal"
-                        Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
-                        <TextBlock
-                            Margin="0,0,5,0"
-                            VerticalAlignment="Center"
+                                    Color="white" />
+                            </TextBox.Effect>
+                        </TextBox>
+                        <TextBox
+                            Margin="8,8,8,5"
+                            VerticalAlignment="Top"
+                            d:Text="This song is paused 💖💬⏸🎵"
+                            AllowDrop="False"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Focusable="False"
                             FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource BorderMutedBrush}"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="Text to speech">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="10"
-                                    Opacity="0.5"
-                                    ShadowDepth="0"
-                                    Color="{StaticResource GradientDeepPurpleColor}" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                        <CheckBox
-                            Width="20"
-                            FontSize="12"
-                            IsChecked="{Binding TtsSettingsInstance.TtsTikTokEnabled, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}" />
-                    </StackPanel>
+                            FontSize="14"
+                            Foreground="#FFDFDDE2"
+                            IsHitTestVisible="False"
+                            IsReadOnly="True"
+                            IsTabStop="False"
+                            MaxLength="144"
+                            Text="{Binding OscDisplay.OscToSent}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap" />
 
-                    <StackPanel Visibility="{Binding TtsSettingsInstance.TtsTikTokEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <StackPanel
-                            Width="176"
-                            Height="22"
-                            Margin="0,5"
-                            HorizontalAlignment="Right"
-                            Orientation="Horizontal"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
-                            <TextBlock
-                                Margin="0,0,5,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Voice">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.5"
-                                        ShadowDepth="0"
-                                        Color="{StaticResource GradientDeepPurpleColor}" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <ComboBox
-                                x:Name="TikTokTTSVoices_combo"
-                                Width="135"
-                                Height="21"
-                                BorderBrush="#FF020000"
-                                DisplayMemberPath="DisplayName"
-                                FontSize="11.5"
-                                ItemsSource="{Binding TtsAudio.TikTokTTSVoices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                Opacity="0.4"
-                                SelectedItem="{Binding TtsAudio.SelectedTikTokTTSVoice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                SelectedValuePath="ApiName"
-                                SelectionChanged="TikTokTTSVoices_combo_SelectionChanged" />
-                        </StackPanel>
 
-                        <StackPanel
-                            Width="211"
-                            Height="22"
-                            Margin="0,0,0,0"
-                            HorizontalAlignment="Right"
-                            Orientation="Horizontal"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
-                            <TextBlock
-                                Width="69"
-                                Margin="0,0,0,3"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="TTS volume">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.5"
-                                        ShadowDepth="0"
-                                        Color="{StaticResource GradientDeepPurpleColor}" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <Slider
-                                x:Name="VolumeSlider"
-                                Width="134.5"
-                                Height="12"
-                                Margin="2.2,0,4.5,0"
-                                Maximum="1"
-                                Minimum="0"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Style="{StaticResource CustomSlider}"
-                                Value="{Binding TtsSettingsInstance.TtsVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                <Slider.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.3"
-                                        ShadowDepth="0"
-                                        Color="{StaticResource GradientDeepPurpleColor}" />
-                                </Slider.Effect>
-                            </Slider>
-                        </StackPanel>
-                    </StackPanel>
 
-                </StackPanel>
-
-                <Grid
-                    Grid.Row="1"
-                    Height="157"
-                    Margin="5,0,6,0"
-                    VerticalAlignment="Top">
-                    <Border Background="{StaticResource TextSubtleBrush}">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="5"
-                                Direction="-23"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="DarkBlue" />
-                        </Border.Effect>
-                    </Border>
-                    <TextBox
-                        Margin="8,8,8,5"
+                    </Grid>
+                    <Grid
+                        Grid.Row="2"
+                        Height="auto"
+                        Margin="5,2,6,15"
                         VerticalAlignment="Top"
-                        d:Text="This song is paused 💖💬⏸🎵"
-                        AllowDrop="False"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Focusable="False"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="14"
-                        Foreground="#7E7498"
-                        IsHitTestVisible="False"
-                        IsReadOnly="True"
-                        IsTabStop="False"
-                        MaxLength="144"
-                        Text="{Binding OscDisplay.OscToSent}"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap">
-                        <TextBox.Effect>
-                            <DropShadowEffect
-                                BlurRadius="13"
-                                Opacity="0.8"
-                                ShadowDepth="0"
-                                Color="white" />
-                        </TextBox.Effect>
-                    </TextBox>
-                    <TextBox
-                        Margin="8,8,8,5"
-                        VerticalAlignment="Top"
-                        d:Text="This song is paused 💖💬⏸🎵"
-                        AllowDrop="False"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Focusable="False"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="14"
-                        Foreground="#FFDFDDE2"
-                        IsHitTestVisible="False"
-                        IsReadOnly="True"
-                        IsTabStop="False"
-                        MaxLength="144"
-                        Text="{Binding OscDisplay.OscToSent}"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap" />
+                        Visibility="{Binding Modules.Afk.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
 
+
+
+
+                    <Button
+                        x:Name="Discord"
+                        Width="auto"
+                        Margin="6,3,195,5"
+                        Command="{Binding OpenDiscordCommand}"
+                        Opacity="0.6"
+                        Style="{DynamicResource LINK_Button_style}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                Height="20"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Source="/Img/Icons/Discord.png" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="Github"
+                        Width="auto"
+                        Margin="32,3,169,5"
+                        Command="{Binding OpenGitHubCommand}"
+                        Opacity="0.4"
+                        Style="{DynamicResource LINK_Button_style}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image
+                                Width="20"
+                                Height="20"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Source="/Img/Icons/GitHub.png" />
+                        </StackPanel>
+                    </Button>
 
                 </Grid>
-                <Grid
-                    Grid.Row="2"
-                    Height="auto"
-                    Margin="5,2,6,15"
-                    VerticalAlignment="Top"
-                    Visibility="{Binding Modules.Afk.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-
-
-
-
-
-                <Button
-                    x:Name="Discord"
-                    Width="auto"
-                    Margin="6,3,195,5"
-                    Command="{Binding OpenDiscordCommand}"
-                    Opacity="0.6"
-                    Style="{DynamicResource LINK_Button_style}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image
-                            Width="20"
-                            Height="20"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Source="/Img/Icons/Discord.png" />
-                    </StackPanel>
-                </Button>
-                <Button
-                    x:Name="Github"
-                    Width="auto"
-                    Margin="32,3,169,5"
-                    Command="{Binding OpenGitHubCommand}"
-                    Opacity="0.4"
-                    Style="{DynamicResource LINK_Button_style}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image
-                            Width="20"
-                            Height="20"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Source="/Img/Icons/GitHub.png" />
-                    </StackPanel>
-                </Button>
-
+                <pages:IntegrationsPage
+                    x:Name="integrationsPage"
+                    Grid.Row="1"
+                    d:Visibility="Collapsed"
+                    DataContext="{Binding Integrations}"
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" />
             </Grid>
-            <pages:IntegrationsPage
-                x:Name="integrationsPage"
-                Grid.Row="1"
-                DataContext="{Binding Integrations}"
-                d:Visibility="Collapsed"
-                Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" />
+        </Border>
+
+        <!--  Startup overlay — OUTSIDE blurred Border so it's never blurred  -->
+        <Grid
+            x:Name="StartupOverlay"
+            Panel.ZIndex="200"
+            Visibility="Visible">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0.5,1">
+                    <GradientStop Offset="0" Color="#FF2D1265" />
+                    <GradientStop Offset="1" Color="#FF1A0E3E" />
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image
+                    Width="48"
+                    Height="48"
+                    Margin="0,0,0,16"
+                    HorizontalAlignment="Center"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    Source="/Img/Icons/MagicChatbox_ico.png" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="18"
+                    Foreground="White"
+                    Text="MagicChatbox">
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Opacity="0.8"
+                            ShadowDepth="0"
+                            Color="Black" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <!--  Progress bar  -->
+                <ProgressBar
+                    x:Name="OverlayProgressBar"
+                    Width="280"
+                    Height="5"
+                    Margin="0,20,0,10"
+                    Background="#FF3A2F54"
+                    Foreground="#FF7C5CBF" />
+
+                <!--  Rolling 3-strip step display  -->
+                <Grid
+                    Width="320"
+                    Height="54"
+                    ClipToBounds="True">
+                    <StackPanel>
+                        <!--  Previous step (faded)  -->
+                        <TextBlock
+                            x:Name="OverlayPrevStep"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Opacity="0.5"
+                            Text=""
+                            TextAlignment="Center"
+                            TextTrimming="CharacterEllipsis" />
+                        <!--  Current step  -->
+                        <TextBlock
+                            x:Name="OverlayCurrentStep"
+                            Margin="0,2"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="White"
+                            Text="Starting your interfaces..."
+                            TextAlignment="Center"
+                            TextTrimming="CharacterEllipsis" />
+                        <!--  Next step (faded preview)  -->
+                        <TextBlock
+                            x:Name="OverlayNextStep"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Opacity="0.5"
+                            Text=""
+                            TextAlignment="Center"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
         </Grid>
-    </Border>
+
+    </Grid>
 </Window>

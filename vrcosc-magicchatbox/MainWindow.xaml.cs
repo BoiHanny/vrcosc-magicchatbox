@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Services;
@@ -110,13 +111,6 @@ namespace vrcosc_magicchatbox
             _persistence = persistence;
 
             Closing += MainWindow_ClosingAsync;
-
-            _scanLoop.Start();
-
-            // Create late modules via bootstrapper (WhisperModule, AfkModule)
-            _bootstrapper.CreateLateModules();
-            _moduleHost.Whisper.TranscriptionReceived += WhisperModule_TranscriptionReceived;
-            _moduleHost.Whisper.SentChatMessage += WhisperModule_SentChat;
         }
 
         public void ApplyIntegrationOrder()
@@ -144,10 +138,20 @@ namespace vrcosc_magicchatbox
 
         public async Task InitializeAsync()
         {
-            SelectTTS();
-            optionsPage.SelectTTSOutput();
+            _bootstrapper.CreateLateModules();
+            _moduleHost.Whisper.TranscriptionReceived += WhisperModule_TranscriptionReceived;
+            _moduleHost.Whisper.SentChatMessage += WhisperModule_SentChat;
+
             VM.SelectedMenuIndex = VM.AppSettingsInstance.CurrentMenuItem;
-            Task.Run(() => _scanLoop.Scantick(true));
+        }
+
+        /// <summary>
+        /// Called after the window is shown and first frame rendered — starts background scan loop.
+        /// </summary>
+        public void StartBackgroundProcessing()
+        {
+            _scanLoop.Start();
+            _ = Task.Run(() => _scanLoop.Scantick(true));
         }
 
         public static event EventHandler ShadowOpacityChanged;
@@ -168,6 +172,11 @@ namespace vrcosc_magicchatbox
                 this.DragMove();
         }
 
+        private void MasterSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            VM.HandleMasterSwitchToggled();
+        }
+
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -177,14 +186,15 @@ namespace vrcosc_magicchatbox
             try
             {
                 Hide();
-
                 await SaveDataToDiskAsync();
-
-                Application.Current.Shutdown(); // This is equivalent to System.Environment.Exit in WPF
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: true, exitapp: true);
+            }
+            finally
+            {
+                Application.Current.Shutdown();
             }
         }
 
@@ -231,6 +241,61 @@ namespace vrcosc_magicchatbox
                 }
             }
         }
+
+        #region Startup Overlay
+
+        private string _lastOverlayStep = "";
+
+        /// <summary>
+        /// Updates the startup overlay progress display (call from any thread).
+        /// </summary>
+        public void UpdateOverlayProgress(string currentStep, double progressPercent, string nextHint = "")
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(() => UpdateOverlayProgress(currentStep, progressPercent, nextHint));
+                return;
+            }
+
+            OverlayPrevStep.Text = _lastOverlayStep;
+            OverlayCurrentStep.Text = currentStep;
+            OverlayNextStep.Text = nextHint;
+            _lastOverlayStep = currentStep;
+
+            // Animate progress bar smoothly
+            var anim = new DoubleAnimation(progressPercent, TimeSpan.FromMilliseconds(250))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            OverlayProgressBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, anim);
+        }
+
+        /// <summary>
+        /// Fades out and collapses the startup overlay.
+        /// </summary>
+        public void HideStartupOverlay()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(() => HideStartupOverlay());
+                return;
+            }
+
+            UpdateOverlayProgress("Restoring open page...", 100);
+
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(400))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+            fadeOut.Completed += (_, _) =>
+            {
+                StartupOverlay.Visibility = Visibility.Collapsed;
+                StartupOverlay.IsHitTestVisible = false;
+            };
+            StartupOverlay.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+        }
+
+        #endregion
 
     }
 }

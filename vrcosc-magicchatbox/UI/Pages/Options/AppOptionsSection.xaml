@@ -59,19 +59,14 @@
                                         <TextBox
                                             x:Name="OSCIPBox"
                                             Width="100"
-                                            Height="26"
                                             Padding="5,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding OscSettings.OscIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <Button
                                             x:Name="ResetIP_btn"
                                             Width="auto"
-                                            Height="26"
                                             Margin="5,0,0,0"
                                             Padding="5"
                                             Command="{Binding ResetOscIpCommand}"
@@ -111,19 +106,14 @@
                                         <TextBox
                                             x:Name="OSCPortOut"
                                             Width="100"
-                                            Height="26"
                                             Padding="5,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding OscSettings.OscPortOut, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <Button
                                             x:Name="ResetOSCPortOut_btn"
                                             Width="auto"
-                                            Height="26"
                                             Margin="5,0,0,0"
                                             Padding="5"
                                             Command="{Binding ResetOscPortCommand}"
@@ -218,15 +208,11 @@
                                         <TextBox
                                             x:Name="SecOSCIP"
                                             Width="100"
-                                            Height="26"
                                             Margin="0,3,0,5"
                                             Padding="5,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding OscSettings.SecOSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock
                                             Grid.Column="0"
@@ -239,19 +225,15 @@
                                         <TextBox
                                             x:Name="SecOSCPort"
                                             Width="100"
-                                            Height="26"
                                             Margin="0,3,0,0"
                                             Padding="5,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding OscSettings.SecOSCPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <CheckBox
                                             x:Name="ToggleVoiceSec"
-                                            Margin="0,10,0,0"
+                                            Margin="0,6,0,0"
                                             IsChecked="{Binding OscSettings.UnmuteSecOutput, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Toggle voice on this output
@@ -282,15 +264,11 @@
                                         <TextBox
                                             x:Name="ThirdOSCIP"
                                             Width="100"
-                                            Height="26"
                                             Margin="0,3,0,5"
                                             Padding="5,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding OscSettings.ThirdOSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock
                                             Grid.Column="0"
@@ -303,19 +281,15 @@
                                         <TextBox
                                             x:Name="ThirdOSCPort"
                                             Width="100"
-                                            Height="26"
                                             Margin="0,3,0,0"
                                             Padding="5,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalContentAlignment="Center"
-                                            Background="{StaticResource InputBackgroundBrush}"
-                                            BorderThickness="0"
                                             FontSize="15"
-                                            Foreground="{StaticResource TextDarkBrush}"
                                             Text="{Binding OscSettings.ThirdOSCPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <CheckBox
                                             x:Name="ToggleVoiceThird"
-                                            Margin="0,10,0,0"
+                                            Margin="0,6,0,0"
                                             IsChecked="{Binding OscSettings.UnmuteThirdOutput, Mode=TwoWay}"
                                             Style="{DynamicResource SettingsCheckbox}">
                                             Toggle voice on this output
@@ -352,14 +326,10 @@
                                     <TextBox
                                         x:Name="OscMessageSeparator"
                                         Width="140"
-                                        Height="26"
                                         Padding="5,0,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalContentAlignment="Center"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderThickness="0"
                                         FontSize="15"
-                                        Foreground="{StaticResource TextDarkBrush}"
                                         Text="{Binding AppSettings.OscMessageSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                                 <StackPanel Margin="0,0,0,15">
@@ -373,14 +343,10 @@
                                     <TextBox
                                         x:Name="OscMessagePrefix"
                                         Width="220"
-                                        Height="26"
                                         Padding="5,0,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalContentAlignment="Center"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderThickness="0"
                                         FontSize="15"
-                                        Foreground="{StaticResource TextDarkBrush}"
                                         Text="{Binding AppSettings.OscMessagePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                                 <StackPanel Margin="0,0,0,15">
@@ -394,14 +360,10 @@
                                     <TextBox
                                         x:Name="OscMessageSuffix"
                                         Width="220"
-                                        Height="26"
                                         Padding="5,0,0,0"
                                         HorizontalAlignment="Left"
                                         VerticalContentAlignment="Center"
-                                        Background="{StaticResource InputBackgroundBrush}"
-                                        BorderThickness="0"
                                         FontSize="15"
-                                        Foreground="{StaticResource TextDarkBrush}"
                                         Text="{Binding AppSettings.OscMessageSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                                 <TextBlock
@@ -413,18 +375,21 @@
 
                                 <CheckBox
                                     x:Name="ToggleVoiceWithV"
+                                    Margin="0,6,0,0"
                                     IsChecked="{Binding TtsSettings.ToggleVoiceWithV, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}">
                                     Toggle VRChat voice with 'V'
                                 </CheckBox>
                                 <CheckBox
                                     x:Name="CheckUpdateOnStartup"
+                                    Margin="0,6,0,0"
                                     IsChecked="{Binding AppSettings.CheckUpdateOnStartup, Mode=TwoWay}"
                                     Style="{DynamicResource SettingsCheckbox}">
                                     Auto check for updates on startup (recommended)
                                 </CheckBox>
                                 <CheckBox
                                     x:Name="ToggleJoinedApha"
+                                    Margin="0,6,0,15"
                                     Content="Beta channel updates"
                                     Foreground="{Binding UpdateState.VersionTxtColor}"
                                     IsChecked="{Binding AppSettings.JoinedAlphaChannel, Mode=TwoWay}"

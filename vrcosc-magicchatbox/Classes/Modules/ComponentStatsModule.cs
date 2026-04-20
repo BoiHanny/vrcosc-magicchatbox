@@ -26,6 +26,9 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 public class ComponentStatsModule : IModule
 {
     private string FileName = null;
+    private readonly object _statsInitLock = new();
+    private bool _statsLoaded;
+    private bool _ddrVersionFetchStarted;
 
     private static readonly StatsComponentType[] StatDisplayOrder =
     {
@@ -84,7 +87,14 @@ public class ComponentStatsModule : IModule
     /// <summary>
     /// Late-bound setter for ComponentStatsViewModel (avoids circular dependency).
     /// </summary>
-    public void SetStatsViewModel(ComponentStatsViewModel vm) => _statsVm = vm;
+    public void SetStatsViewModel(ComponentStatsViewModel vm)
+    {
+        _statsVm = vm;
+        EnsureComponentStatsLoaded();
+        _statsVm.SyncComponentStatsList();
+        EnsureGpuListLoaded();
+        QueueDdrVersionFetchIfNeeded();
+    }
 
     private IntegrationSettings _integrationSettings;
 
@@ -135,12 +145,76 @@ public class ComponentStatsModule : IModule
 
     private void FetchAndStoreDDRVersion()
     {
-        _ramDDRVersion = GetDDRVersion();
-        var ramItem = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
-        if (ramItem != null)
+        string ddrVersion = GetDDRVersion();
+        if (string.IsNullOrWhiteSpace(ddrVersion))
+            return;
+
+        _ramDDRVersion = ddrVersion;
+        _dispatcher.BeginInvoke(() =>
         {
-            ramItem.DDRVersion = _ramDDRVersion;
+            var ramItem = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+            if (ramItem != null)
+            {
+                ramItem.DDRVersion = _ramDDRVersion;
+            }
+
+            _statsVm?.RefreshAllProperties();
+        });
+    }
+
+    private void EnsureComponentStatsLoaded()
+    {
+        if (_statsLoaded)
+            return;
+
+        lock (_statsInitLock)
+        {
+            if (_statsLoaded)
+                return;
+
+            LoadComponentStats();
+            _statsLoaded = true;
         }
+    }
+
+    private bool ShouldFetchDdrVersion()
+    {
+        var ramItem = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
+        return ramItem?.IsEnabled == true && ramItem.ShowDDRVersion;
+    }
+
+    private void QueueDdrVersionFetchIfNeeded()
+    {
+        if (_ddrVersionFetchStarted || !ShouldFetchDdrVersion())
+            return;
+
+        lock (_statsInitLock)
+        {
+            if (_ddrVersionFetchStarted || !ShouldFetchDdrVersion())
+                return;
+
+            _ddrVersionFetchStarted = true;
+        }
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                FetchAndStoreDDRVersion();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        });
+    }
+
+    private void EnsureGpuListLoaded()
+    {
+        if (GPUList.Any())
+            return;
+
+        RefreshGpuList();
     }
 
     private string FetchCPUStat()
@@ -452,8 +526,7 @@ public class ComponentStatsModule : IModule
     {
         try
         {
-            if (!GPUList.Any())
-                RefreshGpuList();
+            EnsureGpuListLoaded();
 
             if (string.IsNullOrEmpty(StaticSettings.SelectedGPU) || StaticSettings.AutoSelectGPU)
             {
@@ -526,7 +599,7 @@ public class ComponentStatsModule : IModule
                 }
                 _componentStats.Add(component);
             }
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 started = true;
             });
@@ -549,6 +622,7 @@ public class ComponentStatsModule : IModule
 
     private void PerformUpdateActions()
     {
+        EnsureComponentStatsLoaded();
         _integrationDisplay.ComponentStatsRunning = true;
 
         bool driverApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
@@ -560,6 +634,7 @@ public class ComponentStatsModule : IModule
 
             _hwService.UpdateAll();
             StatsVm.SyncComponentStatsList();
+            QueueDdrVersionFetchIfNeeded();
 
             if (UpdateStats())
                 _integrationDisplay.ComponentStatCombined = StatsVm.Module.GenerateStatsDescription();
@@ -608,6 +683,7 @@ public class ComponentStatsModule : IModule
     /// </summary>
     public string GenerateStatsDescription()
     {
+        QueueDdrVersionFetchIfNeeded();
         List<string> descriptions = new List<string>();
 
         foreach (var type in StatDisplayOrder)
@@ -707,6 +783,7 @@ public class ComponentStatsModule : IModule
 
     public IReadOnlyList<ComponentStatsItem> GetAllStats()
     {
+        EnsureComponentStatsLoaded();
         return _componentStats.AsReadOnly();
     }
 
@@ -718,6 +795,7 @@ public class ComponentStatsModule : IModule
 
     public string GetDDRVersion()
     {
+        EnsureComponentStatsLoaded();
         string plain = _hwService.GetDdrVersion();
         return ToSuperscript(plain);
     }
@@ -800,6 +878,7 @@ public class ComponentStatsModule : IModule
 
     public bool GetShowRamDDRVersion()
     {
+        EnsureComponentStatsLoaded();
         var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
         return item?.ShowDDRVersion ?? false;
     }
@@ -985,7 +1064,6 @@ public class ComponentStatsModule : IModule
                 if (needsResave || loadedStats.Any(s => s.ComponentType == StatsComponentType.FPS))
                     SaveComponentStats();
 
-                started = true;
             }
             else
             {
@@ -1107,10 +1185,13 @@ public class ComponentStatsModule : IModule
 
     public void SetShowRamDDRVersion(bool state)
     {
+        EnsureComponentStatsLoaded();
         var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
         if (item != null)
         {
             item.ShowDDRVersion = state;
+            if (state)
+                QueueDdrVersionFetchIfNeeded();
         }
     }
 
@@ -1152,15 +1233,10 @@ public class ComponentStatsModule : IModule
 
     public void StartModule()
     {
-        if (_integrationSettings.IntgrComponentStats && _integrationSettings.IntgrComponentStats_VR &&
-                _appState.IsVRRunning || _integrationSettings.IntgrComponentStats &&
-                _integrationSettings.IntgrComponentStats_DESKTOP &&
-                !_appState.IsVRRunning)
-        {
-            LoadComponentStats();
-            FetchAndStoreDDRVersion();
-        }
-
+        EnsureComponentStatsLoaded();
+        _dispatcher.BeginInvoke(() => _statsVm?.SyncComponentStatsList());
+        EnsureGpuListLoaded();
+        QueueDdrVersionFetchIfNeeded();
     }
 
     public void StartMonitoringComponents()
@@ -1179,7 +1255,7 @@ public class ComponentStatsModule : IModule
     private void RefreshGpuList()
     {
         var gpus = _hwService.GetAvailableGpus();
-        _dispatcher.Invoke(() =>
+        _dispatcher.BeginInvoke(() =>
         {
             GPUList.Clear();
             foreach (var gpu in gpus)

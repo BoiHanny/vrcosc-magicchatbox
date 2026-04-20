@@ -21,6 +21,9 @@ namespace vrcosc_magicchatbox.ViewModels
     /// </summary>
     public partial class ChattingPageViewModel : ObservableObject
     {
+        private const string BoxColorNormal = "#FF6B5F98";
+        private const string BoxColorWarning = "#FFFF9393";
+
         private readonly ChatStatusDisplayState _chatStatus;
         private readonly Lazy<IModuleHost> _moduleHost;
         private readonly IAppState _appState;
@@ -120,7 +123,26 @@ namespace vrcosc_magicchatbox.ViewModels
         private void StopRecording() => Whisper?.StopRecording();
 
         [RelayCommand]
-        private void PasteChat() => _chatStatus.NewChattingTxt += Clipboard.GetText();
+        private void PasteChat()
+        {
+            try
+            {
+                string? clipboardText = Clipboard.GetText();
+                if (!string.IsNullOrEmpty(clipboardText))
+                {
+                    string newText = _chatStatus.NewChattingTxt + clipboardText;
+                    if (newText.Length <= Core.Constants.MaxChatMessageLength)
+                        _chatStatus.NewChattingTxt = newText;
+                    else
+                        _chatStatus.ChatFeedbackTxt = $"Paste would exceed {Core.Constants.MaxChatMessageLength} char limit";
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo("Clipboard access failed: " + ex.Message);
+                _chatStatus.ChatFeedbackTxt = "Failed to access clipboard";
+            }
+        }
 
         [RelayCommand]
         private void ClearChatInput() => _chatStatus.NewChattingTxt = string.Empty;
@@ -139,7 +161,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public void SendChat()
         {
             string chat = _chatStatus.NewChattingTxt;
-            if (chat.Length <= 0 || chat.Length > Core.Constants.MaxChatMessageLength || !_appState.MasterSwitch)
+            if (string.IsNullOrWhiteSpace(chat) || chat.Length > Core.Constants.MaxChatMessageLength || !_appState.MasterSwitch)
                 return;
 
             foreach (ChatItem item in _chatStatus.LastMessages)
@@ -244,6 +266,7 @@ namespace vrcosc_magicchatbox.ViewModels
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
+                _chatStatus.ChatFeedbackTxt = "Failed to resend message";
             }
         }
 
@@ -275,17 +298,17 @@ namespace vrcosc_magicchatbox.ViewModels
             if (count > 140)
             {
                 int overmax = count - 140;
-                _chatStatus.ChatBoxColor = "#FFFF9393";
+                _chatStatus.ChatBoxColor = BoxColorWarning;
                 _chatStatus.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}.";
             }
             else if (count == 0)
             {
-                _chatStatus.ChatBoxColor = "#FF504767";
+                _chatStatus.ChatBoxColor = BoxColorNormal;
                 _chatStatus.ChatTopBarTxt = string.Empty;
             }
             else
             {
-                _chatStatus.ChatBoxColor = "#FF2C2148";
+                _chatStatus.ChatBoxColor = BoxColorNormal;
                 _chatStatus.ChatTopBarTxt = string.Empty;
             }
 
@@ -357,7 +380,8 @@ namespace vrcosc_magicchatbox.ViewModels
                     running.CancelLiveEdit = false;
                 }
             }
-            item.Opacity = item.Opacity_backup;
+            if (item != null)
+                item.Opacity = item.Opacity_backup;
             return true;
         }
 

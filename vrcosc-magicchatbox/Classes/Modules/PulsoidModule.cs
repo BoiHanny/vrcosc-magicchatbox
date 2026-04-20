@@ -126,7 +126,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         };
         _processDataTimer.Elapsed += (sender, e) =>
         {
-            _dispatcher.Invoke(() => _ = ProcessDataAsync());
+            _dispatcher.BeginInvoke(() => _ = ProcessDataAsync());
         };
 
         _ = CheckMonitoringConditionsAsync();
@@ -145,7 +145,7 @@ public partial class PulsoidModule : ObservableObject, IModule
             _toast?.Show("💓 Pulsoid Error", message, ToastType.Error, key: "pulsoid-error");
         }
 
-        _dispatcher.Invoke(() =>
+        _dispatcher.BeginInvoke(() =>
         {
             PulsoidAccessError = true;
             PulsoidAccessErrorTxt = message;
@@ -159,7 +159,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         if (connected)
         {
             _pulsoidErrorShown = false;
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 PulsoidAccessError = false;
                 PulsoidAccessErrorTxt = "";
@@ -187,7 +187,7 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         HeartRateFromSocket = rawHR;
 
-        _dispatcher.Invoke(() => HeartRateLastUpdate = DateTime.Now);
+        _dispatcher.BeginInvoke(() => HeartRateLastUpdate = DateTime.Now);
 
         lock (_oscHeartRatesLock)
         {
@@ -391,7 +391,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         string accessToken = Settings.AccessTokenOAuth;
         if (string.IsNullOrEmpty(accessToken))
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 isMonitoringStarted = false;
                 PulsoidAccessError = true;
@@ -409,7 +409,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         bool isTokenValid = await OAuth.ValidateTokenAsync(accessToken).ConfigureAwait(false);
         if (!isTokenValid)
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 isMonitoringStarted = false;
                 PulsoidAccessError = true;
@@ -437,7 +437,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         }
         catch (Exception ex)
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 PulsoidAccessError = true;
                 PulsoidAccessErrorTxt = ex.Message;
@@ -467,27 +467,18 @@ public partial class PulsoidModule : ObservableObject, IModule
     {
         if (HeartRate != hr)
         {
-            _dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 HeartRate = hr;
             });
         }
+
+        Settings.HeartRateIcon = GetSanitizedHeartRateIcon(Settings.HeartRateIcon);
+
         if (Settings.MagicHeartRateIcons && Settings.HeartIcons != null && Settings.HeartIcons.Count > 0)
         {
             Settings.HeartRateIcon = Settings.HeartIcons[Settings.CurrentHeartIconIndex];
             Settings.CurrentHeartIconIndex = (Settings.CurrentHeartIconIndex + 1) % Settings.HeartIcons.Count;
-        }
-
-        if (Settings.ShowTemperatureText)
-        {
-            if (hr < Settings.LowTemperatureThreshold)
-            {
-                Settings.HeartRateIcon = Settings.HeartRateIcon + FormattedLowHeartRateText;
-            }
-            else if (hr >= Settings.HighTemperatureThreshold)
-            {
-                Settings.HeartRateIcon = Settings.HeartRateIcon + FormattedHighHeartRateText;
-            }
         }
     }
 
@@ -538,7 +529,7 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         if (Settings.MagicHeartIconPrefix)
         {
-            displayTextBuilder.Append(Settings.HeartRateIcon);
+            displayTextBuilder.Append(GetHeartRatePrefixText());
         }
 
         bool showCurrentHeartRate = true;
@@ -626,6 +617,48 @@ public partial class PulsoidModule : ObservableObject, IModule
         return displayTextBuilder.ToString();
     }
 
+    private string GetHeartRatePrefixText()
+    {
+        string heartIcon = GetSanitizedHeartRateIcon(Settings.HeartRateIcon);
+        string statusText = GetTemperatureStatusText(HeartRate);
+        return heartIcon + statusText;
+    }
+
+    private string GetTemperatureStatusText(int hr)
+    {
+        if (!Settings.ShowTemperatureText)
+            return string.Empty;
+
+        if (hr < Settings.LowTemperatureThreshold)
+            return FormattedLowHeartRateText;
+
+        if (hr >= Settings.HighTemperatureThreshold)
+            return FormattedHighHeartRateText;
+
+        return string.Empty;
+    }
+
+    private string GetSanitizedHeartRateIcon(string icon)
+    {
+        string sanitized = icon ?? string.Empty;
+        sanitized = StripRepeatedSuffix(sanitized, FormattedLowHeartRateText);
+        sanitized = StripRepeatedSuffix(sanitized, FormattedHighHeartRateText);
+        return sanitized;
+    }
+
+    private static string StripRepeatedSuffix(string value, string suffix)
+    {
+        if (string.IsNullOrEmpty(value) || string.IsNullOrEmpty(suffix))
+            return value;
+
+        while (value.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            value = value.Substring(0, value.Length - suffix.Length);
+        }
+
+        return value;
+    }
+
     public bool IsRelevantPropertyChange(string propertyName)
     {
         return propertyName == nameof(_integrationSettings.IntgrHeartRate) ||
@@ -658,7 +691,7 @@ public partial class PulsoidModule : ObservableObject, IModule
                     bool tokenValid = await OAuth.ValidateTokenAsync(Settings.AccessTokenOAuth);
                     if (!tokenValid)
                     {
-                        _dispatcher.Invoke(() =>
+                        _dispatcher.BeginInvoke(() =>
                         {
                             PulsoidAccessError = true;
                             PulsoidAccessErrorTxt = "Access token invalid or revoked. Please reconnect.";

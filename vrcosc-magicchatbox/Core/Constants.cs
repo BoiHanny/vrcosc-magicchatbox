@@ -41,6 +41,18 @@ public static class Constants
     public const string PulsoidClientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
     public const string PulsoidOAuthScope = "data:heart_rate:read,profile:read,data:statistics:read";
 
+    // Discord RPC integration
+    public const string DiscordClientId = "1495716413980278814";
+    public const string DiscordOAuthRedirectUri = "http://localhost:7386/";
+    public const string DiscordOAuthCallbackUri = "http://localhost:7387/";
+    public const string DiscordOAuthScope = "rpc rpc.voice.read";
+    public const string DiscordOAuthEndpoint = "https://discord.com/oauth2/authorize";
+    public const string DiscordIpcPipePrefix = "discord-ipc-";
+    public const int DiscordIpcMaxPipeIndex = 9;
+
+    public static readonly TimeSpan DiscordReconnectMinDelay = TimeSpan.FromSeconds(1);
+    public static readonly TimeSpan DiscordReconnectMaxDelay = TimeSpan.FromSeconds(30);
+
     public const string OpenAiOrganizationUrl = "https://platform.openai.com/account/organization";
     public const string OpenAiApiKeysUrl = "https://platform.openai.com/api-keys";
     public const string OpenAiTermsUrl = "https://openai.com/policies/terms-of-use";

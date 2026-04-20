@@ -130,8 +130,11 @@ namespace vrcosc_magicchatbox.ViewModels
             => _oscSender.Value.ToggleVoice(true);
 
         [RelayCommand]
-        private void ActivateSetting(string settingName)
-            => _menuNav.ActivateSetting(settingName);
+        private void ActivateSetting(string? settingName)
+        {
+            if (string.IsNullOrWhiteSpace(settingName)) return;
+            _menuNav.ActivateSetting(settingName);
+        }
 
         [RelayCommand]
         private void ChangeMenu(string s)
@@ -202,6 +205,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 _oscSender.Value.SentClearMessage(1000);
             }
         }
+
+        public void HandleMasterSwitchToggled()
+            => OnMasterSwitchToggled();
 
 
         // Proxy for PulsoidModule PropertyChanged subscription compatibility

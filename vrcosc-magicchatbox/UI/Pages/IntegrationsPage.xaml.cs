@@ -20,14 +20,16 @@ namespace vrcosc_magicchatbox.UI.Pages
         public IntegrationsPage()
         {
             InitializeComponent();
-            Loaded += IntegrationsPage_Loaded;
-        }
-
-        private void IntegrationsPage_Loaded(object sender, RoutedEventArgs e)
-        {
-            VM.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
-            HookIntegrationSortOrder();
-            ApplyIntegrationOrder();
+            // Wire integration order when DataContext arrives (may be deferred past Show).
+            DataContextChanged += (_, _) =>
+            {
+                if (DataContext is IntegrationsPageViewModel vm)
+                {
+                    vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
+                    HookIntegrationSortOrder();
+                    ApplyIntegrationOrder();
+                }
+            };
         }
 
         public void ApplyIntegrationOrder()
@@ -51,6 +53,8 @@ namespace vrcosc_magicchatbox.UI.Pages
                 { "Time", TimeItem },
                 { "Weather", WeatherItem },
                 { "Twitch", TwitchItem },
+                { "Discord", DiscordItem },
+                { "VrcRadar", VrcRadarItem },
                 { "Soundpad", SoundpadItem },
                 { "Spotify", SpotifyItem },
                 { "MediaLink", MediaLinkItem }

@@ -1433,210 +1433,10 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="OptionMark.Static.Background1" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="OptionMark.Static.Border1" Color="#FF707070" />
-            <SolidColorBrush x:Key="OptionMark.Static.Glyph1" Color="#FF212121" />
-            <SolidColorBrush x:Key="OptionMark.MouseOver.Background1" Color="#FFF3F9FF" />
-            <SolidColorBrush x:Key="OptionMark.MouseOver.Border1" Color="#FF5593FF" />
-            <SolidColorBrush x:Key="OptionMark.MouseOver.Glyph1" Color="#FF212121" />
-            <SolidColorBrush x:Key="OptionMark.Pressed.Background1" Color="#FFD9ECFF" />
-            <SolidColorBrush x:Key="OptionMark.Pressed.Border1" Color="#FF3C77DD" />
-            <SolidColorBrush x:Key="OptionMark.Pressed.Glyph1" Color="#FF212121" />
-            <SolidColorBrush x:Key="OptionMark.Disabled.Background1" Color="#FFE6E6E6" />
-            <SolidColorBrush x:Key="OptionMark.Disabled.Border1" Color="#FFBCBCBC" />
-            <SolidColorBrush x:Key="OptionMark.Disabled.Glyph1" Color="#FF707070" />
-
-            <Style x:Key="SettingsCheckbox" TargetType="{x:Type CheckBox}">
-                <Setter Property="SnapsToDevicePixels" Value="True" />
-                <Setter Property="OverridesDefaultStyle" Value="true" />
-                <Setter Property="UseLayoutRounding" Value="True" />
-                <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="MinHeight" Value="26" />
-                <Setter Property="Padding" Value="0,2,0,2" />
-                <Setter Property="Margin" Value="0,0,0,15" />
-                <Setter Property="BorderBrush" Value="#FF2D1265" />
-                <Setter Property="FontFamily" Value="Comfortaa Light" />
-                <Setter Property="FontSize" Value="18" />
-                <Setter Property="Foreground" Value="#FFB9B5C1" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="CheckBox">
-                            <Border Background="Transparent">
-                                <BulletDecorator x:Name="BulletDecoratorRoot">
-                                    <BulletDecorator.Bullet>
-                                        <Border
-                                            x:Name="Border"
-                                            Width="20"
-                                            Height="20"
-                                            Background="#FF7D7397"
-                                            BorderBrush="#FF7D7397"
-                                            BorderThickness="1"
-                                            ClipToBounds="True">
-                                            <Path
-                                                x:Name="CheckMark"
-                                                Width="12"
-                                                Height="12"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Data="M27.903015,0L32,4.0970465 12.369019,23.728029 11.685974,24.520998 0,14.441042 3.7819824,10.054994 11.330017,16.567019z"
-                                                Fill="#FF240E54"
-                                                Stretch="Fill"
-                                                Stroke="#FF240E54"
-                                                StrokeEndLineCap="Round"
-                                                StrokeStartLineCap="Round"
-                                                StrokeThickness="1" />
-                                        </Border>
-                                    </BulletDecorator.Bullet>
-                                    <ContentPresenter
-                                        Margin="10,0,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        RecognizesAccessKey="True" />
-                                </BulletDecorator>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="false">
-                                    <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed" />
-                                </Trigger>
-                                <Trigger Property="IsFocused" Value="true">
-                                    <Setter Property="BorderBrush" Value="White" />
-                                    <Setter TargetName="Border" Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect
-                                                BlurRadius="10"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="SkyBlue" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
-                                <Trigger Property="IsEnabled" Value="false">
-                                    <Setter Property="BorderBrush" Value="#FFA9A9A9" />
-                                    <Setter TargetName="CheckMark" Property="Fill" Value="#FFD3D3D3" />
-                                    <Setter TargetName="CheckMark" Property="Stroke" Value="#FFD3D3D3" />
-                                    <Setter TargetName="Border" Property="Effect" Value="{x:Null}" />
-                                    <Setter TargetName="BulletDecoratorRoot" Property="Opacity" Value="0.6" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
 
 
 
-            <SolidColorBrush x:Key="Slider.Track.Color" Color="#827D92" />
-            <SolidColorBrush x:Key="Slider.Track.FilledColor" Color="#7C7295" />
-            <SolidColorBrush x:Key="Slider.Static.Thumb" Color="#ABA3B7" />
-            <SolidColorBrush x:Key="Slider.MouseOver.Thumb" Color="#1A1650" />
-            <SolidColorBrush x:Key="Slider.Disabled.Thumb" Color="gray" />
-            <SolidColorBrush x:Key="Slider.Pressed.Thumb" Color="#14113D" />
-            <Style x:Key="CustomSlider" TargetType="{x:Type Slider}">
-                <Setter Property="SnapsToDevicePixels" Value="true" />
-                <Setter Property="OverridesDefaultStyle" Value="true" />
-                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Slider}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" MinHeight="{TemplateBinding Slider.MinHeight}" />
-                                </Grid.RowDefinitions>
-                                <Rectangle
-                                    Grid.Row="1"
-                                    Height="4"
-                                    Margin="0,0"
-                                    VerticalAlignment="Center"
-                                    Fill="{StaticResource Slider.Track.Color}" />
-                                <Rectangle
-                                    x:Name="FilledTrack"
-                                    Grid.Row="1"
-                                    Height="4"
-                                    Margin="0,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Fill="{StaticResource Slider.Track.FilledColor}" />
-                                <Track x:Name="PART_Track" Grid.Row="1">
-                                    <Track.Thumb>
-                                        <Thumb
-                                            x:Name="Thumb"
-                                            Background="{StaticResource Slider.Static.Thumb}"
-                                            BorderBrush="{StaticResource Slider.Static.Thumb}"
-                                            BorderThickness="1">
-                                            <Thumb.Template>
-                                                <ControlTemplate>
-                                                    <Rectangle
-                                                        x:Name="square"
-                                                        Width="8"
-                                                        Height="12"
-                                                        Fill="{TemplateBinding Background}"
-                                                        Stroke="{TemplateBinding BorderBrush}"
-                                                        StrokeThickness="{TemplateBinding BorderThickness}" />
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="true">
-                                                            <Setter TargetName="square" Property="Fill" Value="{StaticResource Slider.MouseOver.Thumb}" />
-                                                        </Trigger>
-                                                        <Trigger Property="IsEnabled" Value="false">
-                                                            <Setter TargetName="square" Property="Fill" Value="{StaticResource Slider.Disabled.Thumb}" />
-                                                            <Setter TargetName="square" Property="Stroke" Value="{StaticResource Slider.Disabled.Track}" />
-                                                        </Trigger>
-                                                        <Trigger Property="IsMouseCaptureWithin" Value="true">
-                                                            <Setter TargetName="square" Property="Fill" Value="{StaticResource Slider.Pressed.Thumb}" />
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Thumb.Template>
-                                        </Thumb>
-                                    </Track.Thumb>
-                                </Track>
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="FocusVisual4">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle
-                                Margin="2"
-                                SnapsToDevicePixels="true"
-                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                                StrokeDashArray="1 2"
-                                StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="OptionMarkFocusVisual">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle
-                                Margin="14,0,0,0"
-                                SnapsToDevicePixels="true"
-                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                                StrokeDashArray="1 2"
-                                StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070" />
-            <SolidColorBrush x:Key="OptionMark.Static.Glyph" Color="#FF212121" />
-            <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF" />
-            <SolidColorBrush x:Key="OptionMark.MouseOver.Border" Color="#FF5593FF" />
-            <SolidColorBrush x:Key="OptionMark.MouseOver.Glyph" Color="#FF212121" />
-            <SolidColorBrush x:Key="OptionMark.Pressed.Background" Color="#FFD9ECFF" />
-            <SolidColorBrush x:Key="OptionMark.Pressed.Border" Color="#FF3C77DD" />
-            <SolidColorBrush x:Key="OptionMark.Pressed.Glyph" Color="#FF212121" />
-            <SolidColorBrush x:Key="OptionMark.Disabled.Background" Color="#FFE6E6E6" />
-            <SolidColorBrush x:Key="OptionMark.Disabled.Border" Color="#FFBCBCBC" />
-            <SolidColorBrush x:Key="OptionMark.Disabled.Glyph" Color="#FF707070" />
+
             <Style x:Key="Switch" TargetType="{x:Type CheckBox}">
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
@@ -2069,26 +1869,7 @@
             <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
             <local:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />
 
-            <Style TargetType="TextBox">
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="BorderThickness" Value="0,0,0,2" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-                <Setter Property="Foreground" Value="#F2EEF9" />
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
-                <Setter Property="Padding" Value="4,2,4,2" />
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="CaretBrush" Value="#3B3053" />
-                <Setter Property="SelectionBrush" Value="#552FD1C5" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="BorderBrush" Value="#3B3053" />
-                    </Trigger>
-                    <Trigger Property="IsFocused" Value="True">
-                        <Setter Property="Background" Value="#6D6386" />
-                        <Setter Property="BorderBrush" Value="#3B3053" />
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
+
             <Style x:Key="TrackerPanelCard" TargetType="Border">
                 <Setter Property="CornerRadius" Value="12" />
                 <Setter Property="BorderThickness" Value="0" />
@@ -2164,10 +1945,12 @@
                 <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
                 <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderThickness" Value="0" />
+
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Padding" Value="1" />
+                <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
@@ -2189,17 +1972,21 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsDefaulted" Value="true">
+                                    <Setter TargetName="border" Property="CornerRadius" Value="5,0,0,5" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="border" Property="CornerRadius" Value="5,0,0,5" />
                                     <Setter TargetName="border" Property="Background" Value="#564BA0" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#564BA0" />
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="true">
+                                    <Setter TargetName="border" Property="CornerRadius" Value="5,0,0,5" />
                                     <Setter TargetName="border" Property="Background" Value="#5D559B" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#5D559B" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="border" Property="CornerRadius" Value="5,0,0,5" />
                                     <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
                                     <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
@@ -2214,10 +2001,11 @@
                 <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
                 <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Padding" Value="1" />
+                <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
@@ -2264,18 +2052,19 @@
                 <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
                 <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Padding" Value="1" />
+                <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
                             <Border
                                 x:Name="border"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="0,4,4,0"
                                 SnapsToDevicePixels="true">
                                 <ContentPresenter
                                     x:Name="contentPresenter"
@@ -2287,20 +2076,16 @@
                                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsDefaulted" Value="true">
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                </Trigger>
                                 <Trigger Property="IsMouseOver" Value="true">
                                     <Setter TargetName="border" Property="Background" Value="#56477F" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="#56477F" />
+
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="true">
                                     <Setter TargetName="border" Property="Background" Value="#625191" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="#625191" />
+
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="false">
                                     <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
                                     <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -2362,6 +2147,7 @@
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Padding" Value="1" />
+                <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
@@ -2412,6 +2198,7 @@
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Padding" Value="1" />
+                <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ToggleButton}">

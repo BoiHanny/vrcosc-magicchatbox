@@ -76,20 +76,20 @@
                         <TextBlock
                             FontFamily="Comfortaa Light"
                             FontSize="13"
-                            Foreground="White"
+                            Foreground="{StaticResource TextSectionHeaderBrush}"
                             Text="🖥️  Hardware Monitor" />
                         <TextBlock
                             FontFamily="Albert Sans Thin"
                             FontSize="11"
-                            Foreground="#999999"
+                            Foreground="{StaticResource TextMutedBrush}"
                             Text="CPU · GPU · VRAM sensors (loads WinRing0.sys driver)" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
                         <TextBlock
                             FontFamily="Albert Sans Thin"
                             FontSize="11"
-                            Foreground="White"
+                            Foreground="{StaticResource TextSectionHeaderBrush}"
                             Text="{Binding HardwareMonitorState}" />
                     </Border>
 
@@ -109,7 +109,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- WindowActivity row -->
                 <Grid Margin="0,4,10,4">
@@ -120,12 +120,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="📋  Window Activity" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Active app name + window title (UIAutomation)" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="📋  Window Activity" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Active app name + window title (UIAutomation)" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding WindowActivityState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding WindowActivityState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -140,7 +140,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- MediaSession row -->
                 <Grid Margin="0,4,10,4">
@@ -151,12 +151,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="🎵  Media Session" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Song title · artist · playback state (Windows SMTC)" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🎵  Media Session" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Song title · artist · playback state (Windows SMTC)" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding MediaSessionState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding MediaSessionState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -171,7 +171,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- AfkSensor row -->
                 <Grid Margin="0,4,10,4">
@@ -182,12 +182,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="💤  AFK Sensor" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Last input timestamp (GetLastInputInfo — no keylogging)" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="💤  AFK Sensor" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Last input timestamp (GetLastInputInfo — no keylogging)" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding AfkSensorState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding AfkSensorState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -202,7 +202,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- InternetAccess row -->
                 <Grid Margin="0,4,10,4">
@@ -213,12 +213,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="🌐  Internet Access" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🌐  Internet Access" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding InternetAccessState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding InternetAccessState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -233,7 +233,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- VrTrackerBattery row -->
                 <Grid Margin="0,4,10,4">
@@ -244,12 +244,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="🎮  VR Tracker Battery" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="SteamVR / OpenVR — reads HMD, controller &amp; tracker battery levels" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🎮  VR Tracker Battery" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="SteamVR / OpenVR — reads HMD, controller &amp; tracker battery levels" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding VrTrackerBatteryState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding VrTrackerBatteryState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -264,7 +264,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- NetworkStats row -->
                 <Grid Margin="0,4,10,4">
@@ -275,12 +275,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="📶  Network Statistics" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="System.Net.NetworkInformation — reads interface byte counters for throughput display" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="📶  Network Statistics" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="System.Net.NetworkInformation — reads interface byte counters for throughput display" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding NetworkStatsState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding NetworkStatsState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -295,7 +295,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Separator Margin="0,2,10,2" Background="#3D3060" />
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
                 <!-- SoundpadBridge row -->
                 <Grid Margin="0,4,10,12">
@@ -306,12 +306,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="White" Text="🔊  Soundpad Bridge" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="#999999" Text="Named-pipe IPC — connects to the Soundpad desktop application for playback control" />
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🔊  Soundpad Bridge" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Named-pipe IPC — connects to the Soundpad desktop application for playback control" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Margin="8,0" Background="#3D2F60" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="White" Text="{Binding SoundpadBridgeState}" />
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding SoundpadBridgeState}" />
                     </Border>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -322,6 +322,37 @@
                         <Button Width="60" Height="26"
                                 Command="{Binding RevokeHookCommand}"
                                 CommandParameter="{x:Static privacy:PrivacyHook.SoundpadBridge}"
+                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
+                    </StackPanel>
+                </Grid>
+
+                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                <!-- VrcLogReader row -->
+                <Grid Margin="0,4,10,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="📡  VRChat Log Reader" />
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="File read — parses VRChat output_log.txt for world info, player events, and session stats" />
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
+                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding VrcLogReaderState}" />
+                    </Border>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Width="70" Height="26" Margin="0,0,6,0"
+                                Command="{Binding ManageHookCommand}"
+                                CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
+                                Content="Manage" Style="{StaticResource Status_Button_style}" />
+                        <Button Width="60" Height="26"
+                                Command="{Binding RevokeHookCommand}"
+                                CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
                                 Content="Revoke" Style="{StaticResource Status_Button_style}" />
                     </StackPanel>
                 </Grid>

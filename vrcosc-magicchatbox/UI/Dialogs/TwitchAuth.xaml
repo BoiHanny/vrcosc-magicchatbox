@@ -180,16 +180,14 @@
                     <Border
                         Width="520"
                         Height="38"
-                        Background="{StaticResource InputBackgroundBrush}"
-                        BorderThickness="0"
                         CornerRadius="5">
                         <PasswordBox
                             x:Name="ClientIdBox"
+                            MaxLength="200"
                             Padding="8,0"
                             HorizontalContentAlignment="Left"
                             VerticalContentAlignment="Center"
                             Background="Transparent"
-                            BorderThickness="0"
                             FontSize="15"
                             Foreground="{StaticResource SurfaceDarkBrush}"
                             PasswordChar="●"
@@ -268,16 +266,14 @@
                     <Border
                         Width="520"
                         Height="38"
-                        Background="{StaticResource InputBackgroundBrush}"
-                        BorderThickness="0"
                         CornerRadius="5">
                         <PasswordBox
                             x:Name="TokenBox"
+                            MaxLength="200"
                             Padding="8,0"
                             HorizontalContentAlignment="Left"
                             VerticalContentAlignment="Center"
                             Background="Transparent"
-                            BorderThickness="0"
                             FontSize="15"
                             Foreground="{StaticResource SurfaceDarkBrush}"
                             PasswordChar="●"

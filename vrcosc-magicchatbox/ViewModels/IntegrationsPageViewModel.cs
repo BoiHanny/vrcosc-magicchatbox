@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Globalization;
+using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,8 +15,8 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
-using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -96,6 +99,16 @@ public partial class IntegrationsPageViewModel : ObservableObject
         _menuNav = menuNav;
         _consent = consent;
         _toast = toast;
+        AppState.PropertyChanged += OnAppStatePropertyChanged;
+        IntegrationDisplay.PropertyChanged += OnIntegrationDisplayPropertyChanged;
+        _consent.ConsentChanged += (_, e) =>
+        {
+            if (e.Hook == PrivacyHook.HardwareMonitor)
+            {
+                OnPropertyChanged(nameof(ComponentStatsAccessWarningText));
+                OnPropertyChanged(nameof(CanResolveComponentStatsAccessIssue));
+            }
+        };
 
         // Guard map: property name → (required hook, value getter, revert action).
         // Note: ComponentStats is intentionally excluded — it has a basic-mode fallback
@@ -109,6 +122,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrTrackerBattery),     (PrivacyHook.VrTrackerBattery, () => IntegrationSettings.IntgrTrackerBattery,      () => IntegrationSettings.IntgrTrackerBattery = false) },
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  (PrivacyHook.NetworkStats,     () => IntegrationSettings.IntgrNetworkStatistics,   () => IntegrationSettings.IntgrNetworkStatistics = false) },
             { nameof(IntegrationSettings.IntgrSoundpad),           (PrivacyHook.SoundpadBridge,   () => IntegrationSettings.IntgrSoundpad,            () => IntegrationSettings.IntgrSoundpad = false) },
+            { nameof(IntegrationSettings.IntgrVrcRadar),           (PrivacyHook.VrcLogReader,     () => IntegrationSettings.IntgrVrcRadar,            () => IntegrationSettings.IntgrVrcRadar = false) },
         };
 
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
@@ -116,6 +130,12 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     // Instance guard map built in constructor so closures capture the correct IntegrationSettings instance.
     private readonly Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)> _guardMap;
+
+    public bool IsVRRunning => AppState.IsVRRunning;
+
+    public string TrackerBattery_LastScanDisplay => IntegrationDisplay.TrackerBatteryLastScanDisplay;
+
+    public double NetworkStats_Opacity => ParseOpacity(IntegrationDisplay.NetworkStatsOpacity);
 
     private void OnIntegrationSettingChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -133,6 +153,25 @@ public partial class IntegrationsPageViewModel : ObservableObject
             new ToastAction("Open Privacy & Permissions", () => { _menuNav.NavigateToPrivacy(); return Task.CompletedTask; }),
             durationMs: 6000,
             key: $"consent-{guard.Hook}");
+    }
+
+    private void OnAppStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(IAppState.IsVRRunning) || e.PropertyName == nameof(ViewModel.IsVRRunning))
+            OnPropertyChanged(nameof(IsVRRunning));
+    }
+
+    private void OnIntegrationDisplayPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(IntegrationDisplayState.TrackerBatteryLastScanDisplay):
+                OnPropertyChanged(nameof(TrackerBattery_LastScanDisplay));
+                break;
+            case nameof(IntegrationDisplayState.NetworkStatsOpacity):
+                OnPropertyChanged(nameof(NetworkStats_Opacity));
+                break;
+        }
     }
 
     [RelayCommand]
@@ -180,6 +219,16 @@ public partial class IntegrationsPageViewModel : ObservableObject
     [RelayCommand]
     private void SoundpadRandom() => Soundpad?.PlayRandomSound();
 
+    public string ComponentStatsAccessWarningText =>
+        !_consent.IsApproved(PrivacyHook.HardwareMonitor)
+            ? "Enable Hardware Monitor permission"
+            : IsProcessElevated()
+                ? "Some stats aren't available on this system"
+                : "Some stats may need admin rights";
+
+    public bool CanResolveComponentStatsAccessIssue =>
+        !_consent.IsApproved(PrivacyHook.HardwareMonitor) || !IsProcessElevated();
+
     private void ScanTrackerBatteryDevices()
     {
         if (TrackerBatteryModule != null)
@@ -191,19 +240,42 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     private void ExecuteRestartAsAdmin()
     {
-        var identity = WindowsIdentity.GetCurrent();
-        var principal = new WindowsPrincipal(identity);
-        if (principal.IsInRole(WindowsBuiltInRole.Administrator))
+        if (!_consent.IsApproved(PrivacyHook.HardwareMonitor))
+        {
+            _menuNav.NavigateToPrivacy();
+            _toast.Show(
+                "🔒 Permission Required",
+                "Enable Hardware Monitor in Privacy & Permissions first.",
+                ToastType.Warning,
+                durationMs: 5000,
+                key: "hw-monitor-consent-required");
             return;
+        }
+
+        if (IsProcessElevated())
+        {
+            _toast.Show(
+                "🖥️ Hardware Monitor",
+                "MagicChatbox is already running as administrator. Missing temp/power stats are likely unsupported or blocked on this system.",
+                ToastType.Info,
+                durationMs: 6000,
+                key: "hw-monitor-already-elevated");
+            return;
+        }
 
         _persistence.Value.PersistAllState();
         try
         {
+            string processPath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrWhiteSpace(processPath))
+                throw new InvalidOperationException("Unable to determine the current executable path for admin relaunch.");
+
             var proc = new ProcessStartInfo
             {
                 UseShellExecute = true,
-                WorkingDirectory = Environment.CurrentDirectory,
-                FileName = Process.GetCurrentProcess().MainModule?.FileName,
+                WorkingDirectory = Path.GetDirectoryName(processPath) ?? Environment.CurrentDirectory,
+                FileName = processPath,
+                Arguments = BuildCurrentArgumentString(),
                 Verb = "runas"
             };
             Process.Start(proc);
@@ -214,6 +286,31 @@ public partial class IntegrationsPageViewModel : ObservableObject
         {
             Logging.WriteException(ex, MSGBox: false);
         }
+    }
+
+    private static bool IsProcessElevated()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        var principal = new WindowsPrincipal(identity);
+        return principal.IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    private static string BuildCurrentArgumentString()
+    {
+        return string.Join(" ",
+            Environment.GetCommandLineArgs()
+                .Skip(1)
+                .Select(QuoteCommandLineArgument));
+    }
+
+    private static string QuoteCommandLineArgument(string argument)
+    {
+        if (string.IsNullOrEmpty(argument))
+            return "\"\"";
+
+        return argument.Contains(' ') || argument.Contains('"')
+            ? $"\"{argument.Replace("\"", "\\\"")}\""
+            : argument;
     }
 
     /// <summary>
@@ -231,5 +328,12 @@ public partial class IntegrationsPageViewModel : ObservableObject
         {
             Logging.WriteInfo($"Media seek failed: {ex.Message}");
         }
+    }
+
+    private static double ParseOpacity(string? value)
+    {
+        return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double opacity)
+            ? opacity
+            : 1d;
     }
 }

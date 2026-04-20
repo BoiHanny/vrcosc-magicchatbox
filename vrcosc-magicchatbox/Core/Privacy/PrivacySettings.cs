@@ -37,4 +37,8 @@ public partial class PrivacySettings : VersionedSettings
     [ObservableProperty] private ConsentState _soundpadBridgeConsent = ConsentState.Unknown;
     [ObservableProperty] private int _soundpadBridgeConsentVersion = 0;
     [ObservableProperty] private DateTime? _soundpadBridgeDecidedAt;
+
+    [ObservableProperty] private ConsentState _vrcLogReaderConsent = ConsentState.Unknown;
+    [ObservableProperty] private int _vrcLogReaderConsentVersion = 0;
+    [ObservableProperty] private DateTime? _vrcLogReaderDecidedAt;
 }

@@ -32,7 +32,7 @@ public static class TextUtilities
 
         return new string(input.ToLowerInvariant()
             .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '/' || c == ':' || c == ',' || c == '.' || c == '%')
-            .Select(c => char.IsWhiteSpace(c) ? " " : (SuperscriptMapping.ContainsKey(c) ? SuperscriptMapping[c] : c.ToString()))
+            .Select(c => char.IsWhiteSpace(c) ? " " : (SuperscriptMapping.TryGetValue(c, out var mapped) ? mapped : c.ToString()))
             .SelectMany(s => s)
             .ToArray());
     }

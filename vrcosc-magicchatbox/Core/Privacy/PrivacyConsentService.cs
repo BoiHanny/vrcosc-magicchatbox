@@ -29,6 +29,7 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
         PrivacyHook.VrTrackerBattery => Settings.VrTrackerBatteryConsent,
         PrivacyHook.NetworkStats => Settings.NetworkStatsConsent,
         PrivacyHook.SoundpadBridge => Settings.SoundpadBridgeConsent,
+        PrivacyHook.VrcLogReader => Settings.VrcLogReaderConsent,
         _ => ConsentState.Unknown,
     };
 
@@ -74,6 +75,10 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
             case PrivacyHook.SoundpadBridge:
                 Settings.SoundpadBridgeConsent = newState;
                 Settings.SoundpadBridgeDecidedAt = DateTime.UtcNow;
+                break;
+            case PrivacyHook.VrcLogReader:
+                Settings.VrcLogReaderConsent = newState;
+                Settings.VrcLogReaderDecidedAt = DateTime.UtcNow;
                 break;
         }
 

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.180</Version>
+	<Version>0.9.181</Version>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -54,6 +54,7 @@
     <None Remove="Img\Icons\Cut_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Discord.png" />
+    <None Remove="Img\Icons\Discord_ico.png" />
     <None Remove="Img\Icons\DOTNET.png" />
     <None Remove="Img\Icons\downgrade.png" />
     <None Remove="Img\Icons\Edit_ico.png" />
@@ -90,6 +91,7 @@
     <None Remove="Img\Icons\Twitch_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\Upload.png" />
+    <None Remove="Img\Icons\VRCRadar_ico.png" />
     <None Remove="Img\Icons\VR_bat_ico.png" />
     <None Remove="Img\Icons\Wand_ico.png" />
     <None Remove="Img\Icons\Weather_ico.png" />
@@ -127,6 +129,7 @@
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Discord.png" />
+    <Resource Include="Img\Icons\Discord_ico.png" />
     <Resource Include="Img\Icons\DOTNET.png" />
     <Resource Include="Img\Icons\downgrade.png" />
     <Resource Include="Img\Icons\Edit_ico.png" />
@@ -173,6 +176,7 @@
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Upload.png" />
+    <Resource Include="Img\Icons\VRCRadar_ico.png" />
     <Resource Include="Img\Icons\VR_bat_ico.png" />
     <Resource Include="Img\Icons\Wand_ico.png" />
     <Resource Include="Img\Icons\Weather_ico.png" />

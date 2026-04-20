@@ -102,6 +102,21 @@ public sealed class StatusOscProvider : IOscProvider
     {
         if (_chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
             return;
+      
+        if (_app.CycleOverrideCurrentGroup && !string.IsNullOrEmpty(_app.CycleOverrideGroupId))
+        {
+            var overrideGroupId = _app.CycleOverrideGroupId;
+            var overrideItems = _chatStatus.StatusList
+                .Where(item => item.UseInCycle && item.GroupId == overrideGroupId)
+                .ToList();
+
+            if (overrideItems.Count > 0)
+            {
+                CycleItems(overrideItems);
+                return;
+            }
+            
+        }
 
         // Build candidate list: UseInCycle AND group must be active for cycling
         var activeGroupIds = _chatStatus.GroupList
@@ -116,6 +131,14 @@ public sealed class StatusOscProvider : IOscProvider
 
         if (cycleItems.Count == 0) return;
 
+        CycleItems(cycleItems);
+    }
+
+    /// <summary>
+    /// Advances to the next item in <paramref name="cycleItems"/> respecting interval and random mode.
+    /// </summary>
+    private void CycleItems(System.Collections.Generic.List<StatusItem> cycleItems)
+    {
         if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
             return;
 

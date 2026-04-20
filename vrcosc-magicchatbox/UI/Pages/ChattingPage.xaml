@@ -27,7 +27,6 @@
             </Grid.RowDefinitions>
             <Border
                 Margin="3"
-                BorderThickness="0"
                 CornerRadius="5">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
@@ -96,25 +95,19 @@
                     Style="{DynamicResource Status_Button_style}" />
                 <TextBox
                     x:Name="NewChattingTxt"
+                    MaxLength="144"
                     Height="40"
                     Margin="5,0,0,0"
                     Padding="8,0,93,0"
                     HorizontalContentAlignment="Left"
                     VerticalContentAlignment="Center"
-                    Background="{StaticResource InputBackgroundBrush}"
-                    BorderThickness="0"
                     FontSize="15"
-                    Foreground="{StaticResource SurfaceDarkBrush}"
                     KeyDown="NewChattingTxt_KeyDown"
+                    Style="{StaticResource LightInputTextBox}"
                     Text="{Binding ChatStatus.NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     TextAlignment="Left"
                     TextChanged="NewChattingTxt_TextChanged"
                     TextWrapping="Wrap">
-                    <TextBox.Resources>
-                        <Style TargetType="{x:Type Border}">
-                            <Setter Property="CornerRadius" Value="5" />
-                        </Style>
-                    </TextBox.Resources>
                     <TextBox.Effect>
                         <DropShadowEffect
                             BlurRadius="5"
@@ -363,14 +356,12 @@
                                     Width="735"
                                     Height="auto"
                                     Margin="8,0,0,8"
-                                    BorderThickness="0"
                                     CornerRadius="5"
                                     Opacity="{Binding Opacity}">
                                     <Grid>
                                         <Border
                                             Width="auto"
                                             Height="auto"
-                                            BorderThickness="0"
                                             CornerRadius="5"
                                             Opacity="{Binding Opacity}"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor">
@@ -423,19 +414,19 @@
                                             </TextBlock>
                                             <TextBox
                                                 x:Name="EditChatTextBox"
+                                                MaxLength="144"
                                                 Grid.Column="0"
                                                 Width="auto"
                                                 Height="Auto"
                                                 Padding="13,15,0,15"
                                                 HorizontalAlignment="Stretch"
-                                                Background="Transparent"
-                                                BorderThickness="0"
                                                 FontFamily="Albert Sans Thin"
                                                 FontSize="18"
                                                 FontWeight="DemiBold"
                                                 Foreground="#6FC2EC"
                                                 IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                 KeyDown="EditChatTextBox_KeyDown"
+                                                Style="{StaticResource InlineTransparentTextBox}"
                                                 Text="{Binding MsgReplace, UpdateSourceTrigger=PropertyChanged}"
                                                 TextChanged="EditChatTextBox_TextChanged"
                                                 TextWrapping="Wrap"
@@ -461,7 +452,6 @@
                                                         HorizontalAlignment="Right"
                                                         VerticalAlignment="Center"
                                                         Background="{StaticResource StatusErrorDarkBrush}"
-                                                        BorderThickness="0"
                                                         Click="CancelEditChatbutton_Click"
                                                         Cursor="Hand"
                                                         Style="{DynamicResource CancelEditbutton}"

@@ -174,6 +174,12 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<TwitchSettings>>(),
             sp.GetRequiredService<INavigationService>()));
+        services.AddSingleton<DiscordSectionViewModel>(sp => new DiscordSectionViewModel(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            new Lazy<DiscordOAuthHandler>(() => sp.GetRequiredService<DiscordOAuthHandler>()),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<INavigationService>()));
         services.AddSingleton<TrackerBatterySectionViewModel>(sp => new TrackerBatterySectionViewModel(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<TrackerDisplayState>(),
@@ -216,6 +222,11 @@ public static class ServiceRegistration
             sp.GetRequiredService<EmojiService>(),
             sp.GetRequiredService<IAppState>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
+        services.AddSingleton<VrcRadarSectionViewModel>(sp => new VrcRadarSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<VrcLogSettings>>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<EggDevSectionViewModel>();
         services.AddSingleton<AppOptionsSectionViewModel>(sp => new AppOptionsSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
@@ -240,6 +251,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<MediaLinkSectionViewModel>(),
             sp.GetRequiredService<WeatherSectionViewModel>(),
             sp.GetRequiredService<TwitchSectionViewModel>(),
+            sp.GetRequiredService<DiscordSectionViewModel>(),
             sp.GetRequiredService<TrackerBatterySectionViewModel>(),
             sp.GetRequiredService<PulsoidSectionViewModel>(),
             sp.GetRequiredService<OpenAISectionViewModel>(),
@@ -251,7 +263,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<StatusSectionViewModel>(),
             sp.GetRequiredService<AppOptionsSectionViewModel>(),
             sp.GetRequiredService<EggDevSectionViewModel>(),
-            sp.GetRequiredService<PrivacySectionViewModel>()));
+            sp.GetRequiredService<PrivacySectionViewModel>(),
+            sp.GetRequiredService<VrcRadarSectionViewModel>()));
 
         // In-app menu/tab navigation — deferred ViewModel resolution breaks circular dep
         services.AddSingleton<IMenuNavigationService>(sp =>
@@ -261,6 +274,8 @@ public static class ServiceRegistration
                 pageIndex => sp.GetRequiredService<ViewModel>().SelectedMenuIndex = pageIndex,
                 sp.GetRequiredService<IUiDispatcher>());
             nav.SetExpandPrivacyAction(() => sp.GetRequiredService<PrivacySectionViewModel>().IsExpanded = true);
+            nav.SetScrollToSectionAction(settingName =>
+                sp.GetRequiredService<OptionsPageViewModel>().RequestScrollToSection(settingName));
             return nav;
         });
 
@@ -295,7 +310,8 @@ public static class ServiceRegistration
             new Lazy<IMediaLinkPersistenceService>(() => sp.GetRequiredService<IMediaLinkPersistenceService>()),
             sp.GetRequiredService<HotkeyManagement>(),
             sp.GetRequiredService<IWindowActivityService>(),
-            sp.GetRequiredService<IWeatherService>()));
+            sp.GetRequiredService<IWeatherService>(),
+            sp.GetRequiredService<IStatusListService>()));
 
         // Application scan loop — slimmed (TTS + persistence extracted)
         services.AddSingleton<ScanLoopService>(sp => new ScanLoopService(
@@ -331,6 +347,9 @@ public static class ServiceRegistration
         // Pulsoid OAuth handler — DI singleton (replaces PulsoidOAuthHandler.Instance)
         services.AddSingleton<Classes.Modules.PulsoidOAuthHandler>();
 
+        // Discord OAuth handler — DI singleton for Discord voice channel integration
+        services.AddSingleton<Classes.Modules.DiscordOAuthHandler>();
+
         // OSCController — thin orchestrator (delegates to OscOutputBuilder + ChatStateManager)
         services.AddSingleton<Classes.DataAndSecurity.OSCController>(sp => new Classes.DataAndSecurity.OSCController(
             sp.GetRequiredService<ChatStateManager>(),
@@ -361,7 +380,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IEnvironmentService>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
             sp.GetRequiredService<WindowActivityDisplayState>(),
-            sp.GetRequiredService<IAppHistoryService>()));
+            sp.GetRequiredService<IAppHistoryService>(),
+            sp.GetRequiredService<IUiDispatcher>()));
 
         // Retry policy: exponential backoff with jitter for transient HTTP errors + 429
         var retryPolicy = HttpPolicyExtensions.HandleTransientHttpError()
@@ -506,6 +526,12 @@ public static class ServiceRegistration
         services.AddSingleton<IOscProvider, TimeOscProvider>();
         services.AddSingleton<IOscProvider, WeatherOscProvider>();
         services.AddSingleton<IOscProvider>(sp => new TwitchOscProvider(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
+        services.AddSingleton<IOscProvider>(sp => new DiscordOscProvider(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
+        services.AddSingleton<IOscProvider>(sp => new VrcLogOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
         services.AddSingleton<IOscProvider>(sp => new SoundpadOscProvider(

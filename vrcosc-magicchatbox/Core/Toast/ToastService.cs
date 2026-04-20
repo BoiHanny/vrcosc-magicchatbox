@@ -26,7 +26,7 @@ public sealed class ToastService : IToastService
         int durationMs = 5000,
         string? key = null)
     {
-        _ui.Invoke(() =>
+        _ui.BeginInvoke(() =>
         {
             // Silently replace any existing toast with the same key (no animation — just remove)
             if (key != null)
@@ -66,7 +66,7 @@ public sealed class ToastService : IToastService
 
     public void Dismiss(ToastItemViewModel item)
     {
-        _ui.Invoke(() =>
+        _ui.BeginInvoke(() =>
         {
             if (item.IsDismissed) return;
             item.MarkDismissed();

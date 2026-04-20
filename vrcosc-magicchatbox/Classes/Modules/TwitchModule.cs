@@ -318,7 +318,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
             return;
         }
 
-        _dispatcher.Invoke(() => ApplySnapshot(live, viewers, game, title));
+        _dispatcher.BeginInvoke(() => ApplySnapshot(live, viewers, game, title));
     }
 
     private void ApplySnapshot(bool live, int viewers, string game, string title)
@@ -419,7 +419,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
             return;
         }
 
-        _dispatcher.Invoke(() => ApplyFollowerCount(count));
+        _dispatcher.BeginInvoke(() => ApplyFollowerCount(count));
     }
 
     private void ApplyFollowerCount(int count)
@@ -635,7 +635,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
             return;
         }
 
-        _dispatcher.Invoke(() => LastSyncDisplay = display);
+        _dispatcher.BeginInvoke(() => LastSyncDisplay = display);
     }
 
     private void UpdateConnectionState(bool isConnected, string message)
@@ -657,7 +657,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
             return;
         }
 
-        _dispatcher.Invoke(() =>
+        _dispatcher.BeginInvoke(() =>
         {
             Connected = isConnected;
             StatusMessage = message;

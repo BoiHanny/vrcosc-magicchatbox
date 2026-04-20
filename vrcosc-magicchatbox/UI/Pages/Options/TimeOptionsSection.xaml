@@ -48,7 +48,6 @@
             <StackPanel>
                 <CheckBox
                     x:Name="PrefixTime_checkbox"
-                    Height="22"
                     IsChecked="{Binding TimeSettings.PrefixTime, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Show 'My time:' in front of the time integration
@@ -56,27 +55,23 @@
 
                 <CheckBox
                     x:Name="Time24H_checkbox"
-                    Height="20"
                     IsChecked="{Binding TimeSettings.Time24H, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     24-Hour time format
                 </CheckBox>
                 <CheckBox
                     x:Name="UseSystemCultureForTime"
-                    Height="20"
                     Content="Use current system culture for formating time"
                     IsChecked="{Binding TimeSettings.UseSystemCulture, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}" />
                 <CheckBox
                     x:Name="AutoSetDaylight_checkbox"
-                    Height="20"
                     IsChecked="{Binding TimeSettings.AutoSetDaylight, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Auto daylight saving time
                 </CheckBox>
                 <CheckBox
                     x:Name="DaylightSavingTime_checkbox"
-                    Height="20"
                     IsChecked="{Binding TimeSettings.UseDaylightSavingTime, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}"
                     Visibility="{Binding TimeSettings.AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -84,14 +79,12 @@
                 </CheckBox>
                 <CheckBox
                     x:Name="TimeShowTimeZone_checkbox"
-                    Height="20"
                     IsChecked="{Binding TimeSettings.TimeShowTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Custom time zone
                 </CheckBox>
                 <StackPanel
                     Width="auto"
-                    Height="22"
                     Margin="0,0,0,15"
                     HorizontalAlignment="Left"
                     Orientation="Horizontal"
@@ -100,12 +93,9 @@
                     <ComboBox
                         x:Name="TimeZoneComboBox"
                         Width="183"
-                        Height="21"
-                        BorderBrush="#FF020000"
                         DisplayMemberPath="Value"
                         FontSize="11.5"
                         ItemsSource="{Binding Source={x:Static modules:TimeSettings.TimezoneFriendlyNames}}"
-                        Opacity="0.4"
                         SelectedValue="{Binding TimeSettings.SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         SelectedValuePath="Key" />
                     <TextBlock

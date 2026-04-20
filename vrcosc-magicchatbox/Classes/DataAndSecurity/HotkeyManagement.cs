@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using NHotkey;
 using NHotkey.Wpf;
 using System;
@@ -120,7 +120,7 @@ public class HotkeyManagement
         {
             if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
             {
-                _dispatcher.Invoke(hotkeyInfo.Action);
+                _dispatcher.BeginInvoke(hotkeyInfo.Action);
             }
         }
         catch (Exception ex)
