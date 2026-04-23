@@ -44,7 +44,7 @@ public static class Constants
     // Discord RPC integration
     public const string DiscordClientId = "1495716413980278814";
     public const string DiscordOAuthRedirectUri = "http://localhost:7386/";
-    public const string DiscordOAuthScope = "rpc rpc.voice.read";
+    public const string DiscordOAuthScope = "identify rpc";
     public const string DiscordOAuthEndpoint = "https://discord.com/oauth2/authorize";
     public const string DiscordTokenEndpoint = "https://discord.com/api/oauth2/token";
     public const string DiscordTokenRevokeEndpoint = "https://discord.com/api/oauth2/token/revoke";
