@@ -91,7 +91,21 @@ public partial class DiscordModule : ObservableObject, IModule
         }
     }
 
-    public async Task StopAsync(CancellationToken ct = default)
+    public Task StopAsync(CancellationToken ct = default)
+    {
+        StopCore();
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        try { StopCore(); }
+        catch (Exception ex) { Logging.WriteInfo($"Discord: Error during dispose: {ex.Message}"); }
+    }
+
+    private void StopCore()
     {
         _dispatcher.BeginInvoke(() => IsRunning = false);
 
@@ -106,23 +120,6 @@ public partial class DiscordModule : ObservableObject, IModule
 
         ClearState();
         ResetAllOscParams();
-    }
-
-    public void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-        try
-        {
-            // StopAsync is effectively synchronous (no real awaits), but use a timeout
-            // to guard against future changes that add async work.
-            if (!StopAsync().Wait(TimeSpan.FromSeconds(3)))
-                Logging.WriteInfo("Discord: Dispose timed out after 3s");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Discord: Error during dispose: {ex.Message}");
-        }
     }
 
     /// <summary>

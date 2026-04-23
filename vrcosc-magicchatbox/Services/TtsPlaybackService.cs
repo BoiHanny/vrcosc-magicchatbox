@@ -40,7 +40,10 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
     public void CancelAllTts()
     {
         foreach (var cts in _activeCancellationTokens)
+        {
             cts.Cancel();
+            cts.Dispose();
+        }
         _activeCancellationTokens.Clear();
     }
 
@@ -70,18 +73,24 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
 
             var cts2 = new CancellationTokenSource();
             _activeCancellationTokens.Add(cts2);
-            _chatStatus.ChatFeedbackTxt = "TTS is playing...";
+            try
+            {
+                _chatStatus.ChatFeedbackTxt = "TTS is playing...";
 
-            await _tts.Value.PlayTikTokAudioAsSpeechAsync(
-                audioFromApi,
-                _ttsAudio.SelectedPlaybackOutputDevice.ID,
-                cts2.Token);
+                await _tts.Value.PlayTikTokAudioAsSpeechAsync(
+                    audioFromApi,
+                    _ttsAudio.SelectedPlaybackOutputDevice.ID,
+                    cts2.Token);
 
-            _chatStatus.ChatFeedbackTxt = resent
-                ? "Chat was sent again with TTS."
-                : "Chat was sent with TTS.";
-
-            _activeCancellationTokens.Remove(cts2);
+                _chatStatus.ChatFeedbackTxt = resent
+                    ? "Chat was sent again with TTS."
+                    : "Chat was sent with TTS.";
+            }
+            finally
+            {
+                _activeCancellationTokens.Remove(cts2);
+                cts2.Dispose();
+            }
         }
         catch (OperationCanceledException)
         {

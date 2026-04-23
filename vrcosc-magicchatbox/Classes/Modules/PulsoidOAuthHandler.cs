@@ -98,6 +98,10 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
             Logging.WriteException(new Exception("Authentication failed.", ex), MSGBox: true);
             return null;
         }
+        finally
+        {
+            StopListeners();
+        }
     }
 
     public void Dispose()
@@ -124,8 +128,18 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
 
             if (secondListener == null)
             {
-                secondListener = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthCallbackUri } };
-                secondListener.Start();
+                try
+                {
+                    secondListener = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthCallbackUri } };
+                    secondListener.Start();
+                }
+                catch
+                {
+                    // Clean up first listener if second fails to start
+                    httpListener?.Stop();
+                    httpListener?.Close();
+                    throw;
+                }
             }
         }
     }

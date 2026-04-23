@@ -271,14 +271,13 @@ public sealed class ScanLoopService : IDisposable
 
     private void OnPauseTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        try
+        _dispatcher.BeginInvoke(() =>
         {
-            var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            _chatStatus.ScanPauseCountDown--;
-
-            _dispatcher.BeginInvoke(() =>
+            try
             {
-                _chatStatus.ScanPauseCountDown = _chatStatus.ScanPauseCountDown;
+                var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
+                _chatStatus.ScanPauseCountDown--;
+
                 if (lastSendChat != null)
                 {
                     lastSendChat.CanLiveEdit = CS.ChatLiveEdit;
@@ -286,69 +285,72 @@ public sealed class ScanLoopService : IDisposable
                         ? $"Live Edit ({_chatStatus.ScanPauseCountDown})"
                         : $"Edit ({_chatStatus.ScanPauseCountDown})";
                 }
-            });
 
-            if (_chatStatus.ScanPauseCountDown <= 0 || !_chatStatus.ScanPause)
-            {
-                _chatStatus.ScanPause = false;
-                StopPauseTimer();
+                if (_chatStatus.ScanPauseCountDown <= 0 || !_chatStatus.ScanPause)
+                {
+                    _chatStatus.ScanPause = false;
+                    StopPauseTimer();
 
-                if (_chatStatus.ScanPauseCountDown != 0)
-                    _chatStatus.ScanPauseCountDown = 0;
+                    if (_chatStatus.ScanPauseCountDown != 0)
+                        _chatStatus.ScanPauseCountDown = 0;
 
-                Osc.ClearChat(lastSendChat);
-                OscSend.SendOSCMessage(false);
+                    Osc.ClearChat(lastSendChat);
+                    OscSend.SendOSCMessage(false);
 
-                // Re-trigger the main loop
-                _dispatcher.BeginInvoke(() => OnBackgroundTick());
+                    OnBackgroundTick();
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        });
     }
 
     private void OnChatUpdateTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        try
+        // Marshal to UI thread — ObservableCollection (LastMessages) is not thread-safe
+        _dispatcher.BeginInvoke(() =>
         {
-            var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-
-            if (CS.KeepUpdatingChat && lastSendChat != null)
+            try
             {
-                if (lastSendChat.Msg.Length > 0 && lastSendChat.Msg.Length <= Core.Constants.MaxChatMessageLength && _appState.MasterSwitch)
-                {
-                    string completeMsg;
-                    if (CS.PrefixChat)
-                    {
-                        string icon = _emojis.GetNextEmoji(true);
-                        completeMsg = icon + " " + lastSendChat.Msg;
-                    }
-                    else
-                    {
-                        completeMsg = lastSendChat.Msg;
-                    }
+                var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
 
-                    _oscDisplay.OscToSent = completeMsg;
-                    OscSend.SendOSCMessage(false);
+                if (CS.KeepUpdatingChat && lastSendChat != null)
+                {
+                    if (lastSendChat.Msg.Length > 0 && lastSendChat.Msg.Length <= Core.Constants.MaxChatMessageLength && _appState.MasterSwitch)
+                    {
+                        string completeMsg;
+                        if (CS.PrefixChat)
+                        {
+                            string icon = _emojis.GetNextEmoji(true);
+                            completeMsg = icon + " " + lastSendChat.Msg;
+                        }
+                        else
+                        {
+                            completeMsg = lastSendChat.Msg;
+                        }
+
+                        _oscDisplay.OscToSent = completeMsg;
+                        OscSend.SendOSCMessage(false);
+                    }
+                }
+                else
+                {
+                    foreach (var item in _chatStatus.LastMessages)
+                    {
+                        item.CanLiveEdit = false;
+                        item.CanLiveEditRun = false;
+                        item.MsgReplace = string.Empty;
+                        item.IsRunning = false;
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                foreach (var item in _chatStatus.LastMessages)
-                {
-                    item.CanLiveEdit = false;
-                    item.CanLiveEditRun = false;
-                    item.MsgReplace = string.Empty;
-                    item.IsRunning = false;
-                }
+                Logging.WriteException(ex, MSGBox: false);
             }
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        });
     }
 
     #endregion

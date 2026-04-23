@@ -55,6 +55,9 @@ public class DiscordOAuthHandler : IDisposable
             var codeVerifier = GenerateCodeVerifier();
             var codeChallenge = GenerateCodeChallenge(codeVerifier);
 
+            // Generate CSRF state token
+            var state = GenerateCodeVerifier();
+
             StartListener();
 
             var authUrl = $"{Core.Constants.DiscordOAuthEndpoint}" +
@@ -63,7 +66,8 @@ public class DiscordOAuthHandler : IDisposable
                           $"&redirect_uri={Uri.EscapeDataString(Core.Constants.DiscordOAuthRedirectUri)}" +
                           $"&scope={Uri.EscapeDataString(Core.Constants.DiscordOAuthScope)}" +
                           $"&code_challenge={codeChallenge}" +
-                          $"&code_challenge_method=S256";
+                          $"&code_challenge_method=S256" +
+                          $"&state={Uri.EscapeDataString(state)}";
 
             _nav.OpenUrl(authUrl);
 
@@ -71,6 +75,16 @@ public class DiscordOAuthHandler : IDisposable
             var context = await _redirectListener!.GetContextAsync();
             var queryString = context.Request.Url?.Query;
             var queryParams = HttpUtility.ParseQueryString(queryString ?? string.Empty);
+
+            // Validate CSRF state before processing code
+            var returnedState = queryParams["state"];
+            if (!string.Equals(state, returnedState, StringComparison.Ordinal))
+            {
+                Logging.WriteInfo("Discord OAuth: state mismatch — possible CSRF attack.");
+                await SendHtmlResponseAsync(context.Response,
+                    "<h2>MagicChatbox</h2><p>Authorization failed: security validation error. Please try again.</p>");
+                return null;
+            }
 
             var code = queryParams["code"];
             var error = queryParams["error"];
@@ -172,7 +186,17 @@ public class DiscordOAuthHandler : IDisposable
             return null;
         }
 
-        var json = JObject.Parse(body);
+        JObject json;
+        try
+        {
+            json = JObject.Parse(body);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Discord token exchange: malformed JSON response — {ex.Message}");
+            return null;
+        }
+
         var accessToken = json["access_token"]?.ToString();
 
         if (string.IsNullOrWhiteSpace(accessToken))

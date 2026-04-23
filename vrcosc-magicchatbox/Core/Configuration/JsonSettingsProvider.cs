@@ -25,6 +25,7 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     private Timer _debounceTimer;
     private const int DebounceDelayMs = 2000;
     private volatile bool _loaded;
+    private bool _disposed;
 
     public event EventHandler SettingsChanged;
 
@@ -186,9 +187,20 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
     private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        // Reset debounce timer — save 2s after last change
-        _debounceTimer?.Dispose();
-        _debounceTimer = new Timer(_ => Save(), null, DebounceDelayMs, Timeout.Infinite);
+        lock (_lock)
+        {
+            if (_disposed) return;
+
+            // Reuse existing timer if possible to avoid dispose/recreate race
+            if (_debounceTimer != null)
+            {
+                _debounceTimer.Change(DebounceDelayMs, Timeout.Infinite);
+            }
+            else
+            {
+                _debounceTimer = new Timer(_ => Save(), null, DebounceDelayMs, Timeout.Infinite);
+            }
+        }
     }
 
     /// <summary>
@@ -205,8 +217,15 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
     public void Dispose()
     {
+        lock (_lock)
+        {
+            if (_disposed) return;
+            _disposed = true;
+        }
+
         UnsubscribeAutoSave();
         _debounceTimer?.Dispose();
+        _debounceTimer = null;
         // Final save to flush any pending changes
         Save();
     }
