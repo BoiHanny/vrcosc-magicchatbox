@@ -37,18 +37,45 @@ internal static class Logging
         _nav = nav;
     }
 
-    public static readonly Logger LogController = LogManager.GetCurrentClassLogger();
+    // Cache logger instance after logging is configured. Avoid calling into
+    // LogManager during first-chance exception handling where logger init
+    // may itself throw and cause recursive first-chance exceptions.
+    private static Logger? _logController;
+
+    [ThreadStatic]
+    private static bool _isLogging;
 
     private static void HandleLoggingError(string context, Exception e)
     {
+        // If we're already writing a log, don't re-enter the logging system.
+        if (_isLogging)
+        {
+            Console.Error.WriteLine($"{context}\n{e.Message}\n{e.StackTrace}");
+            return;
+        }
+
         try
         {
-            LogController.Error($"{context}\n{e.Message}\n{e.StackTrace}");
-        }
-        catch
-        {
-            // NLog itself failed; last-resort fallback to stderr
+            _isLogging = true;
+            if (_logController != null)
+            {
+                try
+                {
+                    _logController.Error($"{context}\n{e.Message}\n{e.StackTrace}");
+                    return;
+                }
+                catch
+                {
+                    // fall through to stderr
+                }
+            }
+
+            // NLog not available or failed; last-resort fallback to stderr
             Console.Error.WriteLine($"{context}\n{e.Message}\n{e.StackTrace}");
+        }
+        finally
+        {
+            _isLogging = false;
         }
     }
 
@@ -79,7 +106,22 @@ internal static class Logging
     {
         try
         {
-            LogController.Debug(debug);
+            if (_isLogging)
+            {
+                Console.Error.WriteLine(debug);
+            }
+            else
+            {
+                try
+                {
+                    _isLogging = true;
+                    if (_logController != null)
+                        _logController.Debug(debug);
+                    else
+                        Console.Error.WriteLine(debug);
+                }
+                finally { _isLogging = false; }
+            }
             if (MSGBox)
                 ShowMSGBox(msgboxtext: debug, autoClose: autoclose);
             if (exitapp)
@@ -103,7 +145,24 @@ internal static class Logging
         try
         {
             if (log && ex != null)
-                LogController.Error(ex.ToString());
+            {
+                if (_isLogging)
+                {
+                    Console.Error.WriteLine(ex.ToString());
+                }
+                else
+                {
+                    try
+                    {
+                        _isLogging = true;
+                        if (_logController != null)
+                            _logController.Error(ex.ToString());
+                        else
+                            Console.Error.WriteLine(ex.ToString());
+                    }
+                    finally { _isLogging = false; }
+                }
+            }
 
             if (MSGBox && ex != null)
                 ShowMSGBox(msgboxtimeout: 10000, autoClose: autoclose, msgboxtext: ex.Message, ex: ex);
@@ -123,7 +182,22 @@ internal static class Logging
     {
         try
         {
-            LogController.Info(info);
+            if (_isLogging)
+            {
+                Console.Error.WriteLine(info);
+            }
+            else
+            {
+                try
+                {
+                    _isLogging = true;
+                    if (_logController != null)
+                        _logController.Info(info);
+                    else
+                        Console.Error.WriteLine(info);
+                }
+                finally { _isLogging = false; }
+            }
             if (MSGBox)
                 ShowMSGBox(msgboxtext: info, autoClose: autoclose);
             if (exitapp)
@@ -135,5 +209,12 @@ internal static class Logging
             if (exitapp)
                 Environment.Exit(10);
         }
+    }
+
+    // Called by App after logging configuration has been loaded. Caches a logger
+    // instance so we avoid lazy logger initialization during exception handling.
+    public static void SetLoggerInstance(Logger? logger)
+    {
+        _logController = logger;
     }
 }

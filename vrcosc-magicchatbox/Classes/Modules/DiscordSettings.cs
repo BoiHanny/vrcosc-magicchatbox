@@ -36,6 +36,13 @@ public partial class DiscordSettings : VersionedSettings
     private string _accessTokenEncrypted = string.Empty;
     private string _accessToken = string.Empty;
 
+    // Encrypted OAuth refresh token for token renewal
+    private string _refreshTokenEncrypted = string.Empty;
+    private string _refreshToken = string.Empty;
+
+    // Token expiry (UTC ticks) — 0 means unknown/never
+    [ObservableProperty] private long _tokenExpiresAtUtcTicks;
+
     [JsonIgnore]
     public string AccessToken
     {
@@ -63,6 +70,37 @@ public partial class DiscordSettings : VersionedSettings
                 EncryptionMethods.TryProcessToken(ref _accessTokenEncrypted, ref _accessToken, false);
                 OnPropertyChanged(nameof(AccessTokenEncrypted));
                 OnPropertyChanged(nameof(AccessToken));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public string RefreshToken
+    {
+        get => _refreshToken;
+        set
+        {
+            if (_refreshToken != value)
+            {
+                _refreshToken = value ?? string.Empty;
+                EncryptionMethods.TryProcessToken(ref _refreshToken, ref _refreshTokenEncrypted, true);
+                OnPropertyChanged(nameof(RefreshToken));
+                OnPropertyChanged(nameof(RefreshTokenEncrypted));
+            }
+        }
+    }
+
+    public string RefreshTokenEncrypted
+    {
+        get => _refreshTokenEncrypted;
+        set
+        {
+            if (_refreshTokenEncrypted != value)
+            {
+                _refreshTokenEncrypted = value ?? string.Empty;
+                EncryptionMethods.TryProcessToken(ref _refreshTokenEncrypted, ref _refreshToken, false);
+                OnPropertyChanged(nameof(RefreshTokenEncrypted));
+                OnPropertyChanged(nameof(RefreshToken));
             }
         }
     }

@@ -64,6 +64,7 @@ namespace vrcosc_magicchatbox
             try
             {
                 Services = ServiceRegistration.ConfigureServices();
+                ConfigureLogging(Services.GetRequiredService<IEnvironmentService>());
 
                 // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
                 Logging.Initialize(
@@ -328,6 +329,33 @@ namespace vrcosc_magicchatbox
             }
         }
 
+        private static void ConfigureLogging(IEnvironmentService env)
+        {
+            Directory.CreateDirectory(env.LogPath);
+
+            InternalLogger.LogLevel = LogLevel.Warn;
+            InternalLogger.LogFile = Path.Combine(env.LogPath, $"internal-nlog-{Environment.ProcessId}.txt");
+
+            string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "NLog.config");
+            if (File.Exists(nlogConfigPath))
+            {
+                LogManager.LoadConfiguration(nlogConfigPath);
+            }
+
+            // After configuration is loaded, cache a logger instance for the
+            // static Logging helper to avoid initializing NLog during
+            // FirstChanceException handling which can cause recursive errors.
+            try
+            {
+                var logger = LogManager.GetCurrentClassLogger();
+                Logging.SetLoggerInstance(logger);
+            }
+            catch
+            {
+                // ignore - Logging will fallback to Console.Error when needed
+            }
+        }
+
 
 
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
@@ -409,13 +437,6 @@ namespace vrcosc_magicchatbox
 
             // ── Prerequisites (sequential — everything else depends on these) ──
             loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 5, "Migrating settings to the new world order...");
-            await Task.Run(() =>
-            {
-                Directory.CreateDirectory(env.LogPath);
-                InternalLogger.LogLevel = LogLevel.Warn;
-                InternalLogger.LogFile = Path.Combine(env.LogPath, "internal-nlog.txt");
-                LogManager.LoadConfiguration("NLog.config");
-            });
             LogStep("NLog config");
 
             loadingWindow.UpdateProgress("Migrating settings to the new world order...", 10, "Loading your saved data... Parallel turbo mode!");

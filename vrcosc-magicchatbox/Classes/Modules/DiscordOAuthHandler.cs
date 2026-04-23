@@ -1,72 +1,106 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using Newtonsoft.Json.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
 /// <summary>
-/// Handles Discord OAuth2 implicit grant flow via local HTTP listeners.
-/// The browser redirect extracts the access_token from the URL fragment
-/// and POSTs it to the callback listener.
+/// Result of a successful Discord OAuth2 authorization code exchange.
+/// </summary>
+public sealed record DiscordTokenResult(
+    string AccessToken,
+    string? RefreshToken,
+    int ExpiresIn);
+
+/// <summary>
+/// Handles Discord OAuth2 Authorization Code + PKCE flow via local HTTP listener.
+/// Uses PKCE (Proof Key for Code Exchange) so no client_secret is needed — safe for
+/// public/open-source desktop clients.
 /// </summary>
 public class DiscordOAuthHandler : IDisposable
 {
     private bool _disposed;
     private readonly INavigationService _nav;
+    private readonly IHttpClientFactory _httpClientFactory;
     private HttpListener? _redirectListener;
-    private HttpListener? _callbackListener;
     private readonly object _listenerLock = new();
 
-    public DiscordOAuthHandler(INavigationService nav)
+    public DiscordOAuthHandler(INavigationService nav, IHttpClientFactory httpClientFactory)
     {
         _nav = nav;
+        _httpClientFactory = httpClientFactory;
     }
 
     /// <summary>
-    /// Runs the full implicit grant OAuth flow:
-    /// 1. Opens the Discord authorize URL in the user's browser
-    /// 2. Captures the fragment-based access_token via local HTTP redirect
-    /// Returns the access token string, or null on failure.
+    /// Runs the full Authorization Code + PKCE OAuth flow:
+    /// 1. Opens the Discord authorize URL in the user's browser with PKCE challenge
+    /// 2. Captures the authorization code from the redirect
+    /// 3. Exchanges the code for tokens using the PKCE verifier
+    /// Returns a token result, or null on failure.
     /// </summary>
-    public async Task<string?> AuthenticateAsync()
+    public async Task<DiscordTokenResult?> AuthenticateAsync()
     {
         try
         {
-            StartListeners();
+            // Generate PKCE pair
+            var codeVerifier = GenerateCodeVerifier();
+            var codeChallenge = GenerateCodeChallenge(codeVerifier);
+
+            StartListener();
 
             var authUrl = $"{Core.Constants.DiscordOAuthEndpoint}" +
                           $"?client_id={Core.Constants.DiscordClientId}" +
-                          $"&response_type=token" +
+                          $"&response_type=code" +
                           $"&redirect_uri={Uri.EscapeDataString(Core.Constants.DiscordOAuthRedirectUri)}" +
-                          $"&scope={Uri.EscapeDataString(Core.Constants.DiscordOAuthScope)}";
+                          $"&scope={Uri.EscapeDataString(Core.Constants.DiscordOAuthScope)}" +
+                          $"&code_challenge={codeChallenge}" +
+                          $"&code_challenge_method=S256";
 
             _nav.OpenUrl(authUrl);
 
-            // First listener: receives the browser redirect (fragment is client-side only)
-            var context1 = await _redirectListener!.GetContextAsync();
-            await SendFragmentExtractorPageAsync(context1.Response);
+            // Capture the redirect — code arrives as a query parameter
+            var context = await _redirectListener!.GetContextAsync();
+            var queryString = context.Request.Url?.Query;
+            var queryParams = HttpUtility.ParseQueryString(queryString ?? string.Empty);
 
-            // Second listener: receives the POSTed fragment data from the JS page
-            var context2 = await _callbackListener!.GetContextAsync();
-            string? fragmentData;
-            using (var reader = new StreamReader(context2.Request.InputStream))
+            var code = queryParams["code"];
+            var error = queryParams["error"];
+
+            if (!string.IsNullOrEmpty(error))
             {
-                fragmentData = await reader.ReadToEndAsync();
+                var errorDesc = queryParams["error_description"] ?? error;
+                Logging.WriteInfo($"Discord OAuth error: {error} — {errorDesc}");
+                await SendHtmlResponseAsync(context.Response,
+                    "<h2>MagicChatbox</h2>" +
+                    $"<p>Discord authorization failed: {WebUtility.HtmlEncode(errorDesc)}</p>" +
+                    "<p>You can close this tab.</p>");
+                return null;
             }
 
-            // Send a "you can close this tab" response
-            await SendClosePageAsync(context2.Response);
-
-            if (string.IsNullOrWhiteSpace(fragmentData))
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                Logging.WriteInfo("Discord OAuth: no code received in redirect.");
+                await SendHtmlResponseAsync(context.Response,
+                    "<h2>MagicChatbox</h2><p>No authorization code received. Please try again.</p>");
                 return null;
+            }
 
-            // Parse access_token from fragment query string
-            var parsed = PulsoidOAuthHandler.ParseQueryString(fragmentData);
-            return parsed.TryGetValue("access_token", out var token) ? token : null;
+            // Show a nice "working on it" page
+            await SendHtmlResponseAsync(context.Response,
+                "<h2>MagicChatbox</h2><p>Discord connected! This tab will close automatically.</p>" +
+                "<script>setTimeout(function(){ window.close(); }, 2000);</script>");
+
+            // Exchange the authorization code for tokens using PKCE
+            return await ExchangeCodeAsync(code, codeVerifier);
         }
         catch (Exception ex)
         {
@@ -75,27 +109,87 @@ public class DiscordOAuthHandler : IDisposable
         }
         finally
         {
-            StopListeners();
+            StopListener();
         }
     }
 
-    private async Task SendFragmentExtractorPageAsync(HttpListenerResponse response)
+    /// <summary>
+    /// Refreshes an access token using a refresh token.
+    /// Returns a new token result, or null on failure.
+    /// </summary>
+    public async Task<DiscordTokenResult?> RefreshTokenAsync(string refreshToken)
     {
-        const string html = @"
-<html>
-<head>
-    <script type='text/javascript'>
-        var fragment = window.location.hash.substring(1);
-        var xhttp = new XMLHttpRequest();
-        xhttp.open('POST', 'http://localhost:7387/', true);
-        xhttp.onload = function() { setTimeout(function(){ window.close(); }, 1000); };
-        xhttp.send(fragment);
-        document.body.innerHTML = '<h2>MagicChatbox</h2><p>Discord connected! This tab will close automatically.</p>';
-    </script>
-</head>
-<body><p>Connecting to Discord...</p></body>
-</html>";
+        try
+        {
+            using var client = _httpClientFactory.CreateClient();
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = refreshToken,
+                ["client_id"] = Core.Constants.DiscordClientId,
+            });
 
+            var response = await client.PostAsync(Core.Constants.DiscordTokenEndpoint, content);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Logging.WriteInfo($"Discord token refresh failed ({response.StatusCode}): {body}");
+                return null;
+            }
+
+            var json = JObject.Parse(body);
+            return new DiscordTokenResult(
+                json["access_token"]?.ToString() ?? string.Empty,
+                json["refresh_token"]?.ToString(),
+                json["expires_in"]?.Value<int>() ?? 0);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Discord token refresh exception: {ex.Message}");
+            return null;
+        }
+    }
+
+    private async Task<DiscordTokenResult?> ExchangeCodeAsync(string code, string codeVerifier)
+    {
+        using var client = _httpClientFactory.CreateClient();
+        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["grant_type"] = "authorization_code",
+            ["code"] = code,
+            ["redirect_uri"] = Core.Constants.DiscordOAuthRedirectUri,
+            ["client_id"] = Core.Constants.DiscordClientId,
+            ["code_verifier"] = codeVerifier,
+        });
+
+        var response = await client.PostAsync(Core.Constants.DiscordTokenEndpoint, content);
+        var body = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Logging.WriteInfo($"Discord token exchange failed ({response.StatusCode}): {body}");
+            return null;
+        }
+
+        var json = JObject.Parse(body);
+        var accessToken = json["access_token"]?.ToString();
+
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            Logging.WriteInfo("Discord token exchange: no access_token in response.");
+            return null;
+        }
+
+        return new DiscordTokenResult(
+            accessToken,
+            json["refresh_token"]?.ToString(),
+            json["expires_in"]?.Value<int>() ?? 0);
+    }
+
+    private async Task SendHtmlResponseAsync(HttpListenerResponse response, string bodyHtml)
+    {
+        var html = $"<html><body>{bodyHtml}</body></html>";
         var buffer = Encoding.UTF8.GetBytes(html);
         response.ContentLength64 = buffer.Length;
         response.ContentType = "text/html";
@@ -103,15 +197,7 @@ public class DiscordOAuthHandler : IDisposable
         response.OutputStream.Close();
     }
 
-    private async Task SendClosePageAsync(HttpListenerResponse response)
-    {
-        var buffer = Encoding.UTF8.GetBytes("OK");
-        response.ContentLength64 = buffer.Length;
-        await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-        response.OutputStream.Close();
-    }
-
-    private void StartListeners()
+    private void StartListener()
     {
         lock (_listenerLock)
         {
@@ -120,35 +206,48 @@ public class DiscordOAuthHandler : IDisposable
                 _redirectListener = new HttpListener { Prefixes = { Core.Constants.DiscordOAuthRedirectUri } };
                 _redirectListener.Start();
             }
-
-            if (_callbackListener == null)
-            {
-                _callbackListener = new HttpListener { Prefixes = { Core.Constants.DiscordOAuthCallbackUri } };
-                _callbackListener.Start();
-            }
         }
     }
 
-    private void StopListeners()
+    private void StopListener()
     {
         lock (_listenerLock)
         {
             _redirectListener?.Stop();
             _redirectListener?.Close();
             _redirectListener = null;
-
-            _callbackListener?.Stop();
-            _callbackListener?.Close();
-            _callbackListener = null;
         }
     }
+
+    // --- PKCE helpers ---
+
+    private static string GenerateCodeVerifier()
+    {
+        var bytes = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        return Base64UrlEncode(bytes);
+    }
+
+    private static string GenerateCodeChallenge(string codeVerifier)
+    {
+        using var sha256 = SHA256.Create();
+        var hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(codeVerifier));
+        return Base64UrlEncode(hash);
+    }
+
+    private static string Base64UrlEncode(byte[] input) =>
+        Convert.ToBase64String(input)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
 
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposed)
         {
             if (disposing)
-                StopListeners();
+                StopListener();
             _disposed = true;
         }
     }

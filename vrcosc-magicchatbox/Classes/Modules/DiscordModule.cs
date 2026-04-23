@@ -23,10 +23,12 @@ public partial class DiscordModule : ObservableObject, IModule
     private readonly ISettingsProvider<DiscordSettings> _settingsProvider;
     private readonly IOscSender _oscSender;
     private readonly IUiDispatcher _dispatcher;
+    private readonly Lazy<DiscordOAuthHandler>? _oAuthHandler;
 
     private DiscordIpcClient? _ipcClient;
     private string? _currentChannelId;
     private bool _disposed;
+    private bool _refreshAttempted;
 
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _speakerDebounce = new();
 
@@ -58,11 +60,13 @@ public partial class DiscordModule : ObservableObject, IModule
     public DiscordModule(
         ISettingsProvider<DiscordSettings> settingsProvider,
         IOscSender oscSender,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        Lazy<DiscordOAuthHandler>? oAuthHandler = null)
     {
         _settingsProvider = settingsProvider;
         _oscSender = oscSender;
         _dispatcher = dispatcher;
+        _oAuthHandler = oAuthHandler;
     }
 
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
@@ -263,6 +267,43 @@ public partial class DiscordModule : ObservableObject, IModule
         if (evt == "ERROR")
         {
             Logging.WriteInfo($"Discord authentication failed: {data}");
+
+            // Try to refresh the token once if we have a refresh token
+            if (!_refreshAttempted && _oAuthHandler != null &&
+                !string.IsNullOrWhiteSpace(Settings.RefreshToken))
+            {
+                _refreshAttempted = true;
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        Logging.WriteInfo("Discord: Attempting token refresh...");
+                        var result = await _oAuthHandler.Value.RefreshTokenAsync(Settings.RefreshToken);
+                        if (result != null && !string.IsNullOrWhiteSpace(result.AccessToken))
+                        {
+                            Settings.AccessToken = result.AccessToken;
+                            if (!string.IsNullOrEmpty(result.RefreshToken))
+                                Settings.RefreshToken = result.RefreshToken;
+                            if (result.ExpiresIn > 0)
+                                Settings.TokenExpiresAtUtcTicks = DateTime.UtcNow.AddSeconds(result.ExpiresIn).Ticks;
+                            SaveSettings();
+
+                            Logging.WriteInfo("Discord: Token refreshed, re-authenticating...");
+                            await _ipcClient!.SendAuthenticateAsync(
+                                Settings.AccessToken, Guid.NewGuid().ToString());
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"Discord: Token refresh failed: {ex.Message}");
+                    }
+
+                    _dispatcher.BeginInvoke(() => IsAuthenticated = false);
+                });
+                return;
+            }
+
             _dispatcher.BeginInvoke(() => IsAuthenticated = false);
             return;
         }
@@ -270,6 +311,7 @@ public partial class DiscordModule : ObservableObject, IModule
         // Capture self user ID from auth response
         _selfUserId = data?["user"]?["id"]?.ToString();
         Logging.WriteInfo($"Discord authenticated successfully. Self userId={_selfUserId}");
+        _refreshAttempted = false;
         _dispatcher.BeginInvoke(() => IsAuthenticated = true);
 
         _ = Task.Run(async () =>

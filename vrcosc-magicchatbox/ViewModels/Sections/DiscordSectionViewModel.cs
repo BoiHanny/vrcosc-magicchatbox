@@ -89,10 +89,14 @@ public partial class DiscordSectionViewModel : ObservableObject
 
             await discord.StopAsync();
 
-            var token = await _oAuth.Value.AuthenticateAsync();
-            if (string.IsNullOrWhiteSpace(token)) return;
+            var result = await _oAuth.Value.AuthenticateAsync();
+            if (result == null || string.IsNullOrWhiteSpace(result.AccessToken)) return;
 
-            discord.Settings.AccessToken = token;
+            discord.Settings.AccessToken = result.AccessToken;
+            if (!string.IsNullOrEmpty(result.RefreshToken))
+                discord.Settings.RefreshToken = result.RefreshToken;
+            if (result.ExpiresIn > 0)
+                discord.Settings.TokenExpiresAtUtcTicks = DateTime.UtcNow.AddSeconds(result.ExpiresIn).Ticks;
             discord.SaveSettings();
             HasSavedToken = true;
 
@@ -118,6 +122,8 @@ public partial class DiscordSectionViewModel : ObservableObject
 
             await discord.StopAsync();
             discord.Settings.AccessToken = string.Empty;
+            discord.Settings.RefreshToken = string.Empty;
+            discord.Settings.TokenExpiresAtUtcTicks = 0;
             discord.SaveSettings();
             HasSavedToken = false;
         }

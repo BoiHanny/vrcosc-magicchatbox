@@ -44,6 +44,7 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
     private readonly ISettingsProvider<VrcLogSettings> _vrcLogSettingsProvider;
+    private readonly Lazy<DiscordOAuthHandler> _discordOAuth;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -77,6 +78,7 @@ public class ModuleBootstrapper
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
         ISettingsProvider<DiscordSettings> discordSettingsProvider,
         ISettingsProvider<VrcLogSettings> vrcLogSettingsProvider,
+        Lazy<DiscordOAuthHandler> discordOAuth,
         IPrivacyConsentService consentService,
         IToastService toast)
     {
@@ -102,6 +104,7 @@ public class ModuleBootstrapper
         _trackerSettingsProvider = trackerSettingsProvider;
         _discordSettingsProvider = discordSettingsProvider;
         _vrcLogSettingsProvider = vrcLogSettingsProvider;
+        _discordOAuth = discordOAuth;
         _consentService = consentService;
         _toast = toast;
     }
@@ -169,7 +172,8 @@ public class ModuleBootstrapper
         var discord = await CreateRuntimeModuleAsync("Discord", () => new DiscordModule(
             _discordSettingsProvider,
             _oscSender,
-            _dispatcher));
+            _dispatcher,
+            _discordOAuth));
         var tracker = await CreateRuntimeModuleAsync("TrackerBattery", () => new TrackerBatteryModule(
             _trackerSettingsProvider,
             _appState,

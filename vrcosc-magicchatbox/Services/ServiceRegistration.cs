@@ -281,6 +281,8 @@ public static class ServiceRegistration
 
         // Module host — single source of truth for all module instances
         services.AddSingleton<IModuleHost, ModuleHost>();
+        services.AddSingleton(sp =>
+            new Lazy<DiscordOAuthHandler>(() => sp.GetRequiredService<DiscordOAuthHandler>()));
         services.AddSingleton<ModuleBootstrapper>();
 
         // ── TTS Playback — extracted from ScanLoopService ──
@@ -348,7 +350,10 @@ public static class ServiceRegistration
         services.AddSingleton<Classes.Modules.PulsoidOAuthHandler>();
 
         // Discord OAuth handler — DI singleton for Discord voice channel integration
-        services.AddSingleton<Classes.Modules.DiscordOAuthHandler>();
+        services.AddSingleton<Classes.Modules.DiscordOAuthHandler>(sp =>
+            new Classes.Modules.DiscordOAuthHandler(
+                sp.GetRequiredService<INavigationService>(),
+                sp.GetRequiredService<IHttpClientFactory>()));
 
         // OSCController — thin orchestrator (delegates to OscOutputBuilder + ChatStateManager)
         services.AddSingleton<Classes.DataAndSecurity.OSCController>(sp => new Classes.DataAndSecurity.OSCController(
