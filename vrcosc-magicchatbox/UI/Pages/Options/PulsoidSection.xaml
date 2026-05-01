@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=sections:PulsoidSectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
@@ -230,9 +230,7 @@
                     </Grid>
 
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Orientation="Horizontal">
                         <Button
                             x:Name="ConnectWithPulsoid"
@@ -338,8 +336,8 @@
                 </Border>
                 <Border
                     Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
                     Opacity="0.8"
+                    Style="{StaticResource OptionCardStyle}"
                     Visibility="{Binding Pulsoid.AuthConnected, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <StackPanel Margin="5">
                         <TextBlock
@@ -354,9 +352,7 @@
                             Text="Manual web authorization" />
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
 
                     <StackPanel Margin="5">
                         <TextBlock
@@ -393,13 +389,9 @@
                         </CheckBox>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
-                        <TextBlock
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Pulsoid ˢᵗᵃᵗˢ" />
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Pulsoid ˢᵗᵃᵗˢ" />
 
                         <TextBlock
                             Width="auto"
@@ -524,13 +516,9 @@
 
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
-                        <TextBlock
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Pulsoid to OSC" />
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Pulsoid to OSC" />
 
                         <TextBlock
                             Width="auto"
@@ -705,9 +693,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -808,9 +794,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -855,9 +839,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -945,9 +927,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -994,9 +974,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -1040,9 +1018,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -1058,9 +1034,7 @@
                         </CheckBox>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
@@ -1076,9 +1050,7 @@
                         </CheckBox>
                     </StackPanel>
                 </Border>
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}">
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"

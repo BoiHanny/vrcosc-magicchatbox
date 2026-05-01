@@ -133,194 +133,194 @@ namespace vrcosc_magicchatbox
                 loadingWindow.Show();
                 LogStartupPhase("Splash window shown.");
 
-            UpdateApp updater = new UpdateApp(
-                Services.GetRequiredService<AppUpdateState>(),
-                Services.GetRequiredService<IHttpClientFactory>(),
-                Services.GetRequiredService<IUiDispatcher>());
+                UpdateApp updater = new UpdateApp(
+                    Services.GetRequiredService<AppUpdateState>(),
+                    Services.GetRequiredService<IHttpClientFactory>(),
+                    Services.GetRequiredService<IUiDispatcher>());
 
-            if (e.Args != null && e.Args.Length > 0)
-            {
-                foreach (string arg in e.Args)
+                if (e.Args != null && e.Args.Length > 0)
                 {
-                    if (arg.StartsWith("-profile="))
+                    foreach (string arg in e.Args)
                     {
-                        string profileNumberString = arg.Substring(9);
-                        if (int.TryParse(profileNumberString, out int parsedProfileNumber))
+                        if (arg.StartsWith("-profile="))
                         {
-                            _appSettings.ProfileNumber = parsedProfileNumber;
-                            _appSettings.UseCustomProfile = true;
-                            var env = Services.GetRequiredService<IEnvironmentService>();
-                            env.SetCustomProfile(parsedProfileNumber);
+                            string profileNumberString = arg.Substring(9);
+                            if (int.TryParse(profileNumberString, out int parsedProfileNumber))
+                            {
+                                _appSettings.ProfileNumber = parsedProfileNumber;
+                                _appSettings.UseCustomProfile = true;
+                                var env = Services.GetRequiredService<IEnvironmentService>();
+                                env.SetCustomProfile(parsedProfileNumber);
+                            }
+                            else
+                            {
+                                loadingWindow.Hide();
+                                LogStartupPhase($"Invalid profile argument '{profileNumberString}'.");
+                                Logging.WriteException(new Exception($"Invalid profile number '{profileNumberString}'"), MSGBox: true, exitapp: true);
+                                return;
+                            }
                         }
                         else
                         {
-                            loadingWindow.Hide();
-                            LogStartupPhase($"Invalid profile argument '{profileNumberString}'.");
-                            Logging.WriteException(new Exception($"Invalid profile number '{profileNumberString}'"), MSGBox: true, exitapp: true);
-                            return;
+                            switch (arg)
+                            {
+                                case "-update":
+                                    loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
+                                    await Task.Run(() => updater.UpdateApplication());
+                                    Shutdown();
+                                    return;
+                                case "-updateadmin":
+                                    loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
+                                    await Task.Run(() => updater.UpdateApplication(true));
+                                    Shutdown();
+                                    return;
+                                case "-rollback":
+                                    loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
+                                    await Task.Run(() => updater.RollbackApplication(loadingWindow));
+                                    Shutdown();
+                                    return;
+                                case "-rollbackadmin":
+                                    loadingWindow.UpdateProgress("Rollback with admin powers engaged.", 55);
+                                    await Task.Run(() => updater.RollbackApplication(loadingWindow, true));
+                                    Shutdown();
+                                    return;
+                                case "-clearbackup":
+                                    loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
+                                    await Task.Run(() => updater.ClearBackUp());
+                                    break;
+                                default:
+                                    loadingWindow.Hide();
+                                    LogStartupPhase($"Invalid command line argument '{arg}'.");
+                                    Logging.WriteException(new Exception($"Invalid command line argument '{arg}'"), MSGBox: true, exitapp: true);
+                                    return;
+                            }
                         }
                     }
-                    else
+                }
+
+                // Show TOS + Privacy wizard if TOS version has changed or was never accepted
+                bool tosJustAccepted = false;
+                {
+                    LogStartupPhase("Checking TOS/privacy wizard state.");
+                    var appSettingsProvider = Services.GetRequiredService<ISettingsProvider<AppSettings>>();
+                    var consentService = Services.GetRequiredService<IPrivacyConsentService>();
+                    if (appSettingsProvider.Value.AcceptedTosVersion != Core.Constants.TosVersion)
                     {
-                        switch (arg)
-                        {
-                            case "-update":
-                                loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
-                                await Task.Run(() => updater.UpdateApplication());
-                                Shutdown();
-                                return;
-                            case "-updateadmin":
-                                loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
-                                await Task.Run(() => updater.UpdateApplication(true));
-                                Shutdown();
-                                return;
-                            case "-rollback":
-                                loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
-                                await Task.Run(() => updater.RollbackApplication(loadingWindow));
-                                Shutdown();
-                                return;
-                            case "-rollbackadmin":
-                                loadingWindow.UpdateProgress("Rollback with admin powers engaged.", 55);
-                                await Task.Run(() => updater.RollbackApplication(loadingWindow, true));
-                                Shutdown();
-                                return;
-                            case "-clearbackup":
-                                loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
-                                await Task.Run(() => updater.ClearBackUp());
-                                break;
-                            default:
-                                loadingWindow.Hide();
-                                LogStartupPhase($"Invalid command line argument '{arg}'.");
-                                Logging.WriteException(new Exception($"Invalid command line argument '{arg}'"), MSGBox: true, exitapp: true);
-                                return;
-                        }
+                        var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider);
+                        DialogWindowHelper.PrepareModal(wizard, loadingWindow);
+                        tosJustAccepted = wizard.ShowDialog() == true;
+                        // If wizard was dismissed, fall through to per-hook consent dialog below
                     }
                 }
-            }
 
-            // Show TOS + Privacy wizard if TOS version has changed or was never accepted
-            bool tosJustAccepted = false;
-            {
-                LogStartupPhase("Checking TOS/privacy wizard state.");
-                var appSettingsProvider = Services.GetRequiredService<ISettingsProvider<AppSettings>>();
-                var consentService = Services.GetRequiredService<IPrivacyConsentService>();
-                if (appSettingsProvider.Value.AcceptedTosVersion != Core.Constants.TosVersion)
+                // Show privacy consent dialog for any hooks that have Unknown state
                 {
-                    var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider);
-                    DialogWindowHelper.PrepareModal(wizard, loadingWindow);
-                    tosJustAccepted = wizard.ShowDialog() == true;
-                    // If wizard was dismissed, fall through to per-hook consent dialog below
+                    LogStartupPhase("Checking pending privacy hooks.");
+                    var consentService = Services.GetRequiredService<IPrivacyConsentService>();
+                    var allHooks = System.Enum.GetValues<PrivacyHook>();
+                    var pendingHooks = consentService.GetHooksRequiringConsent(allHooks);
+                    if (pendingHooks.Count > 0)
+                    {
+                        var dialog = new PrivacyConsentDialog(consentService, pendingHooks);
+                        DialogWindowHelper.PrepareModal(dialog, loadingWindow);
+                        dialog.ShowDialog();
+                    }
                 }
-            }
 
-            // Show privacy consent dialog for any hooks that have Unknown state
-            {
-                LogStartupPhase("Checking pending privacy hooks.");
-                var consentService = Services.GetRequiredService<IPrivacyConsentService>();
-                var allHooks = System.Enum.GetValues<PrivacyHook>();
-                var pendingHooks = consentService.GetHooksRequiringConsent(allHooks);
-                if (pendingHooks.Count > 0)
+                await InitializeComponentsWithProgress(loadingWindow);
+                LogStartupPhase("Component initialization completed.");
+
+                loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
+                Logging.WriteInfo("Creating MainWindow instance.");
+                MainWindow mainWindow = new MainWindow(
+                    Services.GetRequiredService<ScanLoopService>(),
+                    Services.GetRequiredService<ModuleBootstrapper>(),
+                    Services.GetRequiredService<Core.Services.IModuleHost>(),
+                    Services.GetRequiredService<IStatePersistenceCoordinator>());
+                // DataContext is NOT set yet — Show() renders an empty shell in ~570ms
+                // instead of hanging while WPF evaluates every binding + automation peer.
+                Logging.WriteInfo("MainWindow instance created.");
+
+                loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
+                loadingWindow.Topmost = true;
+                Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
+                mainWindow.Show();
+                Logging.WriteInfo("[Startup] MainWindow shown.");
+
+                mainWindow.UpdateOverlayProgress("Connecting data bindings...", 30, "Wiring up modules...");
+
+                Logging.WriteInfo("[Startup] Assigning DataContext...");
+                mainWindow.DataContext = vm;
+                Logging.WriteInfo("[Startup] DataContext assigned.");
+
+                mainWindow.UpdateOverlayProgress("Wiring up modules...", 55, "Initializing components...");
+
+                // Initialize (creates late modules, wires events, sets selected page).
+                loadingWindow.UpdateProgress("Wiring up the final UI bits... Almost there!", 100);
+                await mainWindow.InitializeAsync();
+                Logging.WriteInfo("MainWindow.InitializeAsync completed.");
+
+                mainWindow.UpdateOverlayProgress("Initializing components...", 75, "Registering hotkeys...");
+
+                Logging.WriteInfo("[Startup] Registering hotkeys...");
+                Services.GetRequiredService<HotkeyManagement>().Initialize(mainWindow);
+                Logging.WriteInfo("[Startup] Hotkeys registered.");
+
+                mainWindow.UpdateOverlayProgress("Registering hotkeys...", 85, "Rendering interface...");
+
+                Logging.WriteInfo("[Startup] Waiting for initial render...");
+                await Task.Delay(150);
+                Logging.WriteInfo("[Startup] Initial render completed.");
+
+                mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
+
+                loadingWindow.Close();
+                Logging.WriteInfo("[Startup] Splash closed.");
+
+                mainWindow.HideStartupOverlay();
+
+                // Signal that startup is complete — modules waiting for auto-start can now proceed
+                Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
+                Logging.WriteInfo("[Startup] Startup-complete signal fired.");
+
+                var toastSvc = Services.GetRequiredService<IToastService>();
+                var consentSvc = Services.GetRequiredService<IPrivacyConsentService>();
+                consentSvc.ConsentChanged += (_, args) =>
                 {
-                    var dialog = new PrivacyConsentDialog(consentService, pendingHooks);
-                    DialogWindowHelper.PrepareModal(dialog, loadingWindow);
-                    dialog.ShowDialog();
-                }
-            }
+                    var (name, icon) = PrivacyHookInfo.Get(args.Hook);
+                    switch (args.NewState)
+                    {
+                        case ConsentState.Approved:
+                            toastSvc.Show($"{icon} Permission Enabled", $"{name} is now active.", ToastType.Privacy,
+                                key: $"consent-change-{args.Hook}");
+                            break;
+                        case ConsentState.Denied:
+                            toastSvc.Show("🚫 Permission Revoked", $"{name} has been disabled.", ToastType.Warning,
+                                key: $"consent-change-{args.Hook}");
+                            break;
+                    }
+                };
 
-            await InitializeComponentsWithProgress(loadingWindow);
-            LogStartupPhase("Component initialization completed.");
+                if (tosJustAccepted)
+                    toastSvc.Show(
+                        "Welcome to MagicChatbox! 🎉",
+                        "Your permissions are saved. Adjust them anytime in Options → Privacy & Permissions.",
+                        ToastType.Success,
+                        durationMs: 7000);
 
-            loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
-            Logging.WriteInfo("Creating MainWindow instance.");
-            MainWindow mainWindow = new MainWindow(
-                Services.GetRequiredService<ScanLoopService>(),
-                Services.GetRequiredService<ModuleBootstrapper>(),
-                Services.GetRequiredService<Core.Services.IModuleHost>(),
-                Services.GetRequiredService<IStatePersistenceCoordinator>());
-            // DataContext is NOT set yet — Show() renders an empty shell in ~570ms
-            // instead of hanging while WPF evaluates every binding + automation peer.
-            Logging.WriteInfo("MainWindow instance created.");
+                Logging.WriteInfo("[Startup] Initializing user monitoring...");
+                InitializeUserMonitoring();
+                Logging.WriteInfo("[Startup] User monitoring initialized.");
 
-            loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
-            loadingWindow.Topmost = true;
-            Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
-            mainWindow.Show();
-            Logging.WriteInfo("[Startup] MainWindow shown.");
+                // Start background scan loop LAST — after window is visible and splash is gone
+                Logging.WriteInfo("[Startup] Starting background scan loop...");
+                mainWindow.StartBackgroundProcessing();
+                Logging.WriteInfo("[Startup] Background processing started.");
 
-            mainWindow.UpdateOverlayProgress("Connecting data bindings...", 30, "Wiring up modules...");
-
-            Logging.WriteInfo("[Startup] Assigning DataContext...");
-            mainWindow.DataContext = vm;
-            Logging.WriteInfo("[Startup] DataContext assigned.");
-
-            mainWindow.UpdateOverlayProgress("Wiring up modules...", 55, "Initializing components...");
-
-            // Initialize (creates late modules, wires events, sets selected page).
-            loadingWindow.UpdateProgress("Wiring up the final UI bits... Almost there!", 100);
-            await mainWindow.InitializeAsync();
-            Logging.WriteInfo("MainWindow.InitializeAsync completed.");
-
-            mainWindow.UpdateOverlayProgress("Initializing components...", 75, "Registering hotkeys...");
-
-            Logging.WriteInfo("[Startup] Registering hotkeys...");
-            Services.GetRequiredService<HotkeyManagement>().Initialize(mainWindow);
-            Logging.WriteInfo("[Startup] Hotkeys registered.");
-
-            mainWindow.UpdateOverlayProgress("Registering hotkeys...", 85, "Rendering interface...");
-            
-            Logging.WriteInfo("[Startup] Waiting for initial render...");
-            await Task.Delay(150);
-            Logging.WriteInfo("[Startup] Initial render completed.");
-
-            mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
-
-            loadingWindow.Close();
-            Logging.WriteInfo("[Startup] Splash closed.");
-
-            mainWindow.HideStartupOverlay();
-
-            // Signal that startup is complete — modules waiting for auto-start can now proceed
-            Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
-            Logging.WriteInfo("[Startup] Startup-complete signal fired.");
-
-            var toastSvc = Services.GetRequiredService<IToastService>();
-            var consentSvc = Services.GetRequiredService<IPrivacyConsentService>();
-            consentSvc.ConsentChanged += (_, args) =>
-            {
-                var (name, icon) = PrivacyHookInfo.Get(args.Hook);
-                switch (args.NewState)
+                if (vm.AppSettingsInstance.CheckUpdateOnStartup)
                 {
-                    case ConsentState.Approved:
-                        toastSvc.Show($"{icon} Permission Enabled", $"{name} is now active.", ToastType.Privacy,
-                            key: $"consent-change-{args.Hook}");
-                        break;
-                    case ConsentState.Denied:
-                        toastSvc.Show("🚫 Permission Revoked", $"{name} has been disabled.", ToastType.Warning,
-                            key: $"consent-change-{args.Hook}");
-                        break;
+                    _ = RunDeferredStartupUpdateCheckAsync();
                 }
-            };
-
-            if (tosJustAccepted)
-                toastSvc.Show(
-                    "Welcome to MagicChatbox! 🎉",
-                    "Your permissions are saved. Adjust them anytime in Options → Privacy & Permissions.",
-                    ToastType.Success,
-                    durationMs: 7000);
-
-            Logging.WriteInfo("[Startup] Initializing user monitoring...");
-            InitializeUserMonitoring();
-            Logging.WriteInfo("[Startup] User monitoring initialized.");
-
-            // Start background scan loop LAST — after window is visible and splash is gone
-            Logging.WriteInfo("[Startup] Starting background scan loop...");
-            mainWindow.StartBackgroundProcessing();
-            Logging.WriteInfo("[Startup] Background processing started.");
-
-            if (vm.AppSettingsInstance.CheckUpdateOnStartup)
-            {
-                _ = RunDeferredStartupUpdateCheckAsync();
-            }
 
             }
             catch (Exception ex)

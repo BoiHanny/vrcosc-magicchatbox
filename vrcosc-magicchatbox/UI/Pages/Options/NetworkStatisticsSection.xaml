@@ -4,9 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
-    d:DataContext="{d:DesignInstance Type=vm:ViewModel, IsDesignTimeCreatable=True}"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel,
+                                     IsDesignTimeCreatable=True}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>

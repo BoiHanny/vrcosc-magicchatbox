@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.State;
 
 namespace vrcosc_magicchatbox.Services;

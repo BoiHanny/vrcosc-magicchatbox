@@ -4,9 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
-    d:DataContext="{d:DesignInstance Type=vm:ViewModel, IsDesignTimeCreatable=True}"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:ViewModel,
+                                     IsDesignTimeCreatable=True}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -16,9 +17,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid
-        Margin="0,5,0,0"
-        Visibility="{Binding AppState.Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+    <Grid Margin="0,5,0,0" Visibility="{Binding AppState.Egg_Dev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -51,7 +50,7 @@
             Height="Auto"
             Margin="35,10,0,0"
             Visibility="{Binding AppSettings.SettingsDev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <Border >
+            <Border>
                 <StackPanel>
                     <CheckBox
                         x:Name="BlankEgg_checkbox"

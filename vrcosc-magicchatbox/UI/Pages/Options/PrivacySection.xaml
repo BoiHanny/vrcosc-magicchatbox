@@ -6,7 +6,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:privacy="clr-namespace:vrcosc_magicchatbox.Core.Privacy"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
-    d:DataContext="{d:DesignInstance Type=vm:PrivacySectionViewModel, IsDesignTimeCreatable=False}"
+    d:DataContext="{d:DesignInstance Type=vm:PrivacySectionViewModel,
+                                     IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -33,7 +34,7 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!-- Section header -->
+        <!--  Section header  -->
         <Grid Grid.Row="0">
             <ToggleButton
                 Width="Auto"
@@ -48,7 +49,7 @@
                 TextOptions.TextRenderingMode="ClearType" />
         </Grid>
 
-        <!-- Expanded content -->
+        <!--  Expanded content  -->
         <Grid
             Grid.Row="1"
             Height="Auto"
@@ -91,308 +92,497 @@
                     FontSize="13"
                     Foreground="{StaticResource TextLabelBrush}"
                     Style="{StaticResource OptionHelpTextStyle}"
-                    TextWrapping="Wrap"
-                    Text="Control which system hooks MagicChatbox may use. Some features connect to external services — nothing is sent without your permission." />
-                <TextBlock
-                    Style="{StaticResource OptionSubsectionHeaderStyle}"
-                    Text="Permission-controlled features" />
+                    Text="Control which system hooks MagicChatbox may use. Some features connect to external services — nothing is sent without your permission."
+                    TextWrapping="Wrap" />
+                <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Permission-controlled features" />
                 <Border Style="{StaticResource OptionCardStyle}">
-                <StackPanel>
+                    <StackPanel>
 
-                <!-- HardwareMonitor row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                        <!--  HardwareMonitor row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock
-                            FontFamily="Comfortaa Light"
-                            FontSize="13"
-                            Foreground="{StaticResource TextSectionHeaderBrush}"
-                            Text="🖥️  Hardware Monitor" />
-                        <TextBlock
-                            FontFamily="Albert Sans Thin"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="CPU · GPU · VRAM sensors (loads WinRing0.sys driver)" />
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="🖥️  Hardware Monitor" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="CPU · GPU · VRAM sensors (loads WinRing0.sys driver)" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding HardwareMonitorState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.HardwareMonitor}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.HardwareMonitor}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  WindowActivity row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="📋  Window Activity" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Active app name + window title (UIAutomation)" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding WindowActivityState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.WindowActivity}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.WindowActivity}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  MediaSession row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="🎵  Media Session" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Song title · artist · playback state (Windows SMTC)" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding MediaSessionState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.MediaSession}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.MediaSession}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  AfkSensor row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="💤  AFK Sensor" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Last input timestamp (GetLastInputInfo — no keylogging)" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding AfkSensorState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.AfkSensor}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.AfkSensor}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  InternetAccess row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="🌐  Internet Access" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding InternetAccessState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.InternetAccess}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.InternetAccess}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  VrTrackerBattery row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="🎮  VR Tracker Battery" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="SteamVR / OpenVR — reads HMD, controller &amp; tracker battery levels" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding VrTrackerBatteryState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VrTrackerBattery}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VrTrackerBattery}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  NetworkStats row  -->
+                        <Grid Margin="0,4,10,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="📶  Network Statistics" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="System.Net.NetworkInformation — reads interface byte counters for throughput display" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding NetworkStatsState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.NetworkStats}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.NetworkStats}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  SoundpadBridge row  -->
+                        <Grid Margin="0,4,10,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="🔊  Soundpad Bridge" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Named-pipe IPC — connects to the Soundpad desktop application for playback control" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding SoundpadBridgeState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.SoundpadBridge}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.SoundpadBridge}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <!--  VrcLogReader row  -->
+                        <Grid Margin="0,4,10,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="📡  VRChat Log Reader" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="File read — parses VRChat output_log.txt for world info, player events, and session stats" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding VrcLogReaderState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
                     </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock
-                            FontFamily="Albert Sans Thin"
-                            FontSize="11"
-                            Foreground="{StaticResource TextSectionHeaderBrush}"
-                            Text="{Binding HardwareMonitorState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button
-                            Width="70" Height="26" Margin="0,0,6,0"
-                            Command="{Binding ManageHookCommand}"
-                            CommandParameter="{x:Static privacy:PrivacyHook.HardwareMonitor}"
-                            Content="Manage"
-                            Style="{StaticResource Status_Button_style}" />
-                        <Button
-                            Width="60" Height="26"
-                            Command="{Binding RevokeHookCommand}"
-                            CommandParameter="{x:Static privacy:PrivacyHook.HardwareMonitor}"
-                            Content="Revoke"
-                            Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- WindowActivity row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="📋  Window Activity" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Active app name + window title (UIAutomation)" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding WindowActivityState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.WindowActivity}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.WindowActivity}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- MediaSession row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🎵  Media Session" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Song title · artist · playback state (Windows SMTC)" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding MediaSessionState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.MediaSession}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.MediaSession}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- AfkSensor row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="💤  AFK Sensor" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Last input timestamp (GetLastInputInfo — no keylogging)" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding AfkSensorState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.AfkSensor}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.AfkSensor}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- InternetAccess row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🌐  Internet Access" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding InternetAccessState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.InternetAccess}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.InternetAccess}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- VrTrackerBattery row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🎮  VR Tracker Battery" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="SteamVR / OpenVR — reads HMD, controller &amp; tracker battery levels" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding VrTrackerBatteryState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.VrTrackerBattery}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.VrTrackerBattery}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- NetworkStats row -->
-                <Grid Margin="0,4,10,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="📶  Network Statistics" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="System.Net.NetworkInformation — reads interface byte counters for throughput display" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding NetworkStatsState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.NetworkStats}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.NetworkStats}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- SoundpadBridge row -->
-                <Grid Margin="0,4,10,12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="🔊  Soundpad Bridge" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="Named-pipe IPC — connects to the Soundpad desktop application for playback control" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding SoundpadBridgeState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.SoundpadBridge}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.SoundpadBridge}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
-
-                <!-- VrcLogReader row -->
-                <Grid Margin="0,4,10,12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock FontFamily="Comfortaa Light" FontSize="13" Foreground="{StaticResource TextSectionHeaderBrush}" Text="📡  VRChat Log Reader" />
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Text="File read — parses VRChat output_log.txt for world info, player events, and session stats" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Margin="8,0" Background="{StaticResource AccentDeepPurpleBrush}" Style="{StaticResource StateBadgeStyle}">
-                        <TextBlock FontFamily="Albert Sans Thin" FontSize="11" Foreground="{StaticResource TextSectionHeaderBrush}" Text="{Binding VrcLogReaderState}" />
-                    </Border>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Width="70" Height="26" Margin="0,0,6,0"
-                                Command="{Binding ManageHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
-                                Content="Manage" Style="{StaticResource Status_Button_style}" />
-                        <Button Width="60" Height="26"
-                                Command="{Binding RevokeHookCommand}"
-                                CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
-                                Content="Revoke" Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
-                </Grid>
-
-                </StackPanel>
                 </Border>
             </StackPanel>
         </Grid>

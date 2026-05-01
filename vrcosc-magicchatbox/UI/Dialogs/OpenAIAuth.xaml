@@ -147,13 +147,13 @@
                     CornerRadius="5">
                     <PasswordBox
                         x:Name="OrganizationID"
-                        MaxLength="200"
                         Padding="5,0"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Background="Transparent"
                         FontSize="20"
                         Foreground="{StaticResource SurfaceDarkBrush}"
+                        MaxLength="200"
                         PasswordChanged="OrganizationID_PasswordChanged"
                         PasswordChar="●" />
                 </Border>
@@ -230,13 +230,13 @@
                     CornerRadius="5">
                     <PasswordBox
                         x:Name="OpenAIToken"
-                        MaxLength="200"
                         Padding="5,0"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         Background="Transparent"
                         FontSize="20"
                         Foreground="{StaticResource SurfaceDarkBrush}"
+                        MaxLength="200"
                         PasswordChanged="OpenAIToken_PasswordChanged"
                         PasswordChar="●" />
                 </Border>

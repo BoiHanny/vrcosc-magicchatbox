@@ -66,8 +66,15 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private double _appOpacity = 0.98;
     [ObservableProperty] private bool _appIsEnabled = true;
 
-    [ObservableProperty] private int _profileNumber;
-    [ObservableProperty] private bool _useCustomProfile;
+    [ObservableProperty]
+    [property: Newtonsoft.Json.JsonIgnore]
+    [property: System.Text.Json.Serialization.JsonIgnore]
+    private int _profileNumber;
+
+    [ObservableProperty]
+    [property: Newtonsoft.Json.JsonIgnore]
+    [property: System.Text.Json.Serialization.JsonIgnore]
+    private bool _useCustomProfile;
 
     [ObservableProperty] private string _acceptedTosVersion = string.Empty;
 }

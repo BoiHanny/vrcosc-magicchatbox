@@ -4,9 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=sections:MediaLinkSectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
@@ -19,594 +19,564 @@
     </UserControl.Resources>
 
     <Grid Margin="0,5,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.Background>
-                            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
-                                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
-                                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
-                            </LinearGradientBrush>
-                        </Grid.Background>
-                         <Grid Grid.Row="0">
-                             <Grid.ColumnDefinitions>
-                                 <ColumnDefinition Width="Auto" />
-                                 <ColumnDefinition Width="Auto" />
-                                 <ColumnDefinition Width="*" />
-                             </Grid.ColumnDefinitions>
-                            <ToggleButton
-                                Grid.Column="0"
-                                Width="Auto"
-                                Height="30"
-                                HorizontalAlignment="Left"
-                                FontSize="15"
-                                FontWeight="Bold"
-                                Foreground="{StaticResource TextSectionHeaderBrush}"
-                                IsChecked="{Binding AppSettings.Settings_MediaLink, Mode=TwoWay}"
-                                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
-                                Tag="MediaLink options"
-                                TextOptions.TextRenderingMode="ClearType" />
-                             <TextBlock
-                                 x:Name="LearnMoreAboutSpotifybtn"
-                                 Grid.Column="1"
-                                 Width="auto"
-                                 Margin="10,0,0,0"
-                                 HorizontalAlignment="Left"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ToggleButton
+                Grid.Column="0"
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.Settings_MediaLink, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="MediaLink options"
+                TextOptions.TextRenderingMode="ClearType" />
+            <TextBlock
+                x:Name="LearnMoreAboutSpotifybtn"
+                Grid.Column="1"
+                Width="auto"
+                Margin="10,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Cursor="Hand"
+                FontFamily="Albert Sans Thin"
+                FontSize="12"
+                Foreground="{StaticResource AccentTealBrush}"
+                MouseUp="LearnMoreAboutSpotifybtn_MouseUp"
+                Text="Learn more"
+                TextDecorations="Underline" />
+        </Grid>
+        <Grid
+            Grid.Row="1"
+            Height="Auto"
+            Margin="34,10,0,0"
+            Visibility="{Binding AppSettings.Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel>
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Basic options" />
+
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Choose how media output appears in your chatbox." />
+
+                        <CheckBox
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.Disabled, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Use old Spotify integration (deprecated)
+                        </CheckBox>
+                        <CheckBox
+                            Margin="3,7"
+                            IsChecked="{Binding AppSettings.PrefixIconMusic, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Show media icon prefix
+                        </CheckBox>
+                        <CheckBox
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.PauseIconMusic, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}"
+                            Visibility="{Binding AppSettings.PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            Show pause icon when music is paused
+                        </CheckBox>
+
+
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Transient mode" />
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Only show media info for a short time after it changes." />
+                        <CheckBox
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.ShowOnlyOnChange, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Only show when changing
+                        </CheckBox>
+                        <StackPanel
+                            Margin="3,0"
+                            Orientation="Horizontal"
+                            Visibility="{Binding MediaLinkSettings.ShowOnlyOnChange, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock
+                                Margin="0,0,5,0"
                                 VerticalAlignment="Center"
-                                Cursor="Hand"
                                 FontFamily="Albert Sans Thin"
-                                FontSize="12"
-                                Foreground="{StaticResource AccentTealBrush}"
-                                MouseUp="LearnMoreAboutSpotifybtn_MouseUp"
-                                Text="Learn more"
-                                TextDecorations="Underline" />
-                        </Grid>
-                        <Grid
-                            Grid.Row="1"
-                            Height="Auto"
-                            Margin="34,10,0,0"
-                            Visibility="{Binding AppSettings.Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <StackPanel>
-                                <Border Style="{StaticResource OptionCardStyle}">
+                                FontSize="15"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Hide after:" />
+                            <TextBox
+                                Width="40"
+                                Padding="5,0,0,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding MediaLinkSettings.TransientDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="15"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="seconds" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Customization" />
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Adjust icons, separators, and state text to match your style." />
+                        <CheckBox
+                            Margin="3,7,3,5"
+                            IsChecked="{Binding MediaLinkSettings.ShowStopIcon, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Show stop icon
+                        </CheckBox>
+                        <StackPanel Margin="0,5" Orientation="Horizontal">
+                            <StackPanel Margin="5,0">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Text="Pause icon" />
+                                <TextBox
+                                    Width="40"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="15"
+                                    Text="{Binding MediaLinkSettings.IconPause, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="5,0" Visibility="{Binding MediaLinkSettings.ShowStopIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Text="Stop icon" />
+                                <TextBox
+                                    Width="40"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="15"
+                                    Text="{Binding MediaLinkSettings.IconStop, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="5,0">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Text="Separator" />
+                                <TextBox
+                                    Width="70"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="15"
+                                    Text="{Binding MediaLinkSettings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Use \n for new lines in separators and state text." />
+                        <TextBlock
+                            Margin="2,5,0,2"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            Text="State text" />
+                        <StackPanel Margin="0,2" Orientation="Horizontal">
+                            <TextBlock
+                                Width="70"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="13"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                Text="Playing:" />
+                            <TextBox
+                                Width="140"
+                                Padding="5,0,0,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding MediaLinkSettings.TextPlaying, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,2" Orientation="Horizontal">
+                            <TextBlock
+                                Width="70"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="13"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                Text="Paused:" />
+                            <TextBox
+                                Width="140"
+                                Padding="5,0,0,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding MediaLinkSettings.TextPaused, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <CheckBox
+                            Margin="3,10,3,7"
+                            IsChecked="{Binding MediaLinkSettings.UpperCase, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Force uppercase
+                        </CheckBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="MediaLink behavior" />
+
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Adjust how MediaLink selects and forgets media sessions." />
+
+                        <CheckBox
+                            x:Name="MediaSession_AutoSwitch_checkbox"
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.AutoSwitch, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Auto switch when media state is changed (must check button on integration page)
+                        </CheckBox>
+                        <CheckBox
+                            x:Name="MediaSession_AutoSwitchSpawn_checkbox"
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.AutoSwitchSpawn, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Turn autoswitch on when new session detected
+                        </CheckBox>
+
+                        <StackPanel Margin="3,7" Orientation="Horizontal">
+                            <TextBlock
+                                Padding="0,0,5,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="15"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Forget session" />
+                            <TextBox
+                                Width="auto"
+                                Height="auto"
+                                Margin="0,0,0,0"
+                                Padding="5,0"
+                                HorizontalAlignment="Left"
+                                VerticalContentAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding MediaLinkSettings.SessionTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                TextAlignment="Center" />
+                            <TextBlock
+                                Padding="5,0,5,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="15"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="seconds after disconnect" />
+
+                        </StackPanel>
+
+
+
+
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Media progress bar" />
+
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Choose whether and how the media progress bar is shown." />
+
+
+                        <TextBlock
+                            Grid.Column="0"
+                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Text="Seekbar Style"
+                            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                        <ComboBox
+                            Width="130"
+                            Height="auto"
+                            Margin="0,3"
+                            HorizontalAlignment="Left"
+                            ItemsSource="{Binding Source={x:Static modules:MediaLinkSettings.AvailableTimeSeekbarStyles}}"
+                            SelectedValue="{Binding MediaLinkSettings.TimeSeekStyle, Mode=TwoWay}"
+                            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <StackPanel Visibility="{Binding MediaLinkSettings.TimeSeekStyleIsNumbersAndSeekBar, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <CheckBox
+                                Margin="3,7"
+                                IsChecked="{Binding MediaLinkSettings.AutoDowngradeSeekbar, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                Visibility="{Binding MediaLinkSettings.TimeSeekStyleIsNone, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                Auto-Style Downgrade if not fitting
+                            </CheckBox>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                Text="System and custom styles"
+                                Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <StackPanel Style="{StaticResource OptionActionRowStyle}">
+                                <ComboBox
+                                    Width="auto"
+                                    Margin="0,3"
+                                    HorizontalAlignment="Left"
+                                    DisplayMemberPath="StyleName"
+                                    FontSize="16"
+                                    ItemsSource="{Binding MediaLink.MediaLinkSeekbarStyles, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectedItem="{Binding MediaLink.SelectedMediaLinkSeekbarStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <Button
+                                    x:Name="CreateNewSeekbar_btn"
+                                    Width="auto"
+                                    Height="30"
+                                    Margin="5,0,0,0"
+                                    Padding="5"
+                                    Command="{Binding AddSeekbarStyleCommand}"
+                                    Style="{StaticResource Status_Button_style}">
+                                    <Button.ContentTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image
+                                                    Width="21"
+                                                    Height="18"
+                                                    Margin="0,0,3,0"
+                                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                                    Source="/Img/Icons/Add.png" />
+                                                <TextBlock
+                                                    Margin="0,-2,5,0"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="14"
+                                                    Text="New custom Seekbar" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </Button.ContentTemplate>
+                                </Button>
+                                <Button
+                                    x:Name="DeleteSeekbar_btn"
+                                    Height="30"
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource StatusErrorDarkBrush}"
+                                    BorderThickness="0"
+                                    Command="{Binding DeleteSeekbarStyleCommand}"
+                                    Cursor="Hand"
+                                    Style="{DynamicResource CancelEditbutton}"
+                                    Visibility="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <Grid>
+                                        <Image
+                                            Width="15"
+                                            Height="15"
+                                            RenderOptions.BitmapScalingMode="Linear"
+                                            Source="/Img/Icons/Cross_ico.png" />
+                                    </Grid>
+                                </Button>
+                                <Button
+                                    Width="25"
+                                    Height="25"
+                                    Margin="5,0,0,0"
+                                    Command="{Binding ImportSeekbarStylesCommand}"
+                                    Content="&#x1F4E5;"
+                                    FontSize="12"
+                                    Style="{StaticResource Status_Button_style}"
+                                    ToolTip="Import custom progress bar styles from a JSON file" />
+                                <Button
+                                    Width="25"
+                                    Height="25"
+                                    Margin="3,0,0,0"
+                                    Command="{Binding ExportSeekbarStylesCommand}"
+                                    Content="&#x1F4E4;"
+                                    FontSize="12"
+                                    Style="{StaticResource Status_Button_style}"
+                                    ToolTip="Export custom progress bar styles to a JSON file" />
+
+                            </StackPanel>
+
+
+                            <Border
+                                Background="Transparent"
+                                IsEnabled="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                Style="{StaticResource OptionNestedCardStyle}">
+
+                                <StackPanel>
                                     <StackPanel>
-                                        <TextBlock
-                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                            Text="Basic options" />
-
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="Choose how media output appears in your chatbox." />
-
-                                        <CheckBox
-                                            Margin="3,7"
-                                            IsChecked="{Binding MediaLinkSettings.Disabled, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Use old Spotify integration (deprecated)
-                                        </CheckBox>
-                                        <CheckBox
-                                            Margin="3,7"
-                                            IsChecked="{Binding AppSettings.PrefixIconMusic, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Show media icon prefix
-                                        </CheckBox>
-                                        <CheckBox
-                                            Margin="3,7"
-                                            IsChecked="{Binding MediaLinkSettings.PauseIconMusic, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}"
-                                            Visibility="{Binding AppSettings.PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            Show pause icon when music is paused
-                                        </CheckBox>
-
-
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Style="{StaticResource OptionCardStyle}">
-                                    <StackPanel>
-                                        <TextBlock
-                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                            Text="Transient mode" />
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="Only show media info for a short time after it changes." />
-                                        <CheckBox
-                                            Margin="3,7"
-                                            IsChecked="{Binding MediaLinkSettings.ShowOnlyOnChange, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Only show when changing
-                                        </CheckBox>
-                                        <StackPanel
-                                            Margin="3,0"
-                                            Orientation="Horizontal"
-                                            Visibility="{Binding MediaLinkSettings.ShowOnlyOnChange, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Customize characters" />
+                                        <StackPanel Orientation="Horizontal">
                                             <TextBlock
-                                                Margin="0,0,5,0"
+                                                Width="auto"
+                                                Padding="2,0,2,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
-                                                FontSize="15"
+                                                FontSize="13"
                                                 Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Hide after:" />
+                                                Text="Filled:" />
                                             <TextBox
-                                                Width="40"
-                                                Padding="5,0,0,0"
-                                                VerticalContentAlignment="Center"
-                                                FontSize="15"
-                                                Text="{Binding MediaLinkSettings.TransientDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                Width="30"
+                                                Height="auto"
+                                                Margin="2,0,3,0"
+                                                Padding="5,0,5,5"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                FontSize="19"
+                                                Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.FilledCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock
-                                                Margin="5,0,0,0"
+                                                Width="auto"
+                                                Padding="2,0,2,0"
                                                 VerticalAlignment="Center"
                                                 FontFamily="Albert Sans Thin"
-                                                FontSize="15"
+                                                FontSize="13"
                                                 Foreground="{StaticResource TextLabelBrush}"
-                                                Text="seconds" />
+                                                Text="Middle:" />
+                                            <TextBox
+                                                Width="30"
+                                                Height="auto"
+                                                Margin="2,0,3,0"
+                                                Padding="5,0,5,5"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                FontSize="19"
+                                                Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.MiddleCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Width="auto"
+                                                Padding="2,0,2,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="13"
+                                                Foreground="{StaticResource TextLabelBrush}"
+                                                Text="Non Filled:" />
+                                            <TextBox
+                                                Width="30"
+                                                Height="auto"
+                                                Margin="2,0,3,0"
+                                                Padding="5,0,5,5"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                FontSize="19"
+                                                Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.NonFilledCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                     </StackPanel>
-                                </Border>
 
-                                <Border Style="{StaticResource OptionCardStyle}">
-                                    <StackPanel>
+                                    <StackPanel Margin="0,5,0,10" Orientation="Horizontal">
                                         <TextBlock
-                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                            Text="Customization" />
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="Adjust icons, separators, and state text to match your style." />
-                                        <CheckBox
-                                            Margin="3,7,3,5"
-                                            IsChecked="{Binding MediaLinkSettings.ShowStopIcon, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Show stop icon
-                                        </CheckBox>
-                                        <StackPanel Margin="0,5" Orientation="Horizontal">
-                                            <StackPanel Margin="5,0">
-                                                <TextBlock
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="12"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="Pause icon" />
-                                                <TextBox
-                                                    Width="40"
-                                                    Padding="5,0,0,0"
-                                                    VerticalContentAlignment="Center"
-                                                    FontSize="15"
-                                                    Text="{Binding MediaLinkSettings.IconPause, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            </StackPanel>
-                                            <StackPanel
-                                                Margin="5,0"
-                                                Visibility="{Binding MediaLinkSettings.ShowStopIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBlock
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="12"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="Stop icon" />
-                                                <TextBox
-                                                    Width="40"
-                                                    Padding="5,0,0,0"
-                                                    VerticalContentAlignment="Center"
-                                                    FontSize="15"
-                                                    Text="{Binding MediaLinkSettings.IconStop, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            </StackPanel>
-                                            <StackPanel Margin="5,0">
-                                                <TextBlock
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="12"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="Separator" />
-                                                <TextBox
-                                                    Width="70"
-                                                    Padding="5,0,0,0"
-                                                    VerticalContentAlignment="Center"
-                                                    FontSize="15"
-                                                    Text="{Binding MediaLinkSettings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="Use \n for new lines in separators and state text." />
-                                        <TextBlock
-                                            Margin="2,5,0,2"
+                                            Height="25"
+                                            Padding="0,6,2,0"
                                             FontFamily="Albert Sans Thin"
                                             FontSize="13"
                                             Foreground="{StaticResource TextLabelBrush}"
-                                            Text="State text" />
-                                        <StackPanel Margin="0,2" Orientation="Horizontal">
-                                            <TextBlock
-                                                Width="70"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="13"
-                                                Foreground="{StaticResource TextPrimaryBrush}"
-                                                Text="Playing:" />
-                                            <TextBox
-                                                Width="140"
-                                                Padding="5,0,0,0"
-                                                VerticalContentAlignment="Center"
-                                                FontSize="15"
-                                                Text="{Binding MediaLinkSettings.TextPlaying, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,2" Orientation="Horizontal">
-                                            <TextBlock
-                                                Width="70"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="13"
-                                                Foreground="{StaticResource TextPrimaryBrush}"
-                                                Text="Paused:" />
-                                            <TextBox
-                                                Width="140"
-                                                Padding="5,0,0,0"
-                                                VerticalContentAlignment="Center"
-                                                FontSize="15"
-                                                Text="{Binding MediaLinkSettings.TextPaused, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        </StackPanel>
-                                        <CheckBox
-                                            Margin="3,10,3,7"
-                                            IsChecked="{Binding MediaLinkSettings.UpperCase, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Force uppercase
-                                        </CheckBox>
-                                    </StackPanel>
-                                </Border>
-
-                                <Border
-                                    Style="{StaticResource OptionCardStyle}"
-                                    Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <StackPanel>
-                                        <TextBlock
-                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                            Text="MediaLink behavior" />
-
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="Adjust how MediaLink selects and forgets media sessions." />
-
-                                        <CheckBox
-                                            x:Name="MediaSession_AutoSwitch_checkbox"
-                                            Margin="3,7"
-                                            IsChecked="{Binding MediaLinkSettings.AutoSwitch, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Auto switch when media state is changed (must check button on integration page)
-                                        </CheckBox>
-                                        <CheckBox
-                                            x:Name="MediaSession_AutoSwitchSpawn_checkbox"
-                                            Margin="3,7"
-                                            IsChecked="{Binding MediaLinkSettings.AutoSwitchSpawn, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Turn autoswitch on when new session detected
-                                        </CheckBox>
-
-                                        <StackPanel Margin="3,7" Orientation="Horizontal">
-                                            <TextBlock
-                                                Padding="0,0,5,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="15"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Forget session" />
-                                            <TextBox
-                                                Width="auto"
-                                                Height="auto"
-                                                Margin="0,0,0,0"
-                                                Padding="5,0"
-                                                HorizontalAlignment="Left"
-                                                VerticalContentAlignment="Center"
-                                                FontSize="15"
-                                                Text="{Binding MediaLinkSettings.SessionTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                TextAlignment="Center" />
-                                            <TextBlock
-                                                Padding="5,0,5,0"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="15"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="seconds after disconnect" />
-
-                                        </StackPanel>
-
-
-
-
-                                    </StackPanel>
-                                </Border>
-
-                                <Border
-                                    Style="{StaticResource OptionCardStyle}"
-                                    Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <StackPanel>
-                                        <TextBlock
-                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                            Text="Media progress bar" />
-
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="Choose whether and how the media progress bar is shown." />
-
-
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                            Text="Seekbar Style"
-                                            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-
-
-                                        <ComboBox
-                                            Width="130"
-                                            Height="auto"
-                                            Margin="0,3"
+                                            Text="Time Prefix:" />
+                                        <TextBox
+                                            Width="30"
+                                            MinWidth="20"
+                                            Margin="2,3,0,0"
+                                            Padding="5,0,5,0"
                                             HorizontalAlignment="Left"
-                                            ItemsSource="{Binding Source={x:Static modules:MediaLinkSettings.AvailableTimeSeekbarStyles}}"
-                                            SelectedValue="{Binding MediaLinkSettings.TimeSeekStyle, Mode=TwoWay}"
-                                            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-
-                                        <StackPanel Visibility="{Binding MediaLinkSettings.TimeSeekStyleIsNumbersAndSeekBar, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                            <CheckBox
-                                                Margin="3,7"
-                                                IsChecked="{Binding MediaLinkSettings.AutoDowngradeSeekbar, Mode=TwoWay}"
-                                                Style="{DynamicResource SettingsCheckbox}"
-                                                Visibility="{Binding MediaLinkSettings.TimeSeekStyleIsNone, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                Auto-Style Downgrade if not fitting
-                                            </CheckBox>
-
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                                Text="System and custom styles"
-                                                Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                            <StackPanel Style="{StaticResource OptionActionRowStyle}">
-                                                <ComboBox
-                                                    Width="auto"
-                                                    Margin="0,3"
-                                                    HorizontalAlignment="Left"
-                                                    DisplayMemberPath="StyleName"
-                                                    FontSize="16"
-                                                    ItemsSource="{Binding MediaLink.MediaLinkSeekbarStyles, UpdateSourceTrigger=PropertyChanged}"
-                                                    SelectedItem="{Binding MediaLink.SelectedMediaLinkSeekbarStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                                                <Button
-                                                    x:Name="CreateNewSeekbar_btn"
-                                                    Width="auto"
-                                                    Height="30"
-                                                    Margin="5,0,0,0"
-                                                    Padding="5"
-                                                    Command="{Binding AddSeekbarStyleCommand}"
-                                                    Style="{StaticResource Status_Button_style}">
-                                                    <Button.ContentTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <Image
-                                                                    Width="21"
-                                                                    Height="18"
-                                                                    Margin="0,0,3,0"
-                                                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                                                    Source="/Img/Icons/Add.png" />
-                                                                <TextBlock
-                                                                    Margin="0,-2,5,0"
-                                                                    VerticalAlignment="Center"
-                                                                    FontSize="14"
-                                                                    Text="New custom Seekbar" />
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </Button.ContentTemplate>
-                                                </Button>
-                                                 <Button
-                                                     x:Name="DeleteSeekbar_btn"
-                                                     Height="30"
-                                                     Margin="5,0,0,0"
-                                                    HorizontalAlignment="Right"
-                                                    VerticalAlignment="Center"
-                                                    Background="{StaticResource StatusErrorDarkBrush}"
-                                                    BorderThickness="0"
-                                                    Command="{Binding DeleteSeekbarStyleCommand}"
-                                                    Cursor="Hand"
-                                                    Style="{DynamicResource CancelEditbutton}"
-                                                    Visibility="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                    <Grid>
-                                                        <Image
-                                                            Width="15"
-                                                            Height="15"
-                                                            RenderOptions.BitmapScalingMode="Linear"
-                                                            Source="/Img/Icons/Cross_ico.png" />
-                                                     </Grid>
-                                                 </Button>
-                                                 <Button
-                                                     Width="25"
-                                                     Height="25"
-                                                     Margin="5,0,0,0"
-                                                     Command="{Binding ImportSeekbarStylesCommand}"
-                                                     Content="&#x1F4E5;"
-                                                     FontSize="12"
-                                                     ToolTip="Import custom progress bar styles from a JSON file"
-                                                     Style="{StaticResource Status_Button_style}" />
-                                                 <Button
-                                                     Width="25"
-                                                     Height="25"
-                                                     Margin="3,0,0,0"
-                                                     Command="{Binding ExportSeekbarStylesCommand}"
-                                                     Content="&#x1F4E4;"
-                                                     FontSize="12"
-                                                     ToolTip="Export custom progress bar styles to a JSON file"
-                                                     Style="{StaticResource Status_Button_style}" />
-
-                                              </StackPanel>
-
-
-                                             <Border
-                                                 Background="Transparent"
-                                                 IsEnabled="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                 Style="{StaticResource OptionNestedCardStyle}">
-
-                                                <StackPanel>
-                                                    <StackPanel>
-                                                    <TextBlock
-                                                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                                        Text="Customize characters" />
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock
-                                                            Width="auto"
-                                                            Padding="2,0,2,0"
-                                                            VerticalAlignment="Center"
-                                                            FontFamily="Albert Sans Thin"
-                                                            FontSize="13"
-                                                            Foreground="{StaticResource TextLabelBrush}"
-                                                            Text="Filled:" />
-                                                        <TextBox
-                                                            Width="30"
-                                                            Height="auto"
-                                                            Margin="2,0,3,0"
-                                                            Padding="5,0,5,5"
-                                                            HorizontalAlignment="Left"
-                                                            VerticalAlignment="Center"
-                                                            FontSize="19"
-                                                            Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.FilledCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                        <TextBlock
-                                                            Width="auto"
-                                                            Padding="2,0,2,0"
-                                                            VerticalAlignment="Center"
-                                                            FontFamily="Albert Sans Thin"
-                                                            FontSize="13"
-                                                            Foreground="{StaticResource TextLabelBrush}"
-                                                            Text="Middle:" />
-                                                        <TextBox
-                                                            Width="30"
-                                                            Height="auto"
-                                                            Margin="2,0,3,0"
-                                                            Padding="5,0,5,5"
-                                                            HorizontalAlignment="Left"
-                                                            VerticalAlignment="Center"
-                                                            FontSize="19"
-                                                            Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.MiddleCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                        <TextBlock
-                                                            Width="auto"
-                                                            Padding="2,0,2,0"
-                                                            VerticalAlignment="Center"
-                                                            FontFamily="Albert Sans Thin"
-                                                            FontSize="13"
-                                                            Foreground="{StaticResource TextLabelBrush}"
-                                                            Text="Non Filled:" />
-                                                        <TextBox
-                                                            Width="30"
-                                                            Height="auto"
-                                                            Margin="2,0,3,0"
-                                                            Padding="5,0,5,5"
-                                                            HorizontalAlignment="Left"
-                                                            VerticalAlignment="Center"
-                                                            FontSize="19"
-                                                            Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.NonFilledCharacter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                    </StackPanel>
-                                                </StackPanel>
-
-                                                <StackPanel Margin="0,5,0,10" Orientation="Horizontal">
-                                                    <TextBlock
-                                                        Height="25"
-                                                        Padding="0,6,2,0"
-                                                        FontFamily="Albert Sans Thin"
-                                                        FontSize="13"
-                                                        Foreground="{StaticResource TextLabelBrush}"
-                                                        Text="Time Prefix:" />
-                                                    <TextBox
-                                                        Width="30"
-                                                        MinWidth="20"
-                                                        Margin="2,3,0,0"
-                                                        Padding="5,0,5,0"
-                                                        HorizontalAlignment="Left"
-                                                        VerticalContentAlignment="Center"
-                                                        FontSize="15"
-                                                        Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.TimePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                    <TextBlock
-                                                        Height="25"
-                                                        Padding="5,6,2,0"
-                                                        VerticalAlignment="Center"
-                                                        FontFamily="Albert Sans Thin"
-                                                        FontSize="13"
-                                                        Foreground="{StaticResource TextLabelBrush}"
-                                                        Text="Time Suffix:" />
-                                                    <TextBox
-                                                        Width="30"
-                                                        MinWidth="20"
-                                                        Margin="2,3,0,0"
-                                                        Padding="5,0,5,0"
-                                                        HorizontalAlignment="Left"
-                                                        VerticalContentAlignment="Center"
-                                                        FontSize="15"
-                                                        Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.TimeSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                </StackPanel>
-                                                <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
-                                                    <TextBlock
-                                                        Height="25"
-                                                        Padding="0,5,5,0"
-                                                        VerticalAlignment="Center"
-                                                        FontFamily="Albert Sans Thin"
-                                                        FontSize="15"
-                                                        Foreground="{StaticResource TextLabelBrush}"
-                                                        Text="Progress bar length:" />
-                                                    <TextBox
-                                                        Width="auto"
-                                                        MinWidth="25"
-                                                        Padding="5,0,5,0"
-                                                        FontSize="15"
-                                                        Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.ProgressBarLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                </StackPanel>
-                                                <CheckBox
-                                                    Margin="3,7"
-                                                    IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.DisplayTime, Mode=TwoWay}"
-                                                    Style="{DynamicResource SettingsCheckbox}">
-                                                    Show current and max song time
-                                                </CheckBox>
-                                                <CheckBox
-                                                    Margin="3,7"
-                                                    IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.TimePreSuffixOnTheInside, Mode=TwoWay}"
-                                                    Style="{DynamicResource SettingsCheckbox}">
-                                                    Place Pre-Suffix inside time
-                                                </CheckBox>
-                                                <CheckBox
-                                                    Margin="3,7"
-                                                    IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.ShowTimeInSuperscript, Mode=TwoWay}"
-                                                    Style="{DynamicResource SettingsCheckbox}">
-                                                    Show time in stylized small numbers
-                                                </CheckBox>
-                                                <CheckBox
-                                                    Margin="3,7"
-                                                    IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SpaceAgainObjects, Mode=TwoWay}"
-                                                    Style="{DynamicResource SettingsCheckbox}">
-                                                    Automatically add space between objects
-                                                </CheckBox>
-                                                <CheckBox
-                                                    Margin="3,7"
-                                                    IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SpaceBetweenPreSuffixAndTime, Mode=TwoWay}"
-                                                    Style="{DynamicResource SettingsCheckbox}">
-                                                    Add space between pre-suffix and time
-                                                </CheckBox>
-                                                <CheckBox
-                                                    Margin="3,7"
-                                                    IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.ProgressBarOnTop, Mode=TwoWay}"
-                                                    Style="{DynamicResource SettingsCheckbox}">
-                                                    Place progress bar above media info
-                                                </CheckBox>
-
-
-
-
-                                                </StackPanel>
-                                            </Border>
-
-                                        </StackPanel>
-
-
-
+                                            VerticalContentAlignment="Center"
+                                            FontSize="15"
+                                            Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.TimePrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock
+                                            Height="25"
+                                            Padding="5,6,2,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="13"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Time Suffix:" />
+                                        <TextBox
+                                            Width="30"
+                                            MinWidth="20"
+                                            Margin="2,3,0,0"
+                                            Padding="5,0,5,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalContentAlignment="Center"
+                                            FontSize="15"
+                                            Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.TimeSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
-                                </Border>
+                                    <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
+                                        <TextBlock
+                                            Height="25"
+                                            Padding="0,5,5,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="15"
+                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Text="Progress bar length:" />
+                                        <TextBox
+                                            Width="auto"
+                                            MinWidth="25"
+                                            Padding="5,0,5,0"
+                                            FontSize="15"
+                                            Text="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.ProgressBarLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <CheckBox
+                                        Margin="3,7"
+                                        IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.DisplayTime, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Show current and max song time
+                                    </CheckBox>
+                                    <CheckBox
+                                        Margin="3,7"
+                                        IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.TimePreSuffixOnTheInside, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Place Pre-Suffix inside time
+                                    </CheckBox>
+                                    <CheckBox
+                                        Margin="3,7"
+                                        IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.ShowTimeInSuperscript, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Show time in stylized small numbers
+                                    </CheckBox>
+                                    <CheckBox
+                                        Margin="3,7"
+                                        IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SpaceAgainObjects, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Automatically add space between objects
+                                    </CheckBox>
+                                    <CheckBox
+                                        Margin="3,7"
+                                        IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SpaceBetweenPreSuffixAndTime, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Add space between pre-suffix and time
+                                    </CheckBox>
+                                    <CheckBox
+                                        Margin="3,7"
+                                        IsChecked="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.ProgressBarOnTop, Mode=TwoWay}"
+                                        Style="{DynamicResource SettingsCheckbox}">
+                                        Place progress bar above media info
+                                    </CheckBox>
 
 
 
-                            </StackPanel>
-                        </Grid>
+
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+
+
+
+                    </StackPanel>
+                </Border>
+
+
+
+            </StackPanel>
+        </Grid>
 
     </Grid>
 </UserControl>

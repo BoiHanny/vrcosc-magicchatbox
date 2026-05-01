@@ -92,7 +92,7 @@
                         Text="Sit back, relax, and let us prepare your app"
                         TextWrapping="Wrap" />
 
-                    <!-- Progress bar with smooth animation -->
+                    <!--  Progress bar with smooth animation  -->
                     <ProgressBar
                         x:Name="ProgressBar"
                         Height="9"
@@ -108,10 +108,10 @@
                         </ProgressBar.RenderTransform>
                     </ProgressBar>
 
-                    <!-- Rolling 3-strip step display -->
+                    <!--  Rolling 3-strip step display  -->
                     <Grid Height="60" ClipToBounds="True">
                         <StackPanel x:Name="StepPanel" Margin="0,0,0,0">
-                            <!-- Previous step (faded) -->
+                            <!--  Previous step (faded)  -->
                             <Grid Height="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -134,7 +134,7 @@
                                     Opacity="0.5"
                                     Text="" />
                             </Grid>
-                            <!-- Current step (full opacity) -->
+                            <!--  Current step (full opacity)  -->
                             <Grid Height="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -156,7 +156,7 @@
                                     Foreground="#444444"
                                     Text="" />
                             </Grid>
-                            <!-- Next step (faded preview) -->
+                            <!--  Next step (faded preview)  -->
                             <Grid Height="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
