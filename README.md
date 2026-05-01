@@ -39,7 +39,7 @@ Need help? Join our [Discord Server](https://discord.gg/magicchatbox) for setup 
 | ⚗️ **OpenAI Module** | AI-powered text generation and smart replies |
 | ⛓️‍💥 **Network Stats** | Monitor upload/download speeds and latency |
 | 📆 **Time Status** | Show current date and time in customizable formats |
-| 🎶 **Spotify Integration** | Display currently playing track with album and artist info |
+| 🎶 **Media & Spotify** | Show currently playing music from any app, with dedicated Spotify OAuth integration for rich track details |
 | 💤 **AFK Module** | Automatically set an away status when idle |
 | 🎼 **Soundpad** | Trigger sound effects directly from the app |
 | 🎮 **Discord Rich Presence** | Share MagicChatBox activity on your Discord profile |
