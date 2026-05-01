@@ -194,6 +194,22 @@
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="MediaLink coexistence" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Controls how Spotify and MediaLink interact when both are enabled. 'PreferSpotify' hides Spotify sessions from MediaLink to avoid duplicates. 'AllowBoth' shows both independently. 'Ask' prompts you once when both are enabled." />
+                        <ComboBox
+                            Width="160"
+                            HorizontalAlignment="Left"
+                            FontSize="12"
+                            ItemsSource="{Binding MediaLinkCoexistenceModes}"
+                            SelectedItem="{Binding Settings.MediaLinkCoexistence, Mode=TwoWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Output template" />
                         <TextBlock
                             Margin="0,3,0,4"
