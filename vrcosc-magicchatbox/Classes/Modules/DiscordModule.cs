@@ -294,7 +294,7 @@ public partial class DiscordModule : ObservableObject, IModule
             hasRpcScope = scopes.Any(s =>
             {
                 var str = s.ToString();
-                return str == "rpc" || str == "rpc.voice.read";
+                return str is "rpc" or "rpc.voice.read" or "rpc.voice.channel.read";
             });
             Logging.WriteInfo($"Discord: AUTHENTICATE scopes={string.Join(", ", scopes)}, hasRpc={hasRpcScope}");
             if (hasRpcScope != Settings.HasRpcScope)

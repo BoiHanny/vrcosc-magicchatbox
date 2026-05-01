@@ -60,14 +60,14 @@
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         TextWrapping="Wrap">
-                        <Run Text="🧪 Pre-release: Discord voice detection requires a custom app setup and is still in testing. Report issues on" />
+                        <Run Text="🧪 Pre-release: Discord voice detection is in testing. Please report any issues on" />
                         <Hyperlink
                             Foreground="{StaticResource AccentTealBrush}"
                             NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
                             RequestNavigate="Hyperlink_RequestNavigate">
                             <Run Text="GitHub" />
                         </Hyperlink>
-                        <Run Text="or in our" />
+                        <Run Text="or open a ticket in our" />
                         <Hyperlink
                             Foreground="{StaticResource AccentTealBrush}"
                             NavigateUri="https://discord.gg/ZaSFwBfhvG"
@@ -76,6 +76,85 @@
                         </Hyperlink>
                         <Run Text="." />
                     </TextBlock>
+                </Border>
+
+                <!--  Feature overview  -->
+                <Border
+                    Margin="0,0,0,6"
+                    Padding="10,8"
+                    Background="{StaticResource SurfaceDarkBrush}"
+                    BorderBrush="{StaticResource AccentDeepPurpleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                    <StackPanel>
+                        <TextBlock
+                            FontFamily="Albert Sans"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource AccentLightPurpleBrush}"
+                            Text="What each feature does" />
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border
+                                Grid.Column="0"
+                                Padding="8"
+                                Background="{StaticResource SurfaceCardBrush}"
+                                CornerRadius="5">
+                                <StackPanel>
+                                    <TextBlock
+                                        FontFamily="Albert Sans"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource AccentDiscordBrush}"
+                                        Text="🎮  Rich Presence" />
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="{StaticResource TextPrimaryBrush}"
+                                        Text="Shows your VRChat status in your Discord profile — the RICH toggle on the integrations page. Uses the bundled app ID automatically."
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="{StaticResource StatusSuccessBrush}"
+                                        Text="✔  No setup required" />
+                                </StackPanel>
+                            </Border>
+                            <Border
+                                Grid.Column="2"
+                                Padding="8"
+                                Background="{StaticResource SurfaceCardBrush}"
+                                CornerRadius="5">
+                                <StackPanel>
+                                    <TextBlock
+                                        FontFamily="Albert Sans"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource AccentTealBrush}"
+                                        Text="🎙  Voice Detection" />
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="{StaticResource TextPrimaryBrush}"
+                                        Text="Shows who is speaking in your VC in the chatbox — the DESKTOP / VR toggles. Requires your own Discord Developer app (free, ~2 min)."
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="{StaticResource StatusWarningBrush}"
+                                        Text="⚙  One-time setup below" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
                 </Border>
 
                 <!--  Connect / Connected + Disconnect  -->
@@ -171,41 +250,121 @@
                 <!--  Feature split / setup guide  -->
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Discord setup guide" />
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="🎙  Voice Detection setup (one-time)" />
                         <TextBlock
-                            Margin="0,3,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Rich Presence only needs the local Discord app. Voice Detection uses the older v0.9.181 local RPC flow: authorize a Discord Developer application once, then MagicChatbox authenticates with your local Discord client to read the selected voice channel and speaking events." />
-
-                        <Border
                             Margin="0,2,0,8"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Discord doesn't allow third-party apps to read voice data directly, so you create your own free developer app. It stays private — only you use it."
+                            TextWrapping="Wrap" />
+
+                        <!--  Step 1  -->
+                        <Border
+                            Margin="0,0,0,5"
                             Padding="8"
                             Background="{StaticResource SurfaceDarkBrush}"
                             CornerRadius="5">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="Albert Sans"
                                     FontSize="12"
-                                    Foreground="{StaticResource TextPrimaryBrush}"
-                                    Text="1. Create or open your Discord Developer app, then paste its Application ID below." />
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource AccentLightPurpleBrush}"
+                                    Text="Step 1 — Create a Discord Developer app" />
                                 <TextBlock
                                     Margin="0,4,0,0"
                                     FontFamily="Albert Sans Thin"
                                     FontSize="12"
                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                    Text="2. Add the redirect URI shown here to OAuth2 -&gt; Redirects." />
+                                    TextWrapping="Wrap">
+                                    <Run Text="Click" />
+                                    <Run FontWeight="SemiBold" Text="Open Developer Portal" />
+                                    <Run Text="→ log in → click" />
+                                    <Run FontWeight="SemiBold" Text="New Application" />
+                                    <Run Text="→ give it any name (e.g. MagicChatbox) → click" />
+                                    <Run FontWeight="SemiBold" Text="Create" />
+                                    <Run Text="." />
+                                </TextBlock>
                                 <TextBlock
                                     Margin="0,4,0,0"
                                     FontFamily="Albert Sans Thin"
                                     FontSize="12"
                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                    Text="3. Click Connect. Discord opens the local OAuth page, then MagicChatbox uses the saved token with the local IPC pipe." />
+                                    TextWrapping="Wrap">
+                                    <Run Text="Then copy the" />
+                                    <Run FontWeight="SemiBold" Text="Application ID" />
+                                    <Run Text="from the General Information page and paste it in the field below." />
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Step 2  -->
+                        <Border
+                            Margin="0,0,0,5"
+                            Padding="8"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            CornerRadius="5">
+                            <StackPanel>
                                 <TextBlock
-                                    Margin="0,6,0,0"
+                                    FontFamily="Albert Sans"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource AccentLightPurpleBrush}"
+                                    Text="Step 2 — Add the Redirect URI" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    TextWrapping="Wrap">
+                                    <Run Text="In your Developer Portal app, go to" />
+                                    <Run FontWeight="SemiBold" Text="OAuth2" />
+                                    <Run Text="→ scroll to" />
+                                    <Run FontWeight="SemiBold" Text="Redirects" />
+                                    <Run Text="→ click" />
+                                    <Run FontWeight="SemiBold" Text="Add Redirect" />
+                                    <Run Text="→ paste the Redirect URI shown below → click" />
+                                    <Run FontWeight="SemiBold" Text="Save Changes" />
+                                    <Run Text="." />
+                                </TextBlock>
+                                <TextBlock
+                                    Margin="0,4,0,0"
                                     FontFamily="Albert Sans Thin"
                                     FontSize="11"
                                     Foreground="{StaticResource StatusWarningBrush}"
-                                    Text="Discord restricts rpc/rpc.voice.read for many apps/accounts. If Discord refuses those scopes, Rich Presence can still work, but speaking detection cannot be forced from MagicChatbox."
+                                    Text="⚠  The URI must match exactly — copy it using the button below."
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Step 3  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="8"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            CornerRadius="5">
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Albert Sans"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource AccentLightPurpleBrush}"
+                                    Text="Step 3 — Connect" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    TextWrapping="Wrap">
+                                    <Run Text="Click" />
+                                    <Run FontWeight="SemiBold" Text="Connect with Discord" />
+                                    <Run Text="at the top. Your browser will open a Discord authorization page — approve it. MagicChatbox saves the token and will reconnect automatically on startup." />
+                                </TextBlock>
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Note: Discord opens a local page in your browser. After approving, the browser tab will say 'Discord connected!' and close itself."
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
@@ -282,7 +441,7 @@
                         </StackPanel>
 
                         <TextBlock
-                            Margin="113,0,0,0"
+                            Margin="113,0,0,4"
                             FontFamily="Albert Sans Thin"
                             FontSize="11"
                             Foreground="{StaticResource TextLabelBrush}"

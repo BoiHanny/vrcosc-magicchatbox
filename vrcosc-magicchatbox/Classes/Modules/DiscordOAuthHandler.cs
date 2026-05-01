@@ -239,7 +239,7 @@ public sealed class DiscordOAuthHandler : IDisposable
     private static bool HasRpcScope(string? scope)
         => !string.IsNullOrWhiteSpace(scope)
            && scope.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-               .Any(part => part is "rpc" or "rpc.voice.read");
+               .Any(part => part is "rpc" or "rpc.voice.read" or "rpc.voice.channel.read");
 
     private static string BuildFragmentBridgePage() =>
         """

@@ -44,8 +44,12 @@ public static class Constants
     // Discord RPC integration
     public const string DiscordClientId = "1495716413980278814";
     public const string DiscordOAuthRedirectUri = "http://localhost:7386/";
-    /// <summary>Implicit grant scope for local Discord RPC voice detection.</summary>
-    public const string DiscordImplicitGrantScope = "rpc rpc.voice.read";
+    /// <summary>
+    /// Implicit grant scope for local Discord RPC.
+    /// Only 'rpc' is needed — Discord rejects 'rpc.voice.read' for apps
+    /// not explicitly whitelisted. Voice state is read via the IPC pipe after auth.
+    /// </summary>
+    public const string DiscordImplicitGrantScope = "rpc identify";
     public const string DiscordOAuthEndpoint = "https://discord.com/oauth2/authorize";
     public const string DiscordTokenRevokeEndpoint = "https://discord.com/api/oauth2/token/revoke";
     public const string DiscordIpcPipePrefix = "discord-ipc-";
