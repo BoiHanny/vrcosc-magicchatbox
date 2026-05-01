@@ -52,12 +52,40 @@
             Visibility="{Binding AppSettings.Settings_VrcRadar, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <StackPanel>
 
+                <!--  Pre-release banner  -->
+                <Border
+                    Margin="0,0,0,10"
+                    BorderBrush="{StaticResource StatusWarningBrush}"
+                    BorderThickness="1"
+                    Style="{StaticResource OptionCardStyle}">
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="13"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap">
+                        <Run Text="🧪 Pre-release: The VRChat log reader is still in testing. If you encounter issues, please report them on" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="GitHub" />
+                        </Hyperlink>
+                        <Run Text="or in our" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="Discord server" />
+                        </Hyperlink>
+                        <Run Text="." />
+                    </TextBlock>
+                </Border>
+
                 <!-- Live status bar -->
                 <Border
                     Margin="0,0,0,8"
                     Padding="8,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Style="{StaticResource OptionCardStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -117,10 +145,7 @@
 
                 <!-- DISPLAY MODE -->
                 <TextBlock
-                    Margin="0,0,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="Display Mode" />
                 <ComboBox
                     Width="200"
@@ -130,19 +155,12 @@
                     ItemsSource="{Binding DisplayModes}"
                     SelectedItem="{Binding RadarSettings.DisplayMode, Mode=TwoWay}" />
                 <TextBlock
-                    Margin="0,0,0,10"
-                    FontSize="11"
-                    Foreground="{StaticResource TextLabelBrush}"
-                    Opacity="0.5"
-                    TextWrapping="Wrap"
+                    Style="{StaticResource OptionHelpTextStyle}"
                     Text="AlwaysShow: permanently shows world info. TransientOnly: only shows during events. EventOverlay: shows world info, overlays events." />
 
                 <!-- WORLD INFO TOGGLES -->
                 <TextBlock
-                    Margin="0,5,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="World Info" />
                 <CheckBox
                     IsChecked="{Binding RadarSettings.ShowInstanceType, Mode=TwoWay}"
@@ -153,10 +171,7 @@
 
                 <!-- EVENTS -->
                 <TextBlock
-                    Margin="0,10,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="Events" />
                 <CheckBox
                     IsChecked="{Binding RadarSettings.AnnounceJoins, Mode=TwoWay}"
@@ -168,30 +183,81 @@
                     IsChecked="{Binding RadarSettings.AnnounceScreenshots, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">Announce screenshots</CheckBox>
                 <CheckBox
-                    IsChecked="{Binding RadarSettings.WarnOnCrashers, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">Warn on crasher avatars</CheckBox>
-                <CheckBox
                     IsChecked="{Binding RadarSettings.ShowWorldDownload, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">Show world loading progress</CheckBox>
+
+                <!-- SESSION DETECTION -->
+                <TextBlock
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
+                    Text="Session Detection" />
                 <CheckBox
-                    IsChecked="{Binding RadarSettings.ShowLeavingRoom, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">Show "Leaving world..." message</CheckBox>
+                    IsChecked="{Binding RadarSettings.UseWindowDetection, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">Use VRChat window detection (requires Window Activity permission)</CheckBox>
+                <TextBlock
+                    Margin="20,1,0,3"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="Detects whether VRChat.exe is running. Combined with log activity, this helps end stale sessions more reliably." />
+                <StackPanel
+                    Margin="0,4,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding RadarSettings.UseWindowDetection, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Margin="20,0,0,0"
+                        Text="VRChat process: " />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="#FF66BB6A"
+                        Text="Running"
+                        Visibility="{Binding Modules.VrcRadar.IsVrchatProcessRunning, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Opacity="0.6"
+                        Text="Not detected"
+                        Visibility="{Binding Modules.VrcRadar.IsVrchatProcessRunning, Converter={StaticResource InverseBoolToVisibilityConverter}, FallbackValue=Visible}" />
+                </StackPanel>
+                <StackPanel Margin="0,6,0,3" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="End session after inactivity: " />
+                    <Slider
+                        Width="180"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        IsSnapToTickEnabled="True"
+                        Maximum="90"
+                        Minimum="5"
+                        TickFrequency="5"
+                        Value="{Binding RadarSettings.SessionTimeoutMinutes, Mode=TwoWay}" />
+                    <TextBlock
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{StaticResource TextBodyBrush}"
+                        Text="{Binding RadarSettings.SessionTimeoutMinutes, StringFormat='{}{0} min'}" />
+                </StackPanel>
+                <TextBlock
+                    Margin="20,0,0,6"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="If no new log activity (and no VRChat process when window detection is on) for this duration, the session ends automatically." />
 
                 <!-- ENCOUNTER DETECTION -->
                 <TextBlock
-                    Margin="0,10,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="Encounter Tracking" />
                 <CheckBox
                     IsChecked="{Binding RadarSettings.DetectSeenAgain, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">Detect players seen in consecutive rooms</CheckBox>
+                <CheckBox
+                    Margin="20,2,0,0"
+                    IsChecked="{Binding RadarSettings.ShowEncounterTable, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">Show encounter table (session-scoped)</CheckBox>
                 <TextBlock
                     Margin="20,2,0,3"
-                    FontSize="11"
-                    Foreground="{StaticResource TextLabelBrush}"
-                    TextWrapping="Wrap"
+                    Style="{StaticResource OptionHelpTextStyle}"
                     Text="Shows a notification when someone from your last room appears in your new room. Privacy-friendly: off by default, no data leaves your PC." />
                 <StackPanel
                     Margin="20,3,0,5"
@@ -209,48 +275,173 @@
                         Text="{Binding RadarSettings.SeenAgainWindowMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
+                <!--  Encounter table (session-scoped)  -->
+                <StackPanel
+                    Margin="0,6,0,2"
+                    Orientation="Horizontal"
+                    Visibility="{Binding RadarSettings.ShowEncounterTable, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{StaticResource TextBodyBrush}"
+                        Text="Min encounters to show: " />
+                    <Slider
+                        Width="120"
+                        Margin="4,0,4,0"
+                        VerticalAlignment="Center"
+                        IsSnapToTickEnabled="True"
+                        Maximum="10"
+                        Minimum="1"
+                        TickFrequency="1"
+                        Value="{Binding RadarSettings.MinEncounterCount, Mode=TwoWay}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="{Binding RadarSettings.MinEncounterCount, StringFormat='{}{0}×'}" />
+                </StackPanel>
+                <Border
+                    Margin="0,6,0,0"
+                    MaxHeight="220"
+                    Padding="0"
+                    Background="{StaticResource SurfaceCardBrush}"
+                    CornerRadius="4"
+                    Visibility="{Binding RadarSettings.ShowEncounterTable, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                    <DataGrid
+                        AutoGenerateColumns="False"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CanUserAddRows="False"
+                        CanUserDeleteRows="False"
+                        CanUserReorderColumns="False"
+                        FontSize="11"
+                        Foreground="{StaticResource TextBodyBrush}"
+                        GridLinesVisibility="None"
+                        HeadersVisibility="Column"
+                        IsReadOnly="True"
+                        ItemsSource="{Binding Modules.VrcRadar.FilteredEncountersView}"
+                        RowBackground="Transparent"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        SelectionMode="Single">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="{StaticResource TextLabelBrush}" />
+                                <Setter Property="FontSize" Value="10" />
+                                <Setter Property="Padding" Value="6,3" />
+                                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                <Setter Property="BorderBrush" Value="{StaticResource SurfaceVariantBrush}" />
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding PlayerName}" Header="Player" Width="*" />
+                            <DataGridTextColumn Binding="{Binding LastWorldName}" Header="World" Width="*" />
+                            <DataGridTextColumn Binding="{Binding TimesSeenThisSession}" Header="Times" Width="50" />
+                            <DataGridTextColumn Binding="{Binding TimeTogetherFormatted}" Header="Time" Width="70" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
                 <!-- SESSION STATS -->
                 <TextBlock
-                    Margin="0,10,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="Session Stats" />
-                <StackPanel Margin="0,0,0,3" Orientation="Horizontal">
-                    <TextBlock FontSize="12" Foreground="{StaticResource TextLabelBrush}" Text="Worlds visited: " />
-                    <TextBlock FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.WorldsVisited, FallbackValue='0'}" />
-                    <TextBlock Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource TextLabelBrush}" Text="Unique players: " />
-                    <TextBlock FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.UniquePlayersCount, FallbackValue='0'}" />
-                    <TextBlock Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource TextLabelBrush}" Text="Joins: " />
-                    <TextBlock FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.TotalJoinEvents, FallbackValue='0'}" />
-                    <TextBlock Margin="6,0,0,0" FontSize="12" Foreground="{StaticResource TextLabelBrush}" Text="Leaves: " />
-                    <TextBlock FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.TotalLeaveEvents, FallbackValue='0'}" />
-                </StackPanel>
+                <Border
+                    Margin="0,0,0,4"
+                    Padding="8,6"
+                    Background="{StaticResource SurfaceDarkBrush}"
+                    BorderBrush="{StaticResource SurfaceVariantBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 0: stat labels -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,16,0">
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.WorldsVisited, FallbackValue='0'}" />
+                            <TextBlock FontSize="10" Foreground="{StaticResource TextLabelBrush}" Text="Worlds" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,16,0">
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.UniquePlayersCount, FallbackValue='0'}" />
+                            <TextBlock FontSize="10" Foreground="{StaticResource TextLabelBrush}" Text="Unique Players" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,16,0">
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.PeakPlayerCountThisSession, FallbackValue='0'}" />
+                            <TextBlock FontSize="10" Foreground="{StaticResource TextLabelBrush}" Text="Peak Players" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,16,0">
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.TotalJoinEvents, FallbackValue='0'}" />
+                            <TextBlock FontSize="10" Foreground="{StaticResource TextLabelBrush}" Text="Joins" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="4">
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBodyBrush}" Text="{Binding Modules.VrcRadar.TotalLeaveEvents, FallbackValue='0'}" />
+                            <TextBlock FontSize="10" Foreground="{StaticResource TextLabelBrush}" Text="Leaves" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
                 <CheckBox
                     IsChecked="{Binding RadarSettings.ShowSessionStatsInChatbox, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">Show session stats in chatbox (after world change)</CheckBox>
 
+                <StackPanel Margin="20,4,0,0" Orientation="Horizontal"
+                    Visibility="{Binding RadarSettings.ShowSessionStatsInChatbox, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Display duration: " />
+                    <Slider Width="120" Minimum="5" Maximum="120" TickFrequency="5" IsSnapToTickEnabled="True"
+                            Value="{Binding RadarSettings.SessionStatsDuration, Mode=TwoWay}" />
+                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextLabelBrush}">
+                        <Run Text="{Binding RadarSettings.SessionStatsDuration, FallbackValue='15'}" />
+                        <Run Text="s" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- NOTIFICATIONS -->
+                <TextBlock
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
+                    Text="Notifications" />
+
+                <CheckBox
+                    IsChecked="{Binding RadarSettings.ShowSeenAgainNotification, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">Notify when a player follows you to another world</CheckBox>
+                <CheckBox
+                    Margin="0,2,0,0"
+                    IsChecked="{Binding RadarSettings.WarnOnAvatarBlocked, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">Warn when an avatar is blocked by performance shield</CheckBox>
+
+                <StackPanel Margin="20,4,0,4" Orientation="Horizontal"
+                    Visibility="{Binding RadarSettings.WarnOnAvatarBlocked, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Duration: " />
+                    <Slider Width="80" Minimum="3" Maximum="20" TickFrequency="1" IsSnapToTickEnabled="True"
+                            Value="{Binding RadarSettings.AvatarBlockedDuration, Mode=TwoWay}" />
+                    <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextLabelBrush}">
+                        <Run Text="{Binding RadarSettings.AvatarBlockedDuration, FallbackValue='6'}" />
+                        <Run Text="s" />
+                    </TextBlock>
+                </StackPanel>
+
                 <!-- TEMPLATES -->
                 <TextBlock
-                    Margin="0,10,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="Templates" />
                 <TextBlock
-                    Margin="0,0,0,2"
-                    FontSize="11"
-                    Foreground="{StaticResource TextLabelBrush}"
-                    Opacity="0.6"
-                    TextWrapping="Wrap"
-                    Text="Placeholders: {master} {world} {count} {peak} {session_time} {app_session} {offline} {type} {region} {owner} {user} {size} {speed} {worlds} {players}  ·  Use \n for new line" />
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="Placeholders: {master} {world} {count} {peak} {peak_session} {session_time} {app_session} {offline} {type} {region} {owner} {user} {size} {speed} {worlds} {players}  ·  Use \n for new line" />
                 <Grid Margin="0,3,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -282,20 +473,17 @@
                     <TextBlock Grid.Row="3" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Screenshot:" VerticalAlignment="Center" Margin="0,2" />
                     <TextBox Grid.Row="3" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateScreenshot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Crasher:" VerticalAlignment="Center" Margin="0,2" />
-                    <TextBox Grid.Row="4" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateCrasher, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Loading world:" VerticalAlignment="Center" Margin="0,2" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateDownload, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Loading world:" VerticalAlignment="Center" Margin="0,2" />
-                    <TextBox Grid.Row="5" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateDownload, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="5" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Seen again:" VerticalAlignment="Center" Margin="0,2" />
+                    <TextBox Grid.Row="5" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateSeenAgain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <TextBlock Grid.Row="6" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Leaving room:" VerticalAlignment="Center" Margin="0,2" />
-                    <TextBox Grid.Row="6" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateLeaving, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="6" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Session stats:" VerticalAlignment="Center" Margin="0,2" />
+                    <TextBox Grid.Row="6" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateSessionStats, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <TextBlock Grid.Row="7" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Seen again:" VerticalAlignment="Center" Margin="0,2" />
-                    <TextBox Grid.Row="7" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateSeenAgain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock Grid.Row="8" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Session stats:" VerticalAlignment="Center" Margin="0,2" />
-                    <TextBox Grid.Row="8" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateSessionStats, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="7" Grid.Column="0" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Avatar blocked:" VerticalAlignment="Center" Margin="0,2" />
+                    <TextBox Grid.Row="7" Grid.Column="1" Padding="3,0" FontSize="12" Margin="0,2" Text="{Binding RadarSettings.TemplateAvatarBlocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
                 <!-- Live preview -->
@@ -334,10 +522,7 @@
 
                 <!-- OSC TRIGGERS -->
                 <TextBlock
-                    Margin="0,12,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="OSC Triggers" />
                 <CheckBox
                     IsChecked="{Binding RadarSettings.SendCameraFlashOsc, Mode=TwoWay}"
@@ -349,26 +534,13 @@
                     <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="OSC path: " />
                     <TextBox Width="250" Padding="3,0" FontSize="12" Text="{Binding RadarSettings.OscCameraFlashParam, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
-                <CheckBox
-                    IsChecked="{Binding RadarSettings.SendPanicShieldOsc, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">Panic shield on crasher detection</CheckBox>
-                <StackPanel
-                    Margin="20,2,0,5"
-                    Orientation="Horizontal"
-                    Visibility="{Binding RadarSettings.SendPanicShieldOsc, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="OSC path: " />
-                    <TextBox Width="250" Padding="3,0" FontSize="12" Text="{Binding RadarSettings.OscPanicShieldParam, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
 
                 <!-- Spacing -->
                 <Border Height="10" />
 
                 <!-- Performance / Limits -->
                 <TextBlock
-                    Margin="0,12,0,3"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="Performance" />
                 <StackPanel Margin="0,4,0,4" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Text="Max backfill scan size (MB): " />

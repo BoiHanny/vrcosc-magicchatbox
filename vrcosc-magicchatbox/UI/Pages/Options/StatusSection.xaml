@@ -15,7 +15,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-
+
     <Grid Margin="0,5,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -52,9 +52,7 @@
                             <StackPanel Margin="5">
 
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
+                                    Style="{StaticResource OptionCardStyle}">
 
                                     <CheckBox
                                         x:Name="StatusIconPrefix_checkbox"
@@ -65,9 +63,7 @@
                                     </CheckBox>
                                 </Border>
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
+                                    Style="{StaticResource OptionCardStyle}">
 
                                     <StackPanel>
                                         <CheckBox
@@ -82,10 +78,11 @@
                                                 Width="auto"
                                                 Padding="4,0,0,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="13"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Make sure to add the emojis you want to cycle through in the text box below, separated by a space a comma." />
+                                                 FontFamily="Albert Sans Thin"
+                                                 FontSize="13"
+                                                 Foreground="{StaticResource TextLabelBrush}"
+                                                 Style="{StaticResource OptionHelpTextStyle}"
+                                                 Text="Make sure to add the emojis you want to cycle through in the text box below, separated by a space or comma." />
                                             <TextBox
                                                 MinWidth="50"
                                                 MaxWidth="630"
@@ -99,10 +96,11 @@
                                                 Width="auto"
                                                 Padding="4,5,0,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="13"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Here you can add your custom emojis to cycle through." />
+                                                 FontFamily="Albert Sans Thin"
+                                                 FontSize="13"
+                                                 Foreground="{StaticResource TextLabelBrush}"
+                                                 Style="{StaticResource OptionHelpTextStyle}"
+                                                 Text="Here you can add your custom emojis to cycle through." />
                                             <StackPanel Orientation="Horizontal">
 
                                                 <TextBox
@@ -155,9 +153,7 @@
                                 </Border>
 
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
+                                    Style="{StaticResource OptionCardStyle}">
                                     <CheckBox
                                         x:Name="CycleStatus_checkbox"
                                         Margin="5"
@@ -167,9 +163,7 @@
                                     </CheckBox>
                                 </Border>
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5"
+                                    Style="{StaticResource OptionCardStyle}"
                                     Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                                     <CheckBox
@@ -184,9 +178,7 @@
                                 </Border>
 
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5"
+                                    Style="{StaticResource OptionCardStyle}"
                                     Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5" Orientation="Horizontal">
                                         <TextBlock
@@ -220,28 +212,28 @@
                                 </Border>
 
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
+                                    Style="{StaticResource OptionCardStyle}">
                                     <StackPanel Margin="5">
                                         <TextBlock
                                             Padding="2,0,0,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="20"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Text="AFK Detection" />
+                                             FontFamily="Albert Sans Thin"
+                                             FontSize="20"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                             Text="AFK Detection" />
 
                                         <TextBlock
                                             Width="auto"
                                             Padding="2,3,0,0"
                                             VerticalAlignment="Center"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.5"
-                                            Text="You can show a custom message when you are AFK" />
+                                             FontSize="13"
+                                             FontStyle="Italic"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Opacity="0.5"
+                                             Style="{StaticResource OptionHelpTextStyle}"
+                                             Text="You can show a custom message when you are AFK" />
 
                                         <CheckBox
                                             x:Name="EnableAFKDetectCheck"
@@ -358,20 +350,22 @@
                                         <TextBlock
                                             Margin="4,2,0,0"
                                             FontFamily="Albert Sans Thin"
-                                            FontSize="10"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.4"
-                                            Text="Use \n for new line" />
+                                             FontSize="10"
+                                             FontStyle="Italic"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Opacity="0.4"
+                                             Style="{StaticResource OptionHelpTextStyle}"
+                                             Text="Use \n for new line" />
                                         <StackPanel Visibility="{Binding AppState.BussyBoysMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                                             <TextBlock
                                                 Padding="4,15,9,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="19"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Bussy Boys (custom counting from date and more)" />
+                                                 FontFamily="Albert Sans Thin"
+                                                 FontSize="19"
+                                                 Foreground="{StaticResource TextLabelBrush}"
+                                                 Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                                 Text="Bussy Boys (custom counting from date and more)" />
 
                                             <CheckBox
                                                 Margin="4,5,4,4"

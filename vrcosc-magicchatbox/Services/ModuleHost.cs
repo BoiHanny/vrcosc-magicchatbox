@@ -20,6 +20,7 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     [ObservableProperty] private IntelliChatModule _intelliChat;
     [ObservableProperty] private TwitchModule _twitch;
     [ObservableProperty] private DiscordModule _discord;
+    [ObservableProperty] private SpotifyModule _spotify;
     [ObservableProperty] private VrcLogModule _vrcRadar;
     [ObservableProperty] private PulsoidModule _pulsoid;
     [ObservableProperty] private SoundpadModule _soundpad;

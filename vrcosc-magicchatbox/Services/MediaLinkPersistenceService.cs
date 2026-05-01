@@ -180,6 +180,73 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         Logging.WriteInfo($"Media link style with ID {_mediaLink.SelectedMediaLinkSeekbarStyle.ID} deleted.");
     }
 
+    public void ExportSeekbarStyles(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        var data = new MediaLinkStylesData
+        {
+            CustomStyles = new ObservableCollection<MediaLinkStyle>(
+                _mediaLink.MediaLinkSeekbarStyles.Where(s => !s.SystemDefault)),
+            SelectedStyleId = _mediaLink.SelectedMediaLinkSeekbarStyle?.SystemDefault == false
+                ? _mediaLink.SelectedMediaLinkSeekbarStyle.ID
+                : null
+        };
+
+        string? directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrWhiteSpace(directory))
+            Directory.CreateDirectory(directory);
+
+        File.WriteAllText(filePath, JsonConvert.SerializeObject(data, Formatting.Indented));
+        Logging.WriteInfo($"Exported {data.CustomStyles.Count} custom media link seekbar styles to '{filePath}'.");
+    }
+
+    public int ImportSeekbarStyles(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("MediaLink seekbar style import file was not found.", filePath);
+
+        var data = ReadStylesDataFromFile(filePath);
+        if (data.CustomStyles.Count == 0)
+            return 0;
+
+        var existingIds = _mediaLink.MediaLinkSeekbarStyles.Select(s => s.ID).ToHashSet();
+        var importedIdMap = new Dictionary<int, int>();
+        var importedStyles = new List<MediaLinkStyle>();
+
+        foreach (var style in data.CustomStyles)
+        {
+            var importedStyle = CloneMediaLinkStyle(style);
+            importedStyle.SystemDefault = false;
+
+            int originalId = importedStyle.ID;
+            if (importedStyle.ID < 100 || existingIds.Contains(importedStyle.ID))
+                importedStyle.ID = NextCustomStyleId(existingIds);
+
+            existingIds.Add(importedStyle.ID);
+            importedIdMap[originalId] = importedStyle.ID;
+            _mediaLink.MediaLinkSeekbarStyles.Add(importedStyle);
+            importedStyles.Add(importedStyle);
+        }
+
+        if (data.SelectedStyleId != null
+            && importedIdMap.TryGetValue(data.SelectedStyleId.Value, out int selectedId))
+        {
+            _mediaLink.SelectedMediaLinkSeekbarStyle =
+                _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.ID == selectedId);
+        }
+        else
+        {
+            _mediaLink.SelectedMediaLinkSeekbarStyle = importedStyles.FirstOrDefault();
+        }
+
+        SaveMediaLinkStyles();
+        Logging.WriteInfo($"Imported {importedStyles.Count} custom media link seekbar styles from '{filePath}'.");
+        return importedStyles.Count;
+    }
+
     private string GetMediaLinkStylesFilePath()
     {
         return Path.Combine(_env.DataPath, MediaLinkStylesFileName);
@@ -286,9 +353,36 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         }
     }
 
+    private static MediaLinkStyle CloneMediaLinkStyle(MediaLinkStyle style)
+        => JsonConvert.DeserializeObject<MediaLinkStyle>(JsonConvert.SerializeObject(style)) ?? new MediaLinkStyle();
+
+    private static int NextCustomStyleId(HashSet<int> existingIds)
+    {
+        int nextId = existingIds.Count == 0 ? 100 : Math.Max(100, existingIds.Max() + 1);
+        while (existingIds.Contains(nextId))
+            nextId++;
+
+        return nextId;
+    }
+
+    private static MediaLinkStylesData ReadStylesDataFromFile(string filePath)
+    {
+        string jsonData = File.ReadAllText(filePath);
+        var data = JsonConvert.DeserializeObject<MediaLinkStylesData>(jsonData);
+
+        if (data?.CustomStyles != null)
+            return data;
+
+        var legacyStyles = JsonConvert.DeserializeObject<ObservableCollection<MediaLinkStyle>>(jsonData);
+        return new MediaLinkStylesData
+        {
+            CustomStyles = legacyStyles ?? new ObservableCollection<MediaLinkStyle>()
+        };
+    }
+
     private class MediaLinkStylesData
     {
-        public ObservableCollection<MediaLinkStyle> CustomStyles { get; set; }
+        public ObservableCollection<MediaLinkStyle> CustomStyles { get; set; } = new();
         public int? SelectedStyleId { get; set; }
     }
 

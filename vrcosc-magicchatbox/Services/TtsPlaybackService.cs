@@ -64,7 +64,7 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
                 _activeCancellationTokens.Clear();
             }
 
-            byte[]? audioFromApi = await _tts.Value.GetAudioBytesFromTikTokAPI(chat);
+            byte[]? audioFromApi = await _tts.Value.TryGetAudioBytesFromTikTokAPI(chat);
             if (audioFromApi == null)
             {
                 _chatStatus.ChatFeedbackTxt = "Error getting TTS from online servers.";

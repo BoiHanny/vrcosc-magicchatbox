@@ -115,9 +115,7 @@
                         </CheckBox>
                         <TextBlock
                             Margin="0,6,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="✅ Without consent, weather uses your custom city."
                             Visibility="{Binding WeatherSettings.WeatherIpConsentMissing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
@@ -196,9 +194,7 @@
                         </StackPanel>
                         <TextBlock
                             Margin="0,2,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Default: London" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherSettings.WeatherLocationModeIsCustomCoordinates, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -230,9 +226,7 @@
                         </StackPanel>
                         <TextBlock
                             Margin="0,2,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Example: 51.5074, -0.1278" />
                     </StackPanel>
                     <TextBlock
@@ -273,18 +267,15 @@
                             Text="{Binding WeatherSettings.WeatherStatsSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Margin="0,2,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Used between temp/condition/feels/wind/humidity" />
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Used between temp, condition, feels-like, wind, and humidity values." />
                     </StackPanel>
                     <TextBlock
-                        Margin="0,12,0,0"
-                        Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="Template (use {time} {weather} {temp} {unit} {tempWithUnit} {condition} {humidity} {wind} {feels})" />
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="Template" />
+                    <TextBlock
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Available placeholders: {time}, {weather}, {temp}, {unit}, {tempWithUnit}, {condition}, {humidity}, {wind}, {feels}." />
                     <TextBox
                         x:Name="WeatherTemplate"
                         Width="360"
@@ -296,24 +287,15 @@
                         Text="{Binding WeatherSettings.WeatherTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Separators are ignored while a template is set."
                         Visibility="{Binding WeatherSettings.WeatherTemplateHasValue, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,6,0,0"
-                        Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Tip: use \n for a new line in the template." />
                     <TextBlock
-                        Margin="0,12,0,0"
-                        Padding="0,0,0,0"
-                        FontFamily="Comfortaa Light"
-                        FontSize="16"
-                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Details" />
                     <CheckBox
                         x:Name="ShowWeatherCondition_checkbox"
@@ -338,9 +320,7 @@
                         Visibility="{Binding WeatherSettings.WeatherCustomOverridesEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}" />
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Leave blank to use the default label."
                         Visibility="{Binding WeatherSettings.WeatherCustomOverridesEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}" />
                     <ItemsControl
@@ -421,10 +401,8 @@
                     </ItemsControl>
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="Left box overrides the icon, right box overrides the text." />
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Left box overrides the icon; right box overrides the text." />
                     <CheckBox
                         x:Name="ShowWeatherEmoji_checkbox"
                         Margin="0,0,0,6"
@@ -499,11 +477,7 @@
                         Show feels-like temperature
                     </CheckBox>
                     <TextBlock
-                        Margin="0,12,0,0"
-                        Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Fallback behavior" />
                     <ComboBox
                         Width="200"

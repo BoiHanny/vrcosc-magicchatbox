@@ -56,13 +56,48 @@
             Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
             <StackPanel>
+                <!--  Pre-release banner  -->
+                <Border
+                    Margin="0,0,0,10"
+                    BorderBrush="{StaticResource StatusWarningBrush}"
+                    BorderThickness="1"
+                    Style="{StaticResource OptionCardStyle}">
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="13"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap">
+                        <Run Text="🧪 Pre-release: Privacy controls are new in this release. If you notice unexpected behavior, please report it on" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="GitHub" />
+                        </Hyperlink>
+                        <Run Text="or in our" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="Discord server" />
+                        </Hyperlink>
+                        <Run Text="." />
+                    </TextBlock>
+                </Border>
+
                 <TextBlock
                     Padding="0,0,0,10"
                     FontFamily="Albert Sans Thin"
                     FontSize="13"
                     Foreground="{StaticResource TextLabelBrush}"
+                    Style="{StaticResource OptionHelpTextStyle}"
                     TextWrapping="Wrap"
                     Text="Control which system hooks MagicChatbox may use. Some features connect to external services — nothing is sent without your permission." />
+                <TextBlock
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
+                    Text="Permission-controlled features" />
+                <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
 
                 <!-- HardwareMonitor row -->
                 <Grid Margin="0,4,10,4">
@@ -357,6 +392,8 @@
                     </StackPanel>
                 </Grid>
 
+                </StackPanel>
+                </Border>
             </StackPanel>
         </Grid>
     </Grid>

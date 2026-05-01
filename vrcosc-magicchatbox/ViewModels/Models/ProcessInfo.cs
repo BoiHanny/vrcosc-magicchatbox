@@ -20,6 +20,8 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _ShowTitle = false;
         private bool _usedNewMethod;
+        private bool _useCustomRegex;
+        private string _customRegex = string.Empty;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -104,6 +106,28 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _usedNewMethod = value;
                 NotifyPropertyChanged(nameof(UsedNewMethod));
+            }
+        }
+
+        /// <summary>When true, apply <see cref="CustomRegex"/> to the window title before displaying.</summary>
+        public bool UseCustomRegex
+        {
+            get { return _useCustomRegex; }
+            set
+            {
+                _useCustomRegex = value;
+                NotifyPropertyChanged(nameof(UseCustomRegex));
+            }
+        }
+
+        /// <summary>Regex pattern applied to the window title. First capture group is used as display text.</summary>
+        public string CustomRegex
+        {
+            get { return _customRegex; }
+            set
+            {
+                _customRegex = value;
+                NotifyPropertyChanged(nameof(CustomRegex));
             }
         }
     }

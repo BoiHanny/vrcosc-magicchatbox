@@ -16,9 +16,9 @@ public partial class IntegrationDisplayState : ObservableObject
 {
     public static readonly IReadOnlyList<string> DefaultSortOrder = new[]
     {
-        "Status", "Window", "Twitch", "Discord", "VrcRadar", "HeartRate", "Component",
+        "Status", "Window", "Twitch", "Discord", "Spotify", "VrcRadar", "HeartRate", "Component",
         "TrackerBattery", "Network", "Weather", "Time", "Soundpad",
-        "MediaLink", "Spotify"
+        "MediaLink"
     };
 
     private ObservableCollection<string> _integrationSortOrder = new(DefaultSortOrder);

@@ -1,0 +1,196 @@
+<Window
+    x:Class="vrcosc_magicchatbox.UI.Dialogs.SpotifyAuth"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Connect Spotify"
+    Width="720"
+    Height="520"
+    Background="#41375B"
+    ResizeMode="NoResize"
+    mc:Ignorable="d">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="55"
+            CornerRadius="0"
+            GlassFrameThickness="1"
+            ResizeBorderThickness="8"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="64" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
+                    <GradientStop Offset="1" Color="#FF1A0842" />
+                    <GradientStop Color="{StaticResource SurfaceDarkColor}" />
+                    <GradientStop Offset="0.539" Color="#1DB954" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid x:Name="Drag_area" Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
+                <TextBlock
+                    Margin="6,1,0,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="White"
+                    Text="Connect Spotify">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="15" Direction="315" Opacity="1" ShadowDepth="0" Color="Black" />
+                    </TextBlock.Effect>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24,16,24,8">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontFamily="Comfortaa Light"
+                    FontSize="15"
+                    Foreground="LightYellow"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap">
+                    <Run FontSize="23" FontWeight="DemiBold" Text="Spotify in your VRChat chatbox 🎵" />
+                    <LineBreak />
+                    <LineBreak />
+                    <Run Foreground="#DDDDDD" Text="MagicChatbox uses Spotify's secure Authorization Code + PKCE flow. You only paste your public Client ID; no client secret is needed." />
+                    <LineBreak />
+                    <Run Foreground="#BBBBBB" FontSize="13" Text="Tokens are stored encrypted for your Windows account and can be cleared any time with Disconnect." />
+                </TextBlock>
+
+                <Border
+                    Margin="0,16,0,8"
+                    Padding="12"
+                    Background="#2A2040"
+                    CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock
+                            FontFamily="Albert Sans Thin"
+                            FontSize="15"
+                            Foreground="White"
+                            Text="1. Spotify Developer App" />
+                        <TextBlock
+                            Margin="0,4,0,8"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="#CCCCCC"
+                            TextWrapping="Wrap"
+                            Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly: http://localhost:7387/callback/" />
+                        <StackPanel Orientation="Horizontal">
+                            <PasswordBox
+                                x:Name="ClientIdBox"
+                                Width="430"
+                                Height="32"
+                                Padding="8,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="14"
+                                PasswordChar="●"
+                                PasswordChanged="ClientIdBox_PasswordChanged" />
+                            <Button
+                                Width="82"
+                                Height="32"
+                                Margin="8,0,0,0"
+                                Click="PasteClientId_Click"
+                                Content="Paste"
+                                Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Width="132"
+                                Height="32"
+                                Margin="8,0,0,0"
+                                Click="OpenDashboard_Click"
+                                Content="Dashboard ↗"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Margin="0,0,0,8"
+                    Padding="12"
+                    Background="#2A2040"
+                    CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock
+                            FontFamily="Albert Sans Thin"
+                            FontSize="15"
+                            Foreground="White"
+                            Text="2. What may appear in VRChat?" />
+                        <TextBlock
+                            Margin="0,4,0,8"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="#CCCCCC"
+                            TextWrapping="Wrap"
+                            Text="Pick safe defaults now. You can change every option later in Spotify settings." />
+                        <WrapPanel>
+                            <CheckBox x:Name="AllowTitle" Margin="0,0,12,6" IsChecked="True" Style="{DynamicResource SettingsCheckbox}">Track title</CheckBox>
+                            <CheckBox x:Name="AllowArtist" Margin="0,0,12,6" IsChecked="True" Style="{DynamicResource SettingsCheckbox}">Artist</CheckBox>
+                            <CheckBox x:Name="AllowAlbum" Margin="0,0,12,6" IsChecked="True" Style="{DynamicResource SettingsCheckbox}">Album</CheckBox>
+                            <CheckBox x:Name="AllowDevice" Margin="0,0,12,6" IsChecked="False" Style="{DynamicResource SettingsCheckbox}">Device name</CheckBox>
+                            <CheckBox x:Name="PrivacyMode" Margin="0,0,12,6" IsChecked="False" Style="{DynamicResource SettingsCheckbox}">Privacy mode by default</CheckBox>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <Expander
+                    Margin="0,0,0,8"
+                    Foreground="White"
+                    Header="Technical details and scopes">
+                    <Border Padding="12" Background="#241A38" CornerRadius="8">
+                        <TextBlock
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="#CCCCCC"
+                            TextWrapping="Wrap">
+                            <Run Text="Requested scopes: user-read-playback-state, user-read-currently-playing, user-modify-playback-state, user-library-read, user-library-modify." />
+                            <LineBreak />
+                            <Run Text="These allow reading current playback, controlling your active Spotify player, and toggling liked tracks. MagicChatbox does not request playlist editing or private listening history." />
+                        </TextBlock>
+                    </Border>
+                </Expander>
+
+                <TextBlock
+                    x:Name="StatusText"
+                    Margin="2,4,0,0"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="13"
+                    FontStyle="Italic"
+                    Foreground="LightYellow"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Background="#2A1F42">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button
+                    Width="120"
+                    Height="38"
+                    Margin="0,0,10,0"
+                    Click="Cancel_Click"
+                    Content="Cancel"
+                    Style="{StaticResource Status_Button_style}" />
+                <Button
+                    x:Name="ConnectButton"
+                    Width="180"
+                    Height="38"
+                    Click="Connect_Click"
+                    Content="Connect Spotify"
+                    IsEnabled="False"
+                    Style="{StaticResource Status_Button_style}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

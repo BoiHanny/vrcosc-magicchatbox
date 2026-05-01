@@ -155,5 +155,11 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private void SoundPadRandon_Click(object sender, RoutedEventArgs e)
             => VM.SoundpadRandomCommand.Execute(null);
+
+        private void SpotifyVolume_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Slider slider)
+                _ = VM.SetSpotifyVolume(slider.Value);
+        }
     }
 }

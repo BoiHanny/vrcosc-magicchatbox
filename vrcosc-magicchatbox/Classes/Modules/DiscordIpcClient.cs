@@ -25,6 +25,7 @@ public sealed class DiscordIpcClient : IDisposable
     private volatile bool _disposed;
     private volatile bool _intentionalDisconnect;
     private int _reconnectAttempts;
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     /// <summary>Raised on the read-loop thread when a JSON message arrives.</summary>
     public event Action<JObject>? MessageReceived;
@@ -113,6 +114,25 @@ public sealed class DiscordIpcClient : IDisposable
     }
 
     /// <summary>
+    /// Sends an AUTHORIZE command to request OAuth scopes via Discord's native consent dialog.
+    /// Returns immediately; the response arrives via <see cref="MessageReceived"/>.
+    /// </summary>
+    public async Task SendAuthorizeAsync(string clientId, string[] scopes, string nonce)
+    {
+        var payload = new JObject
+        {
+            ["cmd"] = "AUTHORIZE",
+            ["nonce"] = nonce,
+            ["args"] = new JObject
+            {
+                ["client_id"] = clientId,
+                ["scopes"] = new JArray(scopes)
+            }
+        };
+        await SendFrameAsync(payload).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Sends a SUBSCRIBE command for the given event.
     /// </summary>
     public async Task SubscribeAsync(string evt, JObject? args = null, string? nonce = null)
@@ -137,6 +157,25 @@ public sealed class DiscordIpcClient : IDisposable
         {
             ["cmd"] = "GET_SELECTED_VOICE_CHANNEL",
             ["nonce"] = nonce ?? Guid.NewGuid().ToString()
+        };
+        await SendFrameAsync(payload).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a SET_ACTIVITY command for Discord Rich Presence.
+    /// Works after HANDSHAKE + AUTHENTICATE. Activity fields follow the Discord RPC spec.
+    /// </summary>
+    public async Task SendSetActivityAsync(JObject? activity, string? nonce = null)
+    {
+        var payload = new JObject
+        {
+            ["cmd"] = "SET_ACTIVITY",
+            ["nonce"] = nonce ?? Guid.NewGuid().ToString(),
+            ["args"] = new JObject
+            {
+                ["pid"] = Environment.ProcessId,
+                ["activity"] = activity // null clears the activity
+            }
         };
         await SendFrameAsync(payload).ConfigureAwait(false);
     }
@@ -214,9 +253,17 @@ public sealed class DiscordIpcClient : IDisposable
         BitConverter.GetBytes(opcode).CopyTo(header, 0);
         BitConverter.GetBytes(data.Length).CopyTo(header, 4);
 
-        await _pipe.WriteAsync(header, 0, header.Length).ConfigureAwait(false);
-        await _pipe.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
-        await _pipe.FlushAsync().ConfigureAwait(false);
+        await _writeLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await _pipe.WriteAsync(header, 0, header.Length).ConfigureAwait(false);
+            await _pipe.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
+            await _pipe.FlushAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     private void StartReadLoop()

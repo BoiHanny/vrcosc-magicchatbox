@@ -16,19 +16,18 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 /// <summary>
 /// Discord Voice Channel integration module.
 /// Connects to local Discord via IPC named pipe, authenticates with OAuth token,
-/// and tracks voice channel membership and speaking status.
+/// and tracks voice channel membership and speaking status. Rich Presence is
+/// handled separately by DiscordRichPresenceService.
 /// </summary>
 public partial class DiscordModule : ObservableObject, IModule
 {
     private readonly ISettingsProvider<DiscordSettings> _settingsProvider;
     private readonly IOscSender _oscSender;
     private readonly IUiDispatcher _dispatcher;
-    private readonly Lazy<DiscordOAuthHandler>? _oAuthHandler;
 
     private DiscordIpcClient? _ipcClient;
     private string? _currentChannelId;
     private bool _disposed;
-    private bool _refreshAttempted;
 
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _speakerDebounce = new();
 
@@ -42,6 +41,9 @@ public partial class DiscordModule : ObservableObject, IModule
     private string? _selfUserId;
 
     public DiscordSettings Settings => _settingsProvider.Value;
+    public string EffectiveVoiceClientId => string.IsNullOrWhiteSpace(Settings.VoiceClientId)
+        ? Core.Constants.DiscordClientId
+        : Settings.VoiceClientId.Trim();
     public void SaveSettings() => _settingsProvider.Save();
 
     public string Name => "Discord";
@@ -54,26 +56,26 @@ public partial class DiscordModule : ObservableObject, IModule
     [ObservableProperty] private bool _isSelfMuted;
     [ObservableProperty] private bool _isSelfDeafened;
     [ObservableProperty] private bool _isAuthenticated;
+    /// <summary>True after IPC HANDSHAKE READY — Rich Presence works at this point (no OAuth needed).</summary>
+    [ObservableProperty] private bool _isReady;
 
     bool IModule.IsRunning => IsRunning;
 
     public DiscordModule(
         ISettingsProvider<DiscordSettings> settingsProvider,
         IOscSender oscSender,
-        IUiDispatcher dispatcher,
-        Lazy<DiscordOAuthHandler>? oAuthHandler = null)
+        IUiDispatcher dispatcher)
     {
         _settingsProvider = settingsProvider;
         _oscSender = oscSender;
         _dispatcher = dispatcher;
-        _oAuthHandler = oAuthHandler;
     }
 
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
 
     public async Task StartAsync(CancellationToken ct = default)
     {
-        if (IsRunning || string.IsNullOrWhiteSpace(Settings.AccessToken)) return;
+        if (IsRunning) return;
 
         _ipcClient = new DiscordIpcClient();
         _ipcClient.MessageReceived += OnIpcMessage;
@@ -81,7 +83,7 @@ public partial class DiscordModule : ObservableObject, IModule
 
         if (await _ipcClient.ConnectAsync(ct).ConfigureAwait(false))
         {
-            await _ipcClient.SendHandshakeAsync(Core.Constants.DiscordClientId).ConfigureAwait(false);
+            await _ipcClient.SendHandshakeAsync(EffectiveVoiceClientId).ConfigureAwait(false);
             _dispatcher.BeginInvoke(() => IsRunning = true);
         }
         else
@@ -130,33 +132,32 @@ public partial class DiscordModule : ObservableObject, IModule
         if (!IsInVoiceChannel || string.IsNullOrEmpty(_currentChannelId))
             return Settings.NotInVcText;
 
-        // Build speaking string
         string speakingStr;
-        if (Settings.ShowUserCountOnly)
+        int speakingCount;
+
+        lock (_speakLock)
         {
-            speakingStr = string.Empty;
-        }
-        else
-        {
-            lock (_speakLock)
+            var ids = Settings.HideSelfFromSpeakers && _selfUserId != null
+                ? _speakingUserIds.Where(id => id != _selfUserId)
+                : _speakingUserIds.AsEnumerable();
+
+            var names = ids.Select(id => _userNames.GetValueOrDefault(id, $"User_{id}")).ToList();
+            speakingCount = names.Count;
+
+            if (Settings.ShowUserCountOnly)
             {
-                var ids = Settings.HideSelfFromSpeakers && _selfUserId != null
-                    ? _speakingUserIds.Where(id => id != _selfUserId)
-                    : _speakingUserIds.AsEnumerable();
-
-                var names = ids.Select(id => _userNames.GetValueOrDefault(id, $"User_{id}")).ToList();
-
-                if (names.Count == 0)
-                {
-                    speakingStr = Settings.EmptySpeakingText;
-                }
-                else
-                {
-                    var shown = names.Take(Settings.MaxSpeakingUsersToShow).ToList();
-                    speakingStr = string.Join(", ", shown);
-                    if (names.Count > Settings.MaxSpeakingUsersToShow)
-                        speakingStr += $" (+{names.Count - Settings.MaxSpeakingUsersToShow})";
-                }
+                speakingStr = speakingCount.ToString();
+            }
+            else if (names.Count == 0)
+            {
+                speakingStr = Settings.EmptySpeakingText;
+            }
+            else
+            {
+                var shown = names.Take(Settings.MaxSpeakingUsersToShow).ToList();
+                speakingStr = string.Join(", ", shown);
+                if (names.Count > Settings.MaxSpeakingUsersToShow)
+                    speakingStr += $" (+{names.Count - Settings.MaxSpeakingUsersToShow})";
             }
         }
 
@@ -167,11 +168,17 @@ public partial class DiscordModule : ObservableObject, IModule
             else if (IsSelfMuted) muteEmoji = Settings.MuteEmoji;
         }
 
+        string muteState = IsSelfDeafened ? "deafened" : IsSelfMuted ? "muted" : "unmuted";
+        string voiceState = speakingCount > 0 ? "speaking" : "quiet";
+
         return Settings.Template
             .Replace("{channel}", CurrentChannelName)
             .Replace("{count}", VoiceChannelCount.ToString())
             .Replace("{speaking}", speakingStr)
+            .Replace("{speaking_count}", speakingCount.ToString())
             .Replace("{mute_emoji}", muteEmoji)
+            .Replace("{mute_state}", muteState)
+            .Replace("{voice_state}", voiceState)
             .Replace("\\n", "\n").Replace("/n", "\n");
     }
 
@@ -203,6 +210,7 @@ public partial class DiscordModule : ObservableObject, IModule
                     if (evt == "ERROR")
                         Logging.WriteInfo($"Discord subscribe error: {data}");
                     break;
+
             }
         }
         catch (Exception ex)
@@ -218,19 +226,24 @@ public partial class DiscordModule : ObservableObject, IModule
         switch (evt)
         {
             case "READY":
-                _ = Task.Run(async () =>
+                _dispatcher.BeginInvoke(() => IsReady = true);
+
+                if (!string.IsNullOrWhiteSpace(Settings.AccessToken))
                 {
-                    try
+                    _ = Task.Run(async () =>
                     {
-                        await _ipcClient!.SendAuthenticateAsync(
-                            Settings.AccessToken,
-                            Guid.NewGuid().ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        Logging.WriteInfo($"Discord AUTHENTICATE send failed: {ex.Message}");
-                    }
-                });
+                        try
+                        {
+                            await _ipcClient!.SendAuthenticateAsync(
+                                Settings.AccessToken,
+                                Guid.NewGuid().ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            Logging.WriteInfo($"Discord AUTHENTICATE send failed: {ex.Message}");
+                        }
+                    });
+                }
                 break;
 
             case "VOICE_CHANNEL_SELECT":
@@ -264,43 +277,6 @@ public partial class DiscordModule : ObservableObject, IModule
         if (evt == "ERROR")
         {
             Logging.WriteInfo($"Discord authentication failed: {data}");
-
-            // Try to refresh the token once if we have a refresh token
-            if (!_refreshAttempted && _oAuthHandler != null &&
-                !string.IsNullOrWhiteSpace(Settings.RefreshToken))
-            {
-                _refreshAttempted = true;
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        Logging.WriteInfo("Discord: Attempting token refresh...");
-                        var result = await _oAuthHandler.Value.RefreshTokenAsync(Settings.RefreshToken);
-                        if (result != null && !string.IsNullOrWhiteSpace(result.AccessToken))
-                        {
-                            Settings.AccessToken = result.AccessToken;
-                            if (!string.IsNullOrEmpty(result.RefreshToken))
-                                Settings.RefreshToken = result.RefreshToken;
-                            if (result.ExpiresIn > 0)
-                                Settings.TokenExpiresAtUtcTicks = DateTime.UtcNow.AddSeconds(result.ExpiresIn).Ticks;
-                            SaveSettings();
-
-                            Logging.WriteInfo("Discord: Token refreshed, re-authenticating...");
-                            await _ipcClient!.SendAuthenticateAsync(
-                                Settings.AccessToken, Guid.NewGuid().ToString());
-                            return;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logging.WriteInfo($"Discord: Token refresh failed: {ex.Message}");
-                    }
-
-                    _dispatcher.BeginInvoke(() => IsAuthenticated = false);
-                });
-                return;
-            }
-
             _dispatcher.BeginInvoke(() => IsAuthenticated = false);
             return;
         }
@@ -308,8 +284,37 @@ public partial class DiscordModule : ObservableObject, IModule
         // Capture self user ID from auth response
         _selfUserId = data?["user"]?["id"]?.ToString();
         Logging.WriteInfo($"Discord authenticated successfully. Self userId={_selfUserId}");
-        _refreshAttempted = false;
         _dispatcher.BeginInvoke(() => IsAuthenticated = true);
+
+        // Check actual granted scopes from AUTHENTICATE response
+        var scopes = data?["scopes"] as JArray;
+        bool hasRpcScope;
+        if (scopes != null)
+        {
+            hasRpcScope = scopes.Any(s =>
+            {
+                var str = s.ToString();
+                return str == "rpc" || str == "rpc.voice.read";
+            });
+            Logging.WriteInfo($"Discord: AUTHENTICATE scopes={string.Join(", ", scopes)}, hasRpc={hasRpcScope}");
+            if (hasRpcScope != Settings.HasRpcScope)
+            {
+                Settings.HasRpcScope = hasRpcScope;
+                SaveSettings();
+            }
+        }
+        else
+        {
+            // scopes not in AUTHENTICATE response — trust the stored value from OAuth
+            hasRpcScope = Settings.HasRpcScope;
+            Logging.WriteInfo($"Discord: No scopes in AUTHENTICATE response, using stored HasRpcScope={hasRpcScope}");
+        }
+
+        if (!hasRpcScope)
+        {
+            Logging.WriteInfo("Discord: No rpc/voice scope — voice features unavailable. Rich Presence still works.");
+            return;
+        }
 
         _ = Task.Run(async () =>
         {
@@ -610,6 +615,7 @@ public partial class DiscordModule : ObservableObject, IModule
         _dispatcher.BeginInvoke(() =>
         {
             IsAuthenticated = false;
+            IsReady = false;
         });
     }
 
@@ -692,10 +698,11 @@ public partial class DiscordModule : ObservableObject, IModule
     private void OnIpcDisconnected(Exception? ex)
     {
         Logging.WriteInfo($"Discord IPC disconnected: {ex?.Message ?? "unknown reason"}");
+
         ClearState();
         _dispatcher.BeginInvoke(() => IsRunning = false);
 
-        if (!_disposed && !string.IsNullOrWhiteSpace(Settings.AccessToken))
+        if (!_disposed)
         {
             _ipcClient?.StartAutoReconnect(OnReconnectedAsync);
         }
@@ -704,6 +711,6 @@ public partial class DiscordModule : ObservableObject, IModule
     private async Task OnReconnectedAsync()
     {
         _dispatcher.BeginInvoke(() => IsRunning = true);
-        await _ipcClient!.SendHandshakeAsync(Core.Constants.DiscordClientId).ConfigureAwait(false);
+        await _ipcClient!.SendHandshakeAsync(EffectiveVoiceClientId).ConfigureAwait(false);
     }
 }

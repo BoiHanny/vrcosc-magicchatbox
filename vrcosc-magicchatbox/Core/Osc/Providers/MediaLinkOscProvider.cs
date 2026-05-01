@@ -23,6 +23,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;
     private readonly MediaLinkSettings _mls;
+    private readonly SpotifySettings _spotify;
     private readonly AppSettings _app;
     private readonly MediaLinkDisplayState _mediaLink;
     private readonly Lazy<IMediaLinkService> _mediaLinkSvc;
@@ -30,12 +31,14 @@ public sealed class MediaLinkOscProvider : IOscProvider
     public MediaLinkOscProvider(
         ISettingsProvider<IntegrationSettings> intgrProvider,
         ISettingsProvider<MediaLinkSettings> mlsProvider,
+        ISettingsProvider<SpotifySettings> spotifyProvider,
         ISettingsProvider<AppSettings> appProvider,
         MediaLinkDisplayState mediaLink,
         Lazy<IMediaLinkService> mediaLinkSvc)
     {
         _intgr = intgrProvider.Value;
         _mls = mlsProvider.Value;
+        _spotify = spotifyProvider.Value;
         _app = appProvider.Value;
         _mediaLink = mediaLink;
         _mediaLinkSvc = mediaLinkSvc;
@@ -74,7 +77,11 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
     private string BuildMediaText(OscBuildContext context)
     {
-        MediaSessionInfo session = _mediaLink.MediaSessions?.FirstOrDefault(s => s.IsActive);
+        var sessions = _mediaLink.MediaSessions?.Where(s => s.IsActive) ?? Enumerable.Empty<MediaSessionInfo>();
+        if (_intgr.IntgrSpotify && _spotify.MediaLinkCoexistence == SpotifyMediaLinkCoexistence.PreferSpotify)
+            sessions = sessions.Where(s => !IsSpotifySession(s));
+
+        MediaSessionInfo session = sessions.FirstOrDefault();
         if (session == null)
             return BuildNoSessionText();
 
@@ -88,6 +95,14 @@ public sealed class MediaLinkOscProvider : IOscProvider
             return BuildPausedText(session);
 
         return BuildPlayingText(session, context);
+    }
+
+    private static bool IsSpotifySession(MediaSessionInfo session)
+    {
+        string friendlyName = session.FriendlyAppName ?? string.Empty;
+        string sessionId = session.Session?.Id ?? string.Empty;
+        return friendlyName.Contains("spotify", StringComparison.OrdinalIgnoreCase) ||
+               sessionId.Contains("spotify", StringComparison.OrdinalIgnoreCase);
     }
 
     private string BuildNoSessionText()
@@ -151,7 +166,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         switch (_mls.TimeSeekStyle)
         {
             case MediaLinkTimeSeekbar.NumbersAndSeekBar:
-                string bar = CreateProgressBar(pct, session, style);
+                string bar = SeekbarUtilities.CreateProgressBar(pct, session.CurrentTime, session.FullTime, ToSeekbarOptions(style));
                 if (!string.IsNullOrWhiteSpace(bar))
                 {
                     string candidate = style.ProgressBarOnTop ? $"{bar}\n{text}" : $"{text}\n{bar}";
@@ -163,7 +178,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
                 break;
 
             case MediaLinkTimeSeekbar.SmallNumbers:
-                string small = $"{TextUtilities.TransformToSuperscript(FormatTimeSpan(current))} l {TextUtilities.TransformToSuperscript(FormatTimeSpan(full))}";
+                string small = SeekbarUtilities.CreateSmallNumbers(current, full);
                 string withSmall = $"{text} {small}";
                 if (context.WouldFit(withSmall))
                     return withSmall;
@@ -179,66 +194,27 @@ public sealed class MediaLinkOscProvider : IOscProvider
         return text;
     }
 
-    private string CreateProgressBar(double percentage, MediaSessionInfo session, MediaLinkStyle style)
+    private static SeekbarStyleOptions ToSeekbarOptions(MediaLinkStyle style)
     {
-        try
+        if (style == null)
         {
-            if (style == null
-                || string.IsNullOrEmpty(style.FilledCharacter)
-                || string.IsNullOrEmpty(style.MiddleCharacter)
-                || string.IsNullOrEmpty(style.NonFilledCharacter))
-                return string.Empty;
-
-            int totalBlocks = style.ProgressBarLength;
-
-            string currentStr = style.DisplayTime && style.ShowTimeInSuperscript
-                ? TextUtilities.TransformToSuperscript(FormatTimeSpan(session.CurrentTime))
-                : FormatTimeSpan(session.CurrentTime);
-
-            string fullStr = style.DisplayTime && style.ShowTimeInSuperscript
-                ? TextUtilities.TransformToSuperscript(FormatTimeSpan(session.FullTime))
-                : FormatTimeSpan(session.FullTime);
-
-            if (style.DisplayTime && totalBlocks > 0)
-            {
-                int timeLen = currentStr.Length + fullStr.Length + 1;
-                if (totalBlocks > timeLen)
-                    totalBlocks -= timeLen;
-            }
-
-            int filled = (int)(percentage / (100.0 / totalBlocks));
-            string filledBar = string.Concat(Enumerable.Repeat(style.FilledCharacter, filled));
-            string emptyBar = string.Concat(Enumerable.Repeat(style.NonFilledCharacter, totalBlocks - filled));
-            string progressBar = filledBar + style.MiddleCharacter + emptyBar;
-
-            return FormatProgressBarWithTime(currentStr, fullStr, progressBar, style);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-            return string.Empty;
-        }
-    }
-
-    private static string FormatProgressBarWithTime(string current, string full, string bar, MediaLinkStyle style)
-    {
-        string sp = style.SpaceAgainObjects ? " " : "";
-        string psp = style.SpaceBetweenPreSuffixAndTime ? " " : "";
-
-        if (style.DisplayTime)
-        {
-            if (style.TimePreSuffixOnTheInside)
-            {
-                return string.IsNullOrWhiteSpace(style.TimePrefix) || string.IsNullOrWhiteSpace(style.TimeSuffix)
-                    ? $"{current}{sp}{bar}{sp}{full}"
-                    : $"{current}{psp}{style.TimePrefix}{bar}{style.TimeSuffix}{psp}{full}";
-            }
-            return $"{style.TimePrefix}{psp}{current}{sp}{bar}{sp}{full}{psp}{style.TimeSuffix}";
+            return new SeekbarStyleOptions();
         }
 
-        return style.TimePreSuffixOnTheInside
-            ? $"{style.TimePrefix}{bar}{style.TimeSuffix}"
-            : $"{style.TimePrefix}{psp}{bar}{psp}{style.TimeSuffix}";
+        return new SeekbarStyleOptions
+        {
+            DisplayTime = style.DisplayTime,
+            FilledCharacter = style.FilledCharacter,
+            MiddleCharacter = style.MiddleCharacter,
+            NonFilledCharacter = style.NonFilledCharacter,
+            ProgressBarLength = style.ProgressBarLength,
+            ShowTimeInSuperscript = style.ShowTimeInSuperscript,
+            SpaceAgainObjects = style.SpaceAgainObjects,
+            SpaceBetweenPreSuffixAndTime = style.SpaceBetweenPreSuffixAndTime,
+            TimePrefix = style.TimePrefix,
+            TimePreSuffixOnTheInside = style.TimePreSuffixOnTheInside,
+            TimeSuffix = style.TimeSuffix
+        };
     }
 
     #endregion
@@ -299,13 +275,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
     {
         string s = _mls.Separator ?? " ᵇʸ ";
         return s.Replace("\\n", "\n").Replace("\\r", "\r");
-    }
-
-    private static string FormatTimeSpan(TimeSpan ts)
-    {
-        return ts.Hours > 0
-            ? $"{ts.Hours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
-            : $"{ts.Minutes}:{ts.Seconds:D2}";
     }
 
     #endregion

@@ -29,8 +29,8 @@
                         <ControlTemplate TargetType="ToggleButton">
                             <Border
                                 x:Name="border"
-                                Background="#FF2C2148"
-                                BorderBrush="#FF4A3580"
+                                Background="{StaticResource Button.Static.Background3}"
+                                BorderBrush="{StaticResource Button.Static.Border3}"
                                 BorderThickness="1"
                                 CornerRadius="5"
                                 SnapsToDevicePixels="True">
@@ -42,14 +42,16 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="BorderBrush" Value="#FF6B5CA0" />
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.MouseOver.Background2}" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.MouseOver.Border2}" />
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#FF352A52" />
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Pressed.Background2}" />
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Pressed.Border2}" />
                                 </Trigger>
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter TargetName="border" Property="BorderBrush" Value="#FF7C5CBF" />
-                                    <Setter TargetName="border" Property="Background" Value="#FF352A52" />
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Pressed.Background2}" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
                                     <Setter TargetName="border" Property="Opacity" Value="0.45" />
@@ -102,6 +104,7 @@
                 <Setter Property="Background" Value="#24134E" />
                 <Setter Property="BorderBrush" Value="#4B3386" />
                 <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Foreground" Value="#E7DDFB" />
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
                     <Setter.Value>
@@ -306,7 +309,7 @@
                         PlacementTarget="{Binding ElementName=GroupToggle}"
                         StaysOpen="False">
                         <Border
-                            MinWidth="220"
+                            MinWidth="260"
                             Padding="4"
                             CornerRadius="10">
                             <Border.Background>
@@ -386,6 +389,7 @@
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="auto" />
                                                         <ColumnDefinition Width="auto" />
+                                                        <ColumnDefinition Width="auto" />
                                                         <ColumnDefinition Width="50" />
                                                     </Grid.ColumnDefinitions>
                                                     <!--  Display name (normal)  -->
@@ -461,9 +465,20 @@
                                                             Height="11"
                                                             Source="/Img/Icons/Edit_ico.png" />
                                                     </Button>
+                                                    <!--  Share/export group  -->
+                                                    <Button
+                                                        Grid.Column="3"
+                                                        Width="20"
+                                                        Height="20"
+                                                        Command="{Binding DataContext.ShareGroupCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="📤"
+                                                        FontSize="10"
+                                                        Style="{StaticResource StatusPopupIconButtonStyle}"
+                                                        ToolTip="Export this group" />
                                                     <!--  Cycle active toggle  -->
                                                     <ToggleButton
-                                                        Grid.Column="3"
+                                                        Grid.Column="4"
                                                         Width="44"
                                                         Height="22"
                                                         Command="{Binding DataContext.ToggleGroupCycleActiveCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -507,6 +522,27 @@
                             </StackPanel>
                         </Border>
                     </Popup>
+
+                    <!--  Share current group  -->
+                    <Button
+                        Width="25"
+                        Height="25"
+                        Margin="4,0,0,0"
+                        Command="{Binding ShareCurrentGroupCommand}"
+                        Content="📤"
+                        FontSize="12"
+                        Style="{DynamicResource Status_Button_style}"
+                        ToolTip="Export current group" />
+                    <!--  Import  -->
+                    <Button
+                        Width="25"
+                        Height="25"
+                        Margin="3,0,0,0"
+                        Command="{Binding ImportStatusCommand}"
+                        Content="📥"
+                        FontSize="12"
+                        Style="{DynamicResource Status_Button_style}"
+                        ToolTip="Import status messages" />
                 </StackPanel>
 
                 <!--  RIGHT: Select + AutoCycle + Settings  -->
@@ -623,6 +659,18 @@
                         Content="⧉ Clone"
                         Style="{DynamicResource Status_Button_style}"
                         ToolTip="Duplicate selected statuses" />
+                    <Button
+                        Height="25"
+                        Margin="0,0,3,0"
+                        Padding="6,0"
+                        Command="{Binding ShareSelectedItemsCommand}"
+                        Style="{DynamicResource Status_Button_style}"
+                        ToolTip="Export selected statuses">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📤 Share " />
+                            <TextBlock Text="{Binding SelectedItems.Count, StringFormat='({0})'}" />
+                        </StackPanel>
+                    </Button>
                     <ToggleButton
                         x:Name="MoveToGroupToggle"
                         Height="25"

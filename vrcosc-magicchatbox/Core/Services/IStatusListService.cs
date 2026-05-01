@@ -21,4 +21,13 @@ public interface IStatusListService
 
     /// <summary>Delete a group. Items in the group are moved to the Default group. Saves immediately.</summary>
     void DeleteGroup(string groupId);
+
+    /// <summary>Export a group and its items as a shareable JSON string.</summary>
+    string ExportGroupToJson(string groupId);
+
+    /// <summary>Export the specified items as a shareable JSON string.</summary>
+    string ExportItemsToJson(System.Collections.Generic.IEnumerable<vrcosc_magicchatbox.ViewModels.StatusItem> items);
+
+    /// <summary>Import groups and items from a JSON string. Returns the number of items imported.</summary>
+    int ImportFromJson(string json);
 }

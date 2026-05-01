@@ -48,41 +48,36 @@
             <StackPanel>
                 <CheckBox
                     x:Name="PrefixTime_checkbox"
+                    Content="Show 'My time:' before the time integration"
                     IsChecked="{Binding TimeSettings.PrefixTime, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    Show 'My time:' in front of the time integration
-                </CheckBox>
+                    Style="{DynamicResource SettingsCheckbox}" />
 
                 <CheckBox
                     x:Name="Time24H_checkbox"
+                    Content="24-hour time format"
                     IsChecked="{Binding TimeSettings.Time24H, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    24-Hour time format
-                </CheckBox>
+                    Style="{DynamicResource SettingsCheckbox}" />
                 <CheckBox
                     x:Name="UseSystemCultureForTime"
-                    Content="Use current system culture for formating time"
+                    Content="Use current system culture for formatting time"
                     IsChecked="{Binding TimeSettings.UseSystemCulture, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}" />
                 <CheckBox
                     x:Name="AutoSetDaylight_checkbox"
+                    Content="Automatically apply daylight saving time"
                     IsChecked="{Binding TimeSettings.AutoSetDaylight, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    Auto daylight saving time
-                </CheckBox>
+                    Style="{DynamicResource SettingsCheckbox}" />
                 <CheckBox
                     x:Name="DaylightSavingTime_checkbox"
+                    Content="Apply daylight saving time"
                     IsChecked="{Binding TimeSettings.UseDaylightSavingTime, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}"
-                    Visibility="{Binding TimeSettings.AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                    Daylight saving time
-                </CheckBox>
+                    Visibility="{Binding TimeSettings.AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                 <CheckBox
                     x:Name="TimeShowTimeZone_checkbox"
+                    Content="Use a custom time zone"
                     IsChecked="{Binding TimeSettings.TimeShowTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    Custom time zone
-                </CheckBox>
+                    Style="{DynamicResource SettingsCheckbox}" />
                 <StackPanel
                     Width="auto"
                     Margin="0,0,0,15"
@@ -101,10 +96,8 @@
                     <TextBlock
                         Margin="10,2,5,0"
                         VerticalAlignment="Center"
-                        FontFamily="Comfortaa Light"
-                        FontSize="16"
-                        Foreground="{StaticResource TextPrimaryBrush}"
-                        Text="Convert your local time to a standard time zone" />
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Shows the selected time zone instead of your system's local time." />
                 </StackPanel>
 
             </StackPanel>

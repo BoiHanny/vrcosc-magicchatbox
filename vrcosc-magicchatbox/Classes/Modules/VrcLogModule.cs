@@ -74,7 +74,7 @@ public partial class VrcLogModule : ObservableObject, IModule
     private int _transientPriority;
 
     // Crasher debounce: one warning per room entry
-    private bool _crasherWarnedThisRoom;
+    private bool _avatarBlockedWarnedThisRoom;
 
     // OSC pulse reentrancy: sequence tokens per parameter path
     private readonly Dictionary<string, int> _pulseSequence = new();
@@ -88,6 +88,11 @@ public partial class VrcLogModule : ObservableObject, IModule
     // Peak player count in current world + world join timestamp
     private int _peakPlayerCount;
     private DateTime _worldJoinedAt = DateTime.MinValue;
+
+    /// <summary>When the user joined the current world (UTC-ish local time).</summary>
+    public DateTimeOffset? WorldJoinedAt => _worldJoinedAt > DateTime.MinValue
+        ? new DateTimeOffset(_worldJoinedAt, TimeZoneInfo.Local.GetUtcOffset(_worldJoinedAt))
+        : null;
 
     // Instance key for session continuity (full "wrld_xxx:nnnnn~..." join token)
     private string _currentInstanceKey = string.Empty;
@@ -115,6 +120,56 @@ public partial class VrcLogModule : ObservableObject, IModule
     private readonly Dictionary<string, (string Room, DateTime Time)> _previousRoomPresence = new();
     private readonly HashSet<string> _usersInPreviousRoom = new();
     private string _previousWorldName = string.Empty;
+
+    // Per-session encounter table (cleared on session end)
+    private readonly Dictionary<string, EncounterRecord> _encounterRecords = new();
+    private System.Collections.ObjectModel.ObservableCollection<EncounterRecord>? _sessionEncounters;
+
+    /// <summary>Bindable encounter table for the UI DataGrid.</summary>
+    public System.Collections.ObjectModel.ObservableCollection<EncounterRecord> SessionEncounters
+        => _sessionEncounters ??= new();
+
+    private ICollectionView? _filteredEncountersView;
+
+    /// <summary>
+    /// Filtered view of <see cref="SessionEncounters"/> that respects <c>MinEncounterCount</c>.
+    /// Bind DataGrid to this for automatic threshold filtering.
+    /// </summary>
+    public ICollectionView FilteredEncountersView
+    {
+        get
+        {
+            if (_filteredEncountersView == null)
+            {
+                _filteredEncountersView = System.Windows.Data.CollectionViewSource.GetDefaultView(SessionEncounters);
+                _filteredEncountersView.Filter = obj =>
+                    obj is EncounterRecord r && r.TimesSeenThisSession >= Settings.MinEncounterCount;
+            }
+            return _filteredEncountersView;
+        }
+    }
+
+    /// <summary>Refreshes the encounter table filter after MinEncounterCount changes.</summary>
+    public void RefreshEncounterFilter() => _filteredEncountersView?.Refresh();
+
+    // Session timeout tracking
+    private DateTime _lastLogActivity = DateTime.UtcNow;
+    private DateTime _lastVrchatProcessSeen = DateTime.UtcNow;
+
+    /// <summary>Whether VRChat.exe is currently running (process-based, not foreground).</summary>
+    [ObservableProperty] private bool _isVrchatProcessRunning;
+
+    /// <summary>Peak player count across all worlds this session.</summary>
+    [ObservableProperty] private int _peakPlayerCountThisSession;
+
+    // Loop iteration counter for throttled checks
+    private int _loopCounter;
+
+    /// <summary>
+    /// Fired when world, player count, or instance info changes.
+    /// Consumers (e.g. DiscordModule Rich Presence) subscribe in ModuleBootstrapper.
+    /// </summary>
+    public event Action? OnVrcWorldStateChanged;
 
     public VrcLogSettings Settings => _settingsProvider.Value;
     public string Name => "VRChat Radar";
@@ -146,15 +201,22 @@ public partial class VrcLogModule : ObservableObject, IModule
         _appState = appState;
         _oscSender = oscSender;
         _dispatcher = dispatcher;
+
+        // Refresh encounter filter when threshold changes
+        Settings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(VrcLogSettings.MinEncounterCount))
+                _dispatcher.BeginInvoke(RefreshEncounterFilter);
+        };
     }
 
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
     public void SaveSettings() => _settingsProvider.Save();
-    partial void OnCurrentWorldNameChanged(string value) => OnPropertyChanged(nameof(CurrentOutputPreview));
-    partial void OnPlayerCountChanged(int value) => OnPropertyChanged(nameof(CurrentOutputPreview));
+    partial void OnCurrentWorldNameChanged(string value) { OnPropertyChanged(nameof(CurrentOutputPreview)); OnVrcWorldStateChanged?.Invoke(); }
+    partial void OnPlayerCountChanged(int value) { OnPropertyChanged(nameof(CurrentOutputPreview)); OnVrcWorldStateChanged?.Invoke(); }
     partial void OnIsInstanceMasterChanged(bool value) => OnPropertyChanged(nameof(CurrentOutputPreview));
-    partial void OnInstanceTypeChanged(string value) => OnPropertyChanged(nameof(CurrentOutputPreview));
-    partial void OnRegionChanged(string value) => OnPropertyChanged(nameof(CurrentOutputPreview));
+    partial void OnInstanceTypeChanged(string value) { OnPropertyChanged(nameof(CurrentOutputPreview)); OnVrcWorldStateChanged?.Invoke(); }
+    partial void OnRegionChanged(string value) { OnPropertyChanged(nameof(CurrentOutputPreview)); OnVrcWorldStateChanged?.Invoke(); }
     partial void OnInstanceOwnerNameChanged(string value) => OnPropertyChanged(nameof(CurrentOutputPreview));
 
     public Task StartAsync(CancellationToken ct = default)
@@ -367,6 +429,41 @@ public partial class VrcLogModule : ObservableObject, IModule
                     _lastPosition = BackfillState(latestFile);
                     Logging.WriteInfo($"VrcRadar: Attached to {Path.GetFileName(latestFile)}, backfilled to pos {_lastPosition}");
 
+                    // Discard stale session: if log file hasn't been written to within the timeout, the backfilled world is from an old session
+                    if (CurrentWorldName != "Not in a world")
+                    {
+                        var fileAge = DateTime.UtcNow - new FileInfo(latestFile).LastWriteTimeUtc;
+                        var timeout = TimeSpan.FromMinutes(Math.Clamp(Settings.SessionTimeoutMinutes, 5, 90));
+                        bool isStale = fileAge > timeout;
+
+                        // Also check if VRChat process is currently running (quick sync check on first attach)
+                        if (!isStale && Settings.UseWindowDetection)
+                        {
+                            try
+                            {
+                                var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
+                                bool running = procs.Length > 0;
+                                foreach (var p in procs) p.Dispose();
+                                if (!running)
+                                {
+                                    isStale = true;
+                                    Logging.WriteInfo("VrcRadar: VRChat process not running — treating backfilled session as stale.");
+                                }
+                                else
+                                {
+                                    _lastVrchatProcessSeen = DateTime.UtcNow;
+                                }
+                            }
+                            catch { /* Process enumeration can fail */ }
+                        }
+
+                        if (isStale)
+                        {
+                            Logging.WriteInfo($"VrcRadar: Log file is {fileAge.TotalMinutes:F0}m old (timeout {timeout.TotalMinutes}m) — discarding stale session.");
+                            EndSessionDueToTimeout();
+                        }
+                    }
+
                     // Resume session only on first attach (app startup), not on log rotation
                     if (isFirstAttach && !string.IsNullOrEmpty(_currentInstanceKey))
                         TryResumeSession();
@@ -382,14 +479,19 @@ public partial class VrcLogModule : ObservableObject, IModule
                 using var reader = new StreamReader(fs);
 
                 string? line;
+                bool hadNewLines = false;
                 while ((line = await reader.ReadLineAsync(ct)) != null)
                 {
+                    hadNewLines = true;
                     lock (_stateLock)
                     {
                         ParseLogLine(line, isBackfill: false);
                     }
                 }
                 _lastPosition = fs.Position;
+
+                if (hadNewLines)
+                    _lastLogActivity = DateTime.UtcNow;
 
                 // Check bootstrap mode exit: if no new joins for 3 seconds
                 lock (_stateLock)
@@ -403,7 +505,8 @@ public partial class VrcLogModule : ObservableObject, IModule
                         {
                             string stats = Settings.TemplateSessionStats
                                 .Replace("{worlds}", _sessionWorldsVisited.ToString())
-                                .Replace("{players}", _allPlayersSeen.Count.ToString());
+                                .Replace("{players}", _allPlayersSeen.Count.ToString())
+                                .Replace("{peak_session}", _peakPlayerCountThisSession.ToString());
                             SetTransient(stats, Settings.SessionStatsDuration, TransientPriority.SessionStats);
                         }
                     }
@@ -421,6 +524,28 @@ public partial class VrcLogModule : ObservableObject, IModule
                 _lastSessionSave = DateTime.Now;
                 SaveSessionState();
             }
+
+            // VRChat process detection (every ~2.5 seconds = every 5 loop iterations)
+            if (Settings.UseWindowDetection && _loopCounter % 5 == 0)
+            {
+                try
+                {
+                    var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
+                    var running = procs.Length > 0;
+                    foreach (var p in procs) p.Dispose();
+
+                    if (running)
+                        _lastVrchatProcessSeen = DateTime.UtcNow;
+
+                    if (running != IsVrchatProcessRunning)
+                        _dispatcher.BeginInvoke(() => IsVrchatProcessRunning = running);
+                }
+                catch { /* Process enumeration can fail transiently */ }
+            }
+
+            // Session timeout check
+            CheckSessionTimeout();
+            _loopCounter++;
 
             await Task.Delay(500, ct);
         }
@@ -550,8 +675,12 @@ public partial class VrcLogModule : ObservableObject, IModule
                 _previousWorldName = CurrentWorldName;
             }
 
+            // Finalize encounter time for all players still in the room
+            if (!isBackfill)
+                FinalizeActiveEncounters();
+
             _currentRoomPlayers.Clear();
-            _crasherWarnedThisRoom = false;
+            _avatarBlockedWarnedThisRoom = false;
             _inBootstrapMode = true;
             _lastBootstrapJoin = DateTime.Now;
             _pendingOwnerUserId = string.Empty;
@@ -587,16 +716,9 @@ public partial class VrcLogModule : ObservableObject, IModule
             return;
         }
 
-        // 3. Left room
+        // 3. Left room (no longer displayed — VRChat handles transitions natively)
         if (line.Contains("[Behaviour] OnLeftRoom"))
         {
-            if (!isBackfill && Settings.ShowLeavingRoom && CurrentWorldName != "Not in a world")
-            {
-                SetTransient(
-                    Settings.TemplateLeaving.Replace("{world}", CurrentWorldName),
-                    Settings.LeavingDuration,
-                    TransientPriority.Leaving);
-            }
             return;
         }
 
@@ -647,6 +769,9 @@ public partial class VrcLogModule : ObservableObject, IModule
                     UniquePlayersCount = _allPlayersSeen.Count;
                     TotalJoinEvents = _sessionTotalJoins;
                 });
+
+                // Update encounter table
+                RecordEncounter(userId, name, CurrentWorldName);
             }
 
             if (_inBootstrapMode)
@@ -662,10 +787,14 @@ public partial class VrcLogModule : ObservableObject, IModule
                 if (_previousRoomPresence.TryGetValue(userId, out var prev)
                     && (DateTime.Now - prev.Time) < window)
                 {
-                    SetTransient(
-                        Settings.TemplateSeenAgain.Replace("{user}", name),
-                        Settings.SeenAgainDuration,
-                        TransientPriority.SeenAgain);
+                    // Only show the notification if the user hasn't opted out
+                    if (Settings.ShowSeenAgainNotification)
+                    {
+                        SetTransient(
+                            Settings.TemplateSeenAgain.Replace("{user}", name),
+                            Settings.SeenAgainDuration,
+                            TransientPriority.SeenAgain);
+                    }
                 }
                 // Record this encounter
                 _previousRoomPresence[userId] = (CurrentWorldName, DateTime.Now);
@@ -699,6 +828,10 @@ public partial class VrcLogModule : ObservableObject, IModule
             {
                 _sessionTotalLeaves++;
                 _dispatcher.BeginInvoke(() => TotalLeaveEvents = _sessionTotalLeaves);
+
+                // Close encounter time tracking
+                if (!string.IsNullOrEmpty(userId))
+                    CloseEncounter(userId);
             }
 
             if (!isBackfill && !_inBootstrapMode && Settings.AnnounceLeaves)
@@ -762,17 +895,15 @@ public partial class VrcLogModule : ObservableObject, IModule
             return;
         }
 
-        // 10. Crasher avatar blocked (debounced per room)
+        // 10. Avatar blocked by performance shield (debounced per room, notification only — no OSC)
         if (line.Contains("AssetBundleSizeTooLarge"))
         {
-            if (_crasherWarnedThisRoom) return;
-            _crasherWarnedThisRoom = true;
+            if (_avatarBlockedWarnedThisRoom) return;
+            _avatarBlockedWarnedThisRoom = true;
 
-            if (!isBackfill && Settings.WarnOnCrashers)
-                SetTransient(Settings.TemplateCrasher, Settings.CrasherDuration, TransientPriority.Crasher);
-
-            if (!isBackfill && Settings.SendPanicShieldOsc && !string.IsNullOrWhiteSpace(Settings.OscPanicShieldParam))
-                TriggerOscPulse(Settings.OscPanicShieldParam);
+            if (!isBackfill && Settings.WarnOnAvatarBlocked)
+                SetTransient(Settings.TemplateAvatarBlocked, Settings.AvatarBlockedDuration, TransientPriority.AvatarBlocked);
+            return;
         }
     }
 
@@ -900,9 +1031,8 @@ public partial class VrcLogModule : ObservableObject, IModule
         public const int JoinLeave = 2;
         public const int Screenshot = 3;
         public const int SeenAgain = 4;
-        public const int Leaving = 5;
-        public const int Download = 6;
-        public const int Crasher = 7;
+        public const int Download = 5;
+        public const int AvatarBlocked = 6;
     }
 
     /// <summary>
@@ -980,12 +1110,176 @@ public partial class VrcLogModule : ObservableObject, IModule
         catch { return null; }
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // Session timeout
+    // ──────────────────────────────────────────────────────────────
+
+    private void CheckSessionTimeout()
+    {
+        if (CurrentWorldName == "Not in a world") return;
+
+        var timeout = TimeSpan.FromMinutes(Math.Clamp(Settings.SessionTimeoutMinutes, 5, 90));
+        var logStale = (DateTime.UtcNow - _lastLogActivity) > timeout;
+
+        // If window detection is enabled, require BOTH signals to be stale
+        if (Settings.UseWindowDetection)
+        {
+            var processStale = (DateTime.UtcNow - _lastVrchatProcessSeen) > timeout;
+
+            // Quick exit: if VRChat process hasn't been seen for > 30 seconds and
+            // no new log activity, end the session early (don't wait full timeout)
+            var processGone = (DateTime.UtcNow - _lastVrchatProcessSeen) > TimeSpan.FromSeconds(30);
+            var logQuiet = (DateTime.UtcNow - _lastLogActivity) > TimeSpan.FromSeconds(30);
+            if (processGone && logQuiet && !IsVrchatProcessRunning)
+            {
+                Logging.WriteInfo("VrcRadar: Session timeout — VRChat process not detected for 30s+ with no log activity.");
+                EndSessionDueToTimeout();
+                return;
+            }
+
+            if (logStale && processStale)
+            {
+                Logging.WriteInfo($"VrcRadar: Session timeout — no logs for {timeout.TotalMinutes}m and VRChat process not detected.");
+                EndSessionDueToTimeout();
+            }
+        }
+        else
+        {
+            // Without window detection, rely solely on log activity
+            if (logStale)
+            {
+                Logging.WriteInfo($"VrcRadar: Session timeout — no logs for {timeout.TotalMinutes}m.");
+                EndSessionDueToTimeout();
+            }
+        }
+    }
+
+    private void EndSessionDueToTimeout()
+    {
+        // Close out active encounter records
+        FinalizeActiveEncounters();
+
+        lock (_stateLock)
+        {
+            _currentRoomPlayers.Clear();
+            _avatarBlockedWarnedThisRoom = false;
+            _inBootstrapMode = false;
+            _currentInstanceKey = string.Empty;
+            _peakPlayerCount = 0;
+        }
+
+        _dispatcher.BeginInvoke(() =>
+        {
+            CurrentWorldName = "Not in a world";
+            PlayerCount = 0;
+            IsInstanceMaster = false;
+            InstanceType = string.Empty;
+            Region = string.Empty;
+            InstanceOwnerName = string.Empty;
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Encounter tracking (session-scoped)
+    // ──────────────────────────────────────────────────────────────
+
+    private void RecordEncounter(string userId, string displayName, string worldName)
+    {
+        if (!Settings.ShowEncounterTable && !Settings.DetectSeenAgain) return;
+
+        if (!_encounterRecords.TryGetValue(userId, out var record))
+        {
+            record = new EncounterRecord
+            {
+                PlayerName = displayName,
+                LastWorldName = worldName,
+                FirstSeenAt = DateTime.UtcNow,
+                LastSeenAt = DateTime.UtcNow,
+                TimesSeenThisSession = 1,
+                IsCurrentlyPresent = true,
+                CurrentRoomJoinedAt = DateTime.UtcNow,
+            };
+            _encounterRecords[userId] = record;
+            _dispatcher.BeginInvoke(() => SessionEncounters.Add(record));
+        }
+        else
+        {
+            record.TimesSeenThisSession++;
+            record.LastWorldName = worldName;
+            record.LastSeenAt = DateTime.UtcNow;
+            record.IsCurrentlyPresent = true;
+            record.CurrentRoomJoinedAt = DateTime.UtcNow;
+        }
+
+        // Track peak session-wide player count
+        int currentCount = _currentRoomPlayers.Count;
+        if (currentCount > _peakPlayerCountThisSession)
+            _peakPlayerCountThisSession = currentCount;
+    }
+
+    private void CloseEncounter(string userId)
+    {
+        if (_encounterRecords.TryGetValue(userId, out var record) && record.IsCurrentlyPresent)
+        {
+            record.IsCurrentlyPresent = false;
+            if (record.CurrentRoomJoinedAt.HasValue)
+            {
+                record.TotalTimeTogetherSeconds +=
+                    (DateTime.UtcNow - record.CurrentRoomJoinedAt.Value).TotalSeconds;
+                record.CurrentRoomJoinedAt = null;
+            }
+        }
+    }
+
+    private void FinalizeActiveEncounters()
+    {
+        foreach (var record in _encounterRecords.Values)
+        {
+            if (record.IsCurrentlyPresent && record.CurrentRoomJoinedAt.HasValue)
+            {
+                record.TotalTimeTogetherSeconds +=
+                    (DateTime.UtcNow - record.CurrentRoomJoinedAt.Value).TotalSeconds;
+                record.CurrentRoomJoinedAt = null;
+                record.IsCurrentlyPresent = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generates a VRChat launch URL from the current instance key.
+    /// Returns null if not in a world or instance is private.
+    /// </summary>
+    public string? GetCurrentJoinUrl()
+    {
+        if (string.IsNullOrEmpty(_currentInstanceKey)) return null;
+
+        // Only allow join links for Public instances
+        if (!IsPublicInstance()) return null;
+
+        // Instance key format: wrld_xxx:nnnnn~type(...)~region(xx)
+        var parts = _currentInstanceKey.Split(':');
+        if (parts.Length < 2) return null;
+
+        var worldId = parts[0];
+        var instanceId = string.Join(":", parts.Skip(1));
+        return $"https://vrchat.com/home/launch?worldId={Uri.EscapeDataString(worldId)}&instanceId={Uri.EscapeDataString(instanceId)}";
+    }
+
+    private bool IsPublicInstance()
+    {
+        // Public instances don't have privacy markers in the instance key
+        return !string.IsNullOrEmpty(_currentInstanceKey) &&
+               !_currentInstanceKey.Contains("~private(") &&
+               !_currentInstanceKey.Contains("~friends(") &&
+               !_currentInstanceKey.Contains("~hidden(") &&
+               !_currentInstanceKey.Contains("~group(");
+    }
+
     private void ResetState()
     {
         lock (_stateLock)
         {
             _currentRoomPlayers.Clear();
-            _crasherWarnedThisRoom = false;
             _inBootstrapMode = false;
             _transientMessage = string.Empty;
             _transientExpiry = DateTime.MinValue;
@@ -1002,8 +1296,13 @@ public partial class VrcLogModule : ObservableObject, IModule
             _pulseSequence.Clear();
             _pendingOwnerUserId = string.Empty;
             _peakPlayerCount = 0;
+            _peakPlayerCountThisSession = 0;
             _worldJoinedAt = DateTime.MinValue;
             _currentInstanceKey = string.Empty;
+            _encounterRecords.Clear();
+            _lastLogActivity = DateTime.UtcNow;
+            _lastVrchatProcessSeen = DateTime.UtcNow;
+            _loopCounter = 0;
         }
 
         _dispatcher.BeginInvoke(() =>
@@ -1017,6 +1316,8 @@ public partial class VrcLogModule : ObservableObject, IModule
             IsDownloading = false;
             WorldsVisited = 0;
             UniquePlayersCount = 0;
+            IsVrchatProcessRunning = false;
+            SessionEncounters.Clear();
         });
     }
 

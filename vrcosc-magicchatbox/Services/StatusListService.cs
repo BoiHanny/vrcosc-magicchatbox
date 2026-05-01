@@ -301,6 +301,142 @@ public sealed class StatusListService : IStatusListService, IDisposable
         }
     }
 
+    // ── Export / Import ────────────────────────────────────────────────────────
+
+    public string ExportGroupToJson(string groupId)
+    {
+        var group = _chatStatus.GroupList.FirstOrDefault(g => g.GroupId == groupId);
+        if (group == null) return "{}";
+
+        var items = _chatStatus.StatusList.Where(i => i.GroupId == groupId).ToList();
+        return SerializeExportBundle(group != null ? new[] { group } : Array.Empty<StatusGroup>(), items);
+    }
+
+    public string ExportItemsToJson(System.Collections.Generic.IEnumerable<StatusItem> items)
+    {
+        var itemList = items.ToList();
+        // Include all groups referenced by the items
+        var groupIds = itemList.Select(i => i.GroupId).Where(id => id != null).Distinct().ToHashSet();
+        var groups = _chatStatus.GroupList.Where(g => groupIds.Contains(g.GroupId)).ToList();
+        return SerializeExportBundle(groups, itemList);
+    }
+
+    public int ImportFromJson(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return 0;
+
+        try
+        {
+            var root = JToken.Parse(json);
+            var bundle = root.ToObject<StatusBundle>();
+            if (bundle == null) return 0;
+
+            var importedGroups = bundle.Groups ?? new System.Collections.Generic.List<StatusGroup>();
+            var importedItems = bundle.Items ?? new System.Collections.Generic.List<StatusItem>();
+
+            // Build oldGroupId → newGroupId mapping (generate fresh IDs to avoid conflicts)
+            var groupIdMap = new System.Collections.Generic.Dictionary<string, string>();
+            foreach (var group in importedGroups)
+            {
+                var newId = Guid.NewGuid().ToString();
+                groupIdMap[group.GroupId] = newId;
+                group.GroupId = newId;
+                group.CreationDate = DateTime.Now;
+
+                // Protect "Default" group name: rename to avoid collision
+                if (group.Name == DefaultGroupName)
+                    group.Name = "Default (Imported)";
+
+                // Check for name collision and make unique
+                while (_chatStatus.GroupList.Any(g => g.Name == group.Name))
+                    group.Name += " (2)";
+
+                // Reset transient state
+                group.IsRenaming = false;
+                group.RenameBuffer = string.Empty;
+                group.IsPopupSelected = false;
+            }
+
+            // Remap items
+            int count = 0;
+            foreach (var item in importedItems)
+            {
+                // Generate new MSGID to avoid collisions
+                item.MSGID = GenerateRandomId();
+
+                // Remap GroupId
+                if (item.GroupId != null && groupIdMap.TryGetValue(item.GroupId, out var newGroupId))
+                    item.GroupId = newGroupId;
+                else
+                {
+                    // Orphaned — assign to existing Default group
+                    var def = _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName);
+                    item.GroupId = def?.GroupId;
+                }
+
+                // Reset transient state
+                item.IsSelected = false;
+                item.IsEditing = false;
+                item.editMsg = string.Empty;
+                item.IsActive = false;
+
+                count++;
+            }
+
+            // Add to state on UI thread
+            _dispatcher.BeginInvoke(() =>
+            {
+                foreach (var group in importedGroups)
+                    _chatStatus.GroupList.Add(group);
+                foreach (var item in importedItems)
+                    _chatStatus.StatusList.Add(item);
+            });
+
+            SaveStatusList();
+            return count;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            _toast.Show("📥 Import", "Failed to import status data — invalid format.", ToastType.Warning, key: "status-import-failed");
+            return 0;
+        }
+    }
+
+    private static string SerializeExportBundle(
+        System.Collections.Generic.IEnumerable<StatusGroup> groups,
+        System.Collections.Generic.IEnumerable<StatusItem> items)
+    {
+        // Create clean DTOs to strip transient UI state
+        var cleanGroups = groups.Select(g => new
+        {
+            g.GroupId,
+            g.Name,
+            g.IsActiveForCycle,
+            g.CreationDate
+        }).ToList();
+
+        var cleanItems = items.Select(i => new
+        {
+            i.MSGID,
+            i.msg,
+            i.GroupId,
+            i.IsFavorite,
+            i.UseInCycle,
+            i.CreationDate,
+            i.LastEdited,
+            i.LastUsed
+        }).ToList();
+
+        var bundle = new
+        {
+            Version = CurrentSchemaVersion,
+            Groups = cleanGroups,
+            Items = cleanItems
+        };
+        return JsonConvert.SerializeObject(bundle, Formatting.Indented);
+    }
+
     // ── inner DTO ─────────────────────────────────────────────────────────────
 
     private sealed class StatusBundle

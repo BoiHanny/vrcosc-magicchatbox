@@ -1440,7 +1440,7 @@
                         Direction="-23"
                         RenderingBias="Performance"
                         ShadowDepth="0"
-                        Color="#5865F2" />
+                        Color="DarkBlue" />
                 </Border.Effect>
                 <Grid Margin="3">
                     <Grid.ColumnDefinitions>
@@ -1531,31 +1531,44 @@
                     <StackPanel
                         Grid.Column="2"
                         Margin="0,5,0,0"
-                        VerticalAlignment="Top"
-                        Orientation="Horizontal">
-                        <Button
-                            Margin="0,0,5,0"
-                            Command="{Binding ActivateSettingCommand}"
-                            CommandParameter="Settings_Discord"
-                            Style="{StaticResource CustomizePillButton}" />
-                        <ToggleButton
-                            Width="60"
-                            Height="19"
-                            Margin="0,0,5,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Content="DESKTOP"
-                            IsChecked="{Binding IntegrationSettings.IntgrDiscord_DESKTOP, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonDT}" />
-                        <ToggleButton
-                            Width="30"
-                            Height="19"
-                            Margin="0,0,5,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Content="VR"
-                            IsChecked="{Binding IntegrationSettings.IntgrDiscord_VR, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonVR}" />
+                        VerticalAlignment="Top">
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,5,0"
+                                Command="{Binding ActivateSettingCommand}"
+                                CommandParameter="Settings_Discord"
+                                Style="{StaticResource CustomizePillButton}" />
+                            <ToggleButton
+                                Width="60"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                VerticalAlignment="Center"
+                                Content="DESKTOP"
+                                IsChecked="{Binding IntegrationSettings.IntgrDiscord_DESKTOP, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButtonDT}" />
+                            <ToggleButton
+                                Width="30"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                VerticalAlignment="Center"
+                                Content="VR"
+                                IsChecked="{Binding IntegrationSettings.IntgrDiscord_VR, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButtonVR}" />
+                        </StackPanel>
+                        <StackPanel
+                            Margin="0,3,0,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <ToggleButton
+                                Width="40"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                VerticalAlignment="Center"
+                                Content="RICH"
+                                IsChecked="{Binding Modules.Discord.Settings.EnableRichPresence, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButton}"
+                                ToolTip="Discord Rich Presence — show VRChat status in your Discord profile" />
+                        </StackPanel>
                     </StackPanel>
                     <CheckBox
                         Name="Discord_switch"
@@ -1926,7 +1939,7 @@
                             <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_Soundpad"
+                                CommandParameter="Settings_Privacy"
                                 Style="{StaticResource CustomizePillButton}" />
                             <ToggleButton
                                 Width="60"
@@ -1966,116 +1979,299 @@
         <ListBoxItem
             Name="SpotifyItem"
             Margin="3"
-            Opacity="{Binding IntegrationDisplay.SpotifyOpacity}"
-            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <Border Margin="5" CornerRadius="5">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                        <GradientStop Color="DarkSlateBlue" />
-                        <GradientStop Offset="1" Color="{StaticResource AccentDeepPurpleColor}" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Border.Effect>
-                    <DropShadowEffect
-                        BlurRadius="5"
-                        Direction="-23"
-                        RenderingBias="Performance"
-                        ShadowDepth="0"
-                        Color="DarkBlue" />
-                </Border.Effect>
-                <Grid Margin="3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="50" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <!--  Image  -->
-                    <Image
-                        Grid.Column="0"
-                        Width="35"
-                        Margin="5"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Effect="{StaticResource ImageShadowEffect}"
-                        Source="/Img/Icons/spotify_ico.png" />
-                    <!--  Text Content  -->
-                    <StackPanel
-                        Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center">
-                        <StackPanel
-                            Margin="0,3,0,0"
+            Opacity="{Binding IntegrationDisplay.SpotifyOpacity}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Border Margin="5,0,5,0" CornerRadius="5">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Offset="0" Color="DarkSlateBlue" />
+                            <GradientStop Offset="1" Color="{StaticResource AccentDeepPurpleColor}" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect
+                            BlurRadius="5"
+                            Direction="-23"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="DarkBlue" />
+                    </Border.Effect>
+                    <Grid Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image
+                            Grid.Column="0"
+                            Width="35"
+                            Margin="5"
+                            HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Orientation="Horizontal">
+                            Effect="{StaticResource ImageShadowEffect}"
+                            Source="/Img/Icons/spotify_ico.png" />
+                        <StackPanel
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    VerticalAlignment="Center"
+                                    Effect="{StaticResource TextBlockShadowEffect}"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="20"
+                                    Foreground="White"
+                                    Text="Spotify"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    FontStyle="Italic"
+                                    Foreground="White"
+                                    Opacity="0.8"
+                                    Text="{Binding SpotifyDisplay.StatusText, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
                             <TextBlock
-                                VerticalAlignment="Center"
+                                Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
-                                FontSize="20"
-                                Foreground="White"
+                                FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Spotify"
-                                TextWrapping="Wrap" />
+                                TextWrapping="Wrap">
+                                <TextBlock.Foreground>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="White" />
+                                        <GradientStop Offset="1" Color="#FFD9E0FF" />
+                                    </RadialGradientBrush>
+                                </TextBlock.Foreground>
+                                <Run Text="Shows current track in chatbox. Customize template, toggle tokens, set polling interval, and configure Party/DJ output in Spotify settings." />
+                            </TextBlock>
+
+
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="2"
+                            Margin="0,5,0,0"
+                            VerticalAlignment="Top"
+                            Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,5,0"
+                                Command="{Binding ActivateSettingCommand}"
+                                CommandParameter="Settings_Spotify"
+                                Style="{StaticResource CustomizePillButton}" />
+                            <ToggleButton
+                                Width="60"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Content="DESKTOP"
+                                IsChecked="{Binding IntegrationSettings.IntgrSpotify_DESKTOP, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButtonDT}" />
+                            <ToggleButton
+                                Width="30"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Content="VR"
+                                IsChecked="{Binding IntegrationSettings.IntgrSpotify_VR, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButtonVR}" />
+                        </StackPanel>
+                        <CheckBox
+                            Name="Spotify_switch"
+                            Grid.Column="3"
+                            Margin="5,0,5,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Click="Update_Click"
+                            IsChecked="{Binding IntegrationSettings.IntgrSpotify, Mode=TwoWay}"
+                            Style="{DynamicResource Switch}" />
+                    </Grid>
+                </Border>
+
+                <Border
+                    Grid.Row="1"
+                    Margin="5,0,5,5"
+                    Padding="14,12,14,12"
+                    CornerRadius="0,0,6,6"
+                    Visibility="{Binding IntegrationSettings.IntgrSpotify, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="#221740" />
+                            <GradientStop Offset="1" Color="#1C1232" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0">
+                            <TextBlock
+                                FontFamily="Comfortaa Light"
+                                FontSize="16"
+                                Foreground="White"
+                                Text="{Binding SpotifyWidgetTitle, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="0,2,0,0"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="13"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="{Binding SpotifyWidgetArtist, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="0,2,0,0"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Opacity="0.7"
+                                Text="{Binding SpotifyWidgetAlbum, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
 
-                        <TextBlock
-                            Margin="0,3,0,0"
-                            Effect="{StaticResource TextBlockShadowEffect}"
-                            FontFamily="Comfortaa Light"
-                            FontSize="13"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            TextWrapping="Wrap">
-                            <TextBlock.Foreground>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="White" />
-                                    <GradientStop Offset="1" Color="{StaticResource AccentLightPurpleColor}" />
-                                </RadialGradientBrush>
-                            </TextBlock.Foreground>
-                            <Run Text="Control your Spotify music right from the stream. Display current playing song and artist information." />
-                        </TextBlock>
-                    </StackPanel>
-                    <!--  Toggle Button  -->
-                    <StackPanel
-                        Grid.Column="2"
-                        Margin="0,5,0,0"
-                        VerticalAlignment="Top"
-                        Orientation="Horizontal">
-                        <Button
-                            Margin="0,0,5,0"
-                            Command="{Binding ActivateSettingCommand}"
-                            CommandParameter="Settings_MediaLink"
-                            Style="{StaticResource CustomizePillButton}" />
-                        <ToggleButton
-                            Width="60"
-                            Height="19"
-                            Margin="0,0,5,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Content="DESKTOP"
-                            IsChecked="{Binding IntegrationSettings.IntgrSpotifyStatus_DESKTOP, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonDT}" />
-                        <ToggleButton
-                            Width="30"
-                            Height="19"
-                            Margin="0,0,5,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Content="VR"
-                            IsChecked="{Binding IntegrationSettings.IntgrSpotifyStatus_VR, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonVR}" />
-                    </StackPanel>
-                    <CheckBox
-                        Name="Spotify_switch"
-                        Grid.Column="3"
-                        Margin="5,0,5,0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Click="Update_Click"
-                        IsChecked="{Binding IntegrationSettings.IntgrScanSpotify_OLD, Mode=TwoWay}"
-                        Style="{DynamicResource Switch}" />
-                </Grid>
-            </Border>
+                        <StackPanel
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Foreground="{StaticResource AccentSpotifyBrush}"
+                                Text="{Binding SpotifyDisplay.LikedIcon}" />
+                            <TextBlock
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Foreground="{StaticResource AccentSpotifyBrush}"
+                                Text="{Binding SpotifyDisplay.ShuffleIcon}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Foreground="{StaticResource AccentSpotifyBrush}"
+                                Text="{Binding SpotifyDisplay.RepeatIcon}" />
+                        </StackPanel>
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            Margin="0,8,0,0"
+                            Visibility="{Binding SpotifySettings.ShowWidgetProgress, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                            <ProgressBar
+                                Height="6"
+                                Maximum="100"
+                                Value="{Binding SpotifyDisplay.ProgressPercent, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="0,3,0,0"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="{Binding SpotifyDisplay.ProgressDisplay}" />
+                        </StackPanel>
+
+                        <Grid
+                            Grid.Row="2"
+                            Grid.ColumnSpan="2"
+                            Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <WrapPanel Visibility="{Binding SpotifySettings.ShowWidgetControls, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyPreviousCommand}"
+                                    Content="⏮"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyPlayPauseCommand}"
+                                    Content="Play/Pause"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyNextCommand}"
+                                    Content="⏭"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyToggleLikeCommand}"
+                                    Content="♥"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyToggleShuffleCommand}"
+                                    Content="🔀"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyCycleRepeatCommand}"
+                                    Content="🔁"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyOpenCurrentTrackCommand}"
+                                    Content="↗"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="32"
+                                    Height="26"
+                                    Margin="0,0,4,0"
+                                    Command="{Binding SpotifyRefreshCommand}"
+                                    Content="⟳"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </WrapPanel>
+                            <StackPanel
+                                Grid.Column="1"
+                                Margin="10,0,0,0"
+                                Orientation="Horizontal"
+                                Visibility="{Binding SpotifySettings.ShowWidgetVolume, Converter={StaticResource InverseBoolToHiddenConverter}}">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Text="Vol" />
+                                <Slider
+                                    Width="105"
+                                    Margin="6,0,0,0"
+                                    Maximum="100"
+                                    Minimum="0"
+                                    PreviewMouseLeftButtonUp="SpotifyVolume_MouseLeftButtonUp"
+                                    Value="{Binding SpotifyDisplay.VolumePercent, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
         </ListBoxItem>
 
         <ListBoxItem

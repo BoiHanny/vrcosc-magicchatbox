@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
+using vrcosc_magicchatbox.Classes.Modules.Spotify;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
@@ -34,7 +35,11 @@ public class ModuleBootstrapper
     private readonly IMessenger _messenger;
     private readonly PulsoidOAuthHandler _pulsoidOAuth;
     private readonly IPulsoidClient _pulsoidClient;
+    private readonly ISpotifyApiClient _spotifyApiClient;
+    private readonly SpotifyOAuthHandler _spotifyOAuth;
     private readonly TrackerDisplayState _trackerDisplay;
+    private readonly SpotifyDisplayState _spotifyDisplay;
+    private readonly MediaLinkDisplayState _mediaLinkDisplay;
     private readonly IntegrationDisplayState _integrationDisplay;
     private readonly ITwitchApiClient _twitchApiClient;
     private readonly IOpenAiChatService _chatService;
@@ -43,8 +48,10 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TwitchSettings> _twitchSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
+    private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
     private readonly ISettingsProvider<VrcLogSettings> _vrcLogSettingsProvider;
     private readonly Lazy<DiscordOAuthHandler> _discordOAuth;
+    private readonly DiscordRichPresenceService _discordRichPresence;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -68,7 +75,11 @@ public class ModuleBootstrapper
         IMessenger messenger,
         PulsoidOAuthHandler pulsoidOAuth,
         IPulsoidClient pulsoidClient,
+        ISpotifyApiClient spotifyApiClient,
+        SpotifyOAuthHandler spotifyOAuth,
         TrackerDisplayState trackerDisplay,
+        SpotifyDisplayState spotifyDisplay,
+        MediaLinkDisplayState mediaLinkDisplay,
         IntegrationDisplayState integrationDisplay,
         ITwitchApiClient twitchApiClient,
         IOpenAiChatService chatService,
@@ -77,8 +88,10 @@ public class ModuleBootstrapper
         ISettingsProvider<TwitchSettings> twitchSettingsProvider,
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
         ISettingsProvider<DiscordSettings> discordSettingsProvider,
+        ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<VrcLogSettings> vrcLogSettingsProvider,
         Lazy<DiscordOAuthHandler> discordOAuth,
+        DiscordRichPresenceService discordRichPresence,
         IPrivacyConsentService consentService,
         IToastService toast)
     {
@@ -94,7 +107,11 @@ public class ModuleBootstrapper
         _messenger = messenger;
         _pulsoidOAuth = pulsoidOAuth;
         _pulsoidClient = pulsoidClient;
+        _spotifyApiClient = spotifyApiClient;
+        _spotifyOAuth = spotifyOAuth;
         _trackerDisplay = trackerDisplay;
+        _spotifyDisplay = spotifyDisplay;
+        _mediaLinkDisplay = mediaLinkDisplay;
         _integrationDisplay = integrationDisplay;
         _twitchApiClient = twitchApiClient;
         _chatService = chatService;
@@ -103,8 +120,10 @@ public class ModuleBootstrapper
         _twitchSettingsProvider = twitchSettingsProvider;
         _trackerSettingsProvider = trackerSettingsProvider;
         _discordSettingsProvider = discordSettingsProvider;
+        _spotifySettingsProvider = spotifySettingsProvider;
         _vrcLogSettingsProvider = vrcLogSettingsProvider;
         _discordOAuth = discordOAuth;
+        _discordRichPresence = discordRichPresence;
         _consentService = consentService;
         _toast = toast;
     }
@@ -172,8 +191,16 @@ public class ModuleBootstrapper
         var discord = await CreateRuntimeModuleAsync("Discord", () => new DiscordModule(
             _discordSettingsProvider,
             _oscSender,
+            _dispatcher));
+        var spotify = await CreateRuntimeModuleAsync("Spotify", () => new SpotifyModule(
+            _spotifySettingsProvider,
+            _spotifyDisplay,
+            _mediaLinkDisplay,
+            _spotifyApiClient,
+            _spotifyOAuth,
+            integrationSettings,
             _dispatcher,
-            _discordOAuth));
+            _toast));
         var tracker = await CreateRuntimeModuleAsync("TrackerBattery", () => new TrackerBatteryModule(
             _trackerSettingsProvider,
             _appState,
@@ -216,6 +243,15 @@ public class ModuleBootstrapper
                 _host.RegisterModule(discord);
             }
 
+            if (spotify != null)
+            {
+                _host.Spotify = spotify;
+                _host.RegisterModule(spotify);
+                integrationSettings.PropertyChanged += spotify.PropertyChangedHandler;
+                if (integrationSettings.IntgrSpotify && spotify.Settings.AutoConnectOnStartup)
+                    _ = spotify.StartAsync();
+            }
+
             if (tracker != null)
             {
                 _host.TrackerBattery = tracker;
@@ -227,6 +263,71 @@ public class ModuleBootstrapper
                 _host.VrcRadar = vrcRadar;
                 _host.RegisterModule(vrcRadar);
                 integrationSettings.PropertyChanged += vrcRadar.PropertyChangedHandler;
+            }
+
+            // Wire VRChat Radar → Discord Rich Presence updates.
+            // Rich Presence uses DiscordRichPresence; DiscordModule remains voice IPC only.
+            if (vrcRadar != null)
+            {
+                vrcRadar.OnVrcWorldStateChanged += () =>
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var worldName = vrcRadar.CurrentWorldName == "Not in a world" ? null : vrcRadar.CurrentWorldName;
+                            await _discordRichPresence.UpdateAsync(
+                                worldName,
+                                vrcRadar.PlayerCount,
+                                vrcRadar.InstanceType,
+                                vrcRadar.Region,
+                                vrcRadar.GetCurrentJoinUrl(),
+                                vrcRadar.WorldJoinedAt);
+                        }
+                        catch (Exception ex) { Logging.WriteInfo($"Discord RP update failed: {ex.Message}"); }
+                    });
+                };
+
+                // Handle EnableRichPresence toggle changes
+                _discordSettingsProvider.Value.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName is nameof(DiscordSettings.EnableRichPresence)
+                        or nameof(DiscordSettings.RichPresenceDetails)
+                        or nameof(DiscordSettings.RichPresenceState)
+                        or nameof(DiscordSettings.RichPresenceShowElapsed)
+                        or nameof(DiscordSettings.RichPresenceShowJoinButton)
+                        or nameof(DiscordSettings.RichPresenceLargeText)
+                        or nameof(DiscordSettings.RichPresenceLargeImageKey)
+                        or nameof(DiscordSettings.RichPresenceSmallImageKey)
+                        or nameof(DiscordSettings.RichPresenceSmallText)
+                        or nameof(DiscordSettings.RichPresenceShowVrDesktopMode)
+                        or nameof(DiscordSettings.RichPresenceJoinButtonLabel)
+                        or nameof(DiscordSettings.VoiceClientId))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                if (_discordSettingsProvider.Value.EnableRichPresence)
+                                {
+                                    var worldName = vrcRadar.CurrentWorldName == "Not in a world" ? null : vrcRadar.CurrentWorldName;
+                                    await _discordRichPresence.UpdateAsync(
+                                        worldName,
+                                        vrcRadar.PlayerCount,
+                                        vrcRadar.InstanceType,
+                                        vrcRadar.Region,
+                                        vrcRadar.GetCurrentJoinUrl(),
+                                        vrcRadar.WorldJoinedAt);
+                                }
+                                else
+                                {
+                                    await _discordRichPresence.ClearAsync();
+                                }
+                            }
+                            catch (Exception ex) { Logging.WriteInfo($"Discord RP toggle handler failed: {ex.Message}"); }
+                        });
+                    }
+                };
             }
 
             // Wire up static IntegrationSettings reference for MediaLinkSettings POCO
@@ -246,7 +347,7 @@ public class ModuleBootstrapper
             }
         });
 
-        // Discord auto-connect: start the module if user has a saved token and auto-connect enabled
+        // Discord voice auto-connect: start the voice IPC module only when voice auth is available.
         if (discord != null)
         {
             _ = Task.Run(async () =>
@@ -254,18 +355,39 @@ public class ModuleBootstrapper
                 try
                 {
                     await _startupComplete.Task; // wait for full startup instead of fixed delay
-                    if (discord.Settings.AutoConnectOnStartup &&
-                        !string.IsNullOrWhiteSpace(discord.Settings.AccessToken))
+                    bool hasToken = !string.IsNullOrWhiteSpace(discord.Settings.AccessToken);
+
+                    if (discord.Settings.AutoConnectOnStartup && hasToken)
                     {
-                        Logging.WriteInfo("Discord: Auto-connecting on startup...");
+                        Logging.WriteInfo($"Discord voice: Auto-connecting on startup (hasToken={hasToken}, richPresenceRunning={_discordRichPresence.IsRunning})...");
                         await discord.StartAsync();
                     }
                     else
                     {
-                        Logging.WriteInfo($"Discord: Auto-connect skipped (enabled={discord.Settings.AutoConnectOnStartup}, hasToken={!string.IsNullOrWhiteSpace(discord.Settings.AccessToken)})");
+                        Logging.WriteInfo($"Discord voice: Auto-connect skipped (enabled={discord.Settings.AutoConnectOnStartup}, hasToken={hasToken})");
                     }
                 }
                 catch (Exception ex) { Logging.WriteInfo($"Discord auto-connect failed: {ex.Message}"); }
+            });
+        }
+
+        if (_discordSettingsProvider.Value.EnableRichPresence && vrcRadar != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _startupComplete.Task;
+                    var worldName = vrcRadar.CurrentWorldName == "Not in a world" ? null : vrcRadar.CurrentWorldName;
+                    await _discordRichPresence.UpdateAsync(
+                        worldName,
+                        vrcRadar.PlayerCount,
+                        vrcRadar.InstanceType,
+                        vrcRadar.Region,
+                        vrcRadar.GetCurrentJoinUrl(),
+                        vrcRadar.WorldJoinedAt);
+                }
+                catch (Exception ex) { Logging.WriteInfo($"Discord RP startup update failed: {ex.Message}"); }
             });
         }
 

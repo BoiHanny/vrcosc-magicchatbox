@@ -207,9 +207,7 @@
                     </StackPanel>
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Requires a user access token. Use '⚙ Setup Twitch' above to configure." />
                     <TextBlock
                         Margin="0,10,0,0"
@@ -254,9 +252,7 @@
                     <TextBlock
                         Margin="0,12,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Comfortaa Light"
-                        FontSize="16"
-                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Output" />
                     <CheckBox
                         x:Name="TwitchUseSmallText_checkbox"
@@ -461,9 +457,7 @@
                         Visibility="{Binding Modules.Twitch.Settings.TemplateHasValue, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Separators are ignored while a template is set."
                         Visibility="{Binding Modules.Twitch.Settings.TemplateHasValue, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
@@ -485,9 +479,7 @@
                         Text="{Binding Modules.Twitch.Settings.Template, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Tip: use \n for a new line in the template." />
                     <TextBlock
                         Margin="0,12,0,0"
@@ -507,30 +499,23 @@
                         Text="{Binding Modules.Twitch.Settings.OfflineMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="13"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Leave empty to hide when offline." />
                     <TextBlock
                         Margin="0,14,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Comfortaa Light"
-                        FontSize="16"
-                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Community tools" />
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        FontStyle="Italic"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Announcements and shoutouts post directly to Twitch chat."
                         TextWrapping="Wrap" />
                     <Border
                         Margin="0,8,0,0"
-                        Background="{StaticResource SurfaceCardBrush}"
+                        Style="{StaticResource OptionCardStyle}"
                         CornerRadius="6">
-                        <Grid Margin="8">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="6" />
                                 <ColumnDefinition Width="*" />
@@ -542,16 +527,11 @@
                             <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                 <TextBlock
                                     Padding="0,0,0,0"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="16"
-                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                                     Text="Announcements" />
                                 <TextBlock
                                     Margin="0,2,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    FontStyle="Italic"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionHelpTextStyle}"
                                     Text="Requires moderator:manage:announcements."
                                     TextWrapping="Wrap" />
                                 <CheckBox
@@ -638,9 +618,9 @@
                     </Border>
                     <Border
                         Margin="0,8,0,0"
-                        Background="{StaticResource SurfaceCardBrush}"
+                        Style="{StaticResource OptionCardStyle}"
                         CornerRadius="6">
-                        <Grid Margin="8">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="6" />
                                 <ColumnDefinition Width="*" />
@@ -652,16 +632,11 @@
                             <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                 <TextBlock
                                     Padding="0,0,0,0"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="16"
-                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Style="{StaticResource OptionSubsectionHeaderStyle}"
                                     Text="Shoutouts" />
                                 <TextBlock
                                     Margin="0,2,0,0"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    FontStyle="Italic"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionHelpTextStyle}"
                                     Text="Requires moderator:manage:shoutouts."
                                     TextWrapping="Wrap" />
                                 <CheckBox
@@ -725,9 +700,7 @@
                                             Text="{Binding Modules.Twitch.Settings.ShoutoutAnnouncementTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock
                                             Margin="0,2,0,0"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="12"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionHelpTextStyle}"
                                             Text="Tokens: {user} {url}" />
                                         <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
                                             <TextBlock

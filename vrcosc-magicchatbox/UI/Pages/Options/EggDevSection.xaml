@@ -51,12 +51,16 @@
             Height="Auto"
             Margin="35,10,0,0"
             Visibility="{Binding AppSettings.SettingsDev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <CheckBox
-                x:Name="BlankEgg_checkbox"
-                IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}"
-                Style="{DynamicResource SettingsCheckbox}">
-                ItsByMe MODE
-            </CheckBox>
+            <Border >
+                <StackPanel>
+                    <CheckBox
+                        x:Name="BlankEgg_checkbox"
+                        IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        ItsByMe MODE
+                    </CheckBox>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

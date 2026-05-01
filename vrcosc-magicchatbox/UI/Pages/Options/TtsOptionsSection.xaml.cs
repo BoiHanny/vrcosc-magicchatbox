@@ -8,7 +8,7 @@ namespace vrcosc_magicchatbox.UI.Pages.Options;
 /// <summary>Code-behind for the text-to-speech options settings section.</summary>
 public partial class TtsOptionsSection : UserControl
 {
-    private TtsSectionViewModel VM => (TtsSectionViewModel)DataContext;
+    private TtsSectionViewModel? VM => DataContext as TtsSectionViewModel;
 
     public TtsOptionsSection()
     {
@@ -16,10 +16,16 @@ public partial class TtsOptionsSection : UserControl
     }
 
     private void LearnMoreAboutTTSbtn_MouseUp(object sender, MouseButtonEventArgs e)
-        => VM.LearnMoreTtsCommand.Execute(null);
+        => VM?.LearnMoreTtsCommand.Execute(null);
 
     private void PlaybackOutputDeviceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         => VM?.OnPlaybackDeviceSelected();
+
+    private void TikTokTTSVoicesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox { SelectedItem: Voice voice })
+            VM?.OnTtsVoiceSelected(voice);
+    }
 
     public void SelectTTSOutput()
     {

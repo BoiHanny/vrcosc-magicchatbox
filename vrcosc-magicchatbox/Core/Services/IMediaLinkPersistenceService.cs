@@ -14,4 +14,6 @@ public interface IMediaLinkPersistenceService
     void SaveSeekbarStyles();
     void AddNewSeekbarStyle();
     void DeleteSelectedSeekbarStyleAndSelectDefault();
+    void ExportSeekbarStyles(string filePath);
+    int ImportSeekbarStyles(string filePath);
 }

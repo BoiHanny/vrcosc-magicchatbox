@@ -55,6 +55,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <StackPanel>
                 <TextBlock
@@ -63,7 +64,7 @@
                     VerticalAlignment="Center"
                     FontFamily="Albert Sans Thin"
                     FontSize="15"
-                    Foreground="PaleVioletRed"
+                    Foreground="{StaticResource TextDangerRedBrush}"
                     Text="{Binding WindowActivity.ErrorInWindowActivityMsg, UpdateSourceTrigger=PropertyChanged}"
                     TextWrapping="Wrap"
                     Visibility="{Binding WindowActivity.ErrorInWindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
@@ -128,6 +129,35 @@
                         Style="{DynamicResource SettingsCheckbox}">
                         Show desktop focused app
                     </CheckBox>
+                    <CheckBox
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.ShowRegexColumn, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show custom regex column (per-app title filter)
+                    </CheckBox>
+                    <CheckBox
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.UseGlobalRegex, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Apply global regex to all app titles
+                    </CheckBox>
+                    <StackPanel
+                        Margin="24,4,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding WindowActivitySettings.UseGlobalRegex, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{StaticResource TextBodyBrush}"
+                            Text="Global regex: " />
+                        <TextBox
+                            Width="300"
+                            Padding="5,2"
+                            VerticalContentAlignment="Center"
+                            FontSize="13"
+                            Text="{Binding WindowActivitySettings.GlobalRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ToolTip="Applied to every window title before per-app regex. First capture group () becomes the title." />
+                    </StackPanel>
                     <TextBlock
                         Width="auto"
                         Padding="0,10,0,0"
@@ -258,11 +288,61 @@
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="{Binding WindowActivity.DeletedAppslabel, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
-            <Border
+            <StackPanel
                 Grid.Row="4"
-                Width="745"
+                Margin="0,15,0,0"
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="Filter apps" />
+                <TextBox
+                    Width="190"
+                    Margin="0,0,8,0"
+                    Padding="5,0"
+                    VerticalContentAlignment="Center"
+                    FontSize="14"
+                    Text="{Binding WindowActivity.AppFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="Search by process or custom app name" />
+                <CheckBox
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding WindowActivity.ShowImportantAppsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Style="{DynamicResource SettingsCheckbox}"
+                    ToolTip="Shows apps with custom/private settings or apps focused more than once.">
+                    Important only
+                </CheckBox>
+                <TextBlock
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="Min focused" />
+                <TextBox
+                    Width="45"
+                    Margin="0,0,8,0"
+                    Padding="5,0"
+                    VerticalContentAlignment="Center"
+                    FontSize="14"
+                    Text="{Binding WindowActivity.MinimumFocusCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="Show apps focused at least this many times" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    Text="{Binding WindowActivity.FilteredAppsSummary, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <Border
+                Grid.Row="5"
+                Width="auto"
+                MinWidth="745"
                 Margin="0,15,1,0"
-                HorizontalAlignment="Left"
+                HorizontalAlignment="Stretch"
                 CornerRadius="5">
                 <Border.Background>
                     <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
@@ -278,6 +358,7 @@
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="65" />
                         <ColumnDefinition Width="185" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <Button
@@ -349,6 +430,20 @@
                             FontSize="14"
                             Text="Custom app name" />
                     </Button>
+                    <Button
+                        Grid.Column="6"
+                        Margin="3,0"
+                        HorizontalAlignment="Stretch"
+                        Style="{StaticResource Sort_Button_style}"
+                        Visibility="{Binding WindowActivitySettings.ShowRegexColumn, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Custom reg…"
+                            TextTrimming="CharacterEllipsis"
+                            ToolTip="Custom regex" />
+                    </Button>
                 </Grid>
                 <Border.Effect>
                     <DropShadowEffect
@@ -361,9 +456,9 @@
                 </Border.Effect>
             </Border>
             <ItemsControl
-                Grid.Row="5"
-                HorizontalAlignment="Left"
-                ItemsSource="{Binding WindowActivity.ScannedApps, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                Grid.Row="6"
+                HorizontalAlignment="Stretch"
+                ItemsSource="{Binding WindowActivity.ScannedAppsView, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ProcessInfo}">
                         <Border
@@ -383,7 +478,8 @@
                                     <ColumnDefinition Width="125" />
                                     <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="65" />
-                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="185" />
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock
                                     Grid.Column="0"
@@ -438,6 +534,26 @@
                                         FontSize="15"
                                         IsEnabled="{Binding ApplyCustomAppName}"
                                         Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="6"
+                                    Orientation="Horizontal"
+                                    Visibility="{Binding DataContext.WindowActivitySettings.ShowRegexColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <CheckBox
+                                        Width="23"
+                                        Margin="5,0,0,0"
+                                        IsChecked="{Binding UseCustomRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}" />
+                                    <TextBox
+                                        MinWidth="100"
+                                        Margin="5,0,5,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="14"
+                                        IsEnabled="{Binding UseCustomRegex}"
+                                        Text="{Binding CustomRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ToolTip="{Binding CustomRegex}" />
                                 </StackPanel>
                             </Grid>
                             <Border.Effect>

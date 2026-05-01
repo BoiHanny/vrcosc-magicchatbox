@@ -19,6 +19,16 @@ public interface IMenuNavigationService
     void NavigateToPage(int pageIndex);
 
     /// <summary>
+    /// Navigates back to the previous menu tab when history is available.
+    /// </summary>
+    void NavigateBack();
+
+    /// <summary>
+    /// Navigates forward after a back navigation when history is available.
+    /// </summary>
+    void NavigateForward();
+
+    /// <summary>
     /// Navigates to the Options page and expands the Privacy &amp; Permissions section.
     /// </summary>
     void NavigateToPrivacy();

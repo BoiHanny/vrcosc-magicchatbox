@@ -51,10 +51,11 @@
                                         Grid.Column="0"
                                         Padding="0,0,0,3"
                                         HorizontalAlignment="Left"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Text="Local IP address" />
+                                         FontFamily="Albert Sans Thin"
+                                         FontSize="15"
+                                         Foreground="{StaticResource TextLabelBrush}"
+                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                         Text="Local IP address" />
                                     <StackPanel Orientation="Horizontal">
                                         <TextBox
                                             x:Name="OSCIPBox"
@@ -98,10 +99,11 @@
                                         Grid.Column="0"
                                         Padding="0,10,0,3"
                                         HorizontalAlignment="Left"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Text="Port (outgoing)" />
+                                         FontFamily="Albert Sans Thin"
+                                         FontSize="15"
+                                         Foreground="{StaticResource TextLabelBrush}"
+                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                         Text="Port (outgoing)" />
                                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                                         <TextBox
                                             x:Name="OSCPortOut"
@@ -151,10 +153,11 @@
                                     Width="auto"
                                     Padding="0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
-                                    Text="OSC update rate" />
+                                     FontFamily="Albert Sans Thin"
+                                     FontSize="15"
+                                     Foreground="{StaticResource TextLabelBrush}"
+                                     Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                     Text="OSC update rate" />
                                 <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                                     <Slider
                                         x:Name="ScanningIntervalSensitivitySlider"
@@ -193,18 +196,18 @@
                                 </CheckBox>
                                 <Border
                                     Margin="0,0,0,15"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5"
+                                    Style="{StaticResource OptionCardStyle}"
                                     Visibility="{Binding OscSettings.SecOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
                                         <TextBlock
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
                                             HorizontalAlignment="Left"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Text="2nd IP address" />
+                                             FontFamily="Albert Sans Thin"
+                                             FontSize="15"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                             Text="2nd IP address" />
                                         <TextBox
                                             x:Name="SecOSCIP"
                                             Width="100"
@@ -218,10 +221,11 @@
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
                                             HorizontalAlignment="Left"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Text="2nd VRChat port (outgoing)" />
+                                             FontFamily="Albert Sans Thin"
+                                             FontSize="15"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                             Text="2nd VRChat port (outgoing)" />
                                         <TextBox
                                             x:Name="SecOSCPort"
                                             Width="100"
@@ -249,18 +253,18 @@
                                 </CheckBox>
                                 <Border
                                     Margin="0,0,0,15"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5"
+                                    Style="{StaticResource OptionCardStyle}"
                                     Visibility="{Binding OscSettings.ThirdOSC, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <StackPanel Margin="5">
                                         <TextBlock
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
                                             HorizontalAlignment="Left"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Text="3rd IP address" />
+                                             FontFamily="Albert Sans Thin"
+                                             FontSize="15"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                             Text="3rd IP address" />
                                         <TextBox
                                             x:Name="ThirdOSCIP"
                                             Width="100"
@@ -274,10 +278,11 @@
                                             Grid.Column="0"
                                             Padding="0,0,0,0"
                                             HorizontalAlignment="Left"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Text="3rd VRChat port (outgoing)" />
+                                             FontFamily="Albert Sans Thin"
+                                             FontSize="15"
+                                             Foreground="{StaticResource TextLabelBrush}"
+                                             Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                             Text="3rd VRChat port (outgoing)" />
                                         <TextBox
                                             x:Name="ThirdOSCPort"
                                             Width="100"
@@ -319,10 +324,11 @@
                                     <TextBlock
                                         Padding="0,0,0,3"
                                         HorizontalAlignment="Left"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Text="OSC separator (when not using ENTER)" />
+                                         FontFamily="Albert Sans Thin"
+                                         FontSize="15"
+                                         Foreground="{StaticResource TextLabelBrush}"
+                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                         Text="OSC separator (when not using ENTER)" />
                                     <TextBox
                                         x:Name="OscMessageSeparator"
                                         Width="140"
@@ -336,10 +342,11 @@
                                     <TextBlock
                                         Padding="0,0,0,3"
                                         HorizontalAlignment="Left"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Text="OSC message prefix" />
+                                         FontFamily="Albert Sans Thin"
+                                         FontSize="15"
+                                         Foreground="{StaticResource TextLabelBrush}"
+                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                         Text="OSC message prefix" />
                                     <TextBox
                                         x:Name="OscMessagePrefix"
                                         Width="220"
@@ -353,10 +360,11 @@
                                     <TextBlock
                                         Padding="0,0,0,3"
                                         HorizontalAlignment="Left"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Text="OSC message suffix" />
+                                         FontFamily="Albert Sans Thin"
+                                         FontSize="15"
+                                         Foreground="{StaticResource TextLabelBrush}"
+                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                         Text="OSC message suffix" />
                                     <TextBox
                                         x:Name="OscMessageSuffix"
                                         Width="220"
@@ -367,11 +375,12 @@
                                         Text="{Binding AppSettings.OscMessageSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                                 <TextBlock
-                                    Margin="0,0,0,15"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextLabelBrush}"
-                                    Text="Tip: use /n for a new line." />
+                                     Margin="0,0,0,15"
+                                     FontFamily="Albert Sans Thin"
+                                     FontSize="13"
+                                     Foreground="{StaticResource TextLabelBrush}"
+                                     Style="{StaticResource OptionHelpTextStyle}"
+                                     Text="Tip: use /n for a new line." />
 
                                 <CheckBox
                                     x:Name="ToggleVoiceWithV"

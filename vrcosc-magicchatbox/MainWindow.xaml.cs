@@ -111,6 +111,7 @@ namespace vrcosc_magicchatbox
             _persistence = persistence;
 
             Closing += MainWindow_ClosingAsync;
+            PreviewMouseDown += MainWindow_PreviewMouseDown;
         }
 
         public void ApplyIntegrationOrder()
@@ -120,9 +121,33 @@ namespace vrcosc_magicchatbox
 
         private void ReorderIntegrations_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new UI.Dialogs.ReorderIntegrations(VM.Integrations.IntegrationDisplay, VM.Integrations.IntegrationSettingsProvider);
-            DialogWindowHelper.PrepareModal(dialog, this);
-            dialog.ShowDialog();
+            try
+            {
+                var dialog = new UI.Dialogs.ReorderIntegrations(VM.Integrations.IntegrationDisplay, VM.Integrations.IntegrationSettingsProvider);
+                DialogWindowHelper.PrepareModal(dialog, this);
+                dialog.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is not ViewModel viewModel)
+                return;
+
+            if (e.ChangedButton == MouseButton.XButton1)
+            {
+                viewModel.NavigateBackCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (e.ChangedButton == MouseButton.XButton2)
+            {
+                viewModel.NavigateForwardCommand.Execute(null);
+                e.Handled = true;
+            }
         }
 
         private void WhisperModule_SentChat()
@@ -212,8 +237,8 @@ namespace vrcosc_magicchatbox
 
         private void TikTokTTSVoices_combo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox)
-                VM.Options.TtsSection.OnTtsVoiceSelected(comboBox.SelectedItem as Voice);
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is Voice voice)
+                VM.Options.TtsSection.OnTtsVoiceSelected(voice);
         }
 
         private void SelectTTS()
