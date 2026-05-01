@@ -6,56 +6,116 @@
 
 ---
 
-**MagicChatBox** is a feature-rich OSC companion for VRChat. Display real-time status information, control integrations, and enhance your social presence—all from a single, polished desktop app built on .NET 10.
+`Welcome to MagicChatBox – the ultimate VRChat upgrade! Unlock new features, enhance your interactions, and take your virtual experience to the next level. Now powered by .NET 10 for faster performance, improved stability, and a modernized interface.`
 
 > [!IMPORTANT]
-> **Please review our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before downloading or using MagicChatBox.**  
-> It covers how we protect your privacy and the rules for using the software.
+> **We highly recommend reading our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before you download or use MagicChatBox.**  
+> It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
 
 ## Installation
 
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/01533802fb696b6dd746b05367fd97a5d9280e6f24cd13fa3032a784a774a290/detection)
 
-1. [Download the latest release](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) ZIP file
-2. Install the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) from Microsoft
-3. Extract the ZIP into a folder of your choice
-4. Run **MagicChatBox.exe**
+- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) **the latest release of MagicChatBox**
+- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) **.NET 10 Desktop Runtime from Microsoft**
+- 🔳 Extract the ZIP File into a folder
+- 🔳 Run **MagicChatBox.exe**
+- 🔳 You're good to go now!
 
-Need help? Join our [Discord Server](https://discord.gg/magicchatbox) for setup assistance.
+If you need any further help `setting up` the program, join our `Discord Server`.
 
 > [!IMPORTANT]
-> **You must [enable OSC](https://youtu.be/OHjN_q6RqGY?t=80) in VRChat for MagicChatBox to function.**
+> **You need to [enable OSC](https://youtu.be/OHjN_q6RqGY?t=80) inside VRChat in order to have the program working!**
 
 ## Features
 
-| Module | Description |
-|--------|-------------|
-| 💭 **Personal Status** | Set and cycle custom status messages in your VRChat chatbox |
-| 🧭 **Window Activity** | Automatically display your currently active application |
-| 🩵 **Heart Rate** | Show live heart rate data via Pulsoid integration |
-| 🎛️ **Component Stats** | Display CPU, GPU, and RAM usage in real time |
-| 🧠 **Chatting Module** | Type and send messages directly to the VRChat chatbox |
-| ⚗️ **OpenAI Module** | AI-powered text generation and smart replies |
-| ⛓️‍💥 **Network Stats** | Monitor upload/download speeds and latency |
-| 📆 **Time Status** | Show current date and time in customizable formats |
-| 🎶 **Media & Spotify** | Show currently playing music from any app, with dedicated Spotify OAuth integration for rich track details |
-| 💤 **AFK Module** | Automatically set an away status when idle |
-| 🎼 **Soundpad** | Trigger sound effects directly from the app |
-| 🎮 **Discord Rich Presence** | Share MagicChatBox activity on your Discord profile |
-| 📡 **Twitch Integration** | Display follower count, announcements, and shoutouts |
+### 💭 Personal Status
+Set and cycle through custom status messages displayed directly in your VRChat chatbox. Supports multiple status lines, custom prefixes, and automatic rotation intervals.
+
+### 🧭 Window Activity
+Automatically detects and displays the name of your currently focused Windows application in VRChat. Includes privacy filtering to hide sensitive window titles and resolves friendly application display names.
+
+### 🩵 Heart Rate (Pulsoid)
+Connects to Pulsoid via WebSocket to display real-time BPM from your wearable heart rate monitor. Features smoothing algorithms, history tracking, and customizable display formatting with trend indicators.
 
 > [!IMPORTANT]
-> **Heart Rate** requires an active [Pulsoid](https://pulsoid.net/) subscription.
+> **Heart Rate** requires an official `Pulsoid Member` subscription.
+
+### 🎛️ Component Stats
+Monitors your hardware in real time using LibreHardwareMonitor sensors. Displays CPU usage/temperature, GPU usage/temperature, RAM utilization (with DDR version detection), and VRAM consumption — all formatted for the VRChat chatbox.
+
+### 🧠 IntelliChat
+AI-powered text enhancement directly in your chat workflow. Offers smart autocompletion, grammar correction, translation to any language, and tone adjustments — all powered by OpenAI's chat API for fast inline suggestions.
+
+### ⚗️ OpenAI & Whisper
+Full OpenAI integration providing both text generation (GPT) and speech-to-text transcription (Whisper). Whisper supports multiple languages, noise gating, silence detection, and optional translation — turning your voice into VRChat chatbox text hands-free.
+
+### 🔊 Text-to-Speech (TTS)
+Converts your typed messages into spoken audio using the TikTok TTS API. Choose from multiple voice options and hear your messages played back or sent over OSC.
+
+### ⛓️‍💥 Network Stats
+Monitors your active network interface and displays real-time download/upload speeds, total data transferred, and network utilization percentage — ideal for showing connection quality in VRChat.
+
+### 📆 Time Status
+Displays the current date and time in fully customizable formats. Supports timezone configuration and flexible formatting options to match your style.
+
+### 🎶 Media Activity
+Captures playback state and metadata from any Windows media source via the system media transport controls. Shows song title, artist, album, and playback status from any media player.
+
+### 🎵 Spotify Integration
+Dedicated Spotify module with full OAuth authentication. Displays rich track details including song name, artist, album, and playback progress directly from the Spotify Web API with automatic token refresh.
+
+### 💤 AFK Module
+Detects keyboard and mouse inactivity and automatically displays an AFK status with configurable idle threshold, customizable prefix, and an elapsed-time counter showing how long you've been away.
+
+### 🎼 Soundpad
+Connects to the Soundpad application via named pipe to trigger sound effects remotely. Displays the currently playing sound and provides playback control directly from MagicChatBox.
+
+### 🎮 Discord Integration
+Full Discord Rich Presence support showing your MagicChatBox activity on your profile. Also tracks voice channel membership, speaking/mute/deafen status, and participant count via Discord IPC with secure PKCE OAuth and automatic token refresh.
+
+### 📡 Twitch Integration
+Connects to the Twitch API to display your live stream status, current viewer count, follower count, game category, and stream title. Includes built-in buttons to send chat announcements and shoutouts to other streamers.
+
+### 🔋 VR Tracker Battery
+Reads battery levels from your SteamVR trackers, controllers, and headset via OpenVR. Displays formatted battery percentages with customizable device icons so you always know when it's time to charge.
+
+### 🌐 VRChat Radar
+Parses VRChat's output log in real time to extract world information, player join/leave events, instance metadata, and session statistics. Tracks encounters with other players across sessions.
+
+### 🌤️ Weather
+Fetches current weather conditions from the Open-Meteo API. Supports location lookup by city name, GPS coordinates, or automatic IP-based detection. Displays temperature, conditions, and weather icons in your chatbox.
+
+---
+
+## UI & Interface Improvements
+
+The latest releases include a full interface overhaul:
+
+- **Redesigned Options Page** — modular per-section settings with consistent XAML styling, grouped by category for faster navigation
+- **Status List Grouping & Sorting** — status items are now organized into logical groups with batch enable/disable operations
+- **In-App Toast Notifications** — non-intrusive toasts replace disruptive modal dialogs for status updates and confirmations
+- **Integrations Page** — dedicated page for managing all third-party connections (Spotify, Discord, Twitch, Pulsoid) with real-time connection status
+- **Chatting Page** — streamlined chat interface with IntelliChat enhancements, spell check, translation controls, and speech-to-text toggle
+- **TOS & Privacy Wizard** — first-run setup wizard that walks new users through terms acceptance and privacy preferences
+- **Standardized Dialog Ownership** — all dialogs now properly inherit parent window context, preventing z-order and focus issues
+- **Consistent Styling** — unified gradient themes, settings checkbox styles, and icon sets across all pages
+
+---
 
 ## What's New in v0.9.x (.NET 10)
 
-- **Runtime upgrade to .NET 10** — faster startup, reduced memory footprint, and access to the latest platform APIs (Windows 10 26100+)
-- **Improved resource management and thread safety** — eliminated race conditions in background services for a more stable experience
-- **OAuth reliability** — fixed Spotify (redirect URI handling) and Discord (PKCE flow with refresh token support) authentication flows
-- **Modernized UI** — overhauled settings, status list grouping/sorting, and in-app toast notifications
-- **Enhanced exception handling** — graceful recovery during updates and rollbacks with clearer error reporting
-- **Spotify & Discord integrations** — full OAuth-based Spotify playback display and expanded Discord Rich Presence
+- **Runtime upgrade to .NET 10** — faster startup, reduced memory footprint, and access to the latest Windows platform APIs (Windows 10 26100+)
+- **Improved resource management and thread safety** — eliminated race conditions in background services for a more stable, crash-free experience
+- **OAuth reliability** — fixed Spotify redirect URI handling (127.0.0.1 vs localhost), Discord PKCE flow with refresh token support, and proper scope configuration
+- **Enhanced exception handling** — graceful recovery during updates and rollbacks with structured NLog logging and clearer error reporting
+- **Update & rollback safety** — improved self-update logic with safer file replacement and automatic rollback on failure
+- **Spotify integration** — full OAuth-based playback display with automatic token refresh and rich track metadata
+- **Discord integration** — IPC-based voice channel tracking, Rich Presence, and secure PKCE authentication
+- **Twitch integration** — live stream status, follower/viewer counts, announcements, and shoutouts
+- **VRChat Radar** — real-time log parsing for world info, player encounters, and session tracking
+- **Weather module** — current conditions display via Open-Meteo with flexible location detection
 
 ## Support
 
@@ -73,7 +133,7 @@ If you need more help, feel free to click the button below:
 - [Staff](information/Staff.md) – Meet the team behind MagicChatBox
 - [Rating](information/Rating.md) – Our User Ratings
 - [Contact](https://discord.gg/magicchatbox) – Create a support ticket here
-- [Funding](information/Funding.md) – Our community’s advocates
+- [Funding](information/Funding.md) – Our community's advocates
 - [Documentation](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki) – Detailed guides and manuals
 
 ---
