@@ -49,8 +49,7 @@
             Margin="34,10,0,0"
             d:Visibility="Visible"
             Visibility="{Binding AppSettings.Settings_ComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <Border
-                Style="{StaticResource OptionCardStyle}">
+            <Border Style="{StaticResource OptionCardStyle}">
 
                 <StackPanel>
                     <CheckBox
@@ -108,11 +107,11 @@
                         Margin="5,5"
                         VerticalAlignment="Center"
                         FontFamily="Comfortaa Light"
-                         FontSize="20"
-                         Foreground="{StaticResource TextSectionHeaderBrush}"
-                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                         Style="{StaticResource OptionSubsectionHeaderStyle}"
-                         Text="{Binding ComponentStats.CPUHardwareName, StringFormat='CPU: {0}', UpdateSourceTrigger=PropertyChanged}">
+                        FontSize="20"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="{Binding ComponentStats.CPUHardwareName, StringFormat='CPU: {0}', UpdateSourceTrigger=PropertyChanged}">
 
 
                         <TextBlock.Effect>
@@ -206,19 +205,18 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
-            <Border
-                Style="{StaticResource OptionCardStyle}">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
                     <TextBlock
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
                         FontFamily="Comfortaa Light"
-                         FontSize="20"
-                         Foreground="{StaticResource TextSectionHeaderBrush}"
-                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                         Style="{StaticResource OptionSubsectionHeaderStyle}"
-                         Text="{Binding ComponentStats.GPUHardwareName, StringFormat='GPU: {0}', UpdateSourceTrigger=PropertyChanged}">
+                        FontSize="20"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="{Binding ComponentStats.GPUHardwareName, StringFormat='GPU: {0}', UpdateSourceTrigger=PropertyChanged}">
 
                         <TextBlock.Effect>
                             <DropShadowEffect
@@ -345,19 +343,18 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
-            <Border
-                Style="{StaticResource OptionCardStyle}">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
                     <TextBlock
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
                         FontFamily="Comfortaa Light"
-                         FontSize="20"
-                         Foreground="{StaticResource TextSectionHeaderBrush}"
-                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                         Style="{StaticResource OptionSubsectionHeaderStyle}"
-                         Text="{Binding ComponentStats.VRAMHardwareName, StringFormat='VRAM: {0}', UpdateSourceTrigger=PropertyChanged}">
+                        FontSize="20"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="{Binding ComponentStats.VRAMHardwareName, StringFormat='VRAM: {0}', UpdateSourceTrigger=PropertyChanged}">
 
                         <TextBlock.Effect>
                             <DropShadowEffect
@@ -435,19 +432,18 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
-            <Border
-                Style="{StaticResource OptionCardStyle}">
+            <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
                     <TextBlock
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
                         FontFamily="Comfortaa Light"
-                         FontSize="20"
-                         Foreground="{StaticResource TextSectionHeaderBrush}"
-                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                         Style="{StaticResource OptionSubsectionHeaderStyle}"
-                         Text="{Binding ComponentStats.RAMHardwareName, StringFormat='RAM: {0}', UpdateSourceTrigger=PropertyChanged}">
+                        FontSize="20"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="{Binding ComponentStats.RAMHardwareName, StringFormat='RAM: {0}', UpdateSourceTrigger=PropertyChanged}">
 
                         <TextBlock.Effect>
                             <DropShadowEffect

@@ -27,7 +27,7 @@
             <RowDefinition Height="64" />
         </Grid.RowDefinitions>
 
-        <!-- Header bar -->
+        <!--  Header bar  -->
         <Border Grid.Row="0">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
@@ -58,14 +58,22 @@
                     Foreground="White"
                     Text="Privacy &amp; Permissions">
                     <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="15" Direction="315" Opacity="1" ShadowDepth="0" Color="Black" />
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="Black" />
                     </TextBlock.Effect>
                 </TextBlock>
             </StackPanel>
         </Grid>
 
-        <!-- Content -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0">
+        <!--  Content  -->
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="0"
+            VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,16,24,8">
 
                 <TextBlock
@@ -75,18 +83,28 @@
                     Foreground="LightYellow"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
-                    <Run FontSize="21" FontWeight="DemiBold" Text="Data Access Permissions 🔒" />
+                    <Run
+                        FontSize="21"
+                        FontWeight="DemiBold"
+                        Text="Data Access Permissions 🔒" />
                     <LineBreak />
                     <LineBreak />
                     <Run Foreground="#CCCCCC" Text="The features below need access to system data." />
                     <LineBreak />
-                    <Run Foreground="#AAAAAA" FontSize="13" Text="You decide which hooks are enabled. Some features connect to external services — nothing is sent without your approval." />
+                    <Run
+                        FontSize="13"
+                        Foreground="#AAAAAA"
+                        Text="You decide which hooks are enabled. Some features connect to external services — nothing is sent without your approval." />
                     <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="10" Opacity="1" ShadowDepth="0" Color="#251153" />
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="#251153" />
                     </TextBlock.Effect>
                 </TextBlock>
 
-                <!-- Hook items are generated in code-behind -->
+                <!--  Hook items are generated in code-behind  -->
                 <ItemsControl x:Name="HookList" Margin="0,16,0,0">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -116,7 +134,8 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock
-                                        Grid.Row="0" Grid.Column="0"
+                                        Grid.Row="0"
+                                        Grid.Column="0"
                                         FontFamily="Comfortaa Light"
                                         FontSize="15"
                                         FontWeight="DemiBold"
@@ -124,27 +143,32 @@
                                         Text="{Binding Title}" />
 
                                     <TextBlock
-                                        Grid.Row="1" Grid.Column="0"
+                                        Grid.Row="1"
+                                        Grid.Column="0"
                                         Margin="0,4,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="12"
                                         Foreground="#BBBBBB"
-                                        TextWrapping="Wrap"
-                                        Text="{Binding Description}" />
+                                        Text="{Binding Description}"
+                                        TextWrapping="Wrap" />
 
                                     <TextBlock
-                                        Grid.Row="2" Grid.Column="0"
+                                        Grid.Row="2"
+                                        Grid.Column="0"
                                         Margin="0,6,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="11"
                                         Foreground="#FF8C8C"
+                                        Text="{Binding Warning}"
                                         TextWrapping="Wrap"
-                                        Visibility="{Binding WarningVisibility}"
-                                        Text="{Binding Warning}" />
+                                        Visibility="{Binding WarningVisibility}" />
 
                                     <CheckBox
-                                        Grid.Row="0" Grid.Column="1" Grid.RowSpan="3"
-                                        Width="24" Height="24"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="3"
+                                        Grid.Column="1"
+                                        Width="24"
+                                        Height="24"
                                         VerticalAlignment="Center"
                                         IsChecked="{Binding IsApproved, Mode=OneWay}"
                                         IsHitTestVisible="False"
@@ -159,7 +183,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Footer -->
+        <!--  Footer  -->
         <Grid Grid.Row="2" Background="#2A1F42">
             <Button
                 x:Name="ConfirmButton"

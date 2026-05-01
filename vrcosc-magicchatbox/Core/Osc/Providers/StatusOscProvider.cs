@@ -102,7 +102,7 @@ public sealed class StatusOscProvider : IOscProvider
     {
         if (_chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
             return;
-      
+
         if (_app.CycleOverrideCurrentGroup && !string.IsNullOrEmpty(_app.CycleOverrideGroupId))
         {
             var overrideGroupId = _app.CycleOverrideGroupId;
@@ -115,7 +115,7 @@ public sealed class StatusOscProvider : IOscProvider
                 CycleItems(overrideItems);
                 return;
             }
-            
+
         }
 
         // Build candidate list: UseInCycle AND group must be active for cycling

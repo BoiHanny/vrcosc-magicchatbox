@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;

@@ -71,7 +71,7 @@
 
         <Grid Grid.Row="1">
 
-            <!-- PAGE 1: Welcome + scope info -->
+            <!--  PAGE 1: Welcome + scope info  -->
             <Grid x:Name="FirstPage" d:Visibility="Visible">
                 <TextBlock
                     Margin="20,14,20,0"
@@ -100,9 +100,7 @@
                         Text="moderator:read:followers" />
                     <Run Foreground="#CCCCCC" Text=" (follower count)" />
                     <LineBreak />
-                    <Run
-                        Foreground="#AAAAAA"
-                        Text="Optional: moderator:manage:announcements  •  moderator:manage:shoutouts" />
+                    <Run Foreground="#AAAAAA" Text="Optional: moderator:manage:announcements  •  moderator:manage:shoutouts" />
                     <LineBreak />
                     <LineBreak />
                     <Run
@@ -141,7 +139,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- PAGE 2: Client ID -->
+            <!--  PAGE 2: Client ID  -->
             <Grid x:Name="SecondPage" Visibility="Hidden">
                 <TextBlock
                     Margin="25,14,25,0"
@@ -168,9 +166,9 @@
                     FontFamily="Albert Sans Thin"
                     FontSize="13"
                     Foreground="LightGray"
+                    Text="In the Dev Console, click Manage on your app, then copy the Client ID shown on that page."
                     TextAlignment="Center"
-                    TextWrapping="Wrap"
-                    Text="In the Dev Console, click Manage on your app, then copy the Client ID shown on that page." />
+                    TextWrapping="Wrap" />
 
                 <StackPanel
                     Margin="0,20,0,0"
@@ -183,15 +181,15 @@
                         CornerRadius="5">
                         <PasswordBox
                             x:Name="ClientIdBox"
-                            MaxLength="200"
                             Padding="8,0"
                             HorizontalContentAlignment="Left"
                             VerticalContentAlignment="Center"
                             Background="Transparent"
                             FontSize="15"
                             Foreground="{StaticResource SurfaceDarkBrush}"
-                            PasswordChar="●"
-                            PasswordChanged="ClientIdBox_PasswordChanged" />
+                            MaxLength="200"
+                            PasswordChanged="ClientIdBox_PasswordChanged"
+                            PasswordChar="●" />
                     </Border>
                     <Button
                         x:Name="PasteClientId"
@@ -220,14 +218,14 @@
                         x:Name="ToPage3"
                         Width="140"
                         Height="38"
-                        IsEnabled="False"
                         Click="ToPage3_Click"
                         Content="Next →"
+                        IsEnabled="False"
                         Style="{StaticResource Status_Button_style}" />
                 </StackPanel>
             </Grid>
 
-            <!-- PAGE 3: Access Token + Test + Save -->
+            <!--  PAGE 3: Access Token + Test + Save  -->
             <Grid x:Name="ThirdPage" Visibility="Hidden">
                 <TextBlock
                     Margin="25,14,25,0"
@@ -269,15 +267,15 @@
                         CornerRadius="5">
                         <PasswordBox
                             x:Name="TokenBox"
-                            MaxLength="200"
                             Padding="8,0"
                             HorizontalContentAlignment="Left"
                             VerticalContentAlignment="Center"
                             Background="Transparent"
                             FontSize="15"
                             Foreground="{StaticResource SurfaceDarkBrush}"
-                            PasswordChar="●"
-                            PasswordChanged="TokenBox_PasswordChanged" />
+                            MaxLength="200"
+                            PasswordChanged="TokenBox_PasswordChanged"
+                            PasswordChar="●" />
                     </Border>
                     <Button
                         x:Name="PasteToken"
@@ -291,12 +289,12 @@
 
                 <TextBlock
                     x:Name="StatusText"
+                    MinHeight="20"
                     Margin="20,0,20,72"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     FontFamily="Albert Sans Thin"
                     FontSize="13"
-                    MinHeight="20"
                     Text=""
                     TextAlignment="Center"
                     TextWrapping="Wrap" />
@@ -319,17 +317,17 @@
                         Width="160"
                         Height="38"
                         Margin="0,0,8,0"
-                        IsEnabled="False"
                         Click="TestConnection_Click"
                         Content="Test Connection"
+                        IsEnabled="False"
                         Style="{StaticResource Status_Button_style}" />
                     <Button
                         x:Name="SaveAndClose"
                         Width="130"
                         Height="38"
-                        IsEnabled="False"
                         Click="SaveAndClose_Click"
                         Content="Save &amp; Close"
+                        IsEnabled="False"
                         Style="{StaticResource Status_Button_style}" />
                 </StackPanel>
             </Grid>

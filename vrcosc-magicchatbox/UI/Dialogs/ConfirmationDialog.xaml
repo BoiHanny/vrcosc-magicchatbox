@@ -4,9 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Confirm"
     Width="520"
-    SizeToContent="Height"
     Background="{StaticResource SurfaceCardBrush}"
     ResizeMode="NoResize"
+    SizeToContent="Height"
     WindowStyle="None">
 
     <WindowChrome.WindowChrome>
@@ -35,7 +35,10 @@
             </Border.Background>
         </Border>
 
-        <Grid x:Name="DragArea" Grid.Row="0" MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
+        <Grid
+            x:Name="DragArea"
+            Grid.Row="0"
+            MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
             <StackPanel Orientation="Horizontal">
                 <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
                 <TextBlock

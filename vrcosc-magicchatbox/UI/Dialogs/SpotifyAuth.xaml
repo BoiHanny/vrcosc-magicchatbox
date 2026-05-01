@@ -48,7 +48,12 @@
                     Foreground="White"
                     Text="Connect Spotify">
                     <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="15" Direction="315" Opacity="1" ShadowDepth="0" Color="Black" />
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="315"
+                            Opacity="1"
+                            ShadowDepth="0"
+                            Color="Black" />
                     </TextBlock.Effect>
                 </TextBlock>
             </StackPanel>
@@ -63,12 +68,18 @@
                     Foreground="LightYellow"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
-                    <Run FontSize="23" FontWeight="DemiBold" Text="Spotify in your VRChat chatbox 🎵" />
+                    <Run
+                        FontSize="23"
+                        FontWeight="DemiBold"
+                        Text="Spotify in your VRChat chatbox 🎵" />
                     <LineBreak />
                     <LineBreak />
                     <Run Foreground="#DDDDDD" Text="MagicChatbox uses Spotify's secure Authorization Code + PKCE flow. You only paste your public Client ID; no client secret is needed." />
                     <LineBreak />
-                    <Run Foreground="#BBBBBB" FontSize="13" Text="Tokens are stored encrypted for your Windows account and can be cleared any time with Disconnect." />
+                    <Run
+                        FontSize="13"
+                        Foreground="#BBBBBB"
+                        Text="Tokens are stored encrypted for your Windows account and can be cleared any time with Disconnect." />
                 </TextBlock>
 
                 <Border
@@ -87,8 +98,8 @@
                             FontFamily="Albert Sans Thin"
                             FontSize="12"
                             Foreground="#CCCCCC"
-                            TextWrapping="Wrap"
-                            Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly: http://localhost:7387/callback/" />
+                            Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly: http://localhost:7387/callback/"
+                            TextWrapping="Wrap" />
                         <StackPanel Orientation="Horizontal">
                             <PasswordBox
                                 x:Name="ClientIdBox"
@@ -97,8 +108,8 @@
                                 Padding="8,0"
                                 VerticalContentAlignment="Center"
                                 FontSize="14"
-                                PasswordChar="●"
-                                PasswordChanged="ClientIdBox_PasswordChanged" />
+                                PasswordChanged="ClientIdBox_PasswordChanged"
+                                PasswordChar="●" />
                             <Button
                                 Width="82"
                                 Height="32"
@@ -133,14 +144,44 @@
                             FontFamily="Albert Sans Thin"
                             FontSize="12"
                             Foreground="#CCCCCC"
-                            TextWrapping="Wrap"
-                            Text="Pick safe defaults now. You can change every option later in Spotify settings." />
+                            Text="Pick safe defaults now. You can change every option later in Spotify settings."
+                            TextWrapping="Wrap" />
                         <WrapPanel>
-                            <CheckBox x:Name="AllowTitle" Margin="0,0,12,6" IsChecked="True" Style="{DynamicResource SettingsCheckbox}">Track title</CheckBox>
-                            <CheckBox x:Name="AllowArtist" Margin="0,0,12,6" IsChecked="True" Style="{DynamicResource SettingsCheckbox}">Artist</CheckBox>
-                            <CheckBox x:Name="AllowAlbum" Margin="0,0,12,6" IsChecked="True" Style="{DynamicResource SettingsCheckbox}">Album</CheckBox>
-                            <CheckBox x:Name="AllowDevice" Margin="0,0,12,6" IsChecked="False" Style="{DynamicResource SettingsCheckbox}">Device name</CheckBox>
-                            <CheckBox x:Name="PrivacyMode" Margin="0,0,12,6" IsChecked="False" Style="{DynamicResource SettingsCheckbox}">Privacy mode by default</CheckBox>
+                            <CheckBox
+                                x:Name="AllowTitle"
+                                Margin="0,0,12,6"
+                                IsChecked="True"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Track title
+                            </CheckBox>
+                            <CheckBox
+                                x:Name="AllowArtist"
+                                Margin="0,0,12,6"
+                                IsChecked="True"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Artist
+                            </CheckBox>
+                            <CheckBox
+                                x:Name="AllowAlbum"
+                                Margin="0,0,12,6"
+                                IsChecked="True"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Album
+                            </CheckBox>
+                            <CheckBox
+                                x:Name="AllowDevice"
+                                Margin="0,0,12,6"
+                                IsChecked="False"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Device name
+                            </CheckBox>
+                            <CheckBox
+                                x:Name="PrivacyMode"
+                                Margin="0,0,12,6"
+                                IsChecked="False"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Privacy mode by default
+                            </CheckBox>
                         </WrapPanel>
                     </StackPanel>
                 </Border>
@@ -149,7 +190,10 @@
                     Margin="0,0,0,8"
                     Foreground="White"
                     Header="Technical details and scopes">
-                    <Border Padding="12" Background="#241A38" CornerRadius="8">
+                    <Border
+                        Padding="12"
+                        Background="#241A38"
+                        CornerRadius="8">
                         <TextBlock
                             FontFamily="Albert Sans Thin"
                             FontSize="12"
@@ -174,7 +218,10 @@
         </ScrollViewer>
 
         <Grid Grid.Row="2" Background="#2A1F42">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
                 <Button
                     Width="120"
                     Height="38"

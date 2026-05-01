@@ -238,7 +238,6 @@
                     x:Name="AcceptButton"
                     Width="200"
                     Height="38"
-               
                     HorizontalAlignment="Center"
                     Click="Accept_Click"
                     Content="Accept &amp; Continue"

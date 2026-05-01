@@ -35,9 +35,9 @@
                 <Border
                     Width="320"
                     Margin="0,0,0,8"
-                    CornerRadius="12"
-                    ClipToBounds="True"
                     BorderThickness="1"
+                    ClipToBounds="True"
+                    CornerRadius="12"
                     Opacity="0">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -64,13 +64,14 @@
                         <Style TargetType="Border">
                             <Style.Triggers>
 
-                                <!-- Entry: slide in from right + fade in -->
+                                <!--  Entry: slide in from right + fade in  -->
                                 <EventTrigger RoutedEvent="Border.Loaded">
                                     <BeginStoryboard>
                                         <Storyboard>
                                             <DoubleAnimation
                                                 Storyboard.TargetProperty="Opacity"
-                                                From="0" To="1"
+                                                From="0"
+                                                To="1"
                                                 Duration="0:0:0.25">
                                                 <DoubleAnimation.EasingFunction>
                                                     <CubicEase EasingMode="EaseOut" />
@@ -78,7 +79,8 @@
                                             </DoubleAnimation>
                                             <DoubleAnimation
                                                 Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                From="360" To="0"
+                                                From="360"
+                                                To="0"
                                                 Duration="0:0:0.25">
                                                 <DoubleAnimation.EasingFunction>
                                                     <CubicEase EasingMode="EaseOut" />
@@ -88,7 +90,7 @@
                                     </BeginStoryboard>
                                 </EventTrigger>
 
-                                <!-- Exit: slide out right + fade out (0.22 s = ExitAnimationMs) -->
+                                <!--  Exit: slide out right + fade out (0.22 s = ExitAnimationMs)  -->
                                 <DataTrigger Binding="{Binding IsExiting}" Value="True">
                                     <DataTrigger.EnterActions>
                                         <BeginStoryboard>
@@ -125,10 +127,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left accent colour strip — clipped to rounded corners by ClipToBounds on the outer Border -->
+                        <!--  Left accent colour strip — clipped to rounded corners by ClipToBounds on the outer Border  -->
                         <Rectangle Grid.Column="0" Fill="{Binding AccentBrush}" />
 
-                        <!-- Content: title + message + optional action button -->
+                        <!--  Content: title + message + optional action button  -->
                         <StackPanel Grid.Column="1" Margin="12,10,4,10">
 
                             <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
@@ -150,12 +152,12 @@
                                 Text="{Binding Message}"
                                 TextWrapping="Wrap" />
 
-                            <!-- Action button with custom template matching app's purple palette -->
+                            <!--  Action button with custom template matching app's purple palette  -->
                             <Button
-                                Margin="0,8,0,0"
-                                HorizontalAlignment="Left"
                                 Height="26"
+                                Margin="0,8,0,0"
                                 Padding="10,0"
+                                HorizontalAlignment="Left"
                                 Command="{Binding ExecuteActionCommand}"
                                 Content="{Binding Action.Label}"
                                 Cursor="Hand"
@@ -167,12 +169,10 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border
                                             x:Name="bg"
+                                            Padding="{TemplateBinding Padding}"
                                             Background="#FF3A1F73"
-                                            CornerRadius="6"
-                                            Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center" />
+                                            CornerRadius="6">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
@@ -188,7 +188,7 @@
 
                         </StackPanel>
 
-                        <!-- Close (✕) button -->
+                        <!--  Close (✕) button  -->
                         <Button
                             Grid.Column="2"
                             Width="24"
@@ -199,7 +199,10 @@
                             Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bg" Background="Transparent" CornerRadius="4">
+                                    <Border
+                                        x:Name="bg"
+                                        Background="Transparent"
+                                        CornerRadius="4">
                                         <TextBlock
                                             x:Name="txt"
                                             HorizontalAlignment="Center"

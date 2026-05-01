@@ -4,9 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
-    d:DataContext="{d:DesignInstance Type=sections:TwitchSectionViewModel, IsDesignTimeCreatable=False}"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=sections:TwitchSectionViewModel,
+                                     IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -16,7 +17,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    
+
     <Grid Margin="0,5,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -54,8 +55,8 @@
                     Margin="0,0,0,12"
                     HorizontalAlignment="Left"
                     Click="SetupTwitch_Click"
-                    Style="{StaticResource Status_Button_style}"
-                    Content="⚙ Setup Twitch Integration" />
+                    Content="⚙ Setup Twitch Integration"
+                    Style="{StaticResource Status_Button_style}" />
                 <StackPanel
                     Width="auto"
                     Margin="0,0,0,15"
@@ -164,9 +165,7 @@
                                 Height="19"
                                 Source="/Img/Icons/admin.png" />
                         </ToggleButton>
-                        <Grid
-                            Width="360"
-                            HorizontalAlignment="Left">
+                        <Grid Width="360" HorizontalAlignment="Left">
                             <TextBox
                                 x:Name="TwitchAccessTokenPreview"
                                 Padding="5,0,0,0"
@@ -513,8 +512,8 @@
                         TextWrapping="Wrap" />
                     <Border
                         Margin="0,8,0,0"
-                        Style="{StaticResource OptionCardStyle}"
-                        CornerRadius="6">
+                        CornerRadius="6"
+                        Style="{StaticResource OptionCardStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="6" />
@@ -618,8 +617,8 @@
                     </Border>
                     <Border
                         Margin="0,8,0,0"
-                        Style="{StaticResource OptionCardStyle}"
-                        CornerRadius="6">
+                        CornerRadius="6"
+                        Style="{StaticResource OptionCardStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="6" />

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.190</Version>
+	<Version>0.9.191</Version>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -215,19 +215,19 @@
     </PackageReference>
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.6" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.7" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NHotkey.Wpf" Version="4.0.0" />
     <PackageReference Include="NLog" Version="6.1.2" />
 	  <PackageReference Include="OpenAI" Version="2.10.0" />
-	  <PackageReference Include="System.Management" Version="10.0.6" />
+	  <PackageReference Include="System.Management" Version="10.0.7" />
     <PackageReference Include="TwitchLib.Api" Version="3.10.2" />
     <PackageReference Include="OpenVR.NET" Version="0.8.5" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.7" />
     <!-- Pin transitive dep to fix CVEs in 2.1.1 (from LibreHardwareMonitorLib) -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>

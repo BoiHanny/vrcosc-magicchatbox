@@ -270,12 +270,8 @@
                             Style="{StaticResource OptionHelpTextStyle}"
                             Text="Used between temp, condition, feels-like, wind, and humidity values." />
                     </StackPanel>
-                    <TextBlock
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="Template" />
-                    <TextBlock
-                        Style="{StaticResource OptionHelpTextStyle}"
-                        Text="Available placeholders: {time}, {weather}, {temp}, {unit}, {tempWithUnit}, {condition}, {humidity}, {wind}, {feels}." />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Template" />
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Available placeholders: {time}, {weather}, {temp}, {unit}, {tempWithUnit}, {condition}, {humidity}, {wind}, {feels}." />
                     <TextBox
                         x:Name="WeatherTemplate"
                         Width="360"
@@ -294,9 +290,7 @@
                         Margin="0,6,0,0"
                         Style="{StaticResource OptionHelpTextStyle}"
                         Text="Tip: use \n for a new line in the template." />
-                    <TextBlock
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="Details" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Details" />
                     <CheckBox
                         x:Name="ShowWeatherCondition_checkbox"
                         Margin="0,12,0,6"
@@ -476,9 +470,7 @@
                         Style="{DynamicResource SettingsCheckbox}">
                         Show feels-like temperature
                     </CheckBox>
-                    <TextBlock
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="Fallback behavior" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Fallback behavior" />
                     <ComboBox
                         Width="200"
                         Margin="0,4"
