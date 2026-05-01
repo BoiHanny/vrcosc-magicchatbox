@@ -36,247 +36,388 @@ MagicChatBox comes packed with **18+ modules** that run simultaneously, feeding 
 
 ---
 
-<details>
-<summary><h3>💭 Personal Status</h3></summary>
+### 💭 Personal Status
 
 > Express yourself with rotating, fully customizable status messages.
 
-- Create **unlimited status lines** with individual on/off toggles
-- Set automatic **rotation intervals** so your status cycles through messages
-- Use **custom prefixes and separators** to style your chatbox output
-- Priority system ensures your status only shows when higher-priority modules aren't active
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Unlimited Lines** | Create as many status messages as you want with individual on/off toggles |
+| **Auto-Rotation** | Set timed intervals so your status cycles through messages automatically |
+| **Custom Prefixes** | Style your chatbox output with custom separators and prefix text |
+| **Priority System** | Status only shows when higher-priority modules aren't active |
 
 </details>
 
-<details>
-<summary><h3>🧭 Window Activity</h3></summary>
+---
+
+### 🧭 Window Activity
 
 > Let your friends know what you're up to — automatically.
 
-- Detects your **currently focused Windows application** and displays it in VRChat
-- Resolves **friendly display names** (shows "Visual Studio Code" instead of "Code.exe")
-- Built-in **privacy filter** — add apps to a blocklist so sensitive titles are never shown
-- Smart process resolution handles UWP apps, packaged apps, and traditional executables
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-Detection** | Detects your currently focused Windows application in real time |
+| **Friendly Names** | Resolves display names (shows "Visual Studio Code" instead of "Code.exe") |
+| **Privacy Filter** | Blocklist specific apps so sensitive window titles are never shown |
+| **Smart Resolution** | Handles UWP apps, packaged apps, and traditional executables |
 
 </details>
 
-<details>
-<summary><h3>🩵 Heart Rate — Pulsoid Integration</h3></summary>
+---
+
+### 🩵 Heart Rate — Pulsoid Integration
 
 > Share your heartbeat with the world in real time.
 
-- Connects to **Pulsoid via WebSocket** for instant BPM updates from any supported wearable
-- **Smoothing algorithms** prevent erratic spikes from appearing in your chatbox
-- **History tracking** with trend indicators (↑ rising, ↓ falling, → stable)
-- Customizable display format with BPM icon, range indicators, and statistical overlays
-- Supports Pulsoid statistics API for session averages, min/max, and time-range breakdowns
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **WebSocket Connection** | Instant BPM updates from any Pulsoid-supported wearable |
+| **Smoothing Algorithms** | Prevents erratic spikes from appearing in your chatbox |
+| **Trend Indicators** | History tracking with ↑ rising, ↓ falling, → stable arrows |
+| **Statistics API** | Session averages, min/max, and time-range breakdowns |
+| **Custom Formatting** | BPM icon, range indicators, and statistical overlays |
 
 > [!IMPORTANT]
 > **Heart Rate** requires an official `Pulsoid Member` subscription.
 
 </details>
 
-<details>
-<summary><h3>🎛️ Component Stats</h3></summary>
+---
+
+### 🎛️ Component Stats
 
 > Show off your rig — CPU, GPU, RAM, and more.
 
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Component | What's Monitored |
+|-----------|-----------------|
+| **CPU** | Usage percentage and temperature |
+| **GPU** | Load percentage, temperature, and clock speed |
+| **RAM** | Usage with automatic DDR generation detection (DDR4/DDR5) |
+| **VRAM** | Dedicated GPU memory consumption |
+
 - Real-time hardware monitoring via **LibreHardwareMonitor** sensors
-- **CPU**: usage percentage and temperature
-- **GPU**: load percentage, temperature, and clock speed
-- **RAM**: usage with automatic **DDR generation detection** (DDR4/DDR5)
-- **VRAM**: dedicated GPU memory consumption
 - Choose which components to display and customize the output format
 
 </details>
 
-<details>
-<summary><h3>🧠 IntelliChat — AI-Powered Text Enhancement</h3></summary>
+---
+
+### 🧠 IntelliChat — AI-Powered Text Enhancement
 
 > Write smarter, faster, and in any language — without leaving your chat.
 
-- **Smart autocompletion** — start typing and let AI finish your thought
-- **Grammar & spelling correction** — fix mistakes with one click
-- **Translation** — translate your message to any language before sending
-- **Tone adjustments** — make your text more formal, casual, friendly, or concise
-- **Custom writing styles** — define named presets with specific instructions and temperature
-- Powered by **OpenAI's GPT API** with configurable model selection (GPT-4o, GPT-4o-mini, etc.)
-- Works directly inline in the chatting interface — no separate window needed
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Smart Autocompletion** | Start typing and let AI finish your thought |
+| **Grammar & Spelling** | Fix mistakes with one click |
+| **Translation** | Translate your message to any language before sending |
+| **Tone Adjustments** | Make text more formal, casual, friendly, or concise |
+| **Writing Styles** | Define named presets with specific instructions and temperature |
+| **Model Selection** | Powered by OpenAI's GPT API (GPT-4o, GPT-4o-mini, etc.) |
+
+- Works **directly inline** in the chatting interface — no separate window needed
 
 </details>
 
-<details>
-<summary><h3>⚗️ OpenAI & Whisper — Voice-to-Text</h3></summary>
+---
+
+### ⚗️ OpenAI & Whisper — Voice-to-Text
 
 > Turn your voice into VRChat chatbox text, hands-free.
 
-- **Speech-to-text transcription** using OpenAI Whisper models
-- Supports **25+ languages** with automatic language detection
-- **Noise gating** filters out background noise below configurable thresholds
-- **Silence detection** automatically stops recording when you stop talking
-- **Optional translation** — speak in any language, output in your target language
-- Configurable model size (base, small, medium, large) for speed vs. accuracy tradeoff
-- Real-time audio level visualization while recording
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Speech-to-Text** | Transcription using OpenAI Whisper models |
+| **25+ Languages** | Automatic language detection included |
+| **Noise Gating** | Filters background noise below configurable thresholds |
+| **Silence Detection** | Automatically stops recording when you stop talking |
+| **Live Translation** | Speak in any language, output in your target language |
+| **Model Sizes** | Choose base, small, medium, or large for speed vs. accuracy |
+| **Audio Visualization** | Real-time audio level meter while recording |
 
 </details>
 
-<details>
-<summary><h3>🔊 Text-to-Speech (TTS)</h3></summary>
+---
+
+### 🔊 Text-to-Speech (TTS)
 
 > Hear your messages spoken aloud — or let others hear you.
 
-- Converts typed chatbox messages into **spoken audio** via the TikTok TTS API
-- Choose from **multiple voice options** (male, female, character voices)
-- Audio playback locally or routed over **OSC** for in-world effects
-- Automatic queuing for back-to-back messages
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **TikTok TTS API** | Converts typed messages into spoken audio |
+| **Multiple Voices** | Male, female, and character voice options |
+| **OSC Routing** | Audio playback locally or routed over OSC for in-world effects |
+| **Auto-Queue** | Back-to-back messages are queued automatically |
 
 </details>
 
-<details>
-<summary><h3>⛓️‍💥 Network Stats</h3></summary>
+---
+
+### ⛓️‍💥 Network Stats
 
 > Monitor your connection quality right from your chatbox.
 
-- Displays real-time **download and upload speeds** (Mbps/KBps)
-- Shows **total data transferred** in the current session
-- **Network utilization percentage** based on interface capacity
-- Automatically detects and monitors your **active network adapter**
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Live Speeds** | Real-time download and upload speeds (Mbps/KBps) |
+| **Session Totals** | Total data transferred in the current session |
+| **Utilization %** | Network utilization based on interface capacity |
+| **Auto-Detection** | Automatically monitors your active network adapter |
+
 - Useful for diagnosing lag or showing off your connection in VRChat
 
 </details>
 
-<details>
-<summary><h3>📆 Time & Date Status</h3></summary>
+---
+
+### 📆 Time & Date Status
 
 > Always know (and show) the time.
 
-- Displays current **date and time** in your VRChat chatbox
-- Fully **customizable format strings** (12h/24h, with or without seconds, date layouts)
-- **Timezone override** — show a different timezone than your system clock
-- Lightweight and always available as a fallback status
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Custom Formats** | 12h/24h, with or without seconds, any date layout |
+| **Timezone Override** | Show a different timezone than your system clock |
+| **Always Available** | Lightweight fallback status when nothing else is active |
 
 </details>
 
-<details>
-<summary><h3>🎶 Media Activity — Windows Media</h3></summary>
+---
+
+### 🎶 Media Activity — Windows Media
 
 > Share what you're listening to from any media player.
 
-- Hooks into **Windows System Media Transport Controls** (SMTC)
-- Works with any app that reports media state: Spotify, YouTube, VLC, Foobar2000, etc.
-- Shows **song title, artist, album**, and playback state (playing/paused)
-- Automatic detection — no manual configuration needed
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **SMTC Integration** | Hooks into Windows System Media Transport Controls |
+| **Universal Support** | Works with Spotify, YouTube, VLC, Foobar2000, and more |
+| **Rich Metadata** | Song title, artist, album, and playback state |
+| **Zero Config** | Automatic detection — no manual setup needed |
 
 </details>
 
-<details>
-<summary><h3>🎵 Spotify Integration</h3></summary>
+---
+
+### 🎵 Spotify Integration
 
 > Rich, authenticated Spotify playback display with full track details.
 
-- Dedicated module with **full OAuth 2.0 authentication** (token refresh handled automatically)
-- Displays **song name, artist, album, and playback progress** from the Spotify Web API
-- Higher fidelity than Windows Media — catches podcasts, private sessions, and queue info
-- Secure redirect URI handling with automatic localhost binding
-- One-click login flow — authenticate once and forget about it
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Full OAuth 2.0** | Automatic token refresh — authenticate once and forget |
+| **Rich Track Data** | Song name, artist, album, and playback progress |
+| **Higher Fidelity** | Catches podcasts, private sessions, and queue info |
+| **Secure Auth** | Redirect URI handling with automatic localhost binding |
+| **One-Click Login** | Simple authentication flow |
 
 </details>
 
-<details>
-<summary><h3>💤 AFK Module</h3></summary>
+---
+
+### 💤 AFK Module
 
 > Let people know when you've stepped away.
 
-- Detects **keyboard and mouse inactivity** with configurable idle threshold (seconds)
-- Automatically displays an **AFK status** with customizable prefix text
-- Built-in **elapsed timer** shows exactly how long you've been away
-- Configurable formatting: countdown style, compact, or verbose time display
-- Respects priority system — won't override higher-priority modules
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Inactivity Detection** | Monitors keyboard and mouse with configurable idle threshold |
+| **Auto AFK Status** | Automatically displays with customizable prefix text |
+| **Elapsed Timer** | Shows exactly how long you've been away |
+| **Flexible Formatting** | Countdown, compact, or verbose time display |
+| **Priority Aware** | Respects module priority — won't override higher modules |
 
 </details>
 
-<details>
-<summary><h3>🎼 Soundpad Integration</h3></summary>
+---
+
+### 🎼 Soundpad Integration
 
 > Trigger sound effects remotely and show what's playing.
 
-- Connects to **Soundpad via named pipe** for low-latency communication
-- Displays the **currently playing sound** name in your chatbox
-- Remote **playback control** (play, pause, stop) directly from MagicChatBox
-- Browse and trigger sounds from your Soundpad library without alt-tabbing
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Named Pipe** | Low-latency connection to Soundpad |
+| **Now Playing** | Displays the currently playing sound in your chatbox |
+| **Remote Control** | Play, pause, stop directly from MagicChatBox |
+| **Sound Browser** | Browse and trigger sounds without alt-tabbing |
 
 </details>
 
-<details>
-<summary><h3>🎮 Discord Integration</h3></summary>
+---
+
+### 🎮 Discord Integration
 
 > Voice channel tracking and Rich Presence — fully connected.
 
-- **Discord Rich Presence** — shows your MagicChatBox activity on your Discord profile
-- **Voice channel tracking** via Discord IPC named pipe:
-  - See who's in your voice channel and total participant count
-  - Detect **speaking, muted, and deafened** states for each user
-  - Display your own mute/deafen status in VRChat
-- Secure authentication using **PKCE OAuth flow** with automatic token refresh
-- Configurable client ID for custom Rich Presence applications
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Rich Presence** | Shows your MagicChatBox activity on your Discord profile |
+| **Voice Tracking** | See who's in your channel, participant count, and states |
+| **Status Detection** | Speaking, muted, and deafened states for each user |
+| **PKCE OAuth** | Secure authentication with automatic token refresh |
+| **Custom Client ID** | Use your own application for custom Rich Presence |
+
+- Display your own mute/deafen status directly in VRChat
 
 </details>
 
-<details>
-<summary><h3>📡 Twitch Integration</h3></summary>
+---
+
+### 📡 Twitch Integration
 
 > Stream status, viewers, and chat control — all from your chatbox app.
 
-- Displays your **live/offline stream status** with real-time polling
-- Shows **current viewer count, follower count**, game category, and stream title
-- Built-in **chat commands**: send announcements and shoutouts to other streamers
-- **Token validation** with automatic reconnection on expiry
-- Configurable refresh intervals (15s–3600s) to balance API usage and freshness
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Live Status** | Real-time live/offline stream status polling |
+| **Viewer & Followers** | Current viewer count, follower count, and game category |
+| **Chat Commands** | Send announcements and shoutouts to other streamers |
+| **Auto-Reconnect** | Token validation with automatic reconnection on expiry |
+| **Custom Intervals** | Configurable refresh (15s–3600s) for API balance |
 
 </details>
 
-<details>
-<summary><h3>🔋 VR Tracker Battery</h3></summary>
+---
+
+### 🔋 VR Tracker Battery
 
 > Never run out of charge mid-session again.
 
-- Reads battery levels from **SteamVR trackers, controllers, and your headset** via OpenVR
-- Displays **formatted battery percentages** per device
-- **Customizable device icons** — use different emojis or symbols for each tracker type
-- Scan summary shows lowest battery and total connected device count
-- Warns you when batteries drop below configurable thresholds
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **OpenVR Integration** | Reads battery from SteamVR trackers, controllers, and headset |
+| **Per-Device Display** | Formatted battery percentages for each device |
+| **Custom Icons** | Different emojis or symbols for each tracker type |
+| **Low Battery Alerts** | Warns when batteries drop below configurable thresholds |
+| **Scan Summary** | Shows lowest battery and total connected device count |
 
 </details>
 
-<details>
-<summary><h3>🌐 VRChat Radar</h3></summary>
+---
+
+### 🌐 VRChat Radar
 
 > Real-time world info, player tracking, and session intelligence.
 
-- Parses VRChat's **output_log.txt in real time** (non-blocking, read-only)
-- Extracts **world name, instance type** (Public/Friends+/Private), and **region** (EU/US/JP)
-- Tracks **player join/leave events** with toast notifications
-- **Encounter tracking** — see how many times you've met specific players across sessions
-- Session statistics: worlds visited, unique players seen, total join/leave events
-- Detects **avatar loading** and **download progress** for large assets
-- **Instance master detection** — know if you're the instance owner
-- Crasher/avatar-block detection with per-room debounce
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Log Parsing** | Reads VRChat's output_log.txt in real time (non-blocking) |
+| **World Info** | World name, instance type (Public/Friends+/Private), region |
+| **Player Events** | Join/leave tracking with toast notifications |
+| **Encounter History** | See how many times you've met specific players |
+| **Session Stats** | Worlds visited, unique players, total join/leave events |
+| **Download Detection** | Avatar loading and download progress tracking |
+| **Instance Master** | Know if you're the instance owner |
+| **Crasher Detection** | Avatar-block detection with per-room debounce |
 
 </details>
 
-<details>
-<summary><h3>🌤️ Weather</h3></summary>
+---
+
+### 🌤️ Weather
 
 > Current conditions in your chatbox — without checking your phone.
 
-- Fetches live weather data from the **Open-Meteo API** (free, no API key required)
-- **Multiple location modes**:
-  - 🏙️ City name search
-  - 📍 GPS coordinates (latitude/longitude)
-  - 🌐 Automatic IP-based geolocation
-- Displays **temperature, conditions description**, and weather icon/emoji
-- Configurable units (Celsius/Fahrenheit) and refresh intervals
-- Lightweight polling — no background WebSocket, minimal resource usage
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Open-Meteo API** | Free weather data — no API key required |
+| **Location Modes** | 🏙️ City search, 📍 GPS coordinates, 🌐 Auto IP geolocation |
+| **Rich Display** | Temperature, conditions description, and weather emoji |
+| **Unit Config** | Celsius or Fahrenheit with custom refresh intervals |
+| **Lightweight** | Simple polling — no background WebSocket needed |
 
 </details>
 
@@ -284,58 +425,108 @@ MagicChatBox comes packed with **18+ modules** that run simultaneously, feeding 
 
 ## 🖥️ Interface & Design
 
-MagicChatBox features a fully modernized WPF interface built for clarity and speed:
+MagicChatBox features a **fully modernized WPF interface** built for clarity and speed:
+
+---
+
+### 📋 Status Page
+
+> **Your live dashboard** — see exactly what's being sent to VRChat in real time.
 
 <details>
-<summary><strong>📋 Status Page</strong> — Your live dashboard</summary>
+<summary>📖 <em>View full details</em></summary>
 
-- Real-time preview of exactly what's being sent to VRChat
-- Module **priority visualization** — see which module is currently "winning"
-- **Status list grouping** with batch enable/disable toggles
-- Sorting by priority, name, or enabled state
-- Live character count and OSC send indicator
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Live Preview** | Real-time view of your current chatbox output |
+| **Priority Visualization** | See which module is currently "winning" |
+| **Status Grouping** | Batch enable/disable toggles for organized management |
+| **Sorting Options** | Sort by priority, name, or enabled state |
+| **Character Counter** | Live character count with OSC send indicator |
 
 </details>
 
-<details>
-<summary><strong>💬 Chatting Page</strong> — AI-enhanced messaging</summary>
+---
 
-- Direct text input with **live send to VRChat chatbox**
-- Integrated **IntelliChat** toolbar (complete, fix, translate, tone shift)
-- **Speech-to-text toggle** for Whisper voice input
-- Spell check and word count
-- Message history with re-send capability
+### 💬 Chatting Page
+
+> **AI-enhanced messaging** — type, speak, translate, and send with smart assistance.
+
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Direct Input** | Live send to VRChat chatbox as you type |
+| **IntelliChat Toolbar** | Complete, fix, translate, and tone-shift your text |
+| **Voice Input** | Speech-to-text toggle for Whisper voice transcription |
+| **Writing Tools** | Spell check, word count, and message history |
+| **Re-Send** | Quickly re-send previous messages |
 
 </details>
 
-<details>
-<summary><strong>🔗 Integrations Page</strong> — All connections in one place</summary>
+---
 
-- Dedicated management for **Spotify, Discord, Twitch, and Pulsoid**
-- Real-time **connection status indicators** (connected/disconnected/error)
-- One-click OAuth login flows with token status display
-- Per-integration enable/disable without losing credentials
+### 🔗 Integrations Page
+
+> **All connections in one place** — manage Spotify, Discord, Twitch, and Pulsoid.
+
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Connection Status** | Real-time indicators (connected/disconnected/error) |
+| **One-Click OAuth** | Login flows with token status display |
+| **Per-Integration Control** | Enable/disable without losing credentials |
+| **Unified Management** | All third-party services managed from one page |
 
 </details>
 
-<details>
-<summary><strong>⚙️ Options Page</strong> — Modular settings</summary>
+---
 
-- **Per-module configuration** panels grouped by category
-- Consistent checkbox/toggle/slider styling across all sections
-- Search and filter to quickly find specific settings
-- Settings auto-save with toast confirmation
+### ⚙️ Options Page
+
+> **Modular settings** — configure every module with a consistent, organized interface.
+
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Per-Module Panels** | Configuration grouped by category |
+| **Consistent Styling** | Unified checkbox/toggle/slider design |
+| **Quick Search** | Filter to find specific settings fast |
+| **Auto-Save** | Settings save automatically with toast confirmation |
 
 </details>
 
-<details>
-<summary><strong>🎨 Visual Design</strong></summary>
+---
 
-- Unified **gradient themes** with purple/blue accent palette
-- **Toast notifications** for non-intrusive status updates (replaces modal dialogs)
-- **First-run TOS & privacy wizard** for new users
-- Standardized **dialog ownership** — no more floating windows or z-order bugs
-- Responsive layout that adapts to different window sizes
+### 🎨 Visual Design
+
+> **Modern, polished, and consistent** — a complete interface overhaul.
+
+<details>
+<summary>📖 <em>View full details</em></summary>
+
+<br>
+
+| Feature | Description |
+|---------|-------------|
+| **Gradient Themes** | Unified purple/blue accent palette throughout |
+| **Toast Notifications** | Non-intrusive status updates (replaces modal dialogs) |
+| **TOS Wizard** | First-run privacy and terms acceptance flow |
+| **Dialog Ownership** | No more floating windows or z-order bugs |
+| **Responsive Layout** | Adapts to different window sizes |
 
 </details>
 
