@@ -145,7 +145,7 @@
                         <TextBlock
                             Margin="0,3,0,6"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Create a Spotify Developer app, add redirect URI http://localhost:7387/callback/, then paste only the public Client ID. MagicChatbox never asks for a client secret." />
+                            Text="Create a Spotify Developer app, add redirect URI http://127.0.0.1:7387/callback/, then paste only the public Client ID. MagicChatbox never asks for a client secret." />
                         <StackPanel Orientation="Horizontal">
                             <TextBox
                                 Width="360"
