@@ -98,7 +98,7 @@
                             FontFamily="Albert Sans Thin"
                             FontSize="12"
                             Foreground="#CCCCCC"
-                            Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly: http://localhost:7387/callback/"
+                            Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly: http://127.0.0.1:7387/callback/"
                             TextWrapping="Wrap" />
                         <StackPanel Orientation="Horizontal">
                             <PasswordBox
