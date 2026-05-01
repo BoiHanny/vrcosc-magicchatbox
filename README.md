@@ -2,49 +2,60 @@
 
 ![image](https://github.com/user-attachments/assets/3e4cf513-c87e-4ad0-b9d2-b0f1c24cb6d3)
 
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=%20&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox) [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases) [![NET](https://img.shields.io/badge/.NET%208-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.13-windows-x64-installer) [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=MagicChatbox&logo=discord&logoColor=white&style=plastic)](https://discord.gg/magicchatbox)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=%20&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox) [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases) [![NET](https://img.shields.io/badge/.NET%2010-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=MagicChatbox&logo=discord&logoColor=white&style=plastic)](https://discord.gg/magicchatbox)
 
 ---
 
-`Welcome to MagicChatBox – the ultimate VRChat upgrade! Unlock new features, enhance your interactions, and take your virtual experience to the next level.`
+**MagicChatBox** is a feature-rich OSC companion for VRChat. Display real-time status information, control integrations, and enhance your social presence—all from a single, polished desktop app built on .NET 10.
 
 > [!IMPORTANT]
-> **We highly recommend reading our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before you download or use MagicChatBox.**  
-> It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
+> **Please review our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before downloading or using MagicChatBox.**  
+> It covers how we protect your privacy and the rules for using the software.
 
 ## Installation
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.075/MagicChatbox-0.9.075.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/01533802fb696b6dd746b05367fd97a5d9280e6f24cd13fa3032a784a774a290/detection)
 
-- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.075/MagicChatbox-0.9.075.zip) **the official ZIP-File of MagicChatBox**
-- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.13-windows-x64-installer) **.NET 8/9 from Microsoft**
-- 🔳 Extract the ZIP File into a folder
-- 🔳 Run **MagicChatBox.exe**
-- 🔳 You're good to go now!
+1. [Download the latest release](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) ZIP file
+2. Install the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) from Microsoft
+3. Extract the ZIP into a folder of your choice
+4. Run **MagicChatBox.exe**
 
-If you need any further help `setting up` the program, join our `Discord Server`.
+Need help? Join our [Discord Server](https://discord.gg/magicchatbox) for setup assistance.
 
 > [!IMPORTANT]
-> **You need to [enable OSC](https://youtu.be/OHjN_q6RqGY?t=80) inside VRChat in order to have the program working!**
+> **You must [enable OSC](https://youtu.be/OHjN_q6RqGY?t=80) in VRChat for MagicChatBox to function.**
 
 ## Features
 
-> [!NOTE]
-> - 💭 Personal Status  
-> - 🧭 Window Activity  
-> - 🩵 Heart Rate  
-> - 🎛️ Component Stats  
-> - 🧠 Chatting Module  
-> - ⚗️ OpenAI Module  
-> - ⛓️‍💥 Network Stats  
-> - 📆 Time Status  
-> - 🎶 Music Activity  
-> - 💤 AFK Module  
-> - 🎼 Soundpad  
+| Module | Description |
+|--------|-------------|
+| 💭 **Personal Status** | Set and cycle custom status messages in your VRChat chatbox |
+| 🧭 **Window Activity** | Automatically display your currently active application |
+| 🩵 **Heart Rate** | Show live heart rate data via Pulsoid integration |
+| 🎛️ **Component Stats** | Display CPU, GPU, and RAM usage in real time |
+| 🧠 **Chatting Module** | Type and send messages directly to the VRChat chatbox |
+| ⚗️ **OpenAI Module** | AI-powered text generation and smart replies |
+| ⛓️‍💥 **Network Stats** | Monitor upload/download speeds and latency |
+| 📆 **Time Status** | Show current date and time in customizable formats |
+| 🎶 **Spotify Integration** | Display currently playing track with album and artist info |
+| 💤 **AFK Module** | Automatically set an away status when idle |
+| 🎼 **Soundpad** | Trigger sound effects directly from the app |
+| 🎮 **Discord Rich Presence** | Share MagicChatBox activity on your Discord profile |
+| 📡 **Twitch Integration** | Display follower count, announcements, and shoutouts |
 
 > [!IMPORTANT]
-> **Heart Rate Feature** requires an official `Pulsoid Member` subscription.
+> **Heart Rate** requires an active [Pulsoid](https://pulsoid.net/) subscription.
+
+## What's New in v0.9.x (.NET 10)
+
+- **Runtime upgrade to .NET 10** — faster startup, reduced memory footprint, and access to the latest platform APIs (Windows 10 26100+)
+- **Improved resource management and thread safety** — eliminated race conditions in background services for a more stable experience
+- **OAuth reliability** — fixed Spotify (redirect URI handling) and Discord (PKCE flow with refresh token support) authentication flows
+- **Modernized UI** — overhauled settings, status list grouping/sorting, and in-app toast notifications
+- **Enhanced exception handling** — graceful recovery during updates and rollbacks with clearer error reporting
+- **Spotify & Discord integrations** — full OAuth-based Spotify playback display and expanded Discord Rich Presence
 
 ## Support
 
