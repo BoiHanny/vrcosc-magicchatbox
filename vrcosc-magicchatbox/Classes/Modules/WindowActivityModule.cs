@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
@@ -26,6 +28,8 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 {
     private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
     private const uint SHGFI_DISPLAYNAME = 0x00000200;
+    private static readonly object InvalidCustomRegexLock = new();
+    private static readonly HashSet<string> InvalidCustomRegexLogged = new(StringComparer.Ordinal);
 
     private bool _usedNewMethod = false;
     private readonly string _vrChatDirectory;
@@ -41,6 +45,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
     private DateTime _waLastErrorToast = DateTime.MinValue;
+    private string? _lastInvalidGlobalRegex;
 
     public WindowActivityModule(
         ISettingsProvider<WindowActivitySettings> settingsProvider,
@@ -134,6 +139,9 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                     WA.LastProcessFocused = existingProcessInfo;
                 }
 
+                // Global regex is applied before title length limiting in FormatWindowTitle.
+                windowTitle = ApplyCustomRegex(existingProcessInfo, windowTitle);
+
                 bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
 
                 if (existingProcessInfo.IsPrivateApp)
@@ -170,9 +178,68 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     }
 
+    /// <summary>
+    /// Applies the global regex to a window title. Runs BEFORE per-app regex.
+    /// If the regex matches, returns the first capture group; otherwise the original title.
+    /// </summary>
+    private string ApplyGlobalRegex(string windowTitle)
+    {
+        if (!Settings.UseGlobalRegex
+            || string.IsNullOrWhiteSpace(Settings.GlobalRegex)
+            || string.IsNullOrEmpty(windowTitle))
+            return windowTitle;
+
+        try
+        {
+            var match = GetGlobalRegex().Match(windowTitle);
+            if (match.Success && match.Groups.Count > 1 && !string.IsNullOrEmpty(match.Groups[1].Value))
+                return match.Groups[1].Value;
+        }
+        catch (Exception ex) when (ex is ArgumentException or RegexMatchTimeoutException)
+        {
+            if (!string.Equals(_lastInvalidGlobalRegex, Settings.GlobalRegex, StringComparison.Ordinal))
+            {
+                _lastInvalidGlobalRegex = Settings.GlobalRegex;
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+        return windowTitle;
+    }
+
+    /// <summary>
+    /// Applies a per-app custom regex to the window title. If the regex matches,
+    /// returns the first capture group; otherwise returns the original title unchanged.
+    /// </summary>
+    private static string ApplyCustomRegex(ProcessInfo process, string windowTitle)
+    {
+        if (!process.UseCustomRegex
+            || string.IsNullOrWhiteSpace(process.CustomRegex)
+            || string.IsNullOrEmpty(windowTitle))
+            return windowTitle;
+
+        try
+        {
+            var match = Regex.Match(windowTitle, process.CustomRegex, RegexOptions.None, TimeSpan.FromMilliseconds(50));
+            if (match.Success && match.Groups.Count > 1 && !string.IsNullOrEmpty(match.Groups[1].Value))
+                return match.Groups[1].Value;
+        }
+        catch (Exception ex) when (ex is ArgumentException or RegexMatchTimeoutException)
+        {
+            lock (InvalidCustomRegexLock)
+            {
+                if (!InvalidCustomRegexLogged.Add(process.CustomRegex))
+                    return windowTitle;
+            }
+
+            Logging.WriteException(ex, MSGBox: false);
+        }
+        return windowTitle;
+    }
+
     private string FormatWindowTitle(string fullTitle)
     {
         fullTitle = fullTitle?.Trim() ?? string.Empty;
+        fullTitle = ApplyGlobalRegex(fullTitle);
 
         if (Settings.LimitTitleOnApp && fullTitle.Length > Settings.MaxShowTitleCount)
         {
@@ -583,6 +650,20 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return removed;
     }
 
+    private Regex? _cachedGlobalRegex;
+    private string? _cachedGlobalRegexPattern;
+
+    private Regex GetGlobalRegex()
+    {
+        var pattern = Settings.GlobalRegex ?? string.Empty;
+        if (_cachedGlobalRegex == null || !string.Equals(_cachedGlobalRegexPattern, pattern, StringComparison.Ordinal))
+        {
+            _cachedGlobalRegex = new Regex(pattern, RegexOptions.None, TimeSpan.FromMilliseconds(50));
+            _cachedGlobalRegexPattern = pattern;
+        }
+        return _cachedGlobalRegex;
+    }
+
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct SHFILEINFO
     {
@@ -594,8 +675,5 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 80)]
         public string szTypeName;
     }
-
-
-
 
 }

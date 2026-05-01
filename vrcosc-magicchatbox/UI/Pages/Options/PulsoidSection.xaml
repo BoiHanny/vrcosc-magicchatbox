@@ -29,8 +29,14 @@
             </LinearGradientBrush>
         </Grid.Background>
         <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
             <ToggleButton
+                Grid.Column="0"
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
@@ -44,8 +50,9 @@
 
             <TextBlock
                 x:Name="LearnMoreAboutHeartbtn"
+                Grid.Column="1"
                 Width="auto"
-                Margin="205,0,0,0"
+                Margin="10,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
@@ -224,9 +231,8 @@
 
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Orientation="Horizontal">
                         <Button
                             x:Name="ConnectWithPulsoid"
@@ -331,9 +337,8 @@
 
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5"
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
                     Opacity="0.8"
                     Visibility="{Binding Pulsoid.AuthConnected, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <StackPanel Margin="5">
@@ -350,19 +355,14 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
 
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="2,0,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Example: ❤️ 88 bpm. Gives a little heart icon as a prefix." />
                         <CheckBox
                             x:Name="MagicHeartRateICON_checkbox"
@@ -375,19 +375,14 @@
                 </Border>
 
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5"
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
                     Visibility="{Binding Modules.Pulsoid.Settings.MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="2,0,0,4"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Cycle through different heart symbols (❤️, 💖, 💗, etc.) every time your heart rate updates." />
                         <CheckBox
                             x:Name="MagicHeartRateIcons_checkbox"
@@ -399,27 +394,18 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
-                            Padding="2,0,0,0"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="20"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="Pulsoid ˢᵗᵃᵗˢ" />
 
                         <TextBlock
                             Width="auto"
                             Margin="2,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="You can show stats over a selected time period." />
 
                         <CheckBox
@@ -435,9 +421,7 @@
                                 Width="auto"
                                 Margin="4,2"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionHelpTextStyle}"
                                 Text="Select the timeframe you want to show the stats for." />
                             <ComboBox
                                 x:Name="PulsoidTimeFrame_combo"
@@ -460,10 +444,8 @@
                                 Width="auto"
                                 Padding="4,10,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="Pick the stats you want to show that is collected over your selected time frame." />
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="Pick the stats you want to show that are collected over your selected time frame." />
 
 
 
@@ -543,27 +525,18 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
-                            Padding="2,0,0,0"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="20"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="Pulsoid to OSC" />
 
                         <TextBlock
                             Width="auto"
                             Margin="2,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="With Pulsoid to OSC you can send your heart rate to your VRChat Avatar." />
 
                         <CheckBox
@@ -630,11 +603,7 @@
                                     Width="auto"
                                     Margin="2,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="13"
-                                    FontStyle="Italic"
-                                    Foreground="{StaticResource TextLabelBrush}"
-                                    Opacity="0.5"
+                                    Style="{StaticResource OptionHelpTextStyle}"
                                     Text="By using a heartrate band, you get way more updates from the network than you would get from a watch." />
                             </StackPanel>
                         </StackPanel>
@@ -646,19 +615,14 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5"
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
                     Visibility="{Binding Modules.Pulsoid.Settings.MagicHeartIconPrefix, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Example: If below 60 BPM, shows 'sleepy'; if above 100 BPM, shows 'hot'." />
                         <CheckBox
                             x:Name="ShowTemperatureText_checkbox"
@@ -742,18 +706,13 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Monitors changes in heart rate over time, showing up/down arrows if you accelerate or decelerate quickly." />
                         <CheckBox
                             x:Name="ShowHeartRateTrendIndicator"
@@ -850,18 +809,13 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Applies a moving average over a few seconds so the displayed BPM doesn't jump too wildly." />
                         <CheckBox
                             x:Name="SmoothHeartRate_checkbox"
@@ -902,19 +856,14 @@
                 </Border>
 
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Any heart rate above the max threshold gets compressed into a smaller range to avoid extremely high values" />
                         <CheckBox
                             x:Name="ThrottleHR"
@@ -988,11 +937,7 @@
                                 Width="auto"
                                 Margin="0,0,0,5"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                FontStyle="Italic"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Opacity="0.5"
+                                Style="{StaticResource OptionHelpTextStyle}"
                                 Text="Max Overflow adds a small extra range above the cutoff to gently scale heart-rate spikes instead of cutting them off abruptly." />
 
 
@@ -1001,18 +946,13 @@
                 </Border>
 
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,2,0,3"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Applies a constant offset to your measured BPM. Useful if your sensor is known to be +5 BPM off. use - to remove BPM" />
                         <CheckBox
                             x:Name="ApplyHeartRateAdjustment_checkbox"
@@ -1055,18 +995,13 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Marks your heart rate as 'offline' if it stops updating for too long." />
                         <CheckBox
                             x:Name="EnableHeartRateOfflineCheck_checkbox"
@@ -1106,18 +1041,13 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Adds 'bpm' after the heart rate, e.g. '85 bpm' instead of just '85'." />
                         <CheckBox
                             x:Name="ShowBPMSuffix_checkbox"
@@ -1129,18 +1059,13 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="If disabled, sends only new style parameters (/avatar/parameters/HR, etc.) for a simpler, faster update." />
                         <CheckBox
                             x:Name="DisableLegacyOSCSupport_checkbox"
@@ -1152,18 +1077,13 @@
                     </StackPanel>
                 </Border>
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
                         <TextBlock
                             Width="auto"
                             Margin="4,3,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="If checked, you'll see a short label (like 'Heart Rate:') before the BPM." />
                         <CheckBox
                             x:Name="HeartRateTitle_checkbox"

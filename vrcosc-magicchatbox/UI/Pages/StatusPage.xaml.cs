@@ -138,8 +138,15 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private void StatusItemCheckBox_Click(object sender, RoutedEventArgs e)
         {
+            // The TwoWay binding on IsChecked already toggled IsSelected.
+            // We only need to sync the SelectedItems collection here.
             if (sender is CheckBox cb && cb.Tag is StatusItem item)
-                VM.ToggleItemSelectedCommand.Execute(item);
+            {
+                if (item.IsSelected && !VM.SelectedItems.Contains(item))
+                    VM.SelectedItems.Add(item);
+                else if (!item.IsSelected)
+                    VM.SelectedItems.Remove(item);
+            }
         }
 
         private void StatusItemRow_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)

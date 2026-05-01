@@ -51,16 +51,38 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private void NewChattingTxt_KeyDown(object sender, KeyEventArgs e)
         {
+            var textBox = sender as TextBox;
+            if ((e.Key == Key.Tab || e.Key == Key.Right)
+                && textBox != null
+                && textBox.CaretIndex == textBox.Text.Length
+                && VM.AcceptAutocompleteSuggestion())
+            {
+                e.Handled = true;
+                Dispatcher.BeginInvoke(() =>
+                {
+                    NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
+                    NewChattingTxt.Focus();
+                });
+                return;
+            }
+
             if (e.Key == Key.Enter)
+            {
                 ButtonChattingTxt_Click(sender, e);
+                e.Handled = true;
+            }
             if (e.Key == Key.Escape)
+            {
+                VM.ClearAutocompleteSuggestion();
                 VM.ClearChatInputCommand.Execute(null);
+                e.Handled = true;
+            }
         }
 
         private void NewChattingTxt_TextChanged(object sender, TextChangedEventArgs e)
         {
             var textBox = sender as TextBox;
-            VM.UpdateChatBoxCount(textBox?.Text.Length ?? 0);
+            VM.UpdateChatBoxCount(textBox?.Text ?? string.Empty);
         }
 
         private void EditChatTextBox_KeyDown(object sender, KeyEventArgs e)

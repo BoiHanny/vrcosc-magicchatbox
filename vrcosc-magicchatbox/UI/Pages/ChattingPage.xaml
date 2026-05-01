@@ -7,8 +7,8 @@
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:ChattingPageViewModel,
                                      IsDesignTimeCreatable=False}"
-    mc:Ignorable="d"
-    Background="{StaticResource SurfaceCardBrush}">
+    Background="{StaticResource SurfaceCardBrush}"
+    mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -18,91 +18,88 @@
     </UserControl.Resources>
 
     <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="31" />
-                <RowDefinition Height="35" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="60" />
-            </Grid.RowDefinitions>
-            <Border
-                Margin="3"
-                CornerRadius="5">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                        <LinearGradientBrush.RelativeTransform>
-                            <TransformGroup>
-                                <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                                <SkewTransform CenterX="0.5" CenterY="0.5" />
-                                <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
-                                <TranslateTransform />
-                            </TransformGroup>
-                        </LinearGradientBrush.RelativeTransform>
-                        <GradientStop Color="#FFC950EF" />
-                        <GradientStop Offset="1" Color="#FFA550EF" />
-                    </LinearGradientBrush>
-                </Border.Background>
-        
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ChatStatus.ChatTopBarTxt.Length}" Value="0">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <TextBlock
-                    Grid.Column="0"
-                    Margin="4"
-                    Padding="4,0,50,0"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    d:Text="You're soaring past the 140 char limit by {overmax}."
-                    FontFamily="Albert Sans Thin"
-                    FontSize="14"
-                    Foreground="#FFF3E8FF"
-                    Text="{Binding ChatStatus.ChatTopBarTxt}">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="5"
-                            Direction="-23"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="DarkBlue" />
-                    </TextBlock.Effect>
-                </TextBlock>
-            </Border>
-        
-            <Grid
-                Grid.Row="4"
-                Width="758"
-                Height="68"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="672" />
-                    <ColumnDefinition Width="150" />
-                </Grid.ColumnDefinitions>
-                <Button
-                    x:Name="ButtonChattingTxt"
-                    Grid.ColumnSpan="2"
-                    Width="84"
-                    Margin="666,14,0,14"
-                    HorizontalAlignment="Left"
-                    Click="ButtonChattingTxt_Click"
-                    Content="Send"
-                    Style="{DynamicResource Status_Button_style}" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="31" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="60" />
+        </Grid.RowDefinitions>
+        <Border Margin="3" CornerRadius="5">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Color="#FFC950EF" />
+                    <GradientStop Offset="1" Color="#FFA550EF" />
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ChatStatus.ChatTopBarTxt.Length}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock
+                Grid.Column="0"
+                Margin="4"
+                Padding="4,0,50,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                d:Text="You're soaring past the 140 char limit by {overmax}."
+                FontFamily="Albert Sans Thin"
+                FontSize="14"
+                Foreground="#FFF3E8FF"
+                Text="{Binding ChatStatus.ChatTopBarTxt}">
+                <TextBlock.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="-23"
+                        RenderingBias="Performance"
+                        ShadowDepth="0"
+                        Color="DarkBlue" />
+                </TextBlock.Effect>
+            </TextBlock>
+        </Border>
+
+        <Grid
+            Grid.Row="4"
+            Width="758"
+            Height="68"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="672" />
+                <ColumnDefinition Width="150" />
+            </Grid.ColumnDefinitions>
+            <Button
+                x:Name="ButtonChattingTxt"
+                Grid.ColumnSpan="2"
+                Width="84"
+                Margin="666,14,0,14"
+                HorizontalAlignment="Left"
+                Click="ButtonChattingTxt_Click"
+                Content="Send"
+                Style="{DynamicResource Status_Button_style}" />
+            <Grid Height="40" Margin="5,0,0,0">
                 <TextBox
                     x:Name="NewChattingTxt"
-                    MaxLength="144"
-                    Height="40"
-                    Margin="5,0,0,0"
                     Padding="8,0,93,0"
                     HorizontalContentAlignment="Left"
                     VerticalContentAlignment="Center"
                     FontSize="15"
                     KeyDown="NewChattingTxt_KeyDown"
+                    MaxLength="144"
                     Style="{StaticResource LightInputTextBox}"
                     Text="{Binding ChatStatus.NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     TextAlignment="Left"
@@ -117,454 +114,750 @@
                             Color="DarkBlue" />
                     </TextBox.Effect>
                 </TextBox>
-        
-                <StackPanel
-                    Margin="0,0,3,0"
+                <TextBlock
+                    Margin="0"
+                    Padding="12,10,96,0"
+                    FontSize="15"
+                    Foreground="{StaticResource AccentLightPurpleBrush}"
+                    IsHitTestVisible="False"
+                    Opacity="0.48"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding ChatStatus.ChatAutocompleteActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Run Foreground="Transparent" Text="{Binding ChatStatus.NewChattingTxt, Mode=OneWay}" />
+                    <Run Text="{Binding ChatStatus.ChatAutocompleteSuggestion, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock
+                    Margin="0,0,98,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Orientation="Horizontal">
-        
-                    <TextBlock
-                        Grid.Column="0"
-                        Padding="0,0,3,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="{Binding ChatStatus.ChatBoxColor}"
-                        Text="{Binding ChatStatus.ChatBoxCount}" />
-        
+                    FontFamily="Albert Sans Thin"
+                    FontSize="10"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    IsHitTestVisible="False"
+                    Text="Tab"
+                    Visibility="{Binding ChatStatus.ChatAutocompleteActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </Grid>
+
+            <StackPanel
+                Margin="0,0,3,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+
+                <TextBlock
+                    Grid.Column="0"
+                    Padding="0,0,3,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="12"
+                    Foreground="{Binding ChatStatus.ChatBoxColor}"
+                    Text="{Binding ChatStatus.ChatBoxCount}" />
+
+                <Button
+                    x:Name="Paste_Chatting"
+                    Width="auto"
+                    Height="35"
+                    Margin="0,0,1,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Command="{Binding PasteChatCommand}"
+                    Style="{DynamicResource Textblock_Button_style}"
+                    ToolTip="Paste"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="18"
+                            Margin="0,0,0,0"
+                            Source="/Img/Icons/PasteChat_ico.png" />
+                    </StackPanel>
+                </Button>
+
+
+
+
+                <Grid>
                     <Button
-                        x:Name="Paste_Chatting"
+                        x:Name="CleanChatting_btn"
                         Width="auto"
                         Height="35"
-                        Margin="0,0,1,0"
+                        Margin="0,0,0,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
-                        Command="{Binding PasteChatCommand}"
+                        Command="{Binding ClearChatInputCommand}"
                         Style="{DynamicResource Textblock_Button_style}"
-                        ToolTip="Paste"
+                        ToolTip="Clear chat"
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
                             <Image
                                 Width="18"
                                 Margin="0,0,0,0"
-                                Source="/Img/Icons/PasteChat_ico.png" />
+                                Opacity="1"
+                                Source="/Img/Icons/Remove_icon.png" />
                         </StackPanel>
                     </Button>
-        
-        
-        
-        
-                    <Grid>
-                        <Button
-                            x:Name="CleanChatting_btn"
-                            Width="auto"
-                            Height="35"
-                            Margin="0,0,0,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Command="{Binding ClearChatInputCommand}"
-                            Style="{DynamicResource Textblock_Button_style}"
-                            ToolTip="Clear chat"
-                            WindowChrome.IsHitTestVisibleInChrome="True">
-                            <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                                <Image
-                                    Width="18"
-                                    Margin="0,0,0,0"
-                                    Opacity="1"
-                                    Source="/Img/Icons/Remove_icon.png" />
-                            </StackPanel>
-                        </Button>
-                        <Grid.Style>
-                            <Style TargetType="{x:Type Grid}">
-                                <Setter Property="Visibility" Value="Visible" />
-                                <Style.Triggers>
-                                    <!--  Trigger to make the Grid visible when NewChattingTxt has text  -->
-                                    <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                    <!--  Trigger to keep the Grid collapsed when NewChattingTxt has no text  -->
-                                    <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                    <!--  Default state when there is content in the Text  -->
-                                    <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-        
-        
-        
-        
-                    </Grid>
-        
-        
-        
-                </StackPanel>
-        
-        
-                <TextBlock
-                    Height="40"
-                    Margin="5,0,55,0"
-                    Padding="8,9,5,0"
-                    VerticalAlignment="Center"
-                    FontSize="15"
-                    Foreground="{StaticResource TextDarkMutedBrush}"
-                    IsHitTestVisible="False"
-                    Text="Send a chat message"
-                    TextAlignment="Left">
-                    <TextBlock.Style>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Visibility" Value="Collapsed" />
+                    <Grid.Style>
+                        <Style TargetType="{x:Type Grid}">
+                            <Setter Property="Visibility" Value="Visible" />
                             <Style.Triggers>
+                                <!--  Trigger to make the Grid visible when NewChattingTxt has text  -->
                                 <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding ElementName=NewChattingTxt, Path=IsFocused}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
-        
+                                <!--  Trigger to keep the Grid collapsed when NewChattingTxt has no text  -->
+                                <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <!--  Default state when there is content in the Text  -->
+                                <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBlock.Style>
+                    </Grid.Style>
+
+
+
+
+                </Grid>
+
+
+
+            </StackPanel>
+
+
+            <TextBlock
+                Height="40"
+                Margin="5,0,55,0"
+                Padding="8,9,5,0"
+                VerticalAlignment="Center"
+                FontSize="15"
+                Foreground="{StaticResource TextDarkMutedBrush}"
+                IsHitTestVisible="False"
+                Text="Send a chat message"
+                TextAlignment="Left">
+                <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ElementName=NewChattingTxt, Path=IsFocused}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+        <Grid Grid.Row="1" Background="{StaticResource SurfaceVariantBrush}">
+            <Grid.Effect>
+                <DropShadowEffect
+                    BlurRadius="10"
+                    Direction="-90"
+                    Opacity="0.5"
+                    RenderingBias="Performance"
+                    ShadowDepth="5"
+                    Color="{StaticResource TextSubtleColor}" />
+            </Grid.Effect>
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                <TextBlock
+                    Margin="8,0,0,0"
+                    d:Text="Chat feedback"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="16"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="{Binding ChatStatus.ChatFeedbackTxt}"
+                    Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Padding="8,0,15,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    d:Text="Connecting with OpenAI..."
+                    FontFamily="Albert Sans Thin"
+                    FontSize="16"
+                    Text="{Binding Modules.IntelliChat.Settings.IntelliChatUILabelTxt, UpdateSourceTrigger=PropertyChanged}"
+                    Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBlock.Foreground>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <LinearGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
+                                    <RotateTransform Angle="79.54" CenterX="0.5" CenterY="0.5" />
+                                    <TranslateTransform />
+                                </TransformGroup>
+                            </LinearGradientBrush.RelativeTransform>
+                            <GradientStop Color="#FF21C161" />
+                            <GradientStop Offset="1" Color="#FFC1BEC7" />
+                        </LinearGradientBrush>
+                    </TextBlock.Foreground>
                 </TextBlock>
-            </Grid>
-            <Grid Grid.Row="1" Background="{StaticResource SurfaceVariantBrush}">
-                <Grid.Effect>
-                    <DropShadowEffect
-                        BlurRadius="10"
-                        Direction="-90"
-                        Opacity="0.5"
-                        RenderingBias="Performance"
-                        ShadowDepth="5"
-                        Color="{StaticResource TextSubtleColor}" />
-                </Grid.Effect>
-                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock
-                        Margin="8,0,0,0"
-                        d:Text="Chat feedback"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="16"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="{Binding ChatStatus.ChatFeedbackTxt}"
-                        Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock
-                        Padding="8,0,15,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        d:Text="Connecting with OpenAI..."
-                        FontFamily="Albert Sans Thin"
-                        FontSize="16"
-                        Text="{Binding Modules.IntelliChat.Settings.IntelliChatUILabelTxt, UpdateSourceTrigger=PropertyChanged}"
-                        Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBlock.Foreground>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <LinearGradientBrush.RelativeTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                                        <SkewTransform CenterX="0.5" CenterY="0.5" />
-                                        <RotateTransform Angle="79.54" CenterX="0.5" CenterY="0.5" />
-                                        <TranslateTransform />
-                                    </TransformGroup>
-                                </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#FF21C161" />
-                                <GradientStop Offset="1" Color="#FFC1BEC7" />
-                            </LinearGradientBrush>
-                        </TextBlock.Foreground>
-                    </TextBlock>
-        
-        
-                </StackPanel>
-        
-                <StackPanel
-                    HorizontalAlignment="Right"
-                    d:Visibility="Visible"
-                    Orientation="Horizontal"
-                    Visibility="{Binding ChatStatus.CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="4,0,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="14"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="Visible for " />
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="0,0,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="14"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="{Binding ChatStatus.ScanPauseCountDown, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="0,0,157,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="14"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text=" seconds"
-                        Visibility="{Binding ChatStatus.CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-        
-                </StackPanel>
-        
-                <Button
-                    x:Name="ClearChat"
-                    Width="80"
-                    Margin="0,5,20,5"
-                    HorizontalAlignment="Right"
-                    Click="ClearChat_Click"
-                    Content="Clear history"
-                    Style="{DynamicResource Status_Button_style}" />
-                <Button
-                    x:Name="StopChat"
-                    Width="40"
-                    Margin="0,5,105,5"
-                    HorizontalAlignment="Right"
-                    Click="StopChat_Click"
-                    Content="Stop"
-                    Style="{DynamicResource Status_Button_style}" />
-            </Grid>
-            <Grid Grid.Row="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <ScrollViewer
-                    Name="RecentScroll"
-                    Margin="7,0,0,0"
-                    Visibility="Visible">
-                    <ItemsControl
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Bottom"
-                        ItemsSource="{Binding ChatStatus.LastMessages, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border
-                                    Width="735"
-                                    Height="auto"
-                                    Margin="8,0,0,8"
-                                    CornerRadius="5"
-                                    Opacity="{Binding Opacity}">
-                                    <Grid>
-                                        <Border
+
+
+            </StackPanel>
+
+            <StackPanel
+                HorizontalAlignment="Right"
+                d:Visibility="Visible"
+                Orientation="Horizontal"
+                Visibility="{Binding ChatStatus.CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="4,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="Visible for " />
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="{Binding ChatStatus.ScanPauseCountDown, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,0,157,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text=" seconds"
+                    Visibility="{Binding ChatStatus.CountDownUI, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+            </StackPanel>
+
+            <Button
+                x:Name="ClearChat"
+                Width="80"
+                Margin="0,5,20,5"
+                HorizontalAlignment="Right"
+                Click="ClearChat_Click"
+                Content="Clear history"
+                Style="{DynamicResource Status_Button_style}" />
+            <Button
+                x:Name="StopChat"
+                Width="40"
+                Margin="0,5,105,5"
+                HorizontalAlignment="Right"
+                Click="StopChat_Click"
+                Content="Stop"
+                Style="{DynamicResource Status_Button_style}" />
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <ScrollViewer
+                Name="RecentScroll"
+                Margin="7,0,0,0"
+                Visibility="Visible">
+                <ItemsControl
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    ItemsSource="{Binding ChatStatus.LastMessages, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                Width="735"
+                                Height="auto"
+                                Margin="8,0,0,8"
+                                CornerRadius="5"
+                                Opacity="{Binding Opacity}">
+                                <Grid>
+                                    <Border
+                                        Width="auto"
+                                        Height="auto"
+                                        CornerRadius="5"
+                                        Opacity="{Binding Opacity}"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                        <Border.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="10"
+                                                Direction="0"
+                                                Opacity="0.5"
+                                                RenderingBias="Performance"
+                                                ShadowDepth="0"
+                                                Color="black" />
+                                        </Border.Effect>
+                                        <Border.Background>
+                                            <LinearGradientBrush SpreadMethod="Reflect" StartPoint="1,1" EndPoint="1,0">
+                                                <GradientStop Color="DarkSlateBlue" />
+                                                <GradientStop Offset="1" Color="#524D75" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                    <Grid
+                                        Width="auto"
+                                        Height="auto"
+                                        VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
                                             Width="auto"
-                                            Height="auto"
-                                            CornerRadius="5"
-                                            Opacity="{Binding Opacity}"
-                                            RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                            <Border.Effect>
+                                            Height="Auto"
+                                            Padding="15,15,0,15"
+                                            HorizontalAlignment="Stretch"
+                                            Background="Transparent"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="18"
+                                            Foreground="LightGray"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding Msg, UpdateSourceTrigger=PropertyChanged}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock.Effect>
                                                 <DropShadowEffect
-                                                    BlurRadius="10"
-                                                    Direction="0"
-                                                    Opacity="0.5"
+                                                    BlurRadius="20"
+                                                    Opacity="0.9"
                                                     RenderingBias="Performance"
                                                     ShadowDepth="0"
-                                                    Color="black" />
-                                            </Border.Effect>
-                                            <Border.Background>
-                                                <LinearGradientBrush SpreadMethod="Reflect" StartPoint="1,1" EndPoint="1,0">
-                                                    <GradientStop Color="DarkSlateBlue" />
-                                                    <GradientStop Offset="1" Color="#524D75" />
-                                                </LinearGradientBrush>
-                                            </Border.Background>
-                                        </Border>
-                                        <Grid
+                                                    Color="WhiteSmoke" />
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <TextBox
+                                            x:Name="EditChatTextBox"
+                                            Grid.Column="0"
                                             Width="auto"
-                                            Height="auto"
-                                            VerticalAlignment="Center">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                Width="auto"
-                                                Height="Auto"
-                                                Padding="15,15,0,15"
-                                                HorizontalAlignment="Stretch"
-                                                Background="Transparent"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="18"
-                                                Foreground="LightGray"
-                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                                Text="{Binding Msg, UpdateSourceTrigger=PropertyChanged}"
-                                                TextWrapping="Wrap"
-                                                Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="20"
-                                                        Opacity="0.9"
-                                                        RenderingBias="Performance"
-                                                        ShadowDepth="0"
-                                                        Color="WhiteSmoke" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-                                            <TextBox
-                                                x:Name="EditChatTextBox"
-                                                MaxLength="144"
-                                                Grid.Column="0"
-                                                Width="auto"
-                                                Height="Auto"
-                                                Padding="13,15,0,15"
-                                                HorizontalAlignment="Stretch"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="18"
-                                                FontWeight="DemiBold"
-                                                Foreground="#6FC2EC"
-                                                IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                KeyDown="EditChatTextBox_KeyDown"
-                                                Style="{StaticResource InlineTransparentTextBox}"
-                                                Text="{Binding MsgReplace, UpdateSourceTrigger=PropertyChanged}"
-                                                TextChanged="EditChatTextBox_TextChanged"
-                                                TextWrapping="Wrap"
-                                                Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBox.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="20"
-                                                        Opacity="0.9"
-                                                        RenderingBias="Performance"
-                                                        ShadowDepth="0"
-                                                        Color="{StaticResource AccentLightBlueColor}" />
-                                                </TextBox.Effect>
-                                            </TextBox>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                                <Grid>
-                                                    <Button
-                                                        x:Name="CancelEditChatbutton"
-                                                        Grid.Row="0"
-                                                        Grid.Column="1"
-                                                        Width="20"
-                                                        Height="40"
-                                                        Margin="0,0,0,0"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        Background="{StaticResource StatusErrorDarkBrush}"
-                                                        Click="CancelEditChatbutton_Click"
-                                                        Cursor="Hand"
-                                                        Style="{DynamicResource CancelEditbutton}"
-                                                        Tag="{Binding}"
-                                                        Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                        <Grid>
-                                                            <Image
-                                                                Width="15"
-                                                                Height="15"
-                                                                RenderOptions.BitmapScalingMode="Linear"
-                                                                Source="/Img/Icons/Cross_ico.png" />
-                                                        </Grid>
-                                                    </Button>
-                                                </Grid>
-        
-                                                <ToggleButton
-                                                    Width="auto"
-                                                    Margin="5,5,0,5"
-                                                    Padding="5,0"
+                                            Height="Auto"
+                                            Padding="13,15,0,15"
+                                            HorizontalAlignment="Stretch"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="18"
+                                            FontWeight="DemiBold"
+                                            Foreground="#6FC2EC"
+                                            IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                            KeyDown="EditChatTextBox_KeyDown"
+                                            MaxLength="144"
+                                            Style="{StaticResource InlineTransparentTextBox}"
+                                            Text="{Binding MsgReplace, UpdateSourceTrigger=PropertyChanged}"
+                                            TextChanged="EditChatTextBox_TextChanged"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBox.Effect>
+                                                <DropShadowEffect
+                                                    BlurRadius="20"
+                                                    Opacity="0.9"
+                                                    RenderingBias="Performance"
+                                                    ShadowDepth="0"
+                                                    Color="{StaticResource AccentLightBlueColor}" />
+                                            </TextBox.Effect>
+                                        </TextBox>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Grid>
+                                                <Button
+                                                    x:Name="CancelEditChatbutton"
+                                                    Grid.Row="0"
+                                                    Grid.Column="1"
+                                                    Width="20"
+                                                    Height="40"
+                                                    Margin="0,0,0,0"
                                                     HorizontalAlignment="Right"
-                                                    Checked="ToggleButton_Checked"
-                                                    Content="{Binding LiveEditButtonTxt}"
-                                                    IsChecked="{Binding CanLiveEditRun, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                                    Style="{DynamicResource Status_Toggle_style}"
+                                                    VerticalAlignment="Center"
+                                                    Background="{StaticResource StatusErrorDarkBrush}"
+                                                    Click="CancelEditChatbutton_Click"
+                                                    Cursor="Hand"
+                                                    Style="{DynamicResource CancelEditbutton}"
                                                     Tag="{Binding}"
-                                                    Unchecked="ToggleButton_Checked"
-                                                    Visibility="{Binding CanLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                                <Button
-                                                    Width="auto"
-                                                    Margin="5,5,0,5"
-                                                    Padding="5,0"
-                                                    HorizontalAlignment="Right"
-                                                    Click="OnSendAgain"
-                                                    Content="Resend"
-                                                    IsEnabled="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                                    Style="{DynamicResource Status_Button_style}"
-                                                    Tag="{Binding}" />
-                                                <Button
-                                                    Width="auto"
-                                                    Margin="5"
-                                                    Padding="5,0"
-                                                    HorizontalAlignment="Right"
-                                                    Command="{Binding CopyToClipboardCommand}"
-                                                    CommandParameter="{Binding Msg}"
-                                                    Style="{DynamicResource Status_Button_style}">
-                                                    <Image Width="18" Source="/Img/Icons/Copy_ico.png" />
+                                                    Visibility="{Binding CanLiveEditRun, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <Grid>
+                                                        <Image
+                                                            Width="15"
+                                                            Height="15"
+                                                            RenderOptions.BitmapScalingMode="Linear"
+                                                            Source="/Img/Icons/Cross_ico.png" />
+                                                    </Grid>
                                                 </Button>
-        
-                                            </StackPanel>
-        
-                                        </Grid>
-        
+                                            </Grid>
+
+                                            <ToggleButton
+                                                Width="auto"
+                                                Margin="5,5,0,5"
+                                                Padding="5,0"
+                                                HorizontalAlignment="Right"
+                                                Checked="ToggleButton_Checked"
+                                                Content="{Binding LiveEditButtonTxt}"
+                                                IsChecked="{Binding CanLiveEditRun, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                Style="{DynamicResource Status_Toggle_style}"
+                                                Tag="{Binding}"
+                                                Unchecked="ToggleButton_Checked"
+                                                Visibility="{Binding CanLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                            <Button
+                                                Width="auto"
+                                                Margin="5,5,0,5"
+                                                Padding="5,0"
+                                                HorizontalAlignment="Right"
+                                                Click="OnSendAgain"
+                                                Content="Resend"
+                                                IsEnabled="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                                Style="{DynamicResource Status_Button_style}"
+                                                Tag="{Binding}" />
+                                            <Button
+                                                Width="auto"
+                                                Margin="5"
+                                                Padding="5,0"
+                                                HorizontalAlignment="Right"
+                                                Command="{Binding CopyToClipboardCommand}"
+                                                CommandParameter="{Binding Msg}"
+                                                Style="{DynamicResource Status_Button_style}">
+                                                <Image Width="18" Source="/Img/Icons/Copy_ico.png" />
+                                            </Button>
+
+                                        </StackPanel>
+
                                     </Grid>
-        
-        
-        
-                                </Border>
-        
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-                <Grid
-                    x:Name="AIResponse"
-                    Grid.Row="1"
-                    Height="auto"
-                    Margin="6,0,7,7"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Bottom"
-                    d:Visibility="Collapsed"
-                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                    Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                    <Border Margin="10,0" CornerRadius="5">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="#3E5750" />
-                                <GradientStop Offset="1" Color="{StaticResource SurfaceMidGradientColor}" />
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="35"
-                                Direction="-90"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="5"
-                                Color="LightGreen" />
-                        </Border.Effect>
-                        <Grid Margin="3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="55" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto" />
-                                <RowDefinition Height="Auto" MinHeight="40" />
-                            </Grid.RowDefinitions>
-        
-        
+
+                                </Grid>
+
+
+
+                            </Border>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <Grid
+                x:Name="AIResponse"
+                Grid.Row="1"
+                Height="auto"
+                Margin="6,0,7,7"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Bottom"
+                d:Visibility="Collapsed"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <Border Margin="10,0" CornerRadius="5">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Color="#3E5750" />
+                            <GradientStop Offset="1" Color="{StaticResource SurfaceMidGradientColor}" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect
+                            BlurRadius="35"
+                            Direction="-90"
+                            Opacity="0.5"
+                            RenderingBias="Performance"
+                            ShadowDepth="5"
+                            Color="LightGreen" />
+                    </Border.Effect>
+                    <Grid Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="55" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="Auto" MinHeight="40" />
+                        </Grid.RowDefinitions>
+
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Width="auto"
+                            Height="Auto"
+                            Margin="0,0,95,0"
+                            Padding="15,0,0,15"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            Background="Transparent"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="15"
+                            Foreground="AntiqueWhite"
+                            Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
+                            TextWrapping="Wrap">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="20"
+                                    Opacity="1"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="Black" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+
+
+
+                        <!--  Image  -->
+                        <Image
+                            Grid.RowSpan="2"
+                            Grid.Column="1"
+                            Width="30"
+                            Height="auto"
+                            Margin="5"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Effect="{StaticResource ImageShadowEffect}"
+                            Opacity="0.5"
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            Source="/Img/Icons/OpenAI.png" />
+
+                        <StackPanel Height="auto" Orientation="Horizontal">
+
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="15,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="18"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Text="IntelliChat">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="20"
+                                        Opacity="0.9"
+                                        RenderingBias="Performance"
+                                        ShadowDepth="0"
+                                        Color="Purple" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="5,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Opacity="0.6"
+                                Text="Tokens:" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="2,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Opacity="0.6"
+                                Text="{Binding Modules.IntelliChat.Settings.TokenUsageData.LastRequestTotalTokens, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="5,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Opacity="0.6"
+                                Text="Model:" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="2,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Opacity="0.6"
+                                Text="{Binding Modules.IntelliChat.Settings.TokenUsageData.LastRequestModelName, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="5,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Opacity="0.3"
+                                Text="Today tokens:" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="2,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextChatAccentBrush}"
+                                Opacity="0.3"
+                                Text="{Binding Modules.IntelliChat.Settings.TokenUsageData.TotalDailyTokens, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="5,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Style="{StaticResource CharacterCountTextStyle}"
+                                Text="Characters:" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="5,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Style="{StaticResource CharacterCountTextStyle}"
+                                Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt.Length, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Width="auto"
+                                Height="Auto"
+                                Padding="0,10,0,15"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Style="{StaticResource CharacterCountTextStyle}"
+                                Text="/144" />
+
+
+                        </StackPanel>
+                        <TextBlock
+                            Width="auto"
+                            Height="Auto"
+                            Margin="0,0,-10,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Background="Transparent"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource TextChatAccentBrush}"
+                            Opacity="0.3"
+                            Text="Powered by OpenAI" />
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="-70,5,0,5"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="AcceptAndSentIntelliChat"
+                                Width="auto"
+                                Margin="2"
+                                Padding="2"
+                                Click="AcceptAndSentIntelliChat_Click"
+                                Style="{DynamicResource Status_Button_style}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image
+                                        Width="18"
+                                        Margin="2"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
+                                        Source="/Img/Icons/Accept_ico.png" />
+                                    <TextBlock
+                                        Padding="3,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="13"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        Text="Sent" />
+                                </StackPanel>
+
+                            </Button>
+                            <Button
+                                x:Name="NotAcceptIntelliChat"
+                                Width="auto"
+                                Margin="2"
+                                Padding="2"
+                                Command="{Binding RejectIntelliChatCommand}"
+                                Style="{DynamicResource Status_Button_style}">
+                                <Image
+                                    Width="18"
+                                    Margin="1"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/NotAccept_ico.png" />
+                            </Button>
+                            <Button
+                                x:Name="AcceptIntelliChat"
+                                Width="auto"
+                                Margin="2"
+                                Padding="2"
+                                Command="{Binding AcceptIntelliChatCommand}"
+                                Style="{DynamicResource Status_Button_style}">
+                                <Image
+                                    Width="18"
+                                    Margin="1"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/Accept_ico.png" />
+                            </Button>
+                        </StackPanel>
+
+                    </Grid>
+
+                </Border>
+            </Grid>
+            <Grid
+                x:Name="AIErrorResponse"
+                Grid.Row="1"
+                Height="auto"
+                Margin="6,0,7,7"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Bottom"
+                d:Visibility="Collapsed"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <Border Margin="10,0" CornerRadius="5">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Color="MediumVioletRed" />
+                            <GradientStop Offset="1" Color="{StaticResource SurfaceMidGradientColor}" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect
+                            BlurRadius="35"
+                            Direction="-90"
+                            Opacity="0.9"
+                            RenderingBias="Performance"
+                            ShadowDepth="5"
+                            Color="MediumVioletRed" />
+                    </Border.Effect>
+                    <Grid Margin="3">
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="0"
                                 Width="auto"
                                 Height="Auto"
-                                Margin="0,0,95,0"
-                                Padding="15,0,0,15"
+                                Padding="15,15,0,15"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
                                 FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="AntiqueWhite"
-                                Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Foreground="MediumVioletRed"
+                                Text="{Binding Modules.IntelliChat.Settings.IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
                                 TextWrapping="Wrap">
                                 <TextBlock.Effect>
                                     <DropShadowEffect
@@ -575,619 +868,381 @@
                                         Color="Black" />
                                 </TextBlock.Effect>
                             </TextBlock>
-        
-        
-        
-                            <!--  Image  -->
+
+
+                        </StackPanel>
+
+                        <Button
+                            x:Name="CloseIntelliErrorPanel"
+                            Width="auto"
+                            Padding="6"
+                            HorizontalAlignment="Right"
+                            Command="{Binding CloseIntelliErrorCommand}"
+                            Opacity="0.8"
+                            Style="{DynamicResource Status_Button_style}">
                             <Image
-                                Grid.RowSpan="2"
-                                Grid.Column="1"
-                                Width="30"
-                                Height="auto"
-                                Margin="5"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                Opacity="0.5"
+                                Width="18"
                                 RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/OpenAI.png" />
-        
-                            <StackPanel Height="auto" Orientation="Horizontal">
-        
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="15,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="18"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Text="IntelliChat">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="20"
-                                            Opacity="0.9"
-                                            RenderingBias="Performance"
-                                            ShadowDepth="0"
-                                            Color="Purple" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="5,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Opacity="0.6"
-                                    Text="Tokens:" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="2,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Opacity="0.6"
-                                    Text="{Binding Modules.IntelliChat.Settings.TokenUsageData.LastRequestTotalTokens, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="5,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Opacity="0.6"
-                                    Text="Model:" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="2,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Opacity="0.6"
-                                    Text="{Binding Modules.IntelliChat.Settings.TokenUsageData.LastRequestModelName, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="5,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Opacity="0.3"
-                                    Text="Today tokens:" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="2,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{StaticResource TextChatAccentBrush}"
-                                    Opacity="0.3"
-                                    Text="{Binding Modules.IntelliChat.Settings.TokenUsageData.TotalDailyTokens, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="5,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Style="{StaticResource CharacterCountTextStyle}"
-                                    Text="Characters:" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="5,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Style="{StaticResource CharacterCountTextStyle}"
-                                    Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt.Length, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="0,10,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Style="{StaticResource CharacterCountTextStyle}"
-                                    Text="/144" />
-        
-        
-                            </StackPanel>
-                            <TextBlock
-                                Width="auto"
-                                Height="Auto"
-                                Margin="0,0,-10,0"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="12"
-                                Foreground="{StaticResource TextChatAccentBrush}"
-                                Opacity="0.3"
-                                Text="Powered by OpenAI" />
-        
-                            <StackPanel
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                Margin="-70,5,0,5"
-                                Orientation="Horizontal">
-                                <Button
-                                    x:Name="AcceptAndSentIntelliChat"
-                                    Width="auto"
-                                    Margin="2"
-                                    Padding="2"
-                                    Click="AcceptAndSentIntelliChat_Click"
-                                    Style="{DynamicResource Status_Button_style}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image
-                                            Width="18"
-                                            Margin="2"
-                                            RenderOptions.BitmapScalingMode="HighQuality"
-                                            Source="/Img/Icons/Accept_ico.png" />
-                                        <TextBlock
-                                            Padding="3,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            Foreground="{StaticResource TextSecondaryBrush}"
-                                            Text="Sent" />
-                                    </StackPanel>
-        
-                                </Button>
-                                <Button
-                                    x:Name="NotAcceptIntelliChat"
-                                    Width="auto"
-                                    Margin="2"
-                                    Padding="2"
-                                    Command="{Binding RejectIntelliChatCommand}"
-                                    Style="{DynamicResource Status_Button_style}">
-                                    <Image
-                                        Width="18"
-                                        Margin="1"
-                                        RenderOptions.BitmapScalingMode="HighQuality"
-                                        Source="/Img/Icons/NotAccept_ico.png" />
-                                </Button>
-                                <Button
-                                    x:Name="AcceptIntelliChat"
-                                    Width="auto"
-                                    Margin="2"
-                                    Padding="2"
-                                    Command="{Binding AcceptIntelliChatCommand}"
-                                    Style="{DynamicResource Status_Button_style}">
-                                    <Image
-                                        Width="18"
-                                        Margin="1"
-                                        RenderOptions.BitmapScalingMode="HighQuality"
-                                        Source="/Img/Icons/Accept_ico.png" />
-                                </Button>
-                            </StackPanel>
-        
-                        </Grid>
-        
-                    </Border>
-                </Grid>
-                <Grid
-                    x:Name="AIErrorResponse"
-                    Grid.Row="1"
-                    Height="auto"
-                    Margin="6,0,7,7"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Bottom"
-                    d:Visibility="Collapsed"
-                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                    Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                    <Border Margin="10,0" CornerRadius="5">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="MediumVioletRed" />
-                                <GradientStop Offset="1" Color="{StaticResource SurfaceMidGradientColor}" />
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="35"
-                                Direction="-90"
-                                Opacity="0.9"
-                                RenderingBias="Performance"
-                                ShadowDepth="5"
-                                Color="MediumVioletRed" />
-                        </Border.Effect>
-                        <Grid Margin="3">
-        
-                            <StackPanel
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    Width="auto"
-                                    Height="Auto"
-                                    Padding="15,15,0,15"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="16"
-                                    FontWeight="Bold"
-                                    Foreground="MediumVioletRed"
-                                    Text="{Binding Modules.IntelliChat.Settings.IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
-                                    TextWrapping="Wrap">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="20"
-                                            Opacity="1"
-                                            RenderingBias="Performance"
-                                            ShadowDepth="0"
-                                            Color="Black" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-        
-        
-                            </StackPanel>
-        
-                            <Button
-                                x:Name="CloseIntelliErrorPanel"
-                                Width="auto"
-                                Padding="6"
-                                HorizontalAlignment="Right"
-                                Command="{Binding CloseIntelliErrorCommand}"
-                                Opacity="0.8"
-                                Style="{DynamicResource Status_Button_style}">
-                                <Image
-                                    Width="18"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                    Source="/Img/Icons/NotAccept_ico.png" />
-                            </Button>
-        
-        
-        
-        
-        
-                        </Grid>
-        
-                    </Border>
-                </Grid>
+                                Source="/Img/Icons/NotAccept_ico.png" />
+                        </Button>
+
+
+
+
+
+                    </Grid>
+
+                </Border>
             </Grid>
-            <Grid
-                Grid.Row="3"
-                Height="auto"
-                HorizontalAlignment="Stretch"
-                Background="{StaticResource SurfaceVariantBrush}">
-                <Grid.Effect>
-                    <DropShadowEffect
-                        BlurRadius="10"
-                        Direction="90"
-                        Opacity="0.5"
-                        RenderingBias="Performance"
-                        ShadowDepth="5"
-                        Color="{StaticResource TextSubtleColor}" />
-                </Grid.Effect>
-                <StackPanel
-                    Margin="15,5,0,5"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                    Visibility="{Binding ChatSettings.HideOpenAITools, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ChatStatus.IntelliChatRequesting}" Value="True">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <Button
-                        x:Name="SpellingCheck"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding SpellCheckCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Spelling check by AI"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="25"
-                                Margin="3,0,0,0"
-                                Source="/Img/Icons/SpellingCheck.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                Text="Spel/Grammer check" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="RebuildChat"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding BeautifyCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Rebuild chat by AI"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="25"
-                                Margin="3,0,0,0"
-                                Source="/Img/Icons/RebuildChat.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Magic Improve" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="TranslateChat"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding TranslateCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Translate anything with the help of AI"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="25"
-                                Margin="3,0,0,0"
-                                Opacity="0.5"
-                                Source="/Img/Icons/Translate_ico.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Translate" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="ShortenChat"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding ShortenChatCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Shorten chat by AI"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="25"
-                                Margin="3,0,0,0"
-                                Opacity="0.5"
-                                Source="/Img/Icons/Cut_ico.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Shorten" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="ConvoStarterChat"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding ConvoStarterCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Start a conversation by AI"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="22"
-                                Margin="3,0,0,0"
-                                Opacity="0.5"
-                                Source="/Img/Icons/Wand_ico.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Convo starter" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="Record"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding StartRecordingCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Speech to text using AI"
-                        Visibility="{Binding Modules.Whisper.Settings.IsRecording, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="22"
-                                Margin="3,0,0,0"
-                                Opacity="0.5"
-                                Source="/Img/Icons/SpeechToText.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Speech to text" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="StopRecord"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding StopRecordingCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Stop recording"
-                        Visibility="{Binding Modules.Whisper.Settings.IsRecording, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="22"
-                                Margin="3,0,0,0"
-                                Opacity="0.5"
-                                Source="/Img/Icons/SpeechToText.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Stop STT" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-                    <Button
-                        x:Name="NextwordPredict"
-                        Width="auto"
-                        Height="34"
-                        Margin="3,0"
-                        Command="{Binding PredictNextWordCommand}"
-                        Style="{DynamicResource LINK_Button_style}"
-                        ToolTip="Predict next word by AI"
-                        Visibility="Collapsed"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                        <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                            <Image
-                                Width="22"
-                                Margin="3,0,0,0"
-                                Opacity="0.5"
-                                Source="/Img/Icons/Wand_ico.png" />
-                            <TextBlock
-                                Padding="3,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextSecondaryBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Predict next word" />
-        
-                        </StackPanel>
-                        <Button.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="0"
-                                Opacity="0.3"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="LightGray" />
-                        </Button.Effect>
-                    </Button>
-        
-                </StackPanel>
-        
-            </Grid>
+        </Grid>
+        <Grid
+            Grid.Row="3"
+            Height="auto"
+            HorizontalAlignment="Stretch"
+            Background="{StaticResource SurfaceVariantBrush}">
+            <Grid.Effect>
+                <DropShadowEffect
+                    BlurRadius="10"
+                    Direction="90"
+                    Opacity="0.5"
+                    RenderingBias="Performance"
+                    ShadowDepth="5"
+                    Color="{StaticResource TextSubtleColor}" />
+            </Grid.Effect>
+            <StackPanel
+                Margin="15,5,0,5"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                Visibility="{Binding ChatSettings.HideOpenAITools, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ChatStatus.IntelliChatRequesting}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <Button
+                    x:Name="SpellingCheck"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding SpellCheckCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Spelling check by AI"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="25"
+                            Margin="3,0,0,0"
+                            Source="/Img/Icons/SpellingCheck.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Text="Spel/Grammer check" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <Button
+                    x:Name="RebuildChat"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding BeautifyCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Rebuild chat by AI"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="25"
+                            Margin="3,0,0,0"
+                            Source="/Img/Icons/RebuildChat.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Magic Improve" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <Button
+                    x:Name="TranslateChat"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding TranslateCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Translate anything with the help of AI"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="25"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/Translate_ico.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Translate" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <Button
+                    x:Name="ShortenChat"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding ShortenChatCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Shorten chat by AI"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="25"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/Cut_ico.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Shorten" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <Button
+                    x:Name="ConvoStarterChat"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding ConvoStarterCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Start a conversation by AI"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="22"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/Wand_ico.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Convo starter" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <Button
+                    x:Name="Record"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding StartRecordingCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Speech to text using AI"
+                    Visibility="{Binding Modules.Whisper.Settings.IsRecording, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="22"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/SpeechToText.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Speech to text" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <Button
+                    x:Name="StopRecord"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding StopRecordingCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Stop recording"
+                    Visibility="{Binding Modules.Whisper.Settings.IsRecording, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="22"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/SpeechToText.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Stop STT" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+                <ToggleButton
+                    x:Name="AutocompleteToggle"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}"
+                    Style="{DynamicResource Status_Toggle_style}"
+                    ToolTip="Inline autocomplete. Suggestions use local chat history by default; press Tab to accept."
+                    Visibility="Hidden"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="22"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/Wand_ico.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Autocomplete" />
+                    </StackPanel>
+                    <ToggleButton.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </ToggleButton.Effect>
+                </ToggleButton>
+                <Button
+                    x:Name="NextwordPredict"
+                    Width="auto"
+                    Height="34"
+                    Margin="3,0"
+                    Command="{Binding PredictNextWordCommand}"
+                    Style="{DynamicResource LINK_Button_style}"
+                    ToolTip="Predict next word by AI"
+                    Visibility="Collapsed"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image
+                            Width="22"
+                            Margin="3,0,0,0"
+                            Opacity="0.5"
+                            Source="/Img/Icons/Wand_ico.png" />
+                        <TextBlock
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="Predict next word" />
+
+                    </StackPanel>
+                    <Button.Effect>
+                        <DropShadowEffect
+                            BlurRadius="15"
+                            Direction="0"
+                            Opacity="0.3"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="LightGray" />
+                    </Button.Effect>
+                </Button>
+
+            </StackPanel>
+
+        </Grid>
     </Grid>
 </UserControl>

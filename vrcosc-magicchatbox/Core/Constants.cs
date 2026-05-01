@@ -44,15 +44,24 @@ public static class Constants
     // Discord RPC integration
     public const string DiscordClientId = "1495716413980278814";
     public const string DiscordOAuthRedirectUri = "http://localhost:7386/";
-    public const string DiscordOAuthScope = "identify rpc";
+    /// <summary>Implicit grant scope for local Discord RPC voice detection.</summary>
+    public const string DiscordImplicitGrantScope = "rpc rpc.voice.read";
     public const string DiscordOAuthEndpoint = "https://discord.com/oauth2/authorize";
-    public const string DiscordTokenEndpoint = "https://discord.com/api/oauth2/token";
     public const string DiscordTokenRevokeEndpoint = "https://discord.com/api/oauth2/token/revoke";
     public const string DiscordIpcPipePrefix = "discord-ipc-";
     public const int DiscordIpcMaxPipeIndex = 9;
 
     public static readonly TimeSpan DiscordReconnectMinDelay = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan DiscordReconnectMaxDelay = TimeSpan.FromSeconds(30);
+
+    // Spotify Web API integration — users provide their own public Client ID.
+    public const string SpotifyAccountsBaseUrl = "https://accounts.spotify.com/";
+    public const string SpotifyApiBaseUrl = "https://api.spotify.com/v1/";
+    public const string SpotifyOAuthEndpoint = "https://accounts.spotify.com/authorize";
+    public const string SpotifyTokenEndpoint = "https://accounts.spotify.com/api/token";
+    public const string SpotifyOAuthRedirectUri = "http://localhost:7387/callback/";
+    public const string SpotifyDeveloperDashboardUrl = "https://developer.spotify.com/dashboard";
+    public const string SpotifyScopes = "user-read-playback-state user-read-currently-playing user-modify-playback-state user-library-read user-library-modify";
 
     public const string OpenAiOrganizationUrl = "https://platform.openai.com/account/organization";
     public const string OpenAiApiKeysUrl = "https://platform.openai.com/api-keys";
@@ -87,6 +96,7 @@ public static class Constants
         public const string Pulsoid = "Pulsoid";
         public const string Weather = "Weather";
         public const string Twitch = "Twitch";
+        public const string Spotify = "Spotify";
         public const string Tts = "TTS";
         public const string ModerationApi = "ModerationAPI";
     }

@@ -6,8 +6,10 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -50,9 +52,29 @@ namespace vrcosc_magicchatbox
 
         public static IMediaLinkService ApplicationMediaController { get; private set; }
 
+        private readonly Stopwatch _startupStopwatch = new();
+        private Mutex? _singleInstanceMutex;
+        private bool _ownsSingleInstanceMutex;
+        private bool _loggingReady;
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            _startupStopwatch.Start();
+            LogStartupPhase($"Process started. PID={Environment.ProcessId}, Args='{string.Join(" ", e.Args ?? Array.Empty<string>())}'.");
+
+            int startupProfileNumber = GetProfileNumberFromArgs(e.Args);
+            if (!ShouldSkipSingleInstanceGuard(e.Args) && !TryAcquireSingleInstance(startupProfileNumber))
+            {
+                LogStartupPhase($"Second instance detected for profile {startupProfileNumber}. Exiting this instance.");
+                MessageBox.Show(
+                    "MagicChatbox is already running for this profile.",
+                    "MagicChatbox",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -63,8 +85,12 @@ namespace vrcosc_magicchatbox
             StartUp? loadingWindow = null;
             try
             {
+                LogStartupPhase("Configuring services...");
                 Services = ServiceRegistration.ConfigureServices();
+                LogStartupPhase("Services configured.");
                 ConfigureLogging(Services.GetRequiredService<IEnvironmentService>());
+                _loggingReady = true;
+                LogStartupPhase("Logging configured.");
 
                 // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
                 Logging.Initialize(
@@ -74,20 +100,26 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<IUiDispatcher>(),
                     Services.GetRequiredService<IVersionService>(),
                     Services.GetRequiredService<INavigationService>());
+                LogStartupPhase("Static logging dependencies initialized.");
 
                 {
                     var env = Services.GetRequiredService<IEnvironmentService>();
+                    LogStartupPhase($"Running settings migration. DataPath='{env.DataPath}', LogPath='{env.LogPath}'.");
                     SettingsMigrationService.RunAll(env.DataPath);
                 }
+                LogStartupPhase("Settings migration completed.");
 
                 // Initialize static defaults for model classes (eliminates service locator in models)
                 ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
                 TrackerDevice.DefaultTrackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
+                LogStartupPhase("Model defaults initialized.");
 
                 var vm = Services.GetRequiredService<ViewModel>();
+                LogStartupPhase("ViewModel resolved.");
 
                 var bootstrapper = Services.GetRequiredService<ModuleBootstrapper>();
                 bootstrapper.RegisterComponentStats(Services.GetRequiredService<ComponentStatsModule>());
+                LogStartupPhase("ComponentStats registered.");
 
                 await Task.Run(() =>
                 {
@@ -99,6 +131,7 @@ namespace vrcosc_magicchatbox
 
                 loadingWindow = new StartUp();
                 loadingWindow.Show();
+                LogStartupPhase("Splash window shown.");
 
             UpdateApp updater = new UpdateApp(
                 Services.GetRequiredService<AppUpdateState>(),
@@ -112,16 +145,17 @@ namespace vrcosc_magicchatbox
                     if (arg.StartsWith("-profile="))
                     {
                         string profileNumberString = arg.Substring(9);
-                        if (int.TryParse(profileNumberString, out int profileNumber))
+                        if (int.TryParse(profileNumberString, out int parsedProfileNumber))
                         {
-                            _appSettings.ProfileNumber = profileNumber;
+                            _appSettings.ProfileNumber = parsedProfileNumber;
                             _appSettings.UseCustomProfile = true;
                             var env = Services.GetRequiredService<IEnvironmentService>();
-                            env.SetCustomProfile(profileNumber);
+                            env.SetCustomProfile(parsedProfileNumber);
                         }
                         else
                         {
                             loadingWindow.Hide();
+                            LogStartupPhase($"Invalid profile argument '{profileNumberString}'.");
                             Logging.WriteException(new Exception($"Invalid profile number '{profileNumberString}'"), MSGBox: true, exitapp: true);
                             return;
                         }
@@ -156,6 +190,7 @@ namespace vrcosc_magicchatbox
                                 break;
                             default:
                                 loadingWindow.Hide();
+                                LogStartupPhase($"Invalid command line argument '{arg}'.");
                                 Logging.WriteException(new Exception($"Invalid command line argument '{arg}'"), MSGBox: true, exitapp: true);
                                 return;
                         }
@@ -166,6 +201,7 @@ namespace vrcosc_magicchatbox
             // Show TOS + Privacy wizard if TOS version has changed or was never accepted
             bool tosJustAccepted = false;
             {
+                LogStartupPhase("Checking TOS/privacy wizard state.");
                 var appSettingsProvider = Services.GetRequiredService<ISettingsProvider<AppSettings>>();
                 var consentService = Services.GetRequiredService<IPrivacyConsentService>();
                 if (appSettingsProvider.Value.AcceptedTosVersion != Core.Constants.TosVersion)
@@ -179,6 +215,7 @@ namespace vrcosc_magicchatbox
 
             // Show privacy consent dialog for any hooks that have Unknown state
             {
+                LogStartupPhase("Checking pending privacy hooks.");
                 var consentService = Services.GetRequiredService<IPrivacyConsentService>();
                 var allHooks = System.Enum.GetValues<PrivacyHook>();
                 var pendingHooks = consentService.GetHooksRequiringConsent(allHooks);
@@ -191,6 +228,7 @@ namespace vrcosc_magicchatbox
             }
 
             await InitializeComponentsWithProgress(loadingWindow);
+            LogStartupPhase("Component initialization completed.");
 
             loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
             Logging.WriteInfo("Creating MainWindow instance.");
@@ -287,6 +325,7 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
+                LogStartupPhase($"Startup failed: {ex}");
                 // If logging is available, use it; otherwise fall back to MessageBox
                 try
                 {
@@ -307,6 +346,33 @@ namespace vrcosc_magicchatbox
                     MessageBoxImage.Error);
                 Shutdown();
             }
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            try
+            {
+                Services?.GetService<DiscordRichPresenceService>()?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                WriteEarlyStartupLog("Discord Rich Presence dispose failed: " + ex);
+            }
+
+            if (_ownsSingleInstanceMutex)
+            {
+                try
+                {
+                    _singleInstanceMutex?.ReleaseMutex();
+                }
+                catch (ApplicationException)
+                {
+                    // Mutex was not owned at shutdown; no recovery is needed.
+                }
+            }
+
+            _singleInstanceMutex?.Dispose();
+            base.OnExit(e);
         }
 
         private async Task RunDeferredStartupUpdateCheckAsync()
@@ -354,6 +420,91 @@ namespace vrcosc_magicchatbox
             {
                 // ignore - Logging will fallback to Console.Error when needed
             }
+        }
+
+        private void LogStartupPhase(string message)
+        {
+            string line = $"[Startup +{_startupStopwatch.ElapsedMilliseconds}ms] {message}";
+            if (_loggingReady)
+            {
+                try
+                {
+                    Logging.WriteInfo(line);
+                    return;
+                }
+                catch
+                {
+                    // Fall through to early file logging.
+                }
+            }
+
+            WriteEarlyStartupLog(line);
+        }
+
+        private static void WriteEarlyStartupLog(string line)
+        {
+            try
+            {
+                string logRoot = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Vrcosc-MagicChatbox",
+                    "logs");
+                Directory.CreateDirectory(logRoot);
+                File.AppendAllText(
+                    Path.Combine(logRoot, "startup-early.log"),
+                    DateTimeOffset.Now.ToString("O") + " " + line + Environment.NewLine);
+            }
+            catch
+            {
+                Console.Error.WriteLine(line);
+            }
+        }
+
+        private bool TryAcquireSingleInstance(int profileNumber)
+        {
+            string mutexName = $@"Local\VrcoscMagicChatbox_Profile_{profileNumber}";
+            try
+            {
+                _singleInstanceMutex = new Mutex(initiallyOwned: true, mutexName, out _ownsSingleInstanceMutex);
+                LogStartupPhase(_ownsSingleInstanceMutex
+                    ? $"Single-instance mutex acquired: {mutexName}."
+                    : $"Single-instance mutex already owned: {mutexName}.");
+                return _ownsSingleInstanceMutex;
+            }
+            catch (Exception ex)
+            {
+                WriteEarlyStartupLog($"Single-instance mutex failed: {ex}");
+                return true;
+            }
+        }
+
+        private static bool ShouldSkipSingleInstanceGuard(string[]? args)
+        {
+            if (args == null) return false;
+
+            return args.Any(arg =>
+                arg.Equals("-update", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("-updateadmin", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("-rollback", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("-rollbackadmin", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("-clearbackup", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static int GetProfileNumberFromArgs(string[]? args)
+        {
+            if (args == null) return 0;
+
+            foreach (string arg in args)
+            {
+                if (!arg.StartsWith("-profile=", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                return int.TryParse(arg[9..], out int profileNumber)
+                    ? profileNumber
+                    : 0;
+            }
+
+            return 0;
         }
 
 

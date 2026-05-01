@@ -531,6 +531,92 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
+        // ── Import / Export ────────────────────────────────────────────────
+
+        [RelayCommand]
+        private void ShareCurrentGroup()
+        {
+            try
+            {
+                if (SelectedGroup == null) return;
+                var json = _statusListService.ExportGroupToJson(SelectedGroup.GroupId);
+                ShowSaveDialog(json, $"StatusGroup_{SelectedGroup.Name}");
+            }
+            catch (Exception ex) { Logging.WriteException(ex, MSGBox: false); }
+        }
+
+        [RelayCommand]
+        private void ShareSelectedItems()
+        {
+            try
+            {
+                if (SelectedItems.Count == 0) return;
+                var json = _statusListService.ExportItemsToJson(SelectedItems);
+                ShowSaveDialog(json, $"StatusItems_{SelectedItems.Count}");
+            }
+            catch (Exception ex) { Logging.WriteException(ex, MSGBox: false); }
+        }
+
+        [RelayCommand]
+        private void ImportStatus()
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Status JSON (*.json)|*.json|All files (*.*)|*.*",
+                    Title = "Import Status Messages"
+                };
+                if (dlg.ShowDialog() != true) return;
+
+                var json = System.IO.File.ReadAllText(dlg.FileName);
+                int count = _statusListService.ImportFromJson(json);
+                if (count > 0)
+                {
+                    RebuildFilteredView();
+                    MessageBox.Show($"Imported {count} status message{(count == 1 ? "" : "s")}.",
+                        "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("No items could be imported from the selected file.",
+                        "Import", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex) { Logging.WriteException(ex, MSGBox: false); }
+        }
+
+        /// <summary>Export a specific group (called from the group popup).</summary>
+        [RelayCommand]
+        private void ShareGroup(StatusGroup? group)
+        {
+            try
+            {
+                if (group == null) return;
+                var json = _statusListService.ExportGroupToJson(group.GroupId);
+                ShowSaveDialog(json, $"StatusGroup_{group.Name}");
+            }
+            catch (Exception ex) { Logging.WriteException(ex, MSGBox: false); }
+        }
+
+        private static void ShowSaveDialog(string json, string defaultName)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Status JSON (*.json)|*.json",
+                FileName = SanitizeFileName(defaultName),
+                Title = "Export Status Messages"
+            };
+            if (dlg.ShowDialog() == true)
+                System.IO.File.WriteAllText(dlg.FileName, json);
+        }
+
+        private static string SanitizeFileName(string name)
+        {
+            var invalid = System.IO.Path.GetInvalidFileNameChars();
+            return new string(name.Select(c => invalid.Contains(c) ? '_' : c).ToArray());
+        }
+
         private void HandleEggDelete(StatusItem item)
         {
             if (item.msg.Equals("sr4 series", StringComparison.OrdinalIgnoreCase) ||

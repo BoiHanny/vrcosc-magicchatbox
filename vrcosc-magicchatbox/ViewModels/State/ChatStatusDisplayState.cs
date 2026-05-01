@@ -36,6 +36,8 @@ public partial class ChatStatusDisplayState : ObservableObject
     [ObservableProperty] private bool _typingIndicator;
     [ObservableProperty] private bool _countDownUI = true;
     [ObservableProperty] private bool _intelliChatRequesting = false;
+    [ObservableProperty] private string _chatAutocompleteSuggestion = string.Empty;
+    [ObservableProperty] private bool _chatAutocompleteActive = false;
 
     private ObservableCollection<StatusItem> _statusList = new();
     public ObservableCollection<StatusItem> StatusList

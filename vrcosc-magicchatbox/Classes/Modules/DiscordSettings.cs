@@ -7,7 +7,7 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 /// <summary>
 /// Persisted settings for the Discord voice channel integration.
-/// Template placeholders: {channel}, {count}, {speaking}, {mute_emoji}
+/// Template placeholders: {channel}, {count}, {speaking}, {speaking_count}, {mute_emoji}, {mute_state}, {voice_state}
 /// </summary>
 public partial class DiscordSettings : VersionedSettings
 {
@@ -27,10 +27,76 @@ public partial class DiscordSettings : VersionedSettings
     [ObservableProperty] private bool _hideSelfFromSpeakers = false;
     [ObservableProperty] private bool _showUserCountOnly = false;
     [ObservableProperty] private int _speakerDebounceMs = 500;
+    [property: JsonIgnore]
+    [ObservableProperty] private bool _voiceClientIdEditing = false;
+
+    private string _voiceClientIdEncrypted = string.Empty;
+    private string _voiceClientId = Core.Constants.DiscordClientId;
 
     // --- OSC parameters ---
     [ObservableProperty] private bool _sendMuteDeafenOsc = false;
     [ObservableProperty] private bool _sendVoiceStateOsc = false;
+
+    // --- Rich Presence ---
+    /// <summary>Enable Discord Rich Presence showing VRChat world info.</summary>
+    [ObservableProperty] private bool _enableRichPresence = false;
+    /// <summary>Details line template. Placeholders: {world}, {count}, {type}, {region}</summary>
+    [ObservableProperty] private string _richPresenceDetails = "In {world}";
+    /// <summary>State line template. Same placeholders.</summary>
+    [ObservableProperty] private string _richPresenceState = "{count} players • {type}";
+    /// <summary>Show a "Join" button in Rich Presence for public instances.</summary>
+    [ObservableProperty] private bool _richPresenceShowJoinButton = false;
+    /// <summary>Large image tooltip text.</summary>
+    [ObservableProperty] private string _richPresenceLargeText = "VRChat";
+    [ObservableProperty] private string _richPresenceLargeImageKey = "vrchat_logo";
+    [ObservableProperty] private string _richPresenceSmallImageKey = "magicchatbox";
+    [ObservableProperty] private string _richPresenceSmallText = "MagicChatbox";
+    /// <summary>Show elapsed time since joining current world.</summary>
+    [ObservableProperty] private bool _richPresenceShowElapsed = true;
+    [ObservableProperty] private bool _richPresenceShowVrDesktopMode = true;
+    [ObservableProperty] private string _richPresenceJoinButtonLabel = "Join World";
+
+    [JsonIgnore]
+    public string VoiceClientId
+    {
+        get => _voiceClientId;
+        set
+        {
+            if (SetProperty(ref _voiceClientId, value ?? string.Empty))
+            {
+                EncryptionMethods.TryProcessToken(ref _voiceClientId, ref _voiceClientIdEncrypted, true);
+                OnPropertyChanged(nameof(VoiceClientIdEncrypted));
+            }
+        }
+    }
+
+    public string VoiceClientIdEncrypted
+    {
+        get => _voiceClientIdEncrypted;
+        set
+        {
+            if (SetProperty(ref _voiceClientIdEncrypted, value ?? string.Empty))
+            {
+                EncryptionMethods.TryProcessToken(ref _voiceClientIdEncrypted, ref _voiceClientId, false);
+                if (string.IsNullOrWhiteSpace(_voiceClientId))
+                    _voiceClientId = Core.Constants.DiscordClientId;
+
+                OnPropertyChanged(nameof(VoiceClientId));
+            }
+        }
+    }
+
+    [JsonProperty("VoiceClientId")]
+    private string LegacyVoiceClientId
+    {
+        set
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+                VoiceClientId = value;
+        }
+    }
+
+    private bool ShouldSerializeLegacyVoiceClientId() => false;
 
     // Encrypted OAuth access token (same DPAPI pattern as PulsoidModuleSettings)
     private string _accessTokenEncrypted = string.Empty;
@@ -42,6 +108,12 @@ public partial class DiscordSettings : VersionedSettings
 
     // Token expiry (UTC ticks) — 0 means unknown/never
     [ObservableProperty] private long _tokenExpiresAtUtcTicks;
+
+    /// <summary>
+    /// Whether the OAuth token was granted with the 'rpc' scope. Defaults to true so
+    /// legacy v0.9.181 implicit-grant tokens keep authenticating after the setting is added.
+    /// </summary>
+    [ObservableProperty] private bool _hasRpcScope = true;
 
     [JsonIgnore]
     public string AccessToken
@@ -113,10 +185,28 @@ public partial class DiscordSettings : VersionedSettings
         ("Detailed",      "🔊 {channel} ({count}) | 🎙️ {speaking} {mute_emoji}"),
         ("Compact",       "🔊 {channel} ({count}) {mute_emoji}"),
         ("Minimal",       "🎙️ {speaking}"),
+        ("Speaker Count", "🎙️ {speaking_count} speaking • {count} in VC"),
         ("Count Only",    "🔊 {channel} — {count} users"),
         ("Multi-line",    "🔊 {channel} ({count})\\n🎙️ {speaking} {mute_emoji}"),
         ("Speaker Focus", "🎙️ {speaking}\\n🔊 {channel} {mute_emoji}"),
         ("Status Bar",    "{mute_emoji} {channel} 👥{count}"),
         ("Emoji Rich",    "🎧 {channel} | 👥 {count} | 🎙️ {speaking} | {mute_emoji}"),
+    ];
+
+    /// <summary>
+    /// Built-in Rich Presence detail presets.
+    /// Variables: {world}, {count}, {type}, {region}, {status}, {mode}, {time}, {media}, {unique}, {peak}, {worlds}
+    /// </summary>
+    public static readonly (string Name, string Details, string State)[] RichPresencePresets =
+    [
+        ("World Info",    "In {world}",               "{count} players • {type}"),
+        ("Minimal",       "Exploring VRChat",          "{mode} • {count} players"),
+        ("Region",        "In {world} ({region})",     "{type} • {count} players"),
+        ("Social",        "Hanging out in {world}",    "With {count} people"),
+        ("World Host",    "Hosting {world}",           "{unique} unique visitors • Peak: {peak}"),
+        ("Host Stats",    "{world} — {worlds} worlds",  "{unique} unique • {count} now"),
+        ("Event Host",    "🎉 {world}",                "👥 {count} here • {unique} total visitors"),
+        ("Now Playing",   "{media}",                   "In {world} • {count} players"),
+        ("Full Status",   "{status}",                  "{world} • {count} players"),
     ];
 }

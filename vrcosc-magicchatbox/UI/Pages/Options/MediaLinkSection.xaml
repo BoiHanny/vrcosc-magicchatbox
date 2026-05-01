@@ -29,8 +29,14 @@
                                 <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
                             </LinearGradientBrush>
                         </Grid.Background>
-                        <Grid Grid.Row="0">
+                         <Grid Grid.Row="0">
+                             <Grid.ColumnDefinitions>
+                                 <ColumnDefinition Width="Auto" />
+                                 <ColumnDefinition Width="Auto" />
+                                 <ColumnDefinition Width="*" />
+                             </Grid.ColumnDefinitions>
                             <ToggleButton
+                                Grid.Column="0"
                                 Width="Auto"
                                 Height="30"
                                 HorizontalAlignment="Left"
@@ -41,11 +47,12 @@
                                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                                 Tag="MediaLink options"
                                 TextOptions.TextRenderingMode="ClearType" />
-                            <TextBlock
-                                x:Name="LearnMoreAboutSpotifybtn"
-                                Width="auto"
-                                Margin="162,0,0,0"
-                                HorizontalAlignment="Left"
+                             <TextBlock
+                                 x:Name="LearnMoreAboutSpotifybtn"
+                                 Grid.Column="1"
+                                 Width="auto"
+                                 Margin="10,0,0,0"
+                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Cursor="Hand"
                                 FontFamily="Albert Sans Thin"
@@ -61,29 +68,15 @@
                             Margin="34,10,0,0"
                             Visibility="{Binding AppSettings.Settings_MediaLink, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel>
-                                <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
-                                    <StackPanel Margin="5">
+                                <Border Style="{StaticResource OptionCardStyle}">
+                                    <StackPanel>
                                         <TextBlock
-                                            Padding="2,0,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="20"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                                             Text="Basic options" />
 
                                         <TextBlock
-                                            Width="auto"
-                                            Padding="2,3,0,5"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.5"
-                                            Text="Customize here how you want your media to look like in your chatbox" />
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="Choose how media output appears in your chatbox." />
 
                                         <CheckBox
                                             Margin="3,7"
@@ -109,27 +102,13 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
-                                    <StackPanel Margin="5">
+                                <Border Style="{StaticResource OptionCardStyle}">
+                                    <StackPanel>
                                         <TextBlock
-                                            Padding="2,0,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="20"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                                             Text="Transient mode" />
                                         <TextBlock
-                                            Width="auto"
-                                            Padding="2,3,0,5"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.5"
+                                            Style="{StaticResource OptionHelpTextStyle}"
                                             Text="Only show media info for a short time after it changes." />
                                         <CheckBox
                                             Margin="3,7"
@@ -165,27 +144,13 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5">
-                                    <StackPanel Margin="5">
+                                <Border Style="{StaticResource OptionCardStyle}">
+                                    <StackPanel>
                                         <TextBlock
-                                            Padding="2,0,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="20"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                                             Text="Customization" />
                                         <TextBlock
-                                            Width="auto"
-                                            Padding="2,3,0,2"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.5"
+                                            Style="{StaticResource OptionHelpTextStyle}"
                                             Text="Adjust icons, separators, and state text to match your style." />
                                         <CheckBox
                                             Margin="3,7,3,5"
@@ -237,13 +202,8 @@
                                             </StackPanel>
                                         </StackPanel>
                                         <TextBlock
-                                            Margin="2,2,0,0"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="10"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.4"
-                                            Text="Use \n for new line in separator and state text" />
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="Use \n for new lines in separators and state text." />
                                         <TextBlock
                                             Margin="2,5,0,2"
                                             FontFamily="Albert Sans Thin"
@@ -290,29 +250,16 @@
                                 </Border>
 
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5"
+                                    Style="{StaticResource OptionCardStyle}"
                                     Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <StackPanel Margin="5">
+                                    <StackPanel>
                                         <TextBlock
-                                            Padding="2,0,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="20"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                                             Text="MediaLink behavior" />
 
                                         <TextBlock
-                                            Width="auto"
-                                            Padding="2,3,0,5"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.5"
-                                            Text="Here u can adjust the way MadiaLink handles sessions" />
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="Adjust how MediaLink selects and forgets media sessions." />
 
                                         <CheckBox
                                             x:Name="MediaSession_AutoSwitch_checkbox"
@@ -364,37 +311,21 @@
                                 </Border>
 
                                 <Border
-                                    Margin="0,0,0,5"
-                                    Background="{StaticResource SurfaceCardBrush}"
-                                    CornerRadius="5,0,0,5"
+                                    Style="{StaticResource OptionCardStyle}"
                                     Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <StackPanel Margin="5">
+                                    <StackPanel>
                                         <TextBlock
-                                            Padding="2,0,0,0"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="20"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                                             Text="Media progress bar" />
 
                                         <TextBlock
-                                            Width="auto"
-                                            Padding="2,3,2,5"
-                                            VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="13"
-                                            FontStyle="Italic"
-                                            Foreground="{StaticResource TextLabelBrush}"
-                                            Opacity="0.5"
-                                            Text="Customize how your seek bar looks like" />
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="Choose whether and how the media progress bar is shown." />
 
 
                                         <TextBlock
                                             Grid.Column="0"
-                                            Padding="0,5,0,0"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                                             Text="Seekbar Style"
                                             Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -425,13 +356,10 @@
 
                                             <TextBlock
                                                 Grid.Column="0"
-                                                Padding="0,5,0,0"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="15"
-                                                Foreground="{StaticResource TextLabelBrush}"
+                                                Style="{StaticResource OptionSubsectionHeaderStyle}"
                                                 Text="System and custom styles"
                                                 Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                            <StackPanel Orientation="Horizontal">
+                                            <StackPanel Style="{StaticResource OptionActionRowStyle}">
                                                 <ComboBox
                                                     Width="auto"
                                                     Margin="0,3"
@@ -467,10 +395,10 @@
                                                         </DataTemplate>
                                                     </Button.ContentTemplate>
                                                 </Button>
-                                                <Button
-                                                    x:Name="DeleteSeekbar_btn"
-                                                    Height="30"
-                                                    Margin="5,0,0,0"
+                                                 <Button
+                                                     x:Name="DeleteSeekbar_btn"
+                                                     Height="30"
+                                                     Margin="5,0,0,0"
                                                     HorizontalAlignment="Right"
                                                     VerticalAlignment="Center"
                                                     Background="{StaticResource StatusErrorDarkBrush}"
@@ -485,21 +413,40 @@
                                                             Height="15"
                                                             RenderOptions.BitmapScalingMode="Linear"
                                                             Source="/Img/Icons/Cross_ico.png" />
-                                                    </Grid>
-                                                </Button>
+                                                     </Grid>
+                                                 </Button>
+                                                 <Button
+                                                     Width="25"
+                                                     Height="25"
+                                                     Margin="5,0,0,0"
+                                                     Command="{Binding ImportSeekbarStylesCommand}"
+                                                     Content="&#x1F4E5;"
+                                                     FontSize="12"
+                                                     ToolTip="Import custom progress bar styles from a JSON file"
+                                                     Style="{StaticResource Status_Button_style}" />
+                                                 <Button
+                                                     Width="25"
+                                                     Height="25"
+                                                     Margin="3,0,0,0"
+                                                     Command="{Binding ExportSeekbarStylesCommand}"
+                                                     Content="&#x1F4E4;"
+                                                     FontSize="12"
+                                                     ToolTip="Export custom progress bar styles to a JSON file"
+                                                     Style="{StaticResource Status_Button_style}" />
 
-                                            </StackPanel>
+                                              </StackPanel>
 
 
-                                            <StackPanel Margin="0,10,0,0" IsEnabled="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                             <Border
+                                                 Background="Transparent"
+                                                 IsEnabled="{Binding MediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                 Style="{StaticResource OptionNestedCardStyle}">
 
-                                                <StackPanel Margin="0,0,0,0">
+                                                <StackPanel>
+                                                    <StackPanel>
                                                     <TextBlock
-                                                        Padding="0,5,0,3"
-                                                        FontFamily="Albert Sans Thin"
-                                                        FontSize="18"
-                                                        Foreground="{StaticResource TextLabelBrush}"
-                                                        Text="Customize Characters" />
+                                                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                                        Text="Customize characters" />
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock
                                                             Width="auto"
@@ -646,7 +593,8 @@
 
 
 
-                                            </StackPanel>
+                                                </StackPanel>
+                                            </Border>
 
                                         </StackPanel>
 

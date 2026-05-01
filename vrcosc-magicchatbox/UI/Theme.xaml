@@ -135,6 +135,9 @@
     <!--  Discord brand accent  -->
     <Color x:Key="AccentDiscordColor">#FF5865F2</Color>
     <SolidColorBrush x:Key="AccentDiscordBrush" Color="#FF5865F2" />
+    <!--  Spotify brand accent  -->
+    <Color x:Key="AccentSpotifyColor">#FF1DB954</Color>
+    <SolidColorBrush x:Key="AccentSpotifyBrush" Color="#FF1DB954" />
 
     <!--
         ══════════════════════════════════════════════════════════════════
@@ -396,6 +399,83 @@
         BasedOn="{StaticResource {x:Type ComboBoxItem}}"
         TargetType="{x:Type ComboBoxItem}" />
 
+    <!--  ═══ ListBox ═══  -->
+
+    <Style TargetType="{x:Type ListBox}">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceDarkBrush}" />
+        <Setter Property="BorderBrush" Value="#FF4A3580" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBox}">
+                    <Border
+                        x:Name="Border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ScrollViewer
+                            Margin="{TemplateBinding Padding}"
+                            Focusable="False"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AccentLightPurpleBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ListBoxItem}">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="10,7" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Border
+                        x:Name="ItemBorder"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="5"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource SurfaceCardBrush}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource AccentDeepPurpleBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource AccentLightPurpleBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.55" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style
+        x:Key="DarkListBoxStyle"
+        BasedOn="{StaticResource {x:Type ListBox}}"
+        TargetType="{x:Type ListBox}" />
 
     <!--  ═══ TextBox ═══  -->
 
@@ -628,6 +708,57 @@
         BasedOn="{StaticResource {x:Type CheckBox}}"
         TargetType="{x:Type CheckBox}" />
 
+    <!--  ═══ Options UI shared styles ═══  -->
+    <Style x:Key="OptionCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Margin" Value="0,0,0,5" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />
+        <Setter Property="CornerRadius" Value="5,0,0,5" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderMutedBrush}" />
+        <Setter Property="BorderThickness" Value="1,0,0,0" />
+    </Style>
+
+    <Style
+        x:Key="OptionNestedCardStyle"
+        BasedOn="{StaticResource OptionCardStyle}"
+        TargetType="{x:Type Border}">
+        <Setter Property="Margin" Value="20,4,0,6" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="Background" Value="{StaticResource SurfaceVariantBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <Style x:Key="OptionSubsectionHeaderStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="2,8,0,5" />
+        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="OptionFieldLabelStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="0,0,0,3" />
+        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource TextLabelBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="OptionHelpTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="2,3,0,6" />
+        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontStyle" Value="Italic" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Opacity" Value="0.88" />
+    </Style>
+
+    <Style x:Key="OptionActionRowStyle" TargetType="{x:Type StackPanel}">
+        <Setter Property="Margin" Value="0,6,0,0" />
+        <Setter Property="Orientation" Value="Horizontal" />
+    </Style>
 
     <!--  ═══ Slider ═══  -->
 

@@ -28,7 +28,13 @@
             </LinearGradientBrush>
         </Grid.Background>
         <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <ToggleButton
+                Grid.Column="0"
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
@@ -41,8 +47,9 @@
                 TextOptions.TextRenderingMode="ClearType" />
             <TextBlock
                 x:Name="LearnMoreAboutTTSbtn"
+                Grid.Column="1"
                 Width="auto"
-                Margin="188,0,0,0"
+                Margin="10,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
@@ -60,60 +67,84 @@
             Visibility="{Binding AppSettings.Settings_TTS, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <StackPanel>
                 <Border
-                    Margin="0,0,0,14"
-                    Padding="10"
-                    Background="#33F0A23A"
-                    BorderBrush="#FFF0A23A"
+                    Margin="0,0,0,10"
+                    BorderBrush="{StaticResource StatusWarningBrush}"
                     BorderThickness="1"
-                    CornerRadius="6">
+                    Style="{StaticResource OptionCardStyle}">
                     <TextBlock
                         FontFamily="Albert Sans Thin"
                         FontSize="13"
-                        Foreground="#FFF8DDB3"
-                        TextWrapping="Wrap">
-                        Heads up: The TikTok TTS endpoint this feature used may be shut down, so TTS playback could fail. If it stops working
-                    </TextBlock>
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Text="Heads up: The TikTok TTS endpoint this feature uses may be unavailable, so playback could fail."
+                        TextWrapping="Wrap" />
                 </Border>
-                <CheckBox
-                    x:Name="TTSCutOff"
-                    IsChecked="{Binding TtsSettings.TtsCutOff, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    Stop current playing TTS on new chat
-                </CheckBox>
-                <CheckBox
-                    x:Name="TTSOnResendChat"
-                    IsChecked="{Binding TtsSettings.TtsOnResendChat, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    Replay TTS on resend
-                </CheckBox>
-                <CheckBox
-                    x:Name="TTSAutoUnmute"
-                    IsChecked="{Binding TtsSettings.AutoUnmuteTTS, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}">
-                    Autotoggle VRChat voice on TTS
-                </CheckBox>
 
-                <StackPanel
-                    Width="auto"
-                    Margin="0,8,0,8"
-                    HorizontalAlignment="Left"
-                    Orientation="Horizontal">
-                    <ComboBox
-                        x:Name="PlaybackOutputDeviceComboBox"
-                        Width="186"
-                        Margin="0"
-                        DisplayMemberPath="FriendlyName"
-                        ItemsSource="{Binding TtsAudio.PlaybackOutputDevices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                        SelectedItem="{Binding TtsAudio.SelectedPlaybackOutputDevice, Mode=TwoWay}"
-                        SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" />
-                    <TextBlock
-                        Margin="8,0,5,0"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Text="TTS Output" />
-                </StackPanel>
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Playback behavior" />
+                        <CheckBox
+                            x:Name="TTSCutOff"
+                            IsChecked="{Binding TtsSettings.TtsCutOff, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Stop current playing TTS on new chat
+                        </CheckBox>
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Interrupts speech that is already playing when a new chat message arrives." />
+                        <CheckBox
+                            x:Name="TTSOnResendChat"
+                            IsChecked="{Binding TtsSettings.TtsOnResendChat, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Replay TTS on resend
+                        </CheckBox>
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Also speaks messages when you resend them from chat history." />
+                        <CheckBox
+                            x:Name="TTSAutoUnmute"
+                            IsChecked="{Binding TtsSettings.AutoUnmuteTTS, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Autotoggle VRChat voice on TTS
+                        </CheckBox>
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Temporarily toggles VRChat voice input while TTS audio plays." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Voice and output" />
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Choose the TikTok voice and Windows playback device used for generated speech." />
+                        <StackPanel Style="{StaticResource OptionActionRowStyle}">
+                            <TextBlock
+                                Width="85"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="15"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="TTS voice" />
+                            <ComboBox
+                                x:Name="TikTokTTSVoicesComboBox"
+                                Width="186"
+                                DisplayMemberPath="DisplayName"
+                                ItemsSource="{Binding TtsAudio.TikTokTTSVoices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                SelectedItem="{Binding TtsAudio.SelectedTikTokTTSVoice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                SelectedValuePath="ApiName"
+                                SelectionChanged="TikTokTTSVoicesComboBox_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource OptionActionRowStyle}">
+                            <TextBlock
+                                Width="85"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="15"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="TTS output" />
+                            <ComboBox
+                                x:Name="PlaybackOutputDeviceComboBox"
+                                Width="186"
+                                DisplayMemberPath="FriendlyName"
+                                ItemsSource="{Binding TtsAudio.PlaybackOutputDevices, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                SelectedItem="{Binding TtsAudio.SelectedPlaybackOutputDevice, Mode=TwoWay}"
+                                SelectionChanged="PlaybackOutputDeviceComboBox_SelectionChanged" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Grid>
 

@@ -49,6 +49,7 @@ public partial class OptionsPage : UserControl
             ["Settings_Weather"] = Section_Weather,
             ["Settings_Twitch"] = Section_Twitch,
             ["Settings_Discord"] = Section_Discord,
+            ["Settings_Spotify"] = Section_Spotify,
             ["Settings_OpenAI"] = Section_OpenAI,
             ["Settings_ComponentStats"] = Section_ComponentStats,
             ["Settings_NetworkStatistics"] = Section_NetworkStatistics,
@@ -56,7 +57,9 @@ public partial class OptionsPage : UserControl
             ["Settings_TTS"] = TtsOptionsSectionControl,
             ["Settings_MediaLink"] = Section_MediaLink,
             ["Settings_AppOptions"] = Section_AppOptions,
+            ["Settings_EggDev"] = Section_EggDev,
             ["Settings_TrackerBattery"] = Section_TrackerBattery,
+            ["Settings_Privacy"] = Section_Privacy,
             ["Settings_WindowActivity"] = Section_WindowActivity,
         };
     }

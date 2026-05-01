@@ -89,11 +89,19 @@
 
                 <ListBox
                     x:Name="OrderList"
+                    AllowDrop="True"
+                    Drop="OrderList_Drop"
                     FontSize="15"
-                    Foreground="{StaticResource SurfaceDarkBrush}"
-                    ItemsSource="{Binding TempOrder}" />
+                    Foreground="{StaticResource TextLightPurpleBrush}"
+                    ItemsSource="{Binding TempOrder}"
+                    PreviewMouseLeftButtonDown="OrderList_PreviewMouseLeftButtonDown"
+                    PreviewMouseMove="OrderList_PreviewMouseMove"
+                    Style="{StaticResource DarkListBoxStyle}" />
 
-                <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center">
                     <Button
                         Width="80"
                         Height="30"
@@ -141,7 +149,10 @@
                 </StackPanel>
             </Grid>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel
+                Grid.Row="2"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
                 <Button
                     Width="90"
                     Height="32"

@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.State;
@@ -20,6 +22,7 @@ public partial class WindowActivityDisplayState : ObservableObject
 {
     private readonly object _lock = new();
     private readonly IUiDispatcher _dispatcher;
+    private CollectionViewSource? _scannedAppsViewSource;
     private SortProperty _currentSortProperty;
     private readonly Dictionary<SortProperty, bool> _sortDirection = new()
     {
@@ -35,6 +38,10 @@ public partial class WindowActivityDisplayState : ObservableObject
     [ObservableProperty] private bool _errorInWindowActivity = false;
     [ObservableProperty] private string _deletedAppslabel = string.Empty;
     [ObservableProperty] private string _lastUsedSortDirection = string.Empty;
+    [ObservableProperty] private string _appFilterText = string.Empty;
+    [ObservableProperty] private bool _showImportantAppsOnly = true;
+    [ObservableProperty] private int _minimumFocusCount = 0;
+    [ObservableProperty] private string _filteredAppsSummary = "Showing 0 / 0 apps";
 
     private ProcessInfo _lastProcessFocused;
     public ProcessInfo LastProcessFocused
@@ -44,17 +51,27 @@ public partial class WindowActivityDisplayState : ObservableObject
     }
 
     private ObservableCollection<ProcessInfo> _scannedApps = new();
+    public ICollectionView? ScannedAppsView => _scannedAppsViewSource?.View;
+
     public ObservableCollection<ProcessInfo> ScannedApps
     {
         get => _scannedApps;
         set
         {
             if (_scannedApps != null)
-                _scannedApps.CollectionChanged -= ScannedApps_CollectionChanged;
-            if (SetProperty(ref _scannedApps, value))
             {
-                if (_scannedApps != null)
-                    _scannedApps.CollectionChanged += ScannedApps_CollectionChanged;
+                _scannedApps.CollectionChanged -= ScannedApps_CollectionChanged;
+                foreach (ProcessInfo processInfo in _scannedApps)
+                    processInfo.PropertyChanged -= ProcessInfo_PropertyChanged;
+            }
+
+            if (SetProperty(ref _scannedApps, value ?? new ObservableCollection<ProcessInfo>()))
+            {
+                _scannedApps.CollectionChanged += ScannedApps_CollectionChanged;
+                foreach (ProcessInfo processInfo in _scannedApps)
+                    processInfo.PropertyChanged += ProcessInfo_PropertyChanged;
+
+                UpdateScannedAppsViewSource();
             }
         }
     }
@@ -81,6 +98,22 @@ public partial class WindowActivityDisplayState : ObservableObject
     {
         _dispatcher = dispatcher;
         _scannedApps.CollectionChanged += ScannedApps_CollectionChanged;
+        _dispatcher.Invoke(InitializeScannedAppsViewSource);
+    }
+
+    partial void OnAppFilterTextChanged(string value) => RefreshScannedAppsViewDebounced();
+
+    partial void OnShowImportantAppsOnlyChanged(bool value) => RefreshScannedAppsViewDebounced();
+
+    partial void OnMinimumFocusCountChanged(int value)
+    {
+        if (value < 0)
+        {
+            MinimumFocusCount = 0;
+            return;
+        }
+
+        RefreshScannedAppsViewDebounced();
     }
 
     public void SortScannedApps(SortProperty sortProperty)
@@ -97,6 +130,7 @@ public partial class WindowActivityDisplayState : ObservableObject
             _sortDirection[sortProperty] = !isAscending;
             UpdateSortedApps();
             OnPropertyChanged(nameof(ScannedApps));
+            RefreshScannedAppsView();
         }
         catch (Exception ex)
         {
@@ -106,13 +140,8 @@ public partial class WindowActivityDisplayState : ObservableObject
 
     public void ScannedAppsItemPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == "FocusCount")
-        {
-            _dispatcher.BeginInvoke(() =>
-            {
-                CollectionViewSource.GetDefaultView(ScannedApps).Refresh();
-            });
-        }
+        if (e.PropertyName == nameof(ProcessInfo.FocusCount))
+            RefreshScannedAppsView();
     }
 
     private void UpdateSortedApps()
@@ -196,10 +225,118 @@ public partial class WindowActivityDisplayState : ObservableObject
             foreach (ProcessInfo processInfo in e.NewItems)
                 processInfo.PropertyChanged += ProcessInfo_PropertyChanged;
         }
+
+        RefreshScannedAppsView();
     }
 
     private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         Resort();
+        RefreshScannedAppsView();
     }
+
+    private void UpdateScannedAppsViewSource()
+    {
+        void UpdateSource()
+        {
+            InitializeScannedAppsViewSource();
+            _scannedAppsViewSource.Source = ScannedApps;
+            OnPropertyChanged(nameof(ScannedAppsView));
+            RefreshScannedAppsView();
+        }
+
+        if (_dispatcher.CheckAccess())
+            UpdateSource();
+        else
+            _dispatcher.BeginInvoke(UpdateSource);
+    }
+
+    private void RefreshScannedAppsView()
+    {
+        void RefreshView()
+        {
+            try
+            {
+                _scannedAppsViewSource?.View?.Refresh();
+                UpdateFilteredAppsSummary();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        if (_dispatcher.CheckAccess())
+            RefreshView();
+        else
+            _dispatcher.BeginInvoke(RefreshView);
+    }
+
+    private void ScannedAppsViewSource_Filter(object sender, FilterEventArgs e)
+    {
+        e.Accepted = e.Item is ProcessInfo processInfo && MatchesFilters(processInfo);
+    }
+
+    private bool MatchesFilters(ProcessInfo processInfo)
+    {
+        if (MinimumFocusCount > 0 && processInfo.FocusCount < MinimumFocusCount)
+            return false;
+
+        if (ShowImportantAppsOnly && !IsImportantApp(processInfo))
+            return false;
+
+        var searchText = AppFilterText?.Trim();
+        if (string.IsNullOrEmpty(searchText))
+            return true;
+
+        return Contains(processInfo.ProcessName, searchText) || Contains(processInfo.CustomAppName, searchText);
+    }
+
+    private static bool Contains(string? value, string searchText)
+        => !string.IsNullOrEmpty(value) && value.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsImportantApp(ProcessInfo processInfo)
+        => processInfo.FocusCount > 1
+           || processInfo.ShowTitle
+           || processInfo.ApplyCustomAppName
+           || processInfo.IsPrivateApp
+           || processInfo.UseCustomRegex;
+
+    private void UpdateFilteredAppsSummary()
+    {
+        int totalCount = ScannedApps?.Count ?? 0;
+        int visibleCount = _scannedAppsViewSource?.View?.Cast<object>().Count() ?? 0;
+        FilteredAppsSummary = $"Showing {visibleCount} / {totalCount} apps";
+    }
+
+    private void InitializeScannedAppsViewSource()
+    {
+        if (_scannedAppsViewSource != null)
+            return;
+
+        _scannedAppsViewSource = new CollectionViewSource { Source = _scannedApps };
+        _scannedAppsViewSource.Filter += ScannedAppsViewSource_Filter;
+        OnPropertyChanged(nameof(ScannedAppsView));
+        RefreshScannedAppsView();
+    }
+
+    private CancellationTokenSource? _filterDebounceCts;
+
+    private async void RefreshScannedAppsViewDebounced()
+    {
+        _filterDebounceCts?.Cancel();
+        _filterDebounceCts = new CancellationTokenSource();
+        var token = _filterDebounceCts.Token;
+
+        try
+        {
+            await Task.Delay(150, token); // 150ms debounce
+            if (!token.IsCancellationRequested)
+            {
+                RefreshScannedAppsView();
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+
 }

@@ -63,10 +63,11 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="18"
-                                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                                        Text="VR Battery Monitor" />
+                                         FontFamily="Albert Sans Thin"
+                                         FontSize="18"
+                                         Foreground="{StaticResource TextSectionHeaderBrush}"
+                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                         Text="VR Battery Monitor" />
                                     <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                                         <TextBlock
                                             FontFamily="Albert Sans Thin"
@@ -117,27 +118,27 @@
                                 <Border Margin="0,0,0,12" Style="{StaticResource TrackerPanelCard}">
                                     <StackPanel>
                                         <Border
-                                            Margin="0,0,0,5"
-                                            Background="{StaticResource SurfaceCardBrush}"
-                                            CornerRadius="5,0,0,5">
+                                            Style="{StaticResource OptionCardStyle}">
 
                                             <StackPanel Margin="5">
                                                 <TextBlock
                                                     Padding="2,0,0,0"
                                                     VerticalAlignment="Center"
                                                     FontFamily="Albert Sans Thin"
-                                                    FontSize="20"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="Message Builder" />
+                                                     FontSize="20"
+                                                     Foreground="{StaticResource TextLabelBrush}"
+                                                     Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                                     Text="Message Builder" />
                                                 <TextBlock
                                                     Width="auto"
                                                     Margin="2,0,0,2"
                                                     FontFamily="Albert Sans Thin"
                                                     FontSize="13"
-                                                    FontStyle="Italic"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Opacity="0.5"
-                                                    Text="Construct how the battery message looks in chat." />
+                                                     FontStyle="Italic"
+                                                     Foreground="{StaticResource TextLabelBrush}"
+                                                     Opacity="0.5"
+                                                     Style="{StaticResource OptionHelpTextStyle}"
+                                                     Text="Construct how the battery message looks in chat." />
 
                                                 <TextBlock
                                                     Margin="8,8,8,0"
@@ -221,11 +222,12 @@
                                                         Width="auto"
                                                         Margin="4,3,0,0"
                                                         FontFamily="Albert Sans Thin"
-                                                        FontSize="15"
-                                                        FontStyle="Italic"
-                                                        Foreground="{StaticResource TextLabelBrush}"
-                                                        Opacity="0.5"
-                                                        Text="Separator between devices" />
+                                                         FontSize="15"
+                                                         FontStyle="Italic"
+                                                         Foreground="{StaticResource TextLabelBrush}"
+                                                         Opacity="0.5"
+                                                         Style="{StaticResource OptionHelpTextStyle}"
+                                                         Text="Separator between devices" />
 
                                                     <TextBox
                                                         Width="45"
@@ -246,11 +248,12 @@
                                                                 Width="auto"
                                                                 VerticalAlignment="Center"
                                                                 FontFamily="Albert Sans Thin"
-                                                                FontSize="14"
-                                                                FontStyle="Italic"
-                                                                Foreground="{StaticResource TextLabelBrush}"
-                                                                Opacity="0.5"
-                                                                Text="Low Battery Alert" />
+                                                                 FontSize="14"
+                                                                 FontStyle="Italic"
+                                                                 Foreground="{StaticResource TextLabelBrush}"
+                                                                 Opacity="0.5"
+                                                                 Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                                                 Text="Low Battery Alert" />
                                                             <ToggleButton
                                                                 Margin="8,0,0,0"
                                                                 HorizontalAlignment="Left"
@@ -531,18 +534,17 @@
                                 <Border Margin="0,0,0,0" Style="{StaticResource TrackerPanelCard}">
                                     <StackPanel>
                                         <Border
-                                            Margin="0,0,0,5"
-                                            Background="{StaticResource SurfaceCardBrush}"
-                                            CornerRadius="5,0,0,5">
+                                            Style="{StaticResource OptionCardStyle}">
 
                                             <StackPanel Margin="5">
                                                 <TextBlock
                                                     Padding="2,0,0,0"
                                                     VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="20"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="Advanced Behavior &amp; Text Overrides" />
+                                                     FontFamily="Albert Sans Thin"
+                                                     FontSize="20"
+                                                     Foreground="{StaticResource TextLabelBrush}"
+                                                     Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                                     Text="Advanced Behavior &amp; Text Overrides" />
 
                                                 <StackPanel Margin="8">
                                                     <!--  Sorting & Rotation  -->
@@ -634,9 +636,10 @@
                                                         Margin="0,0,0,8"
                                                         VerticalAlignment="Center"
                                                         FontFamily="Albert Sans Thin"
-                                                        FontSize="14"
-                                                        Foreground="{StaticResource TextLabelBrush}"
-                                                        Text="Custom Status Text" />
+                                                         FontSize="14"
+                                                         Foreground="{StaticResource TextLabelBrush}"
+                                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
+                                                         Text="Custom Status Text" />
                                                     <WrapPanel>
                                                         <StackPanel Margin="0,0,15,12">
                                                             <TextBlock

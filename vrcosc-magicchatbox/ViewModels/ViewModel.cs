@@ -14,7 +14,7 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
-
+
     /// <summary>
     /// Root application ViewModel. Serves as the <c>DataContext</c> for <c>MainWindow</c>
     /// and implements <see cref="Core.State.IAppState"/> so page ViewModels receive a
@@ -142,6 +142,12 @@ namespace vrcosc_magicchatbox.ViewModels
             if (int.TryParse(s, out int index))
                 _menuNav.NavigateToPage(index);
         }
+
+        [RelayCommand]
+        private void NavigateBack() => _menuNav.NavigateBack();
+
+        [RelayCommand]
+        private void NavigateForward() => _menuNav.NavigateForward();
 
         [RelayCommand]
         private void OpenDiscord() => _nav.OpenUrl(Core.Constants.DiscordInviteUrl);

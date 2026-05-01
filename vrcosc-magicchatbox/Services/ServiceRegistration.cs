@@ -7,6 +7,7 @@ using System;
 using System.Net.Http;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Spotify;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Osc;
@@ -48,6 +49,7 @@ public static class ServiceRegistration
 
         // API clients — pure HTTP logic separated from module coordinators
         services.AddSingleton<Classes.Modules.Twitch.ITwitchApiClient, Classes.Modules.Twitch.TwitchApiClient>();
+        services.AddSingleton<ISpotifyApiClient, SpotifyApiClient>();
         services.AddSingleton<IOpenAiChatService>(sp => new OpenAiChatService(
             sp.GetRequiredService<Classes.Modules.OpenAIModule>(),
             sp.GetRequiredService<IPrivacyConsentService>()));
@@ -87,6 +89,7 @@ public static class ServiceRegistration
         services.AddSingleton<TtsAudioDisplayState>();
         services.AddSingleton<OpenAIDisplayState>();
         services.AddSingleton<MediaLinkDisplayState>();
+        services.AddSingleton<SpotifyDisplayState>();
         services.AddSingleton<TrackerDisplayState>();
         services.AddSingleton<PulsoidDisplayState>();
         services.AddSingleton<WindowActivityDisplayState>(sp =>
@@ -138,22 +141,27 @@ public static class ServiceRegistration
             new Lazy<IChatHistoryService>(() => sp.GetRequiredService<IChatHistoryService>()),
             new Lazy<IAudioService>(() => sp.GetRequiredService<IAudioService>()),
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
-            new Lazy<ITtsPlaybackService>(() => sp.GetRequiredService<ITtsPlaybackService>())));
+            new Lazy<ITtsPlaybackService>(() => sp.GetRequiredService<ITtsPlaybackService>()),
+            sp.GetRequiredService<IOpenAiChatService>(),
+            sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IntegrationsPageViewModel>(sp => new IntegrationsPageViewModel(
             sp.GetRequiredService<ChatStatusDisplayState>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<OSCController>(() => sp.GetRequiredService<OSCController>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
             sp.GetRequiredService<ISettingsProvider<WeatherSettings>>(),
             new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>()),
             new Lazy<ScanLoopService>(() => sp.GetRequiredService<ScanLoopService>()),
             new Lazy<IStatePersistenceCoordinator>(() => sp.GetRequiredService<IStatePersistenceCoordinator>()),
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
+            sp.GetRequiredService<SpotifyDisplayState>(),
             sp.GetRequiredService<TrackerDisplayState>(),
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IMenuNavigationService>(),
+            sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IPrivacyConsentService>(),
             sp.GetRequiredService<IToastService>()));
         services.AddSingleton<WindowActivitySectionViewModel>();
@@ -162,7 +170,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
-            sp.GetRequiredService<INavigationService>()));
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IToastService>()));
         services.AddSingleton<WeatherSectionViewModel>(sp => new WeatherSectionViewModel(
             sp.GetRequiredService<IWeatherService>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
@@ -179,7 +188,18 @@ public static class ServiceRegistration
             new Lazy<DiscordOAuthHandler>(() => sp.GetRequiredService<DiscordOAuthHandler>()),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
-            sp.GetRequiredService<INavigationService>()));
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<DiscordRichPresenceService>(),
+            sp.GetRequiredService<IToastService>()));
+        services.AddSingleton<SpotifySectionViewModel>(sp => new SpotifySectionViewModel(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
+            sp.GetRequiredService<SpotifyDisplayState>(),
+            sp.GetRequiredService<MediaLinkDisplayState>(),
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IToastService>()));
         services.AddSingleton<TrackerBatterySectionViewModel>(sp => new TrackerBatterySectionViewModel(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<TrackerDisplayState>(),
@@ -211,7 +231,10 @@ public static class ServiceRegistration
         services.AddSingleton<NetworkStatisticsSectionViewModel>(sp => new NetworkStatisticsSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>())));
-        services.AddSingleton<ChattingOptionsSectionViewModel>();
+        services.AddSingleton<ChattingOptionsSectionViewModel>(sp => new ChattingOptionsSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<ComponentStatsSectionViewModel>(sp => new ComponentStatsSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>()),
@@ -242,16 +265,22 @@ public static class ServiceRegistration
             sp.GetRequiredService<IMenuNavigationService>(),
             sp.GetRequiredService<INavigationService>()));
 
+        services.AddSingleton<ISettingsResetService, SettingsResetService>();
+        services.AddSingleton<IOptionsSectionResetService, OptionsSectionResetService>();
+
         services.AddSingleton<OptionsPageViewModel>(sp => new OptionsPageViewModel(
             sp.GetRequiredService<ChatStatusDisplayState>(),
             new Lazy<OSCController>(() => sp.GetRequiredService<OSCController>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IOptionsSectionResetService>(),
+            sp.GetRequiredService<IToastService>(),
             sp.GetRequiredService<WindowActivitySectionViewModel>(),
             sp.GetRequiredService<MediaLinkSectionViewModel>(),
             sp.GetRequiredService<WeatherSectionViewModel>(),
             sp.GetRequiredService<TwitchSectionViewModel>(),
             sp.GetRequiredService<DiscordSectionViewModel>(),
+            sp.GetRequiredService<SpotifySectionViewModel>(),
             sp.GetRequiredService<TrackerBatterySectionViewModel>(),
             sp.GetRequiredService<PulsoidSectionViewModel>(),
             sp.GetRequiredService<OpenAISectionViewModel>(),
@@ -272,6 +301,7 @@ public static class ServiceRegistration
             var nav = new MenuNavigationService(
                 sp.GetRequiredService<ISettingsProvider<AppSettings>>().Value,
                 pageIndex => sp.GetRequiredService<ViewModel>().SelectedMenuIndex = pageIndex,
+                () => sp.GetRequiredService<ViewModel>().SelectedMenuIndex,
                 sp.GetRequiredService<IUiDispatcher>());
             nav.SetExpandPrivacyAction(() => sp.GetRequiredService<PrivacySectionViewModel>().IsExpanded = true);
             nav.SetScrollToSectionAction(settingName =>
@@ -283,6 +313,9 @@ public static class ServiceRegistration
         services.AddSingleton<IModuleHost, ModuleHost>();
         services.AddSingleton(sp =>
             new Lazy<DiscordOAuthHandler>(() => sp.GetRequiredService<DiscordOAuthHandler>()));
+        services.AddSingleton(sp =>
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()));
+        services.AddSingleton<DiscordRichPresenceService>();
         services.AddSingleton<ModuleBootstrapper>();
 
         // ── TTS Playback — extracted from ScanLoopService ──
@@ -352,6 +385,11 @@ public static class ServiceRegistration
         // Discord OAuth handler — DI singleton for Discord voice channel integration
         services.AddSingleton<Classes.Modules.DiscordOAuthHandler>(sp =>
             new Classes.Modules.DiscordOAuthHandler(
+                sp.GetRequiredService<INavigationService>()));
+
+        // Spotify OAuth handler — Authorization Code + PKCE (no client secret)
+        services.AddSingleton<Classes.Modules.SpotifyOAuthHandler>(sp =>
+            new Classes.Modules.SpotifyOAuthHandler(
                 sp.GetRequiredService<INavigationService>(),
                 sp.GetRequiredService<IHttpClientFactory>()));
 
@@ -431,6 +469,17 @@ public static class ServiceRegistration
         services.AddHttpClient(Constants.HttpClients.Twitch, client =>
         {
             client.BaseAddress = new Uri(Constants.TwitchApiBaseUrl);
+            client.Timeout = Constants.DefaultApiTimeout;
+        })
+        .AddPolicyHandler(request =>
+            request.Method == HttpMethod.Get
+                ? retryPolicy
+                : Policy.NoOpAsync<HttpResponseMessage>())
+        .AddPolicyHandler(circuitBreaker);
+
+        services.AddHttpClient(Constants.HttpClients.Spotify, client =>
+        {
+            client.BaseAddress = new Uri(Constants.SpotifyApiBaseUrl);
             client.Timeout = Constants.DefaultApiTimeout;
         })
         .AddPolicyHandler(request =>
@@ -536,6 +585,9 @@ public static class ServiceRegistration
         services.AddSingleton<IOscProvider>(sp => new DiscordOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
+        services.AddSingleton<IOscProvider>(sp => new SpotifyOscProvider(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
         services.AddSingleton<IOscProvider>(sp => new VrcLogOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
@@ -546,6 +598,7 @@ public static class ServiceRegistration
         services.AddSingleton<IOscProvider>(sp => new MediaLinkOscProvider(
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
             new Lazy<IMediaLinkService>(() => App.ApplicationMediaController)));

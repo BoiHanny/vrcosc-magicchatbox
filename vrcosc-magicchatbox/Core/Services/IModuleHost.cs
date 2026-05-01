@@ -15,6 +15,7 @@ public interface IModuleHost : INotifyPropertyChanged
     IntelliChatModule IntelliChat { get; set; }
     TwitchModule Twitch { get; set; }
     DiscordModule Discord { get; set; }
+    SpotifyModule Spotify { get; set; }
     VrcLogModule VrcRadar { get; set; }
     PulsoidModule Pulsoid { get; set; }
     SoundpadModule Soundpad { get; set; }

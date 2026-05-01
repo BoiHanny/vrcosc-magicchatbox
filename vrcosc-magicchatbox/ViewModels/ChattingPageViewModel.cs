@@ -1,7 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OpenAI.Chat;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -30,6 +34,10 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly Lazy<IChatHistoryService> _chatHistorySvc;
         private readonly Lazy<IOscSender> _oscSender;
         private readonly Lazy<IAudioService> _audioSvc;
+        private readonly IOpenAiChatService _openAiChatService;
+        private readonly IUiDispatcher _uiDispatcher;
+        private CancellationTokenSource? _autocompleteCts;
+        private int _autocompleteRequestVersion;
 
         private IntelliChatModule? IntelliChat => _moduleHost.Value.IntelliChat;
         private WhisperModule? Whisper => _moduleHost.Value.Whisper;
@@ -72,11 +80,15 @@ namespace vrcosc_magicchatbox.ViewModels
             Lazy<IChatHistoryService> chatHistorySvc,
             Lazy<IAudioService> audioSvc,
             Lazy<IOscSender> oscSender,
-            Lazy<ITtsPlaybackService> ttsPlayback)
+            Lazy<ITtsPlaybackService> ttsPlayback,
+            IOpenAiChatService openAiChatService,
+            IUiDispatcher uiDispatcher)
         {
             _chatStatus = chatStatus;
             _appState = appState;
             _moduleHost = moduleHost;
+            _openAiChatService = openAiChatService;
+            _uiDispatcher = uiDispatcher;
             CS = chatSettingsProvider.Value;
             TTS = ttsSettingsProvider.Value;
             ChatStatus = chatStatus;
@@ -87,6 +99,11 @@ namespace vrcosc_magicchatbox.ViewModels
             _audioSvc = audioSvc;
             _oscSender = oscSender;
             _ttsPlayback = ttsPlayback;
+            CS.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ChatSettings.ChatAutocompleteEnabled) && !CS.ChatAutocompleteEnabled)
+                    ClearAutocompleteSuggestion();
+            };
         }
 
         [RelayCommand]
@@ -292,8 +309,9 @@ namespace vrcosc_magicchatbox.ViewModels
         /// Updates the chat box character count and color state.
         /// Called from code-behind TextChanged handler.
         /// </summary>
-        public void UpdateChatBoxCount(int count)
+        public void UpdateChatBoxCount(string text)
         {
+            int count = text.Length;
             _chatStatus.ChatBoxCount = $"{count}/140";
             if (count > 140)
             {
@@ -313,6 +331,162 @@ namespace vrcosc_magicchatbox.ViewModels
             }
 
             _oscSender.Value.SendTypingIndicatorAsync();
+            UpdateAutocompleteSuggestion(text);
+        }
+
+        public bool AcceptAutocompleteSuggestion()
+        {
+            string suggestion = _chatStatus.ChatAutocompleteSuggestion;
+            if (string.IsNullOrWhiteSpace(suggestion))
+                return false;
+
+            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(_chatStatus.NewChattingTxt + suggestion, 140);
+            ClearAutocompleteSuggestion();
+            return true;
+        }
+
+        public void ClearAutocompleteSuggestion()
+        {
+            _autocompleteCts?.Cancel();
+            _chatStatus.ChatAutocompleteSuggestion = string.Empty;
+            _chatStatus.ChatAutocompleteActive = false;
+        }
+
+        private void UpdateAutocompleteSuggestion(string input)
+        {
+            if (!CS.ChatAutocompleteEnabled
+                || string.IsNullOrWhiteSpace(input)
+                || input.Length < CS.ChatAutocompleteMinCharacters
+                || input.Length >= 140)
+            {
+                ClearAutocompleteSuggestion();
+                return;
+            }
+
+            if (CS.ChatAutocompleteMode == ChatAutocompleteMode.OpenAI && _openAiChatService.IsClientAvailable)
+            {
+                QueueOpenAiAutocomplete(input);
+                return;
+            }
+
+            ApplyAutocompleteSuggestion(BuildLocalAutocompleteSuggestion(input));
+        }
+
+        private string BuildLocalAutocompleteSuggestion(string input)
+        {
+            var candidates = _chatStatus.LastMessages
+                .Reverse()
+                .Select(x => x.Msg)
+                .Concat(_chatStatus.StatusList.Select(x => x.msg))
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string candidate in candidates)
+            {
+                if (candidate.Length <= input.Length)
+                    continue;
+
+                if (!candidate.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                return LimitSuggestion(candidate[input.Length..], input, preserveContinuation: true);
+            }
+
+            return string.Empty;
+        }
+
+        private void QueueOpenAiAutocomplete(string input)
+        {
+            _autocompleteCts?.Cancel();
+            _autocompleteCts?.Dispose();
+
+            var cts = new CancellationTokenSource();
+            _autocompleteCts = cts;
+            int version = Interlocked.Increment(ref _autocompleteRequestVersion);
+            _ = GenerateOpenAiAutocompleteAsync(input, version, cts.Token);
+        }
+
+        private async Task GenerateOpenAiAutocompleteAsync(string input, int version, CancellationToken ct)
+        {
+            try
+            {
+                await Task.Delay(CS.ChatAutocompleteDelayMs, ct).ConfigureAwait(false);
+
+                var messages = new List<ChatMessage>
+                {
+                    new SystemChatMessage($"Continue the user's VRChat chatbox text with only the next {CS.ChatAutocompleteMaxWords} word(s). Return only the continuation, no quotes, no explanation, and stay casual."),
+                    new UserChatMessage(input)
+                };
+
+                var modelSetting = IntelliChat?.Settings.PerformTextCompletionModel ?? IntelliGPTModel.gpt5_nano;
+                var model = IntelliChatModule.GetModelDescription(modelSetting);
+                var completion = await _openAiChatService.GetChatCompletionAsync(
+                    messages,
+                    model,
+                    new ChatCompletionOptions
+                    {
+                        MaxOutputTokenCount = Math.Max(4, CS.ChatAutocompleteMaxWords * 4),
+                        Temperature = 0.35f,
+                        TopP = 1
+                    },
+                    ct).ConfigureAwait(false);
+
+                string generated = completion?.Content?.Count > 0
+                    ? completion.Content[0].Text ?? string.Empty
+                    : string.Empty;
+
+                string suggestion = LimitSuggestion(NormalizeGeneratedSuggestion(input, generated), input, preserveContinuation: false);
+                _uiDispatcher.BeginInvoke(() =>
+                {
+                    if (version == _autocompleteRequestVersion && string.Equals(_chatStatus.NewChattingTxt, input, StringComparison.Ordinal))
+                        ApplyAutocompleteSuggestion(suggestion);
+                });
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+        }
+
+        private static string NormalizeGeneratedSuggestion(string input, string generated)
+        {
+            string suggestion = (generated ?? string.Empty).Trim().Trim('"', '\'', '`');
+            if (suggestion.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                suggestion = suggestion[input.Length..].TrimStart();
+
+            return suggestion.ReplaceLineEndings(" ");
+        }
+
+        private string LimitSuggestion(string suggestion, string input, bool preserveContinuation)
+        {
+            if (string.IsNullOrWhiteSpace(suggestion))
+                return string.Empty;
+
+            bool sourceStartsWithSeparator = char.IsWhiteSpace(suggestion[0]);
+            string trimmed = suggestion.Trim();
+            string[] words = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string limited = string.Join(" ", words.Take(CS.ChatAutocompleteMaxWords));
+            if (string.IsNullOrWhiteSpace(limited))
+                return string.Empty;
+
+            bool needsSeparator = input.Length > 0
+                && !char.IsWhiteSpace(input[^1])
+                && (!preserveContinuation || sourceStartsWithSeparator)
+                && !char.IsPunctuation(limited[0]);
+            string result = needsSeparator ? " " + limited : limited;
+            int remaining = Math.Max(0, 140 - input.Length);
+            return result.Length <= remaining
+                ? result
+                : result[..remaining].TrimEnd();
+        }
+
+        private void ApplyAutocompleteSuggestion(string suggestion)
+        {
+            _chatStatus.ChatAutocompleteSuggestion = suggestion;
+            _chatStatus.ChatAutocompleteActive = !string.IsNullOrWhiteSpace(suggestion);
         }
 
         #region Whisper Transcription Handling

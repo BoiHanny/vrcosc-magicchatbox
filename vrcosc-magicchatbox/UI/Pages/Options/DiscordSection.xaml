@@ -49,102 +49,251 @@
             Visibility="{Binding AppSettings.Settings_Discord, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <StackPanel>
 
-                <!--  Connect / Connected + Disconnect  -->
+                <!--  Pre-release banner  -->
                 <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Orientation="Horizontal">
-                        <Button
-                            Width="auto"
-                            Height="30"
-                            Padding="5"
-                            Command="{Binding ConnectDiscordCommand}"
-                            IsEnabled="{Binding IsConnecting, Converter={StaticResource InvertBooleanConverter}}"
-                            Style="{StaticResource Status_Button_style}"
-                            Visibility="{Binding HasSavedToken, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <Button.ContentTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image
-                                            Width="21"
-                                            Height="18"
-                                            Margin="0,0,3,0"
-                                            Source="/Img/Icons/Discord.png" />
-                                        <TextBlock
-                                            Margin="0,-2,5,0"
-                                            VerticalAlignment="Center"
-                                            FontSize="14"
-                                            Text="Connect with Discord" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </Button.ContentTemplate>
-                        </Button>
-                        <Button
-                            Width="auto"
-                            Height="30"
-                            Padding="5"
-                            Command="{Binding ConnectDiscordCommand}"
-                            Style="{StaticResource Status_Button_style}"
-                            Visibility="{Binding HasSavedToken, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <Button.ContentTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image
-                                            Width="15"
-                                            Height="15"
-                                            Margin="2,0,5,0"
-                                            VerticalAlignment="Center"
-                                            Source="/Img/Icons/yes.png" />
-                                        <TextBlock
-                                            Margin="0,-2,5,0"
-                                            VerticalAlignment="Center"
-                                            FontSize="14"
-                                            Text="Connected with Discord" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </Button.ContentTemplate>
-                        </Button>
-                        <Button
-                            Width="20"
-                            Height="30"
-                            Margin="-5,0,0,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Background="{StaticResource StatusErrorDarkerBrush}"
-                            BorderThickness="0"
-                            Command="{Binding DisconnectDiscordCommand}"
-                            Cursor="Hand"
-                            Style="{DynamicResource DisconnectPulsoid}"
-                            Visibility="{Binding HasSavedToken, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <Grid>
-                                <Image
-                                    Width="15"
-                                    Height="15"
-                                    RenderOptions.BitmapScalingMode="Linear"
-                                    Source="/Img/Icons/Cross_v1_ico.png" />
-                            </Grid>
-                        </Button>
-                    </StackPanel>
+                    Margin="0,0,0,10"
+                    BorderBrush="{StaticResource StatusWarningBrush}"
+                    BorderThickness="1"
+                    Style="{StaticResource OptionCardStyle}">
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="13"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap">
+                        <Run Text="🧪 Pre-release: Discord voice detection requires a custom app setup and is still in testing. Report issues on" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="GitHub" />
+                        </Hyperlink>
+                        <Run Text="or in our" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="Discord server" />
+                        </Hyperlink>
+                        <Run Text="." />
+                    </TextBlock>
+                </Border>
+
+                <!--  Connect / Connected + Disconnect  -->
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Button
+                                Width="auto"
+                                Height="30"
+                                Padding="5"
+                                Command="{Binding ConnectDiscordCommand}"
+                                IsEnabled="{Binding IsConnecting, Converter={StaticResource InvertBooleanConverter}}"
+                                Style="{StaticResource Status_Button_style}"
+                                Visibility="{Binding HasSavedToken, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Button.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image
+                                                Width="21"
+                                                Height="18"
+                                                Margin="0,0,3,0"
+                                                Source="/Img/Icons/Discord.png" />
+                                            <TextBlock
+                                                Margin="0,-2,5,0"
+                                                VerticalAlignment="Center"
+                                                FontSize="14"
+                                                Text="Connect with Discord" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Button.ContentTemplate>
+                            </Button>
+                            <Button
+                                Width="auto"
+                                Height="30"
+                                Padding="5"
+                                Command="{Binding ConnectDiscordCommand}"
+                                Style="{StaticResource Status_Button_style}"
+                                Visibility="{Binding HasSavedToken, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Button.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image
+                                                Width="15"
+                                                Height="15"
+                                                Margin="2,0,5,0"
+                                                VerticalAlignment="Center"
+                                                Source="/Img/Icons/yes.png" />
+                                            <TextBlock
+                                                Margin="0,-2,5,0"
+                                                VerticalAlignment="Center"
+                                                FontSize="14"
+                                                Text="Connected with Discord" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Button.ContentTemplate>
+                            </Button>
+                            <Button
+                                Width="20"
+                                Height="30"
+                                Margin="-5,0,0,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource StatusErrorDarkerBrush}"
+                                BorderThickness="0"
+                                Command="{Binding DisconnectDiscordCommand}"
+                                Cursor="Hand"
+                                Style="{DynamicResource DisconnectPulsoid}"
+                                Visibility="{Binding HasSavedToken, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Grid>
+                                    <Image
+                                        Width="15"
+                                        Height="15"
+                                        RenderOptions.BitmapScalingMode="Linear"
+                                        Source="/Img/Icons/Cross_v1_ico.png" />
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+
+                    </Grid>
                 </Border>
 
                 <!--  Live status  -->
                 <TextBlock
                     Width="auto"
                     Margin="2,0,0,4"
-                    FontFamily="Albert Sans Thin"
-                    FontSize="13"
-                    FontStyle="Italic"
-                    Foreground="{StaticResource TextLabelBrush}"
-                    Opacity="0.5"
+                    Style="{StaticResource OptionHelpTextStyle}"
                     Text="{Binding StatusText, UpdateSourceTrigger=PropertyChanged}" />
 
+                <!--  Feature split / setup guide  -->
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Discord setup guide" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Rich Presence only needs the local Discord app. Voice Detection uses the older v0.9.181 local RPC flow: authorize a Discord Developer application once, then MagicChatbox authenticates with your local Discord client to read the selected voice channel and speaking events." />
+
+                        <Border
+                            Margin="0,2,0,8"
+                            Padding="8"
+                            Background="{StaticResource SurfaceDarkBrush}"
+                            CornerRadius="5">
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="1. Create or open your Discord Developer app, then paste its Application ID below." />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="2. Add the redirect URI shown here to OAuth2 -&gt; Redirects." />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="3. Click Connect. Discord opens the local OAuth page, then MagicChatbox uses the saved token with the local IPC pipe." />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource StatusWarningBrush}"
+                                    Text="Discord restricts rpc/rpc.voice.read for many apps/accounts. If Discord refuses those scopes, Rich Presence can still work, but speaking detection cannot be forced from MagicChatbox."
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <TextBlock
+                                Width="105"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Application ID" />
+                            <Grid
+                                Width="260"
+                                Height="28"
+                                Margin="8,0,8,0"
+                                ToolTip="Stored encrypted on this Windows account. Click Edit to reveal/change it.">
+                                <TextBox
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="13"
+                                    IsReadOnly="True"
+                                    Text="{Binding Modules.Discord.Settings.VoiceClientId, Mode=OneWay, Converter={StaticResource MaskedWeatherCityConverter}}"
+                                    Visibility="{Binding Modules.Discord.Settings.VoiceClientIdEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                <TextBox
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="13"
+                                    Text="{Binding Modules.Discord.Settings.VoiceClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Visibility="{Binding Modules.Discord.Settings.VoiceClientIdEditing, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </Grid>
+                            <ToggleButton
+                                Width="54"
+                                Height="28"
+                                Margin="0,0,6,0"
+                                Content="Edit"
+                                IsChecked="{Binding Modules.Discord.Settings.VoiceClientIdEditing, Mode=TwoWay}"
+                                Style="{StaticResource Status_Toggle_style}" />
+                            <Button
+                                Width="150"
+                                Height="28"
+                                Command="{Binding OpenDiscordDeveloperPortalCommand}"
+                                Content="Open Developer Portal"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <TextBlock
+                                Width="105"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Redirect URI" />
+                            <TextBox
+                                Width="260"
+                                Margin="8,0,8,0"
+                                Padding="5,0,0,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="13"
+                                IsReadOnly="True"
+                                Text="{Binding RedirectUri, Mode=OneWay}" />
+                            <Button
+                                Width="80"
+                                Height="28"
+                                Margin="0,0,6,0"
+                                Command="{Binding CopyRedirectUriCommand}"
+                                Content="Copy"
+                                Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Width="80"
+                                Height="28"
+                                Command="{Binding CheckRedirectPortCommand}"
+                                Content="Check port"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Margin="113,0,0,0"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            Text="{Binding RedirectPortStatus}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
                 <!--  Behaviour  -->
-                <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Margin="5">
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <CheckBox
                             Margin="0,4,0,0"
                             IsChecked="{Binding Modules.Discord.Settings.AutoConnectOnStartup, Mode=TwoWay}"
@@ -156,25 +305,24 @@
                 </Border>
 
                 <!--  Template + Presets  -->
-                <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Margin="5">
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock
                             Width="auto"
                             Margin="2,0,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
-                            Text="Placeholders: {channel}, {count}, {speaking}, {mute_emoji}  ·  Use \n for new line" />
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Placeholders: {channel}, {count}, {speaking}, {speaking_count}, {mute_emoji}, {mute_state}, {voice_state}  ·  Use \n for new line" />
+                        <Button
+                            Width="105"
+                            Height="25"
+                            Margin="0,0,0,5"
+                            HorizontalAlignment="Left"
+                            Command="{Binding CopyTemplateTokensCommand}"
+                            Content="Copy tokens"
+                            Style="{StaticResource Status_Button_style}" />
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="Output template" />
                         <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
                             <TextBox
@@ -194,24 +342,35 @@
                         </StackPanel>
 
                         <!--  Live output preview  -->
-                        <TextBlock
-                            Width="auto"
-                            Margin="2,6,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
-                            Text="{Binding OutputPreview, StringFormat='Preview: {0}', UpdateSourceTrigger=PropertyChanged}" />
+                        <StackPanel Margin="2,6,0,0" Orientation="Horizontal">
+                            <TextBlock
+                                MaxWidth="390"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="{Binding OutputPreview, StringFormat='Preview: {0}', UpdateSourceTrigger=PropertyChanged}"
+                                TextWrapping="Wrap" />
+                            <Button
+                                Width="90"
+                                Height="25"
+                                Margin="8,0,0,0"
+                                Command="{Binding CopyOutputPreviewCommand}"
+                                Content="Copy"
+                                Style="{StaticResource Status_Button_style}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Opacity="0.65"
+                                Text="{Binding PreviewLengthText}" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!--  Speaker display  -->
-                <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Margin="5">
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock
                             Padding="0,0,0,0"
                             FontFamily="Albert Sans Thin"
@@ -248,11 +407,7 @@
                         <TextBlock
                             Width="auto"
                             Margin="2,0,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="How long to wait before removing a speaker (prevents flickering)" />
                         <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
                             <Slider
@@ -300,11 +455,8 @@
                 </Border>
 
                 <!--  Text overrides  -->
-                <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Margin="5">
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock
                             Padding="0,0,0,0"
                             FontFamily="Albert Sans Thin"
@@ -329,11 +481,7 @@
                         <TextBlock
                             Width="auto"
                             Margin="2,0,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Leave empty to hide Discord from chatbox when not in VC" />
                         <TextBox
                             Width="200"
@@ -347,11 +495,8 @@
                 </Border>
 
                 <!--  Mute / Deafen emojis  -->
-                <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Margin="5">
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <CheckBox IsChecked="{Binding Modules.Discord.Settings.ShowMuteDeafenEmoji, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">
                             Show mute/deafen emoji in chatbox
                         </CheckBox>
@@ -391,22 +536,15 @@
                 </Border>
 
                 <!--  OSC parameters  -->
-                <Border
-                    Margin="0,0,0,5"
-                    Background="{StaticResource SurfaceCardBrush}"
-                    CornerRadius="5,0,0,5">
-                    <StackPanel Margin="5">
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <CheckBox IsChecked="{Binding Modules.Discord.Settings.SendMuteDeafenOsc, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">
                             Send mute/deafen as OSC parameters
                         </CheckBox>
                         <TextBlock
                             Width="auto"
                             Margin="20,0,0,2"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="/avatar/parameters/DiscordMuted (Bool)&#x0a;/avatar/parameters/DiscordDeafened (Bool)" />
 
                         <CheckBox
@@ -418,12 +556,80 @@
                         <TextBlock
                             Width="auto"
                             Margin="20,0,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="/avatar/parameters/DiscordInVC (Bool)&#x0a;/avatar/parameters/DiscordVCCount (Float)&#x0a;/avatar/parameters/DiscordSpeaking (Bool)" />
+                    </StackPanel>
+                </Border>
+
+                <!--  RICH PRESENCE  -->
+                <Border Margin="0,8,0,0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Discord Rich Presence" />
+                        <TextBlock
+                            Margin="0,2,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Show VRChat world info, player count, and join button in your Discord profile." />
+                        <CheckBox IsChecked="{Binding Modules.Discord.Settings.EnableRichPresence, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Enable Rich Presence</CheckBox>
+
+                        <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Discord.Settings.EnableRichPresence, Converter={StaticResource InverseBoolToHiddenConverter}}">
+
+                            <TextBlock
+                                Margin="0,0,0,2"
+                                FontSize="11"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Preset:" />
+                            <ComboBox
+                                MinWidth="200"
+                                MaxWidth="300"
+                                HorizontalAlignment="Left"
+                                FontSize="12"
+                                ItemsSource="{Binding RpPresetNames}"
+                                SelectedItem="{Binding SelectedRpPresetName, Mode=TwoWay}" />
+
+                            <TextBlock
+                                Margin="0,6,0,2"
+                                FontSize="11"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Details template (line 1):" />
+                            <TextBox
+                                MinWidth="250"
+                                Padding="3,1"
+                                FontSize="12"
+                                Text="{Binding Modules.Discord.Settings.RichPresenceDetails, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock
+                                Margin="0,6,0,2"
+                                FontSize="11"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="State template (line 2):" />
+                            <TextBox
+                                MinWidth="250"
+                                Padding="3,1"
+                                FontSize="12"
+                                Text="{Binding Modules.Discord.Settings.RichPresenceState, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock
+                                Margin="0,4,0,4"
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="Variables: {world} {count} {type} {region} {status} {mode} {time} {media} {unique} {peak} {worlds} — Max 128 chars per field." />
+
+                            <CheckBox
+                                Margin="0,2,0,0"
+                                IsChecked="{Binding Modules.Discord.Settings.RichPresenceShowElapsed, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Show elapsed time since joining world
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,2,0,0"
+                                IsChecked="{Binding Modules.Discord.Settings.RichPresenceShowJoinButton, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Show Join button (Public instances only)
+                            </CheckBox>
+                            <TextBlock
+                                Margin="20,1,0,4"
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="Privacy: Join links are only generated for Public instances. Private, Friends+, and Invite+ instances are never shared." />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

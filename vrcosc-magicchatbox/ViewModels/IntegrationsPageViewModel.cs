@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -34,7 +35,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly Lazy<IModuleHost> _moduleHost;
     private readonly Lazy<OSCController> _osc;
     private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
+    private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
     private readonly IMenuNavigationService _menuNav;
+    private readonly INavigationService _nav;
     private readonly IPrivacyConsentService _consent;
     private readonly IToastService _toast;
     public ISettingsProvider<IntegrationSettings> IntegrationSettingsProvider => _integrationSettingsProvider;
@@ -45,7 +48,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public IntegrationSettings IntegrationSettings { get; }
     public IModuleHost Modules => _moduleHost.Value;
     public MediaLinkDisplayState MediaLinkDisplay { get; }
+    public SpotifyDisplayState SpotifyDisplay { get; }
     public MediaLinkSettings MediaLinkSettings { get; }
+    public SpotifySettings SpotifySettings { get; }
     public WeatherSettings WeatherSettings { get; }
     public TrackerDisplayState Tracker { get; }
     public IAppState AppState { get; }
@@ -56,6 +61,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     private TrackerBatteryModule? TrackerBatteryModule => _moduleHost.Value.TrackerBattery;
     private SoundpadModule? Soundpad => _moduleHost.Value.Soundpad;
+    private SpotifyModule? Spotify => _moduleHost.Value.Spotify;
 
     private readonly Lazy<ScanLoopService> _scanLoop;
     private readonly Lazy<IStatePersistenceCoordinator> _persistence;
@@ -70,15 +76,18 @@ public partial class IntegrationsPageViewModel : ObservableObject
         Lazy<OSCController> osc,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
+        ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<WeatherSettings> weatherSettingsProvider,
         Lazy<ComponentStatsViewModel> componentStats,
         Lazy<ScanLoopService> scanLoop,
         Lazy<IStatePersistenceCoordinator> persistence,
         IntegrationDisplayState integrationDisplay,
         MediaLinkDisplayState mediaLinkDisplay,
+        SpotifyDisplayState spotifyDisplay,
         TrackerDisplayState tracker,
         IAppState appState,
         IMenuNavigationService menuNav,
+        INavigationService nav,
         IPrivacyConsentService consent,
         IToastService toast)
     {
@@ -86,21 +95,27 @@ public partial class IntegrationsPageViewModel : ObservableObject
         _moduleHost = moduleHost;
         _osc = osc;
         _integrationSettingsProvider = integrationSettingsProvider;
+        _spotifySettingsProvider = spotifySettingsProvider;
         _componentStats = componentStats;
         _scanLoop = scanLoop;
         _persistence = persistence;
         IntegrationDisplay = integrationDisplay;
         IntegrationSettings = integrationSettingsProvider.Value;
         MediaLinkDisplay = mediaLinkDisplay;
+        SpotifyDisplay = spotifyDisplay;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
+        SpotifySettings = spotifySettingsProvider.Value;
         WeatherSettings = weatherSettingsProvider.Value;
         Tracker = tracker;
         AppState = appState;
         _menuNav = menuNav;
+        _nav = nav;
         _consent = consent;
         _toast = toast;
         AppState.PropertyChanged += OnAppStatePropertyChanged;
         IntegrationDisplay.PropertyChanged += OnIntegrationDisplayPropertyChanged;
+        SpotifyDisplay.PropertyChanged += OnSpotifyDisplayChanged;
+        SpotifySettings.PropertyChanged += OnSpotifySettingsChanged;
         _consent.ConsentChanged += (_, e) =>
         {
             if (e.Hook == PrivacyHook.HardwareMonitor)
@@ -117,6 +132,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         {
             { nameof(IntegrationSettings.IntgrScanWindowActivity), (PrivacyHook.WindowActivity,   () => IntegrationSettings.IntgrScanWindowActivity, () => IntegrationSettings.IntgrScanWindowActivity = false) },
             { nameof(IntegrationSettings.IntgrScanMediaLink),      (PrivacyHook.MediaSession,     () => IntegrationSettings.IntgrScanMediaLink,       () => IntegrationSettings.IntgrScanMediaLink = false) },
+            { nameof(IntegrationSettings.IntgrSpotify),            (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrSpotify,            () => IntegrationSettings.IntgrSpotify = false) },
             { nameof(IntegrationSettings.IntgrTwitch),             (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrTwitch,              () => IntegrationSettings.IntgrTwitch = false) },
             { nameof(IntegrationSettings.IntgrHeartRate),          (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrHeartRate,           () => IntegrationSettings.IntgrHeartRate = false) },
             { nameof(IntegrationSettings.IntgrTrackerBattery),     (PrivacyHook.VrTrackerBattery, () => IntegrationSettings.IntgrTrackerBattery,      () => IntegrationSettings.IntgrTrackerBattery = false) },
@@ -137,22 +153,40 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public double NetworkStats_Opacity => ParseOpacity(IntegrationDisplay.NetworkStatsOpacity);
 
+    public string SpotifyWidgetTitle => ResolveSpotifyWidgetText(
+        SpotifyDisplay.Title,
+        SpotifySettings.AllowTrackTitleInOutput,
+        SpotifyDisplay.HasPlayback ? "Unknown track" : "Nothing playing");
+
+    public string SpotifyWidgetArtist => ResolveSpotifyWidgetText(
+        SpotifyDisplay.Artist,
+        SpotifySettings.AllowArtistInOutput,
+        SpotifyDisplay.IsConnected ? SpotifyDisplay.StatusText : "Connect Spotify to start");
+
+    public string SpotifyWidgetAlbum => ResolveSpotifyWidgetText(
+        SpotifyDisplay.Album,
+        SpotifySettings.AllowAlbumInOutput,
+        string.Empty);
+
     private void OnIntegrationSettingChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == null) return;
-        if (!_guardMap.TryGetValue(e.PropertyName, out var guard)) return;
-        if (!guard.GetValue()) return; // only enforce when being turned ON
-        if (_consent.IsApproved(guard.Hook)) return;
+        if (_guardMap.TryGetValue(e.PropertyName, out var guard) && guard.GetValue() && !_consent.IsApproved(guard.Hook))
+        {
+            guard.Revert(); // flip the toggle back to false (safe: SetProperty is no-op when value unchanged)
+            var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
+            _toast.Show(
+                "🔒 Permission Required",
+                $"{icon} {name} access is needed. Enable it in Privacy & Permissions.",
+                ToastType.Warning,
+                new ToastAction("Open Privacy & Permissions", () => { _menuNav.NavigateToPrivacy(); return Task.CompletedTask; }),
+                durationMs: 6000,
+                key: $"consent-{guard.Hook}");
+            return;
+        }
 
-        guard.Revert(); // flip the toggle back to false (safe: SetProperty is no-op when value unchanged)
-        var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
-        _toast.Show(
-            "🔒 Permission Required",
-            $"{icon} {name} access is needed. Enable it in Privacy & Permissions.",
-            ToastType.Warning,
-            new ToastAction("Open Privacy & Permissions", () => { _menuNav.NavigateToPrivacy(); return Task.CompletedTask; }),
-            durationMs: 6000,
-            key: $"consent-{guard.Hook}");
+        if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
+            HandleSpotifyMediaLinkCoexistence();
     }
 
     private void OnAppStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -172,6 +206,38 @@ public partial class IntegrationsPageViewModel : ObservableObject
                 OnPropertyChanged(nameof(NetworkStats_Opacity));
                 break;
         }
+    }
+
+    private void OnSpotifyDisplayChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SpotifyDisplayState.Title) or
+            nameof(SpotifyDisplayState.Artist) or
+            nameof(SpotifyDisplayState.Album) or
+            nameof(SpotifyDisplayState.HasPlayback) or
+            nameof(SpotifyDisplayState.IsConnected) or
+            nameof(SpotifyDisplayState.StatusText))
+        {
+            NotifySpotifyWidgetTextChanged();
+        }
+    }
+
+    private void OnSpotifySettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SpotifySettings.PrivacyMode) or
+            nameof(SpotifySettings.PrivacyHiddenText) or
+            nameof(SpotifySettings.AllowTrackTitleInOutput) or
+            nameof(SpotifySettings.AllowArtistInOutput) or
+            nameof(SpotifySettings.AllowAlbumInOutput))
+        {
+            NotifySpotifyWidgetTextChanged();
+        }
+    }
+
+    private void NotifySpotifyWidgetTextChanged()
+    {
+        OnPropertyChanged(nameof(SpotifyWidgetTitle));
+        OnPropertyChanged(nameof(SpotifyWidgetArtist));
+        OnPropertyChanged(nameof(SpotifyWidgetAlbum));
     }
 
     [RelayCommand]
@@ -218,6 +284,90 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     [RelayCommand]
     private void SoundpadRandom() => Soundpad?.PlayRandomSound();
+
+    [RelayCommand]
+    private async Task SpotifyPlayPause()
+    {
+        if (Spotify != null)
+            await Spotify.TogglePlayPauseAsync();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyPrevious()
+    {
+        if (Spotify != null)
+            await Spotify.PreviousAsync();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyNext()
+    {
+        if (Spotify != null)
+            await Spotify.NextAsync();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyToggleLike()
+    {
+        if (Spotify != null)
+            await Spotify.ToggleLikeAsync();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyToggleShuffle()
+    {
+        if (Spotify != null)
+            await Spotify.ToggleShuffleAsync();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyCycleRepeat()
+    {
+        if (Spotify != null)
+            await Spotify.CycleRepeatAsync();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyRefresh()
+    {
+        if (Spotify != null)
+            await Spotify.TriggerManualRefreshAsync();
+    }
+
+    [RelayCommand]
+    private void SpotifyOpenCurrentTrack()
+    {
+        if (SpotifyDisplay.CanOpenSpotify)
+            _nav.OpenUrl(SpotifyDisplay.ExternalUrl);
+    }
+
+    public async Task SetSpotifyVolume(double value)
+    {
+        if (Spotify != null)
+            await Spotify.SetVolumeAsync((int)Math.Clamp(value, 0, 100));
+    }
+
+    private void HandleSpotifyMediaLinkCoexistence()
+    {
+        if (!IntegrationSettings.IntgrSpotify ||
+            !IntegrationSettings.IntgrScanMediaLink ||
+            SpotifySettings.MediaLinkCoexistence != SpotifyMediaLinkCoexistence.Ask)
+            return;
+
+        var result = MessageBox.Show(
+            "Spotify and MediaLink are both enabled. If Windows reports Spotify through MediaLink too, your chatbox can show duplicate music.\n\nChoose Yes to prefer the dedicated Spotify output and hide Spotify sessions from MediaLink. Choose No to allow both intentionally.",
+            "Spotify + MediaLink",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Information);
+
+        if (result == MessageBoxResult.Yes)
+            SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.PreferSpotify;
+        else if (result == MessageBoxResult.No)
+            SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.AllowBoth;
+
+        if (result is MessageBoxResult.Yes or MessageBoxResult.No)
+            _spotifySettingsProvider.Save();
+    }
 
     public string ComponentStatsAccessWarningText =>
         !_consent.IsApproved(PrivacyHook.HardwareMonitor)
@@ -335,5 +485,13 @@ public partial class IntegrationsPageViewModel : ObservableObject
         return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double opacity)
             ? opacity
             : 1d;
+    }
+
+    private string ResolveSpotifyWidgetText(string value, bool allowed, string fallback)
+    {
+        if (!allowed || SpotifySettings.PrivacyMode)
+            return SpotifySettings.PrivacyHiddenText;
+
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 }

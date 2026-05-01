@@ -69,6 +69,7 @@ public static class SettingsMigrationService
         MigrateModule<IntegrationSettings>(root, IntegrationMigrationMap(), dataPath);
         MigrateModule<WeatherSettings>(root, WeatherMigrationMap(), dataPath);
         MigrateModule<TwitchSettings>(root, TwitchMigrationMap(), dataPath);
+        MigrateModule<DiscordSettings>(root, DiscordMigrationMap(), dataPath);
         MigrateModule<MediaLinkSettings>(root, MediaLinkMigrationMap(), dataPath);
         MigrateModule<NetworkStatsSettings>(root, NetworkStatsMigrationMap(), dataPath);
         MigrateModule<TrackerBatterySettings>(root, TrackerBatteryMigrationMap(), dataPath);
@@ -372,6 +373,8 @@ public static class SettingsMigrationService
         new("OptionsTabState", "Settings_Time",                "Settings_Time"),
         new("OptionsTabState", "Settings_Weather",             "Settings_Weather"),
         new("OptionsTabState", "Settings_Twitch",              "Settings_Twitch"),
+        new("OptionsTabState", "Settings_Discord",             "Settings_Discord"),
+        new("OptionsTabState", "Settings_Spotify",             "Settings_Spotify"),
         new("OptionsTabState", "Settings_ComponentStats",      "Settings_ComponentStats"),
         new("OptionsTabState", "Settings_NetworkStatistics",   "Settings_NetworkStatistics"),
         new("OptionsTabState", "Settings_Chatting",            "Settings_Chatting"),
@@ -379,6 +382,8 @@ public static class SettingsMigrationService
         new("OptionsTabState", "Settings_MediaLink",           "Settings_MediaLink"),
         new("OptionsTabState", "Settings_AppOptions",          "Settings_AppOptions"),
         new("OptionsTabState", "Settings_WindowActivity",      "Settings_WindowActivity"),
+        new("OptionsTabState", "Settings_VrcRadar",            "Settings_VrcRadar"),
+        new("OptionsTabState", "Settings_TrackerBattery",      "Settings_TrackerBattery"),
     ];
 
     private static List<MigrationEntry> IntegrationMigrationMap() =>
@@ -395,6 +400,9 @@ public static class SettingsMigrationService
         new("Integrations", "IntgrComponentStats",        "IntgrComponentStats"),
         new("Integrations", "IntgrSoundpad",              "IntgrSoundpad"),
         new("Integrations", "IntgrTwitch",                "IntgrTwitch"),
+        new("Integrations", "IntgrDiscord",               "IntgrDiscord"),
+        new("Integrations", "IntgrSpotify",               "IntgrSpotify"),
+        new("Integrations", "IntgrVrcRadar",              "IntgrVrcRadar"),
         new("Integrations", "IntgrTrackerBattery",        "IntgrTrackerBattery"),
 
         new("IntegrationToggles", "IntgrComponentStats_VR",        "IntgrComponentStats_VR"),
@@ -420,6 +428,12 @@ public static class SettingsMigrationService
         new("IntegrationToggles", "IntgrSoundpad_VR",              "IntgrSoundpad_VR"),
         new("IntegrationToggles", "IntgrTwitch_DESKTOP",           "IntgrTwitch_DESKTOP"),
         new("IntegrationToggles", "IntgrTwitch_VR",                "IntgrTwitch_VR"),
+        new("IntegrationToggles", "IntgrDiscord_DESKTOP",          "IntgrDiscord_DESKTOP"),
+        new("IntegrationToggles", "IntgrDiscord_VR",               "IntgrDiscord_VR"),
+        new("IntegrationToggles", "IntgrSpotify_DESKTOP",          "IntgrSpotify_DESKTOP"),
+        new("IntegrationToggles", "IntgrSpotify_VR",               "IntgrSpotify_VR"),
+        new("IntegrationToggles", "IntgrVrcRadar_DESKTOP",         "IntgrVrcRadar_DESKTOP"),
+        new("IntegrationToggles", "IntgrVrcRadar_VR",              "IntgrVrcRadar_VR"),
     ];
 
     private static List<MigrationEntry> WeatherMigrationMap() =>
@@ -483,6 +497,40 @@ public static class SettingsMigrationService
         new("Twitch", "TwitchShoutoutAnnouncementColor",     "ShoutoutAnnouncementColor"),
         new("Twitch", "TwitchClientIdEncrypted",             "ClientIdEncrypted"),
         new("Twitch", "TwitchAccessTokenEncrypted",          "AccessTokenEncrypted"),
+    ];
+
+    private static List<MigrationEntry> DiscordMigrationMap() =>
+    [
+        new("Discord", "DiscordTemplate",                  "Template"),
+        new("Discord", "DiscordEmptySpeakingText",         "EmptySpeakingText"),
+        new("Discord", "DiscordNotInVcText",               "NotInVcText"),
+        new("Discord", "DiscordMaxSpeakingUsersToShow",    "MaxSpeakingUsersToShow"),
+        new("Discord", "DiscordShowMuteDeafenEmoji",       "ShowMuteDeafenEmoji"),
+        new("Discord", "DiscordMuteEmoji",                 "MuteEmoji"),
+        new("Discord", "DiscordDeafenEmoji",               "DeafenEmoji"),
+        new("Discord", "DiscordAutoConnectOnStartup",      "AutoConnectOnStartup"),
+        new("Discord", "DiscordHideSelfFromSpeakers",      "HideSelfFromSpeakers"),
+        new("Discord", "DiscordShowUserCountOnly",         "ShowUserCountOnly"),
+        new("Discord", "DiscordSpeakerDebounceMs",         "SpeakerDebounceMs"),
+        new("Discord", "DiscordVoiceClientId",             "VoiceClientId"),
+        new("Discord", "DiscordVoiceClientIdEncrypted",    "VoiceClientIdEncrypted"),
+        new("Discord", "DiscordAccessTokenEncrypted",      "AccessTokenEncrypted"),
+        new("Discord", "DiscordRefreshTokenEncrypted",     "RefreshTokenEncrypted"),
+        new("Discord", "DiscordTokenExpiresAtUtcTicks",    "TokenExpiresAtUtcTicks"),
+        new("Discord", "DiscordHasRpcScope",               "HasRpcScope"),
+        new("Discord", "DiscordSendMuteDeafenOsc",         "SendMuteDeafenOsc"),
+        new("Discord", "DiscordSendVoiceStateOsc",         "SendVoiceStateOsc"),
+        new("Discord", "DiscordEnableRichPresence",        "EnableRichPresence"),
+        new("Discord", "DiscordRichPresenceDetails",       "RichPresenceDetails"),
+        new("Discord", "DiscordRichPresenceState",         "RichPresenceState"),
+        new("Discord", "DiscordRichPresenceShowJoinButton", "RichPresenceShowJoinButton"),
+        new("Discord", "DiscordRichPresenceLargeText",     "RichPresenceLargeText"),
+        new("Discord", "DiscordRichPresenceLargeImageKey", "RichPresenceLargeImageKey"),
+        new("Discord", "DiscordRichPresenceSmallImageKey", "RichPresenceSmallImageKey"),
+        new("Discord", "DiscordRichPresenceSmallText",     "RichPresenceSmallText"),
+        new("Discord", "DiscordRichPresenceShowElapsed",   "RichPresenceShowElapsed"),
+        new("Discord", "DiscordRichPresenceShowVrDesktopMode", "RichPresenceShowVrDesktopMode"),
+        new("Discord", "DiscordRichPresenceJoinButtonLabel", "RichPresenceJoinButtonLabel"),
     ];
 
     private static List<MigrationEntry> MediaLinkMigrationMap() =>

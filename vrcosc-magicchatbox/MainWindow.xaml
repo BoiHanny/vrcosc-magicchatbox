@@ -11,7 +11,7 @@
     Title="MagicChatbox by BoiHanny"
     Width="900"
     Height="775"
-    MinWidth="1000"
+    MinWidth="1020"
     MinHeight="500"
     VerticalAlignment="Bottom"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,

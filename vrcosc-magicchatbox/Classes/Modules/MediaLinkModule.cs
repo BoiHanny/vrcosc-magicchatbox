@@ -550,52 +550,24 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 try
                 {
                     double percentage = 80.0;
-                    string currentTime = "4:20";
-                    string fullTime = "69:00";
-
-                    if (ShowTimeInSuperscript)
-                    {
-                        currentTime = TextUtilities.TransformToSuperscript(currentTime);
-                        fullTime = TextUtilities.TransformToSuperscript(fullTime);
-                    }
-
-                    int totalBlocks = ProgressBarLength;
-                    int filledBlocks = (int)(percentage / (100.0 / totalBlocks));
-
-                    string filledChar = !string.IsNullOrEmpty(FilledCharacter) ? FilledCharacter : "?";
-                    string nonFilledChar = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter : "⁉️";
-                    string middleChar = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter : "?";
-
-                    // Use the entire string for emojis and multi-character strings
-                    string filledBar = string.Concat(Enumerable.Repeat(filledChar, filledBlocks));
-                    string emptyBar = string.Concat(Enumerable.Repeat(nonFilledChar, totalBlocks - filledBlocks));
-                    string progressBar = filledBar + middleChar + emptyBar;
-
-                    string timeSegment;
-                    string space = SpaceAgainObjects ? " " : string.Empty;
-
-                    if (DisplayTime)
-                    {
-                        if (TimePreSuffixOnTheInside)
+                    string timeSegment = SeekbarUtilities.CreateProgressBar(
+                        percentage,
+                        TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(20)),
+                        TimeSpan.FromMinutes(69),
+                        new SeekbarStyleOptions
                         {
-                            string preSuffixSpace = SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
-                            timeSegment = string.IsNullOrWhiteSpace(TimePrefix) || string.IsNullOrWhiteSpace(TimeSuffix) ?
-                                $"{currentTime}{space}{progressBar}{space}{fullTime}" :
-                                $"{currentTime}{preSuffixSpace}{TimePrefix}{progressBar}{TimeSuffix}{preSuffixSpace}{fullTime}";
-                        }
-                        else
-                        {
-                            string preSuffixSpace = SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
-                            timeSegment = $"{TimePrefix}{preSuffixSpace}{currentTime}{space}{progressBar}{space}{fullTime}{preSuffixSpace}{TimeSuffix}";
-                        }
-                    }
-                    else
-                    {
-                        string preSuffixSpace = SpaceBetweenPreSuffixAndTime ? " " : string.Empty;
-                        timeSegment = TimePreSuffixOnTheInside ?
-                            $"{TimePrefix}{progressBar}{TimeSuffix}" :
-                            $"{TimePrefix}{preSuffixSpace}{progressBar}{preSuffixSpace}{TimeSuffix}";
-                    }
+                            DisplayTime = DisplayTime,
+                            FilledCharacter = !string.IsNullOrEmpty(FilledCharacter) ? FilledCharacter : "?",
+                            MiddleCharacter = !string.IsNullOrEmpty(MiddleCharacter) ? MiddleCharacter : "?",
+                            NonFilledCharacter = !string.IsNullOrEmpty(NonFilledCharacter) ? NonFilledCharacter : "⁉️",
+                            ProgressBarLength = ProgressBarLength,
+                            ShowTimeInSuperscript = ShowTimeInSuperscript,
+                            SpaceAgainObjects = SpaceAgainObjects,
+                            SpaceBetweenPreSuffixAndTime = SpaceBetweenPreSuffixAndTime,
+                            TimePrefix = TimePrefix,
+                            TimePreSuffixOnTheInside = TimePreSuffixOnTheInside,
+                            TimeSuffix = TimeSuffix
+                        });
 
                     if (SystemDefault)
                     {
