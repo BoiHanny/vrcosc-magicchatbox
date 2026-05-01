@@ -63,7 +63,7 @@ public static class Constants
     public const string SpotifyApiBaseUrl = "https://api.spotify.com/v1/";
     public const string SpotifyOAuthEndpoint = "https://accounts.spotify.com/authorize";
     public const string SpotifyTokenEndpoint = "https://accounts.spotify.com/api/token";
-    public const string SpotifyOAuthRedirectUri = "http://localhost:7387/callback/";
+    public const string SpotifyOAuthRedirectUri = "http://127.0.0.1:7387/callback/";
     public const string SpotifyDeveloperDashboardUrl = "https://developer.spotify.com/dashboard";
     public const string SpotifyScopes = "user-read-playback-state user-read-currently-playing user-modify-playback-state user-library-read user-library-modify";
 
