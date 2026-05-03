@@ -46,6 +46,8 @@ public partial class SpotifySectionViewModel : ObservableObject
 
     public SpotifyProgressDisplayMode[] ProgressDisplayModes { get; } = Enum.GetValues<SpotifyProgressDisplayMode>();
 
+    public SpotifyMediaLinkCoexistence[] MediaLinkCoexistenceModes { get; } = Enum.GetValues<SpotifyMediaLinkCoexistence>();
+
     /// <summary>True when the user has selected Seekbar mode — controls seekbar style dropdown visibility.</summary>
     public bool IsSeekbarMode => Settings.ProgressDisplayMode == SpotifyProgressDisplayMode.Seekbar;
 

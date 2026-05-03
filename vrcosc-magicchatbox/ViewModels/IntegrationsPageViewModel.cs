@@ -10,7 +10,6 @@ using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -354,19 +353,17 @@ public partial class IntegrationsPageViewModel : ObservableObject
             SpotifySettings.MediaLinkCoexistence != SpotifyMediaLinkCoexistence.Ask)
             return;
 
-        var result = MessageBox.Show(
-            "Spotify and MediaLink are both enabled. If Windows reports Spotify through MediaLink too, your chatbox can show duplicate music.\n\nChoose Yes to prefer the dedicated Spotify output and hide Spotify sessions from MediaLink. Choose No to allow both intentionally.",
-            "Spotify + MediaLink",
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Information);
+        // Default to PreferSpotify for reliability and notify user via toast
+        SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.PreferSpotify;
+        _spotifySettingsProvider.Save();
 
-        if (result == MessageBoxResult.Yes)
-            SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.PreferSpotify;
-        else if (result == MessageBoxResult.No)
-            SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.AllowBoth;
-
-        if (result is MessageBoxResult.Yes or MessageBoxResult.No)
-            _spotifySettingsProvider.Save();
+        _toast.Show(
+            "🎵 Spotify + MediaLink",
+            "Both are enabled — defaulting to dedicated Spotify output. Change this in Spotify options under 'MediaLink coexistence'.",
+            ToastType.Info,
+            new ToastAction("Open Spotify settings", () => { _menuNav.ActivateSetting("Settings_Spotify"); return Task.CompletedTask; }),
+            durationMs: 8000,
+            key: "spotify-medialink-coexist");
     }
 
     public string ComponentStatsAccessWarningText =>
