@@ -27,7 +27,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        // Immutable data from SteamVR/OpenVR
         public string SerialNumber
         {
             get => _serialNumber;

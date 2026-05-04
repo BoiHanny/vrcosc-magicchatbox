@@ -236,10 +236,25 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return windowTitle;
     }
 
-    private string FormatWindowTitle(string fullTitle)
+    private string FormatWindowTitle(string fullTitle, ProcessInfo? process = null)
     {
         fullTitle = fullTitle?.Trim() ?? string.Empty;
         fullTitle = ApplyGlobalRegex(fullTitle);
+
+        // Apply per-app content filter first (takes priority)
+        if (process != null && process.HasContentFilter && !string.IsNullOrWhiteSpace(fullTitle))
+        {
+            fullTitle = ApplyPerAppFilter(fullTitle, process);
+            if (string.IsNullOrEmpty(fullTitle))
+                return string.Empty;
+        }
+
+        if (Settings.EnableTitleFilters && Settings.TitleFilters.Count > 0 && !string.IsNullOrWhiteSpace(fullTitle))
+        {
+            fullTitle = ApplyTitleFilters(fullTitle);
+            if (string.IsNullOrEmpty(fullTitle))
+                return string.Empty;
+        }
 
         if (Settings.LimitTitleOnApp && fullTitle.Length > Settings.MaxShowTitleCount)
         {
@@ -247,6 +262,56 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         }
 
         return fullTitle;
+    }
+
+    private static string ApplyPerAppFilter(string text, ProcessInfo process)
+    {
+        var keywords = process.ContentFilter
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (keywords.Length == 0)
+            return text;
+
+        bool anyMatch = keywords.Any(kw => text.Contains(kw, StringComparison.OrdinalIgnoreCase));
+
+        return process.ContentFilterMode switch
+        {
+            1 => anyMatch ? string.Empty : text,  // Exclude: hide when matches
+            2 => anyMatch ? text : string.Empty,  // Include: show only when matches
+            _ => text
+        };
+    }
+
+    private string ApplyTitleFilters(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
+
+        bool hasIncludeRules = false;
+        bool matchedInclude = false;
+
+        foreach (var rule in Settings.TitleFilters)
+        {
+            if (!rule.IsEnabled || string.IsNullOrWhiteSpace(rule.Pattern))
+                continue;
+
+            bool matches = text.Contains(rule.Pattern, StringComparison.OrdinalIgnoreCase);
+
+            if (rule.Mode == FilterMode.Exclude && matches)
+                return string.Empty;
+
+            if (rule.Mode == FilterMode.Include)
+            {
+                hasIncludeRules = true;
+                if (matches)
+                    matchedInclude = true;
+            }
+        }
+
+        if (hasIncludeRules && !matchedInclude)
+            return string.Empty;
+
+        return text;
     }
 
     private string GetFileDescription(string filePath)
@@ -363,7 +428,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-    private string GetWindowTitle(IntPtr hwnd)
+    private string GetWindowTitle(IntPtr hwnd, ProcessInfo? process = null)
     {
         try
         {
@@ -372,7 +437,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
             if (GetWindowText(hwnd, sb, length) > 0)
             {
-                return FormatWindowTitle(sb.ToString());
+                return FormatWindowTitle(sb.ToString(), process);
             }
 
             return "";
@@ -519,7 +584,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 {
                     if (existingProcessInfo.ShowTitle)
                     {
-                        windowTitle = GetWindowTitle(hwnd);
+                        windowTitle = GetWindowTitle(hwnd, existingProcessInfo);
                     }
                 }
                 WA.ErrorInWindowActivity = false;

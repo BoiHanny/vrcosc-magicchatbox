@@ -17,7 +17,6 @@ public partial class WindowActivitySectionViewModel : ObservableObject
 {
     private readonly IWindowActivityService _windowActivitySvc;
 
-    // Exposed as binding targets for XAML (replaces broken root-level paths)
     public AppSettings AppSettings { get; }
     public WindowActivityDisplayState WindowActivity { get; }
     public IntegrationSettings IntegrationSettings { get; }
@@ -52,6 +51,20 @@ public partial class WindowActivitySectionViewModel : ObservableObject
     [RelayCommand]
     private void CleanupKeepSettings()
         => ExecuteCleanup(_windowActivitySvc.CleanAndKeepAppsWithSettings);
+
+    [RelayCommand]
+    private void AddTitleFilter()
+    {
+        WindowActivitySettings.TitleFilters.Add(new TitleFilterRule());
+        _windowActivitySvc.SaveSettings();
+    }
+
+    [RelayCommand]
+    private void RemoveTitleFilter(TitleFilterRule? rule)
+    {
+        if (rule != null && WindowActivitySettings.TitleFilters.Remove(rule))
+            _windowActivitySvc.SaveSettings();
+    }
 
     private void ExecuteCleanup(Func<int> cleanupAction, string? allRemovedLabel = null)
     {

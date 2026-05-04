@@ -96,16 +96,12 @@ namespace vrcosc_magicchatbox.UI.Pages
             VM.UpdateStatusBoxCount(textBox?.Text.Length ?? 0);
         }
 
-        // ── Sort ──────────────────────────────────────────────────────────────
-
         private void SortCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DataContext is not StatusPageViewModel vm) return;
             if (sender is ComboBox combo && combo.SelectedIndex >= 0)
                 vm.SortByFieldCommand.Execute((StatusSortField)combo.SelectedIndex);
         }
-
-        // ── Group rename ──────────────────────────────────────────────────────
 
         private void BeginRenameGroup_Click(object sender, RoutedEventArgs e)
         {
@@ -124,8 +120,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             }
         }
 
-        // ── New group text box ────────────────────────────────────────────────
-
         private void NewGroupTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -133,8 +127,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             else if (e.Key == Key.Escape)
                 VM.NewGroupName = string.Empty;
         }
-
-        // ── Selection mode checkboxes ─────────────────────────────────────────
 
         private void StatusItemCheckBox_Click(object sender, RoutedEventArgs e)
         {
@@ -163,7 +155,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             }
         }
 
-        // ── Popup close/reopen debounce ──────────────────────────────────────
         private void GroupPopup_Closed(object sender, EventArgs e)
             => _groupPopupClosedAt = DateTime.UtcNow;
 

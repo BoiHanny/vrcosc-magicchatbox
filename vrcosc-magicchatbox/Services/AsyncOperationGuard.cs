@@ -30,7 +30,6 @@ public sealed class AsyncOperationGuard
             if (DateTime.UtcNow - state.DisabledAtUtc < CooldownAfterDisable)
                 return;
 
-            // Cooldown expired — re-enable and retry
             state.ConsecutiveFailures = 0;
             state.IsDisabled = false;
             Logging.WriteInfo($"[AsyncOperationGuard] Re-enabling '{operationName}' after cooldown");

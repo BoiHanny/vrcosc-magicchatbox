@@ -410,14 +410,12 @@ public class ComponentStatsModule : IModule
         var wmiMem = _hwService.GetWindowsMemoryInfo();
         if (wmiMem.HasValue)
         {
-            string name = _hwService.GetCpuName(); // RAM doesn't have its own hardware name
             if (current?.RemoveNumberTrailing == true)
                 return ($"{(int)wmiMem.Value.usedGiB}", $"{(int)wmiMem.Value.totalGiB}");
             else
                 return ($"{wmiMem.Value.usedGiB:F1}", $"{wmiMem.Value.totalGiB:F1}");
         }
 
-        // Fallback to LibreHardwareMonitor
         float? used = _hwService.GetRamUsed();
         float? available = _hwService.GetRamAvailable();
         if (used.HasValue && available.HasValue)
@@ -924,7 +922,7 @@ public class ComponentStatsModule : IModule
 
         if (notAvailableComponents.Count == 0)
         {
-            return ""; // or return some default message if you prefer
+            return "";
         }
 
         string result = "😞 " + string.Join(", ", notAvailableComponents) + " stats may not be available on your system...";

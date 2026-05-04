@@ -93,7 +93,6 @@ public static class SettingsMigrationService
     {
         string jsonPath = Path.Combine(dataPath, $"{typeof(T).Name}.json");
 
-        // Load existing JSON (if any) and check whether migration was already completed
         T settings;
         if (File.Exists(jsonPath))
         {
@@ -129,7 +128,6 @@ public static class SettingsMigrationService
                 var prop = typeof(T).GetProperty(entry.JsonPropertyName);
                 if (prop == null || !prop.CanRead || !prop.CanWrite) continue;
 
-                // Only overwrite if the current value is still the type default
                 object current = prop.GetValue(settings);
                 object defaultVal = prop.GetValue(defaults);
                 if (!IsDefaultValue(current, defaultVal)) continue;
@@ -147,8 +145,8 @@ public static class SettingsMigrationService
             }
         }
 
-        // Stamp the migration timestamp (even if no values moved — marks as "attempted")
-        if (settings is VersionedSettings versioned)
+        // Stamp the migration timestamp only when actual values were merged
+        if (anyMigrated && settings is VersionedSettings versioned)
             versioned.MigratedAt = DateTime.UtcNow;
 
         if (anyMigrated || !File.Exists(jsonPath))
@@ -163,20 +161,6 @@ public static class SettingsMigrationService
             catch (Exception ex)
             {
                 Logging.WriteInfo($"Failed to write {typeof(T).Name}.json: {ex.Message}");
-            }
-        }
-        else if (!File.Exists(jsonPath) == false)
-        {
-            // File existed and _migratedAt was null — stamp it without data changes
-            try
-            {
-                string json = JsonConvert.SerializeObject(settings, Newtonsoft.Json.Formatting.Indented);
-                File.WriteAllText(jsonPath, json);
-                Logging.WriteInfo($"Stamped _migratedAt on existing {typeof(T).Name}.json");
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteInfo($"Failed to stamp {typeof(T).Name}.json: {ex.Message}");
             }
         }
     }
@@ -205,6 +189,9 @@ public static class SettingsMigrationService
         if (targetType == typeof(string)) return value;
         if (targetType == typeof(bool)) return bool.TryParse(value, out var b) ? b : (object)null;
         if (targetType == typeof(int)) return int.TryParse(value, out var i) ? i : (object)null;
+        if (targetType == typeof(long)) return long.TryParse(value, out var l) ? l : (object)null;
+        if (targetType == typeof(uint)) return uint.TryParse(value, out var u) ? u : (object)null;
+        if (targetType == typeof(byte)) return byte.TryParse(value, out var by) ? by : (object)null;
         if (targetType == typeof(double))
         {
             if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var dInv))
@@ -258,7 +245,6 @@ public static class SettingsMigrationService
         }
     }
 
-    // Each entry: (XML category node name, XML element key, target JSON property name)
     private record MigrationEntry(string XmlCategory, string XmlKey, string JsonPropertyName);
 
     private static List<MigrationEntry> OscMigrationMap() =>
@@ -388,7 +374,6 @@ public static class SettingsMigrationService
 
     private static List<MigrationEntry> IntegrationMigrationMap() =>
     [
-        // Main integration enables
         new("Integrations", "IntgrStatus",                "IntgrStatus"),
         new("Integrations", "IntgrScanWindowActivity",    "IntgrScanWindowActivity"),
         new("Integrations", "IntgrScanSpotify_OLD",       "IntgrScanSpotify_OLD"),

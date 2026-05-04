@@ -33,6 +33,7 @@ namespace vrcosc_magicchatbox
         private readonly IStatePersistenceCoordinator _persistence;
         private readonly ModuleBootstrapper _bootstrapper;
         private readonly IModuleHost _moduleHost;
+        private bool _shutdownRequested;
         private ViewModel VM => (ViewModel)DataContext;
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -205,11 +206,17 @@ namespace vrcosc_magicchatbox
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (_shutdownRequested)
+                return;
+
+            _shutdownRequested = true;
+
             // Cancel the window closing event temporarily to await the async task
             e.Cancel = true;
 
             try
             {
+                _scanLoop.Stop();
                 Hide();
                 await SaveDataToDiskAsync();
             }
@@ -287,7 +294,6 @@ namespace vrcosc_magicchatbox
             OverlayNextStep.Text = nextHint;
             _lastOverlayStep = currentStep;
 
-            // Animate progress bar smoothly
             var anim = new DoubleAnimation(progressPercent, TimeSpan.FromMilliseconds(250))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }

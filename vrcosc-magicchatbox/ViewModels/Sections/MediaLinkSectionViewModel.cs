@@ -19,6 +19,7 @@ namespace vrcosc_magicchatbox.ViewModels.Sections;
 public partial class MediaLinkSectionViewModel : ObservableObject
 {
     private readonly Lazy<IMediaLinkPersistenceService> _mediaLinkSvc;
+    private readonly IMenuNavigationService _menuNav;
     private readonly INavigationService _nav;
     private readonly IToastService _toast;
 
@@ -35,6 +36,7 @@ public partial class MediaLinkSectionViewModel : ObservableObject
         ISettingsProvider<AppSettings> appSettingsProvider,
         ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
         MediaLinkDisplayState mediaLinkDisplay,
+        IMenuNavigationService menuNav,
         INavigationService nav,
         IToastService toast)
     {
@@ -42,6 +44,7 @@ public partial class MediaLinkSectionViewModel : ObservableObject
         AppSettings = appSettingsProvider.Value;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         MediaLink = mediaLinkDisplay;
+        _menuNav = menuNav;
         _nav = nav;
         _toast = toast;
     }
@@ -132,4 +135,8 @@ public partial class MediaLinkSectionViewModel : ObservableObject
     [RelayCommand]
     private void LearnMoreMediaLink()
         => _nav.OpenUrl(Core.Constants.WikiMusicDisplayUrl);
+
+    [RelayCommand]
+    private void OpenSpotifyCoexistenceSettings()
+        => _menuNav.ActivateSetting(nameof(AppSettings.Settings_Spotify));
 }

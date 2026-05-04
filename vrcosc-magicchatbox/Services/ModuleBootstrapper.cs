@@ -288,7 +288,6 @@ public class ModuleBootstrapper
                     });
                 };
 
-                // Handle EnableRichPresence toggle changes
                 _discordSettingsProvider.Value.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName is nameof(DiscordSettings.EnableRichPresence)
@@ -330,9 +329,6 @@ public class ModuleBootstrapper
                 };
             }
 
-            // Wire up static IntegrationSettings reference for MediaLinkSettings POCO
-            MediaLinkSettings.SetIntegrationSettings(integrationSettings);
-
             // ViewModel.PropertyChanged carries IsVRRunning and PulsoidAuthConnected changes
             if (_appState is System.ComponentModel.INotifyPropertyChanged notifier)
             {
@@ -344,6 +340,19 @@ public class ModuleBootstrapper
 
                 if (vrcRadar != null)
                     notifier.PropertyChanged += vrcRadar.PropertyChangedHandler;
+
+                // Master switch off → clear Discord Rich Presence
+                notifier.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(IAppState.MasterSwitch) && !_appState.MasterSwitch)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try { await _discordRichPresence.ClearAsync(); }
+                            catch (Exception ex) { Logging.WriteInfo($"Discord RP clear on master off failed: {ex.Message}"); }
+                        });
+                    }
+                };
             }
         });
 

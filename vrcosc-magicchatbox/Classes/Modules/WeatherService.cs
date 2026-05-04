@@ -595,7 +595,13 @@ public class WeatherService : IWeatherService
             if (!_weatherErrorShown)
             {
                 _weatherErrorShown = true;
-                _toast?.Show("⛅ Weather Error", ex.Message, ToastType.Error, key: "weather-error");
+                string friendlyMsg = ex switch
+                {
+                    HttpRequestException => "Could not reach the weather service. Check your internet connection.",
+                    TaskCanceledException => "Weather request timed out. Will retry automatically.",
+                    _ => "Weather update failed. Check your city name in settings."
+                };
+                _toast?.Show("⛅ Weather Error", friendlyMsg, ToastType.Error, key: "weather-error");
             }
         }
         finally

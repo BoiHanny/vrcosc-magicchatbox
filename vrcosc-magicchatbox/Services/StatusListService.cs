@@ -144,15 +144,12 @@ public sealed class StatusListService : IStatusListService, IDisposable
         var defaultGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName);
         if (defaultGroup == null || group.GroupId == defaultGroup.GroupId) return;
 
-        // Move orphaned items to Default
         foreach (var item in _chatStatus.StatusList.Where(i => i.GroupId == groupId))
             item.GroupId = defaultGroup.GroupId;
 
         _dispatcher.BeginInvoke(() => _chatStatus.GroupList.Remove(group));
         SaveStatusList();
     }
-
-    // ── private ──────────────────────────────────────────────────────────────
 
     private void LoadFromJson(string json)
     {
@@ -301,8 +298,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
         }
     }
 
-    // ── Export / Import ────────────────────────────────────────────────────────
-
     public string ExportGroupToJson(string groupId)
     {
         var group = _chatStatus.GroupList.FirstOrDefault(g => g.GroupId == groupId);
@@ -315,7 +310,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
     public string ExportItemsToJson(System.Collections.Generic.IEnumerable<StatusItem> items)
     {
         var itemList = items.ToList();
-        // Include all groups referenced by the items
         var groupIds = itemList.Select(i => i.GroupId).Where(id => id != null).Distinct().ToHashSet();
         var groups = _chatStatus.GroupList.Where(g => groupIds.Contains(g.GroupId)).ToList();
         return SerializeExportBundle(groups, itemList);
@@ -347,24 +341,20 @@ public sealed class StatusListService : IStatusListService, IDisposable
                 if (group.Name == DefaultGroupName)
                     group.Name = "Default (Imported)";
 
-                // Check for name collision and make unique
                 while (_chatStatus.GroupList.Any(g => g.Name == group.Name))
                     group.Name += " (2)";
 
-                // Reset transient state
                 group.IsRenaming = false;
                 group.RenameBuffer = string.Empty;
                 group.IsPopupSelected = false;
             }
 
-            // Remap items
             int count = 0;
             foreach (var item in importedItems)
             {
                 // Generate new MSGID to avoid collisions
                 item.MSGID = GenerateRandomId();
 
-                // Remap GroupId
                 if (item.GroupId != null && groupIdMap.TryGetValue(item.GroupId, out var newGroupId))
                     item.GroupId = newGroupId;
                 else
@@ -374,7 +364,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
                     item.GroupId = def?.GroupId;
                 }
 
-                // Reset transient state
                 item.IsSelected = false;
                 item.IsEditing = false;
                 item.editMsg = string.Empty;
@@ -383,7 +372,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
                 count++;
             }
 
-            // Add to state on UI thread
             _dispatcher.BeginInvoke(() =>
             {
                 foreach (var group in importedGroups)
@@ -436,8 +424,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
         };
         return JsonConvert.SerializeObject(bundle, Formatting.Indented);
     }
-
-    // ── inner DTO ─────────────────────────────────────────────────────────────
 
     private sealed class StatusBundle
     {

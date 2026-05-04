@@ -751,8 +751,8 @@
         <ListBox
             Name="Statusitems"
             Grid.Row="1"
-            Width="710"
             Margin="5"
+            HorizontalAlignment="Stretch"
             Background="Transparent"
             BorderThickness="0"
             ItemsSource="{Binding FilteredView}"
@@ -1158,80 +1158,78 @@
         <!--  ═══════════════ Row 3: Input ═══════════════  -->
         <Grid
             Grid.Row="3"
-            Width="auto"
             Height="auto"
-            Margin="0,10"
-            HorizontalAlignment="Center">
+            Margin="10,10"
+            HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <TextBox
+                    x:Name="NewFavText"
+                    MinHeight="40"
+                    Padding="8,0,58,0"
+                    HorizontalContentAlignment="Left"
+                    VerticalContentAlignment="Center"
+                    FontSize="15"
+                    KeyDown="FavBox_KeyDown"
+                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                    Style="{StaticResource LightInputTextBox}"
+                    Text="{Binding ChatStatus.NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextAlignment="Left"
+                    TextChanged="NewFavText_TextChanged">
+                    <TextBox.Effect>
+                        <DropShadowEffect
+                            BlurRadius="5"
+                            Direction="-23"
+                            RenderingBias="Performance"
+                            ShadowDepth="0"
+                            Color="DarkBlue" />
+                    </TextBox.Effect>
+                </TextBox>
+                <TextBlock
+                    Width="auto"
+                    Margin="0,0,8,0"
+                    Padding="0,3,0,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="12"
+                    Foreground="{Binding ChatStatus.StatusBoxColor}"
+                    Text="{Binding ChatStatus.StatusBoxCount}" />
+                <TextBlock
+                    Height="40"
+                    Padding="8,9,5,0"
+                    VerticalAlignment="Center"
+                    FontSize="15"
+                    Foreground="{StaticResource TextDarkMutedBrush}"
+                    IsHitTestVisible="False"
+                    Text="Create here a new status"
+                    TextAlignment="Left">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=NewFavText}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ElementName=NewFavText, Path=IsFocused}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
             <Button
                 x:Name="AddFav"
+                Grid.Column="1"
                 Width="75"
-                HorizontalAlignment="Right"
+                Margin="8,0,0,0"
                 Click="AddFav_Click"
                 Content="Create"
                 Style="{DynamicResource Status_Button_style}" />
-            <StackPanel Orientation="Horizontal">
-                <Grid>
-                    <TextBox
-                        x:Name="NewFavText"
-                        Width="630"
-                        MinHeight="40"
-                        Margin="-15,0,70,0"
-                        Padding="8,0,58,0"
-                        HorizontalContentAlignment="Left"
-                        VerticalContentAlignment="Center"
-                        FontSize="15"
-                        KeyDown="FavBox_KeyDown"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Style="{StaticResource LightInputTextBox}"
-                        Text="{Binding ChatStatus.NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        TextAlignment="Left"
-                        TextChanged="NewFavText_TextChanged">
-                        <TextBox.Effect>
-                            <DropShadowEffect
-                                BlurRadius="5"
-                                Direction="-23"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="DarkBlue" />
-                        </TextBox.Effect>
-                    </TextBox>
-                    <TextBlock
-                        Width="auto"
-                        Margin="0,0,78,0"
-                        Padding="0,3,0,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="{Binding ChatStatus.StatusBoxColor}"
-                        Text="{Binding ChatStatus.StatusBoxCount}" />
-                    <TextBlock
-                        Width="630"
-                        Height="40"
-                        Margin="-15,0,70,0"
-                        Padding="8,9,5,0"
-                        VerticalAlignment="Center"
-                        FontSize="15"
-                        Foreground="{StaticResource TextDarkMutedBrush}"
-                        IsHitTestVisible="False"
-                        Text="Create here a new status"
-                        TextAlignment="Left">
-                        <TextBlock.Style>
-                            <Style TargetType="{x:Type TextBlock}">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Text, ElementName=NewFavText}" Value="">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding ElementName=NewFavText, Path=IsFocused}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Grid>
-            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

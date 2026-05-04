@@ -181,7 +181,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
         try
         {
-            var networkInterface = await Task.Run(() => GetActiveNetworkInterfaceAsync(_cancellationTokenSource.Token));
+            var networkInterface = await GetActiveNetworkInterfaceAsync(_cancellationTokenSource.Token);
             if (networkInterface != null)
             {
                 _activeNetworkInterface = networkInterface;

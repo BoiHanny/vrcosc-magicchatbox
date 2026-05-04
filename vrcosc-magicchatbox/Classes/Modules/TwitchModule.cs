@@ -91,6 +91,9 @@ public sealed partial class TwitchModule : ObservableObject, IModule
     [ObservableProperty]
     private string shoutoutStatusMessage = string.Empty;
 
+    [ObservableProperty]
+    private string followerScopeWarning = string.Empty;
+
     [RelayCommand]
     private async Task SendAnnouncement() => await ExecuteSendAnnouncementAsync();
 
@@ -395,6 +398,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         {
             lastFollowerRefreshUtc = DateTime.UtcNow;
             UpdateFollowerCount(result.Count);
+            _dispatcher.BeginInvoke(() => FollowerScopeWarning = string.Empty);
             return;
         }
 
@@ -408,6 +412,8 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         else if (result.Forbidden)
         {
             Logging.WriteInfo("Twitch: Follower count requires moderator:read:followers scope.");
+            _dispatcher.BeginInvoke(() =>
+                FollowerScopeWarning = "Follower count requires re-authentication with updated permissions.");
         }
     }
 

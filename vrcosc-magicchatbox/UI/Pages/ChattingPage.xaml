@@ -74,24 +74,27 @@
 
         <Grid
             Grid.Row="4"
-            Width="758"
             Height="68"
-            HorizontalAlignment="Center"
+            Margin="10,0"
+            HorizontalAlignment="Stretch"
             VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="672" />
-                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button
                 x:Name="ButtonChattingTxt"
-                Grid.ColumnSpan="2"
+                Grid.Column="1"
                 Width="84"
-                Margin="666,14,0,14"
+                Margin="5,14,0,14"
                 HorizontalAlignment="Left"
                 Click="ButtonChattingTxt_Click"
                 Content="Send"
                 Style="{DynamicResource Status_Button_style}" />
-            <Grid Height="40" Margin="5,0,0,0">
+            <Grid
+                Grid.Column="0"
+                Height="40"
+                Margin="5,0,0,0">
                 <TextBox
                     x:Name="NewChattingTxt"
                     Padding="8,0,93,0"
@@ -362,7 +365,7 @@
                 Margin="7,0,0,0"
                 Visibility="Visible">
                 <ItemsControl
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     VerticalAlignment="Bottom"
                     ItemsSource="{Binding ChatStatus.LastMessages, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                     <ItemsControl.ItemsPanel>
@@ -373,9 +376,9 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border
-                                Width="735"
                                 Height="auto"
-                                Margin="8,0,0,8"
+                                Margin="8,0,8,8"
+                                HorizontalAlignment="Stretch"
                                 CornerRadius="5"
                                 Opacity="{Binding Opacity}">
                                 <Grid>
@@ -1174,36 +1177,11 @@
                     Width="auto"
                     Height="34"
                     Margin="3,0"
+                    Content="AI"
                     IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}"
-                    Style="{DynamicResource Status_Toggle_style}"
+                    Style="{DynamicResource GlowyToggleButtonVR}"
                     ToolTip="Inline autocomplete. Suggestions use local chat history by default; press Tab to accept."
-                    Visibility="Hidden"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <StackPanel Orientation="Horizontal" RenderOptions.BitmapScalingMode="HighQuality">
-                        <Image
-                            Width="22"
-                            Margin="3,0,0,0"
-                            Opacity="0.5"
-                            Source="/Img/Icons/Wand_ico.png" />
-                        <TextBlock
-                            Padding="3,0"
-                            VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="Autocomplete" />
-                    </StackPanel>
-                    <ToggleButton.Effect>
-                        <DropShadowEffect
-                            BlurRadius="15"
-                            Direction="0"
-                            Opacity="0.3"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="LightGray" />
-                    </ToggleButton.Effect>
-                </ToggleButton>
+                    WindowChrome.IsHitTestVisibleInChrome="True" />
                 <Button
                     x:Name="NextwordPredict"
                     Width="auto"

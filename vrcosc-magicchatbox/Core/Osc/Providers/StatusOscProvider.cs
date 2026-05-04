@@ -68,15 +68,7 @@ public sealed class StatusOscProvider : IOscProvider
         {
             string afkText = afk.GenerateAFKString();
             if (!string.IsNullOrEmpty(afkText))
-            {
-                // In BussyBoysMode + MultiMODE, AFK doesn't block status — we fall through
-                if (!(_appState.BussyBoysMode && _time.BussyBoysMultiMODE))
-                    return new OscSegment { Text = afkText };
-
-                // AFK segment still shown, but status also contributes below
-                // For simplicity, just return AFK when both active
                 return new OscSegment { Text = afkText };
-            }
         }
 
         if (!_intgr.IntgrStatus || _chatStatus.StatusList == null || !_chatStatus.StatusList.Any())

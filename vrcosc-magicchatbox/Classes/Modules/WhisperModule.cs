@@ -303,7 +303,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly ITranscriptionService _transcription;
         private readonly IToastService? _toast;
 
-        // Thread-safe audio stream plus lock.
         private readonly MemoryStream audioStream = new MemoryStream();
         private readonly object _audioStreamLock = new object();
 
@@ -390,7 +389,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 isCurrentlySpeaking = true;
                 speakingDuration = TimeSpan.Zero;
 
-                // If the buffer already has data, transcribe partially.
                 if (GetAudioStreamLength() > 0)
                 {
                     _ = ProcessAudioStreamAsync(partial: true);
@@ -523,7 +521,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (!isCurrentlySpeaking || silenceMs < 500)
                 return;
 
-            // Short pause => partial transcription, continue capturing.
             if (silenceMs <= settings.SilenceAutoTurnOffDuration)
             {
                 if (!isProcessingShortPause)
@@ -536,7 +533,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     Task.Delay(500).ContinueWith(_ => isProcessingShortPause = false);
                 }
             }
-            // If silence is too long => auto-stop.
             else
             {
                 isCurrentlySpeaking = false;
@@ -712,7 +708,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 settings.IsRecording = false;
                 _ = UpdateUI("Stopped. Processing final chunk...", false);
 
-                // If leftover data is present, do final transcription. Then, optionally auto-send.
                 if (GetAudioStreamLength() > 0)
                 {
                     var finalTask = ProcessAudioStreamAsync(partial: false);

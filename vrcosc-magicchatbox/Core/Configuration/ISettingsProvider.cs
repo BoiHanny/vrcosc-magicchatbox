@@ -14,6 +14,11 @@ public interface ISettingsProvider<T> where T : class, new()
     /// <summary>Persist current settings to disk.</summary>
     void Save();
 
+    /// <summary>
+    /// Cancels any pending debounce timer and persists the current settings immediately.
+    /// </summary>
+    void FlushPendingSave();
+
     /// <summary>Reload settings from disk (or create defaults if missing/corrupt).</summary>
     void Reload();
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +60,9 @@ namespace vrcosc_magicchatbox.ViewModels
         public ChatSettings ChatSettings { get; }
         public IModuleHost Modules => _moduleHost.Value;
 
+        /// <summary>Exposes VR running state for style triggers (GlowyToggleButtonVR).</summary>
+        public bool IsVRRunning => _appState.IsVRRunning;
+
         /// <summary>
         /// Event raised when UI should scroll the recent chat to the end.
         /// Code-behind subscribes to handle the ScrollViewer interaction.
@@ -104,6 +108,13 @@ namespace vrcosc_magicchatbox.ViewModels
                 if (e.PropertyName == nameof(ChatSettings.ChatAutocompleteEnabled) && !CS.ChatAutocompleteEnabled)
                     ClearAutocompleteSuggestion();
             };
+
+            if (_appState is INotifyPropertyChanged notifier)
+                notifier.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(IAppState.IsVRRunning))
+                        OnPropertyChanged(nameof(IsVRRunning));
+                };
         }
 
         [RelayCommand]
@@ -423,12 +434,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 var completion = await _openAiChatService.GetChatCompletionAsync(
                     messages,
                     model,
-                    new ChatCompletionOptions
-                    {
-                        MaxOutputTokenCount = Math.Max(4, CS.ChatAutocompleteMaxWords * 4),
-                        Temperature = 0.35f,
-                        TopP = 1
-                    },
+                    IntelliChatModule.BuildChatOptions(modelSetting,
+                        maxOutputTokens: Math.Max(4, CS.ChatAutocompleteMaxWords * 4),
+                        temperature: 0.35f),
                     ct).ConfigureAwait(false);
 
                 string generated = completion?.Content?.Count > 0
@@ -448,6 +456,18 @@ namespace vrcosc_magicchatbox.ViewModels
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
+                string localSuggestion = BuildLocalAutocompleteSuggestion(input);
+                int capturedVersion = version;
+                string capturedInput = input;
+                if (!string.IsNullOrEmpty(localSuggestion))
+                {
+                    _uiDispatcher.BeginInvoke(() =>
+                    {
+                        if (capturedVersion == _autocompleteRequestVersion
+                            && string.Equals(_chatStatus.NewChattingTxt, capturedInput, StringComparison.Ordinal))
+                            ApplyAutocompleteSuggestion(localSuggestion);
+                    });
+                }
             }
         }
 

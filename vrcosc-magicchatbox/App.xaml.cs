@@ -85,12 +85,19 @@ namespace vrcosc_magicchatbox
             StartUp? loadingWindow = null;
             try
             {
+                loadingWindow = new StartUp();
+                loadingWindow.UpdateProgress("Opening startup window...", 1, "Configuring services...");
+                loadingWindow.UpdateProgress("Configuring services...", 3, "Warming up logging...");
+                loadingWindow.Show();
+                loadingWindow.Activate();
+                LogStartupPhase("Splash window shown.");
                 LogStartupPhase("Configuring services...");
                 Services = ServiceRegistration.ConfigureServices();
                 LogStartupPhase("Services configured.");
                 ConfigureLogging(Services.GetRequiredService<IEnvironmentService>());
                 _loggingReady = true;
                 LogStartupPhase("Logging configured.");
+                loadingWindow.UpdateProgress("Warming up logging...", 7, "Migrating settings...");
 
                 // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
                 Logging.Initialize(
@@ -108,6 +115,7 @@ namespace vrcosc_magicchatbox
                     SettingsMigrationService.RunAll(env.DataPath);
                 }
                 LogStartupPhase("Settings migration completed.");
+                loadingWindow.UpdateProgress("Migrating settings...", 12, "Preparing core state...");
 
                 // Initialize static defaults for model classes (eliminates service locator in models)
                 ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
@@ -129,9 +137,7 @@ namespace vrcosc_magicchatbox
                         Logging.WriteInfo("Application started at: " + DateTime.Now);
                 });
 
-                loadingWindow = new StartUp();
-                loadingWindow.Show();
-                LogStartupPhase("Splash window shown.");
+                loadingWindow.UpdateProgress("Preparing core state...", 18, "Loading your saved data...");
 
                 UpdateApp updater = new UpdateApp(
                     Services.GetRequiredService<AppUpdateState>(),
@@ -154,7 +160,7 @@ namespace vrcosc_magicchatbox
                             }
                             else
                             {
-                                loadingWindow.Hide();
+                                loadingWindow.Close();
                                 LogStartupPhase($"Invalid profile argument '{profileNumberString}'.");
                                 Logging.WriteException(new Exception($"Invalid profile number '{profileNumberString}'"), MSGBox: true, exitapp: true);
                                 return;
@@ -189,7 +195,7 @@ namespace vrcosc_magicchatbox
                                     await Task.Run(() => updater.ClearBackUp());
                                     break;
                                 default:
-                                    loadingWindow.Hide();
+                                    loadingWindow.Close();
                                     LogStartupPhase($"Invalid command line argument '{arg}'.");
                                     Logging.WriteException(new Exception($"Invalid command line argument '{arg}'"), MSGBox: true, exitapp: true);
                                     return;
@@ -198,7 +204,6 @@ namespace vrcosc_magicchatbox
                     }
                 }
 
-                // Show TOS + Privacy wizard if TOS version has changed or was never accepted
                 bool tosJustAccepted = false;
                 {
                     LogStartupPhase("Checking TOS/privacy wizard state.");
@@ -213,7 +218,6 @@ namespace vrcosc_magicchatbox
                     }
                 }
 
-                // Show privacy consent dialog for any hooks that have Unknown state
                 {
                     LogStartupPhase("Checking pending privacy hooks.");
                     var consentService = Services.GetRequiredService<IPrivacyConsentService>();
@@ -255,7 +259,6 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.UpdateOverlayProgress("Wiring up modules...", 55, "Initializing components...");
 
-                // Initialize (creates late modules, wires events, sets selected page).
                 loadingWindow.UpdateProgress("Wiring up the final UI bits... Almost there!", 100);
                 await mainWindow.InitializeAsync();
                 Logging.WriteInfo("MainWindow.InitializeAsync completed.");
@@ -276,6 +279,12 @@ namespace vrcosc_magicchatbox
 
                 loadingWindow.Close();
                 Logging.WriteInfo("[Startup] Splash closed.");
+
+                if (mainWindow.WindowState == WindowState.Minimized)
+                    mainWindow.WindowState = WindowState.Normal;
+
+                mainWindow.Activate();
+                mainWindow.Focus();
 
                 mainWindow.HideStartupOverlay();
 
@@ -582,22 +591,13 @@ namespace vrcosc_magicchatbox
         {
             var sw = Stopwatch.StartNew();
             var vm = Services.GetRequiredService<ViewModel>();
-            var env = Services.GetRequiredService<IEnvironmentService>();
 
             void LogStep(string name) => Logging.WriteInfo($"[Startup] {name} completed in {sw.ElapsedMilliseconds}ms");
-
-            // ── Prerequisites (sequential — everything else depends on these) ──
-            loadingWindow.UpdateProgress("Rousing the logging module... It's coffee time, logs!", 5, "Migrating settings to the new world order...");
-            LogStep("NLog config");
-
-            loadingWindow.UpdateProgress("Migrating settings to the new world order...", 10, "Loading your saved data... Parallel turbo mode!");
-            await Task.Run(() => SettingsMigrationService.RunAll(env.DataPath));
-            LogStep("Settings migration");
 
             Services.GetRequiredService<WeatherOverrideState>().Initialize(_weatherSettings);
 
             // ── Wave 1: File I/O (all independent, run in parallel) ──
-            loadingWindow.UpdateProgress("Loading your saved data... Parallel turbo mode!", 20, "Firing up modules... All engines go!");
+            loadingWindow.UpdateProgress("Loading your saved data...", 20, "Firing up modules...");
             await Task.WhenAll(
                 Task.Run(() =>
                 {
@@ -632,7 +632,7 @@ namespace vrcosc_magicchatbox
             LogStep("Wave 1 complete");
 
             // ── Wave 2: Module initialization (independent, run in parallel) ──
-            loadingWindow.UpdateProgress("Firing up modules... All engines go!", 55, "Turbocharging the final modules... Almost there!");
+            loadingWindow.UpdateProgress("Firing up modules...", 55, "Finishing the last startup modules...");
             var bootMods = Services.GetRequiredService<ModuleBootstrapper>();
 
             await Task.WhenAll(
@@ -676,7 +676,7 @@ namespace vrcosc_magicchatbox
             LogStep("Wave 2 complete");
 
             // ── Wave 3: Final wiring (MediaLink + runtime modules + seekbar) ──
-            loadingWindow.UpdateProgress("Turbocharging the final modules... Almost there!", 85, "Starting runtime modules... Ready, set, go!");
+            loadingWindow.UpdateProgress("Finishing the last startup modules...", 85, "Starting runtime modules...");
             ApplicationMediaController = new MediaLinkModule(
                 _integrationSettings.IntgrScanMediaLink,
                 Services.GetRequiredService<IPrivacyConsentService>(),
@@ -688,7 +688,7 @@ namespace vrcosc_magicchatbox
                 Services.GetRequiredService<IToastService>());
             LogStep("MediaLinkModule");
 
-            loadingWindow.UpdateProgress("Starting runtime modules... Ready, set, go!", 90, "Building the main window shell...");
+            loadingWindow.UpdateProgress("Starting runtime modules...", 90, "Building the main window shell...");
             await Task.WhenAll(
                 bootMods.CreateRuntimeModulesAsync(),
                 Task.Run(() =>

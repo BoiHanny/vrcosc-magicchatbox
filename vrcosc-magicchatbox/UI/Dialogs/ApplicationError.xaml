@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.UI.Dialogs"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     Title="Application Error"
     Width="700"
     Height="auto"
@@ -233,6 +234,24 @@
             </TextBlock>
 
 
+            <Border
+                Margin="18,14,18,10"
+                Padding="12,10"
+                Background="#33FFC107"
+                BorderBrush="{StaticResource StatusWarningBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <TextBlock
+                    FontFamily="Albert Sans Thin"
+                    FontSize="13"
+                    Foreground="LightYellow"
+                    TextWrapping="Wrap">
+                    <Run Text="Before reporting this crash, include the app version, this error message, and the selected log file. The " />
+                    <Run FontWeight="Bold" Text="Select current log" />
+                    <Run Text=" button opens the most relevant log in Explorer so it is easy to attach." />
+                </TextBlock>
+            </Border>
+
             <TextBlock
                 x:Name="CallStack"
                 Margin="15,0"
@@ -318,6 +337,30 @@
                     Margin="0,15,2,15"
                     Padding="5"
                     VerticalAlignment="Top"
+                    Click="OpenCurrentLog_Click"
+                    Style="{StaticResource Status_Button_style}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Height="18"
+                                    Margin="0,0,4,0"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/Log.png" />
+                                <TextBlock
+                                    Margin="0,-2,5,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    Text="Select current log" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+                <Button
+                    Height="30"
+                    Margin="0,15,2,15"
+                    Padding="5"
+                    VerticalAlignment="Top"
                     Click="OpenLogFolder_Click"
                     Style="{StaticResource Status_Button_style}">
                     <Button.ContentTemplate>
@@ -363,6 +406,36 @@
                 </Button>
 
             </StackPanel>
+
+            <Border
+                Margin="18,0,18,18"
+                Padding="12,10"
+                Background="#251DB954"
+                BorderBrush="{StaticResource AccentTealBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <TextBlock
+                    FontFamily="Albert Sans Thin"
+                    FontSize="13"
+                    Foreground="{StaticResource TextPrimaryBrush}"
+                    TextWrapping="Wrap">
+                    <Run Text="Need help fast? Join our " />
+                    <Hyperlink
+                        Foreground="{StaticResource AccentTealBrush}"
+                        NavigateUri="https://discord.gg/ZaSFwBfhvG"
+                        RequestNavigate="SupportLink_RequestNavigate">
+                        <Run Text="Discord server" />
+                    </Hyperlink>
+                    <Run Text=". Want a tracked bug report? Open a " />
+                    <Hyperlink
+                        Foreground="{StaticResource AccentTealBrush}"
+                        NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
+                        RequestNavigate="SupportLink_RequestNavigate">
+                        <Run Text="GitHub issue" />
+                    </Hyperlink>
+                    <Run Text=" and attach the selected log." />
+                </TextBlock>
+            </Border>
 
         </StackPanel>
 

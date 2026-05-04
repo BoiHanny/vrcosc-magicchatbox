@@ -54,7 +54,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public TrackerDisplayState Tracker { get; }
     public IAppState AppState { get; }
 
-    // Module references — lazily resolved to avoid circular deps
     private readonly Lazy<ComponentStatsViewModel> _componentStats;
     public ComponentStatsViewModel ComponentStats => _componentStats.Value;
 

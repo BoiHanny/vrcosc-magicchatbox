@@ -50,9 +50,16 @@
                 <!--  Pre-release banner  -->
                 <Border
                     Margin="0,0,0,10"
-                    BorderBrush="{StaticResource StatusWarningBrush}"
+                    BorderBrush="#735A41"
                     BorderThickness="1"
+                    CornerRadius="5"
                     Style="{StaticResource OptionCardStyle}">
+                    <Border.Background>
+                        <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                            <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                            <GradientStop Offset="1" Color="{StaticResource GradientDeepPurpleColor}" />
+                        </LinearGradientBrush>
+                    </Border.Background>
                     <TextBlock
                         FontFamily="Albert Sans Thin"
                         FontSize="13"
@@ -84,7 +91,7 @@
                                 Height="30"
                                 Padding="5"
                                 Click="ConnectSpotify_Click"
-                                IsEnabled="{Binding IsConnecting, Converter={StaticResource InvertBooleanConverter}}"
+                                IsEnabled="{Binding CanStartConnection}"
                                 Style="{StaticResource Status_Button_style}"
                                 Visibility="{Binding Display.IsConnected, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <StackPanel Orientation="Horizontal">
@@ -136,32 +143,43 @@
                             Margin="2,6,0,0"
                             Style="{StaticResource OptionHelpTextStyle}"
                             Text="{Binding StatusText, UpdateSourceTrigger=PropertyChanged}" />
+                        <Border
+                            Margin="0,10,0,0"
+                            Padding="10,8"
+                            Background="#33FFC107"
+                            BorderBrush="{StaticResource StatusWarningBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource StatusWarningBrush}"
+                                    Text="★ Spotify Premium and an active device are required for playback controls." />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Foreground="#AB8326"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="If playback buttons do nothing, open Spotify on your phone, desktop app, or web player first. MagicChatbox can only control a live Spotify device." />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="{Binding Display.ErrorText}"
+                                    Visibility="{Binding HasDisplayError, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Security setup" />
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Connection setup" />
                         <TextBlock
                             Margin="0,3,0,6"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Create a Spotify Developer app, add redirect URI http://127.0.0.1:7387/callback/, then paste only the public Client ID. MagicChatbox never asks for a client secret." />
-                        <StackPanel Orientation="Horizontal">
-                            <TextBox
-                                Width="360"
-                                Padding="5,0,0,0"
-                                VerticalContentAlignment="Center"
-                                FontSize="15"
-                                Text="{Binding Settings.ClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button
-                                Width="170"
-                                Height="28"
-                                Margin="8,0,0,0"
-                                Command="{Binding OpenDeveloperDashboardCommand}"
-                                Content="Open dashboard ↗"
-                                Style="{StaticResource Status_Button_style}" />
-                        </StackPanel>
-                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                            Text="MagicChatbox uses Spotify's OAuth PKCE flow — it never stores your password. When you click Connect Spotify, a browser window opens so you can authorize access. Your Client ID is entered in the setup dialog." />
+                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                             <TextBlock
                                 Width="76"
                                 VerticalAlignment="Center"
@@ -183,6 +201,10 @@
                                 Content="Copy"
                                 Style="{StaticResource Status_Button_style}" />
                         </StackPanel>
+                        <TextBlock
+                            Margin="2,6,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Add this redirect URI in your Spotify Developer Dashboard app settings. It's the local callback used during the OAuth handshake." />
                         <CheckBox
                             Margin="0,8,0,0"
                             IsChecked="{Binding Settings.AutoConnectOnStartup, Mode=TwoWay}"
@@ -198,13 +220,19 @@
                         <TextBlock
                             Margin="0,3,0,6"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Controls how Spotify and MediaLink interact when both are enabled. 'PreferSpotify' hides Spotify sessions from MediaLink to avoid duplicates. 'AllowBoth' shows both independently. 'Ask' prompts you once when both are enabled." />
+                            Text="Controls how Spotify and MediaLink behave when both are enabled. Prefer dedicated Spotify hides Spotify sessions from MediaLink, Allow both keeps both sources live, and Ask me once prompts you the first time they overlap." />
                         <ComboBox
                             Width="160"
                             HorizontalAlignment="Left"
                             FontSize="12"
                             ItemsSource="{Binding MediaLinkCoexistenceModes}"
-                            SelectedItem="{Binding Settings.MediaLinkCoexistence, Mode=TwoWay}" />
+                            SelectedItem="{Binding Settings.MediaLinkCoexistence, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                 </Border>
 

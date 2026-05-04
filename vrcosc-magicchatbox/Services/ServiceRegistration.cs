@@ -38,16 +38,9 @@ public static class ServiceRegistration
         services.AddSingleton<IBanEnforcementService, BanEnforcementService>();
         services.AddSingleton<IEnvironmentService, EnvironmentService>();
 
-        // In-app toast notification system
         services.AddSingleton<IToastService, ToastService>();
-
-        // Messenger — pub/sub for cross-module communication (replaces direct module refs)
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
-
-        // OSC provider fault tracker — circuit-breaker for IOscProvider implementations
         services.AddSingleton<ModuleFaultTracker>();
-
-        // API clients — pure HTTP logic separated from module coordinators
         services.AddSingleton<Classes.Modules.Twitch.ITwitchApiClient, Classes.Modules.Twitch.TwitchApiClient>();
         services.AddSingleton<ISpotifyApiClient, SpotifyApiClient>();
         services.AddSingleton<IOpenAiChatService>(sp => new OpenAiChatService(
@@ -56,14 +49,12 @@ public static class ServiceRegistration
         services.AddSingleton<IPulsoidTokenValidator>(sp => sp.GetRequiredService<Classes.Modules.PulsoidOAuthHandler>());
         services.AddSingleton<IPulsoidClient, PulsoidApiClient>();
 
-        // Hardware monitoring — wraps LibreHardwareMonitor + WMI
         services.AddSingleton<IHardwareMonitorService, HardwareMonitorService>();
 
         // Privacy consent service — gates sensitive OS hooks (WinRing0, UIAutomation, SMTC, GetLastInputInfo)
         services.AddSingleton<IPrivacyConsentService, PrivacyConsentService>();
         services.AddSingleton<PrivacySectionViewModel>();
 
-        // Weather module — DI singleton (replaces static WeatherService)
         services.AddSingleton<IWeatherService, WeatherService>();
         services.AddSingleton<IWindowActivityService>(sp => new Classes.Modules.WindowActivityModule(
             sp.GetRequiredService<ISettingsProvider<WindowActivitySettings>>(),
@@ -170,6 +161,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
+            sp.GetRequiredService<IMenuNavigationService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IToastService>()));
         services.AddSingleton<WeatherSectionViewModel>(sp => new WeatherSectionViewModel(
@@ -309,16 +301,21 @@ public static class ServiceRegistration
             return nav;
         });
 
-        // Module host — single source of truth for all module instances
         services.AddSingleton<IModuleHost, ModuleHost>();
         services.AddSingleton(sp =>
             new Lazy<DiscordOAuthHandler>(() => sp.GetRequiredService<DiscordOAuthHandler>()));
         services.AddSingleton(sp =>
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()));
-        services.AddSingleton<DiscordRichPresenceService>();
+        services.AddSingleton(sp => new DiscordRichPresenceService(
+            sp.GetRequiredService<ISettingsProvider<DiscordSettings>>(),
+            sp.GetRequiredService<IAppState>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            new Lazy<IWindowActivityService>(() => sp.GetRequiredService<IWindowActivityService>()),
+            new Lazy<IWeatherService>(() => sp.GetRequiredService<IWeatherService>()),
+            new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>()),
+            new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
+            sp.GetRequiredService<OscDisplayState>()));
         services.AddSingleton<ModuleBootstrapper>();
-
-        // ── TTS Playback — extracted from ScanLoopService ──
         services.AddSingleton<ITtsPlaybackService>(sp => new TtsPlaybackService(
             new Lazy<TTSModule>(() => sp.GetRequiredService<TTSModule>()),
             sp.GetRequiredService<TtsAudioDisplayState>(),
@@ -326,7 +323,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<TtsSettings>>(),
             sp.GetRequiredService<IPrivacyConsentService>()));
 
-        // ── State Persistence Coordinator — extracted from ScanLoopService ──
         services.AddSingleton<IStatePersistenceCoordinator>(sp => new StatePersistenceCoordinator(
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
@@ -348,7 +344,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<IWeatherService>(),
             sp.GetRequiredService<IStatusListService>()));
 
-        // Application scan loop — slimmed (TTS + persistence extracted)
         services.AddSingleton<ScanLoopService>(sp => new ScanLoopService(
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<ChatStatusDisplayState>(),
@@ -365,24 +360,15 @@ public static class ServiceRegistration
             new Lazy<OSCController>(() => sp.GetRequiredService<OSCController>()),
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>())));
 
-        // OSC sender — fully DI-managed instance (replaces static OSCSender)
         services.AddSingleton<IOscSender, OscSenderService>();
-
-        // Hotkey management — DI singleton (replaces HotkeyManagement.Instance)
         services.AddSingleton<Classes.DataAndSecurity.HotkeyManagement>();
-
-        // OpenAI module — DI singleton (replaces OpenAIModule.Instance)
         services.AddSingleton<Classes.Modules.OpenAIModule>(sp => new Classes.Modules.OpenAIModule(
             sp.GetRequiredService<ISettingsProvider<OpenAISettings>>(),
             sp.GetRequiredService<OpenAIDisplayState>(),
             sp.GetRequiredService<IPrivacyConsentService>(),
             sp.GetRequiredService<IToastService>()));
         services.AddSingleton<ITranscriptionService>(sp => sp.GetRequiredService<Classes.Modules.OpenAIModule>());
-
-        // Pulsoid OAuth handler — DI singleton (replaces PulsoidOAuthHandler.Instance)
         services.AddSingleton<Classes.Modules.PulsoidOAuthHandler>();
-
-        // Discord OAuth handler — DI singleton for Discord voice channel integration
         services.AddSingleton<Classes.Modules.DiscordOAuthHandler>(sp =>
             new Classes.Modules.DiscordOAuthHandler(
                 sp.GetRequiredService<INavigationService>()));
@@ -393,7 +379,6 @@ public static class ServiceRegistration
                 sp.GetRequiredService<INavigationService>(),
                 sp.GetRequiredService<IHttpClientFactory>()));
 
-        // OSCController — thin orchestrator (delegates to OscOutputBuilder + ChatStateManager)
         services.AddSingleton<Classes.DataAndSecurity.OSCController>(sp => new Classes.DataAndSecurity.OSCController(
             sp.GetRequiredService<ChatStateManager>(),
             sp.GetRequiredService<OscOutputBuilder>(),
@@ -526,7 +511,6 @@ public static class ServiceRegistration
             return vm;
         });
 
-        // NetworkStatisticsModule — lazy singleton, created on first resolve
         services.AddSingleton<NetworkStatisticsModule>(sp => new NetworkStatisticsModule(
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<ISettingsProvider<NetworkStatsSettings>>(),
@@ -535,7 +519,6 @@ public static class ServiceRegistration
             1000,
             sp.GetRequiredService<IToastService>()));
 
-        // TTSModule — text-to-speech using TikTok API
         services.AddSingleton<TTSModule>(sp => new TTSModule(
             sp.GetRequiredService<ISettingsProvider<TtsSettings>>().Value,
             sp.GetRequiredService<TtsAudioDisplayState>(),
@@ -543,7 +526,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<IOscSender>(),
             sp.GetRequiredService<IToastService>()));
 
-        // ChatStateManager — chat creation and history management
         services.AddSingleton<Classes.DataAndSecurity.ChatStateManager>(sp =>
             new Classes.DataAndSecurity.ChatStateManager(
                 sp.GetRequiredService<ISettingsProvider<ChatSettings>>().Value,
@@ -552,10 +534,8 @@ public static class ServiceRegistration
                 sp.GetRequiredService<OscDisplayState>(),
                 sp.GetRequiredService<EmojiService>()));
 
-        // ── OSC Provider Infrastructure (Phase 1 Step 1 — IOscProvider pattern) ──
-        // 12 adapter providers: each wraps an existing module/service and produces OscSegments.
         // Providers whose constructors take Lazy<T> require explicit factory registrations
-        // because MSDI cannot auto-resolve Lazy<T> from a conventional AddSingleton<T,TImpl>().
+        // because MSDI cannot auto-resolve Lazy<T> from a conventional AddSingleton<T, TImpl>().
         services.AddSingleton<IOscProvider>(sp => new StatusOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),

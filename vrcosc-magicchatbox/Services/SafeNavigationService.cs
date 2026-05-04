@@ -52,6 +52,35 @@ public sealed class SafeNavigationService : INavigationService
         }
     }
 
+    public bool OpenFileInExplorer(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return false;
+
+        try
+        {
+            string fullPath = Path.GetFullPath(filePath);
+            if (!File.Exists(fullPath))
+            {
+                Logging.WriteInfo($"SafeNavigationService: File does not exist: {fullPath}");
+                return false;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{fullPath}\"",
+                UseShellExecute = true
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return false;
+        }
+    }
+
     private bool OpenUrlInternal(string url, string[]? allowedDomains)
     {
         if (string.IsNullOrWhiteSpace(url))

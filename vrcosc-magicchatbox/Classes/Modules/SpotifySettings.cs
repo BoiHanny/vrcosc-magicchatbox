@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
 
@@ -15,8 +16,11 @@ public enum SpotifyPauseOutputMode
 
 public enum SpotifyMediaLinkCoexistence
 {
+    [Description("Ask me once")]
     Ask,
+    [Description("Prefer dedicated Spotify")]
     PreferSpotify,
+    [Description("Allow both outputs")]
     AllowBoth
 }
 

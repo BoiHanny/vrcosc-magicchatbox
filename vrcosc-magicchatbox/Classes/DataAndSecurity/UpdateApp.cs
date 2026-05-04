@@ -245,7 +245,6 @@ public class UpdateApp
 
     private async Task DownloadAndExtractUpdate(string zipPath)
     {
-        // Validate update URL against allowed patterns
         string updateUrl = _updateState.UpdateURL;
         if (string.IsNullOrWhiteSpace(updateUrl) ||
             !Uri.TryCreate(updateUrl, UriKind.Absolute, out var uri) ||

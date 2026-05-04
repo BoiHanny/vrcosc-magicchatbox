@@ -18,6 +18,13 @@ public class ModelTypeInfoAttribute : Attribute
     public string ModelType { get; }
 }
 
+/// <summary>
+/// Marks an <see cref="IntelliGPTModel"/> enum field as a reasoning model that does NOT support
+/// sampling parameters (Temperature, TopP, FrequencyPenalty, PresencePenalty).
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class ReasoningModelAttribute : Attribute { }
+
 /// <summary>Enumerates available OpenAI models, tagged with their type via <see cref="ModelTypeInfoAttribute"/>.</summary>
 public enum IntelliGPTModel
 {
@@ -51,16 +58,16 @@ public enum IntelliGPTModel
     [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
     gpt4omini,
 
-    [Description("o1"), ModelTypeInfo("Chat")]
+    [Description("o1"), ModelTypeInfo("Chat"), ReasoningModel]
     o1,
 
-    [Description("o1-mini"), ModelTypeInfo("Chat")]
+    [Description("o1-mini"), ModelTypeInfo("Chat"), ReasoningModel]
     o1_mini,
 
-    [Description("o3"), ModelTypeInfo("Chat")]
+    [Description("o3"), ModelTypeInfo("Chat"), ReasoningModel]
     o3,
 
-    [Description("o3-mini"), ModelTypeInfo("Chat")]
+    [Description("o3-mini"), ModelTypeInfo("Chat"), ReasoningModel]
     o3_mini,
 
     [Description("whisper-1"), ModelTypeInfo("STT")]

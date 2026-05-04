@@ -66,7 +66,6 @@ internal static class Logging
                 }
                 catch
                 {
-                    // fall through to stderr
                 }
             }
 
@@ -78,8 +77,6 @@ internal static class Logging
             _isLogging = false;
         }
     }
-
-
 
     public static void ShowMSGBox(
         int msgboxtimeout = 10000,
@@ -211,8 +208,6 @@ internal static class Logging
         }
     }
 
-    // Called by App after logging configuration has been loaded. Caches a logger
-    // instance so we avoid lazy logger initialization during exception handling.
     public static void SetLoggerInstance(Logger? logger)
     {
         _logController = logger;

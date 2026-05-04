@@ -70,13 +70,11 @@ public partial class DiscordSectionViewModel : ObservableObject
         _richPresence = richPresence;
         _toast = toast;
 
-        // Check if we already have a saved token
         var discord = _moduleHost.Value.Discord;
         if (discord != null)
         {
             HasSavedToken = !string.IsNullOrWhiteSpace(discord.Settings.AccessToken);
 
-            // Subscribe to module state changes for live status + preview
             discord.PropertyChanged += OnDiscordModulePropertyChanged;
             discord.Settings.PropertyChanged += OnDiscordSettingsPropertyChanged;
         }
@@ -211,6 +209,7 @@ public partial class DiscordSectionViewModel : ObservableObject
             discord.Settings.HasRpcScope = false;
             discord.SaveSettings();
             HasSavedToken = false;
+            RefreshStatus();
         }
         catch (Exception ex)
         {
@@ -252,8 +251,6 @@ public partial class DiscordSectionViewModel : ObservableObject
             await discord.StartAsync();
         }
     }
-
-    // --- Live refresh from module property changes ---
 
     private void OnDiscordModulePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

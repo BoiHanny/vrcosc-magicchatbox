@@ -34,7 +34,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly INavigationService _nav;
         private readonly Lazy<ScanLoopService> _scanLoop;
 
-        // State containers — exposed for MainWindow bindings (others injected to page VMs directly)
         public AppUpdateState UpdateState { get; }
         public OscDisplayState OscDisplay { get; }
         public TtsAudioDisplayState TtsAudio { get; }
@@ -48,7 +47,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly Lazy<IModuleHost> _modules;
         public IModuleHost Modules => _modules.Value;
 
-        // ChatSettings exposed for XAML bindings ({Binding ChatSettings.*} in OptionsPage/ChattingPage)
         public ChatSettings ChatSettings { get; }
 
         [ObservableProperty] private bool _BussyBoysMode = false;
@@ -112,7 +110,6 @@ namespace vrcosc_magicchatbox.ViewModels
             _nav = nav;
             _scanLoop = scanLoop;
 
-            // Lazy-resolved (circular deps)
             _modules = modules;
             _chatting = chatting;
             _status = status;
@@ -237,7 +234,7 @@ namespace vrcosc_magicchatbox.ViewModels
         [ObservableProperty]
         private bool _MasterSwitch = true;
 
-        private int _selectedMenuIndex = 3; // default to Options tab
+        private int _selectedMenuIndex = 3;
 
         /// <summary>
         /// Index of the currently selected menu tab (0=Integrations, 1=Status, 2=Chatting, 3=Options).

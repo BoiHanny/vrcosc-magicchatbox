@@ -37,7 +37,6 @@ namespace vrcosc_magicchatbox
                 return;
             }
 
-            // Compute elapsed time for the step that just finished
             string elapsed = "";
             if (_stepTimer.IsRunning && !string.IsNullOrEmpty(_currentMessage))
             {
@@ -45,7 +44,6 @@ namespace vrcosc_magicchatbox
                 elapsed = ms >= 1000 ? $"{ms / 1000.0:F1}s" : $"{ms}ms";
             }
 
-            // Roll: current → previous, new message → current
             _prevMessage = _currentMessage;
             _prevTime = elapsed;
             _currentMessage = message;
@@ -53,14 +51,12 @@ namespace vrcosc_magicchatbox
 
             _stepTimer.Restart();
 
-            // Update text strips
             PrevStepText.Text = _prevMessage;
             PrevStepTime.Text = _prevTime;
             CurrentStepText.Text = _currentMessage;
             CurrentStepTime.Text = $"{_globalTimer.Elapsed.TotalSeconds:F1}s";
             NextStepText.Text = _nextMessage;
 
-            // Smooth progress bar animation
             AnimateProgress(value);
         }
 

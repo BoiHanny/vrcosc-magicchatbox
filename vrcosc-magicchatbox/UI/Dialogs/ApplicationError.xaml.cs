@@ -1,7 +1,10 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Navigation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
@@ -60,6 +63,14 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         private void Github_Click(object sender, RoutedEventArgs e)
         { _nav.OpenUrl(Core.Constants.GitHubNewIssueUrl); }
 
+        private void SupportLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            if (e.Uri != null)
+                _nav.OpenUrl(e.Uri.AbsoluteUri);
+
+            e.Handled = true;
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -67,6 +78,15 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void OpenLogFolder_Click(object sender, RoutedEventArgs e)
         {
+            _nav.OpenFolder(_env.LogPath);
+        }
+
+        private void OpenCurrentLog_Click(object sender, RoutedEventArgs e)
+        {
+            string? currentLogPath = ResolveCurrentLogPath();
+            if (!string.IsNullOrWhiteSpace(currentLogPath) && _nav.OpenFileInExplorer(currentLogPath))
+                return;
+
             _nav.OpenFolder(_env.LogPath);
         }
 
@@ -105,6 +125,35 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         private void rollback_Click(object sender, RoutedEventArgs e)
         {
             CreateUpdateApp(true).StartRollback();
+        }
+
+        private string? ResolveCurrentLogPath()
+        {
+            if (string.IsNullOrWhiteSpace(_env.LogPath) || !Directory.Exists(_env.LogPath))
+                return null;
+
+            string today = DateTime.Now.ToString("yyyy-MM-dd");
+            string[] preferredPaths =
+            {
+                Path.Combine(_env.LogPath, $"{today}.log"),
+                Path.Combine(_env.LogPath, $"errors-{today}.log"),
+                Path.Combine(_env.LogPath, "startup-early.log")
+            };
+
+            foreach (string path in preferredPaths)
+            {
+                if (File.Exists(path))
+                    return path;
+            }
+
+            return new DirectoryInfo(_env.LogPath)
+                .EnumerateFiles()
+                .Where(file =>
+                    file.Extension.Equals(".log", StringComparison.OrdinalIgnoreCase) ||
+                    file.Name.Contains(".log.", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(file => file.LastWriteTimeUtc)
+                .Select(file => file.FullName)
+                .FirstOrDefault();
         }
     }
 }
