@@ -9,9 +9,9 @@
     xmlns:pages="clr-namespace:vrcosc_magicchatbox.UI.Pages"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
-    Width="900"
+    Width="1150"
     Height="775"
-    MinWidth="1020"
+    MinWidth="1080"
     MinHeight="500"
     VerticalAlignment="Bottom"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,
@@ -450,118 +450,132 @@
                     <Grid
                         Grid.Row="3"
                         Height="auto"
+                        Margin="8,0,8,8"
                         VerticalAlignment="Bottom">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!--  V2 announcement  -->
                         <TextBlock
-                            Margin="0,-8,0,0"
+                            Grid.Row="0"
+                            Margin="0,0,0,2"
                             HorizontalAlignment="Center"
-                            FontFamily="Papyrus"
-                            FontSize="12"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
                             FontWeight="DemiBold"
                             Foreground="{StaticResource BorderMutedBrush}"
-                            Text="MagicChatbox V2 is on the way!" />
-                        <TextBlock
-                            Padding="0,0,0,30"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Stretch"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="12"
-                            Foreground="{StaticResource BorderMutedBrush}"
-                            Text="{Binding UpdateState.UpdateStatustxt}" />
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="MagicChatbox V2 is on the way">
+                            <TextBlock.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="25"
+                                    Opacity="0.8"
+                                    ShadowDepth="0"
+                                    Color="#2C2148" />
+                            </TextBlock.Effect>
+                        </TextBlock>
 
-                        <StackPanel VerticalAlignment="Bottom">
+                        <!--  Update status text  -->
+                        <TextBlock
+                            Grid.Row="1"
+                            Margin="0,0,0,6"
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="{Binding UpdateState.UpdateStatustxt}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap" />
+
+                        <!--  View changes link  -->
+                        <TextBlock
+                            x:Name="GitHubChanges"
+                            Grid.Row="2"
+                            Margin="0,0,0,6"
+                            HorizontalAlignment="Center"
+                            Cursor="Hand"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="9"
+                            Foreground="#26A1FA"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            Text="View changes on GitHub"
+                            TextDecorations="Underline"
+                            Visibility="{Binding UpdateState.CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Command="{Binding OpenGitHubChangesCommand}" MouseAction="LeftClick" />
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+
+                        <!--  Version row: check btn + version + supporter label  -->
+                        <StackPanel
+                            Grid.Row="3"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="CheckUpdateBtnn"
+                                Margin="0,-3"
+                                Padding="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Command="{Binding CheckUpdateCommand}"
+                                Style="{StaticResource CircleButton}">
+                                <Image
+                                    Width="12"
+                                    Height="12"
+                                    RenderOptions.BitmapScalingMode="Linear"
+                                    Source="/Img/Icons/Load_ico.png" />
+                            </Button>
                             <TextBlock
-                                x:Name="GitHubChanges"
-                                Width="auto"
-                                Margin="0,0,0,10"
-                                HorizontalAlignment="Center"
-                                Cursor="Hand"
+                                Margin="5,0.5,5,5"
+                                VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
-                                FontSize="8.5"
-                                Foreground="#26A1FA"
+                                FontSize="13"
+                                Foreground="{StaticResource TextLabelLightBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="View changes on GitHub"
-                                TextDecorations="Underline"
-                                Visibility="{Binding UpdateState.CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding OpenGitHubChangesCommand}" MouseAction="LeftClick" />
-                                </TextBlock.InputBindings>
+                                Text="{Binding UpdateState.AppVersion.VersionNumber}">
                                 <TextBlock.Effect>
                                     <DropShadowEffect
-                                        BlurRadius="10"
-                                        Opacity="0.3"
+                                        BlurRadius="15"
+                                        Opacity="0.9"
                                         ShadowDepth="0"
-                                        Color="{StaticResource GradientDeepPurpleColor}" />
+                                        Color="{Binding UpdateState.VersionTxtColor}" />
                                 </TextBlock.Effect>
                             </TextBlock>
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                <Button
-                                    x:Name="CheckUpdateBtnn"
-                                    Margin="0,-3"
-                                    Padding="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    Command="{Binding CheckUpdateCommand}"
-                                    Style="{StaticResource CircleButton}">
-                                    <Image
-                                        Width="12"
-                                        Height="12"
-                                        RenderOptions.BitmapScalingMode="Linear"
-                                        Source="/Img/Icons/Load_ico.png" />
-
-                                </Button>
-                                <TextBlock
-                                    Margin="5,0.5,5,5"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Stretch"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextLabelLightBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="{Binding UpdateState.AppVersion.VersionNumber}">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="15"
-                                            Opacity="0.9"
-                                            ShadowDepth="0"
-                                            Color="{Binding UpdateState.VersionTxtColor}" />
-                                    </TextBlock.Effect>
-
-                                </TextBlock>
-                                <TextBlock
-                                    Name="NewVersion"
-                                    Margin="0,0.5,5,8"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Bottom"
-                                    Cursor="Hand"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    Foreground="{Binding UpdateState.VersionTxtColor}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="{Binding UpdateState.VersionTxt}">
-                                    <TextBlock.InputBindings>
-                                        <MouseBinding Command="{Binding StartUpdateCommand}" MouseAction="LeftClick" />
-                                    </TextBlock.InputBindings>
-                                    <TextBlock.Style>
-                                        <Style TargetType="{x:Type TextBlock}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
-                                                    <Setter Property="TextDecorations" Value="Underline" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="15"
-                                            Opacity="0.7"
-                                            ShadowDepth="0"
-                                            Color="{Binding UpdateState.VersionTxtColor}" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </StackPanel>
+                            <TextBlock
+                                Name="NewVersion"
+                                Margin="0,0.5,5,5"
+                                VerticalAlignment="Center"
+                                Cursor="Hand"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{Binding UpdateState.VersionTxtColor}"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                Text="{Binding UpdateState.VersionTxt}">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Command="{Binding StartUpdateCommand}" MouseAction="LeftClick" />
+                                </TextBlock.InputBindings>
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
+                                                <Setter Property="TextDecorations" Value="Underline" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                                <TextBlock.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="15"
+                                        Opacity="0.7"
+                                        ShadowDepth="0"
+                                        Color="{Binding UpdateState.VersionTxtColor}" />
+                                </TextBlock.Effect>
+                            </TextBlock>
                         </StackPanel>
-
                     </Grid>
                     <TextBlock
                         Grid.Column="0"

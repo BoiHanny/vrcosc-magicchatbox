@@ -32,10 +32,8 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             var parts = version.Split('.');
 
-            // Ensure we only process the first three parts (major, minor, build)
             if (parts.Length > 3)
             {
-                // Ignore the revision part (typically the 4th part)
                 parts = parts.Take(3).ToArray();
             }
 
@@ -44,7 +42,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 Array.Resize(ref parts, 3);
             }
 
-            parts[0] = "0"; // Always set the first part to 0
+            parts[0] = "0";
             parts[1] = int.Parse(parts[1]).ToString();
             parts[2] = int.Parse(parts[2]).ToString().PadLeft(3, '0');
 

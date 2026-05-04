@@ -134,7 +134,6 @@ public class OpenAIModule : ITranscriptionService
         _openAI.Connected = AuthChecked;
     }
 
-    // ITranscriptionService implementation — zero-disk I/O via Stream
     public bool IsReady => OpenAIClient != null;
 
     public async Task<string?> TranscribeAsync(

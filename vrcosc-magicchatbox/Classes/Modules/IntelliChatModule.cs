@@ -61,7 +61,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         _dispatcher = dispatcher;
         _toast = toast;
 
-        // Subscribe to cross-module status messages (e.g. from WhisperModule)
         _messenger.RegisterAll(this);
 
         Initialize();
@@ -80,7 +79,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             if (!message.ShowPermanently)
             {
-                // Show briefly, then auto-hide after 2.5 s
                 _ = Task.Run(async () =>
                 {
                     try
@@ -292,12 +290,8 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                // This block is entered either if the operation was manually cancelled
-                // or if it was cancelled due to a timeout.
-                // You might want to check if the cancellation was due to a timeout:
                 if (_cancellationTokenSource.Token.WaitHandle.WaitOne(0))
                 {
-                    // Handle the timeout-specific logic here
                     UpdateErrorState(true, "The operation was cancelled due to a timeout.");
                     return;
                 }
@@ -353,10 +347,8 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         if (string.IsNullOrEmpty(response))
             return string.Empty;
 
-        // Remove any leading/trailing quotation marks
         response = RemoveQuotationMarkAroundResponse(response);
 
-        // Trim the response to 140 characters if necessary
         if (response.Length > 140)
         {
             response = response.Substring(0, 140).TrimEnd('.') + "...";
@@ -399,7 +391,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     /// </summary>
     public void AddWritingStyle(string styleName, string styleDescription, double temperature)
     {
-        // Find the next available ID starting from 1000 for user-defined styles
         int nextId = Settings.SupportedWritingStyles.DefaultIfEmpty().Max(style => style?.ID ?? 999) + 1;
         if (nextId < 1000) nextId = 1000;
 
@@ -519,14 +510,11 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             var completion = await _chatService.GetChatCompletionAsync(
                 messages,
                 modelName,
-                new ChatCompletionOptions
-                {
-                    MaxOutputTokenCount = isNextWordPrediction ? 3 : 100,
-                    Temperature = (float)writingStyle.Temperature,
-                    TopP = 1,
-                    FrequencyPenalty = 0.3f,
-                    PresencePenalty = 0.2f
-                });
+                BuildChatOptions(Settings.PerformTextCompletionModel,
+                    maxOutputTokens: isNextWordPrediction ? 3 : 100,
+                    temperature: (float)writingStyle.Temperature,
+                    frequencyPenalty: 0.3f,
+                    presencePenalty: 0.2f));
 
             if (completion?.Content?.Count > 0)
             {
@@ -598,11 +586,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
                     modelName,
-                    new ChatCompletionOptions
-                    {
-                        MaxOutputTokenCount = 20,
-                        Temperature = 0.7f
-                    },
+                    BuildChatOptions(Settings.GenerateConversationStarterModel,
+                        maxOutputTokens: 20,
+                        temperature: 0.7f),
                 _cancellationTokenSource.Token);
 
             if (completion == null)
@@ -650,6 +636,40 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
 
         return "Unknown";
+    }
+
+    /// <summary>
+    /// Returns true for models that do NOT support sampling parameters (Temperature, TopP, etc.).
+    /// These are reasoning-class models like o1/o3 family.
+    /// </summary>
+    public static bool IsReasoningModel(IntelliGPTModel model)
+    {
+        var memberInfo = typeof(IntelliGPTModel).GetMember(model.ToString());
+        return memberInfo.Length > 0
+            && memberInfo[0].GetCustomAttributes(typeof(ReasoningModelAttribute), false).Length > 0;
+    }
+
+    /// <summary>
+    /// Builds <see cref="ChatCompletionOptions"/> with automatic temperature/topP gating
+    /// for reasoning models that do not support sampling parameters.
+    /// </summary>
+    public static ChatCompletionOptions BuildChatOptions(
+        IntelliGPTModel model,
+        int maxOutputTokens,
+        float temperature = 0.3f,
+        float topP = 1f,
+        float frequencyPenalty = 0f,
+        float presencePenalty = 0f)
+    {
+        var options = new ChatCompletionOptions { MaxOutputTokenCount = maxOutputTokens };
+        if (!IsReasoningModel(model))
+        {
+            options.Temperature = temperature;
+            options.TopP = topP;
+            if (frequencyPenalty != 0f) options.FrequencyPenalty = frequencyPenalty;
+            if (presencePenalty != 0f) options.PresencePenalty = presencePenalty;
+        }
+        return options;
     }
 
     /// <summary>
@@ -799,11 +819,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
                     modelName,
-                    new ChatCompletionOptions
-                    {
-                        MaxOutputTokenCount = 60,
-                        Temperature = (float)intelliChatWritingStyle.Temperature
-                    },
+                    BuildChatOptions(Settings.PerformBeautifySentenceModel,
+                        maxOutputTokens: 60,
+                        temperature: (float)intelliChatWritingStyle.Temperature),
                 _cancellationTokenSource.Token);
 
             if (completion == null)
@@ -864,11 +882,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
                     modelName,
-                    new ChatCompletionOptions
-                    {
-                        MaxOutputTokenCount = 120,
-                        Temperature = 0.3f
-                    },
+                    BuildChatOptions(Settings.PerformLanguageTranslationModel,
+                        maxOutputTokens: 120,
+                        temperature: 0.3f),
                 _cancellationTokenSource.Token);
 
             if (completion == null)
@@ -934,11 +950,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
                     modelName,
-                    new ChatCompletionOptions
-                    {
-                        MaxOutputTokenCount = 60,
-                        Temperature = 0.3f
-                    },
+                    BuildChatOptions(Settings.PerformSpellingCheckModel,
+                        maxOutputTokens: 60,
+                        temperature: 0.3f),
                 _cancellationTokenSource.Token);
 
             if (completion == null)
@@ -1024,7 +1038,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-            // Define the prompt based on retry count
             string prompt = retryCount == 0
                 ? $"You are an expert at condensing text. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}"
                 : $"The previous attempt did not meet the 140-character limit. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}";
@@ -1048,11 +1061,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
                     modelName,
-                    new ChatCompletionOptions
-                    {
-                        MaxOutputTokenCount = 60,
-                        Temperature = 0.3f
-                    },
+                    BuildChatOptions(Settings.PerformShortenTextModel,
+                        maxOutputTokens: 60,
+                        temperature: 0.3f),
                 _cancellationTokenSource.Token);
 
             var shortenedText = completion?.Content?.Count > 0
@@ -1061,7 +1072,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             string sanitizedShortenedText = SanitizeShortenedText(shortenedText);
 
-            if (sanitizedShortenedText.Length > 140 && retryCount < 2) // Limiting to two retries
+            if (sanitizedShortenedText.Length > 140 && retryCount < 2)
             {
                 await ShortenTextAsync(sanitizedShortenedText, retryCount + 1);
             }

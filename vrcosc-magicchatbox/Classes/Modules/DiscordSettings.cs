@@ -11,18 +11,15 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 /// </summary>
 public partial class DiscordSettings : VersionedSettings
 {
-    // --- Output template ---
     [ObservableProperty] private string _template = "🔊 {channel} ({count}) | 🎙️ {speaking}";
     [ObservableProperty] private string _emptySpeakingText = "Quiet...";
     [ObservableProperty] private string _notInVcText = "";
     [ObservableProperty] private int _maxSpeakingUsersToShow = 2;
 
-    // --- Mute / Deafen display ---
     [ObservableProperty] private bool _showMuteDeafenEmoji = true;
     [ObservableProperty] private string _muteEmoji = "ᵐᵘᵗᵉᵈ";
     [ObservableProperty] private string _deafenEmoji = "ᵈᵉᵃᶠᵉⁿ";
 
-    // --- Behaviour ---
     [ObservableProperty] private bool _autoConnectOnStartup = false;
     [ObservableProperty] private bool _hideSelfFromSpeakers = false;
     [ObservableProperty] private bool _showUserCountOnly = false;
@@ -33,11 +30,9 @@ public partial class DiscordSettings : VersionedSettings
     private string _voiceClientIdEncrypted = string.Empty;
     private string _voiceClientId = Core.Constants.DiscordClientId;
 
-    // --- OSC parameters ---
     [ObservableProperty] private bool _sendMuteDeafenOsc = false;
     [ObservableProperty] private bool _sendVoiceStateOsc = false;
 
-    // --- Rich Presence ---
     /// <summary>Enable Discord Rich Presence showing VRChat world info.</summary>
     [ObservableProperty] private bool _enableRichPresence = false;
     /// <summary>Details line template. Placeholders: {world}, {count}, {type}, {region}</summary>
@@ -98,11 +93,9 @@ public partial class DiscordSettings : VersionedSettings
 
     private bool ShouldSerializeLegacyVoiceClientId() => false;
 
-    // Encrypted OAuth access token (same DPAPI pattern as PulsoidModuleSettings)
     private string _accessTokenEncrypted = string.Empty;
     private string _accessToken = string.Empty;
 
-    // Encrypted OAuth refresh token for token renewal
     private string _refreshTokenEncrypted = string.Empty;
     private string _refreshToken = string.Empty;
 
@@ -195,7 +188,8 @@ public partial class DiscordSettings : VersionedSettings
 
     /// <summary>
     /// Built-in Rich Presence detail presets.
-    /// Variables: {world}, {count}, {type}, {region}, {status}, {mode}, {time}, {media}, {unique}, {peak}, {worlds}
+    /// Variables: {world}, {count}, {type}, {region}, {status}, {mode}, {time}, {media},
+    /// {unique}, {peak}, {worlds}, {heart_rate}, {cpu}, {window}, {weather}, {network}, {viewers}, {vr_battery}
     /// </summary>
     public static readonly (string Name, string Details, string State)[] RichPresencePresets =
     [
@@ -208,5 +202,9 @@ public partial class DiscordSettings : VersionedSettings
         ("Event Host",    "🎉 {world}",                "👥 {count} here • {unique} total visitors"),
         ("Now Playing",   "{media}",                   "In {world} • {count} players"),
         ("Full Status",   "{status}",                  "{world} • {count} players"),
+        ("Health",        "❤️ {heart_rate}",            "{weather} • {mode}"),
+        ("Gamer",         "{window}",                  "{cpu} • {mode}"),
+        ("Streamer",      "🔴 Live — {viewers} viewers", "{media}"),
+        ("All Stats",     "{heart_rate} • {weather}",  "{cpu} • {network}"),
     ];
 }

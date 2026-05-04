@@ -41,7 +41,6 @@ public static class Constants
     public const string PulsoidClientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
     public const string PulsoidOAuthScope = "data:heart_rate:read,profile:read,data:statistics:read";
 
-    // Discord RPC integration
     public const string DiscordClientId = "1495716413980278814";
     public const string DiscordOAuthRedirectUri = "http://localhost:7386/";
     /// <summary>

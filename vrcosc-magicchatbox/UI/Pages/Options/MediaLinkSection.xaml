@@ -76,12 +76,6 @@
 
                         <CheckBox
                             Margin="3,7"
-                            IsChecked="{Binding MediaLinkSettings.Disabled, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Use old Spotify integration (deprecated)
-                        </CheckBox>
-                        <CheckBox
-                            Margin="3,7"
                             IsChecked="{Binding AppSettings.PrefixIconMusic, Mode=TwoWay}"
                             Style="{DynamicResource SettingsCheckbox}">
                             Show media icon prefix
@@ -93,8 +87,23 @@
                             Visibility="{Binding AppSettings.PrefixIconMusic, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             Show pause icon when music is paused
                         </CheckBox>
+                    </StackPanel>
+                </Border>
 
-
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Spotify coexistence" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Running Spotify and MediaLink together? The duplicate-handling setting now lives in Spotify settings so it is easier to find." />
+                        <Button
+                            Width="188"
+                            Height="28"
+                            HorizontalAlignment="Left"
+                            Command="{Binding OpenSpotifyCoexistenceSettingsCommand}"
+                            Content="Open Spotify settings"
+                            Style="{StaticResource Status_Button_style}" />
                     </StackPanel>
                 </Border>
 
@@ -233,7 +242,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="MediaLink behavior" />
 
@@ -288,7 +297,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Media progress bar" />
 
@@ -298,8 +307,7 @@
                         <TextBlock
                             Grid.Column="0"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Seekbar Style"
-                            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            Text="Seekbar Style" />
 
 
                         <ComboBox
@@ -308,8 +316,7 @@
                             Margin="0,3"
                             HorizontalAlignment="Left"
                             ItemsSource="{Binding Source={x:Static modules:MediaLinkSettings.AvailableTimeSeekbarStyles}}"
-                            SelectedValue="{Binding MediaLinkSettings.TimeSeekStyle, Mode=TwoWay}"
-                            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            SelectedValue="{Binding MediaLinkSettings.TimeSeekStyle, Mode=TwoWay}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
@@ -329,8 +336,7 @@
                             <TextBlock
                                 Grid.Column="0"
                                 Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                Text="System and custom styles"
-                                Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                Text="System and custom styles" />
                             <StackPanel Style="{StaticResource OptionActionRowStyle}">
                                 <ComboBox
                                     Width="auto"

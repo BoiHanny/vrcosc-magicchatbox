@@ -41,14 +41,12 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     private readonly Queue<int> _heartRateHistory = new();
 
-    // For normal smoothing (time-based)
     private readonly Queue<Tuple<DateTime, int>> _heartRates = new();
     private DateTime _lastStateChangeTime = DateTime.MinValue;
     private DateTime _lastMessageReceivedTime = DateTime.Now;
     private readonly TimeSpan _inactivityThreshold = TimeSpan.FromSeconds(15);
     private static readonly Random _random = new Random();
 
-    // For OSC smoothing (count-based)
     private readonly Queue<int> _oscHeartRates = new();
     private readonly object _oscHeartRatesLock = new object();
     private int _isProcessing = 0;
@@ -254,15 +252,13 @@ public partial class PulsoidModule : ObservableObject, IModule
         int excess = rawHR - baseHR;
         int compressibleRange = maxHumanHR - baseHR;
 
-        // Integer-based proportional scaling (no floating points)
         int scaledAdjustment = (excess * allowedSpread) / compressibleRange;
 
-        // Smart randomness that decreases with higher HR
         int variance = excess switch
         {
-            < 30 => _random.Next(-3, 4),  // ±3 BPM when close to base
-            < 60 => _random.Next(-2, 3),  // ±2 BPM
-            _ => _random.Next(-1, 2)      // ±1 BPM at extreme highs
+            < 30 => _random.Next(-3, 4),
+            < 60 => _random.Next(-2, 3),
+            _ => _random.Next(-1, 2)
         };
 
         return Math.Clamp(
@@ -367,7 +363,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         }
         else
         {
-            // Send min/max/avg as ones, tens, hundreds
             SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
             SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
             SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
@@ -424,13 +419,13 @@ public partial class PulsoidModule : ObservableObject, IModule
             return;
         }
 
-        _cts = new CancellationTokenSource();
+        var cts = new CancellationTokenSource();
+        _cts = cts;
         UpdateFormattedHeartRateText();
 
         try
         {
-            // Client handles connection, reconnection, and message receiving internally
-            await _client.ConnectAsync(accessToken, _cts.Token).ConfigureAwait(false);
+            await _client.ConnectAsync(accessToken, cts.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -443,6 +438,17 @@ public partial class PulsoidModule : ObservableObject, IModule
                 PulsoidAccessErrorTxt = ex.Message;
             });
             Logging.WriteException(ex);
+        }
+        finally
+        {
+            // Only clean up if this is still the active attempt (avoids disposing a newer CTS)
+            if (ReferenceEquals(_cts, cts))
+            {
+                cts.Dispose();
+                _cts = null;
+                isMonitoringStarted = false;
+                _pulsoidErrorShown = false;
+            }
         }
     }
 
@@ -907,7 +913,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         if (_disposed) return;
         _disposed = true;
 
-        // Unsubscribe from client events to prevent leak
         _client.HeartRateReceived -= OnHeartRateReceived;
         _client.ConnectionFailed -= OnConnectionFailed;
         _client.ConnectionStateChanged -= OnConnectionStateChanged;

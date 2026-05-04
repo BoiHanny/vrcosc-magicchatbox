@@ -111,6 +111,8 @@ public sealed class ScanLoopService : IDisposable
     private void OnBackgroundTick()
     {
         Interlocked.Exchange(ref _tickQueued, 0);
+        if (!_started || _disposed)
+            return;
 
         bool chatItemActive = _chatStatus.LastMessages != null
             && _chatStatus.LastMessages.Any(x => x.IsRunning);
@@ -133,6 +135,7 @@ public sealed class ScanLoopService : IDisposable
     /// </summary>
     public async Task Scantick(bool firstRun = false)
     {
+        if (!_started || _disposed) return;
         if (_isProcessing) return;
         _isProcessing = true;
 
@@ -150,6 +153,8 @@ public sealed class ScanLoopService : IDisposable
                 }
 
                 await ExecuteScantickLogicAsync();
+                if (!_started || _disposed) return;
+
                 Osc.BuildOSC();
 
                 long nowMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -158,6 +163,7 @@ public sealed class ScanLoopService : IDisposable
 
                 if ((nowMs - lastMs + allowedOverlapMs) >= AS.ScanningInterval * 1000)
                 {
+                    if (!_started || _disposed) return;
                     OscSend.SendOSCMessage(false);
                     _lastOSCMessageTime = DateTime.Now;
                 }

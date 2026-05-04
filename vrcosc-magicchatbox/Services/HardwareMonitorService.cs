@@ -34,8 +34,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
     }
 
-    // ── P/Invoke: GlobalMemoryStatusEx (sub-microsecond, replaces WMI) ──
-
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     private struct MEMORYSTATUSEX
     {
@@ -108,8 +106,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             }
         }
     }
-
-    // ── CPU (read cached sensors — no hw.Update() calls) ─────────
 
     public float? GetCpuLoad()
     {
@@ -188,8 +184,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     {
         return ResolveGpu(gpuName)?.Name;
     }
-
-    // ── RAM (LHM cached sensors) ─────────────────────────────────
 
     public float? GetRamUsed()
     {

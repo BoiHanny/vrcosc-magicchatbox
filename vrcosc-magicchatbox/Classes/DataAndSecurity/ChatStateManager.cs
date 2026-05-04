@@ -116,7 +116,6 @@ public class ChatStateManager
         if (_chatStatus.LastMessages.Count > 5)
             _chatStatus.LastMessages.RemoveAt(0);
 
-        // Assign fading opacity to history items
         double opacity = 1;
         foreach (var item in _chatStatus.LastMessages.AsEnumerable().Reverse())
         {

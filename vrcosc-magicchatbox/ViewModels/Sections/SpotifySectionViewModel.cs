@@ -41,6 +41,9 @@ public partial class SpotifySectionViewModel : ObservableObject
     [ObservableProperty] private string _previewLengthText = $"0/{Constants.OscMaxMessageLength}";
     [ObservableProperty] private string? _selectedPresetName;
 
+    public bool CanStartConnection => !IsConnecting;
+    public bool HasDisplayError => !string.IsNullOrWhiteSpace(Display.ErrorText);
+
     public string[] PresetNames { get; } = SpotifySettings.TemplatePresets
         .Select(p => p.Name).ToArray();
 
@@ -103,6 +106,8 @@ public partial class SpotifySectionViewModel : ObservableObject
         RefreshStatus();
         RefreshPreview();
     }
+
+    partial void OnIsConnectingChanged(bool value) => OnPropertyChanged(nameof(CanStartConnection));
 
     partial void OnSelectedPresetNameChanged(string? value)
     {
@@ -184,6 +189,30 @@ public partial class SpotifySectionViewModel : ObservableObject
         => CopyText(RedirectUri, "Redirect URI copied to clipboard.", "spotify-redirect-copied");
 
     [RelayCommand]
+    private void PasteClientIdFromClipboard()
+    {
+        try
+        {
+            string text = Clipboard.GetText().Trim();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                _toast.Show("Spotify", "Clipboard is empty.", ToastType.Warning, key: "spotify-clientid-empty");
+                return;
+            }
+
+            Settings.ClientId = text;
+            _settingsProvider.Save();
+            RefreshStatus();
+            _toast.Show("Spotify", "Client ID pasted.", ToastType.Success, key: "spotify-clientid-pasted");
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            _toast.Show("Spotify", "Could not read the clipboard.", ToastType.Warning, key: "spotify-clientid-paste-failed");
+        }
+    }
+
+    [RelayCommand]
     private void CopyTemplateTokens()
         => CopyText(
             "{play_icon}, {title}, {artist}, {album}, {device}, {progress}, {seekbar}, {elapsed}, {duration}, {remaining}, {percent}, {liked_icon}, {explicit_icon}, {shuffle_icon}, {repeat_icon}, {queue}",
@@ -209,6 +238,7 @@ public partial class SpotifySectionViewModel : ObservableObject
     private void OnDisplayChanged(object? sender, PropertyChangedEventArgs e)
     {
         RefreshStatus();
+        OnPropertyChanged(nameof(HasDisplayError));
         if (e.PropertyName is nameof(SpotifyDisplayState.OutputPreview) or nameof(SpotifyDisplayState.Title) or nameof(SpotifyDisplayState.Artist)
             or nameof(SpotifyDisplayState.IsConnected))
             RefreshPreview();
@@ -245,6 +275,8 @@ public partial class SpotifySectionViewModel : ObservableObject
     {
         if (Display.IsConnecting || IsConnecting)
             StatusText = "Waiting for Spotify authorization in your browser...";
+        else if (!Display.IsConnected && string.IsNullOrWhiteSpace(Settings.ClientId))
+            StatusText = "Paste your public Spotify Client ID below to enable Connect Spotify.";
         else if (Display.NeedsReconnect)
             StatusText = "Reconnect Spotify";
         else if (Display.IsConnected)

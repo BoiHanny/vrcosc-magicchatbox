@@ -5,8 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Connect Spotify"
-    Width="720"
-    Height="520"
+    Width="860"
+    Height="680"
     Background="#41375B"
     ResizeMode="NoResize"
     mc:Ignorable="d">
@@ -85,6 +85,21 @@
                 <Border
                     Margin="0,16,0,8"
                     Padding="12"
+                    Background="#33FFC107"
+                    BorderBrush="{StaticResource StatusWarningBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="13"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Text="★ Playback controls need Spotify Premium and an active Spotify device. If buttons do nothing later, open Spotify on a phone, desktop app, or web player first."
+                        TextWrapping="Wrap" />
+                </Border>
+
+                <Border
+                    Margin="0,8,0,8"
+                    Padding="12"
                     Background="#2A2040"
                     CornerRadius="8">
                     <StackPanel>
@@ -101,15 +116,32 @@
                             Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly: http://127.0.0.1:7387/callback/"
                             TextWrapping="Wrap" />
                         <StackPanel Orientation="Horizontal">
-                            <PasswordBox
-                                x:Name="ClientIdBox"
-                                Width="430"
-                                Height="32"
-                                Padding="8,0"
-                                VerticalContentAlignment="Center"
-                                FontSize="14"
-                                PasswordChanged="ClientIdBox_PasswordChanged"
-                                PasswordChar="●" />
+                            <Grid Width="430">
+                                <TextBox
+                                    x:Name="ClientIdBox"
+                                    Height="32"
+                                    Padding="8,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="14"
+                                    TextChanged="ClientIdBox_TextChanged" />
+                                <TextBlock
+                                    Margin="12,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Foreground="#8F8AA0"
+                                    IsHitTestVisible="False"
+                                    Text="Paste your public Spotify Client ID">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Text, ElementName=ClientIdBox}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
                             <Button
                                 Width="82"
                                 Height="32"
@@ -125,6 +157,13 @@
                                 Content="Dashboard ↗"
                                 Style="{StaticResource Status_Button_style}" />
                         </StackPanel>
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="#CCCCCC"
+                            Text="This is your public Client ID, not a client secret."
+                            TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 

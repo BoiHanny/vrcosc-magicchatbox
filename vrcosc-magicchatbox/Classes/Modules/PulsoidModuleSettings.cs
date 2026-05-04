@@ -155,7 +155,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
     [ObservableProperty]
     private int unchangedHeartRateTimeoutInSec = 30;
 
-    // Encrypted OAuth access token
     private string _accessTokenOAuthEncrypted = string.Empty;
     private string _accessTokenOAuth = string.Empty;
 

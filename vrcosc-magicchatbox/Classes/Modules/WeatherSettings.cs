@@ -55,7 +55,6 @@ public partial class WeatherSettings : VersionedSettings
         }
     }
 
-    // Encrypted city name
     private string _weatherLocationCityEncrypted = string.Empty;
     private string _weatherLocationCity = "London";
 

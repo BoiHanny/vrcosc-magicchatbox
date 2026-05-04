@@ -72,7 +72,6 @@ public sealed class ToastService : IToastService
             item.MarkDismissed();
             item.IsExiting = true;
 
-            // Remove from collection after the exit animation completes
             var exitTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(ExitAnimationMs)

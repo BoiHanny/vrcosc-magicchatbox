@@ -388,6 +388,13 @@
                             Use compact follower counts (1.2K)
                         </CheckBox>
                     </StackPanel>
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        FontSize="13"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Text="{Binding Modules.Twitch.FollowerScopeWarning}"
+                        TextWrapping="Wrap"
+                        Visibility="{Binding Modules.Twitch.FollowerScopeWarning, Converter={StaticResource CountToVisibilityConverter}}" />
                     <CheckBox
                         x:Name="TwitchShowStreamTitle_checkbox"
                         Margin="0,6,0,0"

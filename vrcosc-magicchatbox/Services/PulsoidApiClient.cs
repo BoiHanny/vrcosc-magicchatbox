@@ -58,13 +58,12 @@ public sealed class PulsoidApiClient : IPulsoidClient
 
                 ConnectionStateChanged?.Invoke(true);
 
-                // Receive loop — blocks until connection drops or is cancelled
                 await ReceiveLoopAsync(accessToken, ct).ConfigureAwait(false);
-                break; // Clean exit from receive loop
+                break;
             }
             catch (OperationCanceledException)
             {
-                break; // Cancellation requested
+                break;
             }
             catch (WebSocketException ex)
             {

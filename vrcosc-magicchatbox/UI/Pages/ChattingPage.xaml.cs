@@ -23,7 +23,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             // Wire scroll-to-end when DataContext arrives (may be deferred past Show).
             DataContextChanged += (_, args) =>
             {
-                // Unsubscribe from old DataContext
                 if (args.OldValue is ChattingPageViewModel oldVm && _scrollToEndHandler != null)
                     oldVm.ScrollToEndRequested -= _scrollToEndHandler;
 
@@ -120,7 +119,6 @@ namespace vrcosc_magicchatbox.UI.Pages
                 {
                     VM.BeginChatEdit(item);
 
-                    // Focus the edit textbox (UI concern)
                     var parent = VisualTreeHelper.GetParent(button);
                     while (parent != null && parent is not ContentPresenter)
                         parent = VisualTreeHelper.GetParent(parent);

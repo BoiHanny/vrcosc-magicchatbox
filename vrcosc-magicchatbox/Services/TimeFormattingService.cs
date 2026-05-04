@@ -90,8 +90,11 @@ public sealed class TimeFormattingService : ITimeFormattingService
             offset = tzInfo.BaseUtcOffset;
             if (_ts.UseDaylightSavingTime)
             {
-                TimeSpan adjustment = tzInfo.GetAdjustmentRules().FirstOrDefault()?.DaylightDelta
-                    ?? TimeSpan.Zero;
+                // Use the adjustment rule matching the current date, not just the first rule
+                var rules = tzInfo.GetAdjustmentRules();
+                var matchingRule = rules.FirstOrDefault(r =>
+                    localDateTime.DateTime >= r.DateStart && localDateTime.DateTime <= r.DateEnd);
+                TimeSpan adjustment = matchingRule?.DaylightDelta ?? TimeSpan.Zero;
                 offset = offset.Add(adjustment);
             }
             return localDateTime.ToOffset(offset);

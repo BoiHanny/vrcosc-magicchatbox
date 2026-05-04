@@ -101,7 +101,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         string loadedAppVersion = vs.AppVersion ?? string.Empty;
         int loadedSchema = vs.SchemaVersion;
 
-        // Module-level reset: if the file's schema is older than the declared minimum
         var moduleReset = type.GetCustomAttribute<ResetModuleAfterSchemaAttribute>();
         if (moduleReset != null && loadedSchema < moduleReset.SchemaVersion)
         {
@@ -115,7 +114,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             return;
         }
 
-        // Property-level reset: reset individual properties that are stale
         bool anyReset = false;
         T defaults = new();
 
@@ -173,6 +171,19 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         }
     }
 
+    public void FlushPendingSave()
+    {
+        lock (_lock)
+        {
+            if (_disposed) return;
+
+            _debounceTimer?.Dispose();
+            _debounceTimer = null;
+        }
+
+        Save();
+    }
+
     private void SubscribeAutoSave()
     {
         if (_settings is INotifyPropertyChanged npc)
@@ -221,12 +232,12 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         {
             if (_disposed) return;
             _disposed = true;
+
+            _debounceTimer?.Dispose();
+            _debounceTimer = null;
         }
 
         UnsubscribeAutoSave();
-        _debounceTimer?.Dispose();
-        _debounceTimer = null;
-        // Final save to flush any pending changes
         Save();
     }
 }

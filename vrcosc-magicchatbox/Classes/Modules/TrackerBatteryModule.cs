@@ -100,7 +100,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                         if (!_trackerErrorShown)
                         {
                             _trackerErrorShown = true;
-                            _toast?.Show("📍 VR Tracker", $"OpenVR failed to initialize: {error}", ToastType.Warning, key: "tracker-error");
+                            _toast?.Show("📍 VR Tracker", "SteamVR is not running or could not be reached. Start SteamVR first.", ToastType.Warning, key: "tracker-error");
                         }
                     }
                     return;
@@ -113,7 +113,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 _vrSystem = null;
                 Logging.WriteException(ex, MSGBox: false);
-                _toast?.Show("📍 VR Tracker", $"OpenVR initialization error: {ex.Message}", ToastType.Warning, key: "tracker-error");
+                _toast?.Show("📍 VR Tracker", "Unexpected error connecting to SteamVR. Will retry automatically.", ToastType.Warning, key: "tracker-error");
             }
         }
 
@@ -239,6 +239,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     device.IsConnected = false;
                     device.DeviceIndex = -1;
                     device.IsCharging = false;
+                    device.BatteryLevel = 0f;
                 }
             }
 

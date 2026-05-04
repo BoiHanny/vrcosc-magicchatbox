@@ -22,6 +22,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _usedNewMethod;
         private bool _useCustomRegex;
         private string _customRegex = string.Empty;
+        private string _contentFilter = string.Empty;
+        private int _contentFilterMode; // 0=None, 1=Exclude, 2=Include
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -130,5 +132,41 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(CustomRegex));
             }
         }
+
+        /// <summary>
+        /// Per-app content filter pattern (case-insensitive substring match).
+        /// Applied after regex extraction. Works with <see cref="ContentFilterMode"/>.
+        /// </summary>
+        public string ContentFilter
+        {
+            get { return _contentFilter; }
+            set
+            {
+                _contentFilter = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(ContentFilter));
+            }
+        }
+
+        /// <summary>
+        /// Filter mode for this app: 0=None (no filter), 1=Exclude (hide when matches), 2=Include (show only when matches).
+        /// Stored as int for JSON serialization compatibility.
+        /// </summary>
+        public int ContentFilterMode
+        {
+            get { return _contentFilterMode; }
+            set
+            {
+                _contentFilterMode = value;
+                NotifyPropertyChanged(nameof(ContentFilterMode));
+                NotifyPropertyChanged(nameof(HasContentFilter));
+                NotifyPropertyChanged(nameof(ContentFilterEnabled));
+            }
+        }
+
+        /// <summary>Whether the content filter textbox should be enabled (mode is not None).</summary>
+        public bool ContentFilterEnabled => _contentFilterMode != 0;
+
+        /// <summary>Whether this app has an active content filter configured.</summary>
+        public bool HasContentFilter => _contentFilterMode != 0 && !string.IsNullOrWhiteSpace(_contentFilter);
     }
 }

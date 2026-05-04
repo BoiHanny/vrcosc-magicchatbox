@@ -44,7 +44,6 @@ public partial class TwitchSettings : VersionedSettings
 
     public bool TemplateHasValue => !string.IsNullOrWhiteSpace(Template);
 
-    // Refresh interval with clamping (15–3600 seconds)
     private int _updateIntervalSeconds = 60;
     public int UpdateIntervalSeconds
     {

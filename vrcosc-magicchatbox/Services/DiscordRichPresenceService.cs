@@ -7,6 +7,7 @@ using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
@@ -15,6 +16,11 @@ public sealed class DiscordRichPresenceService : IDisposable
     private readonly DiscordSettings _settings;
     private readonly IAppState _appState;
     private readonly Lazy<IModuleHost> _modules;
+    private readonly Lazy<IWindowActivityService> _windowActivity;
+    private readonly Lazy<IWeatherService> _weather;
+    private readonly Lazy<ComponentStatsModule> _componentStats;
+    private readonly Lazy<NetworkStatisticsModule> _networkStats;
+    private readonly OscDisplayState _oscDisplay;
     private readonly object _sync = new();
 
     private DiscordRpcClient? _client;
@@ -28,11 +34,21 @@ public sealed class DiscordRichPresenceService : IDisposable
     public DiscordRichPresenceService(
         ISettingsProvider<DiscordSettings> settingsProvider,
         IAppState appState,
-        Lazy<IModuleHost> modules)
+        Lazy<IModuleHost> modules,
+        Lazy<IWindowActivityService> windowActivity,
+        Lazy<IWeatherService> weather,
+        Lazy<ComponentStatsModule> componentStats,
+        Lazy<NetworkStatisticsModule> networkStats,
+        OscDisplayState oscDisplay)
     {
         _settings = settingsProvider.Value;
         _appState = appState;
         _modules = modules;
+        _windowActivity = windowActivity;
+        _weather = weather;
+        _componentStats = componentStats;
+        _networkStats = networkStats;
+        _oscDisplay = oscDisplay;
     }
 
     public Task UpdateAsync(
@@ -45,7 +61,7 @@ public sealed class DiscordRichPresenceService : IDisposable
     {
         _lastSnapshot = new PresenceSnapshot(worldName, playerCount, instanceType, region, joinUrl, worldJoinedAt);
 
-        if (!_settings.EnableRichPresence)
+        if (!_settings.EnableRichPresence || !_appState.MasterSwitch)
             return ClearAsync();
 
         if (!EnsureClient())
@@ -250,9 +266,7 @@ public sealed class DiscordRichPresenceService : IDisposable
     {
         string media = BuildMediaText();
         string mode = _appState.IsVRRunning ? "VR" : "Desktop";
-        string status = _settings.RichPresenceShowVrDesktopMode
-            ? $"{mode} mode"
-            : "MagicChatbox";
+        string status = GetCurrentStatusText();
         string world = string.IsNullOrWhiteSpace(snapshot.WorldName)
             ? "Not in a world"
             : snapshot.WorldName;
@@ -274,7 +288,14 @@ public sealed class DiscordRichPresenceService : IDisposable
             .Replace("{media}", media)
             .Replace("{unique}", GetVrcRadarValue(m => m.UniquePlayersCount).ToString())
             .Replace("{peak}", GetVrcRadarValue(m => m.PeakPlayerCountThisSession).ToString())
-            .Replace("{worlds}", GetVrcRadarValue(m => m.WorldsVisited).ToString());
+            .Replace("{worlds}", GetVrcRadarValue(m => m.WorldsVisited).ToString())
+            .Replace("{heart_rate}", GetHeartRateText())
+            .Replace("{cpu}", GetStatText())
+            .Replace("{window}", GetWindowActivityText())
+            .Replace("{weather}", GetWeatherText())
+            .Replace("{network}", GetNetworkText())
+            .Replace("{viewers}", GetTwitchViewers())
+            .Replace("{vr_battery}", GetVrBatteryText());
     }
 
     private string BuildMediaText()
@@ -308,6 +329,95 @@ public sealed class DiscordRichPresenceService : IDisposable
         {
             Logging.WriteException(ex, MSGBox: false);
             return 0;
+        }
+    }
+
+    private string GetHeartRateText()
+    {
+        try
+        {
+            var pulsoid = _modules.Value.Pulsoid;
+            if (pulsoid == null) return string.Empty;
+            string hr = pulsoid.GetHeartRateString();
+            return string.IsNullOrWhiteSpace(hr) ? string.Empty : hr;
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetStatText()
+    {
+        try
+        {
+            return _componentStats.Value.GenerateStatsDescription();
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetWindowActivityText()
+    {
+        try
+        {
+            return _windowActivity.Value.GetForegroundProcessName();
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetWeatherText()
+    {
+        try
+        {
+            return _weather.Value.BuildWeatherOnlyText();
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetNetworkText()
+    {
+        try
+        {
+            return _networkStats.Value.GenerateDescription();
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetTwitchViewers()
+    {
+        try
+        {
+            var twitch = _modules.Value.Twitch;
+            if (twitch == null) return string.Empty;
+            string output = twitch.GetOutputString();
+            return string.IsNullOrWhiteSpace(output) ? string.Empty : output;
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetVrBatteryText()
+    {
+        try
+        {
+            var tracker = _modules.Value.TrackerBattery;
+            return tracker?.BuildChatboxString() ?? string.Empty;
+        }
+        catch { return string.Empty; }
+    }
+
+    private string GetCurrentStatusText()
+    {
+        try
+        {
+            string osc = _oscDisplay.OscToSent;
+            if (!string.IsNullOrWhiteSpace(osc))
+                return osc;
+
+            string mode = _appState.IsVRRunning ? "VR" : "Desktop";
+            return _settings.RichPresenceShowVrDesktopMode
+                ? $"{mode} mode"
+                : "MagicChatbox";
+        }
+        catch
+        {
+            return "MagicChatbox";
         }
     }
 

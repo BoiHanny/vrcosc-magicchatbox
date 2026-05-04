@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=sections:WindowActivitySectionViewModel,
@@ -158,6 +159,95 @@
                             Text="{Binding WindowActivitySettings.GlobalRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             ToolTip="Applied to every window title before per-app regex. First capture group () becomes the title." />
                     </StackPanel>
+
+                    <!--  Content Filters  -->
+                    <CheckBox
+                        Margin="0,10,0,0"
+                        IsChecked="{Binding WindowActivitySettings.EnableTitleFilters, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Enable content filters on title info
+                    </CheckBox>
+                    <StackPanel Margin="24,4,0,0" Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Set per-app filters in the 'Content filter' column below. Use the global rules here for patterns that apply to ALL apps."
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="💡 Comma-separate keywords. Exclude hides text when any keyword matches. Include only shows text when at least one keyword matches."
+                            TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding WindowActivitySettings.TitleFilters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Grid.Column="0"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                            ToolTip="Enable or disable this global rule" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            Width="100"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            ItemsSource="{Binding Source={x:Static modules:TitleFilterRule.FilterModes}}"
+                                            SelectedItem="{Binding Mode, Mode=TwoWay}"
+                                            Style="{StaticResource DarkComboBoxStyle}"
+                                            ToolTip="Exclude: hides text containing the pattern.&#x0a;Include: only shows text containing the pattern.">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBox
+                                            Grid.Column="2"
+                                            MinWidth="120"
+                                            Margin="0,0,6,0"
+                                            Padding="6,4"
+                                            VerticalContentAlignment="Center"
+                                            FontSize="12"
+                                            Text="{Binding Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            ToolTip="Comma-separated keywords (case-insensitive). E.g.: username, http, @" />
+                                        <Button
+                                            Grid.Column="3"
+                                            Width="24"
+                                            Height="24"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center"
+                                            Command="{Binding DataContext.RemoveTitleFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="✕"
+                                            FontSize="11"
+                                            Style="{StaticResource CircleButton}"
+                                            ToolTip="Remove this global rule" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button
+                            Width="140"
+                            Margin="0,6,0,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding AddTitleFilterCommand}"
+                            Content="＋ Add global rule"
+                            Style="{StaticResource Status_Button_style_Small}"
+                            ToolTip="Add a global content filter that applies to all apps"
+                            Visibility="Visible" />
+                    </StackPanel>
+
                     <TextBlock
                         Width="auto"
                         Padding="0,10,0,0"
@@ -358,6 +448,7 @@
                         <ColumnDefinition Width="100" />
                         <ColumnDefinition Width="65" />
                         <ColumnDefinition Width="185" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -432,6 +523,20 @@
                     </Button>
                     <Button
                         Grid.Column="6"
+                        MinWidth="200"
+                        Margin="3,0"
+                        HorizontalAlignment="Stretch"
+                        Style="{StaticResource Sort_Button_style}"
+                        ToolTip="Per-app content filter. Set a mode and keywords to filter the title info for each app."
+                        Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Content filter" />
+                    </Button>
+                    <Button
+                        Grid.Column="7"
                         Margin="3,0"
                         HorizontalAlignment="Stretch"
                         Style="{StaticResource Sort_Button_style}"
@@ -479,6 +584,7 @@
                                     <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="65" />
                                     <ColumnDefinition Width="185" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock
@@ -535,8 +641,36 @@
                                         IsEnabled="{Binding ApplyCustomAppName}"
                                         Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
+                                <!--  Per-app content filter (visible when enabled in settings)  -->
                                 <StackPanel
                                     Grid.Column="6"
+                                    MinWidth="200"
+                                    Orientation="Horizontal"
+                                    Visibility="{Binding DataContext.WindowActivitySettings.EnableTitleFilters, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <ComboBox
+                                        Width="80"
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        SelectedIndex="{Binding ContentFilterMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{StaticResource DarkComboBoxStyle}"
+                                        ToolTip="None: no filter.&#x0a;Exclude: hide info when any keyword matches.&#x0a;Include: only show info when at least one keyword matches.">
+                                        <ComboBoxItem Content="None" />
+                                        <ComboBoxItem Content="Exclude" />
+                                        <ComboBoxItem Content="Include" />
+                                    </ComboBox>
+                                    <TextBox
+                                        Width="110"
+                                        Margin="4,0,0,0"
+                                        Padding="4,2"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="12"
+                                        IsEnabled="{Binding ContentFilterEnabled}"
+                                        Text="{Binding ContentFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ToolTip="Comma-separated keywords (case-insensitive). E.g.: username, http, @" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="7"
                                     Orientation="Horizontal"
                                     Visibility="{Binding DataContext.WindowActivitySettings.ShowRegexColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <CheckBox

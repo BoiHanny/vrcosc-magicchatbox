@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
@@ -31,4 +32,10 @@ public partial class WindowActivitySettings : VersionedSettings
 
     /// <summary>Global regex pattern applied to every window title. First capture group becomes the title.</summary>
     [ObservableProperty] private string _globalRegex = @"^(.+?)(?:\s*[-–—]\s*[^-–—]+)?$";
+
+    /// <summary>Enable content filtering on window title extra info (after regex extraction).</summary>
+    [ObservableProperty] private bool _enableTitleFilters = false;
+
+    /// <summary>Content filter rules applied to the extracted title text.</summary>
+    public ObservableCollection<TitleFilterRule> TitleFilters { get; set; } = new();
 }

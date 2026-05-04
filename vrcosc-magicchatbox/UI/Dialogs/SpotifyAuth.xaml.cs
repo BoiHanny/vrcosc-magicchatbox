@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using vrcosc_magicchatbox.ViewModels.Sections;
@@ -17,8 +18,8 @@ public partial class SpotifyAuth : Window
     {
         _vm = vm;
         InitializeComponent();
-        ClientIdBox.Password = vm.Settings.ClientId;
-        ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Password);
+        ClientIdBox.Text = vm.Settings.ClientId;
+        ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
         AllowTitle.IsChecked = vm.Settings.AllowTrackTitleInOutput;
         AllowArtist.IsChecked = vm.Settings.AllowArtistInOutput;
         AllowAlbum.IsChecked = vm.Settings.AllowAlbumInOutput;
@@ -29,8 +30,8 @@ public partial class SpotifyAuth : Window
     private void OpenDashboard_Click(object sender, RoutedEventArgs e)
         => _vm.OpenDeveloperDashboardCommand.Execute(null);
 
-    private void ClientIdBox_PasswordChanged(object sender, RoutedEventArgs e)
-        => ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Password);
+    private void ClientIdBox_TextChanged(object sender, TextChangedEventArgs e)
+        => ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
 
     private void PasteClientId_Click(object sender, RoutedEventArgs e)
     {
@@ -38,7 +39,7 @@ public partial class SpotifyAuth : Window
         if (string.IsNullOrWhiteSpace(text))
             return;
 
-        ClientIdBox.Password = text;
+        ClientIdBox.Text = text;
         ConnectButton.IsEnabled = true;
     }
 
@@ -57,7 +58,7 @@ public partial class SpotifyAuth : Window
 
         try
         {
-            await _vm.ConnectWithClientIdAsync(ClientIdBox.Password);
+            await _vm.ConnectWithClientIdAsync(ClientIdBox.Text);
             if (_vm.Display.IsConnected)
             {
                 DialogResult = true;
@@ -75,7 +76,7 @@ public partial class SpotifyAuth : Window
         }
         finally
         {
-            ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Password);
+            ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
         }
     }
 

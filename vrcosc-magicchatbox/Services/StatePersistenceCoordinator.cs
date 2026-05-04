@@ -80,25 +80,24 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
     {
         try
         {
-            // Sync runtime state -> settings before saving
             _intSettingsProvider.Value.SavedSortOrder = _integrationDisplay.IntegrationSortOrder;
-            _intSettingsProvider.Save();
+            _intSettingsProvider.FlushPendingSave();
 
             _trkSettingsProvider.Value.SavedDevices = _trackerDisplay.TrackerDevices;
-            _trkSettingsProvider.Save();
+            _trkSettingsProvider.FlushPendingSave();
             _appHistorySvc.Value.SaveAppHistory();
             _mediaLinkSvc.Value.SaveMediaSessions();
             _mediaLinkSvc.Value.SaveSeekbarStyles();
             _hotkeyMgmt.SaveHotkeyConfigurations();
             _windowActivity.SaveSettings();
             _weatherSvc.SaveSettings();
-            _mediaLinkSettingsProvider.Save();
-            _oscSettingsProvider.Save();
-            _chatSettingsProvider.Save();
-            _openAISettingsProvider.Save();
-            _timeSettingsProvider.Save();
-            _ttsSettingsProvider.Save();
-            _appSettingsProvider.Save();
+            _mediaLinkSettingsProvider.FlushPendingSave();
+            _oscSettingsProvider.FlushPendingSave();
+            _chatSettingsProvider.FlushPendingSave();
+            _openAISettingsProvider.FlushPendingSave();
+            _timeSettingsProvider.FlushPendingSave();
+            _ttsSettingsProvider.FlushPendingSave();
+            _appSettingsProvider.FlushPendingSave();
 
             _statusListSvc.SaveStatusList();
 

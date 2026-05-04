@@ -56,6 +56,13 @@
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Chat timeout" />
+                    <TextBlock
+                        Margin="0,0,0,3"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="12"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="How many seconds the chatbox stays visible in VRChat after you send a message."
+                        TextWrapping="Wrap" />
                     <TextBox
                         x:Name="ScanPauseCountDown"
                         Width="40"
@@ -156,7 +163,8 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
-                                Text="Minimum letters" />
+                                Text="Minimum letters"
+                                ToolTip="How many characters you must type before suggestions appear" />
                             <TextBox
                                 Width="45"
                                 Padding="5,0,0,0"
@@ -170,7 +178,8 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
-                                Text="Max words" />
+                                Text="Max words"
+                                ToolTip="Maximum number of words in each suggestion" />
                             <TextBox
                                 Width="45"
                                 Padding="5,0,0,0"
@@ -184,7 +193,8 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
-                                Text="OpenAI delay" />
+                                Text="OpenAI delay"
+                                ToolTip="Milliseconds to wait after you stop typing before querying OpenAI" />
                             <TextBox
                                 Width="60"
                                 Padding="5,0,0,0"

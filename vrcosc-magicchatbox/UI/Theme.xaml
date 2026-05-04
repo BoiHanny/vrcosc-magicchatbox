@@ -714,8 +714,8 @@
         <Setter Property="Padding" Value="8" />
         <Setter Property="Background" Value="{StaticResource SurfaceCardBrush}" />
         <Setter Property="CornerRadius" Value="5,0,0,5" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderMutedBrush}" />
-        <Setter Property="BorderThickness" Value="1,0,0,0" />
+        <Setter Property="BorderBrush" Value="#7B5BBB" />
+        <Setter Property="BorderThickness" Value="2,0,0,0" />
     </Style>
 
     <Style

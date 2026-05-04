@@ -118,7 +118,6 @@ public partial class SoundpadModule : ObservableObject, IModule
             await pipe.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             await pipe.FlushAsync().ConfigureAwait(false);
 
-            // Read response (Soundpad always sends one)
             byte[] responseBuffer = new byte[4096];
             int bytesRead = await pipe.ReadAsync(responseBuffer, 0, responseBuffer.Length).ConfigureAwait(false);
 
@@ -127,7 +126,6 @@ public partial class SoundpadModule : ObservableObject, IModule
         }
         catch (TimeoutException)
         {
-            // Pipe not available — fall back to Process.Start
             FallbackProcessStart(command);
         }
         catch (IOException)
@@ -218,7 +216,6 @@ public partial class SoundpadModule : ObservableObject, IModule
 
     private void UpdateCurrentState(string title)
     {
-        // Removing the content inside brackets and the brackets themselves
         title = Regex.Replace(title, @"\s*\[.*?\]\s*", " ").Trim();
 
         _dispatcher.BeginInvoke(() =>

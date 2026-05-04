@@ -21,4 +21,10 @@ public interface INavigationService
     /// Validates the path exists and is a directory.
     /// </summary>
     bool OpenFolder(string folderPath);
+
+    /// <summary>
+    /// Opens Explorer with a file pre-selected.
+    /// Validates the path exists and is a file.
+    /// </summary>
+    bool OpenFileInExplorer(string filePath);
 }

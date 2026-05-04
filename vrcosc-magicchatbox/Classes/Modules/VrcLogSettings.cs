@@ -27,10 +27,8 @@ public enum RadarDisplayMode
 /// </summary>
 public partial class VrcLogSettings : VersionedSettings
 {
-    // --- Display mode ---
     [ObservableProperty] private RadarDisplayMode _displayMode = RadarDisplayMode.EventOverlay;
 
-    // --- Feature toggles ---
     [ObservableProperty] private bool _announceJoins = true;
     [ObservableProperty] private bool _announceLeaves = true;
     [ObservableProperty] private bool _announceScreenshots = true;
@@ -45,19 +43,16 @@ public partial class VrcLogSettings : VersionedSettings
     /// <summary>Warn when VRChat blocks an avatar (oversized asset bundle / performance shield).</summary>
     [ObservableProperty] private bool _warnOnAvatarBlocked = true;
 
-    // --- Session detection ---
     /// <summary>Use VRChat.exe process detection alongside log activity for session management.</summary>
     [ObservableProperty] private bool _useWindowDetection = true;
     /// <summary>End session after this many minutes of inactivity (no logs AND no VRChat process). Range: 5–90.</summary>
     [ObservableProperty] private int _sessionTimeoutMinutes = 15;
 
-    // --- Encounter tracking ---
     /// <summary>Show the encounter tracking table in the UI.</summary>
     [ObservableProperty] private bool _showEncounterTable = false;
     /// <summary>Minimum times a player must be seen before appearing in the encounter table. Range: 1–10.</summary>
     [ObservableProperty] private int _minEncounterCount = 2;
 
-    // --- Output templates ---
     [ObservableProperty] private string _templateWorld = "{master}🌎 {world} | 👥 {count} | {type} {region}";
     [ObservableProperty] private string _templateJoin = "👋 {user} joined!";
     [ObservableProperty] private string _templateLeave = "🏃 {user} left";
@@ -68,7 +63,6 @@ public partial class VrcLogSettings : VersionedSettings
     [ObservableProperty] private string _templateAvatarBlocked = "⚠️ Avatar blocked by performance shield";
     [ObservableProperty] private string _masterIcon = "👑 ";
 
-    // --- Transient durations (seconds) ---
     [ObservableProperty] private int _joinLeaveDuration = 4;
     [ObservableProperty] private int _screenshotDuration = 4;
     [ObservableProperty] private int _downloadDuration = 8;
@@ -77,11 +71,9 @@ public partial class VrcLogSettings : VersionedSettings
     [ObservableProperty] private int _sessionStatsDuration = 15;
     [ObservableProperty] private int _avatarBlockedDuration = 6;
 
-    // --- OSC pulse triggers ---
     [ObservableProperty] private bool _sendCameraFlashOsc = false;
     [ObservableProperty] private string _oscCameraFlashParam = "/avatar/parameters/CameraFlash";
 
-    // --- Performance / limits ---
     /// <summary>Maximum log lines to keep in memory. Older entries are evicted. Range: 500–100000.</summary>
     [ObservableProperty] private int _maxLogEntries = 50000;
     /// <summary>Maximum bytes (MB) to scan during backfill. Range: 1–200.</summary>

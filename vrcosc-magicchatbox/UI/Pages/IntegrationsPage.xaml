@@ -2277,8 +2277,7 @@
         <ListBoxItem
             Name="MediaLinkItem"
             Margin="3"
-            Opacity="{Binding IntegrationDisplay.MediaLinkOpacity}"
-            Visibility="{Binding MediaLinkSettings.Disabled, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+            Opacity="{Binding IntegrationDisplay.MediaLinkOpacity}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />

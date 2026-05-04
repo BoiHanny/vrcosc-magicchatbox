@@ -177,8 +177,6 @@ namespace vrcosc_magicchatbox.ViewModels
             view.SortDescriptions.Add(new SortDescription(prop, dir));
         }
 
-        // ── sort ──────────────────────────────────────────────────────────────
-
         [RelayCommand]
         private void SortByField(StatusSortField field)
         {
@@ -199,8 +197,6 @@ namespace vrcosc_magicchatbox.ViewModels
         partial void OnCurrentSortFieldChanged(StatusSortField value)
             => OnPropertyChanged(nameof(SortDirectionSymbol));
 
-        // ── group commands ────────────────────────────────────────────────────
-
         [RelayCommand]
         private void SelectGroup(StatusGroup? group)
         {
@@ -220,7 +216,6 @@ namespace vrcosc_magicchatbox.ViewModels
             if (AppSettings.CycleOverrideCurrentGroup)
                 AppSettings.CycleOverrideGroupId = value?.GroupId ?? "";
 
-            // Update popup visual selection indicator
             foreach (var g in _chatStatus.GroupList)
                 g.IsPopupSelected = (g == value);
         }
@@ -289,8 +284,6 @@ namespace vrcosc_magicchatbox.ViewModels
             else if (!AppSettings.CycleOverrideCurrentGroup)
                 AppSettings.CycleOverrideGroupId = "";
         }
-
-        // ── selection mode ────────────────────────────────────────────────────
 
         [RelayCommand(CanExecute = nameof(CanEnterSelectionMode))]
         private void EnterSelectionMode()
@@ -384,8 +377,6 @@ namespace vrcosc_magicchatbox.ViewModels
             _statusListService.SaveStatusList();
         }
 
-        // ── navigation ────────────────────────────────────────────────────────
-
         [RelayCommand]
         private void ActivateSetting(string settingName)
             => _menuNav.ActivateSetting(settingName);
@@ -393,8 +384,6 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         private void ClearStatusInput()
             => _chatStatus.NewStatusItemTxt = string.Empty;
-
-        // ── CRUD ──────────────────────────────────────────────────────────────
 
         public void SaveStatusList() => _statusListService.SaveStatusList();
 
@@ -530,8 +519,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 SaveStatusList();
             }
         }
-
-        // ── Import / Export ────────────────────────────────────────────────
 
         [RelayCommand]
         private void ShareCurrentGroup()
