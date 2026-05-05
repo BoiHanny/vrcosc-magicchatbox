@@ -164,23 +164,6 @@ public class UpdateApp
         }
     }
 
-    private static string NormalizeFilePathOrFallback(string? storedPath, string fallbackPath)
-    {
-        if (string.IsNullOrWhiteSpace(storedPath))
-        {
-            return fallbackPath;
-        }
-
-        try
-        {
-            return Path.GetFullPath(storedPath);
-        }
-        catch
-        {
-            return fallbackPath;
-        }
-    }
-
     private static void ClearAndRecreateDirectory(string path, string operationName)
     {
         ExecuteWithRetry(() =>
@@ -241,6 +224,14 @@ public class UpdateApp
         string resolvedAppDirectory = ResolveApplicationDirectory(unzipPath);
         magicChatboxExePath = Path.Combine(resolvedAppDirectory, ExecutableName);
         SaveUpdateLocation(backupDirectory);
+    }
+
+    private void ResetUpdateWorkspacePaths()
+    {
+        tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
+        unzipPath = Path.Combine(tempPath, "update_unzip");
+        maintenanceRunnerPath = Path.Combine(tempPath, "maintenance_runner");
+        magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
     }
 
     private async Task DownloadAndExtractUpdate(string zipPath)
@@ -372,10 +363,6 @@ public class UpdateApp
     {
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
         string actualCurrentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        string defaultTempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
-        string defaultUnzipPath = Path.Combine(defaultTempPath, "update_unzip");
-        string defaultMaintenanceRunnerPath = Path.Combine(defaultTempPath, "maintenance_runner");
-        string defaultExePath = Path.Combine(defaultUnzipPath, ExecutableName);
         string defaultBackupPath = Path.Combine(dataPath, "backup");
 
         if (!Directory.Exists(dataPath))
@@ -384,71 +371,41 @@ public class UpdateApp
             Logging.WriteInfo($"Created data directory at: {dataPath}");
         }
 
-        if (createNewAppLocation)
-        {
-            SetDefaultPaths();
-            SaveUpdateLocation();
-            return;
-        }
+        SetDefaultPaths();
 
-        if (!File.Exists(jsonFilePath))
+        if (!createNewAppLocation && File.Exists(jsonFilePath))
         {
-            SetDefaultPaths();
-            SaveUpdateLocation();
-        }
-        else
-        {
-            var settingsJson = File.ReadAllText(jsonFilePath);
+            try
+            {
+                string settingsJson = File.ReadAllText(jsonFilePath);
 
-            if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
-            {
-                Logging.WriteInfo("The app_location.json file is empty or corrupted.");
-                SetDefaultPaths();
-                SaveUpdateLocation();
-            }
-            else
-            {
-                try
+                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+                {
+                    Logging.WriteInfo("The app_location.json file is empty or corrupted.");
+                    SetDefaultPaths();
+                }
+                else
                 {
                     JObject appLocation = JObject.Parse(settingsJson);
                     currentAppPath = NormalizePathOrFallback(appLocation["currentAppPath"]?.ToString(), actualCurrentAppPath, requireExistingDirectory: true);
-                    tempPath = NormalizePathOrFallback(appLocation["tempPath"]?.ToString(), defaultTempPath);
-                    unzipPath = NormalizePathOrFallback(appLocation["unzipPath"]?.ToString(), defaultUnzipPath);
-                    maintenanceRunnerPath = NormalizePathOrFallback(appLocation["maintenanceRunnerPath"]?.ToString(), defaultMaintenanceRunnerPath);
-                    magicChatboxExePath = NormalizeFilePathOrFallback(appLocation["magicChatboxExePath"]?.ToString(), defaultExePath);
-                    backupPath = NormalizePathOrFallback(appLocation["backupPath"]?.ToString(), defaultBackupPath);
+                    ResetUpdateWorkspacePaths();
+                    backupPath = NormalizePathOrFallback(appLocation["backupPath"]?.ToString(), defaultBackupPath, requireExistingDirectory: true);
                 }
-                catch (Exception ex) when (ex is Newtonsoft.Json.JsonReaderException || ex is IOException || ex is UnauthorizedAccessException)
-                {
-                    Logging.WriteInfo($"Error parsing app_location.json: {ex.Message}");
-                    SetDefaultPaths();
-                    SaveUpdateLocation();
-                }
+            }
+            catch (Exception ex) when (ex is Newtonsoft.Json.JsonReaderException || ex is IOException || ex is UnauthorizedAccessException)
+            {
+                Logging.WriteInfo($"Error reading app_location.json: {ex.Message}");
+                SetDefaultPaths();
             }
         }
 
-        if (!Directory.Exists(tempPath))
+        try
         {
-            Directory.CreateDirectory(tempPath);
-            Logging.WriteInfo($"Created temp directory at: {tempPath}");
+            SaveUpdateLocation();
         }
-
-        if (!Directory.Exists(unzipPath))
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
         {
-            Directory.CreateDirectory(unzipPath);
-            Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
-        }
-
-        if (!Directory.Exists(maintenanceRunnerPath))
-        {
-            Directory.CreateDirectory(maintenanceRunnerPath);
-            Logging.WriteInfo($"Created maintenance runner directory at: {maintenanceRunnerPath}");
-        }
-
-        if (!Directory.Exists(backupPath))
-        {
-            Directory.CreateDirectory(backupPath);
-            Logging.WriteInfo($"Created backup directory at: {backupPath}");
+            Logging.WriteInfo($"Could not save app_location.json: {ex.Message}");
         }
     }
 
@@ -498,35 +455,8 @@ public class UpdateApp
     private void SetDefaultPaths()
     {
         currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
-        unzipPath = Path.Combine(tempPath, "update_unzip");
-        maintenanceRunnerPath = Path.Combine(tempPath, "maintenance_runner");
-        magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
+        ResetUpdateWorkspacePaths();
         backupPath = Path.Combine(dataPath, "backup");
-
-        if (!Directory.Exists(tempPath))
-        {
-            Directory.CreateDirectory(tempPath);
-            Logging.WriteInfo($"Created temp directory at: {tempPath}");
-        }
-
-        if (!Directory.Exists(unzipPath))
-        {
-            Directory.CreateDirectory(unzipPath);
-            Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
-        }
-
-        if (!Directory.Exists(maintenanceRunnerPath))
-        {
-            Directory.CreateDirectory(maintenanceRunnerPath);
-            Logging.WriteInfo($"Created maintenance runner directory at: {maintenanceRunnerPath}");
-        }
-
-        if (!Directory.Exists(backupPath))
-        {
-            Directory.CreateDirectory(backupPath);
-            Logging.WriteInfo($"Created backup directory at: {backupPath}");
-        }
     }
 
     private void ResetExtractionWorkspace()
@@ -650,19 +580,10 @@ public class UpdateApp
 
             bool useCustomZip = !string.IsNullOrEmpty(customZipPath);
 
-            if (!Directory.Exists(backupPath))
-            {
-                UpdateStatus("Creating backup directory");
-                Directory.CreateDirectory(backupPath);
-                Logging.WriteInfo($"Created backup directory at: {backupPath}");
-            }
-            else
-            {
-                UpdateStatus("Clearing previous backup");
-                Directory.Delete(backupPath, true);
-                Directory.CreateDirectory(backupPath);
-                Logging.WriteInfo($"Cleared and recreated backup directory at: {backupPath}");
-            }
+            UpdateStatus("Preparing backup directory");
+            ClearAndRecreateDirectory(backupPath, "Prepare backup directory");
+            Logging.WriteInfo($"Prepared backup directory at: {backupPath}");
+
             UpdateStatus("Creating backup");
             CopyDirectory(new DirectoryInfo(currentAppPath), new DirectoryInfo(backupPath));
 

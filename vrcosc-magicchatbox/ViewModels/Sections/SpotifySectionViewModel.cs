@@ -19,6 +19,22 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
 /// <summary>
+/// UI-facing Spotify template preset metadata with seekbar availability baked in for the current mode.
+/// </summary>
+public sealed class SpotifyTemplatePresetOption
+{
+    public SpotifyTemplatePresetOption(SpotifyTemplatePreset preset, bool isSelectable)
+    {
+        Name = preset.Name;
+        IsSelectable = isSelectable;
+    }
+
+    public string Name { get; }
+
+    public bool IsSelectable { get; }
+}
+
+/// <summary>
 /// Section ViewModel for the first-class Spotify integration.
 /// </summary>
 public partial class SpotifySectionViewModel : ObservableObject
@@ -39,13 +55,13 @@ public partial class SpotifySectionViewModel : ObservableObject
     [ObservableProperty] private string _statusText = "Not connected";
     [ObservableProperty] private string _outputPreview = string.Empty;
     [ObservableProperty] private string _previewLengthText = $"0/{Constants.OscMaxMessageLength}";
-    [ObservableProperty] private string? _selectedPresetName;
 
     public bool CanStartConnection => !IsConnecting;
     public bool HasDisplayError => !string.IsNullOrWhiteSpace(Display.ErrorText);
 
-    public string[] PresetNames { get; } = SpotifySettings.TemplatePresets
-        .Select(p => p.Name).ToArray();
+    public SpotifyTemplatePresetOption[] TemplatePresets => SpotifySettings.TemplatePresets
+        .Select(preset => new SpotifyTemplatePresetOption(preset, !IsSeekbarMode || preset.SupportsSeekbar))
+        .ToArray();
 
     public SpotifyProgressDisplayMode[] ProgressDisplayModes { get; } = Enum.GetValues<SpotifyProgressDisplayMode>();
 
@@ -53,6 +69,27 @@ public partial class SpotifySectionViewModel : ObservableObject
 
     /// <summary>True when the user has selected Seekbar mode — controls seekbar style dropdown visibility.</summary>
     public bool IsSeekbarMode => Settings.ProgressDisplayMode == SpotifyProgressDisplayMode.Seekbar;
+
+    public string? SelectedPresetName
+    {
+        get => SpotifySettings.FindPresetByTemplate(Settings.OutputTemplate)?.Name;
+        set
+        {
+            SpotifyTemplatePreset? preset = SpotifySettings.FindPresetByName(value);
+            if (preset == null || string.Equals(Settings.OutputTemplate, preset.Template, StringComparison.Ordinal))
+                return;
+
+            Settings.OutputTemplate = preset.Template;
+            if (preset.SupportsSeekbar)
+            {
+                Settings.ShowProgress = true;
+                Settings.ProgressDisplayMode = SpotifyProgressDisplayMode.Seekbar;
+            }
+
+            OnPropertyChanged();
+            RefreshPreview();
+        }
+    }
 
     public string RedirectUri => Constants.SpotifyOAuthRedirectUri;
 
@@ -103,28 +140,12 @@ public partial class SpotifySectionViewModel : ObservableObject
         Settings.PropertyChanged += OnSettingsChanged;
         MediaLinkDisplay.PropertyChanged += OnMediaLinkDisplayChanged;
 
+        EnsureSeekbarCompatibleTemplate();
         RefreshStatus();
         RefreshPreview();
     }
 
     partial void OnIsConnectingChanged(bool value) => OnPropertyChanged(nameof(CanStartConnection));
-
-    partial void OnSelectedPresetNameChanged(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return;
-
-        var preset = SpotifySettings.TemplatePresets.FirstOrDefault(p => p.Name == value);
-        if (preset != default)
-        {
-            Settings.OutputTemplate = preset.Template;
-            if (preset.Template.Contains("{seekbar}", StringComparison.OrdinalIgnoreCase))
-            {
-                Settings.ShowProgress = true;
-                Settings.ProgressDisplayMode = SpotifyProgressDisplayMode.Seekbar;
-            }
-        }
-    }
 
     public async Task ConnectWithClientIdAsync(string clientId)
     {
@@ -247,7 +268,14 @@ public partial class SpotifySectionViewModel : ObservableObject
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SpotifySettings.ProgressDisplayMode))
+        {
             OnPropertyChanged(nameof(IsSeekbarMode));
+            OnPropertyChanged(nameof(TemplatePresets));
+            EnsureSeekbarCompatibleTemplate();
+        }
+
+        if (e.PropertyName == nameof(SpotifySettings.OutputTemplate))
+            OnPropertyChanged(nameof(SelectedPresetName));
 
         if (e.PropertyName == nameof(SpotifySettings.OutputTemplate) ||
             e.PropertyName == nameof(SpotifySettings.PartyTemplate) ||
@@ -291,6 +319,16 @@ public partial class SpotifySectionViewModel : ObservableObject
     {
         OutputPreview = Modules.Spotify?.BuildOutputString(useSample: true) ?? string.Empty;
         PreviewLengthText = $"{OutputPreview.Length}/{Constants.OscMaxMessageLength}";
+    }
+
+    private void EnsureSeekbarCompatibleTemplate()
+    {
+        if (!IsSeekbarMode || SpotifySettings.TemplateSupportsSeekbar(Settings.OutputTemplate))
+            return;
+
+        Settings.ShowProgress = true;
+        Settings.OutputTemplate = SpotifySettings.CompactSeekbarPreset.Template;
+        OnPropertyChanged(nameof(SelectedPresetName));
     }
 
     private void CopyText(string text, string successMessage, string key)
