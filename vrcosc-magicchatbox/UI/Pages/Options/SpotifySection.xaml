@@ -262,8 +262,23 @@
                                 Width="130"
                                 Margin="8,0,0,0"
                                 FontSize="12"
-                                ItemsSource="{Binding PresetNames}"
-                                SelectedItem="{Binding SelectedPresetName, Mode=TwoWay}" />
+                                DisplayMemberPath="Name"
+                                ItemsSource="{Binding TemplatePresets}"
+                                SelectedValue="{Binding SelectedPresetName, Mode=TwoWay}"
+                                SelectedValuePath="Name">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="IsEnabled" Value="True" />
+                                        <Setter Property="Opacity" Value="1" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                                <Setter Property="Opacity" Value="0.45" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
                         </StackPanel>
                         <TextBox
                             Width="420"

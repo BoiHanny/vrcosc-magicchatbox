@@ -38,6 +38,21 @@ public enum SpotifyProgressDisplayMode
     Seekbar
 }
 
+public sealed class SpotifyTemplatePreset
+{
+    public SpotifyTemplatePreset(string name, string template)
+    {
+        Name = name;
+        Template = template;
+    }
+
+    public string Name { get; }
+
+    public string Template { get; }
+
+    public bool SupportsSeekbar => SpotifySettings.TemplateSupportsSeekbar(Template);
+}
+
 /// <summary>
 /// Persisted settings for the first-class Spotify Web API integration.
 /// OAuth tokens are encrypted with the same DPAPI pattern used by other integrations.
@@ -189,15 +204,55 @@ public partial class SpotifySettings : VersionedSettings
         set => TokenExpiresAtUtcTicks = value <= DateTime.MinValue ? 0 : value.ToUniversalTime().Ticks;
     }
 
-    public static readonly (string Name, string Template)[] TemplatePresets =
+    public static readonly SpotifyTemplatePreset CompactSeekbarPreset =
+        new("Compact Seekbar", "{play_icon} {title} {seekbar}");
+
+    public static readonly SpotifyTemplatePreset[] TemplatePresets =
     [
-        ("Compact", "{play_icon} {artist} - {title}"),
-        ("Rich", "{play_icon} {title} by {artist} {liked_icon} {explicit_icon}"),
-        ("MediaLink style", "{play_icon} {title} ᵇʸ {artist}\\n{seekbar}"),
-        ("Compact seekbar", "{play_icon} {title} {seekbar}"),
-        ("Album", "{title}\\n{artist} - {album}"),
-        ("Controls", "{shuffle_icon} {repeat_icon} {device}"),
-        ("Party/DJ", "{play_icon} DJ: {title} - {artist} {queue}"),
-        ("Minimal", "{title}")
+        new("Compact", "{play_icon} {artist} - {title}"),
+        new("Rich", "{play_icon} {title} by {artist} {liked_icon} {explicit_icon}"),
+        new("MediaLink style", "{play_icon} {title} ᵇʸ {artist}\\n{seekbar}"),
+        CompactSeekbarPreset,
+        new("Album", "{title}\\n{artist} - {album}"),
+        new("Controls", "{shuffle_icon} {repeat_icon} {device}"),
+        new("Party/DJ", "{play_icon} DJ: {title} - {artist} {queue}"),
+        new("Minimal", "{title}")
     ];
+
+    public static bool TemplateSupportsSeekbar(string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+            return false;
+
+        return template.Contains("{seekbar}", StringComparison.OrdinalIgnoreCase)
+            || template.Contains("{progress}", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static SpotifyTemplatePreset? FindPresetByName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        foreach (SpotifyTemplatePreset preset in TemplatePresets)
+        {
+            if (string.Equals(preset.Name, name, StringComparison.OrdinalIgnoreCase))
+                return preset;
+        }
+
+        return null;
+    }
+
+    public static SpotifyTemplatePreset? FindPresetByTemplate(string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+            return null;
+
+        foreach (SpotifyTemplatePreset preset in TemplatePresets)
+        {
+            if (string.Equals(preset.Template, template, StringComparison.Ordinal))
+                return preset;
+        }
+
+        return null;
+    }
 }
