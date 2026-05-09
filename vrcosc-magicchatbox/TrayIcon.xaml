@@ -24,6 +24,7 @@
     <icon:TrayIconHandlers.TrayIcons>
         <icon:TrayIcon
             Title="MagicChatbox"
+            ClickCommand="{Binding ShowMainWindow}"
             NotificationServiceMemberPath="NotificationService">
         </icon:TrayIcon>
     </icon:TrayIconHandlers.TrayIcons>
