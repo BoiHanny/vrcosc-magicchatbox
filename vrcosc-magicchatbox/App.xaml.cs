@@ -289,6 +289,8 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.Activate();
                 mainWindow.Focus();
+                if (vm.AppSettingsInstance.StartInBackground)
+                    mainWindow.Hide();
 
                 mainWindow.HideStartupOverlay();
 

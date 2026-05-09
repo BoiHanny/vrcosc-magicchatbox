@@ -261,7 +261,8 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         nameof(AppSettings.Topmost),
         nameof(AppSettings.CheckUpdateOnStartup),
         nameof(AppSettings.AppOpacity),
-        nameof(AppSettings.AppIsEnabled)
+        nameof(AppSettings.AppIsEnabled),
+        nameof(AppSettings.StartInBackground),
     ];
 
     private static readonly string[] EggSettings =
