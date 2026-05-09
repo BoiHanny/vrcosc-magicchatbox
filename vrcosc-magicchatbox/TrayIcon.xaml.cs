@@ -15,6 +15,11 @@ namespace vrcosc_magicchatbox
 
         public ICommand ShowMainWindow { get; }
 
+        public ICommand ShowIntegrations { get; }
+        public ICommand ShowStatus { get; }
+        public ICommand ShowChatting { get; }
+        public ICommand ShowOptions { get; }
+
         public ICommand CloseApplication { get; }
 
         public TrayIcon()
@@ -30,6 +35,37 @@ namespace vrcosc_magicchatbox
             ShowMainWindow = new RelayCommand(() =>
             {
                 ShowMainWindows();
+            });
+
+            //----------------
+            //----------------
+
+            ShowIntegrations = new RelayCommand(() =>
+            {
+                if (!mainWindow.IsVisible)
+                    ShowMainWindows();
+                mainWindow.VM.SelectedMenuIndex = 0;
+            });
+
+            ShowStatus = new RelayCommand(() =>
+            {
+                if (!mainWindow.IsVisible)
+                    ShowMainWindows();
+                mainWindow.VM.SelectedMenuIndex = 1;
+            });
+
+            ShowChatting = new RelayCommand(() =>
+            {
+                if (!mainWindow.IsVisible)
+                    ShowMainWindows();
+                mainWindow.VM.SelectedMenuIndex = 2;
+            });
+
+            ShowOptions = new RelayCommand(() =>
+            {
+                if (!mainWindow.IsVisible)
+                    ShowMainWindows();
+                mainWindow.VM.SelectedMenuIndex = 3;
             });
 
             //----------------
