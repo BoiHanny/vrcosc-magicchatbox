@@ -13,6 +13,7 @@ namespace vrcosc_magicchatbox
         private MainWindow mainWindow = App.mainWindow;
         public INotificationService NotificationService { get; set; }
 
+        public ICommand ShowMainWindow { get; }
         public TrayIcon()
         {
             InitializeComponent();
@@ -23,7 +24,20 @@ namespace vrcosc_magicchatbox
                 this.Hide();
             };
 
+            ShowMainWindow = new RelayCommand(() =>
+            {
+                ShowMainWindows();
+            });
+
         }
+
+        private void ShowMainWindows()
+        {
+            mainWindow.Show();
+            mainWindow.WindowState = WindowState.Normal;
+            mainWindow.Focus();
+        }
+
         public void Notify(string text)
         {
             NotificationService.Notify("MagicChatbox", text);
