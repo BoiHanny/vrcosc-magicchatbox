@@ -20,6 +20,10 @@ namespace vrcosc_magicchatbox
         public ICommand ShowChatting { get; }
         public ICommand ShowOptions { get; }
 
+        public ICommand ToggleMasterSwitch { get; }
+        public ICommand ToggleAFK { get; }
+        public ICommand ToggleVoiceChat { get; }
+
         public ICommand CloseApplication { get; }
 
         public TrayIcon()
@@ -66,6 +70,30 @@ namespace vrcosc_magicchatbox
                 if (!mainWindow.IsVisible)
                     ShowMainWindows();
                 mainWindow.VM.SelectedMenuIndex = 3;
+            });
+
+            //----------------
+            //----------------
+
+            MasterSwitch.IsChecked = mainWindow.VM.MasterSwitch;
+            ToggleMasterSwitch = new RelayCommand(() =>
+            {
+                mainWindow.VM.MasterSwitch = !mainWindow.VM.MasterSwitch;
+                mainWindow.VM.MasterSwitchToggledCommand.Execute(true);
+                MasterSwitch.IsChecked = mainWindow.VM.MasterSwitch;
+            });
+
+            AFKSwitch.IsChecked = mainWindow.VM.Modules.Afk.Settings.OverrideAfk;
+            ToggleAFK = new RelayCommand(() =>
+            {
+                mainWindow.VM.Modules.Afk.Settings.OverrideAfk = !mainWindow.VM.Modules.Afk.Settings.OverrideAfk;
+                AFKSwitch.IsChecked = mainWindow.VM.Modules.Afk.Settings.OverrideAfk;
+            });
+
+            VoiceChat.Header = mainWindow.VM.TtsAudio.ToggleVoiceText;
+            ToggleVoiceChat = new RelayCommand(() =>
+            {
+                mainWindow.VM.ToggleVoiceCommand.Execute(true);
             });
 
             //----------------

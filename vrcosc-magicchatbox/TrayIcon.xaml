@@ -58,6 +58,28 @@
 
                     <Separator />
 
+                    <MenuItem
+                        x:Name="MasterSwitch"
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ToggleMasterSwitch}"
+                        Header="Send to VRChat"
+                        IsCheckable="True"
+                        IsChecked="True" />
+                    <MenuItem
+                        x:Name="AFKSwitch"
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ToggleAFK}"
+                        Header="AFK Now"
+                        IsCheckable="True"
+                        IsChecked="True" />
+                    <MenuItem
+                        x:Name="VoiceChat"
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ToggleVoiceChat}"
+                        Header="{Binding TtsAudio.ToggleVoiceText}" />
+
+                    <Separator />
+
                     <MenuItem Command="{Binding CloseApplication}" Header="E_xit">
                         <MenuItem.Icon>
                             <Image Source="/Img/Icons/Cross_ico.png" />
