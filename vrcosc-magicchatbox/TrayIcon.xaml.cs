@@ -110,6 +110,7 @@ namespace vrcosc_magicchatbox
         {
             mainWindow.Show();
             mainWindow.WindowState = WindowState.Normal;
+            mainWindow.Activate();
             mainWindow.Focus();
         }
 
