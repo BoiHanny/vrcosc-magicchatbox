@@ -53,6 +53,12 @@
                         Style="{DynamicResource SettingsCheckbox}">
                         Start application in background
                     </CheckBox>
+                    <CheckBox
+                        x:Name="MinimizeToTray_checkbox"
+                        IsChecked="{Binding AppSettings.MinimizeToTray, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Close/Minimize to tray
+                    </CheckBox>
                     <TextBlock
                         Grid.Column="0"
                         Padding="0,0,0,3"
