@@ -39,6 +39,25 @@
 
                     <Separator />
 
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowIntegrations}"
+                        Header="Integrations" />
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowStatus}"
+                        Header="Status" />
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowChatting}"
+                        Header="Chatting" />
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowOptions}"
+                        Header="Options" />
+
+                    <Separator />
+
                     <MenuItem Command="{Binding CloseApplication}" Header="E_xit">
                         <MenuItem.Icon>
                             <Image Source="/Img/Icons/Cross_ico.png" />
