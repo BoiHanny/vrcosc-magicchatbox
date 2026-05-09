@@ -26,6 +26,26 @@
             Title="MagicChatbox"
             ClickCommand="{Binding ShowMainWindow}"
             NotificationServiceMemberPath="NotificationService">
+            <icon:TrayIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowMainWindow}"
+                        Header="Open">
+                        <MenuItem.Icon>
+                            <Image Source="/Img/Icons/MagicChatbox_ico.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+
+                    <Separator />
+
+                    <MenuItem Command="{Binding CloseApplication}" Header="E_xit">
+                        <MenuItem.Icon>
+                            <Image Source="/Img/Icons/Cross_ico.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </icon:TrayIcon.ContextMenu>
         </icon:TrayIcon>
     </icon:TrayIconHandlers.TrayIcons>
 </Window>

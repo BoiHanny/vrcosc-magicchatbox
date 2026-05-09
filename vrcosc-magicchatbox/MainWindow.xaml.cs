@@ -34,7 +34,8 @@ namespace vrcosc_magicchatbox
         private readonly ModuleBootstrapper _bootstrapper;
         private readonly IModuleHost _moduleHost;
         private bool _shutdownRequested;
-        private ViewModel VM => (ViewModel)DataContext;
+        public bool _isTrayClosing;
+        public ViewModel VM => (ViewModel)DataContext;
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -217,7 +218,7 @@ namespace vrcosc_magicchatbox
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (VM.AppSettingsInstance.MinimizeToTray)
+            if (VM.AppSettingsInstance.MinimizeToTray && !_isTrayClosing)
             {
                 e.Cancel = true;
                 HideToTray();
