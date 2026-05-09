@@ -14,6 +14,9 @@ namespace vrcosc_magicchatbox
         public INotificationService NotificationService { get; set; }
 
         public ICommand ShowMainWindow { get; }
+
+        public ICommand CloseApplication { get; }
+
         public TrayIcon()
         {
             InitializeComponent();
@@ -29,6 +32,14 @@ namespace vrcosc_magicchatbox
                 ShowMainWindows();
             });
 
+            //----------------
+            //----------------
+
+            CloseApplication = new RelayCommand(() =>
+            {
+                mainWindow._isTrayClosing = true;
+                mainWindow.Close();
+            });
         }
 
         private void ShowMainWindows()
