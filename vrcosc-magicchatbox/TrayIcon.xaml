@@ -1,0 +1,30 @@
+﻿<Window
+    x:Class="vrcosc_magicchatbox.TrayIcon"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="https://github.com/nullsoftware/TrayIcon"
+    xmlns:local="clr-namespace:vrcosc_magicchatbox"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="TrayIcon"
+    Width="0"
+    Height="0"
+    Background="Transparent"
+    IsHitTestVisible="False"
+    Left="-50"
+    Opacity="0"
+    RenderOptions.ClearTypeHint="Enabled"
+    ShowInTaskbar="True"
+    TextOptions.TextFormattingMode="Ideal"
+    TextOptions.TextRenderingMode="ClearType"
+    Top="-50"
+    WindowStyle="ToolWindow"
+    mc:Ignorable="d">
+
+    <icon:TrayIconHandlers.TrayIcons>
+        <icon:TrayIcon
+            Title="MagicChatbox"
+            NotificationServiceMemberPath="NotificationService">
+        </icon:TrayIcon>
+    </icon:TrayIconHandlers.TrayIcons>
+</Window>
