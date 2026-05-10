@@ -112,7 +112,7 @@ public partial class TwitchAuth : Window
             api.Settings.ClientId = _localClientId;
             api.Settings.AccessToken = _localToken;
 
-            var validation = await api.Auth.ValidateAccessTokenAsync(_localToken).ConfigureAwait(false);
+            var validation = await api.Auth.ValidateAccessTokenAsync(_localToken);
 
             if (validation == null)
             {

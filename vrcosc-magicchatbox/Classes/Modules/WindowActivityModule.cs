@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
@@ -28,8 +27,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 {
     private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
     private const uint SHGFI_DISPLAYNAME = 0x00000200;
-    private static readonly object InvalidCustomRegexLock = new();
-    private static readonly HashSet<string> InvalidCustomRegexLogged = new(StringComparer.Ordinal);
 
     private bool _usedNewMethod = false;
     private readonly string _vrChatDirectory;
@@ -45,7 +42,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
     private DateTime _waLastErrorToast = DateTime.MinValue;
-    private string? _lastInvalidGlobalRegex;
 
     public WindowActivityModule(
         ISettingsProvider<WindowActivitySettings> settingsProvider,
@@ -63,6 +59,8 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         _dispatcher = dispatcher;
         _consentService = consentService;
         _toast = toast;
+        if (string.Equals(Settings.GlobalRegex, WindowActivitySettings.LegacyDefaultGlobalRegex, StringComparison.Ordinal))
+            Settings.GlobalRegex = WindowActivitySettings.DefaultGlobalRegex;
 
         _consentService.ConsentChanged += (_, e) =>
         {
@@ -179,8 +177,8 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     }
 
     /// <summary>
-    /// Applies the global regex to a window title. Runs BEFORE per-app regex.
-    /// If the regex matches, returns the first capture group; otherwise the original title.
+    /// Applies the global regex transform to a window title. A rule can use "pattern => replacement";
+    /// otherwise the first capture group is used for compatibility.
     /// </summary>
     private string ApplyGlobalRegex(string windowTitle)
     {
@@ -189,26 +187,12 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             || string.IsNullOrEmpty(windowTitle))
             return windowTitle;
 
-        try
-        {
-            var match = GetGlobalRegex().Match(windowTitle);
-            if (match.Success && match.Groups.Count > 1 && !string.IsNullOrEmpty(match.Groups[1].Value))
-                return match.Groups[1].Value;
-        }
-        catch (Exception ex) when (ex is ArgumentException or RegexMatchTimeoutException)
-        {
-            if (!string.Equals(_lastInvalidGlobalRegex, Settings.GlobalRegex, StringComparison.Ordinal))
-            {
-                _lastInvalidGlobalRegex = Settings.GlobalRegex;
-                Logging.WriteException(ex, MSGBox: false);
-            }
-        }
-        return windowTitle;
+        return TitleContentFilter.ApplyRegexTransform(windowTitle, Settings.GlobalRegex);
     }
 
     /// <summary>
-    /// Applies a per-app custom regex to the window title. If the regex matches,
-    /// returns the first capture group; otherwise returns the original title unchanged.
+    /// Applies a per-app custom regex transform to the window title. A rule can use "pattern => replacement";
+    /// otherwise the first capture group is used for compatibility.
     /// </summary>
     private static string ApplyCustomRegex(ProcessInfo process, string windowTitle)
     {
@@ -217,23 +201,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             || string.IsNullOrEmpty(windowTitle))
             return windowTitle;
 
-        try
-        {
-            var match = Regex.Match(windowTitle, process.CustomRegex, RegexOptions.None, TimeSpan.FromMilliseconds(50));
-            if (match.Success && match.Groups.Count > 1 && !string.IsNullOrEmpty(match.Groups[1].Value))
-                return match.Groups[1].Value;
-        }
-        catch (Exception ex) when (ex is ArgumentException or RegexMatchTimeoutException)
-        {
-            lock (InvalidCustomRegexLock)
-            {
-                if (!InvalidCustomRegexLogged.Add(process.CustomRegex))
-                    return windowTitle;
-            }
-
-            Logging.WriteException(ex, MSGBox: false);
-        }
-        return windowTitle;
+        return TitleContentFilter.ApplyRegexTransform(windowTitle, process.CustomRegex);
     }
 
     private string FormatWindowTitle(string fullTitle, ProcessInfo? process = null)
@@ -266,18 +234,11 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     private static string ApplyPerAppFilter(string text, ProcessInfo process)
     {
-        var keywords = process.ContentFilter
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        if (keywords.Length == 0)
-            return text;
-
-        bool anyMatch = keywords.Any(kw => text.Contains(kw, StringComparison.OrdinalIgnoreCase));
-
         return process.ContentFilterMode switch
         {
-            1 => anyMatch ? string.Empty : text,  // Exclude: hide when matches
-            2 => anyMatch ? text : string.Empty,  // Include: show only when matches
+            1 => TitleContentFilter.MatchesAny(text, process.ContentFilter) ? string.Empty : text,
+            2 => TitleContentFilter.MatchesAny(text, process.ContentFilter) ? text : string.Empty,
+            3 => TitleContentFilter.RemoveMatches(text, process.ContentFilter),
             _ => text
         };
     }
@@ -287,6 +248,8 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         if (string.IsNullOrWhiteSpace(text))
             return text;
 
+        string originalText = text;
+        string output = text;
         bool hasIncludeRules = false;
         bool matchedInclude = false;
 
@@ -295,7 +258,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             if (!rule.IsEnabled || string.IsNullOrWhiteSpace(rule.Pattern))
                 continue;
 
-            bool matches = text.Contains(rule.Pattern, StringComparison.OrdinalIgnoreCase);
+            bool matches = TitleContentFilter.MatchesAny(originalText, rule.Pattern);
 
             if (rule.Mode == FilterMode.Exclude && matches)
                 return string.Empty;
@@ -311,7 +274,15 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         if (hasIncludeRules && !matchedInclude)
             return string.Empty;
 
-        return text;
+        foreach (var rule in Settings.TitleFilters)
+        {
+            if (!rule.IsEnabled || string.IsNullOrWhiteSpace(rule.Pattern) || rule.Mode != FilterMode.Remove)
+                continue;
+
+            output = TitleContentFilter.RemoveMatches(output, rule.Pattern);
+        }
+
+        return output;
     }
 
     private string GetFileDescription(string filePath)
@@ -713,20 +684,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             }
         }
         return removed;
-    }
-
-    private Regex? _cachedGlobalRegex;
-    private string? _cachedGlobalRegexPattern;
-
-    private Regex GetGlobalRegex()
-    {
-        var pattern = Settings.GlobalRegex ?? string.Empty;
-        if (_cachedGlobalRegex == null || !string.Equals(_cachedGlobalRegexPattern, pattern, StringComparison.Ordinal))
-        {
-            _cachedGlobalRegex = new Regex(pattern, RegexOptions.None, TimeSpan.FromMilliseconds(50));
-            _cachedGlobalRegexPattern = pattern;
-        }
-        return _cachedGlobalRegex;
     }
 
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]

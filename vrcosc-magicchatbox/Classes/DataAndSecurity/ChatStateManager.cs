@@ -88,8 +88,7 @@ public class ChatStateManager
 
     private void AddChatHistoryItem(string messageText)
     {
-        var random = new Random();
-        int randomId = random.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax);
+        int randomId = Random.Shared.Next(Core.Constants.StatusRandomIdMin, Core.Constants.StatusRandomIdMax);
 
         if (_chatSettings.ChatLiveEdit)
         {

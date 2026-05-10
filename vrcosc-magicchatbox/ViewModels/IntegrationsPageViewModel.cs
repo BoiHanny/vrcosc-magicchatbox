@@ -269,6 +269,17 @@ public partial class IntegrationsPageViewModel : ObservableObject
     { if (m != null) MediaLink.MediaManager_PreviousAsync(m); }
 
     [RelayCommand]
+    private void SelectMediaSession(MediaSessionInfo? m)
+    {
+        if (m == null)
+            return;
+
+        MediaLink.SelectMediaSession(m);
+        if (!_chatStatus.ScanPause)
+            _osc.Value.BuildOSC();
+    }
+
+    [RelayCommand]
     private void SoundpadPlayPause() => Soundpad?.TogglePause();
 
     [RelayCommand]

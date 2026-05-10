@@ -30,7 +30,7 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
         PrivacyHook.NetworkStats => Settings.NetworkStatsConsent,
         PrivacyHook.SoundpadBridge => Settings.SoundpadBridgeConsent,
         PrivacyHook.VrcLogReader => Settings.VrcLogReaderConsent,
-        _ => ConsentState.Unknown,
+        _ => throw new ArgumentOutOfRangeException(nameof(hook), hook, "Unknown privacy hook."),
     };
 
     public void Approve(PrivacyHook hook) => SetState(hook, ConsentState.Approved);
@@ -80,6 +80,8 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
                 Settings.VrcLogReaderConsent = newState;
                 Settings.VrcLogReaderDecidedAt = DateTime.UtcNow;
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(hook), hook, "Unknown privacy hook.");
         }
 
         _provider.Save();

@@ -249,7 +249,20 @@ public class ModuleBootstrapper
                 _host.RegisterModule(spotify);
                 integrationSettings.PropertyChanged += spotify.PropertyChangedHandler;
                 if (integrationSettings.IntgrSpotify && spotify.Settings.AutoConnectOnStartup)
-                    _ = spotify.StartAsync();
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _startupComplete.Task;
+                            await spotify.StartAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logging.WriteInfo($"Spotify auto-connect failed: {ex.Message}");
+                        }
+                    });
+                }
             }
 
             if (tracker != null)

@@ -154,14 +154,14 @@
                                         FontFamily="Albert Sans Thin"
                                         FontSize="11"
                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                        Text="Shows who is speaking in your VC in the chatbox — the DESKTOP / VR toggles. Requires your own Discord Developer app (free, ~2 min)."
+                                        Text="Shows who is speaking in your VC in the chatbox — the DESKTOP / VR toggles. Uses Discord's private voice/RPC permission when Discord allows it."
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         Margin="0,4,0,0"
                                         FontFamily="Albert Sans Thin"
                                         FontSize="11"
                                         Foreground="{StaticResource StatusWarningBrush}"
-                                        Text="⚙  One-time setup below" />
+                                        Text="⚠  Falls back to basic auth if Discord rejects voice/RPC" />
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -265,7 +265,7 @@
                         <TextBlock
                             Margin="0,2,0,8"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Discord doesn't allow third-party apps to read voice data directly, so you create your own free developer app. It stays private — only you use it."
+                            Text="Discord may reject private voice/RPC authorization for unapproved apps. MagicChatbox tries voice access first, then falls back to basic Discord authorization so connection and Rich Presence can still work."
                             TextWrapping="Wrap" />
 
                         <!--  Step 1  -->
@@ -286,7 +286,7 @@
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     Foreground="{StaticResource AccentLightPurpleBrush}"
-                                    Text="Step 1 — Create a Discord Developer app" />
+                                    Text="Step 1 — Choose a Discord Application ID" />
                                 <TextBlock
                                     Margin="0,4,0,0"
                                     FontFamily="Albert Sans Thin"
@@ -307,9 +307,9 @@
                                     FontSize="12"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     TextWrapping="Wrap">
-                                    <Run Text="Then copy the" />
+                                    <Run Text="You can use the bundled ID or copy the" />
                                     <Run FontWeight="SemiBold" Text="Application ID" />
-                                    <Run Text="from the General Information page and paste it in the field below." />
+                                    <Run Text="from the General Information page and paste it in the field below. A custom app does not guarantee Discord will grant private voice/RPC scope." />
                                 </TextBlock>
                             </StackPanel>
                         </Border>
@@ -386,14 +386,14 @@
                                     TextWrapping="Wrap">
                                     <Run Text="Click" />
                                     <Run FontWeight="SemiBold" Text="Connect with Discord" />
-                                    <Run Text="at the top. Your browser will open a Discord authorization page — approve it. MagicChatbox saves the token and will reconnect automatically on startup." />
+                                    <Run Text="at the top. Your browser will open Discord authorization — approve it. If Discord rejects the voice/RPC scope, MagicChatbox automatically retries with basic authorization." />
                                 </TextBlock>
                                 <TextBlock
                                     Margin="0,4,0,0"
                                     FontFamily="Albert Sans Thin"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Note: Discord opens a local page in your browser. After approving, the browser tab will say 'Discord connected!' and close itself."
+                                    Text="Note: Discord opens a local page in your browser. If fallback happens, a second Discord tab may open and voice detection can remain unavailable."
                                     TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>

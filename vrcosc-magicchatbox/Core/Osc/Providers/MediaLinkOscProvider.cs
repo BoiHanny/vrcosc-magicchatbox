@@ -25,6 +25,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
     private readonly SpotifySettings _spotify;
     private readonly AppSettings _app;
     private readonly MediaLinkDisplayState _mediaLink;
+    private readonly SpotifyDisplayState _spotifyDisplay;
     private readonly Lazy<IMediaLinkService> _mediaLinkSvc;
 
     public MediaLinkOscProvider(
@@ -33,6 +34,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         ISettingsProvider<SpotifySettings> spotifyProvider,
         ISettingsProvider<AppSettings> appProvider,
         MediaLinkDisplayState mediaLink,
+        SpotifyDisplayState spotifyDisplay,
         Lazy<IMediaLinkService> mediaLinkSvc)
     {
         _intgr = intgrProvider.Value;
@@ -40,6 +42,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         _spotify = spotifyProvider.Value;
         _app = appProvider.Value;
         _mediaLink = mediaLink;
+        _spotifyDisplay = spotifyDisplay;
         _mediaLinkSvc = mediaLinkSvc;
     }
 
@@ -77,7 +80,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
     private string BuildMediaText(OscBuildContext context)
     {
         var sessions = _mediaLink.MediaSessions?.Where(s => s.IsActive) ?? Enumerable.Empty<MediaSessionInfo>();
-        if (_intgr.IntgrSpotify && _spotify.MediaLinkCoexistence == SpotifyMediaLinkCoexistence.PreferSpotify)
+        if (ShouldSuppressSpotifySessions(context.IsVRRunning))
             sessions = sessions.Where(s => !IsSpotifySession(s));
 
         MediaSessionInfo session = sessions.FirstOrDefault();
@@ -94,6 +97,23 @@ public sealed class MediaLinkOscProvider : IOscProvider
             return BuildPausedText(session);
 
         return BuildPlayingText(session, context);
+    }
+
+    private bool ShouldSuppressSpotifySessions(bool isVR)
+    {
+        if (_spotify.MediaLinkCoexistence != SpotifyMediaLinkCoexistence.PreferSpotify)
+            return false;
+
+        if (!_intgr.IntgrSpotify)
+            return false;
+
+        if (isVR ? !_intgr.IntgrSpotify_VR : !_intgr.IntgrSpotify_DESKTOP)
+            return false;
+
+        if (!_spotifyDisplay.IsConnected || !_spotifyDisplay.HasPlayback)
+            return false;
+
+        return _spotifyDisplay.IsPlaying || _spotify.PauseOutputMode != SpotifyPauseOutputMode.Hide;
     }
 
     private static bool IsSpotifySession(MediaSessionInfo session)

@@ -2265,7 +2265,7 @@
                                     Margin="6,0,0,0"
                                     Maximum="100"
                                     Minimum="0"
-                                    PreviewMouseLeftButtonUp="SpotifyVolume_MouseLeftButtonUp"
+                                    MouseLeftButtonUp="SpotifyVolume_MouseLeftButtonUp"
                                     Value="{Binding SpotifyDisplay.VolumePercent, Mode=OneWay}" />
                             </StackPanel>
                         </Grid>
@@ -2425,7 +2425,10 @@
                                     Margin="5,5,5,0"
                                     VerticalAlignment="Stretch"
                                     Background="{StaticResource SurfaceButtonDarkBrush}"
-                                    CornerRadius="5">
+                                    CornerRadius="5"
+                                    Cursor="Hand"
+                                    MouseLeftButtonUp="MediaSessionRow_MouseLeftButtonUp"
+                                    Tag="{Binding}">
                                     <Grid Margin="10,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition

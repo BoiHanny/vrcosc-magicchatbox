@@ -89,23 +89,133 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Start();
     }
 
-    private void AutoSwitchMediaSession(MediaSessionInfo sessionInfo)
+    public void SelectMediaSession(MediaSessionInfo sessionInfo)
     {
-        if (_mediaLinkSettings.AutoSwitch &&
-            sessionInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing &&
-            sessionInfo.AutoSwitch)
+        if (!_dispatcher.CheckAccess())
         {
-            foreach (var item in _mediaLink.MediaSessions)
+            _dispatcher.BeginInvoke(() => SelectMediaSession(sessionInfo));
+            return;
+        }
+
+        SelectActiveSession(sessionInfo);
+        LastMediaChangeTime = DateTime.UtcNow;
+    }
+
+    private void QueueRefreshActiveSelection(MediaSessionInfo? sessionInfo, bool allowSingleSessionFallback)
+        => _dispatcher.BeginInvoke(() => RefreshActiveSelection(sessionInfo, allowSingleSessionFallback));
+
+    private void RefreshActiveSelection(MediaSessionInfo? changedSession, bool allowSingleSessionFallback)
+    {
+        var sessions = _mediaLink.MediaSessions.ToList();
+        if (sessions.Count == 0)
+            return;
+
+        var activeSession = sessions.FirstOrDefault(s => s.IsActive);
+        MediaSessionInfo? selectedSession = null;
+
+        if (_mediaLinkSettings.AutoSwitch)
+        {
+            var playingSessions = sessions
+                .Where(s => s.AutoSwitch && s.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                .ToList();
+
+            if (playingSessions.Count > 0)
             {
-                if (item.Session.Id == sessionInfo.Session.Id)
-                {
-                    item.IsActive = true;
-                }
-                else
-                {
-                    item.IsActive = false;
-                }
+                selectedSession = activeSession != null && playingSessions.Any(s => SessionIdsMatch(s, activeSession))
+                    ? activeSession
+                    : playingSessions.FirstOrDefault(s => SessionIdsMatch(s, changedSession)) ?? playingSessions[0];
             }
+        }
+
+        if (selectedSession == null && activeSession != null)
+            return;
+
+        if (selectedSession == null &&
+            allowSingleSessionFallback &&
+            sessions.Count == 1 &&
+            (_mediaLinkSettings.AutoSwitch || sessions[0].PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing))
+        {
+            selectedSession = sessions[0];
+        }
+
+        if (selectedSession != null)
+            SelectActiveSession(selectedSession);
+    }
+
+    private void SelectActiveSession(MediaSessionInfo selectedSession)
+    {
+        foreach (var item in _mediaLink.MediaSessions)
+            item.IsActive = SessionIdsMatch(item, selectedSession);
+    }
+
+    private static bool SessionIdsMatch(MediaSessionInfo? left, MediaSessionInfo? right)
+    {
+        if (left == null || right == null)
+            return false;
+
+        string leftId = left.Session?.Id;
+        string rightId = right.Session?.Id;
+
+        return !string.IsNullOrEmpty(leftId) &&
+               string.Equals(leftId, rightId, StringComparison.Ordinal);
+    }
+
+    private static void ApplyTimelineProperties(
+        MediaSessionInfo sessionInfo,
+        GlobalSystemMediaTransportControlsSessionTimelineProperties args)
+    {
+        if (args.StartTime != TimeSpan.Zero || args.Position != TimeSpan.Zero)
+        {
+            sessionInfo.FullTime = args.EndTime - args.StartTime;
+            sessionInfo.CurrentTime = args.Position;
+            sessionInfo.TimePeekEnabled = true;
+        }
+        else
+        {
+            sessionInfo.TimePeekEnabled = false;
+        }
+    }
+
+    private void ApplyPlaybackSnapshot(MediaSession session, MediaSessionInfo sessionInfo)
+    {
+        try
+        {
+            var playbackInfo = session.ControlSession.GetPlaybackInfo();
+            sessionInfo.PlaybackStatus = playbackInfo.PlaybackStatus;
+            if (playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped)
+                sessionInfo.CurrentTime = TimeSpan.Zero;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to read media playback snapshot for {session.Id}: {ex.Message}");
+        }
+
+        try
+        {
+            ApplyTimelineProperties(sessionInfo, session.ControlSession.GetTimelineProperties());
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to read media timeline snapshot for {session.Id}: {ex.Message}");
+        }
+    }
+
+    private async Task ApplyMediaPropertySnapshotAsync(MediaSession session, MediaSessionInfo sessionInfo)
+    {
+        try
+        {
+            var properties = await session.ControlSession.TryGetMediaPropertiesAsync();
+            if (properties == null)
+                return;
+
+            sessionInfo.AlbumArtist = properties.AlbumArtist;
+            sessionInfo.AlbumTitle = properties.AlbumTitle;
+            sessionInfo.Artist = properties.Artist;
+            sessionInfo.Title = properties.Title;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to read media properties snapshot for {session.Id}: {ex.Message}");
         }
     }
 
@@ -154,10 +264,8 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             sessionInfo.Artist = args.Artist;
             sessionInfo.Title = args.Title;
 
-            var playbackStatus = sender.ControlSession.GetPlaybackInfo().PlaybackStatus;
-            sessionInfo.PlaybackStatus = playbackStatus;
-
-            AutoSwitchMediaSession(sessionInfo);
+            ApplyPlaybackSnapshot(sender, sessionInfo);
+            QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
         }
     }
 
@@ -180,11 +288,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                     sessionInfo.CurrentTime = TimeSpan.Zero;
                 }
 
-                if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-                {
-                }
-
-                AutoSwitchMediaSession(sessionInfo);
+                QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
             }
         }
         catch (Exception ex)
@@ -206,11 +310,15 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 sessionInfo.TimeoutRestore = true;
                 recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
 
+                bool wasActive = sessionInfo.IsActive;
+
                 _dispatcher.BeginInvoke(
-                        () =>
-                        {
-                            _mediaLink.MediaSessions.Remove(sessionInfo);
-                        });
+                    () =>
+                    {
+                        _mediaLink.MediaSessions.Remove(sessionInfo);
+                        if (wasActive)
+                            RefreshActiveSelection(null, allowSingleSessionFallback: true);
+                    });
 
                 sessionInfoLookup.TryRemove(session, out _);
             }
@@ -228,9 +336,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    private void MediaManager_OnAnySessionOpened(MediaSession session)
+    private async void MediaManager_OnAnySessionOpened(MediaSession session)
     {
-        MediaSessionInfo sessionInfo = null;
+        MediaSessionInfo? sessionInfo = null;
 
         if (recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
         {
@@ -249,16 +357,24 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
         }
 
-        _dispatcher.BeginInvoke(
-                () =>
-                {
-                    _mediaLink.MediaSessions.Add(sessionInfo);
-                });
-
         sessionInfoLookup[session] = sessionInfo;
         currentSession = session;
         SessionRestore(sessionInfo);
+        ApplyPlaybackSnapshot(session, sessionInfo);
+
         LastMediaChangeTime = DateTime.UtcNow;
+
+        _dispatcher.BeginInvoke(
+                () =>
+                {
+                    if (!_mediaLink.MediaSessions.Any(s => SessionIdsMatch(s, sessionInfo)))
+                        _mediaLink.MediaSessions.Add(sessionInfo);
+
+                    RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
+                });
+
+        await ApplyMediaPropertySnapshotAsync(session, sessionInfo);
+        QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
     }
 
     private void MediaManager_OnFocusedSessionChanged(MediaSession session) { currentSession = session; }
@@ -330,16 +446,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         if (sessionInfo != null)
         {
-            if (args.StartTime != TimeSpan.Zero || args.Position != TimeSpan.Zero)
-            {
-                sessionInfo.FullTime = args.EndTime - args.StartTime;
-                sessionInfo.CurrentTime = args.Position;
-                sessionInfo.TimePeekEnabled = true;
-            }
-            else
-            {
-                sessionInfo.TimePeekEnabled = false;
-            }
+            ApplyTimelineProperties(sessionInfo, args);
         }
     }
 

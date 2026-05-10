@@ -12,6 +12,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -53,9 +54,14 @@ namespace vrcosc_magicchatbox
         public static IMediaLinkService ApplicationMediaController { get; private set; }
 
         private readonly Stopwatch _startupStopwatch = new();
+        private static readonly TimeSpan StartupWatchdogTimeout = TimeSpan.FromSeconds(120);
+        private static readonly TimeSpan RequiredStartupTaskTimeout = TimeSpan.FromSeconds(60);
+        private static readonly TimeSpan OptionalStartupTaskTimeout = TimeSpan.FromSeconds(10);
         private Mutex? _singleInstanceMutex;
         private bool _ownsSingleInstanceMutex;
         private bool _loggingReady;
+        private volatile bool _startupCompleted;
+        private string _lastStartupPhase = "Process created.";
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -82,22 +88,30 @@ namespace vrcosc_magicchatbox
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #endif
 
+            var startupCancellation = new CancellationTokenSource();
+            Task startupWatchdogTask = RunStartupWatchdogAsync(startupCancellation.Token);
+
             StartUp? loadingWindow = null;
             try
             {
-                loadingWindow = new StartUp();
+                loadingWindow = new StartUp(startupCancellation.Cancel);
                 loadingWindow.UpdateProgress("Opening startup window...", 1, "Configuring services...");
-                loadingWindow.UpdateProgress("Configuring services...", 3, "Warming up logging...");
                 loadingWindow.Show();
                 loadingWindow.Activate();
+                await PumpStartupUiAsync();
                 LogStartupPhase("Splash window shown.");
+                startupCancellation.Token.ThrowIfCancellationRequested();
+                await UpdateStartupProgressAsync(loadingWindow, "Configuring services...", 3, "Warming up logging...");
                 LogStartupPhase("Configuring services...");
-                Services = ServiceRegistration.ConfigureServices();
+                Services = await RunRequiredStartupTaskAsync(
+                    "service configuration",
+                    ServiceRegistration.ConfigureServices,
+                    startupCancellation.Token);
                 LogStartupPhase("Services configured.");
+                await UpdateStartupProgressAsync(loadingWindow, "Warming up logging...", 7, "Migrating settings...");
                 ConfigureLogging(Services.GetRequiredService<IEnvironmentService>());
                 _loggingReady = true;
                 LogStartupPhase("Logging configured.");
-                loadingWindow.UpdateProgress("Warming up logging...", 7, "Migrating settings...");
 
                 // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
                 Logging.Initialize(
@@ -109,35 +123,42 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<INavigationService>());
                 LogStartupPhase("Static logging dependencies initialized.");
 
+                await UpdateStartupProgressAsync(loadingWindow, "Migrating settings...", 12, "Preparing core state...");
+                await RunRequiredStartupTaskAsync("settings migration", () =>
                 {
                     var env = Services.GetRequiredService<IEnvironmentService>();
                     LogStartupPhase($"Running settings migration. DataPath='{env.DataPath}', LogPath='{env.LogPath}'.");
                     SettingsMigrationService.RunAll(env.DataPath);
-                }
+                    return true;
+                }, startupCancellation.Token);
                 LogStartupPhase("Settings migration completed.");
-                loadingWindow.UpdateProgress("Migrating settings...", 12, "Preparing core state...");
+                await UpdateStartupProgressAsync(loadingWindow, "Preparing core state...", 18, "Loading your saved data...");
 
-                // Initialize static defaults for model classes (eliminates service locator in models)
-                ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
-                TrackerDevice.DefaultTrackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
-                LogStartupPhase("Model defaults initialized.");
+                var vm = await RunRequiredStartupTaskAsync("core state preparation", () =>
+                {
+                    // Initialize static defaults for model classes (eliminates service locator in models)
+                    ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
+                    TrackerDevice.DefaultTrackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
+                    LogStartupPhase("Model defaults initialized.");
 
-                var vm = Services.GetRequiredService<ViewModel>();
-                LogStartupPhase("ViewModel resolved.");
+                    var rootViewModel = Services.GetRequiredService<ViewModel>();
+                    LogStartupPhase("ViewModel resolved.");
 
-                var bootstrapper = Services.GetRequiredService<ModuleBootstrapper>();
-                bootstrapper.RegisterComponentStats(Services.GetRequiredService<ComponentStatsModule>());
-                LogStartupPhase("ComponentStats registered.");
+                    var bootstrapper = Services.GetRequiredService<ModuleBootstrapper>();
+                    bootstrapper.RegisterComponentStats(Services.GetRequiredService<ComponentStatsModule>());
+                    LogStartupPhase("ComponentStats registered.");
+                    return rootViewModel;
+                }, startupCancellation.Token);
 
-                await Task.Run(() =>
+                await RunOptionalStartupTaskAsync("app history start marker", () =>
                 {
                     var env = Services.GetRequiredService<IEnvironmentService>();
                     var appHistorySvc = Services.GetRequiredService<IAppHistoryService>();
                     if (appHistorySvc.CreateIfMissing(env.DataPath))
                         Logging.WriteInfo("Application started at: " + DateTime.Now);
-                });
+                }, startupCancellation.Token);
 
-                loadingWindow.UpdateProgress("Preparing core state...", 18, "Loading your saved data...");
+                startupCancellation.Token.ThrowIfCancellationRequested();
 
                 UpdateApp updater = new UpdateApp(
                     Services.GetRequiredService<AppUpdateState>(),
@@ -231,8 +252,9 @@ namespace vrcosc_magicchatbox
                     }
                 }
 
-                await InitializeComponentsWithProgress(loadingWindow);
+                await InitializeComponentsWithProgress(loadingWindow, startupCancellation.Token);
                 LogStartupPhase("Component initialization completed.");
+                startupCancellation.Token.ThrowIfCancellationRequested();
 
                 loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
                 Logging.WriteInfo("Creating MainWindow instance.");
@@ -332,6 +354,17 @@ namespace vrcosc_magicchatbox
                 }
 
             }
+            catch (OperationCanceledException) when (startupCancellation.IsCancellationRequested)
+            {
+                LogStartupPhase("Startup cancelled by user.");
+                try
+                {
+                    loadingWindow?.Close();
+                }
+                catch { /* window may already be closing */ }
+
+                Shutdown();
+            }
             catch (Exception ex)
             {
                 LogStartupPhase($"Startup failed: {ex}");
@@ -355,6 +388,23 @@ namespace vrcosc_magicchatbox
                     MessageBoxImage.Error);
                 Shutdown();
             }
+            finally
+            {
+                _startupCompleted = true;
+                startupCancellation.Cancel();
+                try
+                {
+                    await startupWatchdogTask;
+                }
+                catch (Exception ex)
+                {
+                    WriteEarlyStartupLog("Startup watchdog failed during shutdown: " + ex);
+                }
+                finally
+                {
+                    startupCancellation.Dispose();
+                }
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -366,6 +416,16 @@ namespace vrcosc_magicchatbox
             catch (Exception ex)
             {
                 WriteEarlyStartupLog("Discord Rich Presence dispose failed: " + ex);
+            }
+
+            try
+            {
+                if (Services is IDisposable disposableServices)
+                    disposableServices.Dispose();
+            }
+            catch (Exception ex)
+            {
+                WriteEarlyStartupLog("Service provider dispose failed: " + ex);
             }
 
             if (_ownsSingleInstanceMutex)
@@ -404,6 +464,69 @@ namespace vrcosc_magicchatbox
             }
         }
 
+        private async Task UpdateStartupProgressAsync(StartUp loadingWindow, string message, double value, string? nextHint = null)
+        {
+            loadingWindow.UpdateProgress(message, value, nextHint);
+            await PumpStartupUiAsync();
+        }
+
+        private async Task PumpStartupUiAsync()
+        {
+            await System.Windows.Threading.Dispatcher.Yield(DispatcherPriority.Background);
+        }
+
+        private async Task<T> RunRequiredStartupTaskAsync<T>(
+            string taskName,
+            Func<T> action,
+            CancellationToken cancellationToken,
+            TimeSpan? timeout = null)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            TimeSpan effectiveTimeout = timeout ?? RequiredStartupTaskTimeout;
+            Task<T> task = Task.Run(action, cancellationToken);
+            Task delay = Task.Delay(effectiveTimeout, cancellationToken);
+
+            Task completed = await Task.WhenAny(task, delay).ConfigureAwait(false);
+            if (completed == delay)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new TimeoutException(
+                    $"Startup step '{taskName}' timed out after {effectiveTimeout.TotalSeconds:0}s. Last phase: {_lastStartupPhase}");
+            }
+
+            return await task.ConfigureAwait(false);
+        }
+
+        private async Task RunStartupWatchdogAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(StartupWatchdogTimeout, cancellationToken).ConfigureAwait(false);
+                if (_startupCompleted || cancellationToken.IsCancellationRequested)
+                    return;
+
+                string message = $"Startup watchdog timed out after {StartupWatchdogTimeout.TotalSeconds:0}s. Last phase: {_lastStartupPhase}";
+                WriteEarlyStartupLog(message);
+                try
+                {
+                    Logging.WriteInfo(message);
+                }
+                catch
+                {
+                    // Logging may not be ready if startup stalled early.
+                }
+
+                await Task.Yield();
+                if (_startupCompleted || cancellationToken.IsCancellationRequested)
+                    return;
+
+                Environment.Exit(1);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
         private static void ConfigureLogging(IEnvironmentService env)
         {
             Directory.CreateDirectory(env.LogPath);
@@ -433,6 +556,7 @@ namespace vrcosc_magicchatbox
 
         private void LogStartupPhase(string message)
         {
+            _lastStartupPhase = message;
             string line = $"[Startup +{_startupStopwatch.ElapsedMilliseconds}ms] {message}";
             if (_loggingReady)
             {
@@ -587,7 +711,64 @@ namespace vrcosc_magicchatbox
         }
 
 
-        private async Task InitializeComponentsWithProgress(StartUp loadingWindow)
+        private async Task RunOptionalStartupTaskAsync(
+            string taskName,
+            Action action,
+            CancellationToken cancellationToken,
+            TimeSpan? timeout = null)
+            => await RunOptionalStartupTaskAsync(
+                taskName,
+                () =>
+                {
+                    action();
+                    return Task.CompletedTask;
+                },
+                cancellationToken,
+                timeout);
+
+        private async Task RunOptionalStartupTaskAsync(
+            string taskName,
+            Func<Task> action,
+            CancellationToken cancellationToken,
+            TimeSpan? timeout = null)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            TimeSpan effectiveTimeout = timeout ?? OptionalStartupTaskTimeout;
+            Task task = Task.Run(action);
+            Task delay = Task.Delay(effectiveTimeout, cancellationToken);
+
+            Task completed = await Task.WhenAny(task, delay).ConfigureAwait(false);
+            if (completed == delay)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _ = task.ContinueWith(
+                    completedTask =>
+                    {
+                        if (completedTask.Exception != null)
+                        {
+                            Logging.WriteException(
+                                new Exception($"Optional startup task '{taskName}' failed after it timed out.", completedTask.Exception),
+                                MSGBox: false);
+                        }
+                    },
+                    TaskContinuationOptions.OnlyOnFaulted);
+
+                Logging.WriteInfo(
+                    $"[Startup] Optional task '{taskName}' timed out after {effectiveTimeout.TotalSeconds:0}s; continuing startup.");
+                return;
+            }
+
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(new Exception($"Optional startup task '{taskName}' failed.", ex), MSGBox: false);
+            }
+        }
+
+        private async Task InitializeComponentsWithProgress(StartUp loadingWindow, CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
             var vm = Services.GetRequiredService<ViewModel>();
@@ -601,6 +782,7 @@ namespace vrcosc_magicchatbox
             await Task.WhenAll(
                 Task.Run(() =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var intSettings = Services.GetRequiredService<ISettingsProvider<IntegrationSettings>>().Value;
                     Services.GetRequiredService<IntegrationDisplayState>().IntegrationSortOrder = intSettings.SavedSortOrder;
 
@@ -610,70 +792,77 @@ namespace vrcosc_magicchatbox
                 }),
                 Task.Run(() =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     Services.GetRequiredService<IStatusListService>().LoadStatusList();
                     LogStep("Status list");
                 }),
                 Task.Run(() =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     Services.GetRequiredService<IChatHistoryService>().LoadChatHistory();
                     LogStep("Chat history");
                 }),
                 Task.Run(() =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     Services.GetRequiredService<IAppHistoryService>().LoadAppHistory();
                     LogStep("App history");
                 }),
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
-                    Services.GetRequiredService<IMediaLinkPersistenceService>().LoadMediaSessionsAsync();
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Services.GetRequiredService<IMediaLinkPersistenceService>().LoadMediaSessionsAsync();
                     LogStep("MediaLink sessions");
                 })
             );
             LogStep("Wave 1 complete");
+            cancellationToken.ThrowIfCancellationRequested();
 
             // ── Wave 2: Module initialization (independent, run in parallel) ──
             loadingWindow.UpdateProgress("Firing up modules...", 55, "Finishing the last startup modules...");
             var bootMods = Services.GetRequiredService<ModuleBootstrapper>();
 
             await Task.WhenAll(
-                Task.Run(() =>
+                RunOptionalStartupTaskAsync("ComponentStats", () =>
                 {
                     if (_integrationSettings.IntgrComponentStats)
                     {
                         Services.GetRequiredService<ComponentStatsModule>().StartModule();
                         LogStep("ComponentStats");
                     }
-                }),
-                Task.Run(() =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("NetworkStats", () =>
                 {
                     var netStats = Services.GetRequiredService<NetworkStatisticsModule>();
                     Services.GetRequiredService<IModuleHost>().RegisterModule(netStats);
                     LogStep("NetworkStats");
-                }),
-                Task.Run(() =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("OpenAI", async () =>
                 {
                     var openAIModule = Services.GetRequiredService<OpenAIModule>();
                     var openAISettings = Services.GetRequiredService<ISettingsProvider<OpenAISettings>>().Value;
-                    openAIModule.InitializeClient(openAISettings.AccessToken, openAISettings.OrganizationID);
+                    await openAIModule.InitializeClient(openAISettings.AccessToken, openAISettings.OrganizationID);
                     LogStep("OpenAI");
-                }),
+                }, cancellationToken),
                 Task.Run(() =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     bootMods.CreateIntelliChat();
                     LogStep("IntelliChat");
                 }),
-                Task.Run(() =>
+                RunOptionalStartupTaskAsync("TTS voices", () =>
                 {
                     vm.TtsAudio.TikTokTTSVoices = Services.GetRequiredService<IAudioService>().ReadTikTokTTSVoices();
                     LogStep("TTS voices");
-                }),
-                Task.Run(() =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("Audio devices", () =>
                 {
                     Services.GetRequiredService<IAudioService>().PopulateOutputDevices();
                     LogStep("Audio devices");
-                })
+                }, cancellationToken)
             );
             LogStep("Wave 2 complete");
+            cancellationToken.ThrowIfCancellationRequested();
 
             // ── Wave 3: Final wiring (MediaLink + runtime modules + seekbar) ──
             loadingWindow.UpdateProgress("Finishing the last startup modules...", 85, "Starting runtime modules...");
@@ -691,13 +880,15 @@ namespace vrcosc_magicchatbox
             loadingWindow.UpdateProgress("Starting runtime modules...", 90, "Building the main window shell...");
             await Task.WhenAll(
                 bootMods.CreateRuntimeModulesAsync(),
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
-                    Services.GetRequiredService<IMediaLinkPersistenceService>().LoadSeekbarStylesAsync();
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Services.GetRequiredService<IMediaLinkPersistenceService>().LoadSeekbarStylesAsync();
                     LogStep("Seekbar styles");
                 })
             );
             LogStep("Runtime modules + seekbar");
+            cancellationToken.ThrowIfCancellationRequested();
 
             Logging.WriteInfo($"[Startup] All components initialized in {sw.ElapsedMilliseconds}ms");
         }

@@ -81,7 +81,6 @@ public sealed class StatusOscProvider : IOscProvider
         StatusItem? active = _chatStatus.StatusList.FirstOrDefault(item => item.IsActive);
         if (active == null) return null;
 
-        active.LastUsed = DateTime.Now;
         string icon = _emojis.GetNextEmoji();
         string text = _app.PrefixIconStatus ? $"{icon} {active.msg}" : active.msg;
 
@@ -141,15 +140,15 @@ public sealed class StatusOscProvider : IOscProvider
 
             try
             {
-                var rnd = new Random();
                 var weights = cycleItems.Select(item =>
                 {
                     var timeWeight = (DateTime.Now - item.LastUsed).TotalSeconds;
-                    return timeWeight * rnd.NextDouble();
+                    return timeWeight * Random.Shared.NextDouble();
                 }).ToList();
 
                 int selected = WeightedRandomIndex(weights);
                 cycleItems[selected].IsActive = true;
+                cycleItems[selected].LastUsed = DateTime.Now;
                 _oscDisplay.LastSwitchCycle = DateTime.Now;
             }
             catch (Exception ex)
@@ -166,6 +165,7 @@ public sealed class StatusOscProvider : IOscProvider
                 int next = (idx + 1) % cycleItems.Count;
                 activeItem.IsActive = false;
                 cycleItems[next].IsActive = true;
+                cycleItems[next].LastUsed = DateTime.Now;
                 _oscDisplay.LastSwitchCycle = DateTime.Now;
             }
             else
@@ -173,6 +173,7 @@ public sealed class StatusOscProvider : IOscProvider
                 // Active item is outside cycle candidates — advance to first eligible
                 foreach (var item in _chatStatus.StatusList) item.IsActive = false;
                 cycleItems[0].IsActive = true;
+                cycleItems[0].LastUsed = DateTime.Now;
                 _oscDisplay.LastSwitchCycle = DateTime.Now;
             }
         }
@@ -180,9 +181,8 @@ public sealed class StatusOscProvider : IOscProvider
 
     private static int WeightedRandomIndex(System.Collections.Generic.List<double> weights)
     {
-        var rnd = new Random();
         double total = weights.Sum();
-        double point = rnd.NextDouble() * total;
+        double point = Random.Shared.NextDouble() * total;
         for (int i = 0; i < weights.Count; i++)
         {
             if (point < weights[i]) return i;

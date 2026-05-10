@@ -14,6 +14,7 @@ public interface IMediaLinkService
     DateTime LastMediaChangeTime { get; }
     void Start();
     void Dispose();
+    void SelectMediaSession(MediaSessionInfo sessionInfo);
     void MediaManager_NextAsync(MediaSessionInfo sessionInfo);
     void MediaManager_PlayPauseAsync(MediaSessionInfo sessionInfo);
     Task MediaManager_PreviousAsync(MediaSessionInfo sessionInfo);

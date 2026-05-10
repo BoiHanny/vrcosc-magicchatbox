@@ -23,7 +23,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _useCustomRegex;
         private string _customRegex = string.Empty;
         private string _contentFilter = string.Empty;
-        private int _contentFilterMode; // 0=None, 1=Exclude, 2=Include
+        private int _contentFilterMode; // 0=None, 1=Hide, 2=Include, 3=Remove
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -134,7 +134,7 @@ namespace vrcosc_magicchatbox.ViewModels
         }
 
         /// <summary>
-        /// Per-app content filter pattern (case-insensitive substring match).
+        /// Per-app content filter pattern.
         /// Applied after regex extraction. Works with <see cref="ContentFilterMode"/>.
         /// </summary>
         public string ContentFilter
@@ -144,11 +144,12 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 _contentFilter = value ?? string.Empty;
                 NotifyPropertyChanged(nameof(ContentFilter));
+                NotifyPropertyChanged(nameof(HasContentFilter));
             }
         }
 
         /// <summary>
-        /// Filter mode for this app: 0=None (no filter), 1=Exclude (hide when matches), 2=Include (show only when matches).
+        /// Filter mode for this app: 0=None, 1=Hide when matches, 2=Show only when matches, 3=Remove matches.
         /// Stored as int for JSON serialization compatibility.
         /// </summary>
         public int ContentFilterMode

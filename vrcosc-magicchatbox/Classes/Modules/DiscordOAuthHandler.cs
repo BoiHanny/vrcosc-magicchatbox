@@ -26,6 +26,12 @@ public sealed record DiscordTokenResult(
 /// </summary>
 public sealed class DiscordOAuthHandler : IDisposable
 {
+    private sealed record DiscordOAuthAttemptResult(
+        DiscordTokenResult? Result,
+        bool HasRpcScope,
+        string? Error,
+        string? ErrorDescription);
+
     private readonly INavigationService _nav;
     private readonly object _listenerLock = new();
     private HttpListener? _activeListener;
@@ -37,8 +43,9 @@ public sealed class DiscordOAuthHandler : IDisposable
     }
 
     /// <summary>
-    /// Implicit grant OAuth flow (response_type=token) for Discord's local RPC scopes.
-    /// Discord may still reject rpc/rpc.voice.read for apps or accounts without access.
+    /// Implicit grant OAuth flow (response_type=token) for Discord.
+    /// Discord may reject rpc scopes for apps/accounts without approval, so the flow
+    /// retries with public identify scope to avoid leaving users stuck on invalid_scope.
     /// The token is returned in the URL fragment, so a small JS bridge page extracts it
     /// and POSTs it back to our listener. No refresh token is available with this flow.
     /// </summary>
@@ -50,6 +57,32 @@ public sealed class DiscordOAuthHandler : IDisposable
             return (null, false);
         }
 
+        var voiceAttempt = await AuthenticateImplicitScopeAsync(
+            clientId,
+            Core.Constants.DiscordVoiceOAuthScope,
+            "voice/RPC",
+            validationMessage).ConfigureAwait(false);
+
+        if (voiceAttempt.Result != null || !IsInvalidScopeError(voiceAttempt.Error, voiceAttempt.ErrorDescription))
+            return (voiceAttempt.Result, voiceAttempt.HasRpcScope);
+
+        Logging.WriteInfo("Discord implicit OAuth: Discord rejected rpc scope. Retrying with identify-only scope.");
+
+        var basicAttempt = await AuthenticateImplicitScopeAsync(
+            clientId,
+            Core.Constants.DiscordBasicOAuthScope,
+            "basic identify",
+            validationMessage).ConfigureAwait(false);
+
+        return (basicAttempt.Result, basicAttempt.HasRpcScope);
+    }
+
+    private async Task<DiscordOAuthAttemptResult> AuthenticateImplicitScopeAsync(
+        string clientId,
+        string scope,
+        string scopeLabel,
+        string validationMessage)
+    {
         StopListener();
 
         HttpListener? listener = null;
@@ -63,13 +96,13 @@ public sealed class DiscordOAuthHandler : IDisposable
             listener.Start();
 
             var authUrl = $"{Core.Constants.DiscordOAuthEndpoint}" +
-                          $"?client_id={Uri.EscapeDataString(clientId)}" +
-                          $"&response_type=token" +
-                          $"&redirect_uri={Uri.EscapeDataString(Core.Constants.DiscordOAuthRedirectUri)}" +
-                          $"&scope={Uri.EscapeDataString(Core.Constants.DiscordImplicitGrantScope)}" +
-                          $"&state={Uri.EscapeDataString(state)}";
+                           $"?client_id={Uri.EscapeDataString(clientId)}" +
+                           $"&response_type=token" +
+                           $"&redirect_uri={Uri.EscapeDataString(Core.Constants.DiscordOAuthRedirectUri)}" +
+                           $"&scope={Uri.EscapeDataString(scope)}" +
+                           $"&state={Uri.EscapeDataString(state)}";
 
-            Logging.WriteInfo($"Discord implicit OAuth: opening browser for rpc scope. {validationMessage}");
+            Logging.WriteInfo($"Discord implicit OAuth: opening browser for {scopeLabel} scope. {validationMessage}");
             _nav.OpenUrl(authUrl);
 
             var timeout = Task.Delay(TimeSpan.FromMinutes(2));
@@ -78,8 +111,8 @@ public sealed class DiscordOAuthHandler : IDisposable
             var completed = await Task.WhenAny(ctxTask, timeout).ConfigureAwait(false);
             if (completed == timeout)
             {
-                Logging.WriteInfo("Discord implicit OAuth: timed out waiting for browser redirect.");
-                return (null, false);
+                Logging.WriteInfo($"Discord implicit OAuth: timed out waiting for browser redirect ({scopeLabel}).");
+                return new DiscordOAuthAttemptResult(null, false, "timeout", null);
             }
 
             var ctx = await ctxTask.ConfigureAwait(false);
@@ -91,8 +124,8 @@ public sealed class DiscordOAuthHandler : IDisposable
                 completed = await Task.WhenAny(ctxTask, timeout).ConfigureAwait(false);
                 if (completed == timeout)
                 {
-                    Logging.WriteInfo("Discord implicit OAuth: timed out waiting for fragment callback.");
-                    return (null, false);
+                    Logging.WriteInfo($"Discord implicit OAuth: timed out waiting for fragment callback ({scopeLabel}).");
+                    return new DiscordOAuthAttemptResult(null, false, "timeout", null);
                 }
 
                 var cbCtx = await ctxTask.ConfigureAwait(false);
@@ -116,17 +149,20 @@ public sealed class DiscordOAuthHandler : IDisposable
                     Logging.WriteInfo("Discord implicit OAuth: state mismatch on fragment callback.");
                     await SendHtmlResponseAsync(cbCtx.Response,
                         "<h2>MagicChatbox</h2><p>Authorization failed: security validation error.</p>").ConfigureAwait(false);
-                    return (null, false);
+                    return new DiscordOAuthAttemptResult(null, false, "state_mismatch", null);
                 }
 
                 var error = p["error"];
                 if (!string.IsNullOrEmpty(error))
                 {
                     var desc = p["error_description"] ?? error;
-                    Logging.WriteInfo($"Discord implicit OAuth error: {error} - {desc}");
-                    await SendHtmlResponseAsync(cbCtx.Response,
-                        $"<h2>MagicChatbox</h2><p>Discord authorization failed: {WebUtility.HtmlEncode(desc)}</p>").ConfigureAwait(false);
-                    return (null, false);
+                    Logging.WriteInfo($"Discord implicit OAuth error ({scopeLabel}): {error} - {desc}");
+                    string html = IsInvalidScopeError(error, desc) && HasRpcScope(scope)
+                        ? BuildInvalidScopeRetryPage(desc)
+                        : BuildAuthorizationFailedPage(desc);
+
+                    await SendHtmlResponseAsync(cbCtx.Response, html).ConfigureAwait(false);
+                    return new DiscordOAuthAttemptResult(null, false, error, desc);
                 }
 
                 var accessToken = p["access_token"];
@@ -135,36 +171,36 @@ public sealed class DiscordOAuthHandler : IDisposable
                     Logging.WriteInfo("Discord implicit OAuth: no access_token in fragment.");
                     await SendHtmlResponseAsync(cbCtx.Response,
                         "<h2>MagicChatbox</h2><p>No access token received. Please try again.</p>").ConfigureAwait(false);
-                    return (null, false);
+                    return new DiscordOAuthAttemptResult(null, false, "missing_access_token", null);
                 }
 
                 int.TryParse(p["expires_in"], out var expiresIn);
-                var scope = p["scope"];
-                bool hasRpc = HasRpcScope(scope);
+                var grantedScope = p["scope"];
+                bool hasRpc = HasRpcScope(grantedScope);
 
-                Logging.WriteInfo($"Discord implicit OAuth: success. scope={scope}, hasRpc={hasRpc}");
+                Logging.WriteInfo($"Discord implicit OAuth: success. scope={grantedScope}, hasRpc={hasRpc}");
 
                 await SendHtmlResponseAsync(cbCtx.Response,
                     "<h2>MagicChatbox</h2><p>Discord connected! This tab will close automatically.</p>" +
                     "<script>setTimeout(function(){ window.close(); }, 2000);</script>").ConfigureAwait(false);
 
-                return (new DiscordTokenResult(accessToken, null, expiresIn, scope), hasRpc);
+                return new DiscordOAuthAttemptResult(new DiscordTokenResult(accessToken, null, expiresIn, grantedScope), hasRpc, null, null);
             }
         }
         catch (ObjectDisposedException)
         {
             Logging.WriteInfo("Discord implicit OAuth: listener was stopped.");
-            return (null, false);
+            return new DiscordOAuthAttemptResult(null, false, "listener_stopped", null);
         }
         catch (HttpListenerException)
         {
             Logging.WriteInfo("Discord implicit OAuth: listener error.");
-            return (null, false);
+            return new DiscordOAuthAttemptResult(null, false, "listener_error", null);
         }
         catch (Exception ex)
         {
             Logging.WriteException(new Exception("Discord implicit authentication failed.", ex), MSGBox: false);
-            return (null, false);
+            return new DiscordOAuthAttemptResult(null, false, "exception", ex.Message);
         }
         finally
         {
@@ -200,8 +236,8 @@ public sealed class DiscordOAuthHandler : IDisposable
         }
 
         status = string.Equals(normalizedClientId, Core.Constants.DiscordClientId, StringComparison.Ordinal)
-            ? "Using the bundled MagicChatbox Application ID. Voice detection may require your own Discord Developer app if Discord rejects rpc scopes."
-            : "Application ID looks valid.";
+            ? "Using the bundled MagicChatbox Application ID. If Discord rejects the private voice/RPC scope, MagicChatbox will fall back to basic Discord auth."
+            : "Application ID looks valid. Discord may still reject private voice/RPC scope for unapproved apps.";
         return true;
     }
 
@@ -240,6 +276,28 @@ public sealed class DiscordOAuthHandler : IDisposable
         => !string.IsNullOrWhiteSpace(scope)
            && scope.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                .Any(part => part is "rpc" or "rpc.voice.read" or "rpc.voice.channel.read");
+
+    private static bool IsInvalidScopeError(string? error, string? description)
+    {
+        if (string.Equals(error, "invalid_scope", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        string text = $"{error} {description}";
+        return text.Contains("scope", StringComparison.OrdinalIgnoreCase)
+               && (text.Contains("invalid", StringComparison.OrdinalIgnoreCase)
+                   || text.Contains("unknown", StringComparison.OrdinalIgnoreCase)
+                   || text.Contains("malformed", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string BuildInvalidScopeRetryPage(string description) =>
+        "<h2>MagicChatbox</h2>" +
+        "<p>Discord rejected the private voice/RPC permission: " +
+        WebUtility.HtmlEncode(description) +
+        "</p><p>MagicChatbox is retrying with basic Discord authorization. " +
+        "A second Discord tab should open. Voice/speaker detection may be unavailable, but connection and Rich Presence can still work.</p>";
+
+    private static string BuildAuthorizationFailedPage(string description) =>
+        $"<h2>MagicChatbox</h2><p>Discord authorization failed: {WebUtility.HtmlEncode(description)}</p>";
 
     private static string BuildFragmentBridgePage() =>
         """

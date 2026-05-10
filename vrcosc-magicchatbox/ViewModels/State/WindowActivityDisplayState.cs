@@ -300,7 +300,8 @@ public partial class WindowActivityDisplayState : ObservableObject
            || processInfo.ShowTitle
            || processInfo.ApplyCustomAppName
            || processInfo.IsPrivateApp
-           || processInfo.UseCustomRegex;
+           || processInfo.UseCustomRegex
+           || processInfo.HasContentFilter;
 
     private void UpdateFilteredAppsSummary()
     {
@@ -324,9 +325,12 @@ public partial class WindowActivityDisplayState : ObservableObject
 
     private async void RefreshScannedAppsViewDebounced()
     {
-        _filterDebounceCts?.Cancel();
-        _filterDebounceCts = new CancellationTokenSource();
-        var token = _filterDebounceCts.Token;
+        var nextCts = new CancellationTokenSource();
+        var previousCts = Interlocked.Exchange(ref _filterDebounceCts, nextCts);
+        previousCts?.Cancel();
+        previousCts?.Dispose();
+
+        var token = nextCts.Token;
 
         try
         {
@@ -337,6 +341,10 @@ public partial class WindowActivityDisplayState : ObservableObject
             }
         }
         catch (TaskCanceledException) { }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
     }
 
 }
