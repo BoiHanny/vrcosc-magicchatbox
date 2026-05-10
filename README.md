@@ -12,7 +12,7 @@
 
 MagicChatBox runs as your live OSC companion while you are in VRChat, and now includes system tray integration for day-to-day use.
 
-### System Tray Integration (How it works)
+### How System Tray Integration Works
 
 - Click the **minimize** button to move MagicChatBox out of your way while it keeps running.
 - While minimized, your enabled modules continue updating your chatbox in the background.
