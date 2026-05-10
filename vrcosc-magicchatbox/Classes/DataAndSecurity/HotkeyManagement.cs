@@ -3,6 +3,7 @@ using NHotkey;
 using NHotkey.Wpf;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -21,26 +22,47 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 public class HotkeyManagement
 {
     private readonly TtsSettings _ttsSettings;
+    private readonly AppSettings _appSettings;
     private readonly IOscSender _oscSender;
     private readonly IUiDispatcher _dispatcher;
+    private readonly Lazy<ITrayIconService> _trayIconService;
 
     private Dictionary<string, HotkeyInfo> _hotkeyActions;
     private Window _mainWindow;
     private readonly string HotkeyConfigFile;
+    private bool _isInitialized;
 
-    public HotkeyManagement(IEnvironmentService env, IOscSender oscSender, ISettingsProvider<TtsSettings> ttsSettings, IUiDispatcher dispatcher)
+    public string TrayShortcutDisplayText { get; private set; } = string.Empty;
+
+    public HotkeyManagement(
+        IEnvironmentService env,
+        IOscSender oscSender,
+        ISettingsProvider<TtsSettings> ttsSettings,
+        ISettingsProvider<AppSettings> appSettings,
+        IUiDispatcher dispatcher,
+        Lazy<ITrayIconService> trayIconService)
     {
         _oscSender = oscSender;
         _ttsSettings = ttsSettings.Value;
+        _appSettings = appSettings.Value;
         _dispatcher = dispatcher;
+        _trayIconService = trayIconService;
         _hotkeyActions = new Dictionary<string, HotkeyInfo>();
         HotkeyConfigFile = Path.Combine(env.DataPath, "HotkeyConfiguration.json");
         LoadHotkeyConfigurations();
+        _appSettings.PropertyChanged += AppSettings_PropertyChanged;
     }
 
     private void AddDefaultHotkeys()
     {
-        AddKeyBinding("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+        AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+        AddKeyBinding("OpenTrayMenuGlobal", Key.X, ModifierKeys.Alt, OpenTrayMenu);
+    }
+
+    private void AddDefaultHotkey(string name, Key key, ModifierKeys modifiers, Action action)
+    {
+        if (!_hotkeyActions.ContainsKey(name))
+            AddKeyBinding(name, key, modifiers, action);
     }
 
     private void AddKeyBinding(string name, Key key, ModifierKeys modifiers, Action action)
@@ -55,6 +77,7 @@ public class HotkeyManagement
         return hotkeyName switch
         {
             "ToggleVoiceGlobal" => ToggleVoice,
+            "OpenTrayMenuGlobal" => OpenTrayMenu,
             _ => null
         };
     }
@@ -107,6 +130,9 @@ public class HotkeyManagement
 
                 AddKeyBinding(entry.Key, key, modifiers, action);
             }
+
+            AddDefaultHotkeys();
+            SaveHotkeyConfigurations();
         }
         catch (Exception ex)
         {
@@ -131,27 +157,95 @@ public class HotkeyManagement
 
     private void RegisterAllGlobalHotkeys()
     {
+        TrayShortcutDisplayText = string.Empty;
         foreach (var kvp in _hotkeyActions)
         {
+            if (kvp.Key == "OpenTrayMenuGlobal" && !_appSettings.OpenTrayWithAltX)
+                continue;
+
             RegisterGlobalHotkey(kvp.Key, kvp.Value);
+        }
+    }
+
+    private void AppSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!_isInitialized || e.PropertyName != nameof(AppSettings.OpenTrayWithAltX))
+            return;
+
+        _dispatcher.BeginInvoke(UpdateTrayHotkeyRegistration);
+    }
+
+    private void UpdateTrayHotkeyRegistration()
+    {
+        if (!_hotkeyActions.TryGetValue("OpenTrayMenuGlobal", out HotkeyInfo hotkeyInfo))
+            return;
+
+        if (_appSettings.OpenTrayWithAltX)
+        {
+            RegisterGlobalHotkey("OpenTrayMenuGlobal", hotkeyInfo);
+            return;
+        }
+
+        TrayShortcutDisplayText = string.Empty;
+        UnregisterGlobalHotkey("OpenTrayMenuGlobal");
+    }
+
+    private static void UnregisterGlobalHotkey(string name)
+    {
+        try
+        {
+            HotkeyManager.Current.Remove(name);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to unregister hotkey {name}: {ex.Message}");
         }
     }
 
 
     private void RegisterGlobalHotkey(string name, HotkeyInfo hotkeyInfo)
     {
+        if (name == "OpenTrayMenuGlobal")
+        {
+            RegisterTrayHotkey(name, hotkeyInfo);
+            return;
+        }
+
+        TryRegisterGlobalHotkey(name, hotkeyInfo, showAlreadyRegisteredMessage: true);
+    }
+
+    private bool RegisterTrayHotkey(string name, HotkeyInfo hotkeyInfo)
+    {
+        if (TryRegisterGlobalHotkey(name, hotkeyInfo, showAlreadyRegisteredMessage: false))
+        {
+            TrayShortcutDisplayText = FormatHotkey(hotkeyInfo);
+            return true;
+        }
+
+        Logging.WriteInfo("Alt+X tray menu hotkey could not be registered.");
+        return false;
+    }
+
+    private bool TryRegisterGlobalHotkey(string name, HotkeyInfo hotkeyInfo, bool showAlreadyRegisteredMessage)
+    {
         try
         {
             HotkeyManager.Current.AddOrReplace(name, hotkeyInfo.Key, hotkeyInfo.Modifiers, OnGlobalHotkeyPressed);
+            return true;
         }
         catch (HotkeyAlreadyRegisteredException)
         {
-            Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose: true);
+            if (showAlreadyRegisteredMessage)
+                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose: true);
+            else
+                Logging.WriteInfo($"Hotkey {FormatHotkey(hotkeyInfo)} is already registered.");
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex: ex, MSGBox: false);
         }
+
+        return false;
     }
 
 
@@ -176,9 +270,16 @@ public class HotkeyManagement
             _oscSender.ToggleVoice(true);
     }
 
+    private void OpenTrayMenu()
+    {
+        if (_appSettings.OpenTrayWithAltX)
+            _trayIconService.Value.OpenContextMenu();
+    }
+
     public void Initialize(Window mainWindow)
     {
         _mainWindow = mainWindow;
+        _isInitialized = true;
         SetupLocalHotkey(_mainWindow);
         RegisterAllGlobalHotkeys();
     }
@@ -202,6 +303,11 @@ public class HotkeyManagement
             Logging.WriteException(ex: ex, MSGBox: false);
         }
     }
+
+    private static string FormatHotkey(HotkeyInfo hotkeyInfo)
+        => hotkeyInfo.Modifiers == ModifierKeys.None
+            ? hotkeyInfo.Key.ToString()
+            : $"{hotkeyInfo.Modifiers}+{hotkeyInfo.Key}";
 
     [JsonObject(MemberSerialization.OptIn)]
     private class HotkeyInfo

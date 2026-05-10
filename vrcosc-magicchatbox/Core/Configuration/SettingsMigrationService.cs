@@ -1,9 +1,12 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Xml;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -104,7 +107,8 @@ public static class SettingsMigrationService
             catch (Exception ex)
             {
                 Logging.WriteInfo($"Cannot read {typeof(T).Name}.json for merge-check: {ex.Message}");
-                return;
+                BackupCorruptJson(jsonPath, ex);
+                settings = new T();
             }
 
             if (settings is VersionedSettings vs && vs.MigratedAt.HasValue)
@@ -145,11 +149,9 @@ public static class SettingsMigrationService
             }
         }
 
-        // Stamp the migration timestamp only when actual values were merged
-        if (anyMigrated && settings is VersionedSettings versioned)
-            versioned.MigratedAt = DateTime.UtcNow;
+        bool stampChanged = StampMigratedSettings(settings);
 
-        if (anyMigrated || !File.Exists(jsonPath))
+        if (anyMigrated || stampChanged || !File.Exists(jsonPath))
         {
             try
             {
@@ -162,6 +164,51 @@ public static class SettingsMigrationService
             {
                 Logging.WriteInfo($"Failed to write {typeof(T).Name}.json: {ex.Message}");
             }
+        }
+    }
+
+    private static bool StampMigratedSettings<T>(T settings) where T : class, new()
+    {
+        if (settings is not VersionedSettings versioned)
+            return false;
+
+        bool changed = false;
+        if (!versioned.MigratedAt.HasValue)
+        {
+            versioned.MigratedAt = DateTime.UtcNow;
+            changed = true;
+        }
+
+        int schemaVersion = typeof(T).GetCustomAttribute<CurrentSchemaAttribute>()?.Version ?? 1;
+        if (!string.Equals(versioned.AppVersion, AppVersion.Current, StringComparison.Ordinal))
+        {
+            versioned.AppVersion = AppVersion.Current;
+            changed = true;
+        }
+
+        if (versioned.SchemaVersion != schemaVersion)
+        {
+            versioned.SchemaVersion = schemaVersion;
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static void BackupCorruptJson(string jsonPath, Exception loadException)
+    {
+        try
+        {
+            if (!File.Exists(jsonPath))
+                return;
+
+            string backupPath = CreateTimestampedBackupPath(jsonPath, ".corrupt");
+            File.Move(jsonPath, backupPath, overwrite: false);
+            Logging.WriteInfo($"Backed up corrupt migrated JSON to {backupPath}: {loadException.Message}");
+        }
+        catch (Exception backupException)
+        {
+            Logging.WriteInfo($"Could not back up corrupt migrated JSON {jsonPath}: {backupException.Message}");
         }
     }
 
@@ -180,9 +227,38 @@ public static class SettingsMigrationService
     {
         if (current == null && defaultVal == null) return true;
         if (current == null || defaultVal == null) return false;
-        if (current is System.Collections.ICollection col) return col.Count == 0;
+        if (current is ICollection currentCollection && defaultVal is ICollection defaultCollection)
+        {
+            if (currentCollection.Count != defaultCollection.Count)
+                return false;
+
+            List<object?> currentValues = currentCollection.Cast<object?>().ToList();
+            List<object?> defaultValues = defaultCollection.Cast<object?>().ToList();
+
+            if (IsOrderedCollection(currentCollection) && IsOrderedCollection(defaultCollection))
+                return currentValues.SequenceEqual(defaultValues);
+
+            return currentValues
+                .Select(GetCollectionComparisonKey)
+                .OrderBy(value => value, StringComparer.Ordinal)
+                .SequenceEqual(defaultValues
+                    .Select(GetCollectionComparisonKey)
+                    .OrderBy(value => value, StringComparer.Ordinal));
+        }
+
         return Equals(current, defaultVal);
     }
+
+    private static bool IsOrderedCollection(ICollection collection) =>
+        collection is IList || collection.GetType().IsArray;
+
+    private static string GetCollectionComparisonKey(object? value) =>
+        value switch
+        {
+            null => "<null>",
+            string text => text,
+            _ => JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.None)
+        };
 
     private static object ConvertValue(string value, Type targetType)
     {
@@ -597,15 +673,26 @@ public static class SettingsMigrationService
             try
             {
                 File.Copy(oldPath, newPath);
-                string bakPath = oldPath + ".bak";
-                if (File.Exists(bakPath)) File.Delete(bakPath);
+                string bakPath = CreateTimestampedBackupPath(oldPath, ".bak");
                 File.Move(oldPath, bakPath);
-                Logging.WriteInfo($"Renamed {oldName} → {newName} (backup: {oldName}.bak)");
+                Logging.WriteInfo($"Renamed {oldName} → {newName} (backup: {Path.GetFileName(bakPath)})");
             }
             catch (Exception ex)
             {
                 Logging.WriteInfo($"Failed to rename {oldName}: {ex.Message}");
             }
         }
+    }
+
+    private static string CreateTimestampedBackupPath(string path, string suffix)
+    {
+        string candidate = $"{path}{suffix}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+        int attempt = 1;
+        while (File.Exists(candidate))
+        {
+            candidate = $"{path}{suffix}-{DateTime.UtcNow:yyyyMMddHHmmss}-{attempt++}";
+        }
+
+        return candidate;
     }
 }

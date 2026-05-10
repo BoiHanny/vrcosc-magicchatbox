@@ -188,9 +188,13 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         public void SendChat()
         {
-            string chat = _chatStatus.NewChattingTxt;
+            _ = TrySendChatText(_chatStatus.NewChattingTxt, preserveCurrentInput: false);
+        }
+
+        public bool TrySendChatText(string chat, bool preserveCurrentInput)
+        {
             if (string.IsNullOrWhiteSpace(chat) || chat.Length > Core.Constants.MaxChatMessageLength || !_appState.MasterSwitch)
-                return;
+                return false;
 
             foreach (ChatItem item in _chatStatus.LastMessages)
             {
@@ -200,9 +204,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.IsRunning = false;
             }
 
-            Osc.CreateChat(true);
+            Osc.CreateChat(true, preserveCurrentInput ? chat : null);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-            _oscSender.Value.SendOSCMessage(CS.ChatFX, smalldelay);
+            _ = _oscSender.Value.SendOSCMessage(CS.ChatFX, smalldelay, force: true);
             _chatHistorySvc.Value.SaveChatHistory();
 
             if (TTS.TtsTikTokEnabled)
@@ -220,6 +224,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
             _ = ScanLoop.Scantick();
             ScrollToEndRequested?.Invoke();
+            return true;
         }
 
         [RelayCommand]
@@ -228,7 +233,7 @@ namespace vrcosc_magicchatbox.ViewModels
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             Osc.ClearChat(running);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-            _oscSender.Value.SendOSCMessage(false, smalldelay);
+            _ = _oscSender.Value.SendOSCMessage(false, smalldelay, force: true);
             _ = ScanLoop.Scantick();
             TtsPlayback.CancelAllTts();
         }
@@ -266,12 +271,9 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.LiveEditButtonTxt = "Sending...";
                 item.IsRunning = true;
 
-                string savedtxt = _chatStatus.NewChattingTxt;
-                _chatStatus.NewChattingTxt = item.Msg;
-                Osc.CreateChat(false);
+                Osc.CreateChat(false, item.Msg);
                 int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-                _oscSender.Value.SendOSCMessage(CS.ChatFX && CS.ChatSendAgainFX, smalldelay);
-                _chatStatus.NewChattingTxt = savedtxt;
+                _ = _oscSender.Value.SendOSCMessage(CS.ChatFX && CS.ChatSendAgainFX, smalldelay, force: true);
 
                 if (TTS.TtsTikTokEnabled && TTS.TtsOnResendChat)
                 {

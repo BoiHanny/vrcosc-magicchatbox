@@ -41,7 +41,7 @@ public sealed class OscOutputBuilder
     /// If the combined message exceeds the 144-char limit, lowest-priority
     /// segments are dropped until the message fits (graceful degradation).
     /// </summary>
-    public OscBuildResult Build()
+    public OscBuildResult Build(bool allowExternalRefresh = true)
     {
         string separator = GetSeparator();
         string prefix = ExpandNewlines(_appSettings.OscMessagePrefix);
@@ -75,7 +75,8 @@ public sealed class OscOutputBuilder
                 Separator = separator,
                 Prefix = prefix,
                 Suffix = suffix,
-                IsVRRunning = isVR
+                IsVRRunning = isVR,
+                AllowExternalRefresh = allowExternalRefresh
             };
 
             OscSegment? segment;

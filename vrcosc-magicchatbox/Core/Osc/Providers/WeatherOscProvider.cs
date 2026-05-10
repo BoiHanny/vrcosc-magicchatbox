@@ -34,7 +34,9 @@ public sealed class WeatherOscProvider : IOscProvider
 
     public OscSegment? TryBuild(OscBuildContext context)
     {
-        _weather.TriggerRefreshIfNeeded();
+        if (context.AllowExternalRefresh)
+            _weather.TriggerRefreshIfNeeded();
+
         string text = _weather.BuildWeatherOnlyText();
         if (string.IsNullOrWhiteSpace(text)) return null;
 

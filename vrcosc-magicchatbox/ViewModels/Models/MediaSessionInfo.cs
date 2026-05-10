@@ -215,8 +215,17 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             get
             {
-                if (FullTime.TotalMilliseconds == 0) return 0;
-                return (int)(CurrentTime.TotalMilliseconds / FullTime.TotalMilliseconds * 100);
+                double fullMilliseconds = FullTime.TotalMilliseconds;
+                double currentMilliseconds = CurrentTime.TotalMilliseconds;
+
+                if (fullMilliseconds <= 0 || double.IsNaN(fullMilliseconds) || double.IsInfinity(fullMilliseconds))
+                    return 0;
+
+                if (double.IsNaN(currentMilliseconds) || double.IsInfinity(currentMilliseconds))
+                    return 0;
+
+                double percent = currentMilliseconds / fullMilliseconds * 100;
+                return (int)Math.Clamp(percent, 0, 100);
             }
         }
 
@@ -231,7 +240,11 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
                 {
                     var elapsedTime = DateTime.Now - _lastUpdateTime;
-                    return _CurrentTime + elapsedTime;
+                    TimeSpan livePosition = _CurrentTime + elapsedTime;
+                    if (FullTime > TimeSpan.Zero && livePosition > FullTime)
+                        return FullTime;
+
+                    return livePosition;
                 }
                 return _CurrentTime;
             }

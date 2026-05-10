@@ -35,7 +35,9 @@ public sealed class TwitchOscProvider : IOscProvider
         var twitch = _modules.Value.Twitch;
         if (twitch == null) return null;
 
-        twitch.TriggerRefreshIfNeeded();
+        if (context.AllowExternalRefresh)
+            twitch.TriggerRefreshIfNeeded();
+
         string text = twitch.GetOutputString();
         if (string.IsNullOrWhiteSpace(text)) return null;
 

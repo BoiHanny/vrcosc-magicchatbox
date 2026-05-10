@@ -504,7 +504,9 @@
                             x:Name="PART_ContentHost"
                             Margin="{TemplateBinding Padding}"
                             Focusable="False"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             HorizontalScrollBarVisibility="Hidden"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             VerticalScrollBarVisibility="Hidden" />
                     </Border>
                     <ControlTemplate.Triggers>

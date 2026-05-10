@@ -26,13 +26,13 @@ public sealed class OSCController
 
     internal void ClearChat(ChatItem lastsendchat = null) => _chatMgr.ClearChat(lastsendchat);
 
-    public void CreateChat(bool createItem) => _chatMgr.CreateChat(createItem);
+    public void CreateChat(bool createItem, string? messageText = null) => _chatMgr.CreateChat(createItem, messageText);
 
-    public void BuildOSC()
+    public void BuildOSC(bool allowExternalRefresh = true)
     {
         try
         {
-            var result = _oscBuilder.Build();
+            var result = _oscBuilder.Build(allowExternalRefresh);
             _oscPresenter.Present(result);
         }
         catch (Exception ex)

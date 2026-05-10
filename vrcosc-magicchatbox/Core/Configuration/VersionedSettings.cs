@@ -15,7 +15,7 @@ public abstract class VersionedSettings : ObservableObject
     /// Compare against [CurrentSchema(N)] on the concrete class to detect stale configs.
     /// </summary>
     [JsonProperty("_schemaVersion")]
-    public int SchemaVersion { get; set; } = 0;
+    public int SchemaVersion { get; set; } = 1;
 
     /// <summary>
     /// App version string (e.g. "1.2.3.0") that last wrote this file.

@@ -26,6 +26,11 @@ public sealed class OscBuildContext
     public bool IsVRRunning { get; init; }
 
     /// <summary>
+    /// True for the periodic OSC tick. False for UI preview rebuilds that should not pull external APIs.
+    /// </summary>
+    public bool AllowExternalRefresh { get; init; } = true;
+
+    /// <summary>
     /// Calculates the number of characters remaining if <paramref name="candidate"/> were added.
     /// </summary>
     public int RemainingCharsIf(string candidate)

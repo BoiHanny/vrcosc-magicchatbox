@@ -17,6 +17,6 @@ public sealed class OscControllerAdapter : IOscController
         _osc = new Lazy<OSCController>(() => osc);
     }
 
-    public void BuildOSC() => _osc.Value.BuildOSC();
-    public void CreateChat(bool createItem) => _osc.Value.CreateChat(createItem);
+    public void BuildOSC(bool allowExternalRefresh = true) => _osc.Value.BuildOSC(allowExternalRefresh);
+    public void CreateChat(bool createItem, string? messageText = null) => _osc.Value.CreateChat(createItem, messageText);
 }

@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -22,7 +23,24 @@ namespace vrcosc_magicchatbox.UI.Pages
         public StatusPage()
         {
             InitializeComponent();
+            Loaded += (_, _) => FocusStatusInput();
+            IsVisibleChanged += (_, args) =>
+            {
+                if (args.NewValue is true)
+                    FocusStatusInput();
+            };
         }
+
+        public void FocusStatusInput()
+            => Dispatcher.BeginInvoke(() =>
+            {
+                if (!IsVisible)
+                    return;
+
+                NewFavText.Focus();
+                Keyboard.Focus(NewFavText);
+                NewFavText.CaretIndex = NewFavText.Text.Length;
+            }, DispatcherPriority.Input);
 
         private void AddFav_Click(object sender, RoutedEventArgs e)
             => VM.AddStatusCommand.Execute(null);

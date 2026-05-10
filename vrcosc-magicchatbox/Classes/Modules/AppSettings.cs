@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
@@ -9,7 +10,11 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 /// </summary>
 public partial class AppSettings : VersionedSettings
 {
-    [ObservableProperty] private double _scanningInterval = 5;
+    public const double OscTickIntervalDefaultSeconds = 1.0;
+    public const double OscTickIntervalMinSeconds = 0.7;
+    public const double OscTickIntervalMaxSeconds = 10.0;
+
+    [ObservableProperty] private double _scanningInterval = OscTickIntervalDefaultSeconds;
     [ObservableProperty] private int _scanPauseTimeout = 15;
 
     [ObservableProperty] private bool _prefixIconStatus = true;
@@ -30,6 +35,22 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _checkUpdateOnStartup = true;
     [ObservableProperty] private bool _startInBackground = false;
     [ObservableProperty] private bool _minimizeToTray = false;
+    [ObservableProperty] private bool _closeToTray = false;
+    [ObservableProperty] private bool _minimizeToTrayOnMinimize = false;
+    [ObservableProperty] private bool _enableTrayNotifications = true;
+    [ObservableProperty] private bool _showTrayRunningReminder = true;
+    [ObservableProperty] private bool _openTrayWithAltX = true;
+
+    [JsonProperty("OpenTrayWithAltQ", NullValueHandling = NullValueHandling.Ignore)]
+    public bool? LegacyOpenTrayShortcut
+    {
+        get => null;
+        set
+        {
+            if (value.HasValue)
+                OpenTrayWithAltX = value.Value;
+        }
+    }
 
     [ObservableProperty] private int _switchStatusInterval = 5;
     [ObservableProperty] private string _eggPrefixIconStatus = "🥚";
@@ -79,4 +100,27 @@ public partial class AppSettings : VersionedSettings
     private bool _useCustomProfile;
 
     [ObservableProperty] private string _acceptedTosVersion = string.Empty;
+
+    partial void OnScanningIntervalChanged(double value)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value))
+        {
+            ScanningInterval = OscTickIntervalDefaultSeconds;
+            return;
+        }
+
+        if (value < OscTickIntervalMinSeconds)
+            ScanningInterval = OscTickIntervalMinSeconds;
+        else if (value > OscTickIntervalMaxSeconds)
+            ScanningInterval = OscTickIntervalMaxSeconds;
+    }
+
+    partial void OnMinimizeToTrayChanged(bool value)
+    {
+        if (!value)
+            return;
+
+        CloseToTray = true;
+        MinimizeToTrayOnMinimize = true;
+    }
 }

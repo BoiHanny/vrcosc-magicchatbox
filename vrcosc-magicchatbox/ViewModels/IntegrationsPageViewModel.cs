@@ -249,7 +249,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private void ManualBuildOsc()
     {
         if (!_chatStatus.ScanPause)
-            _osc.Value.BuildOSC();
+            _osc.Value.BuildOSC(allowExternalRefresh: false);
         _integrationSettingsProvider.Save();
     }
 
@@ -257,16 +257,16 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private void RestartAsAdmin() => ExecuteRestartAsAdmin();
 
     [RelayCommand]
-    private void MediaPlayPause(MediaSessionInfo? m)
-    { if (m != null) MediaLink.MediaManager_PlayPauseAsync(m); }
+    private async Task MediaPlayPause(MediaSessionInfo? m)
+    { if (m != null) await MediaLink.MediaManager_PlayPauseAsync(m); }
 
     [RelayCommand]
-    private void MediaNext(MediaSessionInfo? m)
-    { if (m != null) MediaLink.MediaManager_NextAsync(m); }
+    private async Task MediaNext(MediaSessionInfo? m)
+    { if (m != null) await MediaLink.MediaManager_NextAsync(m); }
 
     [RelayCommand]
-    private void MediaPrevious(MediaSessionInfo? m)
-    { if (m != null) MediaLink.MediaManager_PreviousAsync(m); }
+    private async Task MediaPrevious(MediaSessionInfo? m)
+    { if (m != null) await MediaLink.MediaManager_PreviousAsync(m); }
 
     [RelayCommand]
     private void SelectMediaSession(MediaSessionInfo? m)
@@ -276,7 +276,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         MediaLink.SelectMediaSession(m);
         if (!_chatStatus.ScanPause)
-            _osc.Value.BuildOSC();
+            _osc.Value.BuildOSC(allowExternalRefresh: false);
     }
 
     [RelayCommand]
