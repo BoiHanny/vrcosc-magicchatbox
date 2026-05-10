@@ -8,6 +8,17 @@
 
 `Welcome to MagicChatBox – the ultimate VRChat upgrade! Unlock new features, enhance your interactions, and take your virtual experience to the next level.`
 
+## Overview
+
+MagicChatBox runs as your live OSC companion while you are in VRChat, and now includes system tray integration for day-to-day use.
+
+### System Tray Integration (How it works)
+
+- Click the **minimize** button to move MagicChatBox out of your way while it keeps running.
+- While minimized, your enabled modules continue updating your chatbox in the background.
+- Open MagicChatBox again from the **system tray/taskbar area** when you want to change settings.
+- Use the app **close/exit** action only when you want to fully stop MagicChatBox.
+
 > [!IMPORTANT]
 > **We highly recommend reading our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before you download or use MagicChatBox.**  
 > It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
