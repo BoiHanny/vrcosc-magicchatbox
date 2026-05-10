@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Services;
 
@@ -71,17 +72,25 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 return;
             }
 
-            bool isValidToken = await _oauthHandler.ValidateTokenAsync(token);
+            try
+            {
+                bool isValidToken = await _oauthHandler.ValidateTokenAsync(token);
 
-            if (isValidToken)
-            {
-                _heartRateConnector.Settings.AccessTokenOAuth = token;
-                _setPulsoidAuth(true);
-                this.Close();
+                if (isValidToken)
+                {
+                    _heartRateConnector.Settings.AccessTokenOAuth = token;
+                    _setPulsoidAuth(true);
+                    Close();
+                }
+                else
+                {
+                    MessageBox.Show("Invalid token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Invalid token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logging.WriteInfo($"Pulsoid token validation failed: {ex.Message}");
+                MessageBox.Show($"Could not validate the token: {ex.Message}", "Pulsoid connection failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

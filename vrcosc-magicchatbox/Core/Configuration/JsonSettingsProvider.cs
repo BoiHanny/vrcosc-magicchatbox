@@ -79,6 +79,7 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             catch (Exception ex)
             {
                 Logging.WriteInfo($"Error loading settings for {typeof(T).Name}: {ex.Message}");
+                BackupCorruptSettingsFile(ex);
             }
 
             _settings = new T();
@@ -168,6 +169,23 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             {
                 Logging.WriteInfo($"Error saving settings for {typeof(T).Name}: {ex.Message}");
             }
+        }
+    }
+
+    private void BackupCorruptSettingsFile(Exception loadException)
+    {
+        try
+        {
+            if (!File.Exists(_filePath))
+                return;
+
+            string backupPath = $"{_filePath}.corrupt-{DateTime.UtcNow:yyyyMMddHHmmss}";
+            File.Move(_filePath, backupPath, overwrite: false);
+            Logging.WriteInfo($"Backed up corrupt settings for {typeof(T).Name} to {backupPath}: {loadException.Message}");
+        }
+        catch (Exception backupException)
+        {
+            Logging.WriteInfo($"Could not back up corrupt settings for {typeof(T).Name}: {backupException.Message}");
         }
     }
 

@@ -1,7 +1,6 @@
 using System;
 using vrcosc_magicchatbox.Core.Osc;
 using vrcosc_magicchatbox.ViewModels.Models;
-using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
@@ -13,19 +12,16 @@ public sealed class OSCController
 {
     private readonly ChatStateManager _chatMgr;
     private readonly OscOutputBuilder _oscBuilder;
-    private readonly OscDisplayState _oscDisplay;
-    private readonly IntegrationDisplayState _integrationDisplay;
+    private readonly OscBuildResultPresenter _oscPresenter;
 
     public OSCController(
         ChatStateManager chatMgr,
         OscOutputBuilder oscBuilder,
-        OscDisplayState oscDisplay,
-        IntegrationDisplayState integrationDisplay)
+        OscBuildResultPresenter oscPresenter)
     {
         _chatMgr = chatMgr;
         _oscBuilder = oscBuilder;
-        _oscDisplay = oscDisplay;
-        _integrationDisplay = integrationDisplay;
+        _oscPresenter = oscPresenter;
     }
 
     internal void ClearChat(ChatItem lastsendchat = null) => _chatMgr.ClearChat(lastsendchat);
@@ -37,7 +33,7 @@ public sealed class OSCController
         try
         {
             var result = _oscBuilder.Build();
-            OscOutputBuilder.ApplyToDisplay(result, _oscDisplay, _integrationDisplay);
+            _oscPresenter.Present(result);
         }
         catch (Exception ex)
         {

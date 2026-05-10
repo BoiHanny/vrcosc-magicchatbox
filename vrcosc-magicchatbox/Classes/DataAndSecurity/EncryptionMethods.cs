@@ -42,13 +42,26 @@ internal static class EncryptionMethods
 
     public static string EncryptString(string plainText)
     {
-        if (string.IsNullOrEmpty(plainText))
-            return null;
+        try
+        {
+            if (string.IsNullOrEmpty(plainText))
+                return null;
 
-        byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
-        byte[] encryptedBytes = ProtectedData.Protect(
-            plainBytes, null, DataProtectionScope.CurrentUser);
-        return Convert.ToBase64String(encryptedBytes);
+            byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+            byte[] encryptedBytes = ProtectedData.Protect(
+                plainBytes, null, DataProtectionScope.CurrentUser);
+            return Convert.ToBase64String(encryptedBytes);
+        }
+        catch (CryptographicException ex)
+        {
+            Logging.WriteInfo($"Encryption failed (token may need re-entry): {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return null;
+        }
     }
 
     public static bool TryProcessToken(ref string source, ref string destination, bool isEncryption)

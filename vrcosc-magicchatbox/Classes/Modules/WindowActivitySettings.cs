@@ -9,6 +9,9 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 /// </summary>
 public partial class WindowActivitySettings : VersionedSettings
 {
+    public const string LegacyDefaultGlobalRegex = @"^(.+?)(?:\s*[-–—]\s*[^-–—]+)?$";
+    public const string DefaultGlobalRegex = @"^(.+?)(?:\s*[-–—]\s*[^-–—]+\s*[-–—]\s*(.+)|\s*[-–—]\s*[^-–—]+)?$ => $1 $2";
+
     [ObservableProperty] private bool _autoShowTitleOnNewApp = false;
     [ObservableProperty] private bool _titleScan = true;
     [ObservableProperty] private int _maxShowTitleCount = 35;
@@ -30,8 +33,8 @@ public partial class WindowActivitySettings : VersionedSettings
     /// <summary>Apply a global regex to ALL window titles before per-app regex.</summary>
     [ObservableProperty] private bool _useGlobalRegex = true;
 
-    /// <summary>Global regex pattern applied to every window title. First capture group becomes the title.</summary>
-    [ObservableProperty] private string _globalRegex = @"^(.+?)(?:\s*[-–—]\s*[^-–—]+)?$";
+    /// <summary>Global regex transform applied to every window title.</summary>
+    [ObservableProperty] private string _globalRegex = DefaultGlobalRegex;
 
     /// <summary>Enable content filtering on window title extra info (after regex extraction).</summary>
     [ObservableProperty] private bool _enableTitleFilters = false;

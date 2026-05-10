@@ -382,8 +382,7 @@ public static class ServiceRegistration
         services.AddSingleton<Classes.DataAndSecurity.OSCController>(sp => new Classes.DataAndSecurity.OSCController(
             sp.GetRequiredService<ChatStateManager>(),
             sp.GetRequiredService<OscOutputBuilder>(),
-            sp.GetRequiredService<OscDisplayState>(),
-            sp.GetRequiredService<IntegrationDisplayState>()));
+            sp.GetRequiredService<OscBuildResultPresenter>()));
         services.AddSingleton<IOscController, OscControllerAdapter>();
 
         services.AddSingleton<IAppHistoryService>(sp => new AppHistoryService(
@@ -581,6 +580,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
+            sp.GetRequiredService<SpotifyDisplayState>(),
             new Lazy<IMediaLinkService>(() => App.ApplicationMediaController)));
 
         // OscOutputBuilder — explicit factory: MSDI's reflection-based resolution
@@ -591,6 +591,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ModuleFaultTracker>()));
+        services.AddSingleton<OscBuildResultPresenter>();
 
         return services.BuildServiceProvider();
     }

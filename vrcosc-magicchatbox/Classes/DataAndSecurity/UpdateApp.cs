@@ -281,7 +281,9 @@ public class UpdateApp
                 }
                 else
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+                    string directory = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(directory))
+                        Directory.CreateDirectory(directory);
                     entry.ExtractToFile(destinationPath, true);
                 }
             }
@@ -311,7 +313,9 @@ public class UpdateApp
                 }
                 else
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+                    string directory = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(directory))
+                        Directory.CreateDirectory(directory);
                     entry.ExtractToFile(destinationPath, true);
                 }
             }
@@ -326,7 +330,7 @@ public class UpdateApp
         {
             try
             {
-                string currentExePath = Assembly.GetExecutingAssembly().Location;
+                string currentExePath = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "MagicChatbox.exe");
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = currentExePath,
@@ -349,7 +353,7 @@ public class UpdateApp
 
     private void PrepareMaintenanceRunner()
     {
-        string sourceDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        string sourceDirectory = GetCurrentAppDirectory();
         if (PathsEqual(sourceDirectory, maintenanceRunnerPath))
         {
             return;
@@ -362,7 +366,7 @@ public class UpdateApp
     private void InitializePaths(bool createNewAppLocation)
     {
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
-        string actualCurrentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        string actualCurrentAppPath = GetCurrentAppDirectory();
         string defaultBackupPath = Path.Combine(dataPath, "backup");
 
         if (!Directory.Exists(dataPath))
@@ -438,6 +442,8 @@ public class UpdateApp
 
     private void SaveUpdateLocation(string backupPath = null)
     {
+        Directory.CreateDirectory(dataPath);
+
         JObject appLocation = new JObject(
             new JProperty("metadataVersion", UpdateLocationMetadataVersion),
             new JProperty("currentAppPath", currentAppPath),
@@ -449,15 +455,20 @@ public class UpdateApp
         );
 
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
-        File.WriteAllText(jsonFilePath, appLocation.ToString());
+        string tempFilePath = jsonFilePath + ".tmp";
+        File.WriteAllText(tempFilePath, appLocation.ToString());
+        File.Move(tempFilePath, jsonFilePath, overwrite: true);
     }
 
     private void SetDefaultPaths()
     {
-        currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        currentAppPath = GetCurrentAppDirectory();
         ResetUpdateWorkspacePaths();
         backupPath = Path.Combine(dataPath, "backup");
     }
+
+    private static string GetCurrentAppDirectory()
+        => Path.GetFullPath(AppContext.BaseDirectory);
 
     private void ResetExtractionWorkspace()
     {

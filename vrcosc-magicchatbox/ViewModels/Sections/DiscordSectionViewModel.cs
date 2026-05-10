@@ -163,11 +163,11 @@ public partial class DiscordSectionViewModel : ObservableObject
             if (!CheckRedirectPortAvailability())
                 return;
 
-            Logging.WriteInfo($"Discord voice: starting v0.9.181 implicit-grant flow (clientId={MaskClientId(discord.EffectiveVoiceClientId)}, richPresenceRunning={_richPresence.IsRunning}).");
+            Logging.WriteInfo($"Discord voice: starting implicit-grant flow (clientId={MaskClientId(discord.EffectiveVoiceClientId)}, richPresenceRunning={_richPresence.IsRunning}).");
             var (result, hasRpcScope) = await _oAuth.Value.AuthenticateImplicitAsync(discord.EffectiveVoiceClientId);
             if (result == null || string.IsNullOrWhiteSpace(result.AccessToken))
             {
-                RedirectPortStatus = "Discord authorization did not complete. Check the Application ID, redirect URI, and Discord's rpc scope approval.";
+                RedirectPortStatus = "Discord authorization did not complete. Check the Application ID, redirect URI, and browser popup/permission prompts.";
                 return;
             }
 
@@ -181,7 +181,7 @@ public partial class DiscordSectionViewModel : ObservableObject
             await discord.StartAsync();
             RedirectPortStatus = hasRpcScope
                 ? "Discord authorized. MagicChatbox is now authenticating through the local Discord client."
-                : "Discord connected, but the token did not include rpc voice scope. Speaking detection may be unavailable.";
+                : "Discord connected with basic authorization. Discord rejected private voice/RPC scope, so VC and speaking detection may be unavailable.";
         }
         catch (Exception ex)
         {
@@ -298,6 +298,10 @@ public partial class DiscordSectionViewModel : ObservableObject
         else if (!discord.IsAuthenticated && !string.IsNullOrWhiteSpace(discord.Settings.AccessToken))
         {
             StatusText = "✅ Connected (Rich Presence active, authenticating...)";
+        }
+        else if (!discord.Settings.HasRpcScope)
+        {
+            StatusText = "✅ Connected (basic Discord auth — voice detection unavailable)";
         }
         else if (!discord.IsInVoiceChannel)
         {

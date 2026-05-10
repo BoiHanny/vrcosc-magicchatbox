@@ -157,7 +157,7 @@
                             VerticalContentAlignment="Center"
                             FontSize="13"
                             Text="{Binding WindowActivitySettings.GlobalRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            ToolTip="Applied to every window title before per-app regex. First capture group () becomes the title." />
+                            ToolTip="Applied to every window title. Use either a capture regex or pattern => replacement. Example: ^(.+?)(?:\s*[-–—]\s*[^-–—]+\s*[-–—]\s*(.+)|\s*[-–—]\s*[^-–—]+)?$ => $1 $2" />
                     </StackPanel>
 
                     <!--  Content Filters  -->
@@ -179,7 +179,7 @@
                             Margin="0,0,0,6"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
-                            Text="💡 Comma-separate keywords. Exclude hides text when any keyword matches. Include only shows text when at least one keyword matches."
+                            Text="Comma-separate words/phrases or use regex:&lt;pattern&gt;. Exclude hides matching titles. Remove cuts matched text out and keeps the rest."
                             TextWrapping="Wrap" />
                         <ItemsControl ItemsSource="{Binding WindowActivitySettings.TitleFilters}">
                             <ItemsControl.ItemTemplate>
@@ -205,7 +205,7 @@
                                             ItemsSource="{Binding Source={x:Static modules:TitleFilterRule.FilterModes}}"
                                             SelectedItem="{Binding Mode, Mode=TwoWay}"
                                             Style="{StaticResource DarkComboBoxStyle}"
-                                            ToolTip="Exclude: hides text containing the pattern.&#x0a;Include: only shows text containing the pattern.">
+                                             ToolTip="Exclude: hide titles containing the pattern.&#x0a;Include: only show titles containing the pattern.&#x0a;Remove: cut matching text from the title.">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
@@ -220,7 +220,7 @@
                                             VerticalContentAlignment="Center"
                                             FontSize="12"
                                             Text="{Binding Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            ToolTip="Comma-separated keywords (case-insensitive). E.g.: username, http, @" />
+                                             ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. Example remove regex: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
                                         <Button
                                             Grid.Column="3"
                                             Width="24"
@@ -527,7 +527,7 @@
                         Margin="3,0"
                         HorizontalAlignment="Stretch"
                         Style="{StaticResource Sort_Button_style}"
-                        ToolTip="Per-app content filter. Set a mode and keywords to filter the title info for each app."
+                         ToolTip="Per-app content filter. Hide matching titles, show only matching titles, or remove matched text from the title."
                         Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock
                             HorizontalAlignment="Center"
@@ -654,11 +654,12 @@
                                         FontSize="12"
                                         SelectedIndex="{Binding ContentFilterMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{StaticResource DarkComboBoxStyle}"
-                                        ToolTip="None: no filter.&#x0a;Exclude: hide info when any keyword matches.&#x0a;Include: only show info when at least one keyword matches.">
-                                        <ComboBoxItem Content="None" />
-                                        <ComboBoxItem Content="Exclude" />
-                                        <ComboBoxItem Content="Include" />
-                                    </ComboBox>
+                                         ToolTip="None: no filter.&#x0a;Exclude: hide info when a rule matches.&#x0a;Include: only show info when a rule matches.&#x0a;Remove: cut matching text and keep the rest.">
+                                         <ComboBoxItem Content="None" />
+                                         <ComboBoxItem Content="Exclude" />
+                                         <ComboBoxItem Content="Include" />
+                                         <ComboBoxItem Content="Remove" />
+                                     </ComboBox>
                                     <TextBox
                                         Width="110"
                                         Margin="4,0,0,0"
@@ -667,7 +668,7 @@
                                         FontSize="12"
                                         IsEnabled="{Binding ContentFilterEnabled}"
                                         Text="{Binding ContentFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        ToolTip="Comma-separated keywords (case-insensitive). E.g.: username, http, @" />
+                                         ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. To remove ' - dif - ' and keep after: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
                                 </StackPanel>
                                 <StackPanel
                                     Grid.Column="7"

@@ -12,6 +12,7 @@ namespace vrcosc_magicchatbox.Services;
 public partial class ModuleHost : ObservableObject, IModuleHost
 {
     private readonly List<IModule> _modules = new();
+    private readonly object _modulesLock = new();
 
     // ComponentStats is created eagerly (during ViewModel construction)
     [ObservableProperty] private ComponentStatsModule _componentStats;
@@ -28,11 +29,24 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     [ObservableProperty] private WhisperModule _whisper;
     [ObservableProperty] private AfkModule _afk;
 
-    public IReadOnlyList<IModule> AllModules => _modules;
+    public IReadOnlyList<IModule> AllModules
+    {
+        get
+        {
+            lock (_modulesLock)
+                return _modules.ToArray();
+        }
+    }
 
     public void RegisterModule(IModule module)
     {
-        if (module != null && !_modules.Contains(module))
-            _modules.Add(module);
+        if (module == null)
+            return;
+
+        lock (_modulesLock)
+        {
+            if (!_modules.Contains(module))
+                _modules.Add(module);
+        }
     }
 }

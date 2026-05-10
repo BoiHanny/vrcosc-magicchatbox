@@ -77,7 +77,12 @@ public partial class OptionsPage : UserControl
     }
 
     private void OnSettingToggled(object sender, RoutedEventArgs e)
-        => VM.OnSettingToggled();
+    {
+        if (e.OriginalSource is not CheckBox)
+            return;
+
+        VM.OnSettingToggled();
+    }
 
     public void SelectTTSOutput()
         => TtsOptionsSectionControl.SelectTTSOutput();

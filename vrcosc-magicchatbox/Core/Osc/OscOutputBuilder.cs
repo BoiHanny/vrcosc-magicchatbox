@@ -107,11 +107,11 @@ public sealed class OscOutputBuilder
         }
 
         // Then any providers not in the sort order (safety net)
-        foreach (var kvp in providerMap)
+        foreach (var provider in _providers)
         {
-            if (usedKeys.Contains(kvp.Key))
+            if (usedKeys.Contains(provider.SortKey))
                 continue;
-            TryAddProvider(kvp.Value);
+            TryAddProvider(provider);
         }
 
         var trimmed = new List<string>();
@@ -144,39 +144,6 @@ public sealed class OscOutputBuilder
             IncludedProviders = collected.Select(c => c.UiKey).ToList(),
             TrimmedProviders = trimmed
         };
-    }
-
-    /// <summary>
-    /// Applies an <see cref="OscBuildResult"/> to the UI display state.
-    /// This is the ONLY place that mutates display state from build results.
-    /// </summary>
-    public static void ApplyToDisplay(OscBuildResult result, OscDisplayState oscDisplay, IntegrationDisplayState integrationDisplay)
-    {
-        integrationDisplay.ResetAllOpacity();
-
-        if (result.ExceededLimit)
-        {
-            oscDisplay.CharLimit = "Visible";
-            foreach (var key in result.TrimmedProviders)
-                integrationDisplay.SetOpacity(key, "0.5");
-        }
-        else
-        {
-            oscDisplay.CharLimit = "Hidden";
-        }
-
-        if (result.Length > OscBuildContext.MaxOscLength)
-        {
-            oscDisplay.OscToSent = string.Empty;
-            oscDisplay.OscMsgCount = result.Length;
-            oscDisplay.OscMsgCountUI = $"MAX/{OscBuildContext.MaxOscLength}";
-        }
-        else
-        {
-            oscDisplay.OscToSent = result.Message;
-            oscDisplay.OscMsgCount = result.Length;
-            oscDisplay.OscMsgCountUI = $"{result.Length}/{OscBuildContext.MaxOscLength}";
-        }
     }
 
     #region Helpers

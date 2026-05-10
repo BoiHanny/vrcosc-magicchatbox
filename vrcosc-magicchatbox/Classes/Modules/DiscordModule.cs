@@ -276,7 +276,9 @@ public partial class DiscordModule : ObservableObject, IModule
     {
         if (evt == "ERROR")
         {
-            Logging.WriteInfo($"Discord authentication failed: {data}");
+            string code = data?["code"]?.ToString() ?? "unknown";
+            string message = data?["message"]?.ToString() ?? "No error message returned.";
+            Logging.WriteInfo($"Discord authentication failed: code={code}, message={message}");
             _dispatcher.BeginInvoke(() => IsAuthenticated = false);
             return;
         }

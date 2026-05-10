@@ -95,7 +95,6 @@ internal static class Logging
         catch (Exception e)
         {
             HandleLoggingError("Error in ShowMSGBox", e);
-            Environment.Exit(10);
         }
     }
 

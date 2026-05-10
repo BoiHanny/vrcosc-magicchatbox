@@ -158,7 +158,7 @@ namespace vrcosc_magicchatbox
 
         private void WhisperModule_TranscriptionReceived(string newTranscription)
         {
-            VM.Chatting.OnTranscriptionReceived(newTranscription);
+            Dispatcher.BeginInvoke(() => VM.Chatting.OnTranscriptionReceived(newTranscription));
         }
 
 
@@ -222,10 +222,16 @@ namespace vrcosc_magicchatbox
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex, MSGBox: true, exitapp: true);
+                Logging.WriteException(ex, MSGBox: true);
             }
             finally
             {
+                if (_moduleHost.Whisper != null)
+                {
+                    _moduleHost.Whisper.TranscriptionReceived -= WhisperModule_TranscriptionReceived;
+                    _moduleHost.Whisper.SentChatMessage -= WhisperModule_SentChat;
+                }
+
                 Application.Current.Shutdown();
             }
         }

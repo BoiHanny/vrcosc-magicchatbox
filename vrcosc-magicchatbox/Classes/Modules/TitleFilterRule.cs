@@ -6,14 +6,14 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 /// <summary>
 /// A rule that filters window title "extra info" text after regex extraction.
-/// Supports both include (show only when matches) and exclude (hide when matches) modes.
+/// Supports include, hide, and remove modes.
 /// </summary>
 public partial class TitleFilterRule : ObservableObject
 {
     /// <summary>The text pattern to match (case-insensitive substring).</summary>
     [ObservableProperty] private string _pattern = string.Empty;
 
-    /// <summary>Whether this rule includes (show only) or excludes (hide) matching content.</summary>
+    /// <summary>How this rule handles matching content.</summary>
     [ObservableProperty] private FilterMode _mode = FilterMode.Exclude;
 
     /// <summary>Whether this rule is currently active.</summary>
@@ -29,5 +29,8 @@ public enum FilterMode
     Exclude,
 
     [Description("Include (show only when matches)")]
-    Include
+    Include,
+
+    [Description("Remove matches")]
+    Remove
 }

@@ -33,9 +33,10 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
     private readonly IUiDispatcher _dispatcher;
     private readonly IToastService _toast;
 
-    private bool _refreshInProgress;
+    private int _refreshInProgress;
     private DateTime _lastRefreshUtc = DateTime.MinValue;
     private DateTime _lastProfileRefreshUtc = DateTime.MinValue;
+    private static readonly TimeSpan ForcedRefreshWaitTimeout = TimeSpan.FromSeconds(3);
 
     public SpotifySettings Settings => _settingsProvider.Value;
     public SpotifyDisplayState Display => _display;
@@ -162,7 +163,8 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         if (!force && (DateTime.UtcNow - _lastRefreshUtc).TotalSeconds < intervalSeconds)
             return;
 
-        _ = RefreshAsync();
+        _lastRefreshUtc = DateTime.UtcNow;
+        _ = RefreshAsync(force);
     }
 
     public Task TriggerManualRefreshAsync() => RefreshAsync(force: true);
@@ -242,13 +244,21 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
     private async Task RefreshAsync(bool force = false)
     {
-        if (_refreshInProgress && !force)
-            return;
+        if (Interlocked.CompareExchange(ref _refreshInProgress, 1, 0) == 1)
+        {
+            if (!force)
+                return;
 
-        _refreshInProgress = true;
+            var waitUntil = DateTime.UtcNow + ForcedRefreshWaitTimeout;
+            while (Volatile.Read(ref _refreshInProgress) == 1 && DateTime.UtcNow < waitUntil)
+                await Task.Delay(100).ConfigureAwait(false);
+
+            if (Interlocked.CompareExchange(ref _refreshInProgress, 1, 0) == 1)
+                return;
+        }
+
         try
         {
-            _lastRefreshUtc = DateTime.UtcNow;
             string? token = await EnsureAccessTokenAsync().ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -299,7 +309,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         }
         finally
         {
-            _refreshInProgress = false;
+            Interlocked.Exchange(ref _refreshInProgress, 0);
         }
     }
 

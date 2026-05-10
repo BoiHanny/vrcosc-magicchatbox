@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -13,14 +15,17 @@ namespace vrcosc_magicchatbox
     {
         private readonly Stopwatch _globalTimer = Stopwatch.StartNew();
         private readonly Stopwatch _stepTimer = new();
+        private readonly Action? _cancelRequested;
         private string _prevMessage = "";
         private string _prevTime = "";
         private string _currentMessage = "";
         private string _nextMessage = "";
         private double _currentProgress;
+        private int _cancelStarted;
 
-        public StartUp()
+        public StartUp(Action? cancelRequested = null)
         {
+            _cancelRequested = cancelRequested;
             InitializeComponent();
         }
 
@@ -75,6 +80,29 @@ namespace vrcosc_magicchatbox
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (Interlocked.Exchange(ref _cancelStarted, 1) == 1)
+                return;
+
+            CancelButton.IsEnabled = false;
+            Cursor = Cursors.Wait;
+            CurrentStepText.Text = "Cancelling startup...";
+            NextStepText.Text = "Closing MagicChatbox if startup is stuck...";
+            try
+            {
+                _cancelRequested?.Invoke();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Startup is already ending; continue with normal shutdown.
+            }
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                if (Application.Current?.Dispatcher.HasShutdownFinished != true)
+                    Environment.Exit(0);
+            });
+
             Application.Current.Shutdown();
         }
 
