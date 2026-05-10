@@ -28,6 +28,8 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _topmost = false;
     [ObservableProperty] private bool _joinedAlphaChannel = false;
     [ObservableProperty] private bool _checkUpdateOnStartup = true;
+    [ObservableProperty] private bool _startInBackground = false;
+    [ObservableProperty] private bool _minimizeToTray = false;
 
     [ObservableProperty] private int _switchStatusInterval = 5;
     [ObservableProperty] private string _eggPrefixIconStatus = "🥚";
