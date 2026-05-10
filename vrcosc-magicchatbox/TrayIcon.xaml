@@ -1,0 +1,92 @@
+﻿<Window
+    x:Class="vrcosc_magicchatbox.TrayIcon"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="https://github.com/nullsoftware/TrayIcon"
+    xmlns:local="clr-namespace:vrcosc_magicchatbox"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="TrayIcon"
+    Width="0"
+    Height="0"
+    Background="Transparent"
+    IsHitTestVisible="False"
+    Left="-50"
+    Opacity="0"
+    RenderOptions.ClearTypeHint="Enabled"
+    ShowInTaskbar="True"
+    TextOptions.TextFormattingMode="Ideal"
+    TextOptions.TextRenderingMode="ClearType"
+    Top="-50"
+    WindowStyle="ToolWindow"
+    mc:Ignorable="d">
+
+    <icon:TrayIconHandlers.TrayIcons>
+        <icon:TrayIcon
+            Title="MagicChatbox"
+            ClickCommand="{Binding ShowMainWindow}"
+            NotificationServiceMemberPath="NotificationService">
+            <icon:TrayIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowMainWindow}"
+                        Header="Open">
+                        <MenuItem.Icon>
+                            <Image Source="/Img/Icons/MagicChatbox_ico.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+
+                    <Separator />
+
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowIntegrations}"
+                        Header="Integrations" />
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowStatus}"
+                        Header="Status" />
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowChatting}"
+                        Header="Chatting" />
+                    <MenuItem
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ShowOptions}"
+                        Header="Options" />
+
+                    <Separator />
+
+                    <MenuItem
+                        x:Name="MasterSwitch"
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ToggleMasterSwitch}"
+                        Header="Send to VRChat"
+                        IsCheckable="True"
+                        IsChecked="True" />
+                    <MenuItem
+                        x:Name="AFKSwitch"
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ToggleAFK}"
+                        Header="AFK Now"
+                        IsCheckable="True"
+                        IsChecked="True" />
+                    <MenuItem
+                        x:Name="VoiceChat"
+                        icon:TrayIcon.IsDefault="True"
+                        Command="{Binding ToggleVoiceChat}"
+                        Header="{Binding TtsAudio.ToggleVoiceText}" />
+
+                    <Separator />
+
+                    <MenuItem Command="{Binding CloseApplication}" Header="E_xit">
+                        <MenuItem.Icon>
+                            <Image Source="/Img/Icons/Cross_ico.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </icon:TrayIcon.ContextMenu>
+        </icon:TrayIcon>
+    </icon:TrayIconHandlers.TrayIcons>
+</Window>
