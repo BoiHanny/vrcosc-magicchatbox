@@ -34,7 +34,8 @@ namespace vrcosc_magicchatbox
         private readonly ModuleBootstrapper _bootstrapper;
         private readonly IModuleHost _moduleHost;
         private bool _shutdownRequested;
-        private ViewModel VM => (ViewModel)DataContext;
+        public bool _isTrayClosing;
+        public ViewModel VM => (ViewModel)DataContext;
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -57,6 +58,9 @@ namespace vrcosc_magicchatbox
             {
                 WindowChrome.GetWindowChrome(this).GlassFrameThickness = new Thickness(1);
                 this.BorderThickness = new Thickness(0);
+
+                if (WindowState == WindowState.Minimized)
+                    HideToTray();
             }
         }
 
@@ -203,16 +207,31 @@ namespace vrcosc_magicchatbox
             VM.HandleMasterSwitchToggled();
         }
 
+        private void HideToTray()
+        {
+            if (VM.AppSettingsInstance.MinimizeToTray)
+            {
+                this.Hide();
+                App.trayIcon.Notify("MagicChatbox still running in the background");
+            }
+        }
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (_shutdownRequested)
-                return;
+            if (VM.AppSettingsInstance.MinimizeToTray && !_isTrayClosing)
+            {
+                e.Cancel = true;
+                HideToTray();
+            }
+            else
+            {
+                if (_shutdownRequested)
+                    return;
 
-            _shutdownRequested = true;
+                _shutdownRequested = true;
 
-            // Cancel the window closing event temporarily to await the async task
-            e.Cancel = true;
+                // Cancel the window closing event temporarily to await the async task
+                e.Cancel = true;
 
             try
             {

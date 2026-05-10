@@ -47,6 +47,18 @@
             Visibility="{Binding AppSettings.Settings_AppOptions, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <StackPanel>
                 <StackPanel>
+                    <CheckBox
+                        x:Name="StartInBackground_checkbox"
+                        IsChecked="{Binding AppSettings.StartInBackground, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Start application in background
+                    </CheckBox>
+                    <CheckBox
+                        x:Name="MinimizeToTray_checkbox"
+                        IsChecked="{Binding AppSettings.MinimizeToTray, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Close/Minimize to tray
+                    </CheckBox>
                     <TextBlock
                         Grid.Column="0"
                         Padding="0,0,0,3"
