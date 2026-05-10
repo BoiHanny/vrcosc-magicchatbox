@@ -57,6 +57,9 @@ namespace vrcosc_magicchatbox
         private bool _ownsSingleInstanceMutex;
         private bool _loggingReady;
 
+        public static TrayIcon trayIcon;
+        public static MainWindow mainWindow;
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -236,7 +239,8 @@ namespace vrcosc_magicchatbox
 
                 loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
                 Logging.WriteInfo("Creating MainWindow instance.");
-                MainWindow mainWindow = new MainWindow(
+
+                mainWindow = new MainWindow(
                     Services.GetRequiredService<ScanLoopService>(),
                     Services.GetRequiredService<ModuleBootstrapper>(),
                     Services.GetRequiredService<Core.Services.IModuleHost>(),
@@ -285,6 +289,8 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.Activate();
                 mainWindow.Focus();
+                if (vm.AppSettingsInstance.StartInBackground)
+                    mainWindow.Hide();
 
                 mainWindow.HideStartupOverlay();
 
@@ -331,6 +337,8 @@ namespace vrcosc_magicchatbox
                     _ = RunDeferredStartupUpdateCheckAsync();
                 }
 
+                trayIcon = new TrayIcon();
+                trayIcon.Show();
             }
             catch (Exception ex)
             {
