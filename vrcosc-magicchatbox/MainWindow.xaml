@@ -922,6 +922,24 @@
                         <StackPanel
                             Margin="0,2"
                             HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource TextSecondaryBrush}"
+                                Opacity="0.7"
+                                Text="Close to tray" />
+                            <CheckBox
+                                Margin="4,0,0,0"
+                                FontSize="12"
+                                IsChecked="{Binding AppSettingsInstance.CloseToTray, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                ToolTip="Keep MagicChatbox running in the tray when the close button is pressed." />
+                        </StackPanel>
+                        <StackPanel
+                            Margin="0,2"
+                            HorizontalAlignment="Right"
                             Orientation="Horizontal"
                             Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
                             <TextBlock

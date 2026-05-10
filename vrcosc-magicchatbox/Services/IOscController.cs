@@ -6,6 +6,6 @@ namespace vrcosc_magicchatbox.Services;
 /// </summary>
 public interface IOscController
 {
-    void BuildOSC();
-    void CreateChat(bool createItem);
+    void BuildOSC(bool allowExternalRefresh = true);
+    void CreateChat(bool createItem, string? messageText = null);
 }

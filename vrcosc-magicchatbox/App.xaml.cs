@@ -63,7 +63,6 @@ namespace vrcosc_magicchatbox
         private volatile bool _startupCompleted;
         private string _lastStartupPhase = "Process created.";
 
-        public static TrayIcon trayIcon;
         public static MainWindow mainWindow;
 
         protected override async void OnStartup(StartupEventArgs e)
@@ -72,7 +71,17 @@ namespace vrcosc_magicchatbox
             _startupStopwatch.Start();
             LogStartupPhase($"Process started. PID={Environment.ProcessId}, Args='{string.Join(" ", e.Args ?? Array.Empty<string>())}'.");
 
-            int startupProfileNumber = GetProfileNumberFromArgs(e.Args);
+            if (!TryGetProfileNumberFromArgs(e.Args, out int startupProfileNumber, out string? invalidProfileNumber))
+            {
+                MessageBox.Show(
+                    $"Invalid profile number '{invalidProfileNumber}'.",
+                    "MagicChatbox",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Shutdown();
+                return;
+            }
+
             if (!ShouldSkipSingleInstanceGuard(e.Args) && !TryAcquireSingleInstance(startupProfileNumber))
             {
                 LogStartupPhase($"Second instance detected for profile {startupProfileNumber}. Exiting this instance.");
@@ -108,9 +117,14 @@ namespace vrcosc_magicchatbox
                 LogStartupPhase("Configuring services...");
                 Services = await RunRequiredStartupTaskAsync(
                     "service configuration",
-                    ServiceRegistration.ConfigureServices,
+                    () => ServiceRegistration.ConfigureServices(startupProfileNumber),
                     startupCancellation.Token);
                 LogStartupPhase("Services configured.");
+                if (startupProfileNumber > 0)
+                {
+                    LogStartupPhase($"Custom profile path selected for profile {startupProfileNumber}.");
+                }
+
                 await UpdateStartupProgressAsync(loadingWindow, "Warming up logging...", 7, "Migrating settings...");
                 ConfigureLogging(Services.GetRequiredService<IEnvironmentService>());
                 _loggingReady = true;
@@ -135,6 +149,12 @@ namespace vrcosc_magicchatbox
                     return true;
                 }, startupCancellation.Token);
                 LogStartupPhase("Settings migration completed.");
+                if (startupProfileNumber > 0)
+                {
+                    _appSettings.ProfileNumber = startupProfileNumber;
+                    _appSettings.UseCustomProfile = true;
+                }
+
                 await UpdateStartupProgressAsync(loadingWindow, "Preparing core state...", 18, "Loading your saved data...");
 
                 var vm = await RunRequiredStartupTaskAsync("core state preparation", () =>
@@ -172,23 +192,9 @@ namespace vrcosc_magicchatbox
                 {
                     foreach (string arg in e.Args)
                     {
-                        if (arg.StartsWith("-profile="))
+                        if (arg.StartsWith("-profile=", StringComparison.OrdinalIgnoreCase))
                         {
-                            string profileNumberString = arg.Substring(9);
-                            if (int.TryParse(profileNumberString, out int parsedProfileNumber))
-                            {
-                                _appSettings.ProfileNumber = parsedProfileNumber;
-                                _appSettings.UseCustomProfile = true;
-                                var env = Services.GetRequiredService<IEnvironmentService>();
-                                env.SetCustomProfile(parsedProfileNumber);
-                            }
-                            else
-                            {
-                                loadingWindow.Close();
-                                LogStartupPhase($"Invalid profile argument '{profileNumberString}'.");
-                                Logging.WriteException(new Exception($"Invalid profile number '{profileNumberString}'"), MSGBox: true, exitapp: true);
-                                return;
-                            }
+                            continue;
                         }
                         else
                         {
@@ -266,7 +272,9 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<ScanLoopService>(),
                     Services.GetRequiredService<ModuleBootstrapper>(),
                     Services.GetRequiredService<Core.Services.IModuleHost>(),
-                    Services.GetRequiredService<IStatePersistenceCoordinator>());
+                    Services.GetRequiredService<IStatePersistenceCoordinator>(),
+                    Services.GetRequiredService<ITrayIconService>(),
+                    Services.GetRequiredService<HotkeyManagement>());
                 // DataContext is NOT set yet — Show() renders an empty shell in ~570ms
                 // instead of hanging while WPF evaluates every binding + automation peer.
                 Logging.WriteInfo("MainWindow instance created.");
@@ -359,8 +367,7 @@ namespace vrcosc_magicchatbox
                     _ = RunDeferredStartupUpdateCheckAsync();
                 }
 
-                trayIcon = new TrayIcon();
-                trayIcon.Show();
+                Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
             }
             catch (OperationCanceledException) when (startupCancellation.IsCancellationRequested)
             {
@@ -420,10 +427,11 @@ namespace vrcosc_magicchatbox
             try
             {
                 Services?.GetService<DiscordRichPresenceService>()?.Dispose();
+                Services?.GetService<ITrayIconService>()?.Dispose();
             }
             catch (Exception ex)
             {
-                WriteEarlyStartupLog("Discord Rich Presence dispose failed: " + ex);
+                WriteEarlyStartupLog("Explicit service dispose failed: " + ex);
             }
 
             try
@@ -631,21 +639,28 @@ namespace vrcosc_magicchatbox
                 arg.Equals("-clearbackup", StringComparison.OrdinalIgnoreCase));
         }
 
-        private static int GetProfileNumberFromArgs(string[]? args)
+        private static bool TryGetProfileNumberFromArgs(string[]? args, out int profileNumber, out string? invalidProfileNumber)
         {
-            if (args == null) return 0;
+            profileNumber = 0;
+            invalidProfileNumber = null;
+
+            if (args == null) return true;
 
             foreach (string arg in args)
             {
                 if (!arg.StartsWith("-profile=", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                return int.TryParse(arg[9..], out int profileNumber)
-                    ? profileNumber
-                    : 0;
+                string profileText = arg[9..];
+                if (int.TryParse(profileText, out profileNumber) && profileNumber >= 0)
+                    return true;
+
+                invalidProfileNumber = profileText;
+                profileNumber = 0;
+                return false;
             }
 
-            return 0;
+            return true;
         }
 
 

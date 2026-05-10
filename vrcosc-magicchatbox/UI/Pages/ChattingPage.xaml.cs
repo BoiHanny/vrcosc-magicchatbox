@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -20,6 +21,13 @@ namespace vrcosc_magicchatbox.UI.Pages
         public ChattingPage()
         {
             InitializeComponent();
+            Loaded += (_, _) => FocusChatInput();
+            IsVisibleChanged += (_, args) =>
+            {
+                if (args.NewValue is true)
+                    FocusChatInput();
+            };
+
             // Wire scroll-to-end when DataContext arrives (may be deferred past Show).
             DataContextChanged += (_, args) =>
             {
@@ -35,6 +43,17 @@ namespace vrcosc_magicchatbox.UI.Pages
         }
 
         public void SendChat() => ButtonChattingTxt_Click(null, null);
+
+        public void FocusChatInput()
+            => Dispatcher.BeginInvoke(() =>
+            {
+                if (!IsVisible)
+                    return;
+
+                NewChattingTxt.Focus();
+                Keyboard.Focus(NewChattingTxt);
+                NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
+            }, DispatcherPriority.Input);
 
         private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
             => VM.SendChat();

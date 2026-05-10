@@ -35,7 +35,9 @@ public sealed class SpotifyOscProvider : IOscProvider
         if (spotify == null)
             return null;
 
-        spotify.TriggerRefreshIfNeeded();
+        if (context.AllowExternalRefresh)
+            spotify.TriggerRefreshIfNeeded();
+
         string text = spotify.BuildOutputString(context);
         if (string.IsNullOrWhiteSpace(text))
             return null;

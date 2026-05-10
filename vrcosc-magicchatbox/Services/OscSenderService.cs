@@ -20,6 +20,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private const int COOLDOWN_DURATION = 1000;
     private const string INPUT_VOICE = "/input/Voice";
     private const int TYPING_DURATION = 2000;
+    private static readonly TimeSpan DuplicateKeepAliveInterval = TimeSpan.FromSeconds(12);
 
     private readonly OscSettings _oscSettings;
     private readonly AppSettings _appSettings;
@@ -38,6 +39,8 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private bool _isInCooldown;
     private bool _lastChatboxHadContent;
     private System.Timers.Timer? _typingTimer;
+    private string _lastSentMessageSignature = string.Empty;
+    private DateTime _lastSentMessageUtc = DateTime.MinValue;
 
     public OscSenderService(
         ISettingsProvider<OscSettings> oscSettings,
@@ -61,10 +64,10 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private AppSettings AS => _appSettings;
     private TtsSettings TTS => _ttsSettings;
 
-    public async Task SendOSCMessage(bool fx, int delay = 0)
+    public async Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false)
     {
         if (!_appState.MasterSwitch || _oscDisplay.OscToSent.Length > Core.Constants.OscMaxMessageLength)
-            return;
+            return false;
 
         if (string.IsNullOrEmpty(_oscDisplay.OscToSent))
         {
@@ -72,12 +75,19 @@ public sealed class OscSenderService : IOscSender, IDisposable
             {
                 _lastChatboxHadContent = false;
                 await SentClearMessage(0);
+                return true;
             }
-            return;
+            return false;
         }
+
+        string messageSignature = CreateMessageSignature(fx);
+        if (!force && ShouldSkipDuplicateMessage(messageSignature))
+            return false;
 
         await SendMessageAsync(PrepareMessage(fx), delay);
         _lastChatboxHadContent = true;
+        MarkMessageSent(messageSignature);
+        return true;
     }
 
     public void SendOscParam(string address, float value)
@@ -142,6 +152,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
         var clearMessage = new OscMessage(CHATBOX_INPUT, "", true, false);
         await SendMessageAsync(clearMessage, delay);
         _lastChatboxHadContent = false;
+        MarkMessageSent(string.Empty);
     }
 
     public async Task ToggleVoice(bool force = false)
@@ -169,13 +180,41 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     private OscMessage PrepareMessage(bool fx)
     {
+        return new OscMessage(CHATBOX_INPUT, GetPreparedChatboxText(), true, fx);
+    }
+
+    private string GetPreparedChatboxText()
+    {
         string blankEgg = "\u0003\u001f";
         string combinedText = _oscDisplay.OscToSent + blankEgg;
 
         if (combinedText.Length < 145 && _appState.Egg_Dev && AS.BlankEgg)
-            return new OscMessage(CHATBOX_INPUT, combinedText, true, fx);
-        else
-            return new OscMessage(CHATBOX_INPUT, _oscDisplay.OscToSent, true, fx);
+            return combinedText;
+
+        return _oscDisplay.OscToSent;
+    }
+
+    private string CreateMessageSignature(bool fx)
+    {
+        return string.Join('\u001e', fx, GetPreparedChatboxText());
+    }
+
+    private bool ShouldSkipDuplicateMessage(string messageSignature)
+    {
+        lock (_senderLock)
+        {
+            return string.Equals(_lastSentMessageSignature, messageSignature, StringComparison.Ordinal)
+                   && DateTime.UtcNow - _lastSentMessageUtc < DuplicateKeepAliveInterval;
+        }
+    }
+
+    private void MarkMessageSent(string messageSignature)
+    {
+        lock (_senderLock)
+        {
+            _lastSentMessageSignature = messageSignature;
+            _lastSentMessageUtc = DateTime.UtcNow;
+        }
     }
 
     private async Task SendMessageAsync(OscMessage message, int delay)

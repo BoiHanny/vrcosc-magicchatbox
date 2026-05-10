@@ -121,21 +121,25 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
             if (playingSessions.Count > 0)
             {
-                selectedSession = activeSession != null && playingSessions.Any(s => SessionIdsMatch(s, activeSession))
-                    ? activeSession
-                    : playingSessions.FirstOrDefault(s => SessionIdsMatch(s, changedSession)) ?? playingSessions[0];
+                selectedSession = playingSessions.FirstOrDefault(s => SessionIdsMatch(s, changedSession))
+                    ?? (activeSession != null && playingSessions.Any(s => SessionIdsMatch(s, activeSession)) ? activeSession : null)
+                    ?? playingSessions[0];
             }
         }
 
         if (selectedSession == null && activeSession != null)
             return;
 
-        if (selectedSession == null &&
-            allowSingleSessionFallback &&
-            sessions.Count == 1 &&
-            (_mediaLinkSettings.AutoSwitch || sessions[0].PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing))
+        if (selectedSession == null && allowSingleSessionFallback && sessions.Count == 1)
         {
             selectedSession = sessions[0];
+        }
+        else if (selectedSession == null &&
+                 activeSession == null &&
+                 changedSession != null &&
+                 sessions.Any(s => SessionIdsMatch(s, changedSession)))
+        {
+            selectedSession = changedSession;
         }
 
         if (selectedSession != null)
@@ -315,6 +319,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 _dispatcher.BeginInvoke(
                     () =>
                     {
+                        if (!ReferenceEquals(sessionInfo.Session, session))
+                            return;
+
                         _mediaLink.MediaSessions.Remove(sessionInfo);
                         if (wasActive)
                             RefreshActiveSelection(null, allowSingleSessionFallback: true);
@@ -348,6 +355,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             {
                 sessionInfo = recentInfo;
                 sessionInfo.Session = session;
+                sessionInfo.TimeoutRestore = false;
                 recentlyClosedSessions.TryRemove(session.Id, out _);
             }
         }
@@ -367,7 +375,14 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         _dispatcher.BeginInvoke(
                 () =>
                 {
-                    if (!_mediaLink.MediaSessions.Any(s => SessionIdsMatch(s, sessionInfo)))
+                    foreach (MediaSessionInfo duplicate in _mediaLink.MediaSessions
+                                 .Where(s => !ReferenceEquals(s, sessionInfo) && SessionIdsMatch(s, sessionInfo))
+                                 .ToList())
+                    {
+                        _mediaLink.MediaSessions.Remove(duplicate);
+                    }
+
+                    if (!_mediaLink.MediaSessions.Contains(sessionInfo))
                         _mediaLink.MediaSessions.Add(sessionInfo);
 
                     RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
@@ -377,7 +392,22 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
     }
 
-    private void MediaManager_OnFocusedSessionChanged(MediaSession session) { currentSession = session; }
+    private void MediaManager_OnFocusedSessionChanged(MediaSession? session)
+    {
+        if (session is null)
+        {
+            currentSession = null;
+            QueueRefreshActiveSelection(null, allowSingleSessionFallback: true);
+            return;
+        }
+
+        currentSession = session;
+        if (sessionInfoLookup.TryGetValue(session, out MediaSessionInfo? sessionInfo))
+        {
+            LastMediaChangeTime = DateTime.UtcNow;
+            QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
+        }
+    }
 
     private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -427,14 +457,14 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    public void MediaManager_NextAsync(MediaSessionInfo sessionInfo)
+    public async Task MediaManager_NextAsync(MediaSessionInfo sessionInfo)
     {
         MediaSession S = sessionInfo.Session;
 
         if (S == null)
             return;
 
-        S?.ControlSession.TrySkipNextAsync();
+        await S.ControlSession.TrySkipNextAsync();
     }
 
     /// <summary>
@@ -450,14 +480,14 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    public void MediaManager_PlayPauseAsync(MediaSessionInfo sessionInfo)
+    public async Task MediaManager_PlayPauseAsync(MediaSessionInfo sessionInfo)
     {
         MediaSession S = sessionInfo.Session;
 
         if (S == null)
             return;
 
-        S?.ControlSession.TryTogglePlayPauseAsync();
+        await S.ControlSession.TryTogglePlayPauseAsync();
     }
 
     public async Task MediaManager_PreviousAsync(MediaSessionInfo sessionInfo)
@@ -466,10 +496,10 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         if (S == null)
             return;
-        S?.ControlSession.TrySkipPreviousAsync();
+        await S.ControlSession.TrySkipPreviousAsync();
         if (sessionInfo.CurrentTime > TimeSpan.FromSeconds(2))
         {
-            S?.ControlSession.TrySkipPreviousAsync();
+            await S.ControlSession.TrySkipPreviousAsync();
         }
 
     }

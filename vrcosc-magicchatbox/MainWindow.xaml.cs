@@ -1,12 +1,15 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
@@ -33,6 +36,9 @@ namespace vrcosc_magicchatbox
         private readonly IStatePersistenceCoordinator _persistence;
         private readonly ModuleBootstrapper _bootstrapper;
         private readonly IModuleHost _moduleHost;
+        private readonly ITrayIconService _trayIconService;
+        private readonly HotkeyManagement _hotkeyManagement;
+        private HwndSource? _windowSource;
         private bool _shutdownRequested;
         public bool _isTrayClosing;
         public ViewModel VM => (ViewModel)DataContext;
@@ -41,8 +47,12 @@ namespace vrcosc_magicchatbox
         {
             base.OnSourceInitialized(e);
 
-            IntPtr handle = (new System.Windows.Interop.WindowInteropHelper(this)).Handle;
-            System.Windows.Interop.HwndSource.FromHwnd(handle)?.AddHook(WindowProc);
+            if (_windowSource is not null)
+                return;
+
+            IntPtr handle = (new WindowInteropHelper(this)).Handle;
+            _windowSource = HwndSource.FromHwnd(handle);
+            _windowSource?.AddHook(WindowProc);
 
             this.StateChanged += MainWindow_StateChanged;
         }
@@ -59,7 +69,7 @@ namespace vrcosc_magicchatbox
                 WindowChrome.GetWindowChrome(this).GlassFrameThickness = new Thickness(1);
                 this.BorderThickness = new Thickness(0);
 
-                if (WindowState == WindowState.Minimized)
+                if (WindowState == WindowState.Minimized && VM.AppSettingsInstance.MinimizeToTrayOnMinimize)
                     HideToTray();
             }
         }
@@ -106,7 +116,13 @@ namespace vrcosc_magicchatbox
 
 
 
-        public MainWindow(ScanLoopService scanLoop, ModuleBootstrapper bootstrapper, IModuleHost moduleHost, IStatePersistenceCoordinator persistence)
+        public MainWindow(
+            ScanLoopService scanLoop,
+            ModuleBootstrapper bootstrapper,
+            IModuleHost moduleHost,
+            IStatePersistenceCoordinator persistence,
+            ITrayIconService trayIconService,
+            HotkeyManagement hotkeyManagement)
         {
             InitializeComponent();
 
@@ -114,6 +130,8 @@ namespace vrcosc_magicchatbox
             _bootstrapper = bootstrapper;
             _moduleHost = moduleHost;
             _persistence = persistence;
+            _trayIconService = trayIconService;
+            _hotkeyManagement = hotkeyManagement;
 
             Closing += MainWindow_ClosingAsync;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
@@ -188,7 +206,6 @@ namespace vrcosc_magicchatbox
 
         private void Button_close_Click(object sender, RoutedEventArgs e)
         {
-            this.Visibility = Visibility.Hidden;
             this.Close();
         }
 
@@ -207,31 +224,48 @@ namespace vrcosc_magicchatbox
             VM.HandleMasterSwitchToggled();
         }
 
-        private void HideToTray()
+        private void HideToTray(string? notificationText = "Still running in the tray.")
         {
-            if (VM.AppSettingsInstance.MinimizeToTray)
+            Hide();
+
+            if (VM.AppSettingsInstance.EnableTrayNotifications &&
+                VM.AppSettingsInstance.ShowTrayRunningReminder &&
+                !string.IsNullOrWhiteSpace(notificationText))
             {
-                this.Hide();
-                App.trayIcon.Notify("MagicChatbox still running in the background");
+                var openTrayAction = new ToastAction("Open Magic Tray", () =>
+                {
+                    _trayIconService.OpenContextMenu();
+                    return Task.CompletedTask;
+                });
+
+                _trayIconService.Notify(WithTrayShortcutHint(notificationText), openTrayAction, showMainWindowOnClick: false);
             }
+        }
+
+        private string WithTrayShortcutHint(string notificationText)
+        {
+            if (VM.AppSettingsInstance.OpenTrayWithAltX && !string.IsNullOrWhiteSpace(_hotkeyManagement.TrayShortcutDisplayText))
+                return $"{notificationText}{Environment.NewLine}Open Magic Tray with {_hotkeyManagement.TrayShortcutDisplayText}.";
+
+            return notificationText;
         }
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (VM.AppSettingsInstance.MinimizeToTray && !_isTrayClosing)
+            if (VM.AppSettingsInstance.CloseToTray && !_isTrayClosing)
             {
                 e.Cancel = true;
-                HideToTray();
+                HideToTray("Still running in the tray.");
+                return;
             }
-            else
-            {
-                if (_shutdownRequested)
-                    return;
 
-                _shutdownRequested = true;
+            if (_shutdownRequested)
+                return;
 
-                // Cancel the window closing event temporarily to await the async task
-                e.Cancel = true;
+            _shutdownRequested = true;
+
+            // Cancel the window closing event temporarily to await the async task
+            e.Cancel = true;
 
             try
             {
@@ -264,6 +298,17 @@ namespace vrcosc_magicchatbox
         public void FireExitSave()
         {
             _persistence.PersistAllState();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            if (_windowSource is not null)
+            {
+                _windowSource.RemoveHook(WindowProc);
+                _windowSource = null;
+            }
+
+            base.OnClosed(e);
         }
 
 

@@ -97,7 +97,7 @@
                 Margin="5,0,0,0">
                 <TextBox
                     x:Name="NewChattingTxt"
-                    Padding="8,0,93,0"
+                    Padding="4,0,93,0"
                     HorizontalContentAlignment="Left"
                     VerticalContentAlignment="Center"
                     FontSize="15"
@@ -119,7 +119,8 @@
                 </TextBox>
                 <TextBlock
                     Margin="0"
-                    Padding="12,10,96,0"
+                    Padding="12,0,96,0"
+                    VerticalAlignment="Center"
                     FontSize="15"
                     Foreground="{StaticResource AccentLightPurpleBrush}"
                     IsHitTestVisible="False"
@@ -230,9 +231,8 @@
 
 
             <TextBlock
-                Height="40"
                 Margin="5,0,55,0"
-                Padding="8,9,5,0"
+                Padding="12,0,5,0"
                 VerticalAlignment="Center"
                 FontSize="15"
                 Foreground="{StaticResource TextDarkMutedBrush}"
@@ -246,10 +246,6 @@
                             <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding ElementName=NewChattingTxt, Path=IsFocused}" Value="True">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                            </DataTrigger>
-
                         </Style.Triggers>
                     </Style>
                 </TextBlock.Style>
@@ -1177,7 +1173,7 @@
                     Width="auto"
                     Height="34"
                     Margin="3,0"
-                    Content="AI"
+                    Content="  Auto complete  "
                     IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}"
                     Style="{DynamicResource GlowyToggleButtonVR}"
                     ToolTip="Inline autocomplete. Suggestions use local chat history by default; press Tab to accept."

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -54,11 +55,42 @@
                         Start application in background
                     </CheckBox>
                     <CheckBox
-                        x:Name="MinimizeToTray_checkbox"
-                        IsChecked="{Binding AppSettings.MinimizeToTray, Mode=TwoWay}"
+                        x:Name="CloseToTray_checkbox"
+                        IsChecked="{Binding AppSettings.CloseToTray, Mode=TwoWay}"
                         Style="{DynamicResource SettingsCheckbox}">
-                        Close/Minimize to tray
+                        Close to system tray
                     </CheckBox>
+                    <CheckBox
+                        x:Name="MinimizeToTray_checkbox"
+                        IsChecked="{Binding AppSettings.MinimizeToTrayOnMinimize, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Minimize to system tray
+                    </CheckBox>
+                    <CheckBox
+                        x:Name="TrayNotifications_checkbox"
+                        IsChecked="{Binding AppSettings.EnableTrayNotifications, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show system tray notifications when MagicChatbox is not focused
+                    </CheckBox>
+                    <CheckBox
+                        x:Name="ShowTrayRunningReminder_checkbox"
+                        IsChecked="{Binding AppSettings.ShowTrayRunningReminder, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show the "still running" tray reminder
+                    </CheckBox>
+                    <CheckBox
+                        x:Name="OpenTrayWithAltX_checkbox"
+                        IsChecked="{Binding AppSettings.OpenTrayWithAltX, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Open tray menu with Alt+X shortcut
+                    </CheckBox>
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        FontFamily="Albert Sans"
+                        FontSize="12"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="Close to tray keeps MagicChatbox running instead of exiting and is off until users intentionally enable it. Turning on minimize to tray enables both close-to-tray and hide-on-minimize so the window always goes to the tray instead of disappearing differently. The still-running reminder is on by default but can be turned off here. Tray notifications only show when MagicChatbox needs to tell you something while you are not focused on the app. The tray shortcut is Alt+X only."
+                        TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Column="0"
                         Padding="0,0,0,3"
@@ -169,7 +201,7 @@
                     FontSize="15"
                     Foreground="{StaticResource TextLabelBrush}"
                     Style="{StaticResource OptionSubsectionHeaderStyle}"
-                    Text="OSC update rate" />
+                    Text="OSC tick / send rate" />
                 <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                     <Slider
                         x:Name="ScanningIntervalSensitivitySlider"
@@ -177,10 +209,11 @@
                         Height="12"
                         Margin="2.2,0,4.5,0"
                         IsSnapToTickEnabled="True"
-                        Maximum="10"
-                        Minimum="1.6"
+                        Maximum="{x:Static modules:AppSettings.OscTickIntervalMaxSeconds}"
+                        Minimum="{x:Static modules:AppSettings.OscTickIntervalMinSeconds}"
                         Style="{StaticResource CustomSlider}"
                         TickFrequency="0.1"
+                        ToolTip="How often MagicChatbox rebuilds and sends the periodic OSC chatbox status. Lower values update faster and also collect enabled module data more often."
                         Value="{Binding AppSettings.ScanningInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock
                         Width="auto"

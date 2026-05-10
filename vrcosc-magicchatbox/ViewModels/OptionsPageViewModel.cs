@@ -113,7 +113,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public void OnSettingToggled()
         {
             if (!_chatStatus.ScanPause)
-                _osc.Value.BuildOSC();
+                _osc.Value.BuildOSC(allowExternalRefresh: false);
             _integrationSettingsProvider.Save();
         }
 
@@ -141,7 +141,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
             var reset = await _sectionReset.ResetSectionAsync(sectionKey).ConfigureAwait(true);
             if (!_chatStatus.ScanPause)
-                _osc.Value.BuildOSC();
+                _osc.Value.BuildOSC(allowExternalRefresh: false);
 
             var message = reset.Note is null
                 ? $"{reset.ResetCount} setting(s) reset."

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Core.Configuration;
 
@@ -29,10 +30,10 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
     public event EventHandler SettingsChanged;
 
-    public JsonSettingsProvider()
+    public JsonSettingsProvider(IEnvironmentService environment)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _filePath = Path.Combine(appData, "Vrcosc-MagicChatbox", $"{typeof(T).Name}.json");
+        ArgumentNullException.ThrowIfNull(environment);
+        _filePath = Path.Combine(environment.DataPath, $"{typeof(T).Name}.json");
         _settings = null!;
     }
 
@@ -69,9 +70,11 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
                     if (!string.IsNullOrWhiteSpace(json) && !json.All(c => c == '\0'))
                     {
                         _settings = JsonConvert.DeserializeObject<T>(json) ?? new T();
-                        ApplyVersionResets();
+                        bool resetApplied = ApplyVersionResets();
                         SubscribeAutoSave();
                         SettingsChanged?.Invoke(this, EventArgs.Empty);
+                        if (resetApplied)
+                            Save();
                         return;
                     }
                 }
@@ -93,10 +96,10 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     /// resetting individual properties or the entire module to defaults.
     /// Silently logs any resets that fire.
     /// </summary>
-    private void ApplyVersionResets()
+    private bool ApplyVersionResets()
     {
         if (_settings is not VersionedSettings vs)
-            return;
+            return false;
 
         var type = typeof(T);
         string loadedAppVersion = vs.AppVersion ?? string.Empty;
@@ -112,7 +115,7 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             if (_settings is VersionedSettings fresh)
                 fresh.MigratedAt = migratedAt;
             StampVersion();
-            return;
+            return true;
         }
 
         bool anyReset = false;
@@ -144,6 +147,8 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
         if (anyReset)
             StampVersion();
+
+        return anyReset;
     }
 
     public void Save()

@@ -1169,7 +1169,7 @@
                 <TextBox
                     x:Name="NewFavText"
                     MinHeight="40"
-                    Padding="8,0,58,0"
+                    Padding="4,0,58,0"
                     HorizontalContentAlignment="Left"
                     VerticalContentAlignment="Center"
                     FontSize="15"
@@ -1199,8 +1199,8 @@
                     Foreground="{Binding ChatStatus.StatusBoxColor}"
                     Text="{Binding ChatStatus.StatusBoxCount}" />
                 <TextBlock
-                    Height="40"
-                    Padding="8,9,5,0"
+                    Margin="0,0,58,0"
+                    Padding="12,0,5,0"
                     VerticalAlignment="Center"
                     FontSize="15"
                     Foreground="{StaticResource TextDarkMutedBrush}"
@@ -1213,9 +1213,6 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Text, ElementName=NewFavText}" Value="">
                                     <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding ElementName=NewFavText, Path=IsFocused}" Value="True">
-                                    <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

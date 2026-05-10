@@ -8,7 +8,7 @@ namespace vrcosc_magicchatbox.Services;
 /// </summary>
 public interface IOscSender
 {
-    Task SendOSCMessage(bool fx, int delay = 0);
+    Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false);
     void SendOscParam(string address, float value);
     void SendOscParam(string address, int value);
     void SendOscParam(string address, bool value);

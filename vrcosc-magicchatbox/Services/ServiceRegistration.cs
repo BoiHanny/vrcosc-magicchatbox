@@ -27,17 +27,21 @@ namespace vrcosc_magicchatbox.Services;
 /// </summary>
 public static class ServiceRegistration
 {
-    public static IServiceProvider ConfigureServices()
+    public static IServiceProvider ConfigureServices(int profileNumber = 0)
     {
         var services = new ServiceCollection();
+        var environment = new EnvironmentService();
+        if (profileNumber > 0)
+            environment.SetCustomProfile(profileNumber);
 
         services.AddSingleton<IEncryptionService, DpapiEncryptionService>();
         services.AddSingleton<INavigationService, SafeNavigationService>();
         services.AddSingleton<IAllowedForUsingService, AllowedForUsingService>();
         services.AddSingleton<IAppInfoService, AppInfoService>();
         services.AddSingleton<IBanEnforcementService, BanEnforcementService>();
-        services.AddSingleton<IEnvironmentService, EnvironmentService>();
+        services.AddSingleton<IEnvironmentService>(environment);
 
+        services.AddSingleton<ITrayIconService, TrayIconService>();
         services.AddSingleton<IToastService, ToastService>();
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         services.AddSingleton<ModuleFaultTracker>();
@@ -70,7 +74,7 @@ public static class ServiceRegistration
 
         services.AddSingleton<IUiDispatcher, WpfUiDispatcher>();
 
-        // Unified settings provider — resolves ISettingsProvider<T> for any settings class
+        // Unified settings provider — JsonSettingsProvider<T> receives the profile-aware IEnvironmentService above.
         services.AddSingleton(typeof(ISettingsProvider<>), typeof(JsonSettingsProvider<>));
 
         services.AddSingleton<IntegrationDisplayState>();
@@ -361,7 +365,13 @@ public static class ServiceRegistration
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>())));
 
         services.AddSingleton<IOscSender, OscSenderService>();
-        services.AddSingleton<Classes.DataAndSecurity.HotkeyManagement>();
+        services.AddSingleton<Classes.DataAndSecurity.HotkeyManagement>(sp => new Classes.DataAndSecurity.HotkeyManagement(
+            sp.GetRequiredService<IEnvironmentService>(),
+            sp.GetRequiredService<IOscSender>(),
+            sp.GetRequiredService<ISettingsProvider<TtsSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<IUiDispatcher>(),
+            new Lazy<ITrayIconService>(() => sp.GetRequiredService<ITrayIconService>())));
         services.AddSingleton<Classes.Modules.OpenAIModule>(sp => new Classes.Modules.OpenAIModule(
             sp.GetRequiredService<ISettingsProvider<OpenAISettings>>(),
             sp.GetRequiredService<OpenAIDisplayState>(),

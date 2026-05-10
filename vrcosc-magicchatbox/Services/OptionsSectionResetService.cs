@@ -264,6 +264,11 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         nameof(AppSettings.AppIsEnabled),
         nameof(AppSettings.StartInBackground),
         nameof(AppSettings.MinimizeToTray),
+        nameof(AppSettings.CloseToTray),
+        nameof(AppSettings.MinimizeToTrayOnMinimize),
+        nameof(AppSettings.EnableTrayNotifications),
+        nameof(AppSettings.ShowTrayRunningReminder),
+        nameof(AppSettings.OpenTrayWithAltX),
     ];
 
     private static readonly string[] EggSettings =

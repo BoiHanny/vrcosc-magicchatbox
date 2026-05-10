@@ -12,13 +12,14 @@ using vrcosc_magicchatbox.ViewModels.State;
 namespace vrcosc_magicchatbox.Services;
 
 /// <summary>
-/// Manages the main OSC scanning loop and pause/chat timers.
+/// Manages the main OSC build/send tick and pause/chat timers.
 /// TTS and persistence are handled by dedicated services.
 /// </summary>
 public sealed class ScanLoopService : IDisposable
 {
     private Timer? _backgroundCheck;
     private TimeSpan _currentInterval;
+    private static readonly TimeSpan ComponentStatsMinInterval = TimeSpan.FromSeconds(2);
     private readonly IAppState _appState;
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly IntegrationDisplayState _integrationDisplay;
@@ -31,8 +32,9 @@ public sealed class ScanLoopService : IDisposable
     private readonly AsyncOperationGuard _faultTracker = new();
     private System.Timers.Timer? _chatUpdateTimer;
     private System.Timers.Timer? _pauseTimer;
-    private DateTime _nextRun = DateTime.Now;
+    private DateTime _nextRun = DateTime.UtcNow;
     private DateTime _lastOSCMessageTime = DateTime.MinValue;
+    private DateTime _lastComponentStatsUpdateUtc = DateTime.MinValue;
     private bool _isProcessing;
     private bool _disposed;
     private int _tickQueued;
@@ -48,6 +50,17 @@ public sealed class ScanLoopService : IDisposable
     private IOscSender OscSend => _oscSender.Value;
 
     private bool _started;
+
+    private static TimeSpan ToOscTickInterval(double seconds)
+    {
+        if (double.IsNaN(seconds) || double.IsInfinity(seconds))
+            seconds = AppSettings.OscTickIntervalDefaultSeconds;
+
+        return TimeSpan.FromMilliseconds(Math.Clamp(
+            seconds,
+            AppSettings.OscTickIntervalMinSeconds,
+            AppSettings.OscTickIntervalMaxSeconds) * 1000);
+    }
 
     public ScanLoopService(
         IAppState appState,
@@ -87,7 +100,7 @@ public sealed class ScanLoopService : IDisposable
     {
         if (_started) return;
         _started = true;
-        _currentInterval = TimeSpan.FromMilliseconds(AS.ScanningInterval * 1000);
+        _currentInterval = ToOscTickInterval(AS.ScanningInterval);
         _backgroundCheck = new Timer(_ =>
         {
             if (Interlocked.CompareExchange(ref _tickQueued, 1, 0) == 0)
@@ -131,7 +144,7 @@ public sealed class ScanLoopService : IDisposable
     }
 
     /// <summary>
-    /// Core scan/update loop — updates modules then sends OSC message.
+    /// Core OSC tick — collects enabled module data, rebuilds the status text, then sends the OSC message.
     /// </summary>
     public async Task Scantick(bool firstRun = false)
     {
@@ -141,14 +154,15 @@ public sealed class ScanLoopService : IDisposable
 
         try
         {
-            if (DateTime.Now >= _nextRun || firstRun)
+            DateTime nowUtc = DateTime.UtcNow;
+            if (nowUtc >= _nextRun || firstRun)
             {
-                var desiredInterval = TimeSpan.FromMilliseconds(AS.ScanningInterval * 1000);
+                var desiredInterval = ToOscTickInterval(AS.ScanningInterval);
                 if (_currentInterval != desiredInterval)
                 {
                     _currentInterval = desiredInterval;
                     _backgroundCheck?.Change(_currentInterval, _currentInterval);
-                    _nextRun = DateTime.Now.Add(_currentInterval);
+                    _nextRun = nowUtc.Add(_currentInterval);
                     return;
                 }
 
@@ -157,23 +171,25 @@ public sealed class ScanLoopService : IDisposable
 
                 Osc.BuildOSC();
 
-                long nowMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                nowUtc = DateTime.UtcNow;
+                long nowMs = nowUtc.Ticks / TimeSpan.TicksPerMillisecond;
                 long lastMs = _lastOSCMessageTime.Ticks / TimeSpan.TicksPerMillisecond;
                 const long allowedOverlapMs = 100;
 
-                if ((nowMs - lastMs + allowedOverlapMs) >= AS.ScanningInterval * 1000)
+                if ((nowMs - lastMs + allowedOverlapMs) >= desiredInterval.TotalMilliseconds)
                 {
                     if (!_started || _disposed) return;
-                    OscSend.SendOSCMessage(false);
-                    _lastOSCMessageTime = DateTime.Now;
+                    bool sent = await OscSend.SendOSCMessage(false);
+                    if (sent)
+                        _lastOSCMessageTime = nowUtc;
                 }
                 else
                 {
                     var nextAllowed = _lastOSCMessageTime.Add(desiredInterval);
-                    Logging.WriteInfo($"OSC message rate-limited, NOW: {DateTime.Now} ALLOWED AFTER: {nextAllowed}");
+                    Logging.WriteInfo($"OSC message rate-limited, NOW: {DateTime.UtcNow} ALLOWED AFTER: {nextAllowed}");
                 }
 
-                _nextRun = DateTime.Now.Add(_currentInterval);
+                _nextRun = nowUtc.Add(_currentInterval);
             }
         }
         catch (Exception ex)
@@ -198,8 +214,11 @@ public sealed class ScanLoopService : IDisposable
             if (_integrationSettings.IntgrScanWindowActivity)
                 tasks.Add(_faultTracker.RunGuardedAsync("WindowActivity", UpdateFocusedWindowAsync));
 
-            if (_integrationSettings.IntgrComponentStats)
+            if (_integrationSettings.IntgrComponentStats && IsComponentStatsDue())
+            {
                 tasks.Add(_faultTracker.RunGuardedAsync("HardwareStats", () => Task.Run(() => _statsModule.TickAndUpdate())));
+                _lastComponentStatsUpdateUtc = DateTime.UtcNow;
+            }
 
             if (_integrationSettings.IntgrScanWindowTime)
                 tasks.Add(_faultTracker.RunGuardedAsync("TimeFormat", UpdateCurrentTimeAsync));
@@ -224,6 +243,11 @@ public sealed class ScanLoopService : IDisposable
     {
         _integrationDisplay.CurrentTime = await Task.Run(
             () => _timeFormatting.GetFormattedCurrentTime()).ConfigureAwait(false);
+    }
+
+    private bool IsComponentStatsDue()
+    {
+        return DateTime.UtcNow - _lastComponentStatsUpdateUtc >= ComponentStatsMinInterval;
     }
 
     #endregion
@@ -301,7 +325,7 @@ public sealed class ScanLoopService : IDisposable
                         _chatStatus.ScanPauseCountDown = 0;
 
                     Osc.ClearChat(lastSendChat);
-                    OscSend.SendOSCMessage(false);
+                    _ = OscSend.SendOSCMessage(false, force: true);
 
                     OnBackgroundTick();
                 }
@@ -338,7 +362,7 @@ public sealed class ScanLoopService : IDisposable
                         }
 
                         _oscDisplay.OscToSent = completeMsg;
-                        OscSend.SendOSCMessage(false);
+                        _ = OscSend.SendOSCMessage(false);
                     }
                 }
                 else

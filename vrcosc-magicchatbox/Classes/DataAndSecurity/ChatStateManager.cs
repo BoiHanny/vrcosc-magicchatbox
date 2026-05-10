@@ -57,13 +57,14 @@ public class ChatStateManager
     /// Creates a chat message from the current NewChattingTxt, applies prefix if enabled,
     /// sets scan-pause state, and optionally adds a ChatItem to the message history.
     /// </summary>
-    public void CreateChat(bool createItem)
+    public void CreateChat(bool createItem, string? messageText = null)
     {
         try
         {
+            string sourceMessage = messageText ?? _chatStatus.NewChattingTxt;
             string completeMsg = _chatSettings.PrefixChat == true
-                ? _emojis.GetNextEmoji(true) + " " + _chatStatus.NewChattingTxt
-                : _chatStatus.NewChattingTxt;
+                ? _emojis.GetNextEmoji(true) + " " + sourceMessage
+                : sourceMessage;
 
             if (completeMsg.Length == 0 || completeMsg.Length > Core.Constants.OscMaxMessageLength)
                 return;
@@ -76,8 +77,9 @@ public class ChatStateManager
 
             if (createItem)
             {
-                AddChatHistoryItem(_chatStatus.NewChattingTxt);
-                _chatStatus.NewChattingTxt = string.Empty;
+                AddChatHistoryItem(sourceMessage);
+                if (messageText is null)
+                    _chatStatus.NewChattingTxt = string.Empty;
             }
         }
         catch (Exception ex)
