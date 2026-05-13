@@ -20,12 +20,16 @@ public sealed class ScanLoopService : IDisposable
     private Timer? _backgroundCheck;
     private TimeSpan _currentInterval;
     private static readonly TimeSpan ComponentStatsMinInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan VrCheckMinInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan WindowActivityMinInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan VrCheckTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan HardwareStatsTimeout = TimeSpan.FromSeconds(5);
     private readonly IAppState _appState;
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly IntegrationDisplayState _integrationDisplay;
     private readonly OscDisplayState _oscDisplay;
     private readonly EmojiService _emojis;
-    private readonly ComponentStatsModule _statsModule;
+    private readonly Lazy<ComponentStatsModule> _statsModule;
     private readonly IUiDispatcher _dispatcher;
     private readonly IWindowActivityService _windowActivity;
     private readonly ITimeFormattingService _timeFormatting;
@@ -35,6 +39,10 @@ public sealed class ScanLoopService : IDisposable
     private DateTime _nextRun = DateTime.UtcNow;
     private DateTime _lastOSCMessageTime = DateTime.MinValue;
     private DateTime _lastComponentStatsUpdateUtc = DateTime.MinValue;
+    private DateTime _lastVrCheckUtc = DateTime.MinValue;
+    private DateTime _lastWindowActivityUtc = DateTime.MinValue;
+    private int _windowActivityInFlight;
+    private string? _lastFormattedCurrentTime;
     private bool _isProcessing;
     private bool _disposed;
     private int _tickQueued;
@@ -68,7 +76,7 @@ public sealed class ScanLoopService : IDisposable
         IntegrationDisplayState integrationDisplay,
         OscDisplayState oscDisplay,
         EmojiService emojis,
-        ComponentStatsModule statsModule,
+        Lazy<ComponentStatsModule> statsModule,
         IUiDispatcher dispatcher,
         IWindowActivityService windowActivity,
         ITimeFormattingService timeFormatting,
@@ -206,17 +214,34 @@ public sealed class ScanLoopService : IDisposable
     {
         try
         {
-            var tasks = new List<Task>
-            {
-                _faultTracker.RunGuardedAsync("VRCheck", () => _statsModule.IsVRRunning())
-            };
+            var tasks = new List<Task>();
 
-            if (_integrationSettings.IntgrScanWindowActivity)
+            // Throttle VR runtime check — process enumeration is expensive and VR state
+            // rarely changes; cap to VrCheckMinInterval regardless of user scan interval.
+            if (IsVrCheckDue())
+            {
+                tasks.Add(_faultTracker.RunGuardedAsync(
+                    "VRCheck",
+                    () => Task.Run(() => _statsModule.Value.IsVRRunning()),
+                    VrCheckTimeout));
+                _lastVrCheckUtc = DateTime.UtcNow;
+            }
+
+            // Throttle focused window scan + guard against duplicate in-flight scans.
+            if (_integrationSettings.IntgrScanWindowActivity
+                && IsWindowActivityDue()
+                && Interlocked.CompareExchange(ref _windowActivityInFlight, 1, 0) == 0)
+            {
+                _lastWindowActivityUtc = DateTime.UtcNow;
                 tasks.Add(_faultTracker.RunGuardedAsync("WindowActivity", UpdateFocusedWindowAsync));
+            }
 
             if (_integrationSettings.IntgrComponentStats && IsComponentStatsDue())
             {
-                tasks.Add(_faultTracker.RunGuardedAsync("HardwareStats", () => Task.Run(() => _statsModule.TickAndUpdate())));
+                tasks.Add(_faultTracker.RunGuardedAsync(
+                    "HardwareStats",
+                    () => Task.Run(() => _statsModule.Value.TickAndUpdate()),
+                    HardwareStatsTimeout));
                 _lastComponentStatsUpdateUtc = DateTime.UtcNow;
             }
 
@@ -235,19 +260,44 @@ public sealed class ScanLoopService : IDisposable
 
     private async Task UpdateFocusedWindowAsync()
     {
-        _chatStatus.FocusedWindow = await Task.Run(
-            () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
+        try
+        {
+            _chatStatus.FocusedWindow = await Task.Run(
+                () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _windowActivityInFlight, 0);
+        }
     }
 
     private async Task UpdateCurrentTimeAsync()
     {
-        _integrationDisplay.CurrentTime = await Task.Run(
+        var formatted = await Task.Run(
             () => _timeFormatting.GetFormattedCurrentTime()).ConfigureAwait(false);
+
+        // Skip the UI-bound property set when nothing changed — avoids spurious
+        // PropertyChanged notifications on sub-second scan intervals.
+        if (!string.Equals(formatted, _lastFormattedCurrentTime, StringComparison.Ordinal))
+        {
+            _lastFormattedCurrentTime = formatted;
+            _integrationDisplay.CurrentTime = formatted;
+        }
     }
 
     private bool IsComponentStatsDue()
     {
         return DateTime.UtcNow - _lastComponentStatsUpdateUtc >= ComponentStatsMinInterval;
+    }
+
+    private bool IsVrCheckDue()
+    {
+        return DateTime.UtcNow - _lastVrCheckUtc >= VrCheckMinInterval;
+    }
+
+    private bool IsWindowActivityDue()
+    {
+        return DateTime.UtcNow - _lastWindowActivityUtc >= WindowActivityMinInterval;
     }
 
     #endregion

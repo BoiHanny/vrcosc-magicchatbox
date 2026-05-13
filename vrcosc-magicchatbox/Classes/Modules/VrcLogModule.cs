@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
@@ -37,6 +39,8 @@ public partial class VrcLogModule : ObservableObject, IModule
     private readonly IAppState _appState;
     private readonly IOscSender _oscSender;
     private readonly IUiDispatcher _dispatcher;
+    private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
 
     private CancellationTokenSource? _cts;
     private bool _isRunning;
@@ -186,19 +190,41 @@ public partial class VrcLogModule : ObservableObject, IModule
         IntegrationSettings integrationSettings,
         IAppState appState,
         IOscSender oscSender,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        IPrivacyConsentService consentService,
+        IToastService? toast = null)
     {
         _settingsProvider = settingsProvider;
         _integrationSettings = integrationSettings;
         _appState = appState;
         _oscSender = oscSender;
         _dispatcher = dispatcher;
+        _consentService = consentService;
+        _toast = toast;
 
         Settings.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(VrcLogSettings.MinEncounterCount))
                 _dispatcher.BeginInvoke(RefreshEncounterFilter);
         };
+
+        _consentService.ConsentChanged += OnConsentChanged;
+    }
+
+    private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
+    {
+        if (e.Hook != PrivacyHook.VrcLogReader)
+            return;
+
+        if (e.NewState == ConsentState.Denied && _isRunning)
+        {
+            _ = StopAsync();
+            _toast?.Show("🔒 VRC Log Reader", "VRChat log reading paused — privacy consent revoked.", ToastType.Privacy, key: "vrclog-privacy-denied");
+        }
+        else if (e.NewState == ConsentState.Approved && !_isRunning && ShouldBeRunning())
+        {
+            _ = StartAsync();
+        }
     }
 
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
@@ -213,6 +239,12 @@ public partial class VrcLogModule : ObservableObject, IModule
     public Task StartAsync(CancellationToken ct = default)
     {
         if (_isRunning) return Task.CompletedTask;
+
+        if (!_consentService.IsApproved(PrivacyHook.VrcLogReader))
+        {
+            Logging.WriteInfo("VrcRadar: Start blocked — privacy consent not granted.");
+            return Task.CompletedTask;
+        }
 
         _cts = new CancellationTokenSource();
         _isRunning = true;
@@ -274,6 +306,9 @@ public partial class VrcLogModule : ObservableObject, IModule
     /// </summary>
     public bool ShouldBeRunning()
     {
+        if (!_consentService.IsApproved(PrivacyHook.VrcLogReader))
+            return false;
+
         bool isVR = _appState.IsVRRunning;
         return _integrationSettings.IntgrVrcRadar &&
                (isVR ? _integrationSettings.IntgrVrcRadar_VR : _integrationSettings.IntgrVrcRadar_DESKTOP);

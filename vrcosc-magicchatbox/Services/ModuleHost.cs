@@ -14,7 +14,7 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     private readonly List<IModule> _modules = new();
     private readonly object _modulesLock = new();
 
-    // ComponentStats is created eagerly (during ViewModel construction)
+    // ComponentStats resolves during optional startup or when a ComponentStats UI binding first asks for it.
     [ObservableProperty] private ComponentStatsModule _componentStats;
 
     // These are created during staged startup by ModuleBootstrapper

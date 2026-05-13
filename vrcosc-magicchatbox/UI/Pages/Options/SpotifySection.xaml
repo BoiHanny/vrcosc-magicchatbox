@@ -136,7 +136,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     FontSize="14"
-                                    Text="Refresh now" />
+                                    Text="Refresh playback" />
                             </Button>
                         </StackPanel>
                         <TextBlock
@@ -242,7 +242,7 @@
                         <TextBlock
                             Margin="0,3,0,4"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Tokens: {play_icon}, {title}, {artist}, {album}, {device}, {progress}, {seekbar}, {elapsed}, {duration}, {remaining}, {percent}, {liked_icon}, {explicit_icon}, {shuffle_icon}, {repeat_icon}, {queue}" />
+                            Text="Tokens: {play_icon}, {title}, {artist}, {album}, {device}, {volume}, {progress}, {seekbar}, {elapsed}, {duration}, {remaining}, {percent}, {liked_icon}, {explicit_icon}, {shuffle_icon}, {repeat_icon}, {queue}, {separator}" />
                         <Button
                             Width="105"
                             Height="25"
@@ -261,8 +261,8 @@
                             <ComboBox
                                 Width="130"
                                 Margin="8,0,0,0"
-                                FontSize="12"
                                 DisplayMemberPath="Name"
+                                FontSize="12"
                                 ItemsSource="{Binding TemplatePresets}"
                                 SelectedValue="{Binding SelectedPresetName, Mode=TwoWay}"
                                 SelectedValuePath="Name">
@@ -329,6 +329,60 @@
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Icons and fallback text" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Customize the short pieces that tokens insert. Leave any icon blank to hide it." />
+                        <WrapPanel Margin="0,2,0,0">
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Playing" />
+                                <TextBox Width="46" Text="{Binding Settings.IconPlaying, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Paused" />
+                                <TextBox Width="46" Text="{Binding Settings.IconPaused, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Explicit" />
+                                <TextBox Width="46" Text="{Binding Settings.IconExplicit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Liked" />
+                                <TextBox Width="46" Text="{Binding Settings.IconLiked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Unliked" />
+                                <TextBox Width="46" Text="{Binding Settings.IconUnliked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Separator" />
+                                <TextBox Width="80" Text="{Binding Settings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </WrapPanel>
+                        <WrapPanel Margin="0,3,0,0">
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Disconnected text" />
+                                <TextBox Width="190" Text="{Binding Settings.DisconnectedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Nothing playing text" />
+                                <TextBox Width="190" Text="{Binding Settings.EmptyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Paused text" />
+                                <TextBox Width="150" Text="{Binding Settings.PausedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Privacy text" />
+                                <TextBox Width="120" Text="{Binding Settings.PrivacyHiddenText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Privacy and token toggles" />
                         <WrapPanel Margin="0,4,0,0">
                             <CheckBox
@@ -354,6 +408,18 @@
                                 IsChecked="{Binding Settings.AllowDeviceInOutput, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}">
                                 Allow device
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowVolumeInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow volume
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowPlaybackStateInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow play state
                             </CheckBox>
                             <CheckBox
                                 Margin="0,0,12,4"
@@ -389,6 +455,24 @@
                             </CheckBox>
                             <CheckBox
                                 Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowDevice, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Device token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowVolume, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Volume token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowExplicit, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Explicit token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
                                 IsChecked="{Binding Settings.ShowLiked, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}">
                                 Liked token
@@ -421,7 +505,13 @@
                                 Width="120"
                                 Margin="8,0,16,0"
                                 ItemsSource="{Binding ProgressDisplayModes}"
-                                SelectedItem="{Binding Settings.ProgressDisplayMode, Mode=TwoWay}" />
+                                SelectedItem="{Binding Settings.ProgressDisplayMode, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                             <CheckBox IsChecked="{Binding Settings.AutoDowngradeProgress, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Auto-downgrade if too long</CheckBox>
                         </StackPanel>
                         <TextBlock
@@ -454,25 +544,25 @@
                                 Margin="0,0,12,4"
                                 IsChecked="{Binding Settings.ShowWidgetProgress, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}">
-                                Show progress
+                                Widget progress
                             </CheckBox>
                             <CheckBox
                                 Margin="0,0,12,4"
                                 IsChecked="{Binding Settings.ShowWidgetDevice, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}">
-                                Show device
+                                Widget device
                             </CheckBox>
                             <CheckBox
                                 Margin="0,0,12,4"
                                 IsChecked="{Binding Settings.ShowWidgetControls, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}">
-                                Show controls
+                                Widget controls
                             </CheckBox>
                             <CheckBox
                                 Margin="0,0,12,4"
                                 IsChecked="{Binding Settings.ShowWidgetVolume, Mode=TwoWay}"
                                 Style="{DynamicResource SettingsCheckbox}">
-                                Show volume
+                                Widget volume
                             </CheckBox>
                         </WrapPanel>
                         <StackPanel Margin="0,4,0,0" Orientation="Horizontal">

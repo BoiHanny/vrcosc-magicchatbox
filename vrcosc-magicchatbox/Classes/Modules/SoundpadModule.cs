@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
@@ -33,6 +34,7 @@ public partial class SoundpadModule : ObservableObject, IModule
     private volatile bool _soundpadErrorShown;
     private readonly IAppState _appState;
     private readonly IUiDispatcher _dispatcher;
+    private readonly IPrivacyConsentService _consentService;
 
     private readonly IntegrationSettings _integrationSettings;
 
@@ -60,11 +62,12 @@ public partial class SoundpadModule : ObservableObject, IModule
     [ObservableProperty]
     public string playingSong = string.Empty;
 
-    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings, IToastService? toast = null)
+    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings, IPrivacyConsentService consentService, IToastService? toast = null)
     {
         _appState = appState;
         _dispatcher = dispatcher;
         _integrationSettings = integrationSettings;
+        _consentService = consentService;
         _toast = toast;
         _stateTimer = new System.Timers.Timer(time)
         {
@@ -72,8 +75,33 @@ public partial class SoundpadModule : ObservableObject, IModule
             Enabled = false
         };
         _stateTimer.Elapsed += (sender, e) => UpdateSoundpadState(false);
+
+        _consentService.ConsentChanged += OnConsentChanged;
+
         if (ShouldStartMonitoring())
             InitializeSoundpadModuleAsync();
+    }
+
+    private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
+    {
+        if (e.Hook != PrivacyHook.SoundpadBridge)
+            return;
+
+        if (e.NewState == ConsentState.Denied)
+        {
+            _dispatcher.BeginInvoke(() =>
+            {
+                StopModule();
+                PlayingSong = string.Empty;
+                IsSoundpadRunning = false;
+                EnablePanel = false;
+            });
+            _toast?.Show("🔒 Soundpad", "Soundpad bridge paused — privacy consent revoked.", ToastType.Privacy, key: "soundpad-privacy-denied");
+        }
+        else if (e.NewState == ConsentState.Approved && ShouldStartMonitoring())
+        {
+            InitializeAndStartModuleIfNeeded();
+        }
     }
 
     public string Name => "Soundpad";
@@ -414,6 +442,9 @@ public partial class SoundpadModule : ObservableObject, IModule
 
     public bool ShouldStartMonitoring()
     {
+        if (!_consentService.IsApproved(PrivacyHook.SoundpadBridge))
+            return false;
+
         return _integrationSettings.IntgrSoundpad && _appState.IsVRRunning && _integrationSettings.IntgrSoundpad_VR ||
                _integrationSettings.IntgrSoundpad && !_appState.IsVRRunning && _integrationSettings.IntgrSoundpad_DESKTOP;
     }

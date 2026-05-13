@@ -1,6 +1,7 @@
-using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
@@ -13,7 +14,7 @@ public partial class PrivacySection : UserControl
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        App.Services.GetRequiredService<INavigationService>().OpenUrl(e.Uri.AbsoluteUri);
         e.Handled = true;
     }
 }

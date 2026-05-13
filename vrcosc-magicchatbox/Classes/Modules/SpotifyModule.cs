@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -23,6 +25,15 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 public sealed partial class SpotifyModule : ObservableObject, IModule
 {
     private static readonly TimeSpan TokenRefreshSkew = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan RefreshTimeout = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan ControlTimeout = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan DefaultRateLimitBackoff = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan MaxRateLimitBackoff = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan LiveProgressTickInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan EndOfTrackRefreshWindow = TimeSpan.FromMilliseconds(1500);
+    private static readonly TimeSpan QueueRefreshInterval = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan TokenRefreshLockTimeout = TimeSpan.FromSeconds(15);
+    private const int StalePlaybackFailureThreshold = 3;
 
     private readonly ISettingsProvider<SpotifySettings> _settingsProvider;
     private readonly SpotifyDisplayState _display;
@@ -33,9 +44,29 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
     private readonly IUiDispatcher _dispatcher;
     private readonly IToastService _toast;
 
+    // Single-flight refresh-token gate. Concurrent callers wait for the in-flight
+    // refresh and reuse its result, avoiding parallel refresh-token rotation
+    // (which can invalidate refresh tokens on Spotify's side).
+    private readonly SemaphoreSlim _tokenRefreshLock = new(1, 1);
+
+    // Cache: IsTrackSaved by TrackId. Invalidated when the track changes or
+    // when the user toggles like via ToggleLikeAsync.
+    private string _likedCacheTrackId = string.Empty;
+    private bool _likedCacheValue;
+    private bool _likedCacheValid;
+
+    // Queue refresh throttle — independent of playback polling so heavy
+    // queue fetches don't run every poll when party/{queue} is enabled.
+    private DateTime _lastQueueRefreshUtc = DateTime.MinValue;
+    private string _lastQueuePreview = string.Empty;
+
     private int _refreshInProgress;
     private DateTime _lastRefreshUtc = DateTime.MinValue;
     private DateTime _lastProfileRefreshUtc = DateTime.MinValue;
+    private DateTime _nextApiCallAllowedUtc = DateTime.MinValue;
+    private int _consecutiveRefreshFailures;
+    private Timer? _progressTimer;
+    private int _progressTickQueued;
     private static readonly TimeSpan ForcedRefreshWaitTimeout = TimeSpan.FromSeconds(3);
 
     public SpotifySettings Settings => _settingsProvider.Value;
@@ -69,6 +100,8 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
     public Task StartAsync(CancellationToken ct = default)
     {
+        StartLiveProgressTimer();
+
         if (Settings.HasSavedToken)
         {
             _display.IsConnected = true;
@@ -86,12 +119,15 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
     public Task StopAsync(CancellationToken ct = default)
     {
+        StopLiveProgressTimer();
         _display.ClearPlayback("Spotify stopped");
         return Task.CompletedTask;
     }
 
     public void Dispose()
     {
+        StopLiveProgressTimer();
+        _tokenRefreshLock.Dispose();
     }
 
     public void SaveSettings() => _settingsProvider.Save();
@@ -120,6 +156,8 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
         Settings.PrivacyChoicesCompleted = true;
         _settingsProvider.Save();
+        _nextApiCallAllowedUtc = DateTime.MinValue;
+        Interlocked.Exchange(ref _consecutiveRefreshFailures, 0);
 
         await _dispatcher.InvokeAsync(() =>
         {
@@ -140,6 +178,11 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         Settings.RefreshTokenEncrypted = string.Empty;
         Settings.TokenExpiresAtUtcTicks = 0;
         _settingsProvider.Save();
+        _nextApiCallAllowedUtc = DateTime.MinValue;
+        Interlocked.Exchange(ref _consecutiveRefreshFailures, 0);
+        InvalidateLikedCache();
+        _lastQueueRefreshUtc = DateTime.MinValue;
+        _lastQueuePreview = string.Empty;
 
         await _dispatcher.InvokeAsync(() =>
         {
@@ -151,6 +194,121 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         });
     }
 
+    private async Task HandleSpotifyResultFailureAsync<T>(SpotifyApiResult<T> result)
+    {
+        if (result.RateLimited)
+            await ApplyRateLimitAsync(result).ConfigureAwait(false);
+
+        if (result.Transient || result.RateLimited)
+        {
+            await HandleTransientFailureAsync(result.Message).ConfigureAwait(false);
+            return;
+        }
+
+        await HandleApiFailureAsync(result.Unauthorized, result.Message).ConfigureAwait(false);
+        if (result.Unauthorized)
+            _nextApiCallAllowedUtc = DateTime.UtcNow.AddMinutes(5);
+    }
+
+    private async Task HandleTransientFailureAsync(string message)
+    {
+        int failures = Interlocked.Increment(ref _consecutiveRefreshFailures);
+        await _dispatcher.InvokeAsync(() =>
+        {
+            _display.ErrorText = message;
+            _display.StatusText = failures >= StalePlaybackFailureThreshold
+                ? "Spotify sync paused"
+                : "Spotify sync retrying";
+
+            if (failures >= StalePlaybackFailureThreshold)
+            {
+                _display.ClearPlayback("Spotify sync paused");
+                _display.OutputPreview = BuildOutputString(useSample: true);
+            }
+        });
+    }
+
+    private async Task ApplyRateLimitAsync<T>(SpotifyApiResult<T> result)
+    {
+        TimeSpan delay = result.RetryAfter.GetValueOrDefault(DefaultRateLimitBackoff);
+        if (delay <= TimeSpan.Zero)
+            delay = DefaultRateLimitBackoff;
+        if (delay > MaxRateLimitBackoff)
+            delay = MaxRateLimitBackoff;
+
+        _nextApiCallAllowedUtc = DateTime.UtcNow.Add(delay);
+        await _dispatcher.InvokeAsync(() =>
+        {
+            _display.ErrorText = $"Spotify rate limited MagicChatbox. Retrying in {delay.TotalSeconds:0}s.";
+            _display.StatusText = "Spotify rate limited";
+        });
+    }
+
+    private bool IsApiBackoffActive(out TimeSpan wait)
+    {
+        wait = _nextApiCallAllowedUtc - DateTime.UtcNow;
+        return wait > TimeSpan.Zero;
+    }
+
+    private bool ShouldFetchQueue()
+        => Settings.PartyModeEnabled
+           && (Settings.OutputTemplate.Contains("{queue}", StringComparison.OrdinalIgnoreCase)
+               || Settings.PartyTemplate.Contains("{queue}", StringComparison.OrdinalIgnoreCase));
+
+    private bool ShouldRefreshNearTrackEnd()
+        => _display.HasPlayback
+           && _display.IsPlaying
+           && _display.DurationMs > 0
+           && _display.DurationMs - _display.LiveProgressMs <= EndOfTrackRefreshWindow.TotalMilliseconds;
+
+    private void StartLiveProgressTimer()
+    {
+        if (_progressTimer != null)
+            return;
+
+        _progressTimer = new Timer(
+            _ => QueueLiveProgressTick(),
+            null,
+            LiveProgressTickInterval,
+            LiveProgressTickInterval);
+    }
+
+    private void StopLiveProgressTimer()
+    {
+        _progressTimer?.Dispose();
+        _progressTimer = null;
+        Interlocked.Exchange(ref _progressTickQueued, 0);
+    }
+
+    private void QueueLiveProgressTick()
+    {
+        if (!_display.HasPlayback || !_display.IsPlaying)
+            return;
+
+        if (Interlocked.CompareExchange(ref _progressTickQueued, 1, 0) == 1)
+            return;
+
+        _dispatcher.BeginInvoke(() =>
+        {
+            try
+            {
+                if (_display.HasPlayback && _display.IsPlaying)
+                {
+                    _display.NotifyProgressDisplayChanged();
+                    _display.OutputPreview = BuildOutputString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _progressTickQueued, 0);
+            }
+        });
+    }
+
     public void TriggerRefreshIfNeeded(bool force = false)
     {
         if (!_integrationSettings.IntgrSpotify && !force)
@@ -159,6 +317,8 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         int intervalSeconds = _display.HasPlayback
             ? Math.Clamp(Settings.PollingIntervalSeconds, 2, 120)
             : Math.Clamp(Settings.IdlePollingIntervalSeconds, 5, 600);
+        if (!force && ShouldRefreshNearTrackEnd())
+            intervalSeconds = 1;
 
         if (!force && (DateTime.UtcNow - _lastRefreshUtc).TotalSeconds < intervalSeconds)
             return;
@@ -172,14 +332,14 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
     public async Task TogglePlayPauseAsync()
     {
         if (_display.IsPlaying)
-            await ExecuteControlAsync(token => _apiClient.PauseAsync(token));
+            await ExecuteControlAsync((token, ct) => _apiClient.PauseAsync(token, ct));
         else
-            await ExecuteControlAsync(token => _apiClient.PlayAsync(token));
+            await ExecuteControlAsync((token, ct) => _apiClient.PlayAsync(token, ct));
     }
 
-    public Task NextAsync() => ExecuteControlAsync(token => _apiClient.NextAsync(token));
+    public Task NextAsync() => ExecuteControlAsync((token, ct) => _apiClient.NextAsync(token, ct));
 
-    public Task PreviousAsync() => ExecuteControlAsync(token => _apiClient.PreviousAsync(token));
+    public Task PreviousAsync() => ExecuteControlAsync((token, ct) => _apiClient.PreviousAsync(token, ct));
 
     public Task ToggleLikeAsync()
     {
@@ -187,13 +347,16 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         if (string.IsNullOrWhiteSpace(trackId))
             return Task.CompletedTask;
 
-        return ExecuteControlAsync(token => _display.IsLiked
-            ? _apiClient.RemoveTrackAsync(token, trackId)
-            : _apiClient.SaveTrackAsync(token, trackId));
+        // Invalidate the liked cache so the next refresh re-queries authoritative state.
+        InvalidateLikedCache();
+
+        return ExecuteControlAsync((token, ct) => _display.IsLiked
+            ? _apiClient.RemoveTrackAsync(token, trackId, ct)
+            : _apiClient.SaveTrackAsync(token, trackId, ct));
     }
 
     public Task ToggleShuffleAsync()
-        => ExecuteControlAsync(token => _apiClient.SetShuffleAsync(token, !_display.IsShuffleOn));
+        => ExecuteControlAsync((token, ct) => _apiClient.SetShuffleAsync(token, !_display.IsShuffleOn, ct));
 
     public Task CycleRepeatAsync()
     {
@@ -203,11 +366,11 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             "context" => "track",
             _ => "off"
         };
-        return ExecuteControlAsync(token => _apiClient.SetRepeatAsync(token, next));
+        return ExecuteControlAsync((token, ct) => _apiClient.SetRepeatAsync(token, next, ct));
     }
 
     public Task SetVolumeAsync(int volumePercent)
-        => ExecuteControlAsync(token => _apiClient.SetVolumeAsync(token, volumePercent));
+        => ExecuteControlAsync((token, ct) => _apiClient.SetVolumeAsync(token, volumePercent, ct));
 
     public string BuildOutputString(OscBuildContext? context = null, bool useSample = false)
     {
@@ -244,6 +407,16 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
     private async Task RefreshAsync(bool force = false)
     {
+        if (IsApiBackoffActive(out var wait))
+        {
+            await _dispatcher.InvokeAsync(() =>
+            {
+                _display.ErrorText = $"Spotify rate limited MagicChatbox. Retrying in {wait.TotalSeconds:0}s.";
+                _display.StatusText = "Spotify rate limited";
+            });
+            return;
+        }
+
         if (Interlocked.CompareExchange(ref _refreshInProgress, 1, 0) == 1)
         {
             if (!force)
@@ -257,9 +430,10 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
                 return;
         }
 
+        using var timeout = new CancellationTokenSource(RefreshTimeout);
         try
         {
-            string? token = await EnsureAccessTokenAsync().ConfigureAwait(false);
+            string? token = await EnsureAccessTokenAsync(cancellationToken: timeout.Token).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(token))
             {
                 await _dispatcher.InvokeAsync(() =>
@@ -272,40 +446,86 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             }
 
             if ((DateTime.UtcNow - _lastProfileRefreshUtc) > TimeSpan.FromMinutes(10) || string.IsNullOrWhiteSpace(_display.ProfileName))
-                await RefreshProfileAsync(token).ConfigureAwait(false);
+                await RefreshProfileAsync(token, timeout.Token).ConfigureAwait(false);
 
-            var playback = await _apiClient.GetPlaybackAsync(token).ConfigureAwait(false);
+            var playback = await _apiClient.GetPlaybackAsync(token, timeout.Token).ConfigureAwait(false);
+            if (!playback.Success && playback.Unauthorized)
+            {
+                token = await EnsureAccessTokenAsync(forceRefresh: true, cancellationToken: timeout.Token).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(token))
+                    playback = await _apiClient.GetPlaybackAsync(token, timeout.Token).ConfigureAwait(false);
+            }
+
             if (!playback.Success)
             {
-                await HandleApiFailureAsync(playback.Unauthorized, playback.Message).ConfigureAwait(false);
+                await HandleSpotifyResultFailureAsync(playback).ConfigureAwait(false);
                 return;
             }
 
             bool liked = false;
-            if (!string.IsNullOrWhiteSpace(playback.Value?.Track?.Id))
+            string? trackId = playback.Value?.Track?.Id;
+            if (Settings.ShowLiked && !string.IsNullOrWhiteSpace(trackId))
             {
-                var likedResult = await _apiClient.IsTrackSavedAsync(token, playback.Value.Track.Id).ConfigureAwait(false);
-                liked = likedResult.Success && likedResult.Value;
+                if (TryGetCachedLiked(trackId!, out bool cached))
+                {
+                    liked = cached;
+                }
+                else
+                {
+                    var likedResult = await _apiClient.IsTrackSavedAsync(token, trackId!, timeout.Token).ConfigureAwait(false);
+                    if (likedResult.Success)
+                    {
+                        liked = likedResult.Value;
+                        SetCachedLiked(trackId!, liked);
+                    }
+                    else if (likedResult.RateLimited)
+                    {
+                        await ApplyRateLimitAsync(likedResult).ConfigureAwait(false);
+                    }
+                }
+            }
+            else if (string.IsNullOrWhiteSpace(trackId))
+            {
+                // Track gone — drop the cache so re-acquiring the same id later re-queries.
+                InvalidateLikedCache();
             }
 
-            string queuePreview = string.Empty;
-            if (Settings.PartyModeEnabled)
+            string queuePreview = _lastQueuePreview;
+            if (ShouldFetchQueue())
             {
-                var queue = await _apiClient.GetQueueAsync(token).ConfigureAwait(false);
-                if (queue.Success && queue.Value?.UpcomingTracks.Count > 0)
-                    queuePreview = "Next: " + string.Join(" / ", queue.Value.UpcomingTracks);
+                bool throttled = (DateTime.UtcNow - _lastQueueRefreshUtc) < QueueRefreshInterval;
+                if (force || !throttled)
+                {
+                    var queue = await _apiClient.GetQueueAsync(token, timeout.Token).ConfigureAwait(false);
+                    if (queue.Success)
+                    {
+                        _lastQueueRefreshUtc = DateTime.UtcNow;
+                        queuePreview = queue.Value?.UpcomingTracks.Count > 0
+                            ? "Next: " + string.Join(" / ", queue.Value.UpcomingTracks)
+                            : string.Empty;
+                        _lastQueuePreview = queuePreview;
+                    }
+                    else if (queue.RateLimited)
+                    {
+                        await ApplyRateLimitAsync(queue).ConfigureAwait(false);
+                    }
+                }
+            }
+            else
+            {
+                queuePreview = string.Empty;
+                _lastQueuePreview = string.Empty;
             }
 
             await ApplyPlaybackAsync(playback.Value!, liked, queuePreview).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException or InvalidOperationException)
         {
             Logging.WriteException(ex, MSGBox: false);
-            await _dispatcher.InvokeAsync(() =>
-            {
-                _display.ErrorText = ex.Message;
-                _display.StatusText = "Spotify refresh failed";
-            });
+            string message = ex is JsonException or InvalidOperationException
+                ? "Spotify returned an unexpected response. Retrying shortly."
+                : "Spotify refresh timed out.";
+            await HandleTransientFailureAsync(message).ConfigureAwait(false);
         }
         finally
         {
@@ -313,9 +533,9 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         }
     }
 
-    private async Task RefreshProfileAsync(string accessToken)
+    private async Task RefreshProfileAsync(string accessToken, CancellationToken cancellationToken)
     {
-        var profile = await _apiClient.GetProfileAsync(accessToken).ConfigureAwait(false);
+        var profile = await _apiClient.GetProfileAsync(accessToken, cancellationToken).ConfigureAwait(false);
         if (!profile.Success || profile.Value == null)
             return;
 
@@ -330,6 +550,9 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
     private async Task ApplyPlaybackAsync(SpotifyPlaybackSnapshot playback, bool liked, string queuePreview)
     {
+        Interlocked.Exchange(ref _consecutiveRefreshFailures, 0);
+        _nextApiCallAllowedUtc = DateTime.MinValue;
+
         await _dispatcher.InvokeAsync(() =>
         {
             _display.IsConnected = true;
@@ -351,9 +574,13 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             _display.IsShuffleOn = playback.ShuffleState;
             _display.RepeatState = playback.RepeatState;
             _display.DeviceName = playback.DeviceName;
+            _display.HasVolume = playback.HasVolume;
             _display.VolumePercent = playback.VolumePercent;
-            _display.ProgressMs = playback.ProgressMs;
             _display.DurationMs = playback.Track.DurationMs;
+            _display.ProgressMs = _display.DurationMs > 0
+                ? Math.Clamp(playback.ProgressMs, 0, _display.DurationMs)
+                : Math.Max(0, playback.ProgressMs);
+            _display.ProgressUpdatedUtc = playback.ProgressCapturedAtUtc;
             _display.TrackId = playback.Track.Id;
             _display.TrackUri = playback.Track.Uri;
             _display.ExternalUrl = playback.Track.ExternalUrl;
@@ -380,32 +607,62 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         });
     }
 
-    private async Task ExecuteControlAsync(Func<string, Task<SpotifyApiResult<bool>>> action)
+    private async Task ExecuteControlAsync(Func<string, CancellationToken, Task<SpotifyApiResult<bool>>> action)
     {
-        string? token = await EnsureAccessTokenAsync().ConfigureAwait(false);
-        if (string.IsNullOrWhiteSpace(token))
+        using var timeout = new CancellationTokenSource(ControlTimeout);
+        try
         {
-            _toast.Show("Spotify", "Connect Spotify before using controls.", ToastType.Warning, key: "spotify-no-token");
-            return;
-        }
+            if (IsApiBackoffActive(out var wait))
+            {
+                _toast.Show("Spotify", $"Spotify rate limited controls. Try again in {wait.TotalSeconds:0}s.", ToastType.Warning, key: "spotify-control-rate-limited");
+                return;
+            }
 
-        var result = await action(token).ConfigureAwait(false);
-        if (!result.Success)
+            string? token = await EnsureAccessTokenAsync(cancellationToken: timeout.Token).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                _toast.Show("Spotify", "Connect Spotify before using controls.", ToastType.Warning, key: "spotify-no-token");
+                return;
+            }
+
+            var result = await action(token, timeout.Token).ConfigureAwait(false);
+            if (!result.Success && result.Unauthorized)
+            {
+                token = await EnsureAccessTokenAsync(forceRefresh: true, cancellationToken: timeout.Token).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(token))
+                    result = await action(token, timeout.Token).ConfigureAwait(false);
+            }
+
+            if (!result.Success)
+            {
+                if (result.RateLimited)
+                    await ApplyRateLimitAsync(result).ConfigureAwait(false);
+
+                _toast.Show("Spotify control", result.Message, ToastType.Warning, key: "spotify-control-failed");
+                await HandleApiFailureAsync(result.Unauthorized, result.Message).ConfigureAwait(false);
+                return;
+            }
+
+            await RefreshAsync(force: true).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
-            _toast.Show("Spotify control", result.Message, ToastType.Warning, key: "spotify-control-failed");
-            await HandleApiFailureAsync(result.Unauthorized, result.Message).ConfigureAwait(false);
-            return;
+            Logging.WriteException(ex, MSGBox: false);
+            _toast.Show("Spotify control", "Spotify did not respond in time. Try again shortly.", ToastType.Warning, key: "spotify-control-timeout");
+            await HandleTransientFailureAsync("Spotify control timed out.").ConfigureAwait(false);
         }
-
-        await RefreshAsync(force: true).ConfigureAwait(false);
     }
 
-    private async Task<string?> EnsureAccessTokenAsync()
+    private async Task<string?> EnsureAccessTokenAsync(
+        bool forceRefresh = false,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(Settings.AccessToken) && string.IsNullOrWhiteSpace(Settings.RefreshToken))
             return null;
 
-        if (!string.IsNullOrWhiteSpace(Settings.AccessToken)
+        // Fast path — current token is still valid.
+        if (!forceRefresh
+            && !string.IsNullOrWhiteSpace(Settings.AccessToken)
             && Settings.TokenExpiresAtUtc > DateTime.UtcNow.Add(TokenRefreshSkew))
             return Settings.AccessToken;
 
@@ -419,26 +676,87 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             return null;
         }
 
-        var token = await _oauth.RefreshTokenAsync(Settings.ClientId, Settings.RefreshToken).ConfigureAwait(false);
-        if (token == null)
+        // Single-flight gate: only one refresh-token rotation may be in flight.
+        // Concurrent callers wait and then re-check the cached token before issuing
+        // a duplicate refresh that could invalidate the rotated refresh token.
+        bool acquired = false;
+        try
         {
-            await _dispatcher.InvokeAsync(() =>
+            acquired = await _tokenRefreshLock.WaitAsync(TokenRefreshLockTimeout, cancellationToken).ConfigureAwait(false);
+            if (!acquired)
             {
-                _display.NeedsReconnect = true;
-                _display.IsConnected = false;
-                _display.StatusText = "Reconnect Spotify";
-            });
-            return null;
+                Logging.WriteInfo("Spotify token refresh timed out waiting for single-flight lock.");
+                return string.IsNullOrWhiteSpace(Settings.AccessToken) ? null : Settings.AccessToken;
+            }
+
+            // Re-check after acquiring the lock — another caller may have just refreshed.
+            if (!forceRefresh
+                && !string.IsNullOrWhiteSpace(Settings.AccessToken)
+                && Settings.TokenExpiresAtUtc > DateTime.UtcNow.Add(TokenRefreshSkew))
+                return Settings.AccessToken;
+
+            if (string.IsNullOrWhiteSpace(Settings.RefreshToken))
+            {
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    _display.NeedsReconnect = true;
+                    _display.StatusText = "Reconnect Spotify";
+                });
+                return null;
+            }
+
+            var token = await _oauth.RefreshTokenAsync(Settings.ClientId, Settings.RefreshToken, cancellationToken).ConfigureAwait(false);
+            if (token == null)
+            {
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    _display.NeedsReconnect = true;
+                    _display.IsConnected = false;
+                    _display.StatusText = "Reconnect Spotify";
+                });
+                return null;
+            }
+
+            Settings.AccessToken = token.AccessToken;
+            if (!string.IsNullOrWhiteSpace(token.RefreshToken))
+                Settings.RefreshToken = token.RefreshToken;
+            if (token.ExpiresIn > 0)
+                Settings.TokenExpiresAtUtc = DateTime.UtcNow.AddSeconds(token.ExpiresIn);
+            _settingsProvider.Save();
+            _nextApiCallAllowedUtc = DateTime.MinValue;
+
+            return Settings.AccessToken;
         }
+        finally
+        {
+            if (acquired)
+                _tokenRefreshLock.Release();
+        }
+    }
 
-        Settings.AccessToken = token.AccessToken;
-        if (!string.IsNullOrWhiteSpace(token.RefreshToken))
-            Settings.RefreshToken = token.RefreshToken;
-        if (token.ExpiresIn > 0)
-            Settings.TokenExpiresAtUtc = DateTime.UtcNow.AddSeconds(token.ExpiresIn);
-        _settingsProvider.Save();
+    private bool TryGetCachedLiked(string trackId, out bool liked)
+    {
+        if (_likedCacheValid && string.Equals(_likedCacheTrackId, trackId, StringComparison.Ordinal))
+        {
+            liked = _likedCacheValue;
+            return true;
+        }
+        liked = false;
+        return false;
+    }
 
-        return Settings.AccessToken;
+    private void SetCachedLiked(string trackId, bool liked)
+    {
+        _likedCacheTrackId = trackId;
+        _likedCacheValue = liked;
+        _likedCacheValid = true;
+    }
+
+    private void InvalidateLikedCache()
+    {
+        _likedCacheTrackId = string.Empty;
+        _likedCacheValue = false;
+        _likedCacheValid = false;
     }
 
     private Dictionary<string, string> BuildCurrentValues()
@@ -460,7 +778,9 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             _display.Artist,
             _display.Album,
             _display.DeviceName,
-            _display.ProgressMs,
+            _display.HasVolume,
+            _display.VolumePercent,
+            _display.LiveProgressMs,
             _display.DurationMs,
             _display.QueuePreview,
             _display.IsPlaying,
@@ -476,6 +796,8 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             "Magic DJ",
             "VR Nights",
             "Quest Headset",
+            true,
+            57,
             83000,
             225000,
             "Next: Neon Dreams / Moon Loop",
@@ -490,6 +812,8 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         string artist,
         string album,
         string device,
+        bool hasVolume,
+        int volumePercent,
         int progressMs,
         int durationMs,
         string queue,
@@ -519,6 +843,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             ["artist"] = Settings.ShowArtist && Settings.AllowArtistInOutput ? (hideText ? hidden : artist) : string.Empty,
             ["album"] = Settings.ShowAlbum && Settings.AllowAlbumInOutput ? (hideText ? hidden : album) : string.Empty,
             ["device"] = Settings.ShowDevice && Settings.AllowDeviceInOutput ? (hideText ? hidden : device) : string.Empty,
+            ["volume"] = Settings.ShowVolume && Settings.AllowVolumeInOutput && hasVolume ? $"{Math.Clamp(volumePercent, 0, 100)}%" : string.Empty,
             ["progress"] = Settings.ShowProgress ? progress : string.Empty,
             ["seekbar"] = Settings.ShowProgress ? seekbar : string.Empty,
             ["elapsed"] = Settings.ShowProgress ? SeekbarUtilities.FormatTimeSpan(current) : string.Empty,
@@ -542,6 +867,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             ["artist"] = string.Empty,
             ["album"] = string.Empty,
             ["device"] = string.Empty,
+            ["volume"] = string.Empty,
             ["progress"] = string.Empty,
             ["seekbar"] = string.Empty,
             ["elapsed"] = string.Empty,
@@ -574,7 +900,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
 
         current = useSample
             ? TimeSpan.FromMilliseconds(83000)
-            : TimeSpan.FromMilliseconds(Math.Max(0, _display.ProgressMs));
+            : TimeSpan.FromMilliseconds(Math.Max(0, _display.LiveProgressMs));
         full = useSample
             ? TimeSpan.FromMilliseconds(225000)
             : TimeSpan.FromMilliseconds(Math.Max(0, _display.DurationMs));
@@ -699,6 +1025,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
     private static IEnumerable<string> TrimOrder()
     {
         yield return "queue";
+        yield return "volume";
         yield return "device";
         yield return "album";
         yield return "seekbar";

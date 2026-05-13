@@ -1,7 +1,8 @@
-using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
@@ -27,7 +28,7 @@ public partial class SpotifySection : UserControl
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        App.Services.GetRequiredService<INavigationService>().OpenUrl(e.Uri.AbsoluteUri);
         e.Handled = true;
     }
 }

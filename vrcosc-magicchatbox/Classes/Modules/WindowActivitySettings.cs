@@ -19,6 +19,7 @@ public partial class WindowActivitySettings : VersionedSettings
     [ObservableProperty] private bool _titleOnAppVR = false;
     [ObservableProperty] private string _privateName = "\U0001f512 App";
     [ObservableProperty] private string _privateNameVR = "\U0001f512 App";
+    [ObservableProperty] private bool _hideOutputWhenPrivateApp = false;
 
     [ObservableProperty] private string _vrTitle = "In VR";
     [ObservableProperty] private string _vrFocusTitle = "\u1da0\u1d52\u1d9c\u1d58\u02e2\u02e2\u2071\u207f\u1d4d \u2071\u207f";

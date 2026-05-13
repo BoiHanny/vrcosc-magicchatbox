@@ -137,31 +137,29 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                     WA.LastProcessFocused = existingProcessInfo;
                 }
 
+                if (existingProcessInfo.IsPrivateApp)
+                {
+                    if (Settings.HideOutputWhenPrivateApp)
+                    {
+                        return string.Empty;
+                    }
+
+                    return AppState.IsVRRunning
+                        ? Settings.PrivateNameVR
+                        : Settings.PrivateName;
+                }
+
                 // Global regex is applied before title length limiting in FormatWindowTitle.
                 windowTitle = ApplyCustomRegex(existingProcessInfo, windowTitle);
 
                 bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
 
-                if (existingProcessInfo.IsPrivateApp)
-                {
-                    if (AppState.IsVRRunning)
-                    {
-                        return Settings.PrivateNameVR;
-                    }
-                    else
-                    {
-                        return Settings.PrivateName;
-                    }
-
-                }
-                else if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
+                if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
                 {
                     return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && Settings.TitleScan ? " (" + windowTitle + ")" : string.Empty);
                 }
-                else
-                {
-                    return "'" + processName + "'" + (titleCheck && Settings.TitleScan ? " ( " + windowTitle + ")" : string.Empty);
-                }
+
+                return "'" + processName + "'" + (titleCheck && Settings.TitleScan ? " ( " + windowTitle + ")" : string.Empty);
             }
         }
         catch (Exception ex)

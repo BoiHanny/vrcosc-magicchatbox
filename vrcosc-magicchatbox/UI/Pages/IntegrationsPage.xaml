@@ -2263,6 +2263,7 @@
                                 <Slider
                                     Width="105"
                                     Margin="6,0,0,0"
+                                    IsEnabled="{Binding SpotifyDisplay.HasVolume}"
                                     Maximum="100"
                                     Minimum="0"
                                     MouseLeftButtonUp="SpotifyVolume_MouseLeftButtonUp"

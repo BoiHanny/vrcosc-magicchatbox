@@ -42,16 +42,62 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
             {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TimePosition)));
+                // Match the OSC pipeline, which reads the extrapolated CurrentTime each scan tick.
+                // Raise both notifications so any UI bound to CurrentTime or TimePosition advances
+                // smoothly between Windows media-controller timeline events.
+                var handler = PropertyChanged;
+                if (handler != null)
+                {
+                    handler(this, new PropertyChangedEventArgs(nameof(CurrentTime)));
+                    handler(this, new PropertyChangedEventArgs(nameof(TimePosition)));
+                }
             }
         }
 
         private bool _TimeoutRestore = false;
         private MediaSession session;
 
-        public string AlbumArtist = "Album-Artist";
-        public string AlbumTitle = "Album-Title";
-        public string Artist = "Artist";
+        private string _albumArtist = "Album-Artist";
+        public string AlbumArtist
+        {
+            get => _albumArtist;
+            set
+            {
+                if (!string.Equals(_albumArtist, value, StringComparison.Ordinal))
+                {
+                    _albumArtist = value;
+                    NotifyPropertyChanged(nameof(AlbumArtist));
+                }
+            }
+        }
+
+        private string _albumTitle = "Album-Title";
+        public string AlbumTitle
+        {
+            get => _albumTitle;
+            set
+            {
+                if (!string.Equals(_albumTitle, value, StringComparison.Ordinal))
+                {
+                    _albumTitle = value;
+                    NotifyPropertyChanged(nameof(AlbumTitle));
+                }
+            }
+        }
+
+        private string _artist = "Artist";
+        public string Artist
+        {
+            get => _artist;
+            set
+            {
+                if (!string.Equals(_artist, value, StringComparison.Ordinal))
+                {
+                    _artist = value;
+                    NotifyPropertyChanged(nameof(Artist));
+                }
+            }
+        }
 
 
         private GlobalSystemMediaTransportControlsSessionPlaybackStatus _PlaybackStatus = GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused;
@@ -61,7 +107,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             set
             {
                 _PlaybackStatus = value;
-                _lastUpdateTime = DateTime.Now;
+                _lastUpdateTime = DateTime.UtcNow;
                 NotifyPropertyChanged(nameof(PlaybackStatus));
                 NotifyPropertyChanged(nameof(PlayingNow));
             }
@@ -74,7 +120,19 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         }
 
-        public string Title = "Title";
+        private string _title = "Title";
+        public string Title
+        {
+            get => _title;
+            set
+            {
+                if (!string.Equals(_title, value, StringComparison.Ordinal))
+                {
+                    _title = value;
+                    NotifyPropertyChanged(nameof(Title));
+                }
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -126,24 +184,26 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 if (!id.Contains('.') && !id.Contains('!') && char.IsUpper(id[0]))
                 {
                     FriendlyAppName = id;
+                    return;
                 }
-                else
-                {
-                    if (id.Contains('!'))
-                    {
-                        id = id.Split('!')[1];
-                    }
 
-                    if (id.Contains(".exe"))
-                    {
-                        id = Path.GetFileNameWithoutExtension(id);
-                    }
-                    if (id.Contains("OperaSoftware"))
-                    {
-                        FriendlyAppName = "Opera";
-                    }
-                    FriendlyAppName = id;
+                if (id.Contains('!'))
+                {
+                    id = id.Split('!')[1];
                 }
+
+                if (id.Contains(".exe"))
+                {
+                    id = Path.GetFileNameWithoutExtension(id);
+                }
+
+                if (id.Contains("OperaSoftware"))
+                {
+                    FriendlyAppName = "Opera";
+                    return;
+                }
+
+                FriendlyAppName = id;
             }
             catch (Exception ex)
             {
@@ -190,6 +250,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         }
 
         private bool _TimePeekEnabled = false;
+        private bool _IsTimelineStale;
 
         public bool TimePeekEnabled
         {
@@ -202,6 +263,31 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                     NotifyPropertyChanged(nameof(TimePeekEnabled));
                 }
             }
+        }
+
+        public bool IsTimelineStale
+        {
+            get { return _IsTimelineStale; }
+            private set
+            {
+                if (_IsTimelineStale != value)
+                {
+                    _IsTimelineStale = value;
+                    NotifyPropertyChanged(nameof(IsTimelineStale));
+                }
+            }
+        }
+
+        public void MarkTimelineStale()
+        {
+            IsTimelineStale = true;
+            TimePeekEnabled = false;
+            NotifyPropertyChanged(nameof(TimePosition));
+        }
+
+        public void MarkTimelineFresh()
+        {
+            IsTimelineStale = false;
         }
 
         private DateTime _lastUpdateTime;
@@ -233,16 +319,25 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private TimeSpan _CurrentTime = new TimeSpan(0, 0, 0);
 
+        public TimeSpan StoredCurrentTime => _CurrentTime;
+
         public TimeSpan CurrentTime
         {
             get
             {
-                if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                // Only extrapolate when the player is actively playing AND we have a known
+                // duration. For live streams or unknown duration (FullTime <= 0) we keep the
+                // stored value so the UI doesn't show an ever-growing fake position.
+                if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
+                    && _FullTime > TimeSpan.Zero)
                 {
-                    var elapsedTime = DateTime.Now - _lastUpdateTime;
+                    var elapsedTime = DateTime.UtcNow - _lastUpdateTime;
+                    if (elapsedTime < TimeSpan.Zero)
+                        elapsedTime = TimeSpan.Zero;
+
                     TimeSpan livePosition = _CurrentTime + elapsedTime;
-                    if (FullTime > TimeSpan.Zero && livePosition > FullTime)
-                        return FullTime;
+                    if (livePosition > _FullTime)
+                        return _FullTime;
 
                     return livePosition;
                 }
@@ -251,7 +346,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             set
             {
                 _CurrentTime = value;
-                _lastUpdateTime = DateTime.Now;
+                _lastUpdateTime = DateTime.UtcNow;
                 NotifyPropertyChanged(nameof(CurrentTime));
                 NotifyPropertyChanged(nameof(TimePosition));
             }
@@ -262,6 +357,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             _mediaLinkSettings = mediaLinkSettings;
             _mediaLink = mediaLink;
             _AutoSwitch = _mediaLinkSettings.AutoSwitchSpawn;
+            _lastUpdateTime = DateTime.UtcNow;
             _updateTimer = new Timer(UpdateCurrentTime, null, 0, 1000);
         }
 

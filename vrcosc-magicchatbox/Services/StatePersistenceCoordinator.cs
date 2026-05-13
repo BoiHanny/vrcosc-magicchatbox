@@ -28,6 +28,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
     private readonly TrackerDisplayState _trackerDisplay;
     private readonly Lazy<IModuleHost> _modules;
     private readonly Lazy<IAppHistoryService> _appHistorySvc;
+    private readonly Lazy<IChatHistoryService> _chatHistorySvc;
     private readonly Lazy<IMediaLinkPersistenceService> _mediaLinkSvc;
     private readonly HotkeyManagement _hotkeyMgmt;
     private readonly IWindowActivityService _windowActivity;
@@ -49,6 +50,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         TrackerDisplayState trackerDisplay,
         Lazy<IModuleHost> modules,
         Lazy<IAppHistoryService> appHistorySvc,
+        Lazy<IChatHistoryService> chatHistorySvc,
         Lazy<IMediaLinkPersistenceService> mediaLinkSvc,
         HotkeyManagement hotkeyMgmt,
         IWindowActivityService windowActivity,
@@ -69,6 +71,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         _trackerDisplay = trackerDisplay;
         _modules = modules;
         _appHistorySvc = appHistorySvc;
+        _chatHistorySvc = chatHistorySvc;
         _mediaLinkSvc = mediaLinkSvc;
         _hotkeyMgmt = hotkeyMgmt;
         _windowActivity = windowActivity;
@@ -76,43 +79,65 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         _statusListSvc = statusListSvc;
     }
 
-    public void PersistAllState()
+    private static void SafeRun(string stepName, Action action)
     {
         try
         {
+            action();
+        }
+        catch (Exception ex)
+        {
+            // One failed step must not prevent the rest of shutdown persistence.
+            Logging.WriteException(ex, MSGBox: false);
+            Logging.WriteInfo($"StatePersistenceCoordinator: '{stepName}' failed: {ex.Message}");
+        }
+    }
+
+    public void PersistAllState()
+    {
+        SafeRun("IntegrationSettings", () =>
+        {
             _intSettingsProvider.Value.SavedSortOrder = _integrationDisplay.IntegrationSortOrder;
             _intSettingsProvider.FlushPendingSave();
+        });
 
+        SafeRun("TrackerBatterySettings", () =>
+        {
             _trkSettingsProvider.Value.SavedDevices = _trackerDisplay.TrackerDevices;
             _trkSettingsProvider.FlushPendingSave();
-            _appHistorySvc.Value.SaveAppHistory();
-            _mediaLinkSvc.Value.SaveMediaSessions();
-            _mediaLinkSvc.Value.SaveSeekbarStyles();
-            _hotkeyMgmt.SaveHotkeyConfigurations();
-            _windowActivity.SaveSettings();
-            _weatherSvc.SaveSettings();
-            _mediaLinkSettingsProvider.FlushPendingSave();
-            _oscSettingsProvider.FlushPendingSave();
-            _chatSettingsProvider.FlushPendingSave();
-            _openAISettingsProvider.FlushPendingSave();
-            _timeSettingsProvider.FlushPendingSave();
-            _ttsSettingsProvider.FlushPendingSave();
-            _appSettingsProvider.FlushPendingSave();
+        });
 
-            _statusListSvc.SaveStatusList();
+        SafeRun("AppHistory", () => _appHistorySvc.Value.SaveAppHistory());
+        SafeRun("ChatHistory", () => _chatHistorySvc.Value.SaveChatHistory());
+        SafeRun("MediaSessions", () => _mediaLinkSvc.Value.SaveMediaSessions());
+        SafeRun("SeekbarStyles", () => _mediaLinkSvc.Value.SaveSeekbarStyles());
+        SafeRun("Hotkeys", () => _hotkeyMgmt.SaveHotkeyConfigurations());
+        SafeRun("WindowActivity", () => _windowActivity.SaveSettings());
+        SafeRun("Weather", () => _weatherSvc.SaveSettings());
 
-            foreach (var module in _modules.Value.AllModules)
+        SafeRun("MediaLinkSettings", () => _mediaLinkSettingsProvider.FlushPendingSave());
+        SafeRun("OscSettings", () => _oscSettingsProvider.FlushPendingSave());
+        SafeRun("ChatSettings", () => _chatSettingsProvider.FlushPendingSave());
+        SafeRun("OpenAISettings", () => _openAISettingsProvider.FlushPendingSave());
+        SafeRun("TimeSettings", () => _timeSettingsProvider.FlushPendingSave());
+        SafeRun("TtsSettings", () => _ttsSettingsProvider.FlushPendingSave());
+        SafeRun("AppSettings", () => _appSettingsProvider.FlushPendingSave());
+
+        SafeRun("StatusList", () => _statusListSvc.SaveStatusList());
+
+        IModuleHost? moduleHost = null;
+        SafeRun("ModuleHostResolve", () => moduleHost = _modules.Value);
+
+        if (moduleHost != null)
+        {
+            foreach (var module in moduleHost.AllModules)
             {
                 try { module.SaveSettings(); }
                 catch (Exception ex) { Logging.WriteInfo($"Error saving {module.Name}: {ex.Message}"); }
             }
 
-            _modules.Value.Whisper?.OnApplicationClosing();
-            _modules.Value.Afk?.OnApplicationClosing();
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false, exitapp: true);
+            SafeRun("Whisper.OnApplicationClosing", () => moduleHost.Whisper?.OnApplicationClosing());
+            SafeRun("Afk.OnApplicationClosing", () => moduleHost.Afk?.OnApplicationClosing());
         }
     }
 
@@ -121,6 +146,16 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         try
         {
             await _oscSender.Value.SentClearMessage(1500);
+        }
+        catch (Exception ex)
+        {
+            // OSC clear failing should not block persistence of user data.
+            Logging.WriteException(ex, MSGBox: false);
+            Logging.WriteInfo($"StatePersistenceCoordinator: OSC clear failed during shutdown: {ex.Message}");
+        }
+
+        try
+        {
             PersistAllState();
         }
         catch (Exception ex)

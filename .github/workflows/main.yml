@@ -19,10 +19,10 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
 
@@ -46,7 +46,7 @@ jobs:
     # Step 2: Check if a release with this version already exists
     - name: Check if Release Exists
       id: check_release
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           const tag = `v${{ env.VERSION }}`;
@@ -75,7 +75,7 @@ jobs:
     # Step 4: Restore Dependencies (only if release doesn't exist)
     - name: Restore Dependencies
       if: steps.check_release.outputs.release_exists == 'false'
-      run: dotnet restore ${{ env.Solution_Name }}
+      run: dotnet restore ${{ env.Solution_Name }} -r win-x64
 
     # Step 5: Publish application to a stable output folder (only if release doesn't exist)
     - name: Publish Application
@@ -89,8 +89,9 @@ jobs:
 
         dotnet publish "${{ env.Project_Path }}" `
           --configuration Release `
+          --runtime win-x64 `
+          --self-contained false `
           --no-restore `
-          -p:Platform="Any CPU" `
           --output $publishDir
 
     # Step 6: Create ZIP of artifacts
@@ -110,7 +111,7 @@ jobs:
 
     # Step 7: Upload & Scan with VirusTotal
     - name: Upload and Scan with VirusTotal
-      if: steps.check_release.outputs.release_exists == 'false' && env.VIRUSTOTAL_API_KEY != ''
+      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
       id: virustotal_scan
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -145,7 +146,7 @@ jobs:
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Wait for VirusTotal Scan Report
-      if: steps.check_release.outputs.release_exists == 'false' && env.VIRUSTOTAL_API_KEY != ''
+      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
       id: virustotal_report
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -207,18 +208,19 @@ jobs:
           echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
         }
 
-    # Step 9: Create GitHub Release
+    # Step 9: Create GitHub Release and upload the asset in a single step
     - name: Create Release
       if: steps.check_release.outputs.release_exists == 'false'
       id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ env.VERSION }}
-        release_name: ${{ env.RELEASE_NAME }}
+        name: ${{ env.RELEASE_NAME }}
         draft: false
         prerelease: ${{ env.PRE_RELEASE }}
+        files: ./MagicChatbox-${{ env.VERSION }}.zip
         body: |
           <div align="center">
             <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
@@ -282,15 +284,3 @@ jobs:
             </ul>
             <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
           </div>
-
-    # Step 10: Upload Release Asset
-    - name: Upload Release Asset
-      if: steps.check_release.outputs.release_exists == 'false'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./MagicChatbox-${{ env.VERSION }}.zip
-        asset_name: MagicChatbox-${{ env.VERSION }}.zip
-        asset_content_type: application/zip

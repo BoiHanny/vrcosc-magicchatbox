@@ -159,7 +159,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
                 ? $"{playIcon} {title}"
                 : $"{actionText} {title}";
 
-            if (!session.IsLiveTime && session.TimePeekEnabled)
+            if (!session.IsLiveTime && session.TimePeekEnabled && !session.IsTimelineStale)
                 text = CreateTimeStamp(text, session, context);
         }
 
@@ -185,7 +185,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         switch (_mls.TimeSeekStyle)
         {
             case MediaLinkTimeSeekbar.NumbersAndSeekBar:
-                string bar = SeekbarUtilities.CreateProgressBar(pct, session.CurrentTime, session.FullTime, ToSeekbarOptions(style));
+                string bar = SeekbarUtilities.CreateProgressBar(pct, current, full, ToSeekbarOptions(style));
                 if (!string.IsNullOrWhiteSpace(bar))
                 {
                     string candidate = style.ProgressBarOnTop ? $"{bar}\n{text}" : $"{text}\n{bar}";

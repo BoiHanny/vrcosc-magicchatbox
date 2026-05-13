@@ -166,10 +166,6 @@ namespace vrcosc_magicchatbox
 
                     var rootViewModel = Services.GetRequiredService<ViewModel>();
                     LogStartupPhase("ViewModel resolved.");
-
-                    var bootstrapper = Services.GetRequiredService<ModuleBootstrapper>();
-                    bootstrapper.RegisterComponentStats(Services.GetRequiredService<ComponentStatsModule>());
-                    LogStartupPhase("ComponentStats registered.");
                     return rootViewModel;
                 }, startupCancellation.Token);
 
@@ -757,7 +753,9 @@ namespace vrcosc_magicchatbox
         {
             cancellationToken.ThrowIfCancellationRequested();
             TimeSpan effectiveTimeout = timeout ?? OptionalStartupTaskTimeout;
-            Task task = Task.Run(action);
+            var sw = Stopwatch.StartNew();
+            Logging.WriteInfo($"[Startup] Optional task '{taskName}' started.");
+            Task task = Task.Run(action, cancellationToken);
             Task delay = Task.Delay(effectiveTimeout, cancellationToken);
 
             Task completed = await Task.WhenAny(task, delay).ConfigureAwait(false);
@@ -784,6 +782,7 @@ namespace vrcosc_magicchatbox
             try
             {
                 await task.ConfigureAwait(false);
+                Logging.WriteInfo($"[Startup] Optional task '{taskName}' completed in {sw.ElapsedMilliseconds}ms.");
             }
             catch (Exception ex)
             {
@@ -803,56 +802,59 @@ namespace vrcosc_magicchatbox
             // ── Wave 1: File I/O (all independent, run in parallel) ──
             loadingWindow.UpdateProgress("Loading your saved data...", 20, "Firing up modules...");
             await Task.WhenAll(
-                Task.Run(() =>
+                RunOptionalStartupTaskAsync("settings restore", () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var intSettings = Services.GetRequiredService<ISettingsProvider<IntegrationSettings>>().Value;
-                    Services.GetRequiredService<IntegrationDisplayState>().IntegrationSortOrder = intSettings.SavedSortOrder;
-
                     var trackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
-                    Services.GetRequiredService<TrackerDisplayState>().TrackerDevices = trackerSettings.SavedDevices;
+                    var integrationDisplay = Services.GetRequiredService<IntegrationDisplayState>();
+                    var trackerDisplay = Services.GetRequiredService<TrackerDisplayState>();
+                    Services.GetRequiredService<IUiDispatcher>().BeginInvoke(() =>
+                    {
+                        integrationDisplay.IntegrationSortOrder = intSettings.SavedSortOrder;
+                        trackerDisplay.TrackerDevices = trackerSettings.SavedDevices;
+                    });
                     LogStep("Settings restore");
-                }),
-                Task.Run(() =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("status list", () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     Services.GetRequiredService<IStatusListService>().LoadStatusList();
                     LogStep("Status list");
-                }),
-                Task.Run(() =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("chat history", () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     Services.GetRequiredService<IChatHistoryService>().LoadChatHistory();
                     LogStep("Chat history");
-                }),
-                Task.Run(() =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("app history", () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     Services.GetRequiredService<IAppHistoryService>().LoadAppHistory();
                     LogStep("App history");
-                }),
-                Task.Run(async () =>
+                }, cancellationToken),
+                RunOptionalStartupTaskAsync("MediaLink sessions", async () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await Services.GetRequiredService<IMediaLinkPersistenceService>().LoadMediaSessionsAsync();
                     LogStep("MediaLink sessions");
-                })
+                }, cancellationToken)
             );
             LogStep("Wave 1 complete");
             cancellationToken.ThrowIfCancellationRequested();
 
             // ── Wave 2: Module initialization (independent, run in parallel) ──
             loadingWindow.UpdateProgress("Firing up modules...", 55, "Finishing the last startup modules...");
-            var bootMods = Services.GetRequiredService<ModuleBootstrapper>();
-
             await Task.WhenAll(
-                RunOptionalStartupTaskAsync("ComponentStats", () =>
+                RunOptionalStartupTaskAsync("ComponentStats", async () =>
                 {
-                    if (_integrationSettings.IntgrComponentStats)
-                    {
-                        Services.GetRequiredService<ComponentStatsModule>().StartModule();
-                        LogStep("ComponentStats");
-                    }
+                    var bootMods = Services.GetRequiredService<ModuleBootstrapper>();
+                    var componentStats = Services.GetRequiredService<ComponentStatsModule>();
+                    Services.GetRequiredService<ComponentStatsViewModel>();
+                    await bootMods.RegisterComponentStatsAsync(componentStats).ConfigureAwait(false);
+                    componentStats.StartModule();
+                    LogStep("ComponentStats");
                 }, cancellationToken),
                 RunOptionalStartupTaskAsync("NetworkStats", () =>
                 {
@@ -867,15 +869,16 @@ namespace vrcosc_magicchatbox
                     await openAIModule.InitializeClient(openAISettings.AccessToken, openAISettings.OrganizationID);
                     LogStep("OpenAI");
                 }, cancellationToken),
-                Task.Run(() =>
+                RunOptionalStartupTaskAsync("IntelliChat", () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    bootMods.CreateIntelliChat();
+                    Services.GetRequiredService<ModuleBootstrapper>().CreateIntelliChat();
                     LogStep("IntelliChat");
-                }),
+                }, cancellationToken),
                 RunOptionalStartupTaskAsync("TTS voices", () =>
                 {
-                    vm.TtsAudio.TikTokTTSVoices = Services.GetRequiredService<IAudioService>().ReadTikTokTTSVoices();
+                    var voices = Services.GetRequiredService<IAudioService>().ReadTikTokTTSVoices();
+                    Services.GetRequiredService<IUiDispatcher>().BeginInvoke(() => vm.TtsAudio.TikTokTTSVoices = voices);
                     LogStep("TTS voices");
                 }, cancellationToken),
                 RunOptionalStartupTaskAsync("Audio devices", () =>
@@ -902,13 +905,17 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Starting runtime modules...", 90, "Building the main window shell...");
             await Task.WhenAll(
-                bootMods.CreateRuntimeModulesAsync(),
-                Task.Run(async () =>
+                RunOptionalStartupTaskAsync(
+                    "runtime modules",
+                    () => Services.GetRequiredService<ModuleBootstrapper>().CreateRuntimeModulesAsync(),
+                    cancellationToken,
+                    TimeSpan.FromSeconds(20)),
+                RunOptionalStartupTaskAsync("seekbar styles", async () =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await Services.GetRequiredService<IMediaLinkPersistenceService>().LoadSeekbarStylesAsync();
                     LogStep("Seekbar styles");
-                })
+                }, cancellationToken)
             );
             LogStep("Runtime modules + seekbar");
             cancellationToken.ThrowIfCancellationRequested();
@@ -917,5 +924,3 @@ namespace vrcosc_magicchatbox
         }
     }
 }
-
-

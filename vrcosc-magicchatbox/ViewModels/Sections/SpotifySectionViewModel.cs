@@ -236,7 +236,7 @@ public partial class SpotifySectionViewModel : ObservableObject
     [RelayCommand]
     private void CopyTemplateTokens()
         => CopyText(
-            "{play_icon}, {title}, {artist}, {album}, {device}, {progress}, {seekbar}, {elapsed}, {duration}, {remaining}, {percent}, {liked_icon}, {explicit_icon}, {shuffle_icon}, {repeat_icon}, {queue}",
+            "{play_icon}, {title}, {artist}, {album}, {device}, {volume}, {progress}, {seekbar}, {elapsed}, {duration}, {remaining}, {percent}, {liked_icon}, {explicit_icon}, {shuffle_icon}, {repeat_icon}, {queue}, {separator}",
             "Template token list copied to clipboard.",
             "spotify-tokens-copied");
 

@@ -2,7 +2,7 @@ namespace vrcosc_magicchatbox.Core.Privacy;
 
 public enum PrivacyHook
 {
-    /// <summary>LibreHardwareMonitor — loads WinRing0.sys kernel driver for CPU/GPU/VRAM sensors.</summary>
+    /// <summary>Driverless hardware stats through Windows APIs and WMI.</summary>
     HardwareMonitor = 0,
 
     /// <summary>UIAutomation + GetForegroundWindow — reads currently focused window title and process name.</summary>

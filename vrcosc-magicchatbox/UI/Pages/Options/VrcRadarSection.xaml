@@ -40,7 +40,7 @@
                 Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_VrcRadar, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
-                Tag="VRChat Radar options"
+                Tag="VRChat radar options"
                 TextOptions.TextRenderingMode="ClearType" />
         </Grid>
 

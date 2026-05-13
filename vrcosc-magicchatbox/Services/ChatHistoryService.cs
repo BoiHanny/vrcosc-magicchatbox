@@ -3,7 +3,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -17,12 +19,18 @@ public sealed class ChatHistoryService : IChatHistoryService
     private readonly IEnvironmentService _env;
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly IAppHistoryService _appHistory;
+    private readonly IUiDispatcher _dispatcher;
 
-    public ChatHistoryService(IEnvironmentService env, ChatStatusDisplayState chatStatus, IAppHistoryService appHistory)
+    public ChatHistoryService(
+        IEnvironmentService env,
+        ChatStatusDisplayState chatStatus,
+        IAppHistoryService appHistory,
+        IUiDispatcher dispatcher)
     {
         _env = env;
         _chatStatus = chatStatus;
         _appHistory = appHistory;
+        _dispatcher = dispatcher;
     }
 
     public void LoadChatHistory()
@@ -30,9 +38,7 @@ public sealed class ChatHistoryService : IChatHistoryService
         try
         {
             if (_chatStatus.LastMessages == null)
-            {
-                _chatStatus.LastMessages = new();
-            }
+                _dispatcher.BeginInvoke(() => _chatStatus.LastMessages ??= new());
 
             if (File.Exists(Path.Combine(_env.DataPath, "LastMessages.json"))
                 || File.Exists(Path.Combine(_env.DataPath, "LastMessages.xml")))
@@ -52,11 +58,12 @@ public sealed class ChatHistoryService : IChatHistoryService
 
                 if (loadedMessages != null)
                 {
-                    _chatStatus.LastMessages = loadedMessages;
-                    foreach (var item in _chatStatus.LastMessages)
+                    foreach (var item in loadedMessages)
                     {
                         item.CanLiveEdit = false;
                     }
+
+                    _dispatcher.BeginInvoke(() => _chatStatus.LastMessages = loadedMessages);
                 }
             }
             else
@@ -70,7 +77,7 @@ public sealed class ChatHistoryService : IChatHistoryService
 
             if (_chatStatus?.LastMessages == null)
             {
-                _chatStatus.LastMessages = new();
+                _dispatcher.BeginInvoke(() => _chatStatus.LastMessages = new());
             }
         }
     }
@@ -84,29 +91,23 @@ public sealed class ChatHistoryService : IChatHistoryService
                 return;
             }
 
-            if (_appHistory.CreateIfMissing(_env.DataPath) == true)
+            if (_appHistory.CreateIfMissing(_env.DataPath) != true)
             {
-                if (_chatStatus.LastMessages.Count == 0)
-                {
-                    return;
-                }
-
-                string json = JsonConvert.SerializeObject(_chatStatus.LastMessages, Formatting.Indented);
-
-                if (string.IsNullOrEmpty(json))
-                {
-                    return;
-                }
-
-                string filePath = Path.Combine(_env.DataPath, "LastMessages.json");
-
-                if (string.IsNullOrEmpty(filePath))
-                {
-                    return;
-                }
-
-                File.WriteAllText(filePath, json);
+                return;
             }
+
+            // Persist empty collections explicitly. Previously this method short-circuited
+            // when the collection was empty, which meant clearing chat history left the
+            // stale on-disk file behind and it resurrected on next launch.
+            string json = JsonConvert.SerializeObject(_chatStatus.LastMessages, Formatting.Indented);
+
+            if (json == null)
+            {
+                return;
+            }
+
+            string filePath = Path.Combine(_env.DataPath, "LastMessages.json");
+            AtomicFileWriter.WriteAllText(filePath, json);
         }
         catch (Exception ex)
         {

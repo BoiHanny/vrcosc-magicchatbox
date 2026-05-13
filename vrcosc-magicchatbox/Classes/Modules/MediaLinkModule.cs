@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
@@ -36,6 +37,12 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     private MediaSession? currentSession = null;
     private TimeSpan GracePeriod => TimeSpan.FromSeconds(_mediaLinkSettings.SessionTimeout);
     private MediaManager? mediaManager = null;
+    private static readonly TimeSpan MediaSnapshotResyncInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan TimelineRefreshAfterMediaChangeDelay = TimeSpan.FromMilliseconds(750);
+    private static readonly TimeSpan TimelineBackwardDriftTolerance = TimeSpan.FromMilliseconds(1250);
+    private static readonly TimeSpan TimelineBackwardJumpThreshold = TimeSpan.FromSeconds(5);
+    private Timer? mediaSnapshotResyncTimer;
+    private int mediaSnapshotResyncInProgress;
     private ConcurrentDictionary<string, (MediaSessionInfo, DateTime)> recentlyClosedSessions = new ConcurrentDictionary<string, (MediaSessionInfo, DateTime)>(
         );
 
@@ -164,23 +171,91 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                string.Equals(leftId, rightId, StringComparison.Ordinal);
     }
 
-    private static void ApplyTimelineProperties(
+    private static bool ApplyTimelineProperties(
         MediaSessionInfo sessionInfo,
-        GlobalSystemMediaTransportControlsSessionTimelineProperties args)
+        GlobalSystemMediaTransportControlsSessionTimelineProperties args,
+        bool rejectUnchangedStaleTimeline = false)
     {
-        if (args.StartTime != TimeSpan.Zero || args.Position != TimeSpan.Zero)
+        TimeSpan fullTime = args.EndTime - args.StartTime;
+        TimeSpan currentTime = args.Position;
+        if (args.StartTime != TimeSpan.Zero)
+            currentTime -= args.StartTime;
+
+        if (fullTime > TimeSpan.Zero)
         {
-            sessionInfo.FullTime = args.EndTime - args.StartTime;
-            sessionInfo.CurrentTime = args.Position;
+            if (currentTime < TimeSpan.Zero)
+                currentTime = TimeSpan.Zero;
+            if (currentTime > fullTime)
+                currentTime = fullTime;
+
+            if (rejectUnchangedStaleTimeline
+                && sessionInfo.IsTimelineStale
+                && TimelineValuesMatch(sessionInfo.FullTime, fullTime)
+                && TimelineValuesMatch(sessionInfo.StoredCurrentTime, currentTime))
+            {
+                return false;
+            }
+
+            if (ShouldIgnoreRegressiveTimelineUpdate(sessionInfo, fullTime, currentTime))
+                return false;
+
+            sessionInfo.FullTime = fullTime;
+            sessionInfo.CurrentTime = currentTime;
             sessionInfo.TimePeekEnabled = true;
+            sessionInfo.MarkTimelineFresh();
+            return true;
         }
-        else
-        {
-            sessionInfo.TimePeekEnabled = false;
-        }
+
+        sessionInfo.TimePeekEnabled = false;
+        sessionInfo.MarkTimelineFresh();
+        return false;
     }
 
-    private void ApplyPlaybackSnapshot(MediaSession session, MediaSessionInfo sessionInfo)
+    private static bool TimelineValuesMatch(TimeSpan left, TimeSpan right)
+        => Math.Abs((left - right).TotalMilliseconds) <= 500;
+
+    private static bool ShouldIgnoreRegressiveTimelineUpdate(MediaSessionInfo sessionInfo, TimeSpan fullTime, TimeSpan currentTime)
+    {
+        if (sessionInfo.PlaybackStatus != GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+            return false;
+
+        // A timeline marked stale (e.g. metadata changed) must always accept the next snapshot —
+        // otherwise the seekbar can get stuck on the previous song when the new track happens
+        // to fall inside the drift window.
+        if (sessionInfo.IsTimelineStale)
+            return false;
+
+        if (!TimelineValuesMatch(sessionInfo.FullTime, fullTime))
+            return false;
+
+        TimeSpan storedCurrentTime = sessionInfo.StoredCurrentTime;
+
+        // Any meaningful backward movement in the *stored* (non-extrapolated) position is a
+        // legitimate user seek — honor it even when it's small (a few seconds). Only a tiny
+        // jitter tolerance is allowed so the player can re-emit the same snapshot.
+        if (currentTime < storedCurrentTime - TimeSpan.FromMilliseconds(250))
+            return false;
+
+        // Suppress only when the incoming position is slightly behind our *extrapolated*
+        // CurrentTime — that pattern indicates clock/scheduler drift, not a real seek.
+        TimeSpan extrapolatedDelta = sessionInfo.CurrentTime - currentTime;
+        return extrapolatedDelta > TimelineBackwardDriftTolerance &&
+               extrapolatedDelta <= TimelineBackwardJumpThreshold;
+    }
+
+    private void ApplyPlaybackSnapshot(
+        MediaSession session,
+        MediaSessionInfo sessionInfo,
+        bool includeTimeline = true,
+        bool rejectUnchangedStaleTimeline = false)
+    {
+        ApplyPlaybackStateSnapshot(session, sessionInfo);
+
+        if (includeTimeline)
+            TryApplyTimelineSnapshot(session, sessionInfo, rejectUnchangedStaleTimeline);
+    }
+
+    private void ApplyPlaybackStateSnapshot(MediaSession session, MediaSessionInfo sessionInfo)
     {
         try
         {
@@ -193,33 +268,91 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         {
             Logging.WriteInfo($"Unable to read media playback snapshot for {session.Id}: {ex.Message}");
         }
+    }
 
+    private bool TryApplyTimelineSnapshot(
+        MediaSession session,
+        MediaSessionInfo sessionInfo,
+        bool rejectUnchangedStaleTimeline = false)
+    {
         try
         {
-            ApplyTimelineProperties(sessionInfo, session.ControlSession.GetTimelineProperties());
+            return ApplyTimelineProperties(
+                sessionInfo,
+                session.ControlSession.GetTimelineProperties(),
+                rejectUnchangedStaleTimeline);
         }
         catch (Exception ex)
         {
             Logging.WriteInfo($"Unable to read media timeline snapshot for {session.Id}: {ex.Message}");
+            return false;
         }
     }
 
-    private async Task ApplyMediaPropertySnapshotAsync(MediaSession session, MediaSessionInfo sessionInfo)
+    private bool ApplyMediaProperties(
+        MediaSessionInfo sessionInfo,
+        GlobalSystemMediaTransportControlsSessionMediaProperties properties,
+        bool staleTimelineOnChange)
+    {
+        bool changed = !string.Equals(sessionInfo.Title, properties.Title, StringComparison.Ordinal) ||
+                       !string.Equals(sessionInfo.Artist, properties.Artist, StringComparison.Ordinal) ||
+                       !string.Equals(sessionInfo.AlbumTitle, properties.AlbumTitle, StringComparison.Ordinal);
+
+        if (changed)
+            LastMediaChangeTime = DateTime.UtcNow;
+
+        sessionInfo.AlbumArtist = properties.AlbumArtist;
+        sessionInfo.AlbumTitle = properties.AlbumTitle;
+        sessionInfo.Artist = properties.Artist;
+        sessionInfo.Title = properties.Title;
+
+        if (staleTimelineOnChange && changed)
+            sessionInfo.MarkTimelineStale();
+
+        return changed;
+    }
+
+    private async Task RefreshTimelineAfterMediaChangeAsync(MediaSession session, MediaSessionInfo sessionInfo)
+    {
+        try
+        {
+            await Task.Delay(TimelineRefreshAfterMediaChangeDelay).ConfigureAwait(false);
+            if (!ReferenceEquals(sessionInfo.Session, session))
+                return;
+
+            if (!TryApplyTimelineSnapshot(session, sessionInfo, rejectUnchangedStaleTimeline: true)
+                && ReferenceEquals(sessionInfo.Session, session))
+            {
+                Logging.WriteInfo($"MediaLink timeline for {session.Id} still stale after metadata change; waiting for resync.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to refresh media timeline after metadata change for {session.Id}: {ex.Message}");
+        }
+    }
+
+    private async Task<bool> ApplyMediaPropertySnapshotAsync(
+        MediaSession session,
+        MediaSessionInfo sessionInfo,
+        bool staleTimelineOnChange = true)
     {
         try
         {
             var properties = await session.ControlSession.TryGetMediaPropertiesAsync();
             if (properties == null)
-                return;
+                return false;
 
-            sessionInfo.AlbumArtist = properties.AlbumArtist;
-            sessionInfo.AlbumTitle = properties.AlbumTitle;
-            sessionInfo.Artist = properties.Artist;
-            sessionInfo.Title = properties.Title;
+            bool changed = ApplyMediaProperties(sessionInfo, properties, staleTimelineOnChange);
+            if (changed && (staleTimelineOnChange || !sessionInfo.TimePeekEnabled || sessionInfo.IsTimelineStale))
+                _ = RefreshTimelineAfterMediaChangeAsync(session, sessionInfo);
+
+            return changed;
         }
         catch (Exception ex)
         {
             Logging.WriteInfo($"Unable to read media properties snapshot for {session.Id}: {ex.Message}");
+            return false;
         }
     }
 
@@ -257,18 +390,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         if (sessionInfo != null)
         {
-            if (!string.Equals(sessionInfo.Title, args.Title, StringComparison.Ordinal) ||
-                !string.Equals(sessionInfo.Artist, args.Artist, StringComparison.Ordinal))
-            {
-                LastMediaChangeTime = DateTime.UtcNow;
-            }
-
-            sessionInfo.AlbumArtist = args.AlbumArtist;
-            sessionInfo.AlbumTitle = args.AlbumTitle;
-            sessionInfo.Artist = args.Artist;
-            sessionInfo.Title = args.Title;
-
-            ApplyPlaybackSnapshot(sender, sessionInfo);
+            ApplyMediaProperties(sessionInfo, args, staleTimelineOnChange: true);
+            ApplyPlaybackSnapshot(sender, sessionInfo, includeTimeline: false);
+            _ = RefreshTimelineAfterMediaChangeAsync(sender, sessionInfo);
             QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
         }
     }
@@ -290,6 +414,13 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped)
                 {
                     sessionInfo.CurrentTime = TimeSpan.Zero;
+                }
+                else if (args.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                {
+                    TryApplyTimelineSnapshot(
+                        sender,
+                        sessionInfo,
+                        rejectUnchangedStaleTimeline: sessionInfo.IsTimelineStale);
                 }
 
                 QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
@@ -388,7 +519,10 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                     RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
                 });
 
-        await ApplyMediaPropertySnapshotAsync(session, sessionInfo);
+        await ApplyMediaPropertySnapshotAsync(session, sessionInfo, staleTimelineOnChange: false);
+        if (!sessionInfo.TimePeekEnabled || sessionInfo.IsTimelineStale)
+            TryApplyTimelineSnapshot(session, sessionInfo);
+
         QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
     }
 
@@ -434,6 +568,70 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
+    private void StartMediaSnapshotResyncTimer()
+    {
+        if (mediaSnapshotResyncTimer != null)
+            return;
+
+        mediaSnapshotResyncTimer = new Timer(
+            _ => QueueMediaSnapshotResync(),
+            null,
+            MediaSnapshotResyncInterval,
+            MediaSnapshotResyncInterval);
+    }
+
+    private void StopMediaSnapshotResyncTimer()
+    {
+        mediaSnapshotResyncTimer?.Dispose();
+        mediaSnapshotResyncTimer = null;
+        Interlocked.Exchange(ref mediaSnapshotResyncInProgress, 0);
+    }
+
+    private void QueueMediaSnapshotResync()
+    {
+        if (mediaManager == null)
+            return;
+
+        if (Interlocked.CompareExchange(ref mediaSnapshotResyncInProgress, 1, 0) == 1)
+            return;
+
+        _ = ResyncMediaSnapshotsAsync();
+    }
+
+    private async Task ResyncMediaSnapshotsAsync()
+    {
+        try
+        {
+            var sessions = _dispatcher.Invoke(() => _mediaLink.MediaSessions
+                    .Where(session => session.IsTimelineStale &&
+                                      (session.IsActive ||
+                                       session.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing))
+                    .ToList());
+
+            foreach (var sessionInfo in sessions)
+            {
+                MediaSession session = sessionInfo.Session;
+                if (session == null || !ReferenceEquals(sessionInfo.Session, session))
+                    continue;
+
+                bool mediaChanged = await ApplyMediaPropertySnapshotAsync(session, sessionInfo).ConfigureAwait(false);
+                ApplyPlaybackSnapshot(
+                    session,
+                    sessionInfo,
+                    includeTimeline: true,
+                    rejectUnchangedStaleTimeline: sessionInfo.IsTimelineStale || mediaChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref mediaSnapshotResyncInProgress, 0);
+        }
+    }
+
     /// <summary>
     /// Unsubscribes all event handlers and disposes the underlying <see cref="MediaManager"/> instance.
     /// </summary>
@@ -441,6 +639,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         _appState.PropertyChanged -= ViewModel_PropertyChanged;
         _integrationSettings.PropertyChanged -= ViewModel_PropertyChanged;
+        StopMediaSnapshotResyncTimer();
 
         if (mediaManager != null)
         {
@@ -476,7 +675,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         if (sessionInfo != null)
         {
-            ApplyTimelineProperties(sessionInfo, args);
+            ApplyTimelineProperties(sessionInfo, args, rejectUnchangedStaleTimeline: sessionInfo.IsTimelineStale);
         }
     }
 
@@ -574,6 +773,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             mediaManager.OnAnyMediaPropertyChanged += MediaManager_OnAnyMediaPropertyChanged;
             mediaManager.OnAnyTimelinePropertyChanged += MediaManager_OnAnyTimelinePropertyChanged;
             mediaManager.Start();
+            StartMediaSnapshotResyncTimer();
         }
         catch (Exception ex)
         {

@@ -90,10 +90,8 @@ public class ComponentStatsModule : IModule
     public void SetStatsViewModel(ComponentStatsViewModel vm)
     {
         _statsVm = vm;
-        EnsureComponentStatsLoaded();
-        _statsVm.SyncComponentStatsList();
-        EnsureGpuListLoaded();
-        QueueDdrVersionFetchIfNeeded();
+        if (_statsLoaded)
+            _statsVm.SyncComponentStatsList();
     }
 
     private IntegrationSettings _integrationSettings;
@@ -236,32 +234,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    private string FetchCPUMaxCoreLoadStat(ComponentStatsItem item)
-    {
-        float? maxCore = _hwService.GetCpuMaxCoreLoad();
-        if (maxCore == null) return null;
-        string label = Settings.UseEmojisForTempAndPower ? "🔺" : "max core";
-        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
-            label = TextUtilities.TransformToSuperscript(label);
-        string value = item.RemoveNumberTrailing ? $"{(int)maxCore.Value}" : $"{maxCore.Value:F1}";
-        return $"{label} {value}﹪";
-    }
-
-    private string FetchCpuClockStat(ComponentStatsItem item)
-    {
-        float? mhz = _hwService.GetCpuCoreClock();
-        if (mhz == null) return null;
-        string label = Settings.UseEmojisForTempAndPower ? "⚡" : "clk";
-        if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
-            label = TextUtilities.TransformToSuperscript(label);
-        string value;
-        if (mhz.Value >= 1000f)
-            value = $"{mhz.Value / 1000f:F1}GHz";
-        else
-            value = $"{(int)mhz.Value}MHz";
-        return $"{label} {value}";
-    }
-
     private string FetchGpuCoreClockStat(ComponentStatsItem item)
     {
         string gpuName = GetDedicatedGPUName();
@@ -277,13 +249,13 @@ public class ComponentStatsModule : IModule
     private string FetchGpuFanSpeedStat(ComponentStatsItem item)
     {
         string gpuName = GetDedicatedGPUName();
-        float? rpm = _hwService.GetGpuFanSpeed(gpuName);
-        if (rpm == null) return null;
+        float? fanPercent = _hwService.GetGpuFanSpeed(gpuName);
+        if (fanPercent == null) return null;
         string label = Settings.UseEmojisForTempAndPower ? "🌀" : "fan";
         if (item.ShowSmallName && !Settings.UseEmojisForTempAndPower)
             label = TextUtilities.TransformToSuperscript(label);
-        string value = item.RemoveNumberTrailing ? $"{(int)rpm.Value}" : $"{rpm.Value:F0}";
-        return $"{label} {value}RPM";
+        string value = item.RemoveNumberTrailing ? $"{(int)fanPercent.Value}" : $"{fanPercent.Value:F0}";
+        return $"{label} {value}%";
     }
 
     private string FetchGpuMemoryClockStat(ComponentStatsItem item)
@@ -379,8 +351,11 @@ public class ComponentStatsModule : IModule
 
     private string FetchPowerStat(bool isCpu, ComponentStatsItem item)
     {
-        string gpuName = isCpu ? null : GetDedicatedGPUName();
-        float? rawWatts = isCpu ? _hwService.GetCpuPower() : _hwService.GetGpuPower(gpuName);
+        if (isCpu)
+            return string.Empty;
+
+        string gpuName = GetDedicatedGPUName();
+        float? rawWatts = _hwService.GetGpuPower(gpuName);
 
         if (rawWatts == null || rawWatts == 0)
         {
@@ -406,7 +381,7 @@ public class ComponentStatsModule : IModule
     {
         var current = StatsVm.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
 
-        // Try WMI first (more accurate on some systems)
+        // GlobalMemoryStatusEx via kernel32 (driverless, sub-microsecond) — preferred path
         var wmiMem = _hwService.GetWindowsMemoryInfo();
         if (wmiMem.HasValue)
         {
@@ -450,8 +425,11 @@ public class ComponentStatsModule : IModule
 
     private string FetchTemperatureStat(bool isCpu, ComponentStatsItem item)
     {
-        string gpuName = isCpu ? null : GetDedicatedGPUName();
-        float? rawCelsius = isCpu ? _hwService.GetCpuTemperature() : _hwService.GetGpuTemperature(gpuName);
+        if (isCpu)
+            return string.Empty;
+
+        string gpuName = GetDedicatedGPUName();
+        float? rawCelsius = _hwService.GetGpuTemperature(gpuName);
 
         if (rawCelsius == null || rawCelsius == 0)
         {
@@ -529,8 +507,11 @@ public class ComponentStatsModule : IModule
             if (string.IsNullOrEmpty(StaticSettings.SelectedGPU) || StaticSettings.AutoSelectGPU)
             {
                 string resolved = _hwService.GetGpuName(null);
-                if (!string.IsNullOrEmpty(resolved))
+                if (!string.IsNullOrEmpty(resolved) &&
+                    !string.Equals(StaticSettings.SelectedGPU, resolved, StringComparison.Ordinal))
+                {
                     StaticSettings.SelectedGPU = resolved;
+                }
                 return resolved;
             }
             else
@@ -581,7 +562,7 @@ public class ComponentStatsModule : IModule
                 if (type == StatsComponentType.CPU)
                 {
                     component.ShowWattage = false;
-                    component.ShowTemperature = true;
+                    component.ShowTemperature = false;
                 }
 
                 if (type == StatsComponentType.GPU)
@@ -623,36 +604,27 @@ public class ComponentStatsModule : IModule
         EnsureComponentStatsLoaded();
         _integrationDisplay.ComponentStatsRunning = true;
 
-        bool driverApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
+        bool hardwareAccessApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
 
-        if (driverApproved)
+        if (!hardwareAccessApproved)
         {
-            if (!_hwService.IsOpen)
-                StartMonitoringComponents();
+            if (_hwService.IsOpen)
+                _hwService.Close();
 
-            _hwService.UpdateAll();
-            StatsVm.SyncComponentStatsList();
-            QueueDdrVersionFetchIfNeeded();
-
-            if (UpdateStats())
-                _integrationDisplay.ComponentStatCombined = StatsVm.Module.GenerateStatsDescription();
+            _integrationDisplay.ComponentStatsRunning = false;
+            _integrationDisplay.ComponentStatCombined = string.Empty;
+            return;
         }
-        else
-        {
-            // Basic mode — RAM via performance counter (no kernel driver)
-            float? cpuLoad = _hwService.GetCpuLoadBasic();
-            var ramInfo = _hwService.GetWindowsMemoryInfo();
-            var parts = new System.Collections.Generic.List<string>();
 
-            if (cpuLoad.HasValue)
-                parts.Add($"CPU {(int)cpuLoad.Value}%");
+        if (!_hwService.IsOpen)
+            StartMonitoringComponents();
 
-            if (ramInfo.HasValue)
-                parts.Add($"RAM {ramInfo.Value.usedGiB:F1}/{ramInfo.Value.totalGiB:F1}GB");
+        _hwService.UpdateAll();
+        StatsVm.SyncComponentStatsList();
+        QueueDdrVersionFetchIfNeeded();
 
-            if (parts.Count > 0)
-                _integrationDisplay.ComponentStatCombined = string.Join(" · ", parts);
-        }
+        if (UpdateStats())
+            _integrationDisplay.ComponentStatCombined = StatsVm.Module.GenerateStatsDescription();
     }
 
     private bool ShouldUpdateComponentStats()
@@ -697,24 +669,12 @@ public class ComponentStatsModule : IModule
 
                 if (stat.ComponentType == StatsComponentType.CPU && hasCpu)
                 {
-                    string cpuTemp = stat.ShowTemperature ? FetchTemperatureStat(true, stat) : "";
-                    string cpuPower = stat.ShowWattage ? FetchPowerStat(true, stat) : "";
-
-                    if (!stat.cantShowTemperature && !string.IsNullOrWhiteSpace(cpuTemp))
-                        additionalInfoParts.Add(cpuTemp);
-                    if (!stat.cantShowWattage && !string.IsNullOrWhiteSpace(cpuPower))
-                        additionalInfoParts.Add(cpuPower);
-
-                    if (Settings.ShowCpuMaxCoreLoad)
-                    {
-                        var maxCore = FetchCPUMaxCoreLoadStat(stat);
-                        if (!string.IsNullOrWhiteSpace(maxCore)) additionalInfoParts.Add(maxCore);
-                    }
-                    if (Settings.ShowCpuClock)
-                    {
-                        var clk = FetchCpuClockStat(stat);
-                        if (!string.IsNullOrWhiteSpace(clk)) additionalInfoParts.Add(clk);
-                    }
+                    // CPU temperature/wattage are not exposed by the driverless pipeline.
+                    // Guard assignments so we don't trigger PropertyChanged/auto-save on every tick.
+                    if (stat.ShowWattage) stat.ShowWattage = false;
+                    if (stat.ShowTemperature) stat.ShowTemperature = false;
+                    if (stat.cantShowWattage) stat.cantShowWattage = false;
+                    if (stat.cantShowTemperature) stat.cantShowTemperature = false;
                 }
                 else if (stat.ComponentType == StatsComponentType.GPU && hasGpu)
                 {
@@ -838,18 +798,6 @@ public class ComponentStatsModule : IModule
         return item?.RemoveNumberTrailing ?? false;
     }
 
-    public bool GetShowCPUTemperature()
-    {
-        var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
-        return item?.ShowTemperature ?? false;
-    }
-
-    public bool GetShowCPUWattage()
-    {
-        var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
-        return item?.ShowWattage ?? false;
-    }
-
     public bool GetShowGPUHotspotTemperature()
     {
         var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.GPU);
@@ -963,10 +911,6 @@ public class ComponentStatsModule : IModule
     {
         foreach (var item in _componentStats)
         {
-            if (item.Available && item.IsEnabled && item.ComponentType == StatsComponentType.CPU && (item.cantShowWattage && item.ShowWattage || item.cantShowTemperature && item.ShowTemperature) == true)
-            {
-                return true;
-            }
             if (item.Available && item.IsEnabled && item.ComponentType == StatsComponentType.GPU && (item.cantShowWattage && item.ShowWattage || item.cantShowTemperature && item.ShowTemperature) == true)
             {
                 return true;
@@ -1042,6 +986,15 @@ public class ComponentStatsModule : IModule
                 {
                     if (filtered.TryGetValue(type, out var existing))
                     {
+                        // One-time normalization: CPU temp/wattage are not available via the
+                        // driverless pipeline, so clear stale flags persisted by older builds.
+                        if (existing.ComponentType == StatsComponentType.CPU)
+                        {
+                            if (existing.ShowWattage) { existing.ShowWattage = false; needsResave = true; }
+                            if (existing.ShowTemperature) { existing.ShowTemperature = false; needsResave = true; }
+                            if (existing.cantShowWattage) { existing.cantShowWattage = false; needsResave = true; }
+                            if (existing.cantShowTemperature) { existing.cantShowTemperature = false; needsResave = true; }
+                        }
                         _componentStats.Add(existing);
                     }
                     else
@@ -1124,24 +1077,6 @@ public class ComponentStatsModule : IModule
         if (item != null)
         {
             item.ReplaceWithHardwareName = state;
-        }
-    }
-
-    public void SetShowCPUTemperature(bool state)
-    {
-        var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
-        if (item != null)
-        {
-            item.ShowTemperature = state;
-        }
-    }
-
-    public void SetShowCPUWattage(bool state)
-    {
-        var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.CPU);
-        if (item != null)
-        {
-            item.ShowWattage = state;
         }
     }
 

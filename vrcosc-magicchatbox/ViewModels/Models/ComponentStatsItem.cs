@@ -1,5 +1,4 @@
-﻿using LibreHardwareMonitor.Hardware;
-using System;
+﻿using System;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
@@ -99,7 +98,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             public string Name { get; set; }
             public string Identifier { get; set; }
-            public HardwareType HardwareType { get; set; }
+            public string HardwareType { get; set; }
         }
     }
 }

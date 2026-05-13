@@ -231,8 +231,11 @@ public partial class WindowActivityDisplayState : ObservableObject
 
     private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        Resort();
-        RefreshScannedAppsView();
+        // Debounce/aggregate resort+refresh: many ProcessInfo items emit
+        // PropertyChanged events in rapid bursts (focus count tick, title updates).
+        // Sorting+refreshing per-event causes UI-thread sort storms and
+        // can deadlock against CollectionViewSource refresh.
+        ScheduleResortAndRefreshDebounced();
     }
 
     private void UpdateScannedAppsViewSource()
@@ -322,6 +325,7 @@ public partial class WindowActivityDisplayState : ObservableObject
     }
 
     private CancellationTokenSource? _filterDebounceCts;
+    private CancellationTokenSource? _itemChangeDebounceCts;
 
     private async void RefreshScannedAppsViewDebounced()
     {
@@ -337,6 +341,34 @@ public partial class WindowActivityDisplayState : ObservableObject
             await Task.Delay(150, token); // 150ms debounce
             if (!token.IsCancellationRequested)
             {
+                RefreshScannedAppsView();
+            }
+        }
+        catch (TaskCanceledException) { }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+    }
+
+    private async void ScheduleResortAndRefreshDebounced()
+    {
+        var nextCts = new CancellationTokenSource();
+        var previousCts = Interlocked.Exchange(ref _itemChangeDebounceCts, nextCts);
+        previousCts?.Cancel();
+        previousCts?.Dispose();
+
+        var token = nextCts.Token;
+
+        try
+        {
+            // Aggregate bursts of ProcessInfo property changes into a single
+            // resort+refresh pass. 200ms is below human perception threshold
+            // but long enough to absorb timer-driven update storms.
+            await Task.Delay(200, token);
+            if (!token.IsCancellationRequested)
+            {
+                Resort();
                 RefreshScannedAppsView();
             }
         }

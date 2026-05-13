@@ -5,8 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:privacy="clr-namespace:vrcosc_magicchatbox.Core.Privacy"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
-    d:DataContext="{d:DesignInstance Type=vm:PrivacySectionViewModel,
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:PrivacySectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -45,7 +45,7 @@
                 Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding IsExpanded, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
-                Tag="Privacy &amp; Permissions"
+                Tag="Privacy &amp; permissions"
                 TextOptions.TextRenderingMode="ClearType" />
         </Grid>
 
@@ -123,7 +123,8 @@
                                     FontFamily="Albert Sans Thin"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
-                                    Text="CPU · GPU · VRAM sensors (loads WinRing0.sys driver)" />
+                                    Text="Driverless CPU, RAM, GPU, and VRAM stats. Denying this disables Component Stats."
+                                    TextWrapping="Wrap" />
                             </StackPanel>
 
                             <Border

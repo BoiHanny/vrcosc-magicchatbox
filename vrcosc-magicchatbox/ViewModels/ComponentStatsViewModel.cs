@@ -55,18 +55,6 @@ public partial class ComponentStatsViewModel : ObservableObject
     public void SetComponentStatMaxValue(StatsComponentType type, string maxValue)
         => _module.SetStatMaxValue(type, maxValue);
 
-    public bool ComponentStatCPUTempVisible
-    {
-        get => _module.GetShowCPUTemperature();
-        set { _module.SetShowCPUTemperature(value); OnPropertyChanged(); }
-    }
-
-    public bool ComponentStatCPUWattageVisible
-    {
-        get => _module.GetShowCPUWattage();
-        set { _module.SetShowCPUWattage(value); OnPropertyChanged(); }
-    }
-
     public bool ComponentStatGPUHotSpotVisible
     {
         get => _module.GetShowGPUHotspotTemperature();

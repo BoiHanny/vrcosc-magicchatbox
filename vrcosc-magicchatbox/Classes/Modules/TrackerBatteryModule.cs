@@ -9,6 +9,7 @@ using Valve.VR;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
@@ -60,6 +61,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly TrackerDisplayState _tracker;
         private readonly IntegrationDisplayState _integrationDisplay;
         private readonly IUiDispatcher _dispatcher;
+        private readonly IPrivacyConsentService _consentService;
         private readonly IToastService? _toast;
         private volatile bool _trackerErrorShown;
 
@@ -69,6 +71,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             TrackerDisplayState tracker,
             IntegrationDisplayState integrationDisplay,
             IUiDispatcher dispatcher,
+            IPrivacyConsentService consentService,
             IToastService? toast = null)
         {
             _settingsProvider = settingsProvider;
@@ -76,12 +79,32 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _tracker = tracker;
             _integrationDisplay = integrationDisplay;
             _dispatcher = dispatcher;
+            _consentService = consentService;
             _toast = toast;
+
+            _consentService.ConsentChanged += OnConsentChanged;
+        }
+
+        private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
+        {
+            if (e.Hook != PrivacyHook.VrTrackerBattery)
+                return;
+
+            if (e.NewState == ConsentState.Denied && _isInitialized)
+            {
+                ShutdownOpenVR("Privacy consent revoked");
+                _toast?.Show("🔒 VR Tracker", "Tracker battery monitoring paused — privacy consent revoked.", ToastType.Privacy, key: "tracker-privacy-denied");
+            }
         }
 
         public void Initialize()
         {
             if (_isInitialized)
+            {
+                return;
+            }
+
+            if (!_consentService.IsApproved(PrivacyHook.VrTrackerBattery))
             {
                 return;
             }
@@ -666,6 +689,25 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _dispatcher.InvokeAsync(() =>
             {
                 var target = _tracker.TrackerBatteryActiveDevices;
+
+                // Short-circuit if the active-devices set is already in the
+                // desired order. Avoids Clear()+Add() churn that triggers a
+                // Reset notification and forces WPF to drop all item containers.
+                if (target.Count == devices.Count)
+                {
+                    bool identical = true;
+                    for (int i = 0; i < devices.Count; i++)
+                    {
+                        if (!ReferenceEquals(target[i], devices[i]))
+                        {
+                            identical = false;
+                            break;
+                        }
+                    }
+                    if (identical)
+                        return;
+                }
+
                 target.Clear();
                 foreach (var device in devices)
                 {

@@ -9,6 +9,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -21,33 +22,34 @@ public sealed class AudioService : IAudioService
 {
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly ISettingsProvider<TtsSettings> _ttsSettingsProvider;
+    private readonly IUiDispatcher _dispatcher;
 
-    public AudioService(TtsAudioDisplayState ttsAudio, ISettingsProvider<TtsSettings> ttsSettingsProvider)
+    public AudioService(
+        TtsAudioDisplayState ttsAudio,
+        ISettingsProvider<TtsSettings> ttsSettingsProvider,
+        IUiDispatcher dispatcher)
     {
         _ttsAudio = ttsAudio;
         _ttsSettingsProvider = ttsSettingsProvider;
+        _dispatcher = dispatcher;
     }
 
     public bool PopulateOutputDevices()
     {
         try
         {
-            _ttsAudio.PlaybackOutputDevices.Clear();
-
             using var enumerator = new MMDeviceEnumerator();
             var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
-                                    .OrderBy(mmDevice => mmDevice.FriendlyName);
+                .OrderBy(mmDevice => mmDevice.FriendlyName)
+                .ToList();
 
             int index = 0;
-            foreach (var mmDevice in devices)
-            {
-                var audioDevice = new AudioDevice(
+            var audioDevices = devices
+                .Select(mmDevice => new AudioDevice(
                     mmDevice.FriendlyName,
                     mmDevice.ID,
-                    index++
-                );
-                _ttsAudio.PlaybackOutputDevices.Add(audioDevice);
-            }
+                    index++))
+                .ToList();
 
             var defaultMMDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             var defaultAudioDevice = new AudioDevice(
@@ -60,22 +62,34 @@ public sealed class AudioService : IAudioService
 
             if (string.IsNullOrEmpty(ttsSettings.RecentPlayBackOutput))
             {
-                _ttsAudio.SelectedPlaybackOutputDevice = defaultAudioDevice;
                 ttsSettings.RecentPlayBackOutput = defaultAudioDevice.FriendlyName;
+                _dispatcher.BeginInvoke(() =>
+                {
+                    _ttsAudio.PlaybackOutputDevices = audioDevices;
+                    _ttsAudio.SelectedPlaybackOutputDevice = defaultAudioDevice;
+                });
             }
             else
             {
-                var matching = _ttsAudio.PlaybackOutputDevices
+                var matching = audioDevices
                     .FirstOrDefault(dev => dev.FriendlyName == ttsSettings.RecentPlayBackOutput);
 
                 if (matching != null)
                 {
-                    _ttsAudio.SelectedPlaybackOutputDevice = matching;
+                    _dispatcher.BeginInvoke(() =>
+                    {
+                        _ttsAudio.PlaybackOutputDevices = audioDevices;
+                        _ttsAudio.SelectedPlaybackOutputDevice = matching;
+                    });
                 }
                 else
                 {
-                    _ttsAudio.SelectedPlaybackOutputDevice = defaultAudioDevice;
                     ttsSettings.RecentPlayBackOutput = defaultAudioDevice.FriendlyName;
+                    _dispatcher.BeginInvoke(() =>
+                    {
+                        _ttsAudio.PlaybackOutputDevices = audioDevices;
+                        _ttsAudio.SelectedPlaybackOutputDevice = defaultAudioDevice;
+                    });
                 }
             }
 
@@ -109,7 +123,7 @@ public sealed class AudioService : IAudioService
                 Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == ttsSettings.RecentTikTokTTSVoice);
                 if (selectedVoice != null)
                 {
-                    _ttsAudio.SelectedTikTokTTSVoice = selectedVoice;
+                    _dispatcher.BeginInvoke(() => _ttsAudio.SelectedTikTokTTSVoice = selectedVoice);
                 }
             }
 

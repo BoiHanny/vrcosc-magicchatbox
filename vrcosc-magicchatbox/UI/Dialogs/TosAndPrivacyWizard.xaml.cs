@@ -1,10 +1,11 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs;
 
@@ -36,11 +37,10 @@ public partial class TosAndPrivacyWizard : Window
     private HookItem CreateItem(PrivacyHook hook) => hook switch
     {
         PrivacyHook.HardwareMonitor => new HookItem(hook,
-            title: "🖥️  Hardware Monitor  (CPU · GPU · VRAM · temps · wattage)",
-            description: "Reads CPU/GPU load, temperature, and power draw using LibreHardwareMonitor. " +
-                         "Requires loading a low-level kernel driver (WinRing0.sys) on first use.",
-            warning: "⚠  Windows Defender may flag WinRing0.sys. This is a known false-positive — not malware. " +
-                     "Denying this still shows RAM usage.",
+            title: "🖥️  Hardware Monitor  (CPU · RAM · GPU · VRAM)",
+            description: "Reads available CPU, RAM, GPU, and VRAM stats using driverless Windows APIs, WMI, " +
+                         "and the NVIDIA driver tool when available. No WinRing0 kernel driver is bundled.",
+            warning: "Denying this disables Component Stats completely.",
             isApproved: DefaultApproved(hook)),
 
         PrivacyHook.WindowActivity => new HookItem(hook,
@@ -139,10 +139,10 @@ public partial class TosAndPrivacyWizard : Window
     }
 
     private void TosLink_Click(object sender, RoutedEventArgs e)
-        => Process.Start(new ProcessStartInfo(Constants.GitHubSecurityUrl) { UseShellExecute = true });
+        => App.Services.GetRequiredService<INavigationService>().OpenUrl(Constants.GitHubSecurityUrl);
 
     private void SlaLink_Click(object sender, RoutedEventArgs e)
-        => Process.Start(new ProcessStartInfo(Constants.GitHubLicenseUrl) { UseShellExecute = true });
+        => App.Services.GetRequiredService<INavigationService>().OpenUrl(Constants.GitHubLicenseUrl);
 
     protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
     {

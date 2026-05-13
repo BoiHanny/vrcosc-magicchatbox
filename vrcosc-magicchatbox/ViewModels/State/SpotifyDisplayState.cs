@@ -24,8 +24,10 @@ public partial class SpotifyDisplayState : ObservableObject
     [ObservableProperty] private string _artist = string.Empty;
     [ObservableProperty] private string _album = string.Empty;
     [ObservableProperty] private string _deviceName = string.Empty;
+    [ObservableProperty] private bool _hasVolume;
     [ObservableProperty] private int _volumePercent;
     [ObservableProperty] private int _progressMs;
+    [ObservableProperty] private DateTime _progressUpdatedUtc = DateTime.MinValue;
     [ObservableProperty] private int _durationMs;
     [ObservableProperty] private string _profileName = string.Empty;
     [ObservableProperty] private string _queuePreview = string.Empty;
@@ -38,8 +40,29 @@ public partial class SpotifyDisplayState : ObservableObject
     public bool HasTrack => !string.IsNullOrWhiteSpace(TrackId);
     public bool CanOpenSpotify => !string.IsNullOrWhiteSpace(ExternalUrl);
     public bool IsPaused => HasPlayback && !IsPlaying;
-    public double ProgressPercent => DurationMs <= 0 ? 0 : Math.Clamp((double)ProgressMs / DurationMs * 100d, 0d, 100d);
-    public string ProgressDisplay => DurationMs <= 0 ? string.Empty : $"{FormatMs(ProgressMs)} / {FormatMs(DurationMs)}";
+    public int LiveProgressMs
+    {
+        get
+        {
+            if (!HasPlayback)
+                return 0;
+
+            int progress = Math.Max(0, ProgressMs);
+            if (IsPlaying && ProgressUpdatedUtc > DateTime.MinValue)
+            {
+                var elapsed = DateTime.UtcNow - ProgressUpdatedUtc;
+                if (elapsed > TimeSpan.Zero)
+                    progress += (int)Math.Min(elapsed.TotalMilliseconds, int.MaxValue - progress);
+            }
+
+            return DurationMs > 0
+                ? Math.Clamp(progress, 0, DurationMs)
+                : progress;
+        }
+    }
+
+    public double ProgressPercent => DurationMs <= 0 ? 0 : Math.Clamp((double)LiveProgressMs / DurationMs * 100d, 0d, 100d);
+    public string ProgressDisplay => DurationMs <= 0 ? string.Empty : $"{FormatMs(LiveProgressMs)} / {FormatMs(DurationMs)}";
     public string LikedIcon => IsLiked ? "♥" : "♡";
     public string ShuffleIcon => IsShuffleOn ? "🔀" : string.Empty;
     public string RepeatIcon => RepeatState switch
@@ -62,11 +85,13 @@ public partial class SpotifyDisplayState : ObservableObject
     partial void OnHasPlaybackChanged(bool value)
     {
         OnPropertyChanged(nameof(IsPaused));
+        NotifyProgressDisplayChanged();
     }
 
     partial void OnIsPlayingChanged(bool value)
     {
         OnPropertyChanged(nameof(IsPaused));
+        NotifyProgressDisplayChanged();
     }
 
     partial void OnIsLikedChanged(bool value)
@@ -86,12 +111,22 @@ public partial class SpotifyDisplayState : ObservableObject
 
     partial void OnProgressMsChanged(int value)
     {
-        OnPropertyChanged(nameof(ProgressPercent));
-        OnPropertyChanged(nameof(ProgressDisplay));
+        NotifyProgressDisplayChanged();
+    }
+
+    partial void OnProgressUpdatedUtcChanged(DateTime value)
+    {
+        NotifyProgressDisplayChanged();
     }
 
     partial void OnDurationMsChanged(int value)
     {
+        NotifyProgressDisplayChanged();
+    }
+
+    public void NotifyProgressDisplayChanged()
+    {
+        OnPropertyChanged(nameof(LiveProgressMs));
         OnPropertyChanged(nameof(ProgressPercent));
         OnPropertyChanged(nameof(ProgressDisplay));
     }
@@ -111,8 +146,10 @@ public partial class SpotifyDisplayState : ObservableObject
         Artist = string.Empty;
         Album = string.Empty;
         DeviceName = string.Empty;
+        HasVolume = false;
         VolumePercent = 0;
         ProgressMs = 0;
+        ProgressUpdatedUtc = DateTime.MinValue;
         DurationMs = 0;
         QueuePreview = string.Empty;
         StatusText = statusText;

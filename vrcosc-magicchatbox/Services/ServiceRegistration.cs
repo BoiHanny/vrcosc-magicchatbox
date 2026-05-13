@@ -4,7 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using System;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Spotify;
@@ -55,7 +57,7 @@ public static class ServiceRegistration
 
         services.AddSingleton<IHardwareMonitorService, HardwareMonitorService>();
 
-        // Privacy consent service — gates sensitive OS hooks (WinRing0, UIAutomation, SMTC, GetLastInputInfo)
+        // Privacy consent service — gates sensitive OS hooks (hardware metadata, UIAutomation, SMTC, GetLastInputInfo)
         services.AddSingleton<IPrivacyConsentService, PrivacyConsentService>();
         services.AddSingleton<PrivacySectionViewModel>();
 
@@ -124,7 +126,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IStatusListService>(),
             sp.GetRequiredService<IMenuNavigationService>(),
-            sp.GetRequiredService<ISettingsProvider<AppSettings>>()));
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<Core.State.IUiDispatcher>()));
         services.AddSingleton<ChattingPageViewModel>(sp => new ChattingPageViewModel(
             sp.GetRequiredService<ChatStatusDisplayState>(),
             sp.GetRequiredService<IAppState>(),
@@ -147,7 +150,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
             sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
             sp.GetRequiredService<ISettingsProvider<WeatherSettings>>(),
-            new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>()),
+            new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>(), LazyThreadSafetyMode.PublicationOnly),
             new Lazy<ScanLoopService>(() => sp.GetRequiredService<ScanLoopService>()),
             new Lazy<IStatePersistenceCoordinator>(() => sp.GetRequiredService<IStatePersistenceCoordinator>()),
             sp.GetRequiredService<IntegrationDisplayState>(),
@@ -233,8 +236,8 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<ComponentStatsSectionViewModel>(sp => new ComponentStatsSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
-            new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>()),
-            new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>())));
+            new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>(), LazyThreadSafetyMode.PublicationOnly),
+            new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>(), LazyThreadSafetyMode.PublicationOnly)));
         services.AddSingleton<StatusSectionViewModel>(sp => new StatusSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<TimeSettings>>(),
@@ -316,7 +319,7 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<IWindowActivityService>(() => sp.GetRequiredService<IWindowActivityService>()),
             new Lazy<IWeatherService>(() => sp.GetRequiredService<IWeatherService>()),
-            new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>()),
+            new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>(), LazyThreadSafetyMode.PublicationOnly),
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
             sp.GetRequiredService<OscDisplayState>()));
         services.AddSingleton<ModuleBootstrapper>();
@@ -342,6 +345,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<TrackerDisplayState>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<IAppHistoryService>(() => sp.GetRequiredService<IAppHistoryService>()),
+            new Lazy<IChatHistoryService>(() => sp.GetRequiredService<IChatHistoryService>()),
             new Lazy<IMediaLinkPersistenceService>(() => sp.GetRequiredService<IMediaLinkPersistenceService>()),
             sp.GetRequiredService<HotkeyManagement>(),
             sp.GetRequiredService<IWindowActivityService>(),
@@ -354,7 +358,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<OscDisplayState>(),
             sp.GetRequiredService<EmojiService>(),
-            sp.GetRequiredService<ComponentStatsModule>(),
+            new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>(), LazyThreadSafetyMode.PublicationOnly),
             sp.GetRequiredService<IUiDispatcher>(),
             sp.GetRequiredService<IWindowActivityService>(),
             sp.GetRequiredService<ITimeFormattingService>(),
@@ -402,7 +406,8 @@ public static class ServiceRegistration
         services.AddSingleton<IChatHistoryService>(sp => new ChatHistoryService(
             sp.GetRequiredService<IEnvironmentService>(),
             sp.GetRequiredService<ChatStatusDisplayState>(),
-            sp.GetRequiredService<IAppHistoryService>()));
+            sp.GetRequiredService<IAppHistoryService>(),
+            sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IStatusListService, StatusListService>();
         services.AddSingleton<IComponentStatsPersistenceService, ComponentStatsPersistenceService>();
         services.AddSingleton<IVersionService>(sp => new VersionService(
@@ -412,7 +417,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IAudioService>(sp => new AudioService(
             sp.GetRequiredService<TtsAudioDisplayState>(),
-            sp.GetRequiredService<ISettingsProvider<TtsSettings>>()));
+            sp.GetRequiredService<ISettingsProvider<TtsSettings>>(),
+            sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IMediaLinkPersistenceService>(sp => new MediaLinkPersistenceService(
             sp.GetRequiredService<IEnvironmentService>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
@@ -420,20 +426,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<IAppHistoryService>(),
             sp.GetRequiredService<IUiDispatcher>()));
 
-        // Retry policy: exponential backoff with jitter for transient HTTP errors + 429
-        var retryPolicy = HttpPolicyExtensions.HandleTransientHttpError()
-            .OrResult(r => (int)r.StatusCode == 429) // Too Many Requests
-            .WaitAndRetryAsync(
-                Constants.HttpRetryCount,
-                attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
-                    + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 500)));
-
-        // Circuit breaker: stop hammering a failing service
-        var circuitBreaker = HttpPolicyExtensions.HandleTransientHttpError()
-            .OrResult(r => (int)r.StatusCode == 429)
-            .CircuitBreakerAsync(
-                Constants.CircuitBreakerFailureThreshold,
-                Constants.CircuitBreakerDuration);
+        var retryPolicy = CreateHttpRetryPolicy();
 
         services.AddHttpClient(Constants.HttpClients.GitHub, client =>
         {
@@ -441,21 +434,21 @@ public static class ServiceRegistration
             client.Timeout = Constants.DefaultApiTimeout;
         })
         .AddPolicyHandler(retryPolicy)
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
         services.AddHttpClient(Constants.HttpClients.Pulsoid, client =>
         {
             client.Timeout = Constants.DefaultApiTimeout;
         })
         .AddPolicyHandler(retryPolicy)
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
         services.AddHttpClient(Constants.HttpClients.Weather, client =>
         {
             client.Timeout = Constants.WeatherApiTimeout;
         })
         .AddPolicyHandler(retryPolicy)
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
         // Twitch — retry for reads only; writes (announcements, shoutouts)
         // are non-idempotent and must NOT be auto-retried.
@@ -469,32 +462,36 @@ public static class ServiceRegistration
             request.Method == HttpMethod.Get
                 ? retryPolicy
                 : Policy.NoOpAsync<HttpResponseMessage>())
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
+        // Spotify: 429 is NOT retried or circuit-broken here — SpotifyModule honors
+        // Retry-After and applies its own cooldown. Polly only retries safe transient
+        // 5xx/408/network errors on GET requests. HttpClient timeout (15s) exceeds the
+        // module's RefreshTimeout (12s) so the module CTS controls cancellation.
         services.AddHttpClient(Constants.HttpClients.Spotify, client =>
         {
             client.BaseAddress = new Uri(Constants.SpotifyApiBaseUrl);
-            client.Timeout = Constants.DefaultApiTimeout;
+            client.Timeout = TimeSpan.FromSeconds(15);
         })
         .AddPolicyHandler(request =>
             request.Method == HttpMethod.Get
-                ? retryPolicy
+                ? CreateSpotifyGetRetryPolicy()
                 : Policy.NoOpAsync<HttpResponseMessage>())
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateSpotifyCircuitBreakerPolicy());
 
         services.AddHttpClient(Constants.HttpClients.Tts, client =>
         {
             client.Timeout = Constants.DefaultApiTimeout;
         })
         .AddPolicyHandler(retryPolicy)
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
         services.AddHttpClient(Constants.HttpClients.ModerationApi, client =>
         {
             client.Timeout = Constants.ModerationApiTimeout;
         })
         .AddPolicyHandler(retryPolicy)
-        .AddPolicyHandler(circuitBreaker);
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
         services.AddHttpClient();
 
@@ -525,6 +522,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<NetworkStatsSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<IUiDispatcher>(),
+            sp.GetRequiredService<IPrivacyConsentService>(),
             1000,
             sp.GetRequiredService<IToastService>()));
 
@@ -541,7 +539,8 @@ public static class ServiceRegistration
                 sp.GetRequiredService<ISettingsProvider<AppSettings>>().Value,
                 sp.GetRequiredService<ChatStatusDisplayState>(),
                 sp.GetRequiredService<OscDisplayState>(),
-                sp.GetRequiredService<EmojiService>()));
+                sp.GetRequiredService<EmojiService>(),
+                sp.GetRequiredService<Core.State.IUiDispatcher>()));
 
         // Providers whose constructors take Lazy<T> require explicit factory registrations
         // because MSDI cannot auto-resolve Lazy<T> from a conventional AddSingleton<T, TImpl>().
@@ -605,4 +604,34 @@ public static class ServiceRegistration
 
         return services.BuildServiceProvider();
     }
+    private static IAsyncPolicy<HttpResponseMessage> CreateHttpRetryPolicy()
+        => HttpPolicyExtensions.HandleTransientHttpError()
+            .OrResult(r => r.StatusCode == HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(
+                Constants.HttpRetryCount,
+                attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))
+                    + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 500)));
+
+    private static IAsyncPolicy<HttpResponseMessage> CreateSpotifyGetRetryPolicy()
+        => HttpPolicyExtensions.HandleTransientHttpError()
+            .WaitAndRetryAsync(
+                Constants.HttpRetryCount,
+                GetSpotifyRetryDelay);
+
+    private static IAsyncPolicy<HttpResponseMessage> CreateSpotifyCircuitBreakerPolicy()
+        => HttpPolicyExtensions.HandleTransientHttpError()
+            .CircuitBreakerAsync(
+                Constants.CircuitBreakerFailureThreshold,
+                Constants.CircuitBreakerDuration);
+
+    private static IAsyncPolicy<HttpResponseMessage> CreateCircuitBreakerPolicy()
+        => HttpPolicyExtensions.HandleTransientHttpError()
+            .OrResult(r => r.StatusCode == HttpStatusCode.TooManyRequests)
+            .CircuitBreakerAsync(
+                Constants.CircuitBreakerFailureThreshold,
+                Constants.CircuitBreakerDuration);
+
+    private static TimeSpan GetSpotifyRetryDelay(int attempt)
+        => TimeSpan.FromSeconds(Math.Min(5d, Math.Pow(2, attempt)))
+           + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 250));
 }

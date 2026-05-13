@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
@@ -55,6 +56,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
     private readonly IntegrationSettings _integrationSettings;
     private readonly IToastService? _toast;
+    private readonly IPrivacyConsentService _consentService;
     private bool _networkErrorShown;
 
     public NetworkStatisticsModule(
@@ -62,6 +64,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         ISettingsProvider<NetworkStatsSettings> settingsProvider,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         IUiDispatcher dispatcher,
+        IPrivacyConsentService consentService,
         double interval = 1000,
         IToastService? toast = null)
     {
@@ -70,11 +73,39 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         _integrationSettings = integrationSettingsProvider.Value;
         Interval = interval;
         _dispatcher = dispatcher;
+        _consentService = consentService;
         _toast = toast;
         _appState.PropertyChanged += PropertyChangedHandler;
         _integrationSettings.PropertyChanged += PropertyChangedHandler;
 
-        InitializeNetworkStatsAsync().ConfigureAwait(false);
+        _consentService.ConsentChanged += OnConsentChanged;
+
+        if (_consentService.IsApproved(PrivacyHook.NetworkStats))
+            InitializeNetworkStatsAsync().ConfigureAwait(false);
+    }
+
+    private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
+    {
+        if (e.Hook != PrivacyHook.NetworkStats)
+            return;
+
+        if (e.NewState == ConsentState.Denied)
+        {
+            StopModule();
+            IsInitialized = false;
+            _activeNetworkInterface = null;
+            _dispatcher.BeginInvoke(() =>
+            {
+                CurrentDownloadSpeedMbps = 0;
+                CurrentUploadSpeedMbps = 0;
+                NetworkUtilization = 0;
+            });
+            _toast?.Show("🔒 Network Stats", "Network monitoring paused — privacy consent revoked.", ToastType.Privacy, key: "network-privacy-denied");
+        }
+        else if (e.NewState == ConsentState.Approved && !IsInitialized)
+        {
+            InitializeNetworkStatsAsync().ConfigureAwait(false);
+        }
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
@@ -169,6 +200,9 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
     /// </summary>
     private async Task InitializeNetworkStatsAsync()
     {
+        if (!_consentService.IsApproved(PrivacyHook.NetworkStats))
+            return;
+
         if (_isInitializing)
             return;
 
@@ -254,6 +288,10 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
     {
         try
         {
+            // Hot-path consent guard — cheap bool read; revocation race-safety.
+            if (!_consentService.IsApproved(PrivacyHook.NetworkStats))
+                return;
+
             if (_activeNetworkInterface == null)
             {
                 InitializeNetworkStatsAsync().ConfigureAwait(false);
