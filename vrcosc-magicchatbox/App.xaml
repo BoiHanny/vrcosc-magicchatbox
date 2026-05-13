@@ -478,8 +478,11 @@
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Padding" Value="8,2" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Opacity" Value="0.55" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="ToolTip" Value="Reset this section's settings to their defaults" />
+                <Setter Property="AutomationProperties.Name" Value="Reset section to defaults" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
@@ -507,6 +510,7 @@
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentTealBrush}" />
                                     <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+                                    <Setter Property="Opacity" Value="1.0" />
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter TargetName="border" Property="Opacity" Value="0.8" />
@@ -1908,6 +1912,7 @@
             <local:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
             <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
             <local:InvertBooleanConverter x:Key="InvertBooleanConverter" />
             <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
@@ -1916,6 +1921,30 @@
             <local:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
             <local:ColumnWidthConverter x:Key="ColumnWidthConverter" />
             <local:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />
+
+            <Style x:Key="OptionSectionWithResetStyle" TargetType="{x:Type ContentControl}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ContentControl}">
+                            <Grid>
+                                <ContentPresenter
+                                    Content="{TemplateBinding Content}"
+                                    ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                <Button
+                                    Margin="0,4,8,0"
+                                    Panel.ZIndex="1"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding DataContext.ResetSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                    Content="Reset"
+                                    Style="{StaticResource SectionResetButtonStyle}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
 
             <Style x:Key="TrackerPanelCard" TargetType="Border">

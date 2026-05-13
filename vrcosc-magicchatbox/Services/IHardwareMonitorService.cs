@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace vrcosc_magicchatbox.Services;
 
 /// <summary>
-/// Abstracts hardware monitoring (LibreHardwareMonitor + kernel32) behind a testable interface.
+/// Abstracts driverless hardware monitoring behind a testable interface.
 /// Call <see cref="UpdateAll"/> once per tick, then read cached sensor values via getters.
 /// </summary>
 public interface IHardwareMonitorService : IDisposable
@@ -20,9 +20,7 @@ public interface IHardwareMonitorService : IDisposable
     void UpdateAll();
 
     float? GetCpuLoad();
-    float? GetCpuTemperature();
-    float? GetCpuPower();
-    string GetCpuName();
+    string? GetCpuName();
 
     float? GetGpuLoad(string gpuName, string sensorName);
     float? GetGpuTemperature(string gpuName);
@@ -30,7 +28,7 @@ public interface IHardwareMonitorService : IDisposable
     float? GetGpuPower(string gpuName);
     float? GetGpuVramUsed(string gpuName, string sensorName);
     float? GetGpuVramTotal(string gpuName, string sensorName);
-    string GetGpuName(string gpuName);
+    string? GetGpuName(string gpuName);
 
     float? GetRamUsed();
     float? GetRamAvailable();
@@ -41,15 +39,15 @@ public interface IHardwareMonitorService : IDisposable
     IReadOnlyList<string> GetAvailableGpus();
 
     /// <summary>DDR memory version string (e.g. "DDR5") via WMI (called once, not per-tick).</summary>
-    string GetDdrVersion();
+    string? GetDdrVersion();
 
     /// <summary>
-    /// CPU load percentage without loading the kernel driver — uses PerformanceCounter.
-    /// Returns null if the counter is unavailable. The first call may return 0 (priming read).
+    /// CPU load percentage from kernel32 GetSystemTimes.
+    /// Returns null until two samples are available.
     /// </summary>
     float? GetCpuLoadBasic();
 
-    /// <summary>GPU fan speed in RPM. Returns null if not available.</summary>
+    /// <summary>GPU fan speed as a percentage. Returns null if not available.</summary>
     float? GetGpuFanSpeed(string gpuName);
 
     /// <summary>GPU core clock in MHz. Returns null if not available.</summary>
@@ -64,9 +62,4 @@ public interface IHardwareMonitorService : IDisposable
     /// <summary>GPU memory controller load as a percentage. Returns null if not available.</summary>
     float? GetGpuMemoryLoad(string gpuName);
 
-    /// <summary>Highest loaded CPU core as a percentage. Returns null if not available.</summary>
-    float? GetCpuMaxCoreLoad();
-
-    /// <summary>CPU core clock in MHz. Returns null if not available.</summary>
-    float? GetCpuCoreClock();
 }

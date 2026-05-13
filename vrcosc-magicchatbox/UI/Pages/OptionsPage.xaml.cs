@@ -10,8 +10,6 @@ namespace vrcosc_magicchatbox.UI.Pages;
 /// <summary>Code-behind for the options page, wiring routed toggle events and delegating TTS output selection.</summary>
 public partial class OptionsPage : UserControl
 {
-    private OptionsPageViewModel VM => (OptionsPageViewModel)DataContext;
-
     /// <summary>Maps AppSettings property names to the named section controls.</summary>
     private Dictionary<string, FrameworkElement>? _sectionMap;
 
@@ -41,25 +39,25 @@ public partial class OptionsPage : UserControl
     {
         _sectionMap ??= new Dictionary<string, FrameworkElement>
         {
-            ["Settings_Status"] = Section_Status,
-            ["Settings_VrcRadar"] = Section_VrcRadar,
-            ["Settings_HeartRate"] = Section_HeartRate,
-            ["Settings_Time"] = Section_Time,
-            ["Settings_Weather"] = Section_Weather,
-            ["Settings_Twitch"] = Section_Twitch,
-            ["Settings_Discord"] = Section_Discord,
-            ["Settings_Spotify"] = Section_Spotify,
-            ["Settings_OpenAI"] = Section_OpenAI,
-            ["Settings_ComponentStats"] = Section_ComponentStats,
-            ["Settings_NetworkStatistics"] = Section_NetworkStatistics,
-            ["Settings_Chatting"] = Section_Chatting,
-            ["Settings_TTS"] = TtsOptionsSectionControl,
-            ["Settings_MediaLink"] = Section_MediaLink,
-            ["Settings_AppOptions"] = Section_AppOptions,
-            ["Settings_EggDev"] = Section_EggDev,
-            ["Settings_TrackerBattery"] = Section_TrackerBattery,
-            ["Settings_Privacy"] = Section_Privacy,
-            ["Settings_WindowActivity"] = Section_WindowActivity,
+            ["Settings_Status"] = OptionsWrapper_Status,
+            ["Settings_VrcRadar"] = OptionsWrapper_VrcRadar,
+            ["Settings_HeartRate"] = OptionsWrapper_Pulsoid,
+            ["Settings_Time"] = OptionsWrapper_Time,
+            ["Settings_Weather"] = OptionsWrapper_Weather,
+            ["Settings_Twitch"] = OptionsWrapper_Twitch,
+            ["Settings_Discord"] = OptionsWrapper_Discord,
+            ["Settings_Spotify"] = OptionsWrapper_Spotify,
+            ["Settings_OpenAI"] = OptionsWrapper_OpenAI,
+            ["Settings_ComponentStats"] = OptionsWrapper_ComponentStats,
+            ["Settings_NetworkStatistics"] = OptionsWrapper_NetworkStatistics,
+            ["Settings_Chatting"] = OptionsWrapper_Chatting,
+            ["Settings_TTS"] = OptionsWrapper_Tts,
+            ["Settings_MediaLink"] = OptionsWrapper_MediaLink,
+            ["Settings_AppOptions"] = OptionsWrapper_AppOptions,
+            ["Settings_EggDev"] = OptionsWrapper_EggDev,
+            ["Settings_TrackerBattery"] = OptionsWrapper_TrackerBattery,
+            ["Settings_Privacy"] = OptionsWrapper_Privacy,
+            ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity,
         };
     }
 
@@ -81,7 +79,8 @@ public partial class OptionsPage : UserControl
         if (e.OriginalSource is not CheckBox)
             return;
 
-        VM.OnSettingToggled();
+        if (DataContext is OptionsPageViewModel vm)
+            vm.OnSettingToggled();
     }
 
     public void SelectTTSOutput()
@@ -89,7 +88,9 @@ public partial class OptionsPage : UserControl
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        VM.Navigation.OpenUrl(e.Uri.AbsoluteUri);
+        if (DataContext is OptionsPageViewModel vm)
+            vm.Navigation.OpenUrl(e.Uri.AbsoluteUri);
+
         e.Handled = true;
     }
 }

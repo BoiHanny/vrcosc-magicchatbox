@@ -37,12 +37,13 @@ public sealed class SafeNavigationService : INavigationService
                 return false;
             }
 
-            Process.Start(new ProcessStartInfo
+            var psi = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = fullPath,
-                UseShellExecute = true
-            });
+                UseShellExecute = false,
+            };
+            psi.ArgumentList.Add(fullPath);
+            Process.Start(psi);
             return true;
         }
         catch (Exception ex)
@@ -66,12 +67,17 @@ public sealed class SafeNavigationService : INavigationService
                 return false;
             }
 
-            Process.Start(new ProcessStartInfo
+            // Use ArgumentList so the runtime applies correct Windows command-line
+            // escaping, avoiding quote-injection issues when fullPath contains spaces.
+            // Explorer accepts "/select," and the path as two distinct tokens.
+            var psi = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = $"/select,\"{fullPath}\"",
-                UseShellExecute = true
-            });
+                UseShellExecute = false,
+            };
+            psi.ArgumentList.Add("/select,");
+            psi.ArgumentList.Add(fullPath);
+            Process.Start(psi);
             return true;
         }
         catch (Exception ex)

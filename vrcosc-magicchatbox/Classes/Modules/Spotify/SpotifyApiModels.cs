@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 
@@ -10,7 +11,10 @@ public sealed record SpotifyApiResult<T>(
     string Message,
     bool Unauthorized = false,
     bool Forbidden = false,
-    bool RateLimited = false);
+    bool RateLimited = false,
+    TimeSpan? RetryAfter = null,
+    bool Transient = false,
+    string Reason = "");
 
 public sealed record SpotifyTokenResult(
     string AccessToken,
@@ -34,9 +38,11 @@ public sealed record SpotifyPlaybackSnapshot(
     bool HasPlayback,
     bool IsPlaying,
     int ProgressMs,
+    DateTime ProgressCapturedAtUtc,
     bool ShuffleState,
     string RepeatState,
     string DeviceName,
+    bool HasVolume,
     int VolumePercent,
     SpotifyTrackSnapshot? Track);
 

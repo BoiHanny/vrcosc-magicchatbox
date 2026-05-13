@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -126,7 +127,10 @@ public sealed class SpotifyOAuthHandler : IDisposable
         }
     }
 
-    public async Task<SpotifyTokenResult?> RefreshTokenAsync(string clientId, string refreshToken)
+    public async Task<SpotifyTokenResult?> RefreshTokenAsync(
+        string clientId,
+        string refreshToken,
+        CancellationToken cancellationToken = default)
     {
         string normalizedClientId = clientId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(normalizedClientId) || string.IsNullOrWhiteSpace(refreshToken))
@@ -140,14 +144,14 @@ public sealed class SpotifyOAuthHandler : IDisposable
         });
 
         using var client = _httpClientFactory.CreateClient();
-        using var response = await client.PostAsync(Constants.SpotifyTokenEndpoint, content).ConfigureAwait(false);
+        using var response = await client.PostAsync(Constants.SpotifyTokenEndpoint, content, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
             Logging.WriteInfo($"Spotify token refresh failed ({response.StatusCode}).");
             return null;
         }
 
-        string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return ParseTokenResponse(body);
     }
 

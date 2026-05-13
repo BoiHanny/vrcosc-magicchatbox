@@ -124,10 +124,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
         };
 
         // Guard map: property name → (required hook, value getter, revert action).
-        // Note: ComponentStats is intentionally excluded — it has a basic-mode fallback
-        // (CPU%/RAM) that runs without the kernel driver, even when HardwareMonitor is denied.
         _guardMap = new Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)>
         {
+            { nameof(IntegrationSettings.IntgrComponentStats),      (PrivacyHook.HardwareMonitor, () => IntegrationSettings.IntgrComponentStats,      () => IntegrationSettings.IntgrComponentStats = false) },
             { nameof(IntegrationSettings.IntgrScanWindowActivity), (PrivacyHook.WindowActivity,   () => IntegrationSettings.IntgrScanWindowActivity, () => IntegrationSettings.IntgrScanWindowActivity = false) },
             { nameof(IntegrationSettings.IntgrScanMediaLink),      (PrivacyHook.MediaSession,     () => IntegrationSettings.IntgrScanMediaLink,       () => IntegrationSettings.IntgrScanMediaLink = false) },
             { nameof(IntegrationSettings.IntgrSpotify),            (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrSpotify,            () => IntegrationSettings.IntgrSpotify = false) },

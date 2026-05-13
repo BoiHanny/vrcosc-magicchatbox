@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
@@ -35,6 +36,7 @@ public class WeatherService : IWeatherService
     private readonly ITimeFormattingService _timeFormatting;
 
     private readonly IUiDispatcher _dispatcher;
+    private readonly IPrivacyConsentService _consentService;
     private HttpClient _client;
     private HttpClient Client => _client ??= _httpClientFactory.CreateClient("Weather");
     private readonly object SyncLock = new object();
@@ -127,6 +129,7 @@ public class WeatherService : IWeatherService
         ISettingsProvider<ComponentStatsSettings> componentStatsSettingsProvider,
         IUiDispatcher dispatcher,
         ITimeFormattingService timeFormatting,
+        IPrivacyConsentService consentService,
         IToastService? toast = null)
     {
         _httpClientFactory = httpClientFactory;
@@ -136,6 +139,7 @@ public class WeatherService : IWeatherService
         _componentStatsSettings = componentStatsSettingsProvider.Value;
         _dispatcher = dispatcher;
         _timeFormatting = timeFormatting;
+        _consentService = consentService;
         _toast = toast;
         Client.DefaultRequestHeaders.UserAgent.ParseAdd("vrcosc-magicchatbox");
     }
@@ -663,6 +667,12 @@ public class WeatherService : IWeatherService
                 return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
             case WeatherLocationMode.IPBased:
                 if (!Settings.WeatherAllowIPLocation)
+                {
+                    return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
+                }
+                // IP geolocation requires outbound HTTP to a third-party service —
+                // gate behind InternetAccess consent and fall back to city otherwise.
+                if (!_consentService.IsApproved(PrivacyHook.InternetAccess))
                 {
                     return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
                 }

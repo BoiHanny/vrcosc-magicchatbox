@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.ViewModels;
@@ -76,17 +77,22 @@ public sealed class AppHistoryService : IAppHistoryService
     {
         try
         {
-            if (CreateIfMissing(_env.DataPath) == true)
+            if (CreateIfMissing(_env.DataPath) != true)
             {
-                string json = JsonConvert.SerializeObject(_windowActivity.ScannedApps);
-
-                if (string.IsNullOrEmpty(json))
-                {
-                    return;
-                }
-
-                File.WriteAllText(Path.Combine(_env.DataPath, "AppHistory.json"), json);
+                return;
             }
+
+            // Always serialize, even if the collection is empty or null — emit "[]"
+            // so explicit clears persist instead of resurrecting stale data from disk.
+            var scannedApps = _windowActivity.ScannedApps ?? new ObservableCollection<ProcessInfo>();
+            string json = JsonConvert.SerializeObject(scannedApps);
+
+            if (json == null)
+            {
+                return;
+            }
+
+            AtomicFileWriter.WriteAllText(Path.Combine(_env.DataPath, "AppHistory.json"), json);
         }
         catch (Exception ex)
         {

@@ -21,7 +21,7 @@ public sealed class AsyncOperationGuard
     /// Runs <paramref name="action"/> if the operation hasn't been faulted out.
     /// Tracks success/failure and auto-disables after repeated failures.
     /// </summary>
-    public async Task RunGuardedAsync(string operationName, Func<Task> action)
+    public async Task RunGuardedAsync(string operationName, Func<Task> action, TimeSpan? timeout = null)
     {
         var state = _states.GetOrAdd(operationName, _ => new FaultState());
 
@@ -37,7 +37,12 @@ public sealed class AsyncOperationGuard
 
         try
         {
-            await action().ConfigureAwait(false);
+            Task operationTask = action();
+            if (timeout.HasValue)
+                await WaitForOperationAsync(operationName, operationTask, timeout.Value).ConfigureAwait(false);
+            else
+                await operationTask.ConfigureAwait(false);
+
             state.ConsecutiveFailures = 0;
         }
         catch (Exception ex)
@@ -56,16 +61,42 @@ public sealed class AsyncOperationGuard
         }
     }
 
+    private static async Task WaitForOperationAsync(string operationName, Task operationTask, TimeSpan timeout)
+    {
+        Task timeoutTask = Task.Delay(timeout);
+        Task completedTask = await Task.WhenAny(operationTask, timeoutTask).ConfigureAwait(false);
+        if (completedTask == operationTask)
+        {
+            await operationTask.ConfigureAwait(false);
+            return;
+        }
+
+        _ = operationTask.ContinueWith(
+            completed =>
+            {
+                if (completed.Exception != null)
+                {
+                    Logging.WriteException(
+                        new Exception($"Guarded operation '{operationName}' failed after timing out.", completed.Exception),
+                        MSGBox: false);
+                }
+            },
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+
+        throw new TimeoutException(
+            $"Guarded operation '{operationName}' timed out after {timeout.TotalSeconds:0.#}s.");
+    }
+
     /// <summary>
     /// Runs a synchronous action with the same fault-tracking semantics.
     /// </summary>
-    public async Task RunGuardedAsync(string operationName, Action action)
+    public async Task RunGuardedAsync(string operationName, Action action, TimeSpan? timeout = null)
     {
         await RunGuardedAsync(operationName, () =>
         {
             action();
             return Task.CompletedTask;
-        }).ConfigureAwait(false);
+        }, timeout).ConfigureAwait(false);
     }
 
     /// <summary>Returns true if the named operation is currently auto-disabled.</summary>

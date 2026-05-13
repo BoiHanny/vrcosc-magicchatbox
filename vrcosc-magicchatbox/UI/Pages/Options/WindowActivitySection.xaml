@@ -47,7 +47,7 @@
         <Grid
             Grid.Row="1"
             Width="auto"
-            Margin="10,0,2,0"
+            Margin="20,5,2,0"
             Visibility="{Binding AppSettings.Settings_WindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -56,9 +56,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <StackPanel>
+            <StackPanel Grid.Row="0">
                 <TextBlock
                     Width="auto"
                     Padding="0,10,0,0"
@@ -157,7 +156,7 @@
                             VerticalContentAlignment="Center"
                             FontSize="13"
                             Text="{Binding WindowActivitySettings.GlobalRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            ToolTip="Applied to every window title. Use either a capture regex or pattern => replacement. Example: ^(.+?)(?:\s*[-–—]\s*[^-–—]+\s*[-–—]\s*(.+)|\s*[-–—]\s*[^-–—]+)?$ => $1 $2" />
+                            ToolTip="Applied to every window title. Use either a capture regex or pattern =&gt; replacement. Example: ^(.+?)(?:\s*[-–—]\s*[^-–—]+\s*[-–—]\s*(.+)|\s*[-–—]\s*[^-–—]+)?$ =&gt; $1 $2" />
                     </StackPanel>
 
                     <!--  Content Filters  -->
@@ -205,7 +204,7 @@
                                             ItemsSource="{Binding Source={x:Static modules:TitleFilterRule.FilterModes}}"
                                             SelectedItem="{Binding Mode, Mode=TwoWay}"
                                             Style="{StaticResource DarkComboBoxStyle}"
-                                             ToolTip="Exclude: hide titles containing the pattern.&#x0a;Include: only show titles containing the pattern.&#x0a;Remove: cut matching text from the title.">
+                                            ToolTip="Exclude: hide titles containing the pattern.&#x0a;Include: only show titles containing the pattern.&#x0a;Remove: cut matching text from the title.">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
@@ -220,7 +219,7 @@
                                             VerticalContentAlignment="Center"
                                             FontSize="12"
                                             Text="{Binding Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. Example remove regex: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
+                                            ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. Example remove regex: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
                                         <Button
                                             Grid.Column="3"
                                             Width="24"
@@ -247,6 +246,13 @@
                             ToolTip="Add a global content filter that applies to all apps"
                             Visibility="Visible" />
                     </StackPanel>
+                    <CheckBox
+                        Margin="0,10,0,0"
+                        IsChecked="{Binding WindowActivitySettings.HideOutputWhenPrivateApp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}"
+                        ToolTip="When the focused app is marked private in the scanned apps list, Window Activity outputs nothing instead of the private label.">
+                        Hide output completely when application is set to private
+                    </CheckBox>
 
                     <TextBlock
                         Width="auto"
@@ -336,13 +342,13 @@
 
             </StackPanel>
             <TextBlock
-                Grid.Row="2"
+                Grid.Row="1"
                 Margin="0,15,0,5"
                 FontFamily="Albert Sans Thin"
                 FontSize="15"
                 Foreground="{StaticResource TextLabelBrush}"
                 Text="Cleanup action" />
-            <StackPanel Grid.Row="3" Orientation="Horizontal">
+            <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Button
                     x:Name="SmartClearnup"
                     Width="60"
@@ -379,7 +385,7 @@
                     Text="{Binding WindowActivity.DeletedAppslabel, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <StackPanel
-                Grid.Row="4"
+                Grid.Row="3"
                 Margin="0,15,0,0"
                 Orientation="Horizontal">
                 <TextBlock
@@ -428,7 +434,7 @@
                     Text="{Binding WindowActivity.FilteredAppsSummary, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <Border
-                Grid.Row="5"
+                Grid.Row="4"
                 Width="auto"
                 MinWidth="745"
                 Margin="0,15,1,0"
@@ -527,7 +533,7 @@
                         Margin="3,0"
                         HorizontalAlignment="Stretch"
                         Style="{StaticResource Sort_Button_style}"
-                         ToolTip="Per-app content filter. Hide matching titles, show only matching titles, or remove matched text from the title."
+                        ToolTip="Per-app content filter. Hide matching titles, show only matching titles, or remove matched text from the title."
                         Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock
                             HorizontalAlignment="Center"
@@ -561,7 +567,7 @@
                 </Border.Effect>
             </Border>
             <ItemsControl
-                Grid.Row="6"
+                Grid.Row="5"
                 HorizontalAlignment="Stretch"
                 ItemsSource="{Binding WindowActivity.ScannedAppsView, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
                 <ItemsControl.ItemTemplate>
@@ -654,12 +660,12 @@
                                         FontSize="12"
                                         SelectedIndex="{Binding ContentFilterMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{StaticResource DarkComboBoxStyle}"
-                                         ToolTip="None: no filter.&#x0a;Exclude: hide info when a rule matches.&#x0a;Include: only show info when a rule matches.&#x0a;Remove: cut matching text and keep the rest.">
-                                         <ComboBoxItem Content="None" />
-                                         <ComboBoxItem Content="Exclude" />
-                                         <ComboBoxItem Content="Include" />
-                                         <ComboBoxItem Content="Remove" />
-                                     </ComboBox>
+                                        ToolTip="None: no filter.&#x0a;Exclude: hide info when a rule matches.&#x0a;Include: only show info when a rule matches.&#x0a;Remove: cut matching text and keep the rest.">
+                                        <ComboBoxItem Content="None" />
+                                        <ComboBoxItem Content="Exclude" />
+                                        <ComboBoxItem Content="Include" />
+                                        <ComboBoxItem Content="Remove" />
+                                    </ComboBox>
                                     <TextBox
                                         Width="110"
                                         Margin="4,0,0,0"
@@ -668,7 +674,7 @@
                                         FontSize="12"
                                         IsEnabled="{Binding ContentFilterEnabled}"
                                         Text="{Binding ContentFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. To remove ' - dif - ' and keep after: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
+                                        ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. To remove ' - dif - ' and keep after: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
                                 </StackPanel>
                                 <StackPanel
                                     Grid.Column="7"

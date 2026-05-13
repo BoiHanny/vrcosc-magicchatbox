@@ -6,7 +6,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
-    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=sections:MediaLinkSectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
@@ -156,6 +155,20 @@
                             Show stop icon
                         </CheckBox>
                         <StackPanel Margin="0,5" Orientation="Horizontal">
+                            <StackPanel Margin="5,0">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Text="Play icon" />
+                                <TextBox
+                                    Width="40"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="15"
+                                    Text="{Binding MediaLinkSettings.IconPlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    ToolTip="Optional icon inserted before the playing text. Leave blank to hide it." />
+                            </StackPanel>
                             <StackPanel Margin="5,0">
                                 <TextBlock
                                     FontFamily="Albert Sans Thin"
@@ -368,7 +381,7 @@
                                                     Margin="0,-2,5,0"
                                                     VerticalAlignment="Center"
                                                     FontSize="14"
-                                                    Text="New custom Seekbar" />
+                                                    Text="New custom seekbar" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </Button.ContentTemplate>

@@ -129,14 +129,14 @@ public class ModuleBootstrapper
     }
 
     /// <summary>
-    /// Phase 1: Register the ComponentStatsModule that was already created by ViewModel.
-    /// Called immediately after ViewModel construction.
+    /// Phase 1: Register the ComponentStatsModule once optional startup has resolved it.
     /// </summary>
-    public void RegisterComponentStats(ComponentStatsModule statsModule)
-    {
-        _host.ComponentStats = statsModule;
-        _host.RegisterModule(statsModule);
-    }
+    public Task RegisterComponentStatsAsync(ComponentStatsModule statsModule)
+        => _dispatcher.InvokeAsync(() =>
+        {
+            _host.ComponentStats = statsModule;
+            _host.RegisterModule(statsModule);
+        });
 
     /// <summary>
     /// Phase 2: Create IntelliChatModule (needed before WhisperModule).
@@ -180,6 +180,7 @@ public class ModuleBootstrapper
             _appState,
             _dispatcher,
             integrationSettings,
+            _consentService,
             _toast));
         var twitch = await CreateRuntimeModuleAsync("Twitch", () => new TwitchModule(
             _twitchSettingsProvider,
@@ -207,13 +208,16 @@ public class ModuleBootstrapper
             _trackerDisplay,
             _integrationDisplay,
             _dispatcher,
+            _consentService,
             _toast));
         var vrcRadar = await CreateRuntimeModuleAsync("VrcRadar", () => new VrcLogModule(
             _vrcLogSettingsProvider,
             integrationSettings,
             _appState,
             _oscSender,
-            _dispatcher));
+            _dispatcher,
+            _consentService,
+            _toast));
 
         await _dispatcher.InvokeAsync(() =>
         {

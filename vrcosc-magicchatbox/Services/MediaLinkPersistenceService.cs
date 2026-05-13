@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -88,17 +89,22 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
     {
         try
         {
-            if (_appHistory.CreateIfMissing(_env.DataPath) == true)
+            if (_appHistory.CreateIfMissing(_env.DataPath) != true)
             {
-                string json = JsonConvert.SerializeObject(_mediaLink.SavedSessionSettings);
-
-                if (string.IsNullOrEmpty(json))
-                {
-                    return;
-                }
-
-                File.WriteAllText(Path.Combine(_env.DataPath, "LastMediaLinkSessions.json"), json);
+                return;
             }
+
+            // Always serialize — empty/null lists persist as "[]" so explicit clears
+            // are not overridden by stale on-disk data on the next launch.
+            var sessions = _mediaLink.SavedSessionSettings ?? new List<MediaSessionSettings>();
+            string json = JsonConvert.SerializeObject(sessions);
+
+            if (json == null)
+            {
+                return;
+            }
+
+            AtomicFileWriter.WriteAllText(Path.Combine(_env.DataPath, "LastMediaLinkSessions.json"), json);
         }
         catch (Exception ex)
         {
@@ -197,7 +203,7 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         if (!string.IsNullOrWhiteSpace(directory))
             Directory.CreateDirectory(directory);
 
-        File.WriteAllText(filePath, JsonConvert.SerializeObject(data, Formatting.Indented));
+        AtomicFileWriter.WriteAllText(filePath, JsonConvert.SerializeObject(data, Formatting.Indented));
         Logging.WriteInfo($"Exported {data.CustomStyles.Count} custom media link seekbar styles to '{filePath}'.");
     }
 
@@ -342,7 +348,7 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
                 };
 
                 var jsonData = JsonConvert.SerializeObject(data);
-                File.WriteAllText(filePath, jsonData);
+                AtomicFileWriter.WriteAllText(filePath, jsonData);
 
                 Logging.WriteInfo("Custom media link styles and selected style saved.");
             }

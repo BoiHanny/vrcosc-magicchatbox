@@ -26,12 +26,10 @@ public partial class PrivacyConsentDialog : Window
     private HookItem CreateItem(PrivacyHook hook) => hook switch
     {
         PrivacyHook.HardwareMonitor => new HookItem(hook,
-            title: "🖥️  Hardware Monitor  (CPU · GPU · VRAM · temps · wattage)",
-            description: "Reads CPU/GPU load, temperature, and power draw using LibreHardwareMonitor. " +
-                         "This requires loading a low-level kernel driver (WinRing0.sys) on first use.",
-            warning: "⚠  Windows Defender may flag WinRing0.sys. This is a known false-positive caused by " +
-                     "missing commercial code-signing — not malware. The driver is used by many legitimate tools. " +
-                     "Denying this still shows RAM usage (no driver needed).",
+            title: "🖥️  Hardware Monitor  (CPU · RAM · GPU · VRAM)",
+            description: "Reads available CPU, RAM, GPU, and VRAM stats using driverless Windows APIs, WMI, " +
+                         "and the NVIDIA driver tool when available. No WinRing0 kernel driver is bundled.",
+            warning: "Denying this disables Component Stats completely.",
             isApproved: _consentService.IsApproved(hook)),
 
         PrivacyHook.WindowActivity => new HookItem(hook,

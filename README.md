@@ -32,7 +32,9 @@ If you need any further help `setting up` the program, join our `Discord Server`
 
 ## ✨ Feature Showcase
 
-MagicChatBox comes packed with **18+ modules** that run simultaneously, feeding real-time information into your VRChat chatbox. Every module is fully configurable — enable only what you want, customize formatting, set display priorities, and create your perfect chatbox layout.
+MagicChatBox comes packed with **18+ Modules** that run simultaneously, feeding real-time information into your VRChat chatbox. Every Module is fully configurable — enable only what you want, customize formatting, set Module Order and Trim Priority, and create your perfect chatbox layout.
+
+> **Module** is the canonical term for any source of chatbox text or OSC parameters (Personal Status, Spotify, Heart Rate, etc.). Some persisted settings still use legacy `Intgr*` field names for backward compatibility, but the user-facing concept is always **Module**. See [`CONTEXT.md`](CONTEXT.md) for the full domain vocabulary.
 
 ---
 
@@ -47,10 +49,14 @@ MagicChatBox comes packed with **18+ modules** that run simultaneously, feeding 
 
 | Feature | Description |
 |---------|-------------|
-| **Unlimited Lines** | Create as many status messages as you want with individual on/off toggles |
-| **Auto-Rotation** | Set timed intervals so your status cycles through messages automatically |
-| **Custom Prefixes** | Style your chatbox output with custom separators and prefix text |
-| **Priority System** | Status only shows when higher-priority modules aren't active |
+| **Status Entries** | Author unlimited individual status messages with per-entry on/off toggles |
+| **Status Groups** | Organize Status Entries into collections that can be managed together |
+| **Auto-Rotation** | Timed cycling through enabled Status Entries at a configurable interval |
+| **Random Auto-Rotation** | Random selection biased away from recently used Status Entries to avoid repeats |
+| **Rotation Override Group** | Temporarily narrow Auto-Rotation to a single Status Group (falls back to normal eligible entries if the group is empty) |
+| **AFK Override** | When you go AFK, the AFK Module displays through the Personal Status slot and freezes Auto-Rotation until you return |
+| **Custom Prefixes** | Style chatbox output with custom separators and prefix text |
+| **Module Order & Trim Priority** | Place Personal Status in the chatbox layout via Module Order; Trim Priority decides what survives the 144-character budget |
 
 </details>
 
@@ -111,13 +117,15 @@ MagicChatBox comes packed with **18+ modules** that run simultaneously, feeding 
 
 | Component | What's Monitored |
 |-----------|-----------------|
-| **CPU** | Usage percentage and temperature |
-| **GPU** | Load percentage, temperature, and clock speed |
+| **CPU** | Usage percentage |
+| **GPU** | Load percentage, temperature, and clock speed (NVIDIA only when `nvidia-smi` is available) |
 | **RAM** | Usage with automatic DDR generation detection (DDR4/DDR5) |
 | **VRAM** | Dedicated GPU memory consumption |
 
-- Real-time hardware monitoring via **LibreHardwareMonitor** sensors
-- Choose which components to display and customize the output format
+- **Driverless implementation** — uses only Windows-native APIs: DXGI for GPU adapter info, Windows Performance Counters for GPU load/VRAM, and WMI for memory / DDR generation. No kernel-mode sensor drivers (e.g. WinRing0) are installed or loaded, so opening the app does **not** trigger BYOVD anti-cheat or AV alerts.
+- **Optional NVIDIA enrichment** — if `nvidia-smi.exe` is present on the system (shipped with the NVIDIA driver), it is invoked as an external process to read GPU temperature and clock speed. No NVIDIA-specific service or driver is required from MagicChatBox itself.
+- **Intentional gaps** — CPU temperature, CPU package power (watts), CPU clock frequency, and per-core "highest-core" metrics are **not** exposed, because reading them reliably on consumer Windows requires a kernel driver that MagicChatBox refuses to ship.
+- Choose which components to display and customize the output format.
 
 </details>
 
@@ -287,7 +295,7 @@ MagicChatBox comes packed with **18+ modules** that run simultaneously, feeding 
 | **Auto AFK Status** | Automatically displays with customizable prefix text |
 | **Elapsed Timer** | Shows exactly how long you've been away |
 | **Flexible Formatting** | Countdown, compact, or verbose time display |
-| **Priority Aware** | Respects module priority — won't override higher modules |
+| **Priority Aware** | Routes through the Personal Status slot under existing Module Order and Trim Priority rules; freezes Auto-Rotation while active |
 
 </details>
 
@@ -441,9 +449,9 @@ MagicChatBox features a **fully modernized WPF interface** built for clarity and
 | Feature | Description |
 |---------|-------------|
 | **Live Preview** | Real-time view of your current chatbox output |
-| **Priority Visualization** | See which module is currently "winning" |
+| **Module Order & Trim Priority** | See the user-configured Module Order and the Trim Priority that decides which Modules survive the 144-character budget |
 | **Status Grouping** | Batch enable/disable toggles for organized management |
-| **Sorting Options** | Sort by priority, name, or enabled state |
+| **Sorting Options** | Sort by Module Order, name, or enabled state |
 | **Character Counter** | Live character count with OSC send indicator |
 
 </details>
@@ -544,12 +552,11 @@ If you need more help, feel free to click the button below:
 ---
 
 ### 📚 Additional Resources
-- [FAQ](information/FAQ.md) – Frequently Asked Questions and Answers
 - [Staff](information/Staff.md) – Meet the team behind MagicChatBox
 - [Rating](information/Rating.md) – Our User Ratings
-- [Contact](https://discord.gg/magicchatbox) – Create a support ticket here
 - [Funding](information/Funding.md) – Our community's advocates
-- [Documentation](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki) – Detailed guides and manuals
+- [Contact / Discord](https://discord.gg/magicchatbox) – Create a support ticket here
+- [Wiki](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki) – Detailed guides and manuals (community-maintained)
 
 ---
 

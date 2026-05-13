@@ -4,332 +4,181 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:options="clr-namespace:vrcosc_magicchatbox.UI.Pages.Options"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:OptionsPageViewModel,
                                      IsDesignTimeCreatable=False}"
-    Background="{StaticResource SurfaceCardBrush}"
+    d:DesignHeight="550"
+    d:DesignWidth="900"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
-    <ScrollViewer x:Name="OptionsScrollViewer">
+
+    <ScrollViewer
+        x:Name="MainScroll"
+        Padding="0,0,0,12"
+        CanContentScroll="False"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <ContentControl
+                x:Name="OptionsWrapper_Status"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="status">
+                <options:StatusSection x:Name="Section_Status" DataContext="{Binding StatusSection}" />
+            </ContentControl>
 
-                <options:StatusSection
-                    x:Name="Section_Status"
-                    Grid.Row="0"
-                    DataContext="{Binding StatusSection}" />
-                <Button
-                    Grid.Row="0"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="status"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:VrcRadarSection
-                    x:Name="Section_VrcRadar"
-                    Grid.Row="1"
-                    DataContext="{Binding VrcRadarSection}" />
-                <Button
-                    Grid.Row="1"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="vrc-radar"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:PulsoidSection
-                    x:Name="Section_HeartRate"
-                    Grid.Row="2"
-                    DataContext="{Binding PulsoidSection}" />
-                <Button
-                    Grid.Row="2"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="pulsoid"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:TimeOptionsSection
-                    x:Name="Section_Time"
-                    Grid.Row="3"
-                    DataContext="{Binding TimeOptionsSection}" />
-                <Button
-                    Grid.Row="3"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="time"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:WeatherSection
-                    x:Name="Section_Weather"
-                    Grid.Row="4"
-                    DataContext="{Binding WeatherSection}" />
-                <Button
-                    Grid.Row="4"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="weather"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_VrcRadar"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="vrc-radar">
+                <options:VrcRadarSection x:Name="Section_VRCRadar" DataContext="{Binding VrcRadarSection}" />
+            </ContentControl>
 
-                <options:TwitchSection
-                    x:Name="Section_Twitch"
-                    Grid.Row="5"
-                    DataContext="{Binding TwitchSection}" />
-                <Button
-                    Grid.Row="5"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="twitch"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_Pulsoid"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="pulsoid">
+                <options:PulsoidSection x:Name="Section_Pulsoid" DataContext="{Binding PulsoidSection}" />
+            </ContentControl>
 
-                <options:DiscordSection
-                    x:Name="Section_Discord"
-                    Grid.Row="6"
-                    DataContext="{Binding DiscordSection}" />
-                <Button
-                    Grid.Row="6"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="discord"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_Time"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="time">
+                <options:TimeOptionsSection x:Name="Section_Time" DataContext="{Binding TimeOptionsSection}" />
+            </ContentControl>
 
-                <options:SpotifySection
-                    x:Name="Section_Spotify"
-                    Grid.Row="7"
-                    DataContext="{Binding SpotifySection}" />
-                <Button
-                    Grid.Row="7"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="spotify"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_Weather"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="weather">
+                <options:WeatherSection x:Name="Section_Weather" DataContext="{Binding WeatherSection}" />
+            </ContentControl>
 
-                <options:OpenAISection
-                    x:Name="Section_OpenAI"
-                    Grid.Row="8"
-                    DataContext="{Binding OpenAISection}" />
-                <Button
-                    Grid.Row="8"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="openai"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:ComponentStatsSection
-                    x:Name="Section_ComponentStats"
-                    Grid.Row="9"
-                    DataContext="{Binding ComponentStatsSection}" />
-                <Button
-                    Grid.Row="9"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="component-stats"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:NetworkStatisticsSection
-                    x:Name="Section_NetworkStatistics"
-                    Grid.Row="10"
-                    DataContext="{Binding NetworkStatisticsSection}" />
-                <Button
-                    Grid.Row="10"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="network-statistics"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:ChattingOptionsSection
-                    x:Name="Section_Chatting"
-                    Grid.Row="11"
-                    DataContext="{Binding ChattingOptionsSection}" />
-                <Button
-                    Grid.Row="11"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="chatting"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:TtsOptionsSection
-                    x:Name="TtsOptionsSectionControl"
-                    Grid.Row="12"
-                    DataContext="{Binding TtsSection}" />
-                <Button
-                    Grid.Row="12"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="tts"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:MediaLinkSection
-                    x:Name="Section_MediaLink"
-                    Grid.Row="13"
-                    DataContext="{Binding MediaLinkSection}" />
-                <Button
-                    Grid.Row="13"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="media-link"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:AppOptionsSection
-                    x:Name="Section_AppOptions"
-                    Grid.Row="14"
-                    DataContext="{Binding AppOptionsSection}" />
-                <Button
-                    Grid.Row="14"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="app-options"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
-                <options:EggDevSection
-                    x:Name="Section_EggDev"
-                    Grid.Row="15"
-                    DataContext="{Binding EggDevSection}" />
-                <Button
-                    Grid.Row="15"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="egg-dev"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_Twitch"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="twitch">
+                <options:TwitchSection x:Name="Section_Twitch" DataContext="{Binding TwitchSection}" />
+            </ContentControl>
 
-                <!--  TRACKER BATTERY MANAGER SECTION  -->
-                <options:TrackerBatterySection
-                    x:Name="Section_TrackerBattery"
-                    Grid.Row="16"
-                    DataContext="{Binding TrackerBatterySection}" />
-                <Button
-                    Grid.Row="16"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="tracker-battery"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_Discord"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="discord">
+                <options:DiscordSection x:Name="Section_Discord" DataContext="{Binding DiscordSection}" />
+            </ContentControl>
 
-                <options:PrivacySection
-                    x:Name="Section_Privacy"
-                    Grid.Row="17"
-                    DataContext="{Binding PrivacySection}" />
-                <Button
-                    Grid.Row="17"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="privacy"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_Spotify"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="spotify">
+                <options:SpotifySection x:Name="Section_Spotify" DataContext="{Binding SpotifySection}" />
+            </ContentControl>
 
-                <options:WindowActivitySection
-                    x:Name="Section_WindowActivity"
-                    Grid.Row="18"
-                    DataContext="{Binding WindowActivitySection}" />
-                <Button
-                    Grid.Row="18"
-                    Margin="0,8,10,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Command="{Binding ResetSectionCommand}"
-                    CommandParameter="window-activity"
-                    Content="Reset"
-                    Style="{StaticResource SectionResetButtonStyle}" />
+            <ContentControl
+                x:Name="OptionsWrapper_OpenAI"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="openai">
+                <options:OpenAISection x:Name="Section_OpenAI" DataContext="{Binding OpenAISection}" />
+            </ContentControl>
 
-                <Grid Grid.Row="19" Margin="0,5,0,10">
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        TextWrapping="Wrap">
-                        <Run Text="By using MagicChatbox, you agree to our" />
-                        <!--  Hyperlink to the Terms of Service  -->
-                        <Hyperlink
-                            Foreground="{StaticResource AccentTealBrush}"
-                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md"
-                            RequestNavigate="Hyperlink_RequestNavigate"
-                            ToolTip="View our Terms of Service">
-                            <Run Text="Terms of Service" />
-                        </Hyperlink>
-                        <Run Text="and" />
-                        <!--  Hyperlink to the Software License Agreement  -->
-                        <Hyperlink
-                            Foreground="{StaticResource AccentTealBrush}"
-                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md"
-                            RequestNavigate="Hyperlink_RequestNavigate"
-                            ToolTip="View our Software License Agreement">
-                            <Run Text="Software License Agreement" />
-                        </Hyperlink>
-                    </TextBlock>
-                </Grid>
+            <ContentControl
+                x:Name="OptionsWrapper_ComponentStats"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="component-stats">
+                <options:ComponentStatsSection x:Name="Section_ComponentStats" DataContext="{Binding ComponentStatsSection}" />
+            </ContentControl>
 
-            </Grid>
+            <ContentControl
+                x:Name="OptionsWrapper_NetworkStatistics"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="network-statistics">
+                <options:NetworkStatisticsSection x:Name="Section_NetworkStatistics" DataContext="{Binding NetworkStatisticsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Chatting"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="chatting">
+                <options:ChattingOptionsSection x:Name="Section_Chatting" DataContext="{Binding ChattingOptionsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Tts"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tts">
+                <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" DataContext="{Binding TtsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_MediaLink"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="media-link">
+                <options:MediaLinkSection x:Name="MediaLinkSectionControl" DataContext="{Binding MediaLinkSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_AppOptions"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="app-options">
+                <options:AppOptionsSection x:Name="AppOptionsSectionControl" DataContext="{Binding AppOptionsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_EggDev"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="egg-dev"
+                Visibility="{Binding EggDevSection.AppState.Egg_Dev, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <options:EggDevSection x:Name="EggDevSectionControl" DataContext="{Binding EggDevSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_TrackerBattery"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tracker-battery">
+                <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Privacy"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="privacy">
+                <options:PrivacySection x:Name="PrivacySectionControl" DataContext="{Binding PrivacySection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_WindowActivity"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="window-activity">
+                <options:WindowActivitySection x:Name="WindowActivitySectionControl" DataContext="{Binding WindowActivitySection}" />
+            </ContentControl>
+
+            <TextBlock
+                Margin="12,14,12,8"
+                HorizontalAlignment="Center"
+                FontFamily="Albert Sans Thin"
+                FontSize="11"
+                Foreground="{StaticResource TextMutedBrush}"
+                TextAlignment="Center"
+                TextWrapping="Wrap">
+                <Run Text="By using MagicChatbox, you agree to the " />
+                <Hyperlink
+                    Foreground="{StaticResource TextLabelBrush}"
+                    NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md"
+                    RequestNavigate="Hyperlink_RequestNavigate"
+                    ToolTip="Opens the Privacy &amp; Security policy on GitHub">
+                    <Run Text="Privacy &amp; Security Policy" />
+                </Hyperlink>
+                <Run Text=" and " />
+                <Hyperlink
+                    Foreground="{StaticResource TextLabelBrush}"
+                    NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md"
+                    RequestNavigate="Hyperlink_RequestNavigate"
+                    ToolTip="Opens the Software License on GitHub">
+                    <Run Text="Software License" />
+                </Hyperlink>
+                <Run Text="." />
+            </TextBlock>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

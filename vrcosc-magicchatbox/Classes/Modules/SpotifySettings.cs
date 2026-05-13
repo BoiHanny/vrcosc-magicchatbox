@@ -32,9 +32,13 @@ public enum SpotifyWidgetMode
 
 public enum SpotifyProgressDisplayMode
 {
+    [Description("None")]
     None,
+    [Description("Text only")]
     Text,
+    [Description("Small numbers")]
     SmallNumbers,
+    [Description("Seekbar")]
     Seekbar
 }
 
@@ -83,6 +87,7 @@ public partial class SpotifySettings : VersionedSettings
     [ObservableProperty] private bool _allowArtistInOutput = true;
     [ObservableProperty] private bool _allowAlbumInOutput = true;
     [ObservableProperty] private bool _allowDeviceInOutput = true;
+    [ObservableProperty] private bool _allowVolumeInOutput = true;
     [ObservableProperty] private bool _allowPlaybackStateInOutput = true;
     [ObservableProperty] private bool _privacyChoicesCompleted;
     [ObservableProperty] private bool _privacyMode;
@@ -91,6 +96,7 @@ public partial class SpotifySettings : VersionedSettings
     [ObservableProperty] private bool _showArtist = true;
     [ObservableProperty] private bool _showAlbum = false;
     [ObservableProperty] private bool _showDevice = false;
+    [ObservableProperty] private bool _showVolume = true;
     [ObservableProperty] private bool _showProgress = false;
     [ObservableProperty] private SpotifyProgressDisplayMode _progressDisplayMode = SpotifyProgressDisplayMode.SmallNumbers;
     [ObservableProperty] private bool _autoDowngradeProgress = true;

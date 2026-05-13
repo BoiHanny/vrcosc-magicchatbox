@@ -32,6 +32,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly IAppState _appState;
         private readonly IStatusListService _statusListService;
         private readonly IMenuNavigationService _menuNav;
+        private readonly IUiDispatcher _dispatcher;
 
         private ICollectionView? _filteredView;
         private readonly Dictionary<StatusSortField, bool> _sortDirections = new();
@@ -73,12 +74,14 @@ namespace vrcosc_magicchatbox.ViewModels
             IAppState appState,
             IStatusListService statusListService,
             IMenuNavigationService menuNav,
-            ISettingsProvider<AppSettings> appSettingsProvider)
+            ISettingsProvider<AppSettings> appSettingsProvider,
+            IUiDispatcher dispatcher)
         {
             _chatStatus = chatStatus;
             _appState = appState;
             _statusListService = statusListService;
             _menuNav = menuNav;
+            _dispatcher = dispatcher;
             ChatStatus = chatStatus;
             AppSettings = appSettingsProvider.Value;
 
@@ -91,7 +94,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (e.PropertyName is nameof(ChatStatusDisplayState.StatusList)
                                or nameof(ChatStatusDisplayState.GroupList))
             {
-                Application.Current?.Dispatcher.BeginInvoke(RebuildFilteredView);
+                _dispatcher.BeginInvoke(RebuildFilteredView);
             }
         }
 
