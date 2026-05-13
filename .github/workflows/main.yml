@@ -5,6 +5,8 @@ on:
     branches:
       - 'Pre-Master'
       - 'master'
+    tags:
+      - 'v*'
 
 env:
   Solution_Name: vrcosc-magicchatbox.sln
@@ -20,6 +22,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v4
@@ -43,13 +47,43 @@ jobs:
           exit 1
         }
 
-    # Step 2: Check if a release with this version already exists
+    # Step 2: Resolve the release tag for this run
+    - name: Resolve Release Tag
+      id: resolve_release
+      shell: pwsh
+      run: |
+        $csprojVersion = $env:VERSION
+        $isTagRelease = $env:GITHUB_REF -like 'refs/tags/*'
+
+        if ($isTagRelease) {
+          $releaseTag = $env:GITHUB_REF_NAME
+
+          if (-not $releaseTag.StartsWith('v')) {
+            Write-Error "Release tags must start with 'v'. Found '$releaseTag'."
+            exit 1
+          }
+
+          $tagVersion = $releaseTag.Substring(1)
+          if ($tagVersion -ne $csprojVersion) {
+            Write-Error "Tag version '$tagVersion' does not match csproj version '$csprojVersion'."
+            exit 1
+          }
+        }
+        else {
+          $releaseTag = "v$csprojVersion"
+        }
+
+        "RELEASE_TAG=$releaseTag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        "release_tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "is_tag_release=$($isTagRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    # Step 3: Check if a release with this tag already exists
     - name: Check if Release Exists
       id: check_release
       uses: actions/github-script@v7
       with:
         script: |
-          const tag = `v${{ env.VERSION }}`;
+          const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
           try {
             await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
@@ -65,21 +99,21 @@ jobs:
             }
           }
 
-    # Step 3: If the release already exists, stop here
+    # Step 4: If the release already exists for this tag, stop here
     - name: Release Already Exists
-      if: steps.check_release.outputs.release_exists == 'true'
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'true'
       run: |
-        echo "Release v${{ env.VERSION }} already exists. Skipping build and release."
+        echo "Release ${{ steps.resolve_release.outputs.release_tag }} already exists. Skipping tagged release."
         exit 0
 
-    # Step 4: Restore Dependencies (only if release doesn't exist)
+    # Step 5: Restore Dependencies
     - name: Restore Dependencies
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       run: dotnet restore ${{ env.Solution_Name }} -r win-x64
 
-    # Step 5: Publish application to a stable output folder (only if release doesn't exist)
+    # Step 6: Publish application to a stable output folder
     - name: Publish Application
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
         $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
@@ -94,9 +128,9 @@ jobs:
           --no-restore `
           --output $publishDir
 
-    # Step 6: Create ZIP of artifacts
+    # Step 7: Create ZIP of artifacts
     - name: Create Zip File
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
         $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
@@ -109,9 +143,13 @@ jobs:
 
         Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
-    # Step 7: Upload & Scan with VirusTotal
+    - name: Branch Build Only
+      if: steps.resolve_release.outputs.is_tag_release != 'true'
+      run: echo "Branch push detected. Build completed; release publishing is tag-driven because repository rules restrict tag creation."
+
+    # Step 8: Upload & Scan with VirusTotal
     - name: Check Optional VirusTotal Secret
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false'
       id: optional_secrets
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -121,7 +159,7 @@ jobs:
         "has_virustotal_key=$($hasVirusTotalKey.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Upload and Scan with VirusTotal
-      if: steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_scan
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -156,7 +194,7 @@ jobs:
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Wait for VirusTotal Scan Report
-      if: steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_report
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -204,32 +242,54 @@ jobs:
         $reportUrl = "https://www.virustotal.com/gui/file/$sha256/detection"
         "report_url=$reportUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 8: Determine if this is a pre-release or final release
+    # Step 9: Determine if this is a pre-release or final release
     - name: Determine Release Type
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false'
       id: determine_release_type
       shell: pwsh
       run: |
-        if ($env:GITHUB_REF -eq 'refs/heads/master') {
-          echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "RELEASE_NAME=v${{ env.VERSION }}" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-        } else {
-          echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+        git fetch --no-tags origin master Pre-Master
+
+        $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
+        if ([string]::IsNullOrWhiteSpace($tagCommit)) {
+          Write-Error "Unable to resolve commit for tag $env:RELEASE_TAG."
+          exit 1
         }
 
-    # Step 9: Create GitHub Release and upload the asset in a single step
+        git merge-base --is-ancestor $tagCommit origin/master
+        $isMasterRelease = $LASTEXITCODE -eq 0
+
+        if ($isMasterRelease) {
+          echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "RELEASE_NAME=${{ steps.resolve_release.outputs.release_tag }}" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          "pre_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_name=${{ steps.resolve_release.outputs.release_tag }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        } else {
+          git merge-base --is-ancestor $tagCommit origin/Pre-Master
+          $isPreMasterRelease = $LASTEXITCODE -eq 0
+
+          if (-not $isPreMasterRelease) {
+            Write-Warning "Tagged commit is not contained in master or Pre-Master. Defaulting to pre-release."
+          }
+
+          echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "RELEASE_NAME=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          "pre_release=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_name=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        }
+
+    # Step 10: Create GitHub Release and upload the asset in a single step
     - name: Create Release
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false'
       id: create_release
       uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
-        tag_name: v${{ env.VERSION }}
-        name: ${{ env.RELEASE_NAME }}
+        tag_name: ${{ steps.resolve_release.outputs.release_tag }}
+        name: ${{ steps.determine_release_type.outputs.release_name }}
         draft: false
-        prerelease: ${{ env.PRE_RELEASE }}
+        prerelease: ${{ steps.determine_release_type.outputs.pre_release }}
         files: ./MagicChatbox-${{ env.VERSION }}.zip
         body: |
           <div align="center">
@@ -243,7 +303,7 @@ jobs:
 
           <div align="center">
             <p>
-              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
+              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/${{ steps.resolve_release.outputs.release_tag }}/MagicChatbox-${{ env.VERSION }}.zip">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
               </a>
               <a href="${{ steps.virustotal_report.outputs.report_url }}">
