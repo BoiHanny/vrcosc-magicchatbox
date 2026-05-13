@@ -184,18 +184,21 @@ jobs:
     - name: Finalize Branch Release Path
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
       id: finalize_branch_release
+      env:
+        PRIMARY_READY: ${{ steps.ensure_tag_actions.outputs.tag_ready }}
+        PRIMARY_SOURCE: ${{ steps.ensure_tag_actions.outputs.tag_source }}
+        PRIMARY_FAILURE: ${{ steps.ensure_tag_actions.outputs.failure_message }}
+        FALLBACK_READY: ${{ steps.ensure_tag_pat.outputs.tag_ready }}
+        FALLBACK_SOURCE: ${{ steps.ensure_tag_pat.outputs.tag_source }}
+        FALLBACK_FAILURE: ${{ steps.ensure_tag_pat.outputs.failure_message }}
       shell: pwsh
       run: |
-        $primaryReady = '${{ steps.ensure_tag_actions.outputs.tag_ready }}'
-        $primarySource = '${{ steps.ensure_tag_actions.outputs.tag_source }}'
-        $fallbackReady = '${{ steps.ensure_tag_pat.outputs.tag_ready }}'
-        $fallbackSource = '${{ steps.ensure_tag_pat.outputs.tag_source }}'
-        $primaryFailure = @'
-${{ steps.ensure_tag_actions.outputs.failure_message }}
-'@
-        $fallbackFailure = @'
-${{ steps.ensure_tag_pat.outputs.failure_message }}
-'@
+        $primaryReady = $env:PRIMARY_READY
+        $primarySource = $env:PRIMARY_SOURCE
+        $fallbackReady = $env:FALLBACK_READY
+        $fallbackSource = $env:FALLBACK_SOURCE
+        $primaryFailure = $env:PRIMARY_FAILURE
+        $fallbackFailure = $env:FALLBACK_FAILURE
 
         if ($primaryReady -ne 'true' -and $fallbackReady -ne 'true') {
           $failures = @()
