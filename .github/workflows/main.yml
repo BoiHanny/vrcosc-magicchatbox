@@ -110,8 +110,18 @@ jobs:
         Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
     # Step 7: Upload & Scan with VirusTotal
+    - name: Check Optional VirusTotal Secret
+      if: steps.check_release.outputs.release_exists == 'false'
+      id: optional_secrets
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+      shell: pwsh
+      run: |
+        $hasVirusTotalKey = -not [string]::IsNullOrWhiteSpace($env:VIRUSTOTAL_API_KEY)
+        "has_virustotal_key=$($hasVirusTotalKey.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     - name: Upload and Scan with VirusTotal
-      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
+      if: steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_scan
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -146,7 +156,7 @@ jobs:
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Wait for VirusTotal Scan Report
-      if: steps.check_release.outputs.release_exists == 'false' && secrets.VIRUSTOTAL_API_KEY != ''
+      if: steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_report
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -214,7 +224,7 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
         tag_name: v${{ env.VERSION }}
         name: ${{ env.RELEASE_NAME }}
