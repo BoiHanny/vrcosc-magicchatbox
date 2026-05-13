@@ -99,6 +99,126 @@ jobs:
             }
           }
 
+    - name: Ensure Release Tag Exists (Actions token)
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
+      id: ensure_tag_actions
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ github.token }}
+        script: |
+          const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+
+          try {
+            await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: `tags/${tag}`
+            });
+            core.setOutput('tag_ready', 'true');
+            core.setOutput('tag_source', 'existing');
+          } catch (error) {
+            if (error.status !== 404) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed checking tag ${tag} with github.token: ${error.message}`);
+              return;
+            }
+
+            try {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tag}`,
+                sha: context.sha
+              });
+              core.setOutput('tag_ready', 'true');
+              core.setOutput('tag_source', 'created-actions-token');
+            } catch (createError) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed creating tag ${tag} with github.token: ${createError.message}`);
+            }
+          }
+
+    - name: Ensure Release Tag Exists (MY_PAT fallback)
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.ensure_tag_actions.outputs.tag_ready != 'true'
+      id: ensure_tag_pat
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.MY_PAT }}
+        script: |
+          const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+
+          try {
+            await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: `tags/${tag}`
+            });
+            core.setOutput('tag_ready', 'true');
+            core.setOutput('tag_source', 'existing');
+          } catch (error) {
+            if (error.status !== 404) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed checking tag ${tag} with MY_PAT: ${error.message}`);
+              return;
+            }
+
+            try {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tag}`,
+                sha: context.sha
+              });
+              core.setOutput('tag_ready', 'true');
+              core.setOutput('tag_source', 'created-my-pat');
+            } catch (createError) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed creating tag ${tag} with MY_PAT: ${createError.message}`);
+            }
+          }
+
+    - name: Finalize Branch Release Path
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
+      id: finalize_branch_release
+      shell: pwsh
+      run: |
+        $primaryReady = '${{ steps.ensure_tag_actions.outputs.tag_ready }}'
+        $primarySource = '${{ steps.ensure_tag_actions.outputs.tag_source }}'
+        $fallbackReady = '${{ steps.ensure_tag_pat.outputs.tag_ready }}'
+        $fallbackSource = '${{ steps.ensure_tag_pat.outputs.tag_source }}'
+        $primaryFailure = @'
+${{ steps.ensure_tag_actions.outputs.failure_message }}
+'@
+        $fallbackFailure = @'
+${{ steps.ensure_tag_pat.outputs.failure_message }}
+'@
+
+        if ($primaryReady -ne 'true' -and $fallbackReady -ne 'true') {
+          $failures = @()
+
+          if (-not [string]::IsNullOrWhiteSpace($primaryFailure.Trim())) {
+            $failures += $primaryFailure.Trim()
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($fallbackFailure.Trim())) {
+            $failures += $fallbackFailure.Trim()
+          }
+
+          $details = if ($failures.Count -gt 0) { $failures -join ' || ' } else { "No additional error details were returned." }
+          Write-Error "Unable to ensure release tag $env:RELEASE_TAG for this branch push. $details"
+          exit 1
+        }
+
+        $tagSource = if ($primaryReady -eq 'true') { $primarySource } else { $fallbackSource }
+        $publishNow = if ($tagSource -like 'created-*') { 'false' } else { 'true' }
+
+        "tag_source=$tagSource" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "publish_now=$publishNow" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     # Step 4: If the release already exists for this tag, stop here
     - name: Release Already Exists
       if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'true'
@@ -143,13 +263,13 @@ jobs:
 
         Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
-    - name: Branch Build Only
-      if: steps.resolve_release.outputs.is_tag_release != 'true'
-      run: echo "Branch push detected. Build completed; release publishing is tag-driven because repository rules restrict tag creation."
+    - name: Await Tag-Triggered Release Run
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.finalize_branch_release.outputs.publish_now != 'true'
+      run: echo "Created release tag ${{ steps.resolve_release.outputs.release_tag }} during the branch run. The tag-triggered workflow run will publish the release."
 
     # Step 8: Upload & Scan with VirusTotal
     - name: Check Optional VirusTotal Secret
-      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: optional_secrets
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -159,7 +279,7 @@ jobs:
         "has_virustotal_key=$($hasVirusTotalKey.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Upload and Scan with VirusTotal
-      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_scan
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -194,7 +314,7 @@ jobs:
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
     - name: Wait for VirusTotal Scan Report
-      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false' && steps.optional_secrets.outputs.has_virustotal_key == 'true'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_report
       env:
         VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -244,20 +364,26 @@ jobs:
 
     # Step 9: Determine if this is a pre-release or final release
     - name: Determine Release Type
-      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: determine_release_type
       shell: pwsh
       run: |
-        git fetch --no-tags origin master Pre-Master
+        $isTagRelease = '${{ steps.resolve_release.outputs.is_tag_release }}' -eq 'true'
 
-        $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
-        if ([string]::IsNullOrWhiteSpace($tagCommit)) {
-          Write-Error "Unable to resolve commit for tag $env:RELEASE_TAG."
-          exit 1
+        if (-not $isTagRelease) {
+          $isMasterRelease = $env:GITHUB_REF -eq 'refs/heads/master'
+        } else {
+          git fetch --no-tags origin master Pre-Master
+
+          $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
+          if ([string]::IsNullOrWhiteSpace($tagCommit)) {
+            Write-Error "Unable to resolve commit for tag $env:RELEASE_TAG."
+            exit 1
+          }
+
+          git merge-base --is-ancestor $tagCommit origin/master
+          $isMasterRelease = $LASTEXITCODE -eq 0
         }
-
-        git merge-base --is-ancestor $tagCommit origin/master
-        $isMasterRelease = $LASTEXITCODE -eq 0
 
         if ($isMasterRelease) {
           echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
@@ -265,8 +391,12 @@ jobs:
           "pre_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "release_name=${{ steps.resolve_release.outputs.release_tag }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         } else {
-          git merge-base --is-ancestor $tagCommit origin/Pre-Master
-          $isPreMasterRelease = $LASTEXITCODE -eq 0
+          if ($isTagRelease) {
+            git merge-base --is-ancestor $tagCommit origin/Pre-Master
+            $isPreMasterRelease = $LASTEXITCODE -eq 0
+          } else {
+            $isPreMasterRelease = $env:GITHUB_REF -eq 'refs/heads/Pre-Master'
+          }
 
           if (-not $isPreMasterRelease) {
             Write-Warning "Tagged commit is not contained in master or Pre-Master. Defaulting to pre-release."
@@ -280,7 +410,7 @@ jobs:
 
     # Step 10: Create GitHub Release and upload the asset in a single step
     - name: Create Release
-      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: create_release
       uses: softprops/action-gh-release@v2
       env:
