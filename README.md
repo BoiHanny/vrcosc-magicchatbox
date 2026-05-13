@@ -2,7 +2,7 @@
 
 ![image](https://github.com/user-attachments/assets/3e4cf513-c87e-4ad0-b9d2-b0f1c24cb6d3)
 
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=%20&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox) [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases) [![NET](https://img.shields.io/badge/.NET%2010-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=MagicChatbox&logo=discord&logoColor=white&style=plastic)](https://discord.gg/magicchatbox)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=%20&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) [![downloads](https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/total?color=%23512BD4&label=Total%20download&logo=docusign&logoColor=white&style=plastic)](https://tooomm.github.io/github-release-stats/?username=BoiHanny&repository=vrcosc-magicchatbox) [![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/BoiHanny/vrcosc-magicchatbox?color=%23512BD4&label=Last%20update&style=plastic)](https://github.com/BoiHanny/vrcosc-magicchatbox/releases) [![NET](https://img.shields.io/badge/.NET%2010-Runtime%20-%23512BD4?style=plastic)](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.8-windows-x64-installer) [![Discord](https://img.shields.io/discord/1078818850218450994?color=%23512BD4&label=MagicChatbox&logo=discord&logoColor=white&style=plastic)](https://discord.gg/magicchatbox)
 
 ---
 
@@ -18,7 +18,7 @@
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/01533802fb696b6dd746b05367fd97a5d9280e6f24cd13fa3032a784a774a290/detection)
 
 - 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/latest) **the latest release of MagicChatBox**
-- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) **.NET 10 Desktop Runtime from Microsoft**
+- 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.8-windows-x64-installer) **.NET 10 Desktop Runtime from Microsoft**
 - 🔳 Extract the ZIP File into a folder
 - 🔳 Run **MagicChatBox.exe**
 - 🔳 You're good to go now!
