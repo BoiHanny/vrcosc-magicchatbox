@@ -62,6 +62,13 @@
             </ContentControl>
 
             <ContentControl
+                x:Name="OptionsWrapper_TikTokLive"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tiktok-live">
+                <options:TikTokLiveSection x:Name="Section_TikTokLive" DataContext="{Binding TikTokLiveSection}" />
+            </ContentControl>
+
+            <ContentControl
                 x:Name="OptionsWrapper_Discord"
                 Style="{StaticResource OptionSectionWithResetStyle}"
                 Tag="discord">

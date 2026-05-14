@@ -30,6 +30,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public MediaLinkSectionViewModel MediaLinkSection { get; }
         public WeatherSectionViewModel WeatherSection { get; }
         public TwitchSectionViewModel TwitchSection { get; }
+        public TikTokLiveSectionViewModel TikTokLiveSection { get; }
         public DiscordSectionViewModel DiscordSection { get; }
         public SpotifySectionViewModel SpotifySection { get; }
         public TrackerBatterySectionViewModel TrackerBatterySection { get; }
@@ -63,6 +64,7 @@ namespace vrcosc_magicchatbox.ViewModels
             MediaLinkSectionViewModel mediaLinkSection,
             WeatherSectionViewModel weatherSection,
             TwitchSectionViewModel twitchSection,
+            TikTokLiveSectionViewModel tikTokLiveSection,
             DiscordSectionViewModel discordSection,
             SpotifySectionViewModel spotifySection,
             TrackerBatterySectionViewModel trackerBatterySection,
@@ -90,6 +92,7 @@ namespace vrcosc_magicchatbox.ViewModels
             MediaLinkSection = mediaLinkSection;
             WeatherSection = weatherSection;
             TwitchSection = twitchSection;
+            TikTokLiveSection = tikTokLiveSection;
             DiscordSection = discordSection;
             SpotifySection = spotifySection;
             TrackerBatterySection = trackerBatterySection;

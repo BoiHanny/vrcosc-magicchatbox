@@ -26,6 +26,7 @@ internal enum TrayIntegration
     MediaLink,
     Spotify,
     Twitch,
+    TikTok,
     Discord,
     Soundpad,
     WindowActivity,
@@ -326,6 +327,7 @@ public sealed class TrayIconService : ITrayIconService
             TrayIntegration.MediaLink => _integrationSettings.IntgrScanMediaLink,
             TrayIntegration.Spotify => _integrationSettings.IntgrSpotify,
             TrayIntegration.Twitch => _integrationSettings.IntgrTwitch,
+            TrayIntegration.TikTok => _integrationSettings.IntgrTikTokLive,
             TrayIntegration.Discord => _integrationSettings.IntgrDiscord,
             TrayIntegration.Soundpad => _integrationSettings.IntgrSoundpad,
             TrayIntegration.WindowActivity => _integrationSettings.IntgrScanWindowActivity,
@@ -354,6 +356,7 @@ public sealed class TrayIconService : ITrayIconService
             TrayIntegration.MediaLink => (_integrationSettings.IntgrMediaLink_VR, _integrationSettings.IntgrMediaLink_DESKTOP),
             TrayIntegration.Spotify => (_integrationSettings.IntgrSpotify_VR, _integrationSettings.IntgrSpotify_DESKTOP),
             TrayIntegration.Twitch => (_integrationSettings.IntgrTwitch_VR, _integrationSettings.IntgrTwitch_DESKTOP),
+            TrayIntegration.TikTok => (_integrationSettings.IntgrTikTokLive_VR, _integrationSettings.IntgrTikTokLive_DESKTOP),
             TrayIntegration.Discord => (_integrationSettings.IntgrDiscord_VR, _integrationSettings.IntgrDiscord_DESKTOP),
             TrayIntegration.Soundpad => (_integrationSettings.IntgrSoundpad_VR, _integrationSettings.IntgrSoundpad_DESKTOP),
             TrayIntegration.WindowActivity => (_integrationSettings.IntgrWindowActivity_VR, _integrationSettings.IntgrWindowActivity_DESKTOP),
@@ -386,6 +389,10 @@ public sealed class TrayIconService : ITrayIconService
                 break;
             case TrayIntegration.Twitch:
                 _integrationSettings.IntgrTwitch = enabled;
+                _integrationSettingsProvider.Save();
+                break;
+            case TrayIntegration.TikTok:
+                _integrationSettings.IntgrTikTokLive = enabled;
                 _integrationSettingsProvider.Save();
                 break;
             case TrayIntegration.Discord:
