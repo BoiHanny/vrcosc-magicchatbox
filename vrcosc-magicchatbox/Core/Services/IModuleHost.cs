@@ -14,6 +14,7 @@ public interface IModuleHost : INotifyPropertyChanged
     ComponentStatsModule ComponentStats { get; set; }
     IntelliChatModule IntelliChat { get; set; }
     TwitchModule Twitch { get; set; }
+    TikTokLiveModule TikTokLive { get; set; }
     DiscordModule Discord { get; set; }
     SpotifyModule Spotify { get; set; }
     VrcLogModule VrcRadar { get; set; }

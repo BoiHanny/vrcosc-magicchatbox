@@ -182,6 +182,11 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<TwitchSettings>>(),
             sp.GetRequiredService<INavigationService>()));
+        services.AddSingleton<TikTokLiveSectionViewModel>(sp => new TikTokLiveSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<TikTokLiveSettings>>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<DiscordSectionViewModel>(sp => new DiscordSectionViewModel(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<DiscordOAuthHandler>(() => sp.GetRequiredService<DiscordOAuthHandler>()),
@@ -278,6 +283,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<MediaLinkSectionViewModel>(),
             sp.GetRequiredService<WeatherSectionViewModel>(),
             sp.GetRequiredService<TwitchSectionViewModel>(),
+            sp.GetRequiredService<TikTokLiveSectionViewModel>(),
             sp.GetRequiredService<DiscordSectionViewModel>(),
             sp.GetRequiredService<SpotifySectionViewModel>(),
             sp.GetRequiredService<TrackerBatterySectionViewModel>(),
@@ -464,6 +470,19 @@ public static class ServiceRegistration
                 : Policy.NoOpAsync<HttpResponseMessage>())
         .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
+        services.AddHttpClient(Constants.HttpClients.TikTok, client =>
+        {
+            client.BaseAddress = new Uri("https://www.tiktok.com/");
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MagicChatbox/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            client.Timeout = Constants.DefaultApiTimeout;
+        })
+        .AddPolicyHandler(request =>
+            request.Method == HttpMethod.Get
+                ? retryPolicy
+                : Policy.NoOpAsync<HttpResponseMessage>())
+        .AddPolicyHandler(CreateCircuitBreakerPolicy());
+
         // Spotify: 429 is NOT retried or circuit-broken here — SpotifyModule honors
         // Retry-After and applies its own cooldown. Polly only retries safe transient
         // 5xx/408/network errors on GET requests. HttpClient timeout (15s) exceeds the
@@ -568,6 +587,9 @@ public static class ServiceRegistration
         services.AddSingleton<IOscProvider, TimeOscProvider>();
         services.AddSingleton<IOscProvider, WeatherOscProvider>();
         services.AddSingleton<IOscProvider>(sp => new TwitchOscProvider(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
+        services.AddSingleton<IOscProvider>(sp => new TikTokLiveOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
         services.AddSingleton<IOscProvider>(sp => new DiscordOscProvider(

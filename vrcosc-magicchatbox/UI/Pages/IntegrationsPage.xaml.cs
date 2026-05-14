@@ -59,6 +59,7 @@ namespace vrcosc_magicchatbox.UI.Pages
                 { "Time", TimeItem },
                 { "Weather", WeatherItem },
                 { "Twitch", TwitchItem },
+                { "TikTokLive", TikTokLiveItem },
                 { "Discord", DiscordItem },
                 { "VrcRadar", VrcRadarItem },
                 { "Soundpad", SoundpadItem },

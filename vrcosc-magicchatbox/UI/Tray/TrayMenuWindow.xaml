@@ -656,6 +656,16 @@
                                     HorizontalAlignment="Right" />
                             </DockPanel>
                         </Button>
+                        <Button Click="TikTokIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🎵" />
+                                <TextBlock Text="TikTok" />
+                                <TextBlock
+                                    x:Name="TikTokIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
                         <Button Click="DiscordIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
                             <DockPanel LastChildFill="True">
                                 <TextBlock Margin="0,0,10,0" Text="💬" />

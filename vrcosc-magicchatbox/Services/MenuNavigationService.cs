@@ -41,6 +41,7 @@ public sealed class MenuNavigationService : IMenuNavigationService
             { "Settings_TTS", v => appSettings.Settings_TTS = v },
             { "Settings_Weather", v => appSettings.Settings_Weather = v },
             { "Settings_Twitch", v => appSettings.Settings_Twitch = v },
+            { "Settings_TikTokLive", v => appSettings.Settings_TikTokLive = v },
             { "Settings_Discord", v => appSettings.Settings_Discord = v },
             { "Settings_Spotify", v => appSettings.Settings_Spotify = v },
             { "Settings_Time", v => appSettings.Settings_Time = v },

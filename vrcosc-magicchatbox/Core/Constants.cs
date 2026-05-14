@@ -99,6 +99,7 @@ public static class Constants
         public const string Pulsoid = "Pulsoid";
         public const string Weather = "Weather";
         public const string Twitch = "Twitch";
+        public const string TikTok = "TikTok";
         public const string Spotify = "Spotify";
         public const string Tts = "TTS";
         public const string ModerationApi = "ModerationAPI";

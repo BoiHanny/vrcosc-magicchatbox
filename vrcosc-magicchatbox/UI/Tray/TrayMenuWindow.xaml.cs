@@ -188,6 +188,8 @@ public partial class TrayMenuWindow : Window
 
     private void TwitchIntegration_Click(object sender, RoutedEventArgs e) => _trayIconService.ToggleIntegration(TrayIntegration.Twitch);
 
+    private void TikTokIntegration_Click(object sender, RoutedEventArgs e) => _trayIconService.ToggleIntegration(TrayIntegration.TikTok);
+
     private void DiscordIntegration_Click(object sender, RoutedEventArgs e) => _trayIconService.ToggleIntegration(TrayIntegration.Discord);
 
     private void SoundpadIntegration_Click(object sender, RoutedEventArgs e) => _trayIconService.ToggleIntegration(TrayIntegration.Soundpad);
@@ -354,6 +356,7 @@ public partial class TrayMenuWindow : Window
         SetIntegrationState(MediaLinkIntegrationStateText, TrayIntegration.MediaLink);
         SetIntegrationState(SpotifyIntegrationStateText, TrayIntegration.Spotify);
         SetIntegrationState(TwitchIntegrationStateText, TrayIntegration.Twitch);
+        SetIntegrationState(TikTokIntegrationStateText, TrayIntegration.TikTok);
         SetIntegrationState(DiscordIntegrationStateText, TrayIntegration.Discord);
         SetIntegrationState(SoundpadIntegrationStateText, TrayIntegration.Soundpad);
         SetIntegrationState(WindowActivityIntegrationStateText, TrayIntegration.WindowActivity);

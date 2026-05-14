@@ -16,6 +16,7 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
     private readonly ISettingsProvider<TimeSettings> _time;
     private readonly ISettingsProvider<WeatherSettings> _weather;
     private readonly ISettingsProvider<TwitchSettings> _twitch;
+    private readonly ISettingsProvider<TikTokLiveSettings> _tikTokLive;
     private readonly ISettingsProvider<DiscordSettings> _discord;
     private readonly ISettingsProvider<SpotifySettings> _spotify;
     private readonly ISettingsProvider<OpenAISettings> _openAI;
@@ -40,6 +41,7 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         ISettingsProvider<TimeSettings> time,
         ISettingsProvider<WeatherSettings> weather,
         ISettingsProvider<TwitchSettings> twitch,
+        ISettingsProvider<TikTokLiveSettings> tikTokLive,
         ISettingsProvider<DiscordSettings> discord,
         ISettingsProvider<SpotifySettings> spotify,
         ISettingsProvider<OpenAISettings> openAI,
@@ -63,6 +65,7 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         _time = time;
         _weather = weather;
         _twitch = twitch;
+        _tikTokLive = tikTokLive;
         _discord = discord;
         _spotify = spotify;
         _openAI = openAI;
@@ -122,6 +125,12 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
                 count += ResetIntegration(nameof(IntegrationSettings.IntgrTwitch), nameof(IntegrationSettings.IntgrTwitch_VR), nameof(IntegrationSettings.IntgrTwitch_DESKTOP));
                 restarted |= await RestartIfRunningAsync(_moduleHost.Value.Twitch, () => restartFailed = true).ConfigureAwait(false);
                 return Result("Twitch", count, restarted, restartFailed);
+
+            case "tiktok-live":
+                count += _reset.ResetAll(_tikTokLive);
+                count += ResetIntegration(nameof(IntegrationSettings.IntgrTikTokLive), nameof(IntegrationSettings.IntgrTikTokLive_VR), nameof(IntegrationSettings.IntgrTikTokLive_DESKTOP));
+                restarted |= await RestartIfRunningAsync(_moduleHost.Value.TikTokLive, () => restartFailed = true).ConfigureAwait(false);
+                return Result("TikTok", count, restarted, restartFailed);
 
             case "discord":
                 count += _reset.ResetAll(_discord);

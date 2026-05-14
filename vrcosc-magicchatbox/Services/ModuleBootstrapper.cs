@@ -46,6 +46,7 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TimeSettings> _timeSettingsProvider;
     private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
     private readonly ISettingsProvider<TwitchSettings> _twitchSettingsProvider;
+    private readonly ISettingsProvider<TikTokLiveSettings> _tikTokLiveSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
     private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
@@ -86,6 +87,7 @@ public class ModuleBootstrapper
         ISettingsProvider<TimeSettings> timeSettingsProvider,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         ISettingsProvider<TwitchSettings> twitchSettingsProvider,
+        ISettingsProvider<TikTokLiveSettings> tikTokLiveSettingsProvider,
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
         ISettingsProvider<DiscordSettings> discordSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
@@ -118,6 +120,7 @@ public class ModuleBootstrapper
         _timeSettingsProvider = timeSettingsProvider;
         _integrationSettingsProvider = integrationSettingsProvider;
         _twitchSettingsProvider = twitchSettingsProvider;
+        _tikTokLiveSettingsProvider = tikTokLiveSettingsProvider;
         _trackerSettingsProvider = trackerSettingsProvider;
         _discordSettingsProvider = discordSettingsProvider;
         _spotifySettingsProvider = spotifySettingsProvider;
@@ -189,6 +192,13 @@ public class ModuleBootstrapper
             integrationSettings,
             _dispatcher,
             _toast));
+        var tikTokLive = await CreateRuntimeModuleAsync("TikTokLive", () => new TikTokLiveModule(
+            _tikTokLiveSettingsProvider,
+            _integrationSettingsProvider,
+            _appState,
+            _dispatcher,
+            _consentService,
+            _httpFactory));
         var discord = await CreateRuntimeModuleAsync("Discord", () => new DiscordModule(
             _discordSettingsProvider,
             _oscSender,
@@ -239,6 +249,13 @@ public class ModuleBootstrapper
             {
                 _host.Twitch = twitch;
                 _host.RegisterModule(twitch);
+            }
+
+            if (tikTokLive != null)
+            {
+                _host.TikTokLive = tikTokLive;
+                _host.RegisterModule(tikTokLive);
+                integrationSettings.PropertyChanged += tikTokLive.PropertyChangedHandler;
             }
 
             if (discord != null)
@@ -355,6 +372,9 @@ public class ModuleBootstrapper
                 if (soundpad != null)
                     notifier.PropertyChanged += soundpad.PropertyChangedHandler;
 
+                if (tikTokLive != null)
+                    notifier.PropertyChanged += tikTokLive.PropertyChangedHandler;
+
                 if (vrcRadar != null)
                     notifier.PropertyChanged += vrcRadar.PropertyChangedHandler;
 
@@ -414,6 +434,32 @@ public class ModuleBootstrapper
                         vrcRadar.WorldJoinedAt);
                 }
                 catch (Exception ex) { Logging.WriteInfo($"Discord RP startup update failed: {ex.Message}"); }
+            });
+        }
+
+        if (tikTokLive != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _startupComplete.Task;
+                    if (integrationSettings.IntgrTikTokLive)
+                        await tikTokLive.RefreshProfileIfStaleAsync();
+
+                    if (integrationSettings.IntgrTikTokLive
+                        && tikTokLive.Settings.EnableLiveConnector
+                        && tikTokLive.Settings.AutoConnectOnStartup
+                        && tikTokLive.ShouldBeRunning())
+                    {
+                        Logging.WriteInfo("TikTok Live: Auto-starting on startup...");
+                        await tikTokLive.StartAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteInfo($"TikTok Live auto-connect failed: {ex.Message}");
+                }
             });
         }
 

@@ -20,6 +20,7 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     // These are created during staged startup by ModuleBootstrapper
     [ObservableProperty] private IntelliChatModule _intelliChat;
     [ObservableProperty] private TwitchModule _twitch;
+    [ObservableProperty] private TikTokLiveModule _tikTokLive;
     [ObservableProperty] private DiscordModule _discord;
     [ObservableProperty] private SpotifyModule _spotify;
     [ObservableProperty] private VrcLogModule _vrcRadar;

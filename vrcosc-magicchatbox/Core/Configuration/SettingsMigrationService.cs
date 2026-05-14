@@ -435,6 +435,7 @@ public static class SettingsMigrationService
         new("OptionsTabState", "Settings_Time",                "Settings_Time"),
         new("OptionsTabState", "Settings_Weather",             "Settings_Weather"),
         new("OptionsTabState", "Settings_Twitch",              "Settings_Twitch"),
+        new("OptionsTabState", "Settings_TikTokLive",          "Settings_TikTokLive"),
         new("OptionsTabState", "Settings_Discord",             "Settings_Discord"),
         new("OptionsTabState", "Settings_Spotify",             "Settings_Spotify"),
         new("OptionsTabState", "Settings_ComponentStats",      "Settings_ComponentStats"),

@@ -71,6 +71,7 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_Time = false;
     [ObservableProperty] private bool _settings_Weather = false;
     [ObservableProperty] private bool _settings_Twitch = false;
+    [ObservableProperty] private bool _settings_TikTokLive = false;
     [ObservableProperty] private bool _settings_Discord = false;
     [ObservableProperty] private bool _settings_Spotify = false;
     [ObservableProperty] private bool _settings_ComponentStats = false;

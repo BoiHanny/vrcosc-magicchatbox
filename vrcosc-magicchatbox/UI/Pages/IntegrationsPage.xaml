@@ -1426,6 +1426,169 @@
                 </Grid>
             </Border>
         </ListBoxItem>
+        <ListBoxItem Name="TikTokLiveItem" Opacity="{Binding IntegrationDisplay.TikTokLiveOpacity}">
+            <Border Margin="5,0,5,5" CornerRadius="5">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Offset="0" Color="DarkSlateBlue" />
+                        <GradientStop Offset="1" Color="{StaticResource AccentDeepPurpleColor}" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Effect>
+                    <DropShadowEffect
+                        BlurRadius="5"
+                        Direction="-23"
+                        RenderingBias="Performance"
+                        ShadowDepth="0"
+                        Color="DarkBlue" />
+                </Border.Effect>
+                <Grid Margin="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+
+
+                    <Image
+                        Grid.Column="0"
+                        Margin="6"
+                        
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Effect="{StaticResource ImageShadowEffect}"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        Source="/Img/Icons/TikTok_ico.png" />
+
+                    <StackPanel
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,3,0,0"
+                                VerticalAlignment="Center"
+                                Effect="{StaticResource TextBlockShadowEffect}"
+                                FontFamily="Comfortaa Light"
+                                FontSize="20"
+                                Foreground="White"
+                                Text="TikTok"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                FontStyle="Italic"
+                                Foreground="White"
+                                Opacity="0.8"
+                                Text="{Binding Modules.TikTokLive.ProfileStatusText, FallbackValue='Set a TikTok profile username.'}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IntegrationSettings.IntgrTikTokLive, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock
+                                Margin="0,3,0,0"
+                                Effect="{StaticResource TextBlockShadowEffect}"
+                                FontFamily="Comfortaa Light"
+                                FontSize="13"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                TextWrapping="Wrap">
+                                <TextBlock.Foreground>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="White" />
+                                        <GradientStop Offset="1" Color="#FFD9E0FF" />
+                                    </RadialGradientBrush>
+                                </TextBlock.Foreground>
+                                <Run Text="Profile followers can run alone. LIVE is optional for stream overlays; both can combine in your chosen order." />
+                            </TextBlock>
+
+                            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource AccentTealBrush}"
+                                    Text="{Binding Modules.TikTokLive.FollowerCountDisplay, StringFormat='Followers: {0}', FallbackValue='Followers: -'}"
+                                    Visibility="{Binding Modules.TikTokLive.Settings.ShowProfileSummary, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="12,0,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="{Binding Modules.TikTokLive.StatusText, StringFormat='LIVE: {0}', FallbackValue='LIVE: off'}"
+                                    TextTrimming="CharacterEllipsis"
+                                    Visibility="{Binding Modules.TikTokLive.Settings.EnableLiveConnector, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <TextBlock
+                                Margin="0,4,0,0"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="11"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                Text="{Binding Modules.TikTokLive.OutputPreview, StringFormat='Preview: {0}', FallbackValue='Preview: -'}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="2"
+                        Margin="0,5,0,0"
+                        VerticalAlignment="Top">
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,5,0"
+                                Command="{Binding ActivateSettingCommand}"
+                                CommandParameter="Settings_TikTokLive"
+                                Style="{StaticResource CustomizePillButton}" />
+                            <ToggleButton
+                                Width="60"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Content="DESKTOP"
+                                IsChecked="{Binding IntegrationSettings.IntgrTikTokLive_DESKTOP, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButtonDT}" />
+                            <ToggleButton
+                                Width="30"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Content="VR"
+                                IsChecked="{Binding IntegrationSettings.IntgrTikTokLive_VR, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButtonVR}" />
+                        </StackPanel>
+                        <StackPanel
+                            Margin="0,3,0,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <ToggleButton
+                                Width="40"
+                                Height="19"
+                                Margin="0,0,5,0"
+                                VerticalAlignment="Center"
+                                Content="LIVE"
+                                IsChecked="{Binding Modules.TikTokLive.Settings.EnableLiveConnector, Mode=TwoWay}"
+                                Style="{StaticResource GlowyToggleButton}"
+                                ToolTip="Experimental TikTok LIVE connector — off by default; profile followers still work without it" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <CheckBox
+                        Name="TikTokLive_switch"
+                        Grid.Column="3"
+                        Margin="5,0,5,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Click="Update_Click"
+                        IsChecked="{Binding IntegrationSettings.IntgrTikTokLive, Mode=TwoWay}"
+                        Style="{DynamicResource Switch}" />
+                </Grid>
+            </Border>
+        </ListBoxItem>
         <ListBoxItem Name="DiscordItem" Opacity="{Binding IntegrationDisplay.DiscordOpacity}">
             <Border Margin="5,0,5,5" CornerRadius="5">
                 <Border.Background>

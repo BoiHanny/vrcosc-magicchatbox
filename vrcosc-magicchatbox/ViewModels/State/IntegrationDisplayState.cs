@@ -16,7 +16,7 @@ public partial class IntegrationDisplayState : ObservableObject
 {
     public static readonly IReadOnlyList<string> DefaultSortOrder = new[]
     {
-        "Status", "Window", "Twitch", "Discord", "Spotify", "VrcRadar", "HeartRate", "Component",
+        "Status", "Window", "Twitch", "TikTokLive", "Discord", "Spotify", "VrcRadar", "HeartRate", "Component",
         "TrackerBattery", "Network", "Weather", "Time", "Soundpad",
         "MediaLink"
     };
@@ -85,6 +85,7 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _timeOpacity = "1";
     [ObservableProperty] private string _weatherOpacity = "1";
     [ObservableProperty] private string _twitchOpacity = "1";
+    [ObservableProperty] private string _tikTokLiveOpacity = "1";
     [ObservableProperty] private string _discordOpacity = "1";
     [ObservableProperty] private string _vrcRadarOpacity = "1";
     [ObservableProperty] private string _spotifyOpacity = "1";
@@ -121,6 +122,7 @@ public partial class IntegrationDisplayState : ObservableObject
             case "Time": TimeOpacity = opacity; break;
             case "Weather": WeatherOpacity = opacity; break;
             case "Twitch": TwitchOpacity = opacity; break;
+            case "TikTokLive": TikTokLiveOpacity = opacity; break;
             case "Discord": DiscordOpacity = opacity; break;
             case "VrcRadar": VrcRadarOpacity = opacity; break;
             case "Spotify": SpotifyOpacity = opacity; break;
@@ -143,6 +145,7 @@ public partial class IntegrationDisplayState : ObservableObject
         TimeOpacity = "1";
         WeatherOpacity = "1";
         TwitchOpacity = "1";
+        TikTokLiveOpacity = "1";
         DiscordOpacity = "1";
         VrcRadarOpacity = "1";
         SpotifyOpacity = "1";

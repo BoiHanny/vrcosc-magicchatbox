@@ -45,6 +45,7 @@ public partial class OptionsPage : UserControl
             ["Settings_Time"] = OptionsWrapper_Time,
             ["Settings_Weather"] = OptionsWrapper_Weather,
             ["Settings_Twitch"] = OptionsWrapper_Twitch,
+            ["Settings_TikTokLive"] = OptionsWrapper_TikTokLive,
             ["Settings_Discord"] = OptionsWrapper_Discord,
             ["Settings_Spotify"] = OptionsWrapper_Spotify,
             ["Settings_OpenAI"] = OptionsWrapper_OpenAI,

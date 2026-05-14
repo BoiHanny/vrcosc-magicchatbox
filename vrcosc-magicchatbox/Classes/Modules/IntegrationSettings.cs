@@ -22,6 +22,7 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrComponentStats = false;
     [ObservableProperty] private bool _intgrSoundpad = false;
     [ObservableProperty] private bool _intgrTwitch = false;
+    [ObservableProperty] private bool _intgrTikTokLive = false;
     [ObservableProperty] private bool _intgrDiscord = false;
     [ObservableProperty] private bool _intgrSpotify = false;
     [ObservableProperty] private bool _intgrVrcRadar = false;
@@ -60,6 +61,9 @@ public partial class IntegrationSettings : VersionedSettings
 
     [ObservableProperty] private bool _intgrTwitch_VR = true;
     [ObservableProperty] private bool _intgrTwitch_DESKTOP = true;
+
+    [ObservableProperty] private bool _intgrTikTokLive_VR = true;
+    [ObservableProperty] private bool _intgrTikTokLive_DESKTOP = true;
 
     [ObservableProperty] private bool _intgrDiscord_VR = true;
     [ObservableProperty] private bool _intgrDiscord_DESKTOP = true;
