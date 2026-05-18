@@ -56,10 +56,10 @@ If you need any further help `setting up` the program, join our `Discord Server`
 > [!IMPORTANT]
 > **Heart Rate Feature** requires an official `Pulsoid Member` subscription.
 
-## Support
+***
+<img width="1748" height="288" alt="image" src="https://github.com/user-attachments/assets/9f383e0c-409d-474f-bfb8-7c551e3e7dbe" />
 
-If you need more help, feel free to click the button below:
-
+***
 > [!NOTE]
 > **Our support team is here to assist you with any issues!**
 
