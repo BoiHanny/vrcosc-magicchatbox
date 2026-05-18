@@ -14,10 +14,10 @@
 
 ## Installation
 
-[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.075/MagicChatbox-0.9.075.zip)
+[![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/01533802fb696b6dd746b05367fd97a5d9280e6f24cd13fa3032a784a774a290/detection)
 
-- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v0.9.075/MagicChatbox-0.9.075.zip) **the official ZIP-File of MagicChatBox**
+- 🔳 [Download](https://github.com/BoiHanny/vrcosc-magicchatbox/releases) **the official ZIP-File of MagicChatBox**
 - 🔳 [Download](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) **.NET 10.0 from Microsoft**
 - 🔳 Extract the ZIP File into a folder
 - 🔳 Run **MagicChatBox.exe**
