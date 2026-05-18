@@ -13,7 +13,7 @@
 > It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
 
 ***
-<img width="1746" height="140" alt="image" src="https://github.com/user-attachments/assets/a6bf3973-41d3-4502-9ec3-14636e0b4722" />
+<img width="1746" height="286" alt="image" src="https://github.com/user-attachments/assets/a6bf3973-41d3-4502-9ec3-14636e0b4722" />
 ***
 
 [![Download zip](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
