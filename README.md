@@ -29,7 +29,7 @@
 If you need any further help `setting up` the program, join our `Discord Server`.
 
 > [!IMPORTANT]
-> **You need to [enable OSC](https://youtu.be/OHjN_q6RqGY?t=80) inside VRChat in order to have the program working!**
+> **You NEED to [ENABLE OSC](https://youtu.be/o1BdsEYfXqE?si=yn22oVxmPgmWriDm&t=130) inside VRChat in order to have the program working!**
 
 ***
 <img width="1748" height="286" alt="image" src="https://github.com/user-attachments/assets/3327609b-fe38-4d98-b10d-1f8c19d9c096" />
