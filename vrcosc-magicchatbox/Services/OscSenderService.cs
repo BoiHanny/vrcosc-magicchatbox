@@ -17,7 +17,6 @@ public sealed class OscSenderService : IOscSender, IDisposable
 {
     private const string CHATBOX_INPUT = "/chatbox/input";
     private const string CHATBOX_TYPING = "/chatbox/typing";
-    private const int COOLDOWN_DURATION = 1000;
     private const string INPUT_VOICE = "/input/Voice";
     private const int TYPING_DURATION = 2000;
     private static readonly TimeSpan DuplicateKeepAliveInterval = TimeSpan.FromSeconds(12);
@@ -34,11 +33,12 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private UDPSender? _secOscSender;
     private UDPSender? _thirdOscSender;
     private readonly object _senderLock = new();
+    private readonly object _typingLock = new();
 
-    private System.Timers.Timer? _cooldownTimer;
-    private bool _isInCooldown;
     private bool _lastChatboxHadContent;
     private System.Timers.Timer? _typingTimer;
+    private bool _typingIndicatorActive;
+    private long _typingIndicatorVersion;
     private string _lastSentMessageSignature = string.Empty;
     private DateTime _lastSentMessageUtc = DateTime.MinValue;
 
@@ -68,6 +68,8 @@ public sealed class OscSenderService : IOscSender, IDisposable
     {
         if (!_appState.MasterSwitch || _oscDisplay.OscToSent.Length > Core.Constants.OscMaxMessageLength)
             return false;
+
+        await DeactivateTypingIndicatorAsync();
 
         if (string.IsNullOrEmpty(_oscDisplay.OscToSent))
         {
@@ -122,32 +124,39 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     public void SendTypingIndicatorAsync()
     {
-        if (!_appState.MasterSwitch || _isInCooldown)
+        if (!_appState.MasterSwitch)
+        {
+            StopTypingIndicator();
             return;
-
-        _ = ActivateTypingIndicator();
-
-        if (_typingTimer == null)
-        {
-            _typingTimer = new System.Timers.Timer(TYPING_DURATION);
-            _typingTimer.Elapsed += (s, e) =>
-            {
-                _ = DeactivateTypingIndicator();
-                StartCooldown();
-            };
-            _typingTimer.AutoReset = false;
         }
-        else
+
+        bool shouldActivate;
+        long version = 0;
+        lock (_typingLock)
         {
-            _typingTimer.Stop();
+            EnsureTypingTimer();
+            shouldActivate = !_typingIndicatorActive;
+            _typingIndicatorActive = true;
+            if (shouldActivate)
+                version = ++_typingIndicatorVersion;
+            _typingTimer!.Stop();
             _typingTimer.Start();
         }
+
+        _chatStatus.TypingIndicator = true;
+
+        if (shouldActivate)
+            _ = SendTypingIndicatorStateAsync(true, version);
     }
+
+    public void StopTypingIndicator() => _ = DeactivateTypingIndicatorAsync();
 
     public async Task SentClearMessage(int delay)
     {
         if (!_appState.MasterSwitch)
             return;
+
+        await DeactivateTypingIndicatorAsync();
 
         var clearMessage = new OscMessage(CHATBOX_INPUT, "", true, false);
         await SendMessageAsync(clearMessage, delay);
@@ -165,7 +174,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     public void Dispose()
     {
-        _cooldownTimer?.Dispose();
+        StopTypingTimer();
         _typingTimer?.Dispose();
 
         lock (_senderLock)
@@ -235,44 +244,59 @@ public sealed class OscSenderService : IOscSender, IDisposable
         return _appState.MasterSwitch && (TTS.AutoUnmuteTTS || force);
     }
 
-    private void StartCooldown()
+    private void EnsureTypingTimer()
     {
-        if (_cooldownTimer == null)
-        {
-            _cooldownTimer = new System.Timers.Timer(COOLDOWN_DURATION);
-            _cooldownTimer.Elapsed += (s, e) => _isInCooldown = false;
-            _cooldownTimer.AutoReset = false;
-        }
-        else
-        {
-            _cooldownTimer.Stop();
-        }
+        if (_typingTimer != null)
+            return;
 
-        _isInCooldown = true;
-        _cooldownTimer.Start();
+        _typingTimer = new System.Timers.Timer(TYPING_DURATION)
+        {
+            AutoReset = false
+        };
+        _typingTimer.Elapsed += (_, _) => _ = DeactivateTypingIndicatorAsync();
     }
 
-    private async Task ActivateTypingIndicator()
+    private void StopTypingTimer()
     {
-        _chatStatus.TypingIndicator = true;
-
-        await Task.Run(() =>
+        lock (_typingLock)
         {
-            PrimarySender.Send(new OscMessage(CHATBOX_TYPING, true));
-            if (OS.SecOSC) SecondarySender.Send(new OscMessage(CHATBOX_TYPING, true));
-            if (OS.ThirdOSC) TertiarySender.Send(new OscMessage(CHATBOX_TYPING, true));
-        });
+            _typingTimer?.Stop();
+        }
     }
 
-    private async Task DeactivateTypingIndicator()
+    private async Task DeactivateTypingIndicatorAsync()
     {
+        bool shouldDeactivate;
+        long version = 0;
+        lock (_typingLock)
+        {
+            _typingTimer?.Stop();
+            shouldDeactivate = _typingIndicatorActive;
+            _typingIndicatorActive = false;
+            if (shouldDeactivate)
+                version = ++_typingIndicatorVersion;
+        }
+
         _chatStatus.TypingIndicator = false;
 
+        if (shouldDeactivate && _appState.MasterSwitch)
+            await SendTypingIndicatorStateAsync(false, version);
+    }
+
+    private async Task SendTypingIndicatorStateAsync(bool isTyping, long version)
+    {
         await Task.Run(() =>
         {
-            PrimarySender.Send(new OscMessage(CHATBOX_TYPING, false));
-            if (OS.SecOSC) SecondarySender.Send(new OscMessage(CHATBOX_TYPING, false));
-            if (OS.ThirdOSC) TertiarySender.Send(new OscMessage(CHATBOX_TYPING, false));
+            lock (_typingLock)
+            {
+                if (version != _typingIndicatorVersion)
+                    return;
+
+                var message = new OscMessage(CHATBOX_TYPING, isTyping);
+                PrimarySender.Send(message);
+                if (OS.SecOSC) SecondarySender.Send(message);
+                if (OS.ThirdOSC) TertiarySender.Send(message);
+            }
         });
     }
 
