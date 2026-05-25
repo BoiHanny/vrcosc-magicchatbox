@@ -13,6 +13,7 @@ public interface IOscSender
     void SendOscParam(string address, int value);
     void SendOscParam(string address, bool value);
     void SendTypingIndicatorAsync();
+    void StopTypingIndicator();
     Task SentClearMessage(int delay);
     Task ToggleVoice(bool force = false);
 }

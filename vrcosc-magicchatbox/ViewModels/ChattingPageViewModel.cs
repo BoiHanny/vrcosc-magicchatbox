@@ -343,7 +343,11 @@ namespace vrcosc_magicchatbox.ViewModels
                 _chatStatus.ChatTopBarTxt = string.Empty;
             }
 
-            _oscSender.Value.SendTypingIndicatorAsync();
+            if (count > 0)
+                _oscSender.Value.SendTypingIndicatorAsync();
+            else
+                _oscSender.Value.StopTypingIndicator();
+
             UpdateAutocompleteSuggestion(text);
         }
 
