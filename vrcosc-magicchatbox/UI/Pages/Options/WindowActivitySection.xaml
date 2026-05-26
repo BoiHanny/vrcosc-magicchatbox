@@ -644,7 +644,9 @@
                                         HorizontalAlignment="Stretch"
                                         VerticalContentAlignment="Center"
                                         FontSize="15"
+                                        GotKeyboardFocus="ScannedAppTextBox_GotKeyboardFocus"
                                         IsEnabled="{Binding ApplyCustomAppName}"
+                                        LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
                                         Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                                 <!--  Per-app content filter (visible when enabled in settings)  -->
@@ -672,7 +674,9 @@
                                         Padding="4,2"
                                         VerticalContentAlignment="Center"
                                         FontSize="12"
+                                        GotKeyboardFocus="ScannedAppTextBox_GotKeyboardFocus"
                                         IsEnabled="{Binding ContentFilterEnabled}"
+                                        LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
                                         Text="{Binding ContentFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. To remove ' - dif - ' and keep after: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
                                 </StackPanel>
@@ -692,7 +696,9 @@
                                         HorizontalAlignment="Stretch"
                                         VerticalContentAlignment="Center"
                                         FontSize="14"
+                                        GotKeyboardFocus="ScannedAppTextBox_GotKeyboardFocus"
                                         IsEnabled="{Binding UseCustomRegex}"
+                                        LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
                                         Text="{Binding CustomRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         ToolTip="{Binding CustomRegex}" />
                                 </StackPanel>
