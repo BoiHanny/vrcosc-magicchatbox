@@ -24,6 +24,9 @@ public partial class WindowActivityDisplayState : ObservableObject
     private readonly IUiDispatcher _dispatcher;
     private CollectionViewSource? _scannedAppsViewSource;
     private SortProperty _currentSortProperty;
+    private bool _hasActiveSort;
+    private int _scannedAppTextEditDepth;
+    private int _refreshScannedAppsAfterTextEdit;
     private readonly Dictionary<SortProperty, bool> _sortDirection = new()
     {
         { SortProperty.ProcessName, true },
@@ -125,6 +128,7 @@ public partial class WindowActivityDisplayState : ObservableObject
         }
         try
         {
+            _hasActiveSort = true;
             _currentSortProperty = sortProperty;
             var isAscending = _sortDirection[sortProperty];
             _sortDirection[sortProperty] = !isAscending;
@@ -208,7 +212,7 @@ public partial class WindowActivityDisplayState : ObservableObject
 
     private void Resort()
     {
-        if (_currentSortProperty != default)
+        if (_hasActiveSort)
             UpdateSortedApps();
     }
 
@@ -231,12 +235,39 @@ public partial class WindowActivityDisplayState : ObservableObject
 
     private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        if (IsScannedAppTextEditActive)
+        {
+            MarkScannedAppsRefreshAfterTextEdit();
+            return;
+        }
+
         // Debounce/aggregate resort+refresh: many ProcessInfo items emit
         // PropertyChanged events in rapid bursts (focus count tick, title updates).
         // Sorting+refreshing per-event causes UI-thread sort storms and
         // can deadlock against CollectionViewSource refresh.
         ScheduleResortAndRefreshDebounced();
     }
+
+    public void BeginScannedAppTextEdit() => Interlocked.Increment(ref _scannedAppTextEditDepth);
+
+    public void EndScannedAppTextEdit()
+    {
+        int editDepth = Interlocked.Decrement(ref _scannedAppTextEditDepth);
+        if (editDepth > 0)
+            return;
+
+        if (editDepth < 0)
+            Interlocked.Exchange(ref _scannedAppTextEditDepth, 0);
+
+        if (Interlocked.Exchange(ref _refreshScannedAppsAfterTextEdit, 0) == 0)
+            return;
+
+        ScheduleResortAndRefreshDebounced();
+    }
+
+    private bool IsScannedAppTextEditActive => Volatile.Read(ref _scannedAppTextEditDepth) > 0;
+
+    private void MarkScannedAppsRefreshAfterTextEdit() => Interlocked.Exchange(ref _refreshScannedAppsAfterTextEdit, 1);
 
     private void UpdateScannedAppsViewSource()
     {
@@ -368,6 +399,12 @@ public partial class WindowActivityDisplayState : ObservableObject
             await Task.Delay(200, token);
             if (!token.IsCancellationRequested)
             {
+                if (IsScannedAppTextEditActive)
+                {
+                    MarkScannedAppsRefreshAfterTextEdit();
+                    return;
+                }
+
                 Resort();
                 RefreshScannedAppsView();
             }
