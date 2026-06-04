@@ -63,7 +63,12 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
 
 
-        private async void Connect_Click(object sender, RoutedEventArgs e)
+        private void Connect_Click(object sender, RoutedEventArgs e)
+        {
+            _ = HandleConnectAsync();
+        }
+
+        private async Task HandleConnectAsync()
         {
             string token = ExtractAccessToken(Token.Password);
             if (string.IsNullOrWhiteSpace(token))

@@ -10,7 +10,7 @@ public interface IWindowActivityService
 {
     WindowActivitySettings Settings { get; }
     void SaveSettings();
-    string GetForegroundProcessName();
+    Task<string> GetForegroundProcessNameAsync();
     bool IsOSCServerSuspended();
     void KillOSCServer();
     int ResetWindowActivity();

@@ -210,7 +210,6 @@ public partial class DiscordModule : ObservableObject, IModule
                     if (evt == "ERROR")
                         Logging.WriteInfo($"Discord subscribe error: {data}");
                     break;
-
             }
         }
         catch (Exception ex)
@@ -230,19 +229,7 @@ public partial class DiscordModule : ObservableObject, IModule
 
                 if (!string.IsNullOrWhiteSpace(Settings.AccessToken))
                 {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await _ipcClient!.SendAuthenticateAsync(
-                                Settings.AccessToken,
-                                Guid.NewGuid().ToString());
-                        }
-                        catch (Exception ex)
-                        {
-                            Logging.WriteInfo($"Discord AUTHENTICATE send failed: {ex.Message}");
-                        }
-                    });
+                    _ = SendAuthenticateFireAndForget();
                 }
                 break;
 
@@ -305,7 +292,6 @@ public partial class DiscordModule : ObservableObject, IModule
         }
         else
         {
-            // scopes not in AUTHENTICATE response — trust the stored value from OAuth
             hasRpcScope = Settings.HasRpcScope;
             Logging.WriteInfo($"Discord: No scopes in AUTHENTICATE response, using stored HasRpcScope={hasRpcScope}");
         }
@@ -316,20 +302,7 @@ public partial class DiscordModule : ObservableObject, IModule
             return;
         }
 
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                Logging.WriteInfo("Discord: Subscribing to VOICE_CHANNEL_SELECT...");
-                await _ipcClient!.SubscribeAsync("VOICE_CHANNEL_SELECT");
-                Logging.WriteInfo("Discord: Requesting current voice channel...");
-                await _ipcClient.SendGetSelectedVoiceChannelAsync();
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteInfo($"Discord post-auth subscribe failed: {ex.Message}");
-            }
-        });
+        _ = SubscribePostAuthFireAndForget();
     }
 
     private void HandleGetSelectedVoiceChannel(string? evt, JObject? data)
@@ -337,7 +310,6 @@ public partial class DiscordModule : ObservableObject, IModule
         if (evt == "ERROR" || data == null)
         {
             Logging.WriteInfo($"Discord GET_SELECTED_VOICE_CHANNEL error or null data: evt={evt}");
-            // Only clear state if this was NOT a periodic poll (avoid clearing on transient errors)
             if (_currentChannelId == null)
                 ClearVoiceState();
             return;
@@ -351,7 +323,6 @@ public partial class DiscordModule : ObservableObject, IModule
             return;
         }
 
-        // DM/group calls may have null name; fall back to "Call"
         var channelName = data["name"]?.ToString();
         if (string.IsNullOrEmpty(channelName))
             channelName = "Call";
@@ -417,17 +388,7 @@ public partial class DiscordModule : ObservableObject, IModule
             return;
         }
 
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await _ipcClient!.SendGetSelectedVoiceChannelAsync();
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteInfo($"Discord re-fetch channel failed: {ex.Message}");
-            }
-        });
+        _ = SendGetSelectedVoiceChannelFireAndForget();
     }
 
     private void HandleVoiceStateCreate(JObject data)
@@ -484,6 +445,7 @@ public partial class DiscordModule : ObservableObject, IModule
             _userNames[userId] = username;
     }
 
+    private void HandleVoiceStateCreate(JObject data)
     private void HandleVoiceStateDelete(JObject data)
     {
         var user = data["user"];
@@ -520,17 +482,19 @@ public partial class DiscordModule : ObservableObject, IModule
         _speakerDebounce[userId] = cts;
 
         var debounceMs = Math.Clamp(Settings.SpeakerDebounceMs, 100, 5000);
-        _ = Task.Run(async () =>
+        _ = HandleSpeakingStopDebounceAsync(userId, debounceMs, cts);
+    }
+
+    private async Task HandleSpeakingStopDebounceAsync(string userId, int debounceMs, CancellationTokenSource cts)
+    {
+        try
         {
-            try
-            {
-                await Task.Delay(debounceMs, cts.Token);
-                lock (_speakLock) _speakingUserIds.Remove(userId);
-                _speakerDebounce.TryRemove(userId, out _);
-                EmitVoiceStateOsc();
-            }
-            catch (OperationCanceledException) { }
-        });
+            await Task.Delay(debounceMs, cts.Token).ConfigureAwait(false);
+            lock (_speakLock) _speakingUserIds.Remove(userId);
+            _speakerDebounce.TryRemove(userId, out _);
+            EmitVoiceStateOsc();
+        }
+        catch (OperationCanceledException) { }
     }
 
     private void SetVoiceChannel(string channelId, string channelName)
@@ -547,27 +511,10 @@ public partial class DiscordModule : ObservableObject, IModule
         EmitVoiceStateOsc();
         EmitMuteDeafenOsc();
 
-        // Only subscribe to channel events when joining a new channel (not on periodic refresh)
         if (isNewChannel)
         {
             StartChannelRefreshTimer();
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var args = new JObject { ["channel_id"] = channelId };
-                    await _ipcClient!.SubscribeAsync("VOICE_STATE_CREATE", args);
-                    await _ipcClient.SubscribeAsync("VOICE_STATE_UPDATE", args);
-                    await _ipcClient.SubscribeAsync("VOICE_STATE_DELETE", args);
-                    await _ipcClient.SubscribeAsync("SPEAKING_START", args);
-                    await _ipcClient.SubscribeAsync("SPEAKING_STOP", args);
-                    Logging.WriteInfo($"Discord: Subscribed to channel events for {channelId}.");
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteInfo($"Discord channel subscribe failed: {ex.Message}");
-                }
-            });
+            _ = SubscribeToChannelEventsFireAndForget(channelId);
         }
     }
 
@@ -579,19 +526,7 @@ public partial class DiscordModule : ObservableObject, IModule
 
         if (!string.IsNullOrEmpty(oldChannelId) && _ipcClient?.IsConnected == true)
         {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var args = new JObject { ["channel_id"] = oldChannelId };
-                    await UnsubscribeAsync("VOICE_STATE_CREATE", args);
-                    await UnsubscribeAsync("VOICE_STATE_UPDATE", args);
-                    await UnsubscribeAsync("VOICE_STATE_DELETE", args);
-                    await UnsubscribeAsync("SPEAKING_START", args);
-                    await UnsubscribeAsync("SPEAKING_STOP", args);
-                }
-                catch { }
-            });
+            _ = UnsubscribeFromChannelEventsFireAndForget(oldChannelId);
         }
 
         lock (_vcLock) _userIdsInVc.Clear();
@@ -628,17 +563,7 @@ public partial class DiscordModule : ObservableObject, IModule
         if (_ipcClient?.IsConnected != true || _currentChannelId == null)
             return;
 
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await _ipcClient!.SendGetSelectedVoiceChannelAsync();
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteInfo($"Discord channel periodic refresh failed: {ex.Message}");
-            }
-        });
+        _ = SendGetSelectedVoiceChannelFireAndForget();
     }
 
     private void ClearState()
@@ -698,6 +623,7 @@ public partial class DiscordModule : ObservableObject, IModule
 
     private void ResetAllOscParams()
     {
+        if (Settings.SendMuteOsc)
         if (Settings.SendMuteDeafenOsc)
         {
             _oscSender.SendOscParam("/avatar/parameters/DiscordMuted", false);
@@ -741,5 +667,78 @@ public partial class DiscordModule : ObservableObject, IModule
     {
         _dispatcher.BeginInvoke(() => IsRunning = true);
         await _ipcClient!.SendHandshakeAsync(EffectiveVoiceClientId).ConfigureAwait(false);
+    }
+
+    private async Task SendAuthenticateFireAndForget()
+    {
+        try
+        {
+            await _ipcClient!.SendAuthenticateAsync(
+                Settings.AccessToken,
+                Guid.NewGuid().ToString()).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Discord AUTHENTICATE send failed: {ex.Message}");
+        }
+    }
+
+    private async Task SubscribePostAuthFireAndForget()
+    {
+        try
+        {
+            Logging.WriteInfo("Discord: Subscribing to VOICE_CHANNEL_SELECT...");
+            await _ipcClient!.SubscribeAsync("VOICE_CHANNEL_SELECT").ConfigureAwait(false);
+            Logging.WriteInfo("Discord: Requesting current voice channel...");
+            await _ipcClient.SendGetSelectedVoiceChannelAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Discord post-auth subscribe failed: {ex.Message}");
+        }
+    }
+
+    private async Task SendGetSelectedVoiceChannelFireAndForget()
+    {
+        try
+        {
+            await _ipcClient!.SendGetSelectedVoiceChannelAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Discord re-fetch channel failed: {ex.Message}");
+        }
+    }
+
+    private async Task SubscribeToChannelEventsFireAndForget(string channelId)
+    {
+        try
+        {
+            var args = new JObject { ["channel_id"] = channelId };
+            await _ipcClient!.SubscribeAsync("VOICE_STATE_CREATE", args).ConfigureAwait(false);
+            await _ipcClient.SubscribeAsync("VOICE_STATE_UPDATE", args).ConfigureAwait(false);
+            await _ipcClient.SubscribeAsync("VOICE_STATE_DELETE", args).ConfigureAwait(false);
+            await _ipcClient.SubscribeAsync("SPEAKING_START", args).ConfigureAwait(false);
+            await _ipcClient.SubscribeAsync("SPEAKING_STOP", args).ConfigureAwait(false);
+            Logging.WriteInfo($"Discord: Subscribed to channel events for {channelId}.");
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Discord channel subscribe failed: {ex.Message}");
+        }
+    }
+
+    private async Task UnsubscribeFromChannelEventsFireAndForget(string oldChannelId)
+    {
+        try
+        {
+            var args = new JObject { ["channel_id"] = oldChannelId };
+            await UnsubscribeAsync("VOICE_STATE_CREATE", args).ConfigureAwait(false);
+            await UnsubscribeAsync("VOICE_STATE_UPDATE", args).ConfigureAwait(false);
+            await UnsubscribeAsync("VOICE_STATE_DELETE", args).ConfigureAwait(false);
+            await UnsubscribeAsync("SPEAKING_START", args).ConfigureAwait(false);
+            await UnsubscribeAsync("SPEAKING_STOP", args).ConfigureAwait(false);
+        }
+        catch { }
     }
 }

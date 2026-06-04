@@ -96,12 +96,7 @@ namespace vrcosc_magicchatbox
                 // Startup is already ending; continue with normal shutdown.
             }
 
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-                if (Application.Current?.Dispatcher.HasShutdownFinished != true)
-                    Environment.Exit(0);
-            });
+            _ = HandleShutdownTimeoutAsync();
 
             Application.Current.Shutdown();
         }
@@ -112,6 +107,12 @@ namespace vrcosc_magicchatbox
             {
                 DragMove();
             }
+        }
+        private async Task HandleShutdownTimeoutAsync()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            if (Application.Current?.Dispatcher.HasShutdownFinished != true)
+                Environment.Exit(0);
         }
     }
 }

@@ -191,23 +191,12 @@ public partial class AfkModule : ObservableObject, IModule
     /// </summary>
     public string GenerateAFKString()
     {
-        string afkString = "";
+        string prefix = Settings.ShowPrefixIcon ? $"{Settings.AfkPrefix} " : string.Empty;
+        string message = (Settings.ShowAFKTime && !string.IsNullOrEmpty(TimeCurrentlyAFK))
+            ? $"{Settings.AfkMessageForTimeStamp}{TimeCurrentlyAFK}"
+            : Settings.AfkMessageWithoutTimeStamp;
 
-        if (Settings.ShowPrefixIcon)
-        {
-            afkString += Settings.AfkPrefix + " ";
-        }
-
-        if (Settings.ShowAFKTime && TimeCurrentlyAFK != null)
-        {
-            afkString += Settings.AfkMessageForTimeStamp + TimeCurrentlyAFK;
-        }
-        else
-        {
-            afkString += Settings.AfkMessageWithoutTimeStamp;
-        }
-
-        return afkString.Replace("\\n", "\n").Replace("/n", "\n");
+        return $"{prefix}{message}".Replace("\\n", "\n").Replace("/n", "\n");
     }
 
     private void InitializeAfkDetection()
@@ -329,7 +318,7 @@ public partial class AfkModule : ObservableObject, IModule
     /// </summary>
     public static string FormatDuration(TimeSpan duration, bool useSmallLetters)
     {
-        var parts = new List<string>();
+        var sb = new System.Text.StringBuilder();
 
         int years = duration.Days / 365;
         int months = (duration.Days % 365) / 30;
@@ -344,32 +333,32 @@ public partial class AfkModule : ObservableObject, IModule
 
         if (years > 0)
         {
-            parts.Add($"{years}{yearUnit}");
+            sb.Append(years).Append(yearUnit).Append(' ');
         }
 
         if (months > 0)
         {
-            parts.Add($"{months}{monthUnit}");
+            sb.Append(months).Append(monthUnit).Append(' ');
         }
 
         if (days > 0)
         {
-            parts.Add($"{days}{dayUnit}");
+            sb.Append(days).Append(dayUnit).Append(' ');
         }
 
         if (duration.Hours > 0 || years > 0 || months > 0 || days > 0)
         {
-            parts.Add($"{duration.Hours}{hourUnit}");
+            sb.Append(duration.Hours).Append(hourUnit).Append(' ');
         }
 
         if (duration.Minutes > 0 || duration.Hours > 0 || years > 0 || months > 0 || days > 0)
         {
-            parts.Add($"{duration.Minutes}{minuteUnit}");
+            sb.Append(duration.Minutes).Append(minuteUnit).Append(' ');
         }
 
-        parts.Add($"{duration.Seconds}{secondUnit}");
+        sb.Append(duration.Seconds).Append(secondUnit);
 
-        return string.Join(" ", parts);
+        return sb.ToString().TrimEnd();
     }
 
     private uint GetIdleTime()

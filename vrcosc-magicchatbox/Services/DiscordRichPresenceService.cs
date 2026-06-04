@@ -67,8 +67,8 @@ public sealed class DiscordRichPresenceService : IDisposable
         if (!EnsureClient())
             return Task.CompletedTask;
 
-        var details = ReplacePlaceholders(_settings.RichPresenceDetails, _lastSnapshot);
-        var state = ReplacePlaceholders(_settings.RichPresenceState, _lastSnapshot);
+        var details = await ReplacePlaceholders(_settings.RichPresenceDetails, _lastSnapshot);
+        var state = await ReplacePlaceholders(_settings.RichPresenceState, _lastSnapshot);
         string clientId = ResolveClientId();
         string signature = string.Join('\u001f',
             clientId,
@@ -262,7 +262,7 @@ public sealed class DiscordRichPresenceService : IDisposable
             : $"{trimmed[..3]}***{trimmed[^3..]}";
     }
 
-    private string ReplacePlaceholders(string template, PresenceSnapshot snapshot)
+    private async Task<string> ReplacePlaceholders(string template, PresenceSnapshot snapshot)
     {
         string media = BuildMediaText();
         string mode = _appState.IsVRRunning ? "VR" : "Desktop";
@@ -276,6 +276,7 @@ public sealed class DiscordRichPresenceService : IDisposable
         string region = string.IsNullOrWhiteSpace(snapshot.Region)
             ? "Local"
             : snapshot.Region;
+        string windowActivity = await GetWindowActivityText();
 
         return (template ?? string.Empty)
             .Replace("{world}", world)
@@ -291,7 +292,7 @@ public sealed class DiscordRichPresenceService : IDisposable
             .Replace("{worlds}", GetVrcRadarValue(m => m.WorldsVisited).ToString())
             .Replace("{heart_rate}", GetHeartRateText())
             .Replace("{cpu}", GetStatText())
-            .Replace("{window}", GetWindowActivityText())
+            .Replace("{window}", windowActivity)
             .Replace("{weather}", GetWeatherText())
             .Replace("{network}", GetNetworkText())
             .Replace("{viewers}", GetTwitchViewers())
@@ -353,11 +354,11 @@ public sealed class DiscordRichPresenceService : IDisposable
         catch { return string.Empty; }
     }
 
-    private string GetWindowActivityText()
+    private async Task<string> GetWindowActivityText()
     {
         try
         {
-            return _windowActivity.Value.GetForegroundProcessName();
+            return await _windowActivity.Value.GetForegroundProcessNameAsync();
         }
         catch { return string.Empty; }
     }

@@ -228,15 +228,12 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     private async Task SendMessageAsync(OscMessage message, int delay)
     {
-        await Task.Run(async () =>
-        {
-            if (delay > 0)
-                await Task.Delay(delay);
+        if (delay > 0)
+            await Task.Delay(delay);
 
-            PrimarySender.Send(message);
-            if (OS.SecOSC) SecondarySender.Send(message);
-            if (OS.ThirdOSC) TertiarySender.Send(message);
-        });
+        PrimarySender.Send(message);
+        if (OS.SecOSC) SecondarySender.Send(message);
+        if (OS.ThirdOSC) TertiarySender.Send(message);
     }
 
     private bool ShouldToggleVoice(bool force)
@@ -285,44 +282,39 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     private async Task SendTypingIndicatorStateAsync(bool isTyping, long version)
     {
-        await Task.Run(() =>
+        lock (_typingLock)
         {
-            lock (_typingLock)
-            {
-                if (version != _typingIndicatorVersion)
-                    return;
+            if (version != _typingIndicatorVersion)
+                return;
 
-                var message = new OscMessage(CHATBOX_TYPING, isTyping);
-                PrimarySender.Send(message);
-                if (OS.SecOSC) SecondarySender.Send(message);
-                if (OS.ThirdOSC) TertiarySender.Send(message);
-            }
-        });
+            var message = new OscMessage(CHATBOX_TYPING, isTyping);
+            PrimarySender.Send(message);
+            if (OS.SecOSC) SecondarySender.Send(message);
+            if (OS.ThirdOSC) TertiarySender.Send(message);
+        }
+        await Task.CompletedTask;
     }
 
     private async Task ToggleVoiceAsync()
     {
-        await Task.Run(() =>
-        {
-            if (OS.UnmuteMainOutput)
-                PrimarySender.Send(new OscMessage(INPUT_VOICE, 1));
-            if (OS.SecOSC && OS.UnmuteSecOutput)
-                SecondarySender.Send(new OscMessage(INPUT_VOICE, 1));
-            if (OS.ThirdOSC && OS.UnmuteThirdOutput)
-                TertiarySender.Send(new OscMessage(INPUT_VOICE, 1));
+        if (OS.UnmuteMainOutput)
+            PrimarySender.Send(new OscMessage(INPUT_VOICE, 1));
+        if (OS.SecOSC && OS.UnmuteSecOutput)
+            SecondarySender.Send(new OscMessage(INPUT_VOICE, 1));
+        if (OS.ThirdOSC && OS.UnmuteThirdOutput)
+            TertiarySender.Send(new OscMessage(INPUT_VOICE, 1));
 
-            _ttsAudio.TTSBtnShadow = true;
-            Thread.Sleep(100);
+        _ttsAudio.TTSBtnShadow = true;
+        await Task.Delay(100);
 
-            if (OS.UnmuteMainOutput)
-                PrimarySender.Send(new OscMessage(INPUT_VOICE, 0));
-            if (OS.SecOSC && OS.UnmuteSecOutput)
-                SecondarySender.Send(new OscMessage(INPUT_VOICE, 0));
-            if (OS.ThirdOSC && OS.UnmuteThirdOutput)
-                TertiarySender.Send(new OscMessage(INPUT_VOICE, 0));
+        if (OS.UnmuteMainOutput)
+            PrimarySender.Send(new OscMessage(INPUT_VOICE, 0));
+        if (OS.SecOSC && OS.UnmuteSecOutput)
+            SecondarySender.Send(new OscMessage(INPUT_VOICE, 0));
+        if (OS.ThirdOSC && OS.UnmuteThirdOutput)
+            TertiarySender.Send(new OscMessage(INPUT_VOICE, 0));
 
-            _ttsAudio.TTSBtnShadow = false;
-        });
+        _ttsAudio.TTSBtnShadow = false;
     }
 
     private UDPSender PrimarySender
