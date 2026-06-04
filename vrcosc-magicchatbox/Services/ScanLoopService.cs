@@ -43,7 +43,7 @@ public sealed class ScanLoopService : IDisposable
     private DateTime _lastWindowActivityUtc = DateTime.MinValue;
     private int _windowActivityInFlight;
     private string? _lastFormattedCurrentTime;
-    private int _isProcessing;
+    private bool _isProcessing;
     private bool _disposed;
     private int _tickQueued;
 
@@ -157,7 +157,8 @@ public sealed class ScanLoopService : IDisposable
     public async Task Scantick(bool firstRun = false)
     {
         if (!_started || _disposed) return;
-        if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) != 0) return;
+        if (_isProcessing) return;
+        _isProcessing = true;
 
         try
         {
@@ -205,7 +206,7 @@ public sealed class ScanLoopService : IDisposable
         }
         finally
         {
-            Interlocked.Exchange(ref _isProcessing, 0);
+            _isProcessing = false;
         }
     }
 
@@ -221,7 +222,7 @@ public sealed class ScanLoopService : IDisposable
             {
                 tasks.Add(_faultTracker.RunGuardedAsync(
                     "VRCheck",
-                    () => Task.FromResult(_statsModule.Value.IsVRRunning()),
+                    () => Task.Run(() => _statsModule.Value.IsVRRunning()),
                     VrCheckTimeout));
                 _lastVrCheckUtc = DateTime.UtcNow;
             }
@@ -261,8 +262,8 @@ public sealed class ScanLoopService : IDisposable
     {
         try
         {
-            var windowName = await _windowActivity.GetForegroundProcessNameAsync().ConfigureAwait(false);
-            _dispatcher.BeginInvoke(() => _chatStatus.FocusedWindow = windowName);
+            _chatStatus.FocusedWindow = await Task.Run(
+                () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
         }
         finally
         {
@@ -272,14 +273,15 @@ public sealed class ScanLoopService : IDisposable
 
     private async Task UpdateCurrentTimeAsync()
     {
-        var formatted = _timeFormatting.GetFormattedCurrentTime();
+        var formatted = await Task.Run(
+            () => _timeFormatting.GetFormattedCurrentTime()).ConfigureAwait(false);
 
         // Skip the UI-bound property set when nothing changed — avoids spurious
         // PropertyChanged notifications on sub-second scan intervals.
         if (!string.Equals(formatted, _lastFormattedCurrentTime, StringComparison.Ordinal))
         {
             _lastFormattedCurrentTime = formatted;
-            _dispatcher.BeginInvoke(() => _integrationDisplay.CurrentTime = formatted);
+            _integrationDisplay.CurrentTime = formatted;
         }
     }
 

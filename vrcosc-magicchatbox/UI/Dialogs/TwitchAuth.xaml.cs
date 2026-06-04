@@ -99,12 +99,7 @@ public partial class TwitchAuth : Window
         StatusText.Text = string.Empty;
     }
 
-    private void TestConnection_Click(object sender, RoutedEventArgs e)
-    {
-        _ = HandleTestConnectionAsync();
-    }
-
-    private async Task HandleTestConnectionAsync()
+    private async void TestConnection_Click(object sender, RoutedEventArgs e)
     {
         TestConnection.IsEnabled = false;
         SaveAndClose.IsEnabled = false;

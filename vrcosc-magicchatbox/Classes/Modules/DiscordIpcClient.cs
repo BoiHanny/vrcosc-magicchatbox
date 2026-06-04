@@ -240,7 +240,6 @@ public sealed class DiscordIpcClient : IDisposable
         Disconnect();
         _readCts?.Dispose();
         _reconnectCts?.Dispose();
-        _writeLock.Dispose();
     }
 
     private async Task WriteFrameAsync(int opcode, JObject payload)

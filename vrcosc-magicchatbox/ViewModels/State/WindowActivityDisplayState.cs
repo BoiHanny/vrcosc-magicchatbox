@@ -104,9 +104,9 @@ public partial class WindowActivityDisplayState : ObservableObject
         _dispatcher.Invoke(InitializeScannedAppsViewSource);
     }
 
-    partial void OnAppFilterTextChanged(string value) => _ = RefreshScannedAppsViewDebouncedAsync();
+    partial void OnAppFilterTextChanged(string value) => RefreshScannedAppsViewDebounced();
 
-    partial void OnShowImportantAppsOnlyChanged(bool value) => _ = RefreshScannedAppsViewDebouncedAsync();
+    partial void OnShowImportantAppsOnlyChanged(bool value) => RefreshScannedAppsViewDebounced();
 
     partial void OnMinimumFocusCountChanged(int value)
     {
@@ -116,7 +116,7 @@ public partial class WindowActivityDisplayState : ObservableObject
             return;
         }
 
-        _ = RefreshScannedAppsViewDebouncedAsync();
+        RefreshScannedAppsViewDebounced();
     }
 
     public void SortScannedApps(SortProperty sortProperty)
@@ -245,7 +245,7 @@ public partial class WindowActivityDisplayState : ObservableObject
         // PropertyChanged events in rapid bursts (focus count tick, title updates).
         // Sorting+refreshing per-event causes UI-thread sort storms and
         // can deadlock against CollectionViewSource refresh.
-        _ = ScheduleResortAndRefreshDebouncedAsync();
+        ScheduleResortAndRefreshDebounced();
     }
 
     public void BeginScannedAppTextEdit() => Interlocked.Increment(ref _scannedAppTextEditDepth);
@@ -262,7 +262,7 @@ public partial class WindowActivityDisplayState : ObservableObject
         if (Interlocked.Exchange(ref _refreshScannedAppsAfterTextEdit, 0) == 0)
             return;
 
-        _ = ScheduleResortAndRefreshDebouncedAsync();
+        ScheduleResortAndRefreshDebounced();
     }
 
     private bool IsScannedAppTextEditActive => Volatile.Read(ref _scannedAppTextEditDepth) > 0;
@@ -358,7 +358,7 @@ public partial class WindowActivityDisplayState : ObservableObject
     private CancellationTokenSource? _filterDebounceCts;
     private CancellationTokenSource? _itemChangeDebounceCts;
 
-    private async Task RefreshScannedAppsViewDebouncedAsync()
+    private async void RefreshScannedAppsViewDebounced()
     {
         var nextCts = new CancellationTokenSource();
         var previousCts = Interlocked.Exchange(ref _filterDebounceCts, nextCts);
@@ -382,7 +382,7 @@ public partial class WindowActivityDisplayState : ObservableObject
         }
     }
 
-    private async Task ScheduleResortAndRefreshDebouncedAsync()
+    private async void ScheduleResortAndRefreshDebounced()
     {
         var nextCts = new CancellationTokenSource();
         var previousCts = Interlocked.Exchange(ref _itemChangeDebounceCts, nextCts);

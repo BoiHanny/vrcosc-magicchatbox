@@ -221,22 +221,25 @@ public partial class SoundpadModule : ObservableObject, IModule
             }
             if (!_isInitialized && IsSoundpadRunning)
             {
-                InitializeSoundpadModule();
+                InitializeSoundpadModuleAsync();
             }
             StartModule();
         }
     }
 
-    private void InitializeSoundpadModule()
+    private async Task InitializeSoundpadModuleAsync()
     {
-        UpdateSoundpadState(true);
-        if (IsSoundpadRunning && string.IsNullOrEmpty(_soundpadLocation))
+        await System.Threading.Tasks.Task.Run(() =>
         {
-            _soundpadLocation = GetSoundpadLocation();
-            EnablePanel = true;
-            _isInitialized = true;
-        }
-        InitializeAndStartModuleIfNeeded();
+            UpdateSoundpadState(true);
+            if (IsSoundpadRunning && string.IsNullOrEmpty(_soundpadLocation))
+            {
+                _soundpadLocation = GetSoundpadLocation();
+                EnablePanel = true;
+                _isInitialized = true;
+            }
+            InitializeAndStartModuleIfNeeded();
+        });
     }
 
     private void UpdateCurrentState(string title)

@@ -95,7 +95,7 @@ public sealed class OscOutputBuilder
                 return;
             }
 
-            if (segment == null || string.IsNullOrWhiteSpace(segment.Text))
+            if (segment == null || string.IsNullOrEmpty(segment.Text))
                 return;
 
             string text = ExpandNewlines(segment.Text);
@@ -147,9 +147,7 @@ public sealed class OscOutputBuilder
 
         string finalMessage = collected.Count > 0
             ? AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix)
-            : (string.IsNullOrEmpty(prefix) && string.IsNullOrEmpty(suffix))
-                ? string.Empty
-                : $"{prefix}{suffix}";
+            : string.Empty;
 
         // Hard safety net: even with pathological prefix/suffix/separator sizes,
         // we must never exceed the OSC chatbox limit. Trim loop above is the
