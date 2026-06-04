@@ -202,13 +202,14 @@ public partial class VrcLogModule : ObservableObject, IModule
         _consentService = consentService;
         _toast = toast;
 
-        Settings.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(VrcLogSettings.MinEncounterCount))
-                _dispatcher.BeginInvoke(RefreshEncounterFilter);
-        };
-
+        Settings.PropertyChanged += OnSettingsChanged;
         _consentService.ConsentChanged += OnConsentChanged;
+    }
+
+    private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(VrcLogSettings.MinEncounterCount))
+            _dispatcher.BeginInvoke(RefreshEncounterFilter);
     }
 
     private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
@@ -277,6 +278,9 @@ public partial class VrcLogModule : ObservableObject, IModule
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = null;
+
+        Settings.PropertyChanged -= OnSettingsChanged;
+        _consentService.ConsentChanged -= OnConsentChanged;
     }
 
 
@@ -1037,22 +1041,24 @@ public partial class VrcLogModule : ObservableObject, IModule
             _pulseSequence[address] = seq;
         }
 
-        Task.Run(async () =>
-        {
-            try
-            {
-                _oscSender.SendOscParam(address, true);
-                await Task.Delay(150);
+        _ = SendOscPulseAsync(address, seq);
+    }
 
-                lock (_pulseSequence)
-                {
-                    if (_pulseSequence.TryGetValue(address, out int latest) && latest != seq)
-                        return;
-                }
-                _oscSender.SendOscParam(address, false);
+    private async Task SendOscPulseAsync(string address, int seq)
+    {
+        try
+        {
+            _oscSender.SendOscParam(address, true);
+            await Task.Delay(150).ConfigureAwait(false);
+
+            lock (_pulseSequence)
+            {
+                if (_pulseSequence.TryGetValue(address, out int latest) && latest != seq)
+                    return;
             }
-            catch { /* OSC send failures are non-fatal */ }
-        });
+            _oscSender.SendOscParam(address, false);
+        }
+        catch { /* OSC send failures are non-fatal */ }
     }
 
     /// <summary>
@@ -1241,6 +1247,7 @@ public partial class VrcLogModule : ObservableObject, IModule
     {
         lock (_stateLock)
         {
+            _userIdToName.Clear();
             _currentRoomPlayers.Clear();
             _inBootstrapMode = false;
             _transientMessage = string.Empty;

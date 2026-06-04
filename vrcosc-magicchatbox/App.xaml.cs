@@ -48,7 +48,7 @@ namespace vrcosc_magicchatbox
         private static IntegrationSettings _integrationSettings => _lazyIntgr.Value;
 
         private static readonly Lazy<WeatherSettings> _lazyWeatherSettings = new(() =>
-            Services.GetRequiredService<ISettingsProvider<WeatherSettings>>().Value);
+            Services.GetRequiredService<Setti ngsProvider<WeatherSettings>>().Value);
         private static WeatherSettings _weatherSettings => _lazyWeatherSettings.Value;
 
         public static IMediaLinkService ApplicationMediaController { get; private set; }
@@ -65,9 +65,14 @@ namespace vrcosc_magicchatbox
 
         public static MainWindow mainWindow;
 
-        protected override async void OnStartup(StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            _ = StartupAsync(e);
+        }
+
+        private async Task StartupAsync(StartupEventArgs e)
+        {
             _startupStopwatch.Start();
             LogStartupPhase($"Process started. PID={Environment.ProcessId}, Args='{string.Join(" ", e.Args ?? Array.Empty<string>())}'.");
 
@@ -659,8 +664,6 @@ namespace vrcosc_magicchatbox
             return true;
         }
 
-
-
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
             if (!ShouldLogFirstChanceException(e.Exception))
@@ -714,8 +717,6 @@ namespace vrcosc_magicchatbox
             Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true, log: false);
         }
 
-
-
         private void InitializeUserMonitoring()
         {
             var allowedService = Services.GetRequiredService<IAllowedForUsingService>();
@@ -728,7 +729,6 @@ namespace vrcosc_magicchatbox
             };
             allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval);
         }
-
 
         private async Task RunOptionalStartupTaskAsync(
             string taskName,

@@ -301,7 +301,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
 
-    private string GetNameFromAutomationElement(IntPtr hwnd)
+    private async Task<string> GetNameFromAutomationElementAsync(IntPtr hwnd)
     {
         try
         {
@@ -313,15 +313,16 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 return element?.Current.Name ?? "Unknown";
             });
 
-            if (task.Wait(TimeSpan.FromSeconds(2)))
-                return task.Result;
+            var completedTask = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(2)));
+            if (completedTask == task)
+                return await task;
 
             return "Unknown"; // Timed out — app is likely hung
         }
         catch (Exception ex)
         {
             WA.ErrorInWindowActivity = true;
-            string errormsg = $"Error in GetNameFromAutomationElement (HandleID:{hwnd}): {ex.Message}";
+            string errormsg = $"Error in GetNameFromAutomationElementAsync (HandleID:{hwnd}): {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
             FireWaErrorToast();
@@ -355,7 +356,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return processName;
     }
 
-    private string GetProcessName(IntPtr hwnd, Process process, int attempts)
+    private async Task<string> GetProcessNameAsync(IntPtr hwnd, Process process, int attempts)
     {
 
 
@@ -364,7 +365,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         {
             if (process.ProcessName == "ApplicationFrameHost" && Settings.ApplicationHookV2)
             {
-                processName = GetNameFromAutomationElement(hwnd);
+                processName = await GetNameFromAutomationElementAsync(hwnd);
                 _usedNewMethod = true;
             }
             else
@@ -506,7 +507,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
 
 
-    public string GetForegroundProcessName()
+    public async Task<string> GetForegroundProcessNameAsync()
     {
         if (!_consentService.IsApproved(PrivacyHook.WindowActivity))
             return "'An app'";
@@ -539,7 +540,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                     continue;
                 }
 
-                string processName = GetProcessName(hwnd, process, attempt);
+                string processName = await GetProcessNameAsync(hwnd, process, attempt);
                 string windowTitle = "";
 
                 ProcessInfo existingProcessInfo = null;
