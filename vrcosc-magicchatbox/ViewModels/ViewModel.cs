@@ -187,7 +187,7 @@ namespace vrcosc_magicchatbox.ViewModels
                     _httpClientFactory,
                     _dispatcher,
                     true);
-                _ = updateApp.PrepareUpdate();
+                Task.Run(() => updateApp.PrepareUpdate());
             }
             else
             {

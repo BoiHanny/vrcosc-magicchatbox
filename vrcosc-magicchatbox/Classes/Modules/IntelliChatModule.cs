@@ -79,7 +79,18 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             if (!message.ShowPermanently)
             {
-                _ = AutoHideLabelAsync();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(Core.Constants.IntelliChatAutoHideDelay);
+                        _dispatcher.BeginInvoke(() => Settings.IntelliChatUILabel = false);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"IntelliChat auto-hide failed: {ex.Message}");
+                    }
+                });
             }
         }
         catch (Exception ex)
@@ -363,19 +374,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         else if (!hasError)
         {
             _intelliChatErrorShown = false;
-        }
-    }
-
-    private async Task AutoHideLabelAsync()
-    {
-        try
-        {
-            await Task.Delay(Core.Constants.IntelliChatAutoHideDelay);
-            _dispatcher.BeginInvoke(() => Settings.IntelliChatUILabel = false);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"IntelliChat auto-hide failed: {ex.Message}");
         }
     }
 

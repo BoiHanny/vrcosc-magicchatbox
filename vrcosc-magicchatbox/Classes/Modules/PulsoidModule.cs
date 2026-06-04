@@ -94,35 +94,8 @@ public partial class PulsoidModule : ObservableObject, IModule
     public bool IsEnabled { get; set; } = true;
     public bool IsRunning => isMonitoringStarted;
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
-    public async Task StartAsync(CancellationToken ct = default)
-    {
-        _client.HeartRateReceived += OnHeartRateReceived;
-        _client.ConnectionFailed += OnConnectionFailed;
-        _client.ConnectionStateChanged += OnConnectionStateChanged;
-
-        if (_processDataTimer == null)
-        {
-            _processDataTimer = new System.Timers.Timer
-            {
-                AutoReset = true,
-                Interval = 1000
-            };
-            _processDataTimer.Elapsed += (sender, e) =>
-            {
-                _dispatcher.BeginInvoke(() => _ = ProcessDataAsync());
-            };
-        }
-
-        await CheckMonitoringConditionsAsync(ct).ConfigureAwait(false);
-    }
-    public async Task StopAsync(CancellationToken ct = default)
-    {
-        _client.HeartRateReceived -= OnHeartRateReceived;
-        _client.ConnectionFailed -= OnConnectionFailed;
-        _client.ConnectionStateChanged -= OnConnectionStateChanged;
-
-        await StopMonitoringHeartRateAsync(ct).ConfigureAwait(false);
-    }
+    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public async Task StopAsync(CancellationToken ct = default) { await StopMonitoringHeartRateAsync(); }
     public void SaveSettings() => Settings?.SaveSettings();
 
     public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, IEnvironmentService env, IToastService? toast = null)
@@ -138,6 +111,23 @@ public partial class PulsoidModule : ObservableObject, IModule
         Settings = PulsoidModuleSettings.LoadSettings(settingsPath);
         RefreshTrendSymbols();
         RefreshTimeRanges();
+
+        // Subscribe to client events (fire on background threads — marshal to UI where needed)
+        _client.HeartRateReceived += OnHeartRateReceived;
+        _client.ConnectionFailed += OnConnectionFailed;
+        _client.ConnectionStateChanged += OnConnectionStateChanged;
+
+        _processDataTimer = new System.Timers.Timer
+        {
+            AutoReset = true,
+            Interval = 1000
+        };
+        _processDataTimer.Elapsed += (sender, e) =>
+        {
+            _dispatcher.BeginInvoke(() => _ = ProcessDataAsync());
+        };
+
+        _ = CheckMonitoringConditionsAsync();
     }
 
     private void OnHeartRateReceived(int rawHR)
@@ -231,17 +221,17 @@ public partial class PulsoidModule : ObservableObject, IModule
         return slope;
     }
 
-    private async Task CheckMonitoringConditionsAsync(CancellationToken ct)
+    private async Task CheckMonitoringConditionsAsync()
     {
         try
         {
             if (ShouldStartMonitoring() && !isMonitoringStarted)
             {
-                await StartMonitoringHeartRateAsync(ct).ConfigureAwait(false);
+                await StartMonitoringHeartRateAsync().ConfigureAwait(false);
             }
             else if (!ShouldStartMonitoring())
             {
-                await StopMonitoringHeartRateAsync(ct).ConfigureAwait(false);
+                await StopMonitoringHeartRateAsync();
             }
         }
         catch (Exception ex)
@@ -379,14 +369,14 @@ public partial class PulsoidModule : ObservableObject, IModule
         }
     }
 
-    private async Task StartMonitoringHeartRateAsync(CancellationToken ct)
+    private async Task StartMonitoringHeartRateAsync()
     {
         if (isMonitoringStarted)
         {
             if (_client.IsConnected)
                 return;
 
-            await StopMonitoringHeartRateAsync(ct).ConfigureAwait(false);
+            await StopMonitoringHeartRateAsync();
         }
 
         if (_cts != null)
@@ -429,7 +419,7 @@ public partial class PulsoidModule : ObservableObject, IModule
             return;
         }
 
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var cts = new CancellationTokenSource();
         _cts = cts;
         UpdateFormattedHeartRateText();
 
@@ -437,7 +427,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         {
             await _client.ConnectAsync(accessToken, cts.Token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
         }
         catch (Exception ex)
@@ -448,17 +438,21 @@ public partial class PulsoidModule : ObservableObject, IModule
                 PulsoidAccessErrorTxt = ex.Message;
             });
             Logging.WriteException(ex);
-
-            isMonitoringStarted = false;
+        }
+        finally
+        {
+            // Only clean up if this is still the active attempt (avoids disposing a newer CTS)
             if (ReferenceEquals(_cts, cts))
             {
                 cts.Dispose();
                 _cts = null;
+                isMonitoringStarted = false;
+                _pulsoidErrorShown = false;
             }
         }
     }
 
-    private async Task StopMonitoringHeartRateAsync(CancellationToken ct = default)
+    private async Task StopMonitoringHeartRateAsync()
     {
         if (_cts != null)
         {
@@ -467,14 +461,7 @@ public partial class PulsoidModule : ObservableObject, IModule
             _cts = null;
         }
 
-        try
-        {
-            await _client.DisconnectAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        await _client.DisconnectAsync().ConfigureAwait(false);
 
         if (_processDataTimer.Enabled)
             _processDataTimer.Stop();

@@ -75,16 +75,8 @@ public sealed class TwitchApiClient : ITwitchApiClient
         if (string.IsNullOrWhiteSpace(channelLogin))
             return string.Empty;
 
-        try
-        {
-            var response = await _api.Helix.Users.GetUsersAsync(logins: new List<string> { channelLogin }).ConfigureAwait(false);
-            return response?.Users?.FirstOrDefault()?.Id ?? string.Empty;
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Twitch broadcaster ID fetch failed: {ex.Message}");
-            return string.Empty;
-        }
+        var response = await _api.Helix.Users.GetUsersAsync(logins: new List<string> { channelLogin }).ConfigureAwait(false);
+        return response?.Users?.FirstOrDefault()?.Id ?? string.Empty;
     }
 
     public async Task<TwitchStreamSnapshot> GetStreamInfoAsync(string broadcasterId)
@@ -92,21 +84,13 @@ public sealed class TwitchApiClient : ITwitchApiClient
         if (string.IsNullOrWhiteSpace(broadcasterId))
             return new TwitchStreamSnapshot(false, 0, string.Empty, string.Empty);
 
-        try
-        {
-            var response = await _api.Helix.Streams.GetStreamsAsync(userIds: new List<string> { broadcasterId }).ConfigureAwait(false);
-            var stream = response?.Streams?.FirstOrDefault();
+        var response = await _api.Helix.Streams.GetStreamsAsync(userIds: new List<string> { broadcasterId }).ConfigureAwait(false);
+        var stream = response?.Streams?.FirstOrDefault();
 
-            if (stream == null)
-                return new TwitchStreamSnapshot(false, 0, string.Empty, string.Empty);
-
-            return new TwitchStreamSnapshot(true, stream.ViewerCount, stream.GameName ?? string.Empty, stream.Title ?? string.Empty);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Twitch stream info fetch failed: {ex.Message}");
+        if (stream == null)
             return new TwitchStreamSnapshot(false, 0, string.Empty, string.Empty);
-        }
+
+        return new TwitchStreamSnapshot(true, stream.ViewerCount, stream.GameName ?? string.Empty, stream.Title ?? string.Empty);
     }
 
     public async Task<TwitchFollowerResult> GetFollowerCountAsync(string broadcasterId, string moderatorId)
@@ -114,34 +98,26 @@ public sealed class TwitchApiClient : ITwitchApiClient
         if (string.IsNullOrWhiteSpace(broadcasterId))
             return new TwitchFollowerResult(false, 0, false, false, "No broadcaster ID");
 
-        try
-        {
-            string moderatorParam = string.IsNullOrWhiteSpace(moderatorId) ? string.Empty : $"&moderator_id={moderatorId}";
-            using var request = CreateHelixRequest(HttpMethod.Get, $"channels/followers?broadcaster_id={broadcasterId}{moderatorParam}");
-            using var response = await SendHelixRequestWithRetryAsync(request).ConfigureAwait(false);
+        string moderatorParam = string.IsNullOrWhiteSpace(moderatorId) ? string.Empty : $"&moderator_id={moderatorId}";
+        using var request = CreateHelixRequest(HttpMethod.Get, $"channels/followers?broadcaster_id={broadcasterId}{moderatorParam}");
+        using var response = await HelixClient.SendAsync(request).ConfigureAwait(false);
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-                return new TwitchFollowerResult(false, 0, true, false, "Unauthorized");
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            return new TwitchFollowerResult(false, 0, true, false, "Unauthorized");
 
-            if (response.StatusCode == HttpStatusCode.Forbidden)
-                return new TwitchFollowerResult(false, 0, false, true, "Missing moderator:read:followers scope");
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+            return new TwitchFollowerResult(false, 0, false, true, "Missing moderator:read:followers scope");
 
-            if (!response.IsSuccessStatusCode)
-                return new TwitchFollowerResult(false, 0, false, false, $"Followers request failed ({(int)response.StatusCode})");
+        if (!response.IsSuccessStatusCode)
+            return new TwitchFollowerResult(false, 0, false, false, $"Followers request failed ({(int)response.StatusCode})");
 
-            await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-            using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
+        await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
 
-            if (doc.RootElement.TryGetProperty("total", out var totalElement) && totalElement.TryGetInt32(out var total))
-                return new TwitchFollowerResult(true, total, false, false, string.Empty);
+        if (doc.RootElement.TryGetProperty("total", out var totalElement) && totalElement.TryGetInt32(out var total))
+            return new TwitchFollowerResult(true, total, false, false, string.Empty);
 
-            return new TwitchFollowerResult(false, 0, false, false, "Followers total missing");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Twitch follower count fetch failed: {ex.Message}");
-            return new TwitchFollowerResult(false, 0, false, false, ex.Message);
-        }
+        return new TwitchFollowerResult(false, 0, false, false, "Followers total missing");
     }
 
     public async Task<TwitchActionResult> SendAnnouncementAsync(
@@ -154,35 +130,27 @@ public sealed class TwitchApiClient : ITwitchApiClient
         if (string.IsNullOrWhiteSpace(trimmed))
             return new TwitchActionResult(false, "Announcement message is empty.");
 
-        try
-        {
-            var payload = new { message = trimmed, color };
-            using var request = CreateHelixRequest(
-                HttpMethod.Post,
-                $"chat/announcements?broadcaster_id={broadcasterId}&moderator_id={moderatorId}");
-            request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        var payload = new { message = trimmed, color };
+        using var request = CreateHelixRequest(
+            HttpMethod.Post,
+            $"chat/announcements?broadcaster_id={broadcasterId}&moderator_id={moderatorId}");
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            using var response = await SendHelixRequestWithRetryAsync(request).ConfigureAwait(false);
+        using var response = await HelixClient.SendAsync(request).ConfigureAwait(false);
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-                return new TwitchActionResult(false, "Token invalid.");
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            return new TwitchActionResult(false, "Token invalid.");
 
-            if (response.StatusCode == HttpStatusCode.Forbidden)
-                return new TwitchActionResult(false, "Missing announcement permission or scope.");
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+            return new TwitchActionResult(false, "Missing announcement permission or scope.");
 
-            if ((int)response.StatusCode == 429)
-                return new TwitchActionResult(false, "Rate limited. Try again soon.");
+        if ((int)response.StatusCode == 429)
+            return new TwitchActionResult(false, "Rate limited. Try again soon.");
 
-            if (!response.IsSuccessStatusCode)
-                return new TwitchActionResult(false, $"Announcement failed ({(int)response.StatusCode}).");
+        if (!response.IsSuccessStatusCode)
+            return new TwitchActionResult(false, $"Announcement failed ({(int)response.StatusCode}).");
 
-            return new TwitchActionResult(true, "Announcement sent!");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Twitch announcement failed: {ex.Message}");
-            return new TwitchActionResult(false, ex.Message);
-        }
+        return new TwitchActionResult(true, "Announcement sent!");
     }
 
     public async Task<TwitchActionResult> SendShoutoutAsync(
@@ -190,33 +158,25 @@ public sealed class TwitchApiClient : ITwitchApiClient
         string toBroadcasterId,
         string moderatorId)
     {
-        try
-        {
-            using var request = CreateHelixRequest(
-                HttpMethod.Post,
-                $"chat/shoutouts?from_broadcaster_id={Uri.EscapeDataString(fromBroadcasterId)}&to_broadcaster_id={Uri.EscapeDataString(toBroadcasterId)}&moderator_id={Uri.EscapeDataString(moderatorId)}");
+        using var request = CreateHelixRequest(
+            HttpMethod.Post,
+            $"chat/shoutouts?from_broadcaster_id={Uri.EscapeDataString(fromBroadcasterId)}&to_broadcaster_id={Uri.EscapeDataString(toBroadcasterId)}&moderator_id={Uri.EscapeDataString(moderatorId)}");
 
-            using var response = await SendHelixRequestWithRetryAsync(request).ConfigureAwait(false);
+        using var response = await HelixClient.SendAsync(request).ConfigureAwait(false);
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-                return new TwitchActionResult(false, "Token invalid.");
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            return new TwitchActionResult(false, "Token invalid.");
 
-            if (response.StatusCode == HttpStatusCode.Forbidden)
-                return new TwitchActionResult(false, "Missing shoutout permission or scope.");
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+            return new TwitchActionResult(false, "Missing shoutout permission or scope.");
 
-            if ((int)response.StatusCode == 429)
-                return new TwitchActionResult(false, "Rate limited. Try again soon.");
+        if ((int)response.StatusCode == 429)
+            return new TwitchActionResult(false, "Rate limited. Try again soon.");
 
-            if (!response.IsSuccessStatusCode)
-                return new TwitchActionResult(false, $"Shoutout failed ({(int)response.StatusCode}).");
+        if (!response.IsSuccessStatusCode)
+            return new TwitchActionResult(false, $"Shoutout failed ({(int)response.StatusCode}).");
 
-            return new TwitchActionResult(true, "Shoutout sent!");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Twitch shoutout failed: {ex.Message}");
-            return new TwitchActionResult(false, ex.Message);
-        }
+        return new TwitchActionResult(true, "Shoutout sent!");
     }
 
     public async Task<string> ResolveUserIdAsync(string login)
@@ -225,64 +185,16 @@ public sealed class TwitchApiClient : ITwitchApiClient
         if (string.IsNullOrWhiteSpace(normalized))
             return string.Empty;
 
-        try
-        {
-            var response = await _api.Helix.Users.GetUsersAsync(logins: new List<string> { normalized }).ConfigureAwait(false);
-            return response?.Users?.FirstOrDefault()?.Id ?? string.Empty;
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Twitch user ID resolution failed: {ex.Message}");
-            return string.Empty;
-        }
+        var response = await _api.Helix.Users.GetUsersAsync(logins: new List<string> { normalized }).ConfigureAwait(false);
+        return response?.Users?.FirstOrDefault()?.Id ?? string.Empty;
     }
 
-    private async Task<HttpResponseMessage> SendHelixRequestWithRetryAsync(HttpRequestMessage request)
+    private HttpRequestMessage CreateHelixRequest(HttpMethod method, string relativeUrl)
     {
-        int maxRetries = 3;
-        int delayMs = 1000;
-
-        for (int attempt = 0; attempt < maxRetries; attempt++)
-        {
-            // Clone request for retries since HttpRequestMessage can only be sent once
-            using var currentRequest = CloneRequest(request);
-            using var response = await HelixClient.SendAsync(currentRequest).ConfigureAwait(false);
-
-            if (response.StatusCode == HttpStatusCode.TooManyRequests) // 429
-            {
-                if (attempt == maxRetries - 1) return response;
-
-                var retryAfter = response.Headers.RetryAfter?.Delta
-                    ?? TimeSpan.FromMilliseconds(delayMs * (attempt + 1));
-                await Task.Delay(retryAfter).ConfigureAwait(false);
-                continue;
-            }
-
-            if ((int)response.StatusCode >= 500)
-            {
-                if (attempt == maxRetries - 1) return response;
-                await Task.Delay(delayMs * (attempt + 1)).ConfigureAwait(false);
-                continue;
-            }
-
-            return response;
-        }
-        return null; // Should not reach here
-    }
-
-    private HttpRequestMessage CloneRequest(HttpRequestMessage request)
-    {
-        var clone = new HttpRequestMessage(request.Method, request.RequestUri)
-        {
-            Version = request.Version
-        };
-        foreach (var header in request.Headers)
-            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
-
-        if (request.Content != null)
-            clone.Content = request.Content; // Content is not easily cloneable, may need more care for POST
-
-        return clone;
+        var request = new HttpRequestMessage(method, relativeUrl);
+        request.Headers.Add("Client-Id", _api.Settings.ClientId);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _api.Settings.AccessToken);
+        return request;
     }
 
     private static string NormalizeLogin(string login)

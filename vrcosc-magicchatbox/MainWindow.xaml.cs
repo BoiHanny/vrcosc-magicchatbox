@@ -199,7 +199,7 @@ namespace vrcosc_magicchatbox
         public void StartBackgroundProcessing()
         {
             _scanLoop.Start();
-            _ = _scanLoop.Scantick(true);
+            _ = Task.Run(() => _scanLoop.Scantick(true));
         }
 
         public static event EventHandler ShadowOpacityChanged;
@@ -250,7 +250,7 @@ namespace vrcosc_magicchatbox
             return notificationText;
         }
 
-        private void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
+        private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (VM.AppSettingsInstance.CloseToTray && !_isTrayClosing)
             {
@@ -267,11 +267,6 @@ namespace vrcosc_magicchatbox
             // Cancel the window closing event temporarily to await the async task
             e.Cancel = true;
 
-            _ = HandleClosingAsync();
-        }
-
-        private async Task HandleClosingAsync()
-        {
             try
             {
                 _scanLoop.Stop();

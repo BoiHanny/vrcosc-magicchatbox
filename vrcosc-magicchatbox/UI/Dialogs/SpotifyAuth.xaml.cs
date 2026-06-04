@@ -43,12 +43,7 @@ public partial class SpotifyAuth : Window
         ConnectButton.IsEnabled = true;
     }
 
-    private void Connect_Click(object sender, RoutedEventArgs e)
-    {
-        _ = HandleConnectAsync();
-    }
-
-    private async Task HandleConnectAsync()
+    private async void Connect_Click(object sender, RoutedEventArgs e)
     {
         ConnectButton.IsEnabled = false;
         StatusText.Foreground = Brushes.LightYellow;

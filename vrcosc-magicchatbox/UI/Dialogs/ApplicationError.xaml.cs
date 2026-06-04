@@ -105,7 +105,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 UpdateState.CanUpdate = false;
                 UpdateState.CanUpdateLabel = false;
                 var updateApp = CreateUpdateApp(true);
-                _ = updateApp.PrepareUpdate();
+                Task.Run(() => updateApp.PrepareUpdate());
             }
             else
             {

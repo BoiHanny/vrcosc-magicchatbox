@@ -434,10 +434,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
 
 
-    private void MediaManager_OnAnySessionClosed(MediaSession session)
-        => _ = HandleSessionClosedAsync(session);
-
-    private async Task HandleSessionClosedAsync(MediaSession session)
+    private async void MediaManager_OnAnySessionClosed(MediaSession session)
     {
         try
         {
@@ -469,7 +466,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 currentSession = null;
             }
 
-            CleanupExpiredSessions();
+            await Task.Run(() => CleanupExpiredSessions());
         }
         catch (Exception ex)
         {
@@ -477,66 +474,56 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    private void MediaManager_OnAnySessionOpened(MediaSession session)
-        => _ = HandleSessionOpenedAsync(session);
-
-    private async Task HandleSessionOpenedAsync(MediaSession session)
+    private async void MediaManager_OnAnySessionOpened(MediaSession session)
     {
-        try
+        MediaSessionInfo? sessionInfo = null;
+
+        if (recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
         {
-            MediaSessionInfo? sessionInfo = null;
+            var (recentInfo, closeTime) = recentSessionInfo;
 
-            if (recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
+            if (DateTime.Now - closeTime <= GracePeriod)
             {
-                var (recentInfo, closeTime) = recentSessionInfo;
+                sessionInfo = recentInfo;
+                sessionInfo.Session = session;
+                sessionInfo.TimeoutRestore = false;
+                recentlyClosedSessions.TryRemove(session.Id, out _);
+            }
+        }
 
-                if (DateTime.Now - closeTime <= GracePeriod)
+        if (sessionInfo == null)
+        {
+            sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
+        }
+
+        sessionInfoLookup[session] = sessionInfo;
+        currentSession = session;
+        SessionRestore(sessionInfo);
+        ApplyPlaybackSnapshot(session, sessionInfo);
+
+        LastMediaChangeTime = DateTime.UtcNow;
+
+        _dispatcher.BeginInvoke(
+                () =>
                 {
-                    sessionInfo = recentInfo;
-                    sessionInfo.Session = session;
-                    sessionInfo.TimeoutRestore = false;
-                    recentlyClosedSessions.TryRemove(session.Id, out _);
-                }
-            }
-
-            if (sessionInfo == null)
-            {
-                sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
-            }
-
-            sessionInfoLookup[session] = sessionInfo;
-            currentSession = session;
-            SessionRestore(sessionInfo);
-            ApplyPlaybackSnapshot(session, sessionInfo);
-
-            LastMediaChangeTime = DateTime.UtcNow;
-
-            _dispatcher.BeginInvoke(
-                    () =>
+                    foreach (MediaSessionInfo duplicate in _mediaLink.MediaSessions
+                                 .Where(s => !ReferenceEquals(s, sessionInfo) && SessionIdsMatch(s, sessionInfo))
+                                 .ToList())
                     {
-                        foreach (MediaSessionInfo duplicate in _mediaLink.MediaSessions
-                                     .Where(s => !ReferenceEquals(s, sessionInfo) && SessionIdsMatch(s, sessionInfo))
-                                     .ToList())
-                        {
-                            _mediaLink.MediaSessions.Remove(duplicate);
-                        }
+                        _mediaLink.MediaSessions.Remove(duplicate);
+                    }
 
-                        if (!_mediaLink.MediaSessions.Contains(sessionInfo))
-                            _mediaLink.MediaSessions.Add(sessionInfo);
+                    if (!_mediaLink.MediaSessions.Contains(sessionInfo))
+                        _mediaLink.MediaSessions.Add(sessionInfo);
 
-                        RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
-                    });
+                    RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
+                });
 
-            await ApplyMediaPropertySnapshotAsync(session, sessionInfo, staleTimelineOnChange: false).ConfigureAwait(false);
-            if (!sessionInfo.TimePeekEnabled || sessionInfo.IsTimelineStale)
-                TryApplyTimelineSnapshot(session, sessionInfo);
+        await ApplyMediaPropertySnapshotAsync(session, sessionInfo, staleTimelineOnChange: false);
+        if (!sessionInfo.TimePeekEnabled || sessionInfo.IsTimelineStale)
+            TryApplyTimelineSnapshot(session, sessionInfo);
 
-            QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
     }
 
     private void MediaManager_OnFocusedSessionChanged(MediaSession? session)
