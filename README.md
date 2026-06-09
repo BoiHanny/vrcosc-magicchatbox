@@ -43,7 +43,9 @@ If you need any further help `setting up` the program, join our `Discord Server`
 > - ✳️ Spotify Module
 > - 🎛️ Component Stats
 > - 🔋 VR Gear Battery
-> - 🟣 Twitch Module 
+> - 🟣 Twitch Module
+> - 🔲 TikTok Module
+> - 🆔 Discord Module
 > - 🧠 Chatting Module
 > - 📶 VRChat Radar
 > - 🚪 Instance Stats Module
