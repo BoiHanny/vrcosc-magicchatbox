@@ -39,19 +39,21 @@ If you need any further help `setting up` the program, join our `Discord Server`
 > [!NOTE]
 > - 💭 Personal Status  
 > - 🧭 Window Activity  
-> - 🩵 Heart Rate  
+> - 🩵 Heart Rate
+> - ✳️ Spotify Module
 > - 🎛️ Component Stats
 > - 🔋 VR Gear Battery
-> - 🧑‍🧒‍🧒 Twitch Integration 
+> - 🟣 Twitch Module 
 > - 🧠 Chatting Module
 > - 📶 VRChat Radar
-> - ⚗️ OpenAI Module  
+> - 🚪 Instance Stats Module
 > - ⛓️‍💥 Network Stats  
 > - 📆 Time Status
 > - 🌤️ Weather Display  
 > - 🎶 Music Activity  
 > - 💤 AFK Module  
-> - 🎼 Soundpad  
+> - 🎼 Soundpad
+> - ⚗️ Artificial Intelligence Module  
 
 > [!IMPORTANT]
 > **Heart Rate Feature** requires an official `Pulsoid Member` subscription.
