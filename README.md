@@ -68,7 +68,7 @@ If you need any further help `setting up` the program, join our `Discord Server`
 ---
 
 ### 📚 Additional Resources
-- [FAQ](information/FAQ.md) – Frequently Asked Questions and Answers
+- [FAQ](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Frequently-Asked-Questions) – Frequently Asked Questions and Answers
 - [Staff](information/Staff.md) – Meet the team behind MagicChatBox
 - [Rating](information/Rating.md) – Our User Ratings
 - [Contact](https://discord.gg/magicchatbox) – Create a support ticket here
