@@ -143,7 +143,7 @@ These Terms of Service govern your use of MagicChatBox. They are intended to ens
 ``By using MagicChatBox, you confirm your agreement to these Terms of Service and commit to adhering to them.``
 
 > [!IMPORTANT]  
-> **For more information on bans, please refer to [“HCGI-Banned”](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Punishments).**
+> **For more information on bans, please refer to [“Punishments”](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Punishments).**
 
 
 > *Note: For licensing and distribution policies, please see the [MagicChatbox Software License Agreement (SLA)](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md).*
