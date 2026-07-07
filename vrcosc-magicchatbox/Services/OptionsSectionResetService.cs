@@ -106,6 +106,11 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
 
             case "pulsoid":
                 count += _reset.ResetAll(_pulsoid);
+                // The class defaults for the trend-symbol/time-range lists are empty; they are
+                // normally populated by the module constructor. Repopulate the live instance so
+                // the UI pickers don't go blank until the next app restart.
+                _moduleHost.Value.Pulsoid?.RefreshTrendSymbols();
+                _moduleHost.Value.Pulsoid?.RefreshTimeRanges();
                 count += ResetIntegration(nameof(IntegrationSettings.IntgrHeartRate), nameof(IntegrationSettings.IntgrHeartRate_VR), nameof(IntegrationSettings.IntgrHeartRate_DESKTOP), nameof(IntegrationSettings.IntgrHeartRate_OSC));
                 restarted |= await RestartIfRunningAsync(_moduleHost.Value.Pulsoid, () => restartFailed = true).ConfigureAwait(false);
                 return Result("Heart Rate", count, restarted, restartFailed);

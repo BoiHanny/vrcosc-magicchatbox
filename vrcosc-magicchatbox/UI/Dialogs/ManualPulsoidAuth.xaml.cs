@@ -79,6 +79,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 if (isValidToken)
                 {
                     _heartRateConnector.Settings.AccessTokenOAuth = token;
+                    // Persist immediately — waiting for shutdown risks losing the token on crash/kill
+                    _heartRateConnector.SaveSettings();
                     _setPulsoidAuth(true);
                     Close();
                 }

@@ -2,13 +2,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
@@ -87,8 +87,8 @@ public partial class PulsoidModule : ObservableObject, IModule
     private bool pulsoidDeviceOnline = false;
     public PulsoidStatisticsResponse PulsoidStatistics;
 
-    [ObservableProperty]
-    public PulsoidModuleSettings settings;
+    private readonly ISettingsProvider<PulsoidModuleSettings> _settingsProvider;
+    public PulsoidModuleSettings Settings => _settingsProvider.Value;
 
     public string Name => "Pulsoid";
     public bool IsEnabled { get; set; } = true;
@@ -96,9 +96,9 @@ public partial class PulsoidModule : ObservableObject, IModule
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
     public async Task StopAsync(CancellationToken ct = default) { await StopMonitoringHeartRateAsync(); }
-    public void SaveSettings() => Settings?.SaveSettings();
+    public void SaveSettings() => _settingsProvider.Save();
 
-    public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, IEnvironmentService env, IToastService? toast = null)
+    public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, ISettingsProvider<PulsoidModuleSettings> settingsProvider, IToastService? toast = null)
     {
         _appState = appState;
         _client = client;
@@ -107,8 +107,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         _integrationSettings = integrationSettings;
         _oAuth = oAuth;
         _toast = toast;
-        var settingsPath = Path.Combine(env.DataPath, "PulsoidModuleSettings.json");
-        Settings = PulsoidModuleSettings.LoadSettings(settingsPath);
+        _settingsProvider = settingsProvider;
         RefreshTrendSymbols();
         RefreshTimeRanges();
 
@@ -492,7 +491,9 @@ public partial class PulsoidModule : ObservableObject, IModule
     {
         if (Settings.ShowHeartRateTrendIndicator)
         {
-            if (_heartRateHistory.Count >= Settings.HeartRateTrendIndicatorSampleRate)
+            // Clamp: a non-positive sample rate (unvalidated TextBox) would dequeue an empty queue
+            int sampleRate = Math.Max(1, Settings.HeartRateTrendIndicatorSampleRate);
+            if (_heartRateHistory.Count >= sampleRate)
             {
                 _heartRateHistory.Dequeue();
             }
@@ -673,11 +674,6 @@ public partial class PulsoidModule : ObservableObject, IModule
                propertyName == nameof(_integrationSettings.IntgrHeartRate_DESKTOP) ||
                propertyName == nameof(_integrationSettings.IntgrHeartRate_OSC) ||
                propertyName == nameof(_appState.PulsoidAuthConnected);
-    }
-
-    public void OnApplicationClosing()
-    {
-        Settings.SaveSettings();
     }
 
     public async Task ProcessDataAsync()
@@ -874,11 +870,13 @@ public partial class PulsoidModule : ObservableObject, IModule
         new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
     };
 
-        var symbolExists = Settings.PulsoidTrendSymbols.Any(s => s.CombinedTrendSymbol == Settings.SelectedPulsoidTrendSymbol.CombinedTrendSymbol);
+        // Guard against a damaged settings file with a null selection — heal to the first symbol set
+        var selectedSymbol = Settings.SelectedPulsoidTrendSymbol?.CombinedTrendSymbol;
+        var symbolExists = selectedSymbol != null && Settings.PulsoidTrendSymbols.Any(s => s.CombinedTrendSymbol == selectedSymbol);
 
         if (symbolExists)
         {
-            Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault(s => s.CombinedTrendSymbol == Settings.SelectedPulsoidTrendSymbol.CombinedTrendSymbol);
+            Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault(s => s.CombinedTrendSymbol == selectedSymbol);
         }
         else
         {
