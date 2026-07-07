@@ -205,7 +205,20 @@ namespace vrcosc_magicchatbox.ViewModels
             else
             {
                 _scanLoop.Value.Stop();
-                _oscSender.Value.SentClearMessage(1000);
+                _ = ObserveFireAndForget(_oscSender.Value.SentClearMessage(1000));
+            }
+        }
+
+        /// <summary>Observes a fire-and-forget task so failures are logged instead of lost.</summary>
+        private static async Task ObserveFireAndForget(Task task)
+        {
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
 

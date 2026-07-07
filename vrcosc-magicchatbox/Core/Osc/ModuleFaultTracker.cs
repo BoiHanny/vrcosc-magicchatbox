@@ -14,6 +14,11 @@ namespace vrcosc_magicchatbox.Core.Osc;
 /// </summary>
 public sealed class ModuleFaultTracker
 {
+    // A granted probe that is never resolved by RecordSuccess/RecordFailure
+    // (e.g. the provider was disabled before TryBuild could run) is reclaimed
+    // after this long so the provider can't stay latched as faulted forever.
+    private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(10);
+
     private readonly ConcurrentDictionary<string, FaultState> _states = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -30,11 +35,25 @@ public sealed class ModuleFaultTracker
 
         // Faulted — check if cooldown has expired for a probe attempt
         long lastFailTicks = Volatile.Read(ref state.LastFailureTicksUtc);
-        if (DateTime.UtcNow.Ticks - lastFailTicks > Constants.ModuleFaultCooldown.Ticks)
+        long nowTicks = DateTime.UtcNow.Ticks;
+        if (nowTicks - lastFailTicks > Constants.ModuleFaultCooldown.Ticks)
         {
             // Allow exactly one probe by temporarily setting probing flag
             if (Interlocked.CompareExchange(ref state.IsProbing, 1, 0) == 0)
+            {
+                Volatile.Write(ref state.ProbeStartedTicksUtc, nowTicks);
                 return false; // This caller gets to probe
+            }
+
+            // A probe token is outstanding but stale — reclaim it and grant
+            // this caller a fresh probe. The CAS ensures only one caller
+            // reclaims any given expired probe.
+            long probeStarted = Volatile.Read(ref state.ProbeStartedTicksUtc);
+            if (nowTicks - probeStarted > ProbeTimeout.Ticks
+                && Interlocked.CompareExchange(ref state.ProbeStartedTicksUtc, nowTicks, probeStarted) == probeStarted)
+            {
+                return false; // This caller takes over the stale probe
+            }
         }
 
         return true;
@@ -108,6 +127,7 @@ public sealed class ModuleFaultTracker
         public int ConsecutiveFailures;
         public int IsProbing; // 0 = not probing, 1 = probe in progress
         public long LastFailureTicksUtc;
+        public long ProbeStartedTicksUtc; // when the outstanding probe token was granted
     }
 }
 

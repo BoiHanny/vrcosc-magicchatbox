@@ -66,10 +66,13 @@ public sealed class OscOutputBuilder
 
         void TryAddProvider(IOscProvider provider)
         {
-            if (_faultTracker.IsFaulted(provider.SortKey))
+            // Enablement must be checked first: IsFaulted can hand out a
+            // one-shot probe token, which must only be consumed when TryBuild
+            // will actually run and resolve it via RecordSuccess/RecordFailure.
+            if (!provider.IsEnabledForCurrentMode(isVR))
                 return;
 
-            if (!provider.IsEnabledForCurrentMode(isVR))
+            if (_faultTracker.IsFaulted(provider.SortKey))
                 return;
 
             var context = new OscBuildContext
