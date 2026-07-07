@@ -28,6 +28,9 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         private Timer _updateTimer;
         private bool _disposed;
 
+        /// <summary>True once Dispose has run; a disposed instance has a dead update timer and must not be revived.</summary>
+        public bool IsDisposed => _disposed;
+
         private bool _IsActive;
 
         private bool _IsVideo;
@@ -138,40 +141,43 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private void SaveOrDeleteSettings()
         {
-            if (_KeepSaved)
+            lock (MediaSessionSettings.SavedSessionsLock)
             {
-                var savedSettings = _mediaLink.SavedSessionSettings
-                    .FirstOrDefault(s => s.SessionId == Session.Id);
-                if (savedSettings != null)
+                if (_KeepSaved)
                 {
-                    savedSettings.ShowTitle = _ShowTitle;
-                    savedSettings.AutoSwitch = _AutoSwitch;
-                    savedSettings.ShowArtist = _ShowArtist;
-                    savedSettings.IsVideo = _IsVideo;
-                    savedSettings.KeepSaved = _KeepSaved;
+                    var savedSettings = _mediaLink.SavedSessionSettings
+                        .FirstOrDefault(s => s.SessionId == Session.Id);
+                    if (savedSettings != null)
+                    {
+                        savedSettings.ShowTitle = _ShowTitle;
+                        savedSettings.AutoSwitch = _AutoSwitch;
+                        savedSettings.ShowArtist = _ShowArtist;
+                        savedSettings.IsVideo = _IsVideo;
+                        savedSettings.KeepSaved = _KeepSaved;
+                    }
+                    else
+                    {
+                        _mediaLink.SavedSessionSettings
+                            .Add(
+                                new MediaSessionSettings
+                                {
+                                    SessionId = Session.Id,
+                                    ShowTitle = _ShowTitle,
+                                    AutoSwitch = _AutoSwitch,
+                                    ShowArtist = _ShowArtist,
+                                    IsVideo = _IsVideo,
+                                    KeepSaved = _KeepSaved
+                                });
+                    }
                 }
                 else
                 {
-                    _mediaLink.SavedSessionSettings
-                        .Add(
-                            new MediaSessionSettings
-                            {
-                                SessionId = Session.Id,
-                                ShowTitle = _ShowTitle,
-                                AutoSwitch = _AutoSwitch,
-                                ShowArtist = _ShowArtist,
-                                IsVideo = _IsVideo,
-                                KeepSaved = _KeepSaved
-                            });
-                }
-            }
-            else
-            {
-                var savedSettings = _mediaLink.SavedSessionSettings
-                    .FirstOrDefault(s => s.SessionId == Session.Id);
-                if (savedSettings != null)
-                {
-                    _mediaLink.SavedSessionSettings.Remove(savedSettings);
+                    var savedSettings = _mediaLink.SavedSessionSettings
+                        .FirstOrDefault(s => s.SessionId == Session.Id);
+                    if (savedSettings != null)
+                    {
+                        _mediaLink.SavedSessionSettings.Remove(savedSettings);
+                    }
                 }
             }
         }
@@ -447,6 +453,12 @@ namespace vrcosc_magicchatbox.ViewModels.Models
     /// </summary>
     public class MediaSessionSettings
     {
+        /// <summary>
+        /// Guards every read and write of the shared SavedSessionSettings list, which is
+        /// touched from media-manager callback threads, the UI thread, and persistence.
+        /// </summary>
+        public static readonly object SavedSessionsLock = new object();
+
         public bool AutoSwitch { get; set; }
 
         public bool IsVideo { get; set; }

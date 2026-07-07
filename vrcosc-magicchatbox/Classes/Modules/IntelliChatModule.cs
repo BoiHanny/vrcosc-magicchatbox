@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Messaging;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -33,7 +34,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
 
-    private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    // CTS of the current (most recent) request; swapped per request via ResetCancellationToken,
+    // detached by CancelAllCurrentTasks. A request whose CTS no longer sits here was superseded.
+    private CancellationTokenSource? _cancellationTokenSource;
     private bool _isInitialized = false;
 
     [ObservableProperty]
@@ -283,20 +286,22 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     }
 
 
-    private void ProcessError(Exception ex)
+    private void ProcessError(Exception ex, CancellationTokenSource? requestCts)
     {
 
         if (ex is OperationCanceledException)
         {
-            if (_cancellationTokenSource.IsCancellationRequested)
+            // Superseded by a newer request (or CancelAllCurrentTasks): the newer request owns the UI — stay silent.
+            if (requestCts == null || !ReferenceEquals(_cancellationTokenSource, requestCts))
             {
-                if (_cancellationTokenSource.Token.WaitHandle.WaitOne(0))
-                {
-                    UpdateErrorState(true, "The operation was cancelled due to a timeout.");
-                    return;
-                }
                 return;
+            }
 
+            // Still the current request, so cancellation can only have come from its own CancelAfter timeout.
+            if (requestCts.IsCancellationRequested)
+            {
+                UpdateErrorState(true, "The operation was cancelled due to a timeout.");
+                return;
             }
         }
 
@@ -414,9 +419,11 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     public void CancelAllCurrentTasks()
     {
-        if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+        var current = Interlocked.Exchange(ref _cancellationTokenSource, null);
+        if (current != null)
         {
-            _cancellationTokenSource.Cancel();
+            current.Cancel();
+            current.Dispose();
         }
     }
 
@@ -491,6 +498,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return;
         }
 
+        CancellationTokenSource? requestCts = null;
         try
         {
             Settings.IntelliChatUILabel = true;
@@ -507,6 +515,8 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             var modelName = GetModelDescription(Settings.PerformTextCompletionModel);
 
+            requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
+
             var completion = await _chatService.GetChatCompletionAsync(
                 messages,
                 modelName,
@@ -514,7 +524,8 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                     maxOutputTokens: isNextWordPrediction ? 3 : 100,
                     temperature: (float)writingStyle.Temperature,
                     frequencyPenalty: 0.3f,
-                    presencePenalty: 0.2f));
+                    presencePenalty: 0.2f),
+                requestCts.Token);
 
             if (completion?.Content?.Count > 0)
             {
@@ -535,11 +546,15 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (Exception ex)
         {
-            ProcessError(ex);
+            ProcessError(ex, requestCts);
         }
         finally
         {
-            Settings.IntelliChatUILabel = false;
+            // A superseded request must not clear the label the newer request just set.
+            if (requestCts == null || ReferenceEquals(_cancellationTokenSource, requestCts))
+            {
+                Settings.IntelliChatUILabel = false;
+            }
         }
     }
 
@@ -559,6 +574,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return;
         }
 
+        CancellationTokenSource? requestCts = null;
         try
         {
             Settings.IntelliChatUILabel = true;
@@ -566,7 +582,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             var prompt = "You are an imaginative conversationalist specializing all directions. Generate a creative and engaging conversation starter that is 140 characters or fewer, incorporating subtle lewdness or double entendres without being explicit.";
 
-            ResetCancellationToken(Settings.IntelliChatTimeout);
+            requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
 
             var messages = new List<ChatMessage>
     {
@@ -589,7 +605,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                     BuildChatOptions(Settings.GenerateConversationStarterModel,
                         maxOutputTokens: 20,
                         temperature: 0.7f),
-                _cancellationTokenSource.Token);
+                requestCts.Token);
 
             if (completion == null)
             {
@@ -602,7 +618,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (Exception ex)
         {
-            ProcessError(ex);
+            ProcessError(ex, requestCts);
         }
     }
 
@@ -742,13 +758,14 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         Settings.IntelliChatUILabel = true;
         Settings.IntelliChatUILabelTxt = "performing moderation check";
 
+        CancellationTokenSource? requestCts = null;
         try
         {
-            ResetCancellationToken(Settings.IntelliChatPerformModerationTimeout);
+            requestCts = ResetCancellationToken(Settings.IntelliChatPerformModerationTimeout);
 
             var modelName = GetModelDescription(Settings.PerformModerationCheckModel);
 
-            var moderationResponse = await _chatService.ClassifyTextAsync(text, modelName, _cancellationTokenSource.Token);
+            var moderationResponse = await _chatService.ClassifyTextAsync(text, modelName, requestCts.Token);
 
             if (moderationResponse?.Flagged ?? false)
             {
@@ -767,6 +784,13 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (OperationCanceledException)
         {
+            // Superseded by a newer request: abort this action silently so it cannot cancel the newer one.
+            if (requestCts == null || !ReferenceEquals(_cancellationTokenSource, requestCts))
+            {
+                return false;
+            }
+
+            // Timed out: fail open so a slow moderation endpoint doesn't block the action.
             Settings.IntelliChatUILabel = false;
 
             UpdateErrorState(false, string.Empty);
@@ -790,6 +814,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return;
         }
 
+        CancellationTokenSource? requestCts = null;
         try
         {
             if (!await ModerationCheckPassedAsync(text)) return;
@@ -812,7 +837,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
-            ResetCancellationToken(Settings.IntelliChatTimeout);
+            requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
 
             var modelName = GetModelDescription(Settings.PerformBeautifySentenceModel);
 
@@ -822,7 +847,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                     BuildChatOptions(Settings.PerformBeautifySentenceModel,
                         maxOutputTokens: 60,
                         temperature: (float)intelliChatWritingStyle.Temperature),
-                _cancellationTokenSource.Token);
+                requestCts.Token);
 
             if (completion == null)
             {
@@ -833,7 +858,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (Exception ex)
         {
-            ProcessError(ex);
+            ProcessError(ex, requestCts);
         }
     }
 
@@ -853,6 +878,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return;
         }
 
+        CancellationTokenSource? requestCts = null;
         try
         {
             if (!await ModerationCheckPassedAsync(text)) return;
@@ -877,7 +903,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             var modelName = GetModelDescription(Settings.PerformLanguageTranslationModel);
 
-            ResetCancellationToken(Settings.IntelliChatTimeout);
+            requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
 
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
@@ -885,7 +911,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                     BuildChatOptions(Settings.PerformLanguageTranslationModel,
                         maxOutputTokens: 120,
                         temperature: 0.3f),
-                _cancellationTokenSource.Token);
+                requestCts.Token);
 
             if (completion == null)
             {
@@ -899,7 +925,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (Exception ex)
         {
-            ProcessError(ex);
+            ProcessError(ex, requestCts);
         }
     }
 
@@ -919,6 +945,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return;
         }
 
+        CancellationTokenSource? requestCts = null;
         try
         {
             if (!await ModerationCheckPassedAsync(text)) return;
@@ -945,7 +972,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
             var modelName = GetModelDescription(Settings.PerformSpellingCheckModel);
 
-            ResetCancellationToken(Settings.IntelliChatTimeout);
+            requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
 
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
@@ -953,7 +980,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                     BuildChatOptions(Settings.PerformSpellingCheckModel,
                         maxOutputTokens: 60,
                         temperature: 0.3f),
-                _cancellationTokenSource.Token);
+                requestCts.Token);
 
             if (completion == null)
             {
@@ -966,7 +993,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (Exception ex)
         {
-            ProcessError(ex);
+            ProcessError(ex, requestCts);
         }
     }
 
@@ -1008,17 +1035,31 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         SaveSettings();
     }
 
-    public void ResetCancellationToken(int timeoutInSeconds)
+    /// <summary>
+    /// Begins a new request scope: installs a fresh CTS (cancelled after <paramref name="timeoutInSeconds"/>)
+    /// as the current one, cancelling and disposing the superseded request's CTS.
+    /// Callers must pass the returned source's token to their service call.
+    /// </summary>
+    public CancellationTokenSource ResetCancellationToken(int timeoutInSeconds)
     {
-        CancelAllCurrentTasks();
-        _cancellationTokenSource = new CancellationTokenSource();
-        _cancellationTokenSource.CancelAfter(timeoutInSeconds * 1000);
+        var requestCts = new CancellationTokenSource();
+        requestCts.CancelAfter(timeoutInSeconds * 1000);
+        var previous = Interlocked.Exchange(ref _cancellationTokenSource, requestCts);
+        if (previous != null)
+        {
+            previous.Cancel();
+            previous.Dispose();
+        }
+        return requestCts;
     }
     public void SaveSettings()
     {
         var filePath = Path.Combine(_env.DataPath, IntelliChatSettingsFileName);
         var jsonData = JsonConvert.SerializeObject(Settings, Formatting.Indented);
-        File.WriteAllText(filePath, jsonData);
+        if (!AtomicFileWriter.WriteAllText(filePath, jsonData))
+        {
+            Logging.WriteInfo("Failed to save IntelliChat settings.");
+        }
     }
 
     /// <summary>
@@ -1031,6 +1072,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return;
         }
 
+        CancellationTokenSource? requestCts = null;
         try
         {
             if (!await ModerationCheckPassedAsync(text)) return;
@@ -1056,7 +1098,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
 
-            ResetCancellationToken(Settings.IntelliChatTimeout);
+            requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
 
             var completion = await _chatService.GetChatCompletionAsync(
                     messages,
@@ -1064,7 +1106,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                     BuildChatOptions(Settings.PerformShortenTextModel,
                         maxOutputTokens: 60,
                         temperature: 0.3f),
-                _cancellationTokenSource.Token);
+                requestCts.Token);
 
             var shortenedText = completion?.Content?.Count > 0
                 ? completion.Content[0].Text ?? string.Empty
@@ -1083,7 +1125,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (Exception ex)
         {
-            ProcessError(ex);
+            ProcessError(ex, requestCts);
         }
     }
 
