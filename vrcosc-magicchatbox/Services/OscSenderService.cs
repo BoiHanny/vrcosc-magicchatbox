@@ -1,7 +1,9 @@
 using CoreOSC;
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
@@ -32,6 +34,8 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private UDPSender? _oscSender;
     private UDPSender? _secOscSender;
     private UDPSender? _thirdOscSender;
+    private bool _senderRebuildFailureLogged;
+    private string? _lastFailedEndpoint;
     private readonly object _senderLock = new();
     private readonly object _typingLock = new();
 
@@ -74,11 +78,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
         if (string.IsNullOrEmpty(_oscDisplay.OscToSent))
         {
             if (_lastChatboxHadContent)
-            {
-                _lastChatboxHadContent = false;
-                await SentClearMessage(0);
-                return true;
-            }
+                return await SentClearMessageCore(0);
             return false;
         }
 
@@ -86,7 +86,9 @@ public sealed class OscSenderService : IOscSender, IDisposable
         if (!force && ShouldSkipDuplicateMessage(messageSignature))
             return false;
 
-        await SendMessageAsync(PrepareMessage(fx), delay);
+        if (!await SendMessageAsync(PrepareMessage(fx), delay))
+            return false;
+
         _lastChatboxHadContent = true;
         MarkMessageSent(messageSignature);
         return true;
@@ -96,30 +98,51 @@ public sealed class OscSenderService : IOscSender, IDisposable
     {
         if (!_appState.MasterSwitch) return;
 
-        var msg = new OscMessage(address, value);
-        PrimarySender.Send(msg);
-        if (OS.SecOSC) SecondarySender.Send(msg);
-        if (OS.ThirdOSC) TertiarySender.Send(msg);
+        try
+        {
+            var msg = new OscMessage(address, value);
+            PrimarySender?.Send(msg);
+            if (OS.SecOSC) SecondarySender?.Send(msg);
+            if (OS.ThirdOSC) TertiarySender?.Send(msg);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
     }
 
     public void SendOscParam(string address, int value)
     {
         if (!_appState.MasterSwitch) return;
 
-        var msg = new OscMessage(address, value);
-        PrimarySender.Send(msg);
-        if (OS.SecOSC) SecondarySender.Send(msg);
-        if (OS.ThirdOSC) TertiarySender.Send(msg);
+        try
+        {
+            var msg = new OscMessage(address, value);
+            PrimarySender?.Send(msg);
+            if (OS.SecOSC) SecondarySender?.Send(msg);
+            if (OS.ThirdOSC) TertiarySender?.Send(msg);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
     }
 
     public void SendOscParam(string address, bool value)
     {
         if (!_appState.MasterSwitch) return;
 
-        var msg = new OscMessage(address, value ? 1 : 0);
-        PrimarySender.Send(msg);
-        if (OS.SecOSC) SecondarySender.Send(msg);
-        if (OS.ThirdOSC) TertiarySender.Send(msg);
+        try
+        {
+            var msg = new OscMessage(address, value ? 1 : 0);
+            PrimarySender?.Send(msg);
+            if (OS.SecOSC) SecondarySender?.Send(msg);
+            if (OS.ThirdOSC) TertiarySender?.Send(msg);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
     }
 
     public void SendTypingIndicatorAsync()
@@ -153,15 +176,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     public async Task SentClearMessage(int delay)
     {
-        if (!_appState.MasterSwitch)
-            return;
-
-        await DeactivateTypingIndicatorAsync();
-
-        var clearMessage = new OscMessage(CHATBOX_INPUT, "", true, false);
-        await SendMessageAsync(clearMessage, delay);
-        _lastChatboxHadContent = false;
-        MarkMessageSent(string.Empty);
+        await SentClearMessageCore(delay);
     }
 
     public async Task ToggleVoice(bool force = false)
@@ -226,16 +241,49 @@ public sealed class OscSenderService : IOscSender, IDisposable
         }
     }
 
-    private async Task SendMessageAsync(OscMessage message, int delay)
+    private async Task<bool> SentClearMessageCore(int delay)
     {
-        await Task.Run(async () =>
+        if (!_appState.MasterSwitch)
+            return false;
+
+        await DeactivateTypingIndicatorAsync();
+
+        var clearMessage = new OscMessage(CHATBOX_INPUT, "", true, false);
+        if (!await SendMessageAsync(clearMessage, delay))
+            return false;
+
+        _lastChatboxHadContent = false;
+        MarkMessageSent(string.Empty);
+        return true;
+    }
+
+    /// <summary>
+    /// Sends a chatbox message to all configured OSC outputs. Returns false when the
+    /// primary sender is unavailable or the send failed, so callers can surface feedback.
+    /// </summary>
+    private async Task<bool> SendMessageAsync(OscMessage message, int delay)
+    {
+        return await Task.Run(async () =>
         {
             if (delay > 0)
                 await Task.Delay(delay);
 
-            PrimarySender.Send(message);
-            if (OS.SecOSC) SecondarySender.Send(message);
-            if (OS.ThirdOSC) TertiarySender.Send(message);
+            try
+            {
+                UDPSender? primary = PrimarySender;
+                if (primary == null)
+                    return false;
+
+                primary.Send(message);
+                if (OS.SecOSC) SecondarySender?.Send(message);
+                if (OS.ThirdOSC) TertiarySender?.Send(message);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                return false;
+            }
         });
     }
 
@@ -287,15 +335,22 @@ public sealed class OscSenderService : IOscSender, IDisposable
     {
         await Task.Run(() =>
         {
-            lock (_typingLock)
+            try
             {
-                if (version != _typingIndicatorVersion)
-                    return;
+                lock (_typingLock)
+                {
+                    if (version != _typingIndicatorVersion)
+                        return;
 
-                var message = new OscMessage(CHATBOX_TYPING, isTyping);
-                PrimarySender.Send(message);
-                if (OS.SecOSC) SecondarySender.Send(message);
-                if (OS.ThirdOSC) TertiarySender.Send(message);
+                    var message = new OscMessage(CHATBOX_TYPING, isTyping);
+                    PrimarySender?.Send(message);
+                    if (OS.SecOSC) SecondarySender?.Send(message);
+                    if (OS.ThirdOSC) TertiarySender?.Send(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
             }
         });
     }
@@ -304,72 +359,113 @@ public sealed class OscSenderService : IOscSender, IDisposable
     {
         await Task.Run(() =>
         {
-            if (OS.UnmuteMainOutput)
-                PrimarySender.Send(new OscMessage(INPUT_VOICE, 1));
-            if (OS.SecOSC && OS.UnmuteSecOutput)
-                SecondarySender.Send(new OscMessage(INPUT_VOICE, 1));
-            if (OS.ThirdOSC && OS.UnmuteThirdOutput)
-                TertiarySender.Send(new OscMessage(INPUT_VOICE, 1));
+            try
+            {
+                if (OS.UnmuteMainOutput)
+                    PrimarySender?.Send(new OscMessage(INPUT_VOICE, 1));
+                if (OS.SecOSC && OS.UnmuteSecOutput)
+                    SecondarySender?.Send(new OscMessage(INPUT_VOICE, 1));
+                if (OS.ThirdOSC && OS.UnmuteThirdOutput)
+                    TertiarySender?.Send(new OscMessage(INPUT_VOICE, 1));
 
-            _ttsAudio.TTSBtnShadow = true;
-            Thread.Sleep(100);
+                _ttsAudio.TTSBtnShadow = true;
+                Thread.Sleep(100);
 
-            if (OS.UnmuteMainOutput)
-                PrimarySender.Send(new OscMessage(INPUT_VOICE, 0));
-            if (OS.SecOSC && OS.UnmuteSecOutput)
-                SecondarySender.Send(new OscMessage(INPUT_VOICE, 0));
-            if (OS.ThirdOSC && OS.UnmuteThirdOutput)
-                TertiarySender.Send(new OscMessage(INPUT_VOICE, 0));
-
-            _ttsAudio.TTSBtnShadow = false;
+                if (OS.UnmuteMainOutput)
+                    PrimarySender?.Send(new OscMessage(INPUT_VOICE, 0));
+                if (OS.SecOSC && OS.UnmuteSecOutput)
+                    SecondarySender?.Send(new OscMessage(INPUT_VOICE, 0));
+                if (OS.ThirdOSC && OS.UnmuteThirdOutput)
+                    TertiarySender?.Send(new OscMessage(INPUT_VOICE, 0));
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+            finally
+            {
+                _ttsAudio.TTSBtnShadow = false;
+            }
         });
     }
 
-    private UDPSender PrimarySender
+    private UDPSender? PrimarySender
     {
         get
         {
             lock (_senderLock)
             {
-                if (_oscSender == null || OS.OscIP != _oscSender.Address || OS.OscPortOut != _oscSender.Port)
-                {
-                    _oscSender?.Close();
-                    _oscSender = new UDPSender(OS.OscIP, OS.OscPortOut);
-                }
+                _oscSender = EnsureSender(_oscSender, OS.OscIP, OS.OscPortOut);
                 return _oscSender;
             }
         }
     }
 
-    private UDPSender SecondarySender
+    private UDPSender? SecondarySender
     {
         get
         {
             lock (_senderLock)
             {
-                if (_secOscSender == null || OS.SecOSCIP != _secOscSender.Address || OS.SecOSCPort != _secOscSender.Port)
-                {
-                    _secOscSender?.Close();
-                    _secOscSender = new UDPSender(OS.SecOSCIP, OS.SecOSCPort);
-                }
+                _secOscSender = EnsureSender(_secOscSender, OS.SecOSCIP, OS.SecOSCPort);
                 return _secOscSender;
             }
         }
     }
 
-    private UDPSender TertiarySender
+    private UDPSender? TertiarySender
     {
         get
         {
             lock (_senderLock)
             {
-                if (_thirdOscSender == null || OS.ThirdOSCIP != _thirdOscSender.Address || OS.ThirdOSCPort != _thirdOscSender.Port)
-                {
-                    _thirdOscSender?.Close();
-                    _thirdOscSender = new UDPSender(OS.ThirdOSCIP, OS.ThirdOSCPort);
-                }
+                _thirdOscSender = EnsureSender(_thirdOscSender, OS.ThirdOSCIP, OS.ThirdOSCPort);
                 return _thirdOscSender;
             }
+        }
+    }
+
+    /// <summary>
+    /// Returns the sender for the configured endpoint, rebuilding only when the endpoint changed.
+    /// The replacement is constructed before the old sender is closed so a failed rebuild can
+    /// never cache a dead socket; on failure the last-good sender stays in use.
+    /// Must be called while holding <see cref="_senderLock"/>.
+    /// </summary>
+    private UDPSender? EnsureSender(UDPSender? current, string address, int port)
+    {
+        if (current != null && address == current.Address && port == current.Port)
+            return current;
+
+        // Skip rebuild only for text that is neither a literal IP nor a syntactically valid
+        // hostname (mid-edit keystrokes in the options textbox). A plausible hostname still
+        // flows into the try/catch below so CoreOSC can resolve it — a working config that
+        // uses a LAN machine name or *.local must keep sending after an endpoint change.
+        if (!IPAddress.TryParse(address, out _) && Uri.CheckHostName(address) != UriHostNameType.Dns)
+            return current;
+
+        // A hostname that already failed to resolve must not re-run a blocking DNS lookup
+        // under the lock on every send; retry only once the configured endpoint text changes.
+        string endpoint = $"{address}:{port}";
+        if (endpoint == _lastFailedEndpoint)
+            return current;
+
+        try
+        {
+            var replacement = new UDPSender(address, port);
+            current?.Close();
+            _senderRebuildFailureLogged = false;
+            _lastFailedEndpoint = null;
+            return replacement;
+        }
+        catch (Exception ex)
+        {
+            _lastFailedEndpoint = endpoint;
+            if (!_senderRebuildFailureLogged)
+            {
+                _senderRebuildFailureLogged = true;
+                Logging.WriteException(ex, MSGBox: false);
+            }
+            return current;
         }
     }
 

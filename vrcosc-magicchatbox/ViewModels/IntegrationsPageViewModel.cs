@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
@@ -42,6 +44,8 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public ISettingsProvider<IntegrationSettings> IntegrationSettingsProvider => _integrationSettingsProvider;
     private IMediaLinkService? _mediaLinkSvc;
     private IMediaLinkService MediaLink => _mediaLinkSvc ??= App.ApplicationMediaController;
+    private ModuleFaultTracker? _faultTracker;
+    private ModuleFaultTracker FaultTracker => _faultTracker ??= App.Services.GetRequiredService<ModuleFaultTracker>();
 
     public IntegrationDisplayState IntegrationDisplay { get; }
     public IntegrationSettings IntegrationSettings { get; }
@@ -139,11 +143,34 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrVrcRadar),           (PrivacyHook.VrcLogReader,     () => IntegrationSettings.IntgrVrcRadar,            () => IntegrationSettings.IntgrVrcRadar = false) },
         };
 
+        // Fault-reset map: toggle property name → (OSC provider SortKey, value getter).
+        // Weather has no master toggle, so its per-mode switches are mapped instead.
+        _faultResetMap = new Dictionary<string, (string SortKey, Func<bool> GetValue)>
+        {
+            { nameof(IntegrationSettings.IntgrStatus),             ("Status",         () => IntegrationSettings.IntgrStatus) },
+            { nameof(IntegrationSettings.IntgrScanWindowActivity), ("Window",         () => IntegrationSettings.IntgrScanWindowActivity) },
+            { nameof(IntegrationSettings.IntgrScanWindowTime),     ("Time",           () => IntegrationSettings.IntgrScanWindowTime) },
+            { nameof(IntegrationSettings.IntgrTwitch),             ("Twitch",         () => IntegrationSettings.IntgrTwitch) },
+            { nameof(IntegrationSettings.IntgrTikTokLive),         ("TikTokLive",     () => IntegrationSettings.IntgrTikTokLive) },
+            { nameof(IntegrationSettings.IntgrDiscord),            ("Discord",        () => IntegrationSettings.IntgrDiscord) },
+            { nameof(IntegrationSettings.IntgrSpotify),            ("Spotify",        () => IntegrationSettings.IntgrSpotify) },
+            { nameof(IntegrationSettings.IntgrVrcRadar),           ("VrcRadar",       () => IntegrationSettings.IntgrVrcRadar) },
+            { nameof(IntegrationSettings.IntgrHeartRate),          ("HeartRate",      () => IntegrationSettings.IntgrHeartRate) },
+            { nameof(IntegrationSettings.IntgrComponentStats),     ("Component",      () => IntegrationSettings.IntgrComponentStats) },
+            { nameof(IntegrationSettings.IntgrTrackerBattery),     ("TrackerBattery", () => IntegrationSettings.IntgrTrackerBattery) },
+            { nameof(IntegrationSettings.IntgrNetworkStatistics),  ("Network",        () => IntegrationSettings.IntgrNetworkStatistics) },
+            { nameof(IntegrationSettings.IntgrWeather_VR),         ("Weather",        () => IntegrationSettings.IntgrWeather_VR) },
+            { nameof(IntegrationSettings.IntgrWeather_DESKTOP),    ("Weather",        () => IntegrationSettings.IntgrWeather_DESKTOP) },
+            { nameof(IntegrationSettings.IntgrScanMediaLink),      ("MediaLink",      () => IntegrationSettings.IntgrScanMediaLink) },
+            { nameof(IntegrationSettings.IntgrSoundpad),           ("Soundpad",       () => IntegrationSettings.IntgrSoundpad) },
+        };
+
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
     }
 
     // Instance guard map built in constructor so closures capture the correct IntegrationSettings instance.
     private readonly Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)> _guardMap;
+    private readonly Dictionary<string, (string SortKey, Func<bool> GetValue)> _faultResetMap;
 
     public bool IsVRRunning => AppState.IsVRRunning;
 
@@ -182,6 +209,12 @@ public partial class IntegrationsPageViewModel : ObservableObject
                 key: $"consent-{guard.Hook}");
             return;
         }
+
+        // Toggling an integration ON clears its OSC provider's fault state so a
+        // previously auto-disabled provider recovers immediately instead of
+        // waiting out the fault cooldown.
+        if (_faultResetMap.TryGetValue(e.PropertyName, out var faultReset) && faultReset.GetValue())
+            FaultTracker.ResetFault(faultReset.SortKey);
 
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
