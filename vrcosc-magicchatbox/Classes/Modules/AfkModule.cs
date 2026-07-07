@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
@@ -82,6 +83,12 @@ public partial class AfkModuleSettings : ObservableObject
                 Logging.WriteInfo($"Error parsing AFK settings JSON: {ex.Message}");
                 return new AfkModuleSettings { _settingsPath = settingsPath };
             }
+            catch (Exception ex)
+            {
+                // Transient IO lock (AV/indexer) must not propagate out of the module constructor.
+                Logging.WriteInfo($"Error reading AFK settings: {ex.Message}");
+                return new AfkModuleSettings { _settingsPath = settingsPath };
+            }
         }
         else
         {
@@ -91,9 +98,9 @@ public partial class AfkModuleSettings : ObservableObject
 
     public void SaveSettings()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath));
         var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-        File.WriteAllText(_settingsPath, settingsJson);
+        if (!AtomicFileWriter.WriteAllText(_settingsPath, settingsJson))
+            Logging.WriteInfo("Failed to save AFK settings.");
     }
 }
 

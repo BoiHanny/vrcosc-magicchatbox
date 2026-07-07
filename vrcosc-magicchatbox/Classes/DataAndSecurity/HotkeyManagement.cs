@@ -111,11 +111,16 @@ public class HotkeyManagement
                 return;
             }
 
-            _hotkeyActions.Clear();
+            // Parse into a staging dictionary so the live collection is only replaced
+            // once the file content has been fully processed.
+            var loaded = new Dictionary<string, HotkeyInfo>();
             foreach (var entry in deserialized)
             {
-                if (!Enum.TryParse<Key>(entry.Value["Key"], out var key) ||
-                    !Enum.TryParse<ModifierKeys>(entry.Value["Modifiers"], out var modifiers))
+                if (entry.Value == null ||
+                    !entry.Value.TryGetValue("Key", out var keyText) ||
+                    !entry.Value.TryGetValue("Modifiers", out var modifiersText) ||
+                    !Enum.TryParse<Key>(keyText, out var key) ||
+                    !Enum.TryParse<ModifierKeys>(modifiersText, out var modifiers))
                 {
                     Logging.WriteException(new Exception($"Failed to parse hotkey configuration for {entry.Key}."), MSGBox: true);
                     continue;
@@ -128,15 +133,18 @@ public class HotkeyManagement
                     continue;
                 }
 
-                AddKeyBinding(entry.Key, key, modifiers, action);
+                loaded[entry.Key] = new HotkeyInfo(key, modifiers, action);
             }
 
+            _hotkeyActions = loaded;
             AddDefaultHotkeys();
             SaveHotkeyConfigurations();
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: true);
+            // Corrupt/unreadable file must not leave the user without any hotkeys.
+            AddDefaultHotkeys();
         }
     }
 
@@ -296,7 +304,8 @@ public class HotkeyManagement
         try
         {
             var json = JsonConvert.SerializeObject(serializableHotkeyActions, Formatting.Indented);
-            File.WriteAllText(HotkeyConfigFile, json);
+            if (!AtomicFileWriter.WriteAllText(HotkeyConfigFile, json))
+                Logging.WriteInfo("Failed to save hotkey configurations.");
         }
         catch (Exception ex)
         {

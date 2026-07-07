@@ -1023,10 +1023,20 @@ public class ComponentStatsModule : IModule
                 InitializeDefaultStats();
             }
         }
+        catch (JsonException ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            _toast?.Show("⚙️ Hardware Monitor", "Component stats file is corrupt — reset to defaults.", ToastType.Warning, key: "hw-stats-corrupt");
+            if (_componentStats.Count == 0)
+                InitializeDefaultStats();
+        }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
             _toast?.Show("⚙️ Hardware Monitor", "Failed to load component stats configuration.", ToastType.Error, key: "hw-stats-load-failed");
+            // Never leave the module blank: fall back to defaults like the missing-file path.
+            if (_componentStats.Count == 0)
+                InitializeDefaultStats();
         }
     }
 
@@ -1036,7 +1046,8 @@ public class ComponentStatsModule : IModule
         {
             if (_componentStats == null || _componentStats.Count == 0) return;
             var jsonData = JsonConvert.SerializeObject(_componentStats);
-            File.WriteAllText(FileName, jsonData);
+            if (!AtomicFileWriter.WriteAllText(FileName, jsonData))
+                Logging.WriteInfo("Failed to save component stats.");
         }
         catch (Exception ex)
         {
