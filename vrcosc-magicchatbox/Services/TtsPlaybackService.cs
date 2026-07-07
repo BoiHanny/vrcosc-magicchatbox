@@ -22,6 +22,7 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
     private readonly TtsSettings _ttsSettings;
     private readonly IPrivacyConsentService _consent;
     private readonly List<CancellationTokenSource> _activeCancellationTokens = new();
+    private readonly object _tokensLock = new();
 
     public TtsPlaybackService(
         Lazy<TTSModule> tts,
@@ -39,12 +40,19 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
 
     public void CancelAllTts()
     {
-        foreach (var cts in _activeCancellationTokens)
+        CancellationTokenSource[] cancelled;
+        lock (_tokensLock)
         {
-            cts.Cancel();
-            cts.Dispose();
+            cancelled = _activeCancellationTokens.ToArray();
+            _activeCancellationTokens.Clear();
         }
-        _activeCancellationTokens.Clear();
+        foreach (var cts in cancelled)
+        {
+            // Only cancel here; the owning PlayTtsAsync disposes its own CTS in finally.
+            // Disposing it here would make the owner's later cts2.Token access throw
+            // ObjectDisposedException, misreported as a TTS error instead of a clean cancel.
+            cts.Cancel();
+        }
     }
 
     public async Task PlayTtsAsync(string chat, bool resent = false)
@@ -58,29 +66,32 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
         try
         {
             if (_ttsSettings.TtsCutOff)
-            {
-                foreach (var cts in _activeCancellationTokens)
-                    cts.Cancel();
-                _activeCancellationTokens.Clear();
-            }
+                CancelAllTts();
 
-            byte[]? audioFromApi = await _tts.Value.TryGetAudioBytesFromTikTokAPI(chat);
-            if (audioFromApi == null)
-            {
-                _chatStatus.ChatFeedbackTxt = "Error getting TTS from online servers.";
-                return;
-            }
-
+            // Registered before the fetch so TtsCutOff/CancelAllTts can cancel a TTS
+            // that is still downloading, not just one that is already playing.
             var cts2 = new CancellationTokenSource();
-            _activeCancellationTokens.Add(cts2);
+            // Capture the token before registering: a CancellationToken stays valid after its
+            // source is cancelled+disposed, so a concurrent cancel produces a clean cancel.
+            CancellationToken token = cts2.Token;
+            lock (_tokensLock)
+                _activeCancellationTokens.Add(cts2);
             try
             {
+                byte[]? audioFromApi = await _tts.Value.TryGetAudioBytesFromTikTokAPI(chat);
+                token.ThrowIfCancellationRequested();
+                if (audioFromApi == null)
+                {
+                    _chatStatus.ChatFeedbackTxt = "Error getting TTS from online servers.";
+                    return;
+                }
+
                 _chatStatus.ChatFeedbackTxt = "TTS is playing...";
 
                 await _tts.Value.PlayTikTokAudioAsSpeechAsync(
                     audioFromApi,
                     _ttsAudio.SelectedPlaybackOutputDevice.ID,
-                    cts2.Token);
+                    token);
 
                 _chatStatus.ChatFeedbackTxt = resent
                     ? "Chat was sent again with TTS."
@@ -88,7 +99,8 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
             }
             finally
             {
-                _activeCancellationTokens.Remove(cts2);
+                lock (_tokensLock)
+                    _activeCancellationTokens.Remove(cts2);
                 cts2.Dispose();
             }
         }

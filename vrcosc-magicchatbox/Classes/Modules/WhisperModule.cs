@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Messaging;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -268,10 +269,11 @@ namespace vrcosc_magicchatbox.Classes.Modules
             var settingsFolder = Path.Combine(appDataPath, "Vrcosc-MagicChatbox");
             var path = Path.Combine(settingsFolder, SettingsFileName);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-
             string settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            File.WriteAllText(path, settingsJson);
+            if (!AtomicFileWriter.WriteAllText(path, settingsJson))
+            {
+                Logging.WriteInfo("Failed to save Whisper module settings.");
+            }
         }
     }
 
@@ -549,6 +551,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (e.PropertyName == nameof(settings.SelectedDeviceIndex))
             {
                 StopRecording();
+                // InitializeWaveIn disposes the device, so the recording flag must
+                // not survive re-init even when StopRecording bailed out early.
+                settings.IsRecording = false;
                 InitializeWaveIn();
             }
         }
@@ -683,13 +688,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         /// </summary>
         public void StopRecording()
         {
-            if (!_transcription.IsReady)
-            {
-                _navService.ActivateSetting("Settings_OpenAI");
-                _ = UpdateUI("OpenAI not initialized. Please check settings.", false);
-                return;
-            }
-
             if (waveIn == null)
             {
                 _ = UpdateUI("StopRecording failed: no audio device.", false);
@@ -702,35 +700,53 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return;
             }
 
+            // Stopping the microphone must never depend on transcription-backend
+            // readiness — otherwise the mic stays hot with no way to stop it.
             try
             {
                 waveIn.StopRecording();
-                settings.IsRecording = false;
-                _ = UpdateUI("Stopped. Processing final chunk...", false);
-
-                if (GetAudioStreamLength() > 0)
-                {
-                    var finalTask = ProcessAudioStreamAsync(partial: false);
-                    finalTask.ContinueWith(t =>
-                    {
-                        if (!t.IsFaulted && !t.IsCanceled && settings.SendAftersilence)
-                        {
-                            SentChatMessage?.Invoke();
-                        }
-                    });
-                }
-                else
-                {
-                    if (settings.SendAftersilence)
-                    {
-                        SentChatMessage?.Invoke();
-                    }
-                }
             }
             catch (Exception ex)
             {
                 Logging.WriteInfo($"StopRecording error: {ex}");
                 _ = UpdateUI($"Error stopping recording: {ex.Message}", false);
+                return;
+            }
+            finally
+            {
+                settings.IsRecording = false;
+            }
+
+            if (!_transcription.IsReady)
+            {
+                ResetAudioStream();
+                _toast?.Show("🎙 Speech to Text", "OpenAI not initialized. Check your API key in settings.", ToastType.Warning,
+                    new ToastAction("Settings", () => { _navService.ActivateSetting("Settings_OpenAI"); return Task.CompletedTask; }),
+                    key: "whisper-openai-error");
+                _navService.ActivateSetting("Settings_OpenAI");
+                _ = UpdateUI("OpenAI not initialized. Please check settings.", false);
+                return;
+            }
+
+            _ = UpdateUI("Stopped. Processing final chunk...", false);
+
+            if (GetAudioStreamLength() > 0)
+            {
+                var finalTask = ProcessAudioStreamAsync(partial: false);
+                finalTask.ContinueWith(t =>
+                {
+                    if (!t.IsFaulted && !t.IsCanceled && settings.SendAftersilence)
+                    {
+                        SentChatMessage?.Invoke();
+                    }
+                });
+            }
+            else
+            {
+                if (settings.SendAftersilence)
+                {
+                    SentChatMessage?.Invoke();
+                }
             }
         }
 

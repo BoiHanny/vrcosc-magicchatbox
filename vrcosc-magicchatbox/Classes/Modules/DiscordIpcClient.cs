@@ -17,6 +17,10 @@ public sealed class DiscordIpcClient : IDisposable
 {
     private const int HeaderSize = 8;
 
+    // Large GET_SELECTED_VOICE_CHANNEL responses (near-full voice channels) are legitimate
+    // multi-hundred-KB frames; anything beyond 4MB indicates a corrupt or misaligned header.
+    private const int MaxFrameLength = 4 * 1024 * 1024;
+
     private NamedPipeClientStream? _pipe;
     private CancellationTokenSource? _readCts;
     private CancellationTokenSource? _reconnectCts;
@@ -331,8 +335,14 @@ public sealed class DiscordIpcClient : IDisposable
         int opcode = BitConverter.ToInt32(header, 0);
         int length = BitConverter.ToInt32(header, 4);
 
-        if (length <= 0 || length > 1024 * 64) // sanity: max 64KB
-            return (opcode, new JObject());
+        // Skipping a frame without consuming its declared payload would permanently desync
+        // the pipe, so an implausible length is fatal: return the closed-pipe sentinel so the
+        // read loop exits, fires Disconnected, and auto-reconnect rebuilds an aligned stream.
+        if (length <= 0 || length > MaxFrameLength)
+        {
+            Logging.WriteInfo($"Discord IPC frame length {length} out of range (opcode {opcode}); closing pipe to realign.");
+            return (-1, null);
+        }
 
         var data = new byte[length];
         totalRead = 0;

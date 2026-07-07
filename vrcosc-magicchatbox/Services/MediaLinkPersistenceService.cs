@@ -72,15 +72,24 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
             }
 
             loadedSessions ??= new List<MediaSessionSettings>();
-            await _dispatcher.InvokeAsync(() => _mediaLink.SavedSessionSettings = loadedSessions);
+            await _dispatcher.InvokeAsync(() =>
+            {
+                lock (MediaSessionSettings.SavedSessionsLock)
+                {
+                    _mediaLink.SavedSessionSettings = loadedSessions;
+                }
+            });
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
             await _dispatcher.InvokeAsync(() =>
             {
-                if (_windowActivity.ScannedApps == null)
-                    _windowActivity.ScannedApps = new ObservableCollection<ViewModels.ProcessInfo>();
+                lock (MediaSessionSettings.SavedSessionsLock)
+                {
+                    if (_mediaLink.SavedSessionSettings == null)
+                        _mediaLink.SavedSessionSettings = new List<MediaSessionSettings>();
+                }
             });
         }
     }
@@ -96,7 +105,12 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
 
             // Always serialize — empty/null lists persist as "[]" so explicit clears
             // are not overridden by stale on-disk data on the next launch.
-            var sessions = _mediaLink.SavedSessionSettings ?? new List<MediaSessionSettings>();
+            // Snapshot under the shared lock so a concurrent mutation can't break serialization.
+            List<MediaSessionSettings> sessions;
+            lock (MediaSessionSettings.SavedSessionsLock)
+            {
+                sessions = _mediaLink.SavedSessionSettings?.ToList() ?? new List<MediaSessionSettings>();
+            }
             string json = JsonConvert.SerializeObject(sessions);
 
             if (json == null)

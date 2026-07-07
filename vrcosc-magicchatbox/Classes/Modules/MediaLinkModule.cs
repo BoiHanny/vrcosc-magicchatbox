@@ -33,6 +33,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
+    private readonly EventHandler<ConsentChangedEventArgs> _consentChangedHandler;
 
     private MediaSession? currentSession = null;
     private TimeSpan GracePeriod => TimeSpan.FromSeconds(_mediaLinkSettings.SessionTimeout);
@@ -75,22 +76,23 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         _appState.PropertyChanged += ViewModel_PropertyChanged;
         _integrationSettings.PropertyChanged += ViewModel_PropertyChanged;
 
-        _consentService.ConsentChanged += (_, e) =>
+        _consentChangedHandler = (_, e) =>
         {
             if (e.Hook == PrivacyHook.MediaSession)
             {
                 if (e.NewState == ConsentState.Approved)
                 {
-                    if (shouldStart && mediaManager == null)
+                    if (ShouldRunForCurrentMode() && mediaManager == null)
                         Start();
                 }
                 else if (e.NewState == ConsentState.Denied)
                 {
-                    Dispose();
+                    Stop();
                     _toast?.Show("🔒 Media Session", "Media session access paused — privacy consent revoked.", ToastType.Privacy, key: "medialink-privacy-denied");
                 }
             }
         };
+        _consentService.ConsentChanged += _consentChangedHandler;
 
         if (shouldStart && _consentService.IsApproved(PrivacyHook.MediaSession))
             Start();
@@ -364,7 +366,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         foreach (var expiredSession in expiredSessions)
         {
-            recentlyClosedSessions.TryRemove(expiredSession.Key, out _);
+            // Conditional remove: skip entries refreshed by a reopen/re-close since the snapshot.
+            if (recentlyClosedSessions.TryRemove(expiredSession))
+                expiredSession.Value.Item1.Dispose();
         }
     }
 
@@ -440,7 +444,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         {
             var sessionInfo = sessionInfoLookup.GetValueOrDefault(session);
 
-            if (sessionInfo != null)
+            if (sessionInfo != null && !sessionInfo.IsDisposed)
             {
                 sessionInfo.TimeoutRestore = true;
                 recentlyClosedSessions[session.Id] = (sessionInfo, DateTime.Now);
@@ -476,54 +480,74 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
     private async void MediaManager_OnAnySessionOpened(MediaSession session)
     {
-        MediaSessionInfo? sessionInfo = null;
-
-        if (recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
+        try
         {
-            var (recentInfo, closeTime) = recentSessionInfo;
+            MediaSessionInfo? sessionInfo = null;
 
-            if (DateTime.Now - closeTime <= GracePeriod)
+            if (recentlyClosedSessions.TryGetValue(session.Id, out var recentSessionInfo))
             {
-                sessionInfo = recentInfo;
-                sessionInfo.Session = session;
-                sessionInfo.TimeoutRestore = false;
-                recentlyClosedSessions.TryRemove(session.Id, out _);
-            }
-        }
+                var (recentInfo, closeTime) = recentSessionInfo;
 
-        if (sessionInfo == null)
-        {
-            sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
-        }
-
-        sessionInfoLookup[session] = sessionInfo;
-        currentSession = session;
-        SessionRestore(sessionInfo);
-        ApplyPlaybackSnapshot(session, sessionInfo);
-
-        LastMediaChangeTime = DateTime.UtcNow;
-
-        _dispatcher.BeginInvoke(
-                () =>
+                if (DateTime.Now - closeTime <= GracePeriod && !recentInfo.IsDisposed)
                 {
-                    foreach (MediaSessionInfo duplicate in _mediaLink.MediaSessions
-                                 .Where(s => !ReferenceEquals(s, sessionInfo) && SessionIdsMatch(s, sessionInfo))
-                                 .ToList())
+                    sessionInfo = recentInfo;
+                    sessionInfo.Session = session;
+                    sessionInfo.TimeoutRestore = false;
+                    recentlyClosedSessions.TryRemove(session.Id, out _);
+                }
+                else
+                {
+                    // Expired or disposed park entry — drop it so a fresh, live instance is built below.
+                    recentlyClosedSessions.TryRemove(session.Id, out _);
+                }
+            }
+
+            if (sessionInfo == null)
+            {
+                sessionInfo = new MediaSessionInfo(_mediaLinkSettings, _mediaLink) { Session = session };
+            }
+
+            sessionInfoLookup[session] = sessionInfo;
+            currentSession = session;
+            SessionRestore(sessionInfo);
+            ApplyPlaybackSnapshot(session, sessionInfo);
+
+            LastMediaChangeTime = DateTime.UtcNow;
+
+            _dispatcher.BeginInvoke(
+                    () =>
                     {
-                        _mediaLink.MediaSessions.Remove(duplicate);
-                    }
+                        foreach (MediaSessionInfo duplicate in _mediaLink.MediaSessions
+                                     .Where(s => !ReferenceEquals(s, sessionInfo) && SessionIdsMatch(s, sessionInfo))
+                                     .ToList())
+                        {
+                            _mediaLink.MediaSessions.Remove(duplicate);
 
-                    if (!_mediaLink.MediaSessions.Contains(sessionInfo))
-                        _mediaLink.MediaSessions.Add(sessionInfo);
+                            // Dispose dropped duplicates unless still parked for a grace-period restore.
+                            if (!recentlyClosedSessions.Values.Any(v => ReferenceEquals(v.Item1, duplicate)))
+                            {
+                                if (duplicate.Session != null)
+                                    sessionInfoLookup.TryRemove(duplicate.Session, out _);
+                                duplicate.Dispose();
+                            }
+                        }
 
-                    RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
-                });
+                        if (!_mediaLink.MediaSessions.Contains(sessionInfo))
+                            _mediaLink.MediaSessions.Add(sessionInfo);
 
-        await ApplyMediaPropertySnapshotAsync(session, sessionInfo, staleTimelineOnChange: false);
-        if (!sessionInfo.TimePeekEnabled || sessionInfo.IsTimelineStale)
-            TryApplyTimelineSnapshot(session, sessionInfo);
+                        RefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
+                    });
 
-        QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
+            await ApplyMediaPropertySnapshotAsync(session, sessionInfo, staleTimelineOnChange: false);
+            if (!sessionInfo.TimePeekEnabled || sessionInfo.IsTimelineStale)
+                TryApplyTimelineSnapshot(session, sessionInfo);
+
+            QueueRefreshActiveSelection(sessionInfo, allowSingleSessionFallback: true);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
     }
 
     private void MediaManager_OnFocusedSessionChanged(MediaSession? session)
@@ -550,12 +574,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             e.PropertyName == "IntgrMediaLink_DESKTOP" ||
             e.PropertyName == "IsVRRunning")
         {
-            if (_integrationSettings.IntgrScanMediaLink &&
-                _integrationSettings.IntgrMediaLink_VR &&
-                _appState.IsVRRunning ||
-                _integrationSettings.IntgrScanMediaLink &&
-                _integrationSettings.IntgrMediaLink_DESKTOP &&
-                !_appState.IsVRRunning)
+            if (ShouldRunForCurrentMode())
             {
                 if (mediaManager == null)
                     Start();
@@ -563,10 +582,16 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             else
             {
                 if (mediaManager != null)
-                    Dispose();
+                    Stop();
             }
         }
     }
+
+    private bool ShouldRunForCurrentMode()
+        => _integrationSettings.IntgrScanMediaLink &&
+           (_appState.IsVRRunning
+               ? _integrationSettings.IntgrMediaLink_VR
+               : _integrationSettings.IntgrMediaLink_DESKTOP);
 
     private void StartMediaSnapshotResyncTimer()
     {
@@ -633,12 +658,11 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     }
 
     /// <summary>
-    /// Unsubscribes all event handlers and disposes the underlying <see cref="MediaManager"/> instance.
+    /// Stops the media manager and disposes tracked sessions without unhooking the settings/consent
+    /// listeners, so a later settings toggle or consent approval can restart the module.
     /// </summary>
-    public void Dispose()
+    private void Stop()
     {
-        _appState.PropertyChanged -= ViewModel_PropertyChanged;
-        _integrationSettings.PropertyChanged -= ViewModel_PropertyChanged;
         StopMediaSnapshotResyncTimer();
 
         if (mediaManager != null)
@@ -651,9 +675,39 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             mediaManager.OnAnyTimelinePropertyChanged -= MediaManager_OnAnyTimelinePropertyChanged;
 
             mediaManager.Dispose();
-            _mediaLink.MediaSessions.Clear();
             mediaManager = null;
         }
+
+        currentSession = null;
+        DisposeTrackedSessions();
+    }
+
+    private void DisposeTrackedSessions()
+    {
+        var trackedSessions = new HashSet<MediaSessionInfo>(_mediaLink.MediaSessions);
+        foreach (var info in sessionInfoLookup.Values)
+            trackedSessions.Add(info);
+        foreach (var (info, _) in recentlyClosedSessions.Values)
+            trackedSessions.Add(info);
+
+        _mediaLink.MediaSessions.Clear();
+        sessionInfoLookup.Clear();
+        recentlyClosedSessions.Clear();
+
+        foreach (var info in trackedSessions)
+            info.Dispose();
+    }
+
+    /// <summary>
+    /// Unsubscribes all event handlers and disposes the underlying <see cref="MediaManager"/> instance.
+    /// Reserved for app shutdown — runtime enable/disable goes through <see cref="Stop"/>.
+    /// </summary>
+    public void Dispose()
+    {
+        _appState.PropertyChanged -= ViewModel_PropertyChanged;
+        _integrationSettings.PropertyChanged -= ViewModel_PropertyChanged;
+        _consentService.ConsentChanged -= _consentChangedHandler;
+        Stop();
     }
 
     public async Task MediaManager_NextAsync(MediaSessionInfo sessionInfo)
@@ -735,26 +789,31 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     public void SessionRestore(MediaSessionInfo session)
     {
         MediaSessionSettings savedSettings = new MediaSessionSettings();
+        MediaSessionSettings matchingSettings;
 
-        MediaSessionSettings matchingSettings = _mediaLink.SavedSessionSettings
-            .FirstOrDefault(s => s.SessionId == session.Session.Id);
-
-        if (matchingSettings != null)
+        lock (MediaSessionSettings.SavedSessionsLock)
         {
-            savedSettings.ShowTitle = matchingSettings.ShowTitle;
-            savedSettings.AutoSwitch = matchingSettings.AutoSwitch;
-            savedSettings.ShowArtist = matchingSettings.ShowArtist;
-            savedSettings.IsVideo = matchingSettings.IsVideo;
-            savedSettings.KeepSaved = matchingSettings.KeepSaved;
+            matchingSettings = _mediaLink.SavedSessionSettings
+                .FirstOrDefault(s => s.SessionId == session.Session.Id);
 
-            if (savedSettings != null && !session.TimeoutRestore)
+            if (matchingSettings != null)
             {
-                session.ShowTitle = savedSettings.ShowTitle;
-                session.AutoSwitch = savedSettings.AutoSwitch;
-                session.ShowArtist = savedSettings.ShowArtist;
-                session.IsVideo = savedSettings.IsVideo;
-                session.KeepSaved = savedSettings.KeepSaved;
+                savedSettings.ShowTitle = matchingSettings.ShowTitle;
+                savedSettings.AutoSwitch = matchingSettings.AutoSwitch;
+                savedSettings.ShowArtist = matchingSettings.ShowArtist;
+                savedSettings.IsVideo = matchingSettings.IsVideo;
+                savedSettings.KeepSaved = matchingSettings.KeepSaved;
             }
+        }
+
+        // Apply outside the lock — the setters re-enter SaveOrDeleteSettings, which locks itself.
+        if (matchingSettings != null && !session.TimeoutRestore)
+        {
+            session.ShowTitle = savedSettings.ShowTitle;
+            session.AutoSwitch = savedSettings.AutoSwitch;
+            session.ShowArtist = savedSettings.ShowArtist;
+            session.IsVideo = savedSettings.IsVideo;
+            session.KeepSaved = savedSettings.KeepSaved;
         }
     }
 
@@ -763,6 +822,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     /// </summary>
     public void Start()
     {
+        if (mediaManager != null)
+            return;
+
         try
         {
             mediaManager = new MediaManager();
