@@ -30,4 +30,11 @@ public interface IOpenAiChatService
     /// Whether the OpenAI client is initialized and ready to accept requests.
     /// </summary>
     bool IsClientAvailable { get; }
+
+    /// <summary>
+    /// Whether OpenAI can be used right now — client initialized AND Internet Access consent granted.
+    /// Passive/background callers should gate on this so they fall back silently instead of
+    /// triggering a consent-required toast on every keystroke.
+    /// </summary>
+    bool CanUseOpenAi { get; }
 }

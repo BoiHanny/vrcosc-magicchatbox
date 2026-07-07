@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using OpenAI.Chat;
 using OpenAI.Moderations;
 using System;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Core.Toast;
 
 namespace vrcosc_magicchatbox.Services;
 
@@ -27,6 +29,21 @@ public sealed class OpenAiChatService : IOpenAiChatService
 
     public bool IsClientAvailable => _openAi.IsInitialized;
 
+    public bool CanUseOpenAi => _openAi.IsInitialized && _consent.IsApproved(PrivacyHook.InternetAccess);
+
+    /// <summary>
+    /// Surfaces the same permission message other modules show when Internet Access
+    /// consent is denied, so a null result doesn't read as a broken OpenAI response.
+    /// </summary>
+    private static void NotifyConsentDenied()
+    {
+        App.Services?.GetService<IToastService>()?.Show(
+            "🔒 OpenAI",
+            "Internet Access permission required for OpenAI features.",
+            ToastType.Privacy,
+            key: "openai-privacy-denied");
+    }
+
     public async Task<ChatCompletion?> GetChatCompletionAsync(
         IEnumerable<ChatMessage> messages,
         string model,
@@ -34,7 +51,10 @@ public sealed class OpenAiChatService : IOpenAiChatService
         CancellationToken ct = default)
     {
         if (!_consent.IsApproved(PrivacyHook.InternetAccess))
+        {
+            NotifyConsentDenied();
             return null;
+        }
 
         if (!IsClientAvailable)
             throw new InvalidOperationException("OpenAI client is not initialized. Configure your API key first.");
@@ -55,7 +75,10 @@ public sealed class OpenAiChatService : IOpenAiChatService
     public async Task<ModerationResult?> ClassifyTextAsync(string text, string model, CancellationToken ct = default)
     {
         if (!_consent.IsApproved(PrivacyHook.InternetAccess))
+        {
+            NotifyConsentDenied();
             return null;
+        }
 
         if (!IsClientAvailable)
             throw new InvalidOperationException("OpenAI client is not initialized. Configure your API key first.");

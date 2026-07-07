@@ -82,10 +82,28 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
 
             _nav.OpenUrl(authorizationEndpoint);
 
-            var context1 = await httpListener.GetContextAsync();
+            var redirectTask = httpListener.GetContextAsync();
+            var timeoutTask = Task.Delay(TimeSpan.FromMinutes(2));
+            if (await Task.WhenAny(redirectTask, timeoutTask) == timeoutTask)
+            {
+                Logging.WriteInfo("Pulsoid OAuth timed out waiting for browser redirect.");
+                StopListeners();
+                return null;
+            }
+
+            var context1 = await redirectTask;
             await SendBrowserCloseResponseAsync(context1.Response);
 
-            var context2 = await secondListener.GetContextAsync();
+            var callbackTask = secondListener.GetContextAsync();
+            var callbackTimeoutTask = Task.Delay(TimeSpan.FromMinutes(2));
+            if (await Task.WhenAny(callbackTask, callbackTimeoutTask) == callbackTimeoutTask)
+            {
+                Logging.WriteInfo("Pulsoid OAuth timed out waiting for token callback.");
+                StopListeners();
+                return null;
+            }
+
+            var context2 = await callbackTask;
             using (var reader = new StreamReader(context2.Request.InputStream))
             {
                 token = await reader.ReadToEndAsync();
@@ -120,27 +138,29 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
     {
         lock (listenerLock)
         {
-            if (httpListener == null)
+            if (httpListener != null && secondListener != null)
+                return;
+
+            // Build in locals so a failed Start() never leaves a half-initialized field behind
+            HttpListener first = null;
+            HttpListener second = null;
+            try
             {
-                httpListener = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthRedirectUri } };
-                httpListener.Start();
+                first = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthRedirectUri } };
+                first.Start();
+
+                second = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthCallbackUri } };
+                second.Start();
+            }
+            catch
+            {
+                CloseListenerSafely(first);
+                CloseListenerSafely(second);
+                throw;
             }
 
-            if (secondListener == null)
-            {
-                try
-                {
-                    secondListener = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthCallbackUri } };
-                    secondListener.Start();
-                }
-                catch
-                {
-                    // Clean up first listener if second fails to start
-                    httpListener?.Stop();
-                    httpListener?.Close();
-                    throw;
-                }
-            }
+            httpListener = first;
+            secondListener = second;
         }
     }
 
@@ -148,13 +168,28 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
     {
         lock (listenerLock)
         {
-            httpListener?.Stop();
-            httpListener?.Close();
+            CloseListenerSafely(httpListener);
             httpListener = null;
 
-            secondListener?.Stop();
-            secondListener?.Close();
+            CloseListenerSafely(secondListener);
             secondListener = null;
+        }
+    }
+
+    // Cleanup must never throw — StopListeners runs from finally blocks and Dispose
+    private static void CloseListenerSafely(HttpListener listener)
+    {
+        if (listener == null)
+            return;
+
+        try
+        {
+            listener.Stop();
+            listener.Close();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Pulsoid OAuth listener cleanup skipped: {ex.Message}");
         }
     }
 

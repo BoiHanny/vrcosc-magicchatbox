@@ -188,6 +188,12 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         public void SendChat()
         {
+            if (!_appState.MasterSwitch)
+            {
+                _chatStatus.ChatFeedbackTxt = "Sent to VRChat is off";
+                return;
+            }
+
             _ = TrySendChatText(_chatStatus.NewChattingTxt, preserveCurrentInput: false);
         }
 
@@ -206,7 +212,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
             Osc.CreateChat(true, preserveCurrentInput ? chat : null);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-            _ = _oscSender.Value.SendOSCMessage(CS.ChatFX, smalldelay, force: true);
+            _ = SendOscMessageWithFeedbackAsync(CS.ChatFX, smalldelay);
             _chatHistorySvc.Value.SaveChatHistory();
 
             if (TTS.TtsTikTokEnabled)
@@ -227,13 +233,34 @@ namespace vrcosc_magicchatbox.ViewModels
             return true;
         }
 
+        /// <summary>
+        /// Awaits an OSC chat send and surfaces a failure through the chat feedback text
+        /// instead of discarding the result. Never throws.
+        /// </summary>
+        private async Task SendOscMessageWithFeedbackAsync(bool fx, int delay, bool reportFailure = true)
+        {
+            try
+            {
+                bool sent = await _oscSender.Value.SendOSCMessage(fx, delay, force: true);
+                if (!sent && reportFailure && _appState.MasterSwitch)
+                    _chatStatus.ChatFeedbackTxt = "Failed to send to VRChat";
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                if (reportFailure)
+                    _chatStatus.ChatFeedbackTxt = "Failed to send to VRChat";
+            }
+        }
+
         [RelayCommand]
         public void StopChat()
         {
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             Osc.ClearChat(running);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-            _ = _oscSender.Value.SendOSCMessage(false, smalldelay, force: true);
+            // A false result with no running chat is a normal no-op, not a failure.
+            _ = SendOscMessageWithFeedbackAsync(false, smalldelay, reportFailure: running != null);
             _ = ScanLoop.Scantick();
             TtsPlayback.CancelAllTts();
         }
@@ -273,7 +300,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
                 Osc.CreateChat(false, item.Msg);
                 int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-                _ = _oscSender.Value.SendOSCMessage(CS.ChatFX && CS.ChatSendAgainFX, smalldelay, force: true);
+                _ = SendOscMessageWithFeedbackAsync(CS.ChatFX && CS.ChatSendAgainFX, smalldelay);
 
                 if (TTS.TtsTikTokEnabled && TTS.TtsOnResendChat)
                 {
@@ -380,7 +407,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 return;
             }
 
-            if (CS.ChatAutocompleteMode == ChatAutocompleteMode.OpenAI && _openAiChatService.IsClientAvailable)
+            if (CS.ChatAutocompleteMode == ChatAutocompleteMode.OpenAI && _openAiChatService.CanUseOpenAi)
             {
                 QueueOpenAiAutocomplete(input);
                 return;
