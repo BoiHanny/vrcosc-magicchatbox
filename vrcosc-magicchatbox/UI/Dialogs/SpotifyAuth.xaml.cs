@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Dialogs;
@@ -35,7 +36,19 @@ public partial class SpotifyAuth : Window
 
     private void PasteClientId_Click(object sender, RoutedEventArgs e)
     {
-        var text = Clipboard.GetText().Trim();
+        string text;
+        try
+        {
+            text = Clipboard.GetText().Trim();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Clipboard access failed: {ex.Message}");
+            StatusText.Foreground = Brushes.OrangeRed;
+            StatusText.Text = "Could not read clipboard — try copying again.";
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(text))
             return;
 

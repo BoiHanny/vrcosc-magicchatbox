@@ -16,8 +16,12 @@ namespace vrcosc_magicchatbox.Classes
             if (value == null) return string.Empty;
 
             var enumValue = value.GetType().GetField(value.ToString());
-            var attribute = (DescriptionAttribute)enumValue.GetCustomAttributes(typeof(DescriptionAttribute), false)[0];
-            return attribute.Description;
+            if (enumValue == null) return value.ToString();
+
+            var attributes = enumValue.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            return attributes.Length > 0 && attributes[0] is DescriptionAttribute attribute
+                ? attribute.Description
+                : value.ToString();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
