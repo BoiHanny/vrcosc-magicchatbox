@@ -217,7 +217,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<PulsoidDisplayState>(),
-            sp.GetRequiredService<INavigationService>()));
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IToastService>()));
         services.AddSingleton<OpenAISectionViewModel>(sp => new OpenAISectionViewModel(
             sp.GetRequiredService<ISettingsProvider<OpenAISettings>>(),
             sp.GetRequiredService<OpenAIDisplayState>(),

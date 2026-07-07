@@ -7,6 +7,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -22,6 +23,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
     private readonly Lazy<PulsoidOAuthHandler> _pulsoidOAuth;
     private readonly IAppState _appState;
     private readonly INavigationService _nav;
+    private readonly IToastService _toast;
 
     public AppSettings AppSettings { get; }
     public IntegrationSettings IntegrationSettings { get; }
@@ -42,7 +44,8 @@ public partial class PulsoidSectionViewModel : ObservableObject
         ISettingsProvider<AppSettings> appSettingsProvider,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
         PulsoidDisplayState pulsoidDisplay,
-        INavigationService nav)
+        INavigationService nav,
+        IToastService toast)
     {
         _moduleHost = moduleHost;
         _pulsoidOAuth = pulsoidOAuth;
@@ -51,6 +54,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
         IntegrationSettings = integrationSettingsProvider.Value;
         Pulsoid = pulsoidDisplay;
         _nav = nav;
+        _toast = toast;
     }
 
     public bool PulsoidAuthConnected
@@ -75,10 +79,24 @@ public partial class PulsoidSectionViewModel : ObservableObject
             var authEndpoint = $"{Core.Constants.PulsoidOAuthEndpoint}?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}";
 
             var oAuth = PulsoidOAuth;
-            oAuth.StartListeners();
+            try
+            {
+                oAuth.StartListeners();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                _toast.Show("Pulsoid", "Could not open the local sign-in ports (7384/7385) — another app may be using them.", ToastType.Error, key: "pulsoid-listener-failed");
+                return;
+            }
+
             string fragmentString = await oAuth.AuthenticateUserAsync(authEndpoint);
 
-            if (string.IsNullOrEmpty(fragmentString)) return;
+            if (string.IsNullOrEmpty(fragmentString))
+            {
+                _toast.Show("Pulsoid", "Sign-in was cancelled or timed out. Please try again.", ToastType.Warning, key: "pulsoid-auth-timeout");
+                return;
+            }
 
             var fragment = PulsoidOAuthHandler.ParseQueryString(fragmentString);
             if (fragment.TryGetValue("access_token", out string accessToken) && !string.IsNullOrEmpty(accessToken))
@@ -86,13 +104,24 @@ public partial class PulsoidSectionViewModel : ObservableObject
                 if (await oAuth.ValidateTokenAsync(accessToken))
                 {
                     pulsoid.Settings.AccessTokenOAuth = accessToken;
+                    // Persist immediately — waiting for shutdown risks losing the token on crash/kill
+                    pulsoid.SaveSettings();
                     PulsoidAuthConnected = true;
                 }
+                else
+                {
+                    _toast.Show("Pulsoid", "Pulsoid rejected the token or it is missing the required scopes. Please reconnect.", ToastType.Error, key: "pulsoid-token-invalid");
+                }
+            }
+            else
+            {
+                _toast.Show("Pulsoid", "Pulsoid did not return an access token. Please try again.", ToastType.Error, key: "pulsoid-token-missing");
             }
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
+            _toast.Show("Pulsoid", "Connecting to Pulsoid failed unexpectedly. Check the log for details.", ToastType.Error, key: "pulsoid-connect-failed");
         }
         finally
         {
@@ -106,6 +135,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
         var pulsoid = _moduleHost.Value.Pulsoid;
         if (pulsoid == null) return;
         pulsoid.Settings.AccessTokenOAuth = string.Empty;
+        pulsoid.SaveSettings();
         PulsoidAuthConnected = false;
         await pulsoid.DisconnectSession();
     }
