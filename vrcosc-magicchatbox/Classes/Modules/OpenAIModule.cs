@@ -64,14 +64,35 @@ public class OpenAIModule : ITranscriptionService
     }
 
 
+    /// <summary>
+    /// True only when OpenAI definitively rejected the credentials (HTTP 401 or an
+    /// invalid key/organization message) — never for transient network/server errors.
+    /// </summary>
+    private static bool IsDefinitiveAuthFailure(Exception ex)
+    {
+        if (ex is System.ClientModel.ClientResultException clientResult && clientResult.Status == 401)
+        {
+            return true;
+        }
+
+        return ex.Message.Contains("Incorrect API") || ex.Message.Contains("No such organization");
+    }
+
     private void ReportTestConnectionError(Exception ex)
     {
         Logging.WriteException(ex, MSGBox: false);
-        Settings.AccessTokenEncrypted = string.Empty;
-        Settings.OrganizationIDEncrypted = string.Empty;
-        Settings.AccessToken = string.Empty;
-        Settings.OrganizationID = string.Empty;
-        SaveSettings();
+
+        // Only wipe stored credentials when they were definitively rejected; a transient
+        // failure (network down, 5xx, timeout) must not destroy a working key.
+        if (IsDefinitiveAuthFailure(ex))
+        {
+            Settings.AccessTokenEncrypted = string.Empty;
+            Settings.OrganizationIDEncrypted = string.Empty;
+            Settings.AccessToken = string.Empty;
+            Settings.OrganizationID = string.Empty;
+            SaveSettings();
+        }
+
         _openAI.Connected = false;
         _openAI.AccessError = true;
         _openAI.AccessErrorTxt = CreateCustomOpenAIAccessErrorTxt(ex);
