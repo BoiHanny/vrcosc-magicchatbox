@@ -326,29 +326,39 @@ public class UpdateApp
 
     private void HandleAccessIssues(bool admin, string relaunchArgument)
     {
-        if (!admin)
+        if (!admin && TryRelaunchElevated(relaunchArgument))
         {
-            try
-            {
-                string currentExePath = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "MagicChatbox.exe");
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = currentExePath,
-                    Arguments = relaunchArgument,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WorkingDirectory = Path.GetDirectoryName(currentExePath)
-                });
-                Environment.Exit(0);
-                return;
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-            }
+            return;
         }
 
         Logging.WriteException(new Exception("Access denied while applying files. Try running MagicChatbox as administrator."), MSGBox: true, autoclose: true);
+    }
+
+    /// <summary>
+    /// Relaunches the current executable elevated and exits this process.
+    /// Returns false when the relaunch fails (e.g. the UAC prompt is cancelled).
+    /// </summary>
+    private static bool TryRelaunchElevated(string relaunchArgument)
+    {
+        try
+        {
+            string currentExePath = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, ExecutableName);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = currentExePath,
+                Arguments = relaunchArgument,
+                UseShellExecute = true,
+                Verb = "runas",
+                WorkingDirectory = Path.GetDirectoryName(currentExePath)
+            });
+            Environment.Exit(0);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return false;
+        }
     }
 
     private void PrepareMaintenanceRunner()
@@ -671,6 +681,7 @@ public class UpdateApp
             }
 
             UpdateStatus("Clearing current app path", startUp, 75);
+            bool backupRefreshSucceeded = false;
             try
             {
                 ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Clear current app path");
@@ -683,6 +694,7 @@ public class UpdateApp
                 ClearAndRecreateDirectory(backupPath, "Refresh backup directory after rollback");
                 CopyDirectory(new DirectoryInfo(rollbackRecoveryPath), new DirectoryInfo(backupPath));
                 SaveUpdateLocation(backupPath);
+                backupRefreshSucceeded = true;
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
@@ -691,17 +703,22 @@ public class UpdateApp
             }
             finally
             {
-                try
+                // Only discard the roll-forward recovery copy once the backup was refreshed from it;
+                // if the refresh failed, keep it so a retry can still rebuild the backup.
+                if (backupRefreshSucceeded)
                 {
-                    if (Directory.Exists(rollbackRecoveryPath))
+                    try
                     {
-                        ClearDirectoryContents(rollbackRecoveryPath);
-                        Directory.Delete(rollbackRecoveryPath, true);
+                        if (Directory.Exists(rollbackRecoveryPath))
+                        {
+                            ClearDirectoryContents(rollbackRecoveryPath);
+                            Directory.Delete(rollbackRecoveryPath, true);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteInfo($"Rollback recovery cleanup skipped: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"Rollback recovery cleanup skipped: {ex.Message}");
+                    }
                 }
             }
 
@@ -766,17 +783,98 @@ public class UpdateApp
         {
             ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Replace current installation");
             string sourceRoot = ResolveApplicationDirectory(unzipPath);
-            CopyDirectoryContents(new DirectoryInfo(sourceRoot), currentAppDirectory);
+            ExecuteWithRetry(() => CopyDirectoryContents(new DirectoryInfo(sourceRoot), currentAppDirectory), "Copy update files");
             magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
             SaveUpdateLocation();
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
         {
-            HandleAccessIssues(admin, "-updateadmin");
+            // Elevation can fix access issues; the elevated instance retries the update.
+            if (!admin && TryRelaunchElevated("-updateadmin"))
+            {
+                return;
+            }
+
+            string failureMessage = DescribeUpdateFailure(ex);
+            if (TryRestoreFromBackup())
+            {
+                Logging.WriteException(
+                    new Exception($"{failureMessage} The previous version has been restored."),
+                    MSGBox: true,
+                    autoclose: true);
+                StartNewApplication();
+            }
+            else
+            {
+                Logging.WriteException(new Exception(failureMessage), MSGBox: true, autoclose: true);
+            }
+
             return;
         }
 
         StartNewApplication();
+    }
+
+    /// <summary>
+    /// Restores the previous installation from the update backup after a failed update.
+    /// Returns false when no usable backup exists or the restore itself fails.
+    /// </summary>
+    private bool TryRestoreFromBackup()
+    {
+        try
+        {
+            // Clearing the install dir must never destroy the restore source itself.
+            string installRoot = Path.GetFullPath(currentAppPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string backupRoot = Path.GetFullPath(backupPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (backupRoot.Equals(installRoot, StringComparison.OrdinalIgnoreCase) ||
+                backupRoot.StartsWith(installRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!Directory.Exists(backupPath) || !File.Exists(Path.Combine(backupPath, ExecutableName)))
+            {
+                return false;
+            }
+
+            ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Clear installation for restore");
+            ExecuteWithRetry(
+                () => CopyDirectoryContents(new DirectoryInfo(backupPath), new DirectoryInfo(currentAppPath)),
+                "Restore previous version");
+            magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return false;
+        }
+    }
+
+    private static string DescribeUpdateFailure(Exception ex)
+    {
+        // ExecuteWithRetry wraps the last failure in an IOException; classify the root cause.
+        Exception root = ex;
+        while (root.InnerException != null)
+        {
+            root = root.InnerException;
+        }
+
+        const int HrDiskFull = unchecked((int)0x80070070);
+        const int HrHandleDiskFull = unchecked((int)0x80070027);
+        const int HrSharingViolation = unchecked((int)0x80070020);
+        const int HrLockViolation = unchecked((int)0x80070021);
+
+        string reason = root switch
+        {
+            UnauthorizedAccessException => "access was denied while applying files. Try running MagicChatbox as administrator.",
+            IOException { HResult: HrDiskFull or HrHandleDiskFull } => "the disk is full.",
+            IOException { HResult: HrSharingViolation or HrLockViolation } => "a file is locked by another program (antivirus or a running MagicChatbox instance). Close it and try again.",
+            FileNotFoundException or DirectoryNotFoundException => "the update package is incomplete or missing files.",
+            _ => root.Message
+        };
+
+        return $"Update failed: {reason}";
     }
 
     public void UpdateStatus(string message, StartUp startUp = null, double proc = 50)
