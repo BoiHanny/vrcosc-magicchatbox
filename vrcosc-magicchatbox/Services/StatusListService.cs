@@ -32,6 +32,7 @@ public sealed class StatusListService : IStatusListService, IDisposable
     private readonly IUiDispatcher _dispatcher;
     private readonly IToastService _toast;
     private Timer? _debounceTimer;
+    private volatile bool _savePending;
     private readonly object _saveLock = new();
 
     public StatusListService(ChatStatusDisplayState chatStatus, IAppState appState, IEnvironmentService env, IUiDispatcher dispatcher, IToastService toast)
@@ -79,14 +80,25 @@ public sealed class StatusListService : IStatusListService, IDisposable
     {
         _debounceTimer?.Change(Timeout.Infinite, Timeout.Infinite);
         _debounceTimer ??= new Timer(_ => SaveStatusListCore(), null, Timeout.Infinite, Timeout.Infinite);
+        _savePending = true;
         _debounceTimer.Change(DebounceSaveDelayMs, Timeout.Infinite);
     }
 
     private void SaveStatusListCore()
     {
-        lock (_saveLock)
+        try
         {
-            try
+            _savePending = false;
+
+            // The ObservableCollections are UI-bound: snapshot them on the dispatcher
+            // thread so the debounced ThreadPool save can't race UI mutations.
+            // Must happen outside _saveLock — a UI-thread save waiting on the lock
+            // would deadlock a background thread blocked in Invoke.
+            var (groups, items) = _dispatcher.CheckAccess()
+                ? (_chatStatus.GroupList.ToList(), _chatStatus.StatusList.ToList())
+                : _dispatcher.Invoke(() => (_chatStatus.GroupList.ToList(), _chatStatus.StatusList.ToList()));
+
+            lock (_saveLock)
             {
                 var dataPath = _env.DataPath;
                 if (string.IsNullOrEmpty(dataPath)) return;
@@ -96,8 +108,8 @@ public sealed class StatusListService : IStatusListService, IDisposable
                 var bundle = new StatusBundle
                 {
                     Version = CurrentSchemaVersion,
-                    Groups = _chatStatus.GroupList.ToList(),
-                    Items = _chatStatus.StatusList.ToList()
+                    Groups = groups,
+                    Items = items
                 };
                 var json = JsonConvert.SerializeObject(bundle, Formatting.Indented);
 
@@ -106,11 +118,11 @@ public sealed class StatusListService : IStatusListService, IDisposable
                 File.WriteAllText(tempPath, json);
                 File.Move(tempPath, filePath, overwrite: true);
             }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-                _toast.Show("💾 Status List", "Failed to save status list changes.", ToastType.Warning, key: "status-list-save-failed");
-            }
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            _toast.Show("💾 Status List", "Failed to save status list changes.", ToastType.Warning, key: "status-list-save-failed");
         }
     }
 
@@ -296,6 +308,11 @@ public sealed class StatusListService : IStatusListService, IDisposable
             _debounceTimer.Dispose();
             _debounceTimer = null;
         }
+
+        // Flush rather than drop a pending debounced save so a quick shutdown
+        // can't lose the last edit (mirrors JsonSettingsProvider.FlushPendingSave).
+        if (_savePending)
+            SaveStatusListCore();
     }
 
     public string ExportGroupToJson(string groupId)
