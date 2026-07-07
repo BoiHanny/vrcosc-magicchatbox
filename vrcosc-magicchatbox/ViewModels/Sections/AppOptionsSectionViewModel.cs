@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -8,6 +9,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -116,8 +118,21 @@ public partial class AppOptionsSectionViewModel : ObservableObject
         string dataPath = _env.DataPath;
         string json = Path.Combine(dataPath, "StatusList.json");
         string legacy = Path.Combine(dataPath, "StatusList.xml");
-        if (File.Exists(json)) File.Delete(json);
-        if (File.Exists(legacy)) File.Delete(legacy);
+        try
+        {
+            if (File.Exists(json)) File.Delete(json);
+            if (File.Exists(legacy)) File.Delete(legacy);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            App.Services.GetService<IToastService>()?.Show(
+                "Reset favorites",
+                "Could not delete the status list file. Close any program using it and try again.",
+                ToastType.Error,
+                key: "reset-favorites-failed");
+            return;
+        }
         _statusListSvc.Value.LoadStatusList();
         _menuNav.NavigateToPage(1); // Navigate to Status page
     }

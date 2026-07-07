@@ -61,7 +61,14 @@ namespace vrcosc_magicchatbox
         private bool _ownsSingleInstanceMutex;
         private bool _loggingReady;
         private volatile bool _startupCompleted;
+        private volatile bool _interactiveStartupPhase;
+        private long _watchdogBaselineTicks = Environment.TickCount64;
         private string _lastStartupPhase = "Process created.";
+
+        // Crash-loop breaker for handled dispatcher exceptions (only touched on the UI thread).
+        private static readonly TimeSpan HandledDispatcherExceptionWindow = TimeSpan.FromSeconds(60);
+        private const int MaxHandledDispatcherExceptionsInWindow = 3;
+        private readonly System.Collections.Generic.Queue<DateTime> _handledDispatcherExceptionTimes = new();
 
         public static MainWindow mainWindow;
 
@@ -96,6 +103,7 @@ namespace vrcosc_magicchatbox
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 #if DEBUG
             AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #endif
@@ -231,6 +239,9 @@ namespace vrcosc_magicchatbox
                 }
 
                 bool tosJustAccepted = false;
+                // Modal TOS/privacy dialogs wait on the user — the startup watchdog must not
+                // hard-exit while this flag is set.
+                _interactiveStartupPhase = true;
                 {
                     LogStartupPhase("Checking TOS/privacy wizard state.");
                     var appSettingsProvider = Services.GetRequiredService<ISettingsProvider<AppSettings>>();
@@ -256,6 +267,10 @@ namespace vrcosc_magicchatbox
                         dialog.ShowDialog();
                     }
                 }
+                _interactiveStartupPhase = false;
+                // Give the remaining startup work a fresh watchdog budget: the user may have
+                // spent minutes in the TOS/privacy dialogs above.
+                Interlocked.Exchange(ref _watchdogBaselineTicks, Environment.TickCount64);
 
                 await InitializeComponentsWithProgress(loadingWindow, startupCancellation.Token);
                 LogStartupPhase("Component initialization completed.");
@@ -513,26 +528,46 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                await Task.Delay(StartupWatchdogTimeout, cancellationToken).ConfigureAwait(false);
-                if (_startupCompleted || cancellationToken.IsCancellationRequested)
-                    return;
-
-                string message = $"Startup watchdog timed out after {StartupWatchdogTimeout.TotalSeconds:0}s. Last phase: {_lastStartupPhase}";
-                WriteEarlyStartupLog(message);
-                try
+                // Poll on a short interval and measure the budget from a baseline that resets
+                // whenever a modal dialog phase ends, so time the user spent reading the TOS is
+                // never counted against genuine-hang detection.
+                while (true)
                 {
-                    Logging.WriteInfo(message);
-                }
-                catch
-                {
-                    // Logging may not be ready if startup stalled early.
-                }
+                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+                    if (_startupCompleted || cancellationToken.IsCancellationRequested)
+                        return;
 
-                await Task.Yield();
-                if (_startupCompleted || cancellationToken.IsCancellationRequested)
-                    return;
+                    // Modal TOS/privacy dialogs legitimately wait on the user — keep the clock
+                    // pinned to "now" while one is open so it can never elapse mid-dialog.
+                    if (_interactiveStartupPhase)
+                    {
+                        Interlocked.Exchange(ref _watchdogBaselineTicks, Environment.TickCount64);
+                        continue;
+                    }
 
-                Environment.Exit(1);
+                    long elapsed = Environment.TickCount64 - Interlocked.Read(ref _watchdogBaselineTicks);
+                    if (elapsed < (long)StartupWatchdogTimeout.TotalMilliseconds)
+                        continue;
+
+                    string message = $"Startup watchdog timed out after {StartupWatchdogTimeout.TotalSeconds:0}s. Last phase: {_lastStartupPhase}";
+                    WriteEarlyStartupLog(message);
+                    try
+                    {
+                        Logging.WriteInfo(message);
+                    }
+                    catch
+                    {
+                        // Logging may not be ready if startup stalled early.
+                    }
+
+                    await Task.Yield();
+                    if (_startupCompleted || cancellationToken.IsCancellationRequested)
+                        return;
+                    if (_interactiveStartupPhase)
+                        continue;
+
+                    Environment.Exit(1);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -706,7 +741,69 @@ namespace vrcosc_magicchatbox
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Logging.WriteException(e.Exception, MSGBox: true, exitapp: true);
+            // Unrecoverable faults and failures before startup finished keep the fail-fast path.
+            if (!_startupCompleted ||
+                e.Exception is OutOfMemoryException ||
+                e.Exception is AccessViolationException ||
+                e.Exception is InsufficientMemoryException)
+            {
+                Logging.WriteException(e.Exception, MSGBox: true, exitapp: true);
+                return;
+            }
+
+            // Crash-loop breaker: repeated faults in a short window mean something is
+            // systematically broken — fall back to the dialog + exit path.
+            DateTime now = DateTime.UtcNow;
+            _handledDispatcherExceptionTimes.Enqueue(now);
+            while (_handledDispatcherExceptionTimes.Count > 0 &&
+                   now - _handledDispatcherExceptionTimes.Peek() > HandledDispatcherExceptionWindow)
+            {
+                _handledDispatcherExceptionTimes.Dequeue();
+            }
+
+            if (_handledDispatcherExceptionTimes.Count > MaxHandledDispatcherExceptionsInWindow)
+            {
+                Logging.WriteException(e.Exception, MSGBox: true, exitapp: true);
+                return;
+            }
+
+            try
+            {
+                Logging.WriteException(e.Exception, MSGBox: false);
+            }
+            catch
+            {
+                // The handler itself must never throw.
+            }
+
+            e.Handled = true;
+
+            try
+            {
+                Services?.GetService<IToastService>()?.Show(
+                    "Unexpected error",
+                    "An internal error occurred and was logged. The app keeps running.",
+                    ToastType.Error,
+                    key: "dispatcher-unhandled-exception");
+            }
+            catch
+            {
+                // Toast surface unavailable — the exception is already logged.
+            }
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            try
+            {
+                Logging.WriteException(e.Exception, MSGBox: false);
+            }
+            catch
+            {
+                // Logging must never take down the finalizer thread.
+            }
+
+            e.SetObserved();
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

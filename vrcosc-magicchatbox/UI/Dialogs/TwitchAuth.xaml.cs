@@ -70,7 +70,17 @@ public partial class TwitchAuth : Window
 
     private void PasteClientId_Click(object sender, RoutedEventArgs e)
     {
-        var text = Clipboard.GetText().Trim();
+        string text;
+        try
+        {
+            text = Clipboard.GetText().Trim();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Clipboard access failed: {ex.Message}");
+            SetStatus("Could not read clipboard — try copying again.", Brushes.OrangeRed);
+            return;
+        }
         if (string.IsNullOrEmpty(text)) return;
         ClientIdBox.Password = text;
         _localClientId = text;
@@ -89,7 +99,17 @@ public partial class TwitchAuth : Window
 
     private void PasteToken_Click(object sender, RoutedEventArgs e)
     {
-        var text = Clipboard.GetText().Trim();
+        string text;
+        try
+        {
+            text = Clipboard.GetText().Trim();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Clipboard access failed: {ex.Message}");
+            SetStatus("Could not read clipboard — try copying again.", Brushes.OrangeRed);
+            return;
+        }
         if (string.IsNullOrEmpty(text)) return;
         TokenBox.Password = text;
         _localToken = text;
