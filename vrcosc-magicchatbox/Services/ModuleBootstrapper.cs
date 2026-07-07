@@ -51,6 +51,7 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
     private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
     private readonly ISettingsProvider<VrcLogSettings> _vrcLogSettingsProvider;
+    private readonly ISettingsProvider<PulsoidModuleSettings> _pulsoidSettingsProvider;
     private readonly Lazy<DiscordOAuthHandler> _discordOAuth;
     private readonly DiscordRichPresenceService _discordRichPresence;
     private readonly IPrivacyConsentService _consentService;
@@ -92,6 +93,7 @@ public class ModuleBootstrapper
         ISettingsProvider<DiscordSettings> discordSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<VrcLogSettings> vrcLogSettingsProvider,
+        ISettingsProvider<PulsoidModuleSettings> pulsoidSettingsProvider,
         Lazy<DiscordOAuthHandler> discordOAuth,
         DiscordRichPresenceService discordRichPresence,
         IPrivacyConsentService consentService,
@@ -125,6 +127,7 @@ public class ModuleBootstrapper
         _discordSettingsProvider = discordSettingsProvider;
         _spotifySettingsProvider = spotifySettingsProvider;
         _vrcLogSettingsProvider = vrcLogSettingsProvider;
+        _pulsoidSettingsProvider = pulsoidSettingsProvider;
         _discordOAuth = discordOAuth;
         _discordRichPresence = discordRichPresence;
         _consentService = consentService;
@@ -176,7 +179,7 @@ public class ModuleBootstrapper
             _oscSender,
             integrationSettings,
             _pulsoidOAuth,
-            _env,
+            _pulsoidSettingsProvider,
             _toast));
         var soundpad = await CreateRuntimeModuleAsync("Soundpad", () => new SoundpadModule(
             1000,

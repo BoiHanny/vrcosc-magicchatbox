@@ -1,21 +1,17 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
 /// <summary>
-/// Holds user-specific settings for the Pulsoid module and provides serialization to JSON.
+/// Holds user-specific settings for the Pulsoid module.
+/// Persisted to PulsoidModuleSettings.json via ISettingsProvider&lt;PulsoidModuleSettings&gt;.
 /// </summary>
 public partial class PulsoidModuleSettings : VersionedSettings
 {
-    private const string SettingsFileName = "PulsoidModuleSettings.json";
-
     [ObservableProperty]
     private bool applyHeartRateAdjustment = false;
 
@@ -189,55 +185,4 @@ public partial class PulsoidModuleSettings : VersionedSettings
         }
     }
 
-    internal string _fullSettingsPath;
-
-    /// <summary>
-    /// Load settings from disk. If no file or corrupted, returns a new instance.
-    /// </summary>
-    public static PulsoidModuleSettings LoadSettings(string settingsPath)
-    {
-        if (File.Exists(settingsPath))
-        {
-            string settingsJson = File.ReadAllText(settingsPath);
-
-            if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
-            {
-                Logging.WriteInfo("The settings JSON file is empty or corrupted.");
-                return new PulsoidModuleSettings { _fullSettingsPath = settingsPath };
-            }
-
-            try
-            {
-                var settings = JsonConvert.DeserializeObject<PulsoidModuleSettings>(settingsJson);
-                if (settings != null) settings._fullSettingsPath = settingsPath;
-                return settings ?? new PulsoidModuleSettings { _fullSettingsPath = settingsPath };
-            }
-            catch (JsonException ex)
-            {
-                Logging.WriteInfo($"Error parsing settings JSON: {ex.Message}");
-                return new PulsoidModuleSettings { _fullSettingsPath = settingsPath };
-            }
-        }
-        else
-        {
-            Logging.WriteInfo("Settings file does not exist, returning new settings instance.");
-            return new PulsoidModuleSettings { _fullSettingsPath = settingsPath };
-        }
-    }
-
-    /// <summary>
-    /// Save current settings to disk as JSON.
-    /// </summary>
-    public void SaveSettings()
-    {
-        try
-        {
-            var settingsJson = JsonConvert.SerializeObject(this, Formatting.Indented);
-            File.WriteAllText(_fullSettingsPath, settingsJson);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"Error saving settings: {ex.Message}");
-        }
-    }
 }
