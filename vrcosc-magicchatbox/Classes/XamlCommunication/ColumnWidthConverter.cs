@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Data;
 using System.Windows;
+using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Converts an <c>ActualWidth</c> double to a column width by subtracting a fixed
+    /// 50-pixel offset. Returns 0 if the result would be negative.
+    /// </summary>
     public class ColumnWidthConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is double actualWidth)
             {
-                double subtractedWidth = 50; // Adjust this value as necessary.
-
-                // Ensure the returned width is never negative.
+                double subtractedWidth = 50;
                 double resultWidth = actualWidth - subtractedWidth;
                 return resultWidth > 0 ? resultWidth : 0;
             }

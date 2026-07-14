@@ -1,8 +1,11 @@
-﻿using LibreHardwareMonitor.Hardware;
-using System;
+﻿using System;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// Represents a single hardware component stat (CPU/GPU/RAM/VRAM) with its
+    /// display name, value, unit, and visibility settings.
+    /// </summary>
     public class ComponentStatsItem
     {
         public DateTime StartedOn { get; set; } = DateTime.Now;
@@ -68,6 +71,9 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="ComponentStatsItem"/> with name, type, value, unit, and enabled state.
+        /// </summary>
         public ComponentStatsItem(
             string name,
             string smallName,
@@ -92,7 +98,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             public string Name { get; set; }
             public string Identifier { get; set; }
-            public HardwareType HardwareType { get; set; }
+            public string HardwareType { get; set; }
         }
     }
 }

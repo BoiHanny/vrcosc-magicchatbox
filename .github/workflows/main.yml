@@ -5,6 +5,8 @@ on:
     branches:
       - 'Pre-Master'
       - 'master'
+    tags:
+      - 'v*'
 
 env:
   Solution_Name: vrcosc-magicchatbox.sln
@@ -19,12 +21,14 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '10.0.x'
 
     # Step 1: Extract version from the csproj
     - name: Extract Version from csproj
@@ -43,13 +47,43 @@ jobs:
           exit 1
         }
 
-    # Step 2: Check if a release with this version already exists
+    # Step 2: Resolve the release tag for this run
+    - name: Resolve Release Tag
+      id: resolve_release
+      shell: pwsh
+      run: |
+        $csprojVersion = $env:VERSION
+        $isTagRelease = $env:GITHUB_REF -like 'refs/tags/*'
+
+        if ($isTagRelease) {
+          $releaseTag = $env:GITHUB_REF_NAME
+
+          if (-not $releaseTag.StartsWith('v')) {
+            Write-Error "Release tags must start with 'v'. Found '$releaseTag'."
+            exit 1
+          }
+
+          $tagVersion = $releaseTag.Substring(1)
+          if ($tagVersion -ne $csprojVersion) {
+            Write-Error "Tag version '$tagVersion' does not match csproj version '$csprojVersion'."
+            exit 1
+          }
+        }
+        else {
+          $releaseTag = "v$csprojVersion"
+        }
+
+        "RELEASE_TAG=$releaseTag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        "release_tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "is_tag_release=$($isTagRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    # Step 3: Check if a release with this tag already exists
     - name: Check if Release Exists
       id: check_release
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
-          const tag = `v${{ env.VERSION }}`;
+          const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
           try {
             await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
@@ -65,89 +99,331 @@ jobs:
             }
           }
 
-    # Step 3: If the release already exists, stop here
-    - name: Release Already Exists
-      if: steps.check_release.outputs.release_exists == 'true'
+    - name: Ensure Release Tag Exists (Actions token)
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
+      id: ensure_tag_actions
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ github.token }}
+        script: |
+          const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+
+          try {
+            await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: `tags/${tag}`
+            });
+            core.setOutput('tag_ready', 'true');
+            core.setOutput('tag_source', 'existing');
+          } catch (error) {
+            if (error.status !== 404) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed checking tag ${tag} with github.token: ${error.message}`);
+              return;
+            }
+
+            try {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tag}`,
+                sha: context.sha
+              });
+              core.setOutput('tag_ready', 'true');
+              core.setOutput('tag_source', 'created-actions-token');
+            } catch (createError) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed creating tag ${tag} with github.token: ${createError.message}`);
+            }
+          }
+
+    - name: Ensure Release Tag Exists (MY_PAT fallback)
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.ensure_tag_actions.outputs.tag_ready != 'true'
+      id: ensure_tag_pat
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.MY_PAT }}
+        script: |
+          const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+
+          try {
+            await github.rest.git.getRef({
+              owner,
+              repo,
+              ref: `tags/${tag}`
+            });
+            core.setOutput('tag_ready', 'true');
+            core.setOutput('tag_source', 'existing');
+          } catch (error) {
+            if (error.status !== 404) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed checking tag ${tag} with MY_PAT: ${error.message}`);
+              return;
+            }
+
+            try {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tag}`,
+                sha: context.sha
+              });
+              core.setOutput('tag_ready', 'true');
+              core.setOutput('tag_source', 'created-my-pat');
+            } catch (createError) {
+              core.setOutput('tag_ready', 'false');
+              core.setOutput('failure_message', `Failed creating tag ${tag} with MY_PAT: ${createError.message}`);
+            }
+          }
+
+    - name: Finalize Branch Release Path
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
+      id: finalize_branch_release
+      env:
+        PRIMARY_READY: ${{ steps.ensure_tag_actions.outputs.tag_ready }}
+        PRIMARY_SOURCE: ${{ steps.ensure_tag_actions.outputs.tag_source }}
+        PRIMARY_FAILURE: ${{ steps.ensure_tag_actions.outputs.failure_message }}
+        FALLBACK_READY: ${{ steps.ensure_tag_pat.outputs.tag_ready }}
+        FALLBACK_SOURCE: ${{ steps.ensure_tag_pat.outputs.tag_source }}
+        FALLBACK_FAILURE: ${{ steps.ensure_tag_pat.outputs.failure_message }}
+      shell: pwsh
       run: |
-        echo "Release v${{ env.VERSION }} already exists. Skipping build and release."
+        $primaryReady = $env:PRIMARY_READY
+        $primarySource = $env:PRIMARY_SOURCE
+        $fallbackReady = $env:FALLBACK_READY
+        $fallbackSource = $env:FALLBACK_SOURCE
+        $primaryFailure = $env:PRIMARY_FAILURE
+        $fallbackFailure = $env:FALLBACK_FAILURE
+
+        if ($primaryReady -ne 'true' -and $fallbackReady -ne 'true') {
+          $failures = @()
+
+          if (-not [string]::IsNullOrWhiteSpace($primaryFailure.Trim())) {
+            $failures += $primaryFailure.Trim()
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($fallbackFailure.Trim())) {
+            $failures += $fallbackFailure.Trim()
+          }
+
+          $details = if ($failures.Count -gt 0) { $failures -join ' || ' } else { "No additional error details were returned." }
+          Write-Error "Unable to ensure release tag $env:RELEASE_TAG for this branch push. $details"
+          exit 1
+        }
+
+        $tagSource = if ($primaryReady -eq 'true') { $primarySource } else { $fallbackSource }
+        $publishNow = if ($tagSource -like 'created-*') { 'false' } else { 'true' }
+
+        "tag_source=$tagSource" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "publish_now=$publishNow" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    # Step 4: If the release already exists for this tag, stop here
+    - name: Release Already Exists
+      if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'true'
+      run: |
+        echo "Release ${{ steps.resolve_release.outputs.release_tag }} already exists. Skipping tagged release."
         exit 0
 
-    # Step 4: Restore Dependencies (only if release doesn't exist)
+    # Step 5: Restore Dependencies
     - name: Restore Dependencies
-      if: steps.check_release.outputs.release_exists == 'false'
-      run: dotnet restore ${{ env.Solution_Name }}
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      run: dotnet restore ${{ env.Solution_Name }} -r win-x64
 
-    # Step 5: Build Solution (only if release doesn't exist)
-    - name: Build Solution
-      if: steps.check_release.outputs.release_exists == 'false'
-      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore -p:Platform="Any CPU"
+    # Step 6: Publish application to a stable output folder
+    - name: Publish Application
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      shell: pwsh
+      run: |
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        if (Test-Path -LiteralPath $publishDir) {
+          Remove-Item -LiteralPath $publishDir -Recurse -Force
+        }
 
-    # Step 6: Create ZIP of artifacts
+        dotnet publish "${{ env.Project_Path }}" `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained false `
+          --no-restore `
+          --output $publishDir
+
+    # Step 7: Create ZIP of artifacts
     - name: Create Zip File
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
-        Compress-Archive -Path vrcosc-magicchatbox/bin/Release/net9.0-windows10.0.26100.0/* -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip"
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        $archiveSource = Join-Path $publishDir '*'
 
-    # Step 7: [Optional] Upload & Scan with VirusTotal
+        if (-not (Test-Path -LiteralPath $publishDir)) {
+          Write-Error "Publish output directory not found: $publishDir"
+          exit 1
+        }
+
+        Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
+
+    - name: Await Tag-Triggered Release Run
+      if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.finalize_branch_release.outputs.publish_now != 'true'
+      run: echo "Created release tag ${{ steps.resolve_release.outputs.release_tag }} during the branch run. The tag-triggered workflow run will publish the release."
+
+    # Step 8: Upload & Scan with VirusTotal
+    - name: Check Optional VirusTotal Secret
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
+      id: optional_secrets
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+      shell: pwsh
+      run: |
+        $hasVirusTotalKey = -not [string]::IsNullOrWhiteSpace($env:VIRUSTOTAL_API_KEY)
+        "has_virustotal_key=$($hasVirusTotalKey.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     - name: Upload and Scan with VirusTotal
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_scan
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       shell: pwsh
       run: |
-        $file_path = "./MagicChatbox-${{ env.VERSION }}.zip"
-        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+        $filePath = Join-Path $env:GITHUB_WORKSPACE "MagicChatbox-${{ env.VERSION }}.zip"
+        $apiKey = $env:VIRUSTOTAL_API_KEY
 
-        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers @{
-          "x-apikey" = $api_key
-        } -Form @{
-          "file" = Get-Item $file_path
+        if (-not (Test-Path -LiteralPath $filePath)) {
+          Write-Error "File not found: $filePath"
+          exit 1
         }
 
-        $scan_id = $response.data.id
-        echo "::set-output name=SCAN_ID::$scan_id"
+        $fileInfo = Get-Item $filePath
 
-    - name: Get VirusTotal Scan Report
-      if: steps.check_release.outputs.release_exists == 'false'
+        if ($fileInfo.Length -gt 32MB) {
+          Write-Error "VirusTotal standard upload only supports files up to 32 MB. Use /files/upload_url for larger files."
+          exit 1
+        }
+
+        $response = Invoke-RestMethod `
+          -Uri "https://www.virustotal.com/api/v3/files" `
+          -Method Post `
+          -Headers @{
+            "x-apikey" = $apiKey
+          } `
+          -Form @{
+            "file" = $fileInfo
+          }
+
+        $analysisId = $response.data.id
+        "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Wait for VirusTotal Scan Report
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_report
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       shell: pwsh
       run: |
-        $api_key = "${{ secrets.VIRUSTOTAL_API_KEY }}"
-        $scan_id = "${{ steps.virustotal_scan.outputs.SCAN_ID }}"
+        $apiKey = $env:VIRUSTOTAL_API_KEY
+        $analysisId = "${{ steps.virustotal_scan.outputs.scan_id }}"
 
-        $response = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/analyses/$scan_id" -Headers @{
-          "x-apikey" = $api_key
+        if ([string]::IsNullOrWhiteSpace($analysisId)) {
+          Write-Error "No VirusTotal analysis ID was returned."
+          exit 1
         }
 
-        $report_url = "https://www.virustotal.com/gui/file/$($response.meta.file_info.sha256)/detection"
-        echo "::set-output name=REPORT_URL::$report_url"
+        $maxAttempts = 20
+        $delaySeconds = 15
+        $sha256 = $null
 
-    # Step 8: Determine if this is a pre-release or final release
+        for ($i = 1; $i -le $maxAttempts; $i++) {
+          Write-Host "Checking VirusTotal analysis status (attempt $i/$maxAttempts)..."
+
+          $response = Invoke-RestMethod `
+            -Uri "https://www.virustotal.com/api/v3/analyses/$analysisId" `
+            -Method Get `
+            -Headers @{
+              "x-apikey" = $apiKey
+            }
+
+          $status = $response.data.attributes.status
+          $sha256 = $response.meta.file_info.sha256
+
+          if ($status -eq "completed" -and -not [string]::IsNullOrWhiteSpace($sha256)) {
+            Write-Host "VirusTotal analysis completed. SHA256: $sha256"
+            break
+          }
+
+          Write-Host "Status: $status — waiting ${delaySeconds}s..."
+          Start-Sleep -Seconds $delaySeconds
+        }
+
+        if ([string]::IsNullOrWhiteSpace($sha256)) {
+          Write-Error "VirusTotal report was not ready after $maxAttempts attempts."
+          exit 1
+        }
+
+        $reportUrl = "https://www.virustotal.com/gui/file/$sha256/detection"
+        "report_url=$reportUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    # Step 9: Determine if this is a pre-release or final release
     - name: Determine Release Type
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: determine_release_type
       shell: pwsh
       run: |
-        if ($env:GITHUB_REF -eq 'refs/heads/master') {
-          echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "RELEASE_NAME=v${{ env.VERSION }}" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+        $isTagRelease = '${{ steps.resolve_release.outputs.is_tag_release }}' -eq 'true'
+
+        if (-not $isTagRelease) {
+          $isMasterRelease = $env:GITHUB_REF -eq 'refs/heads/master'
         } else {
-          echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
-          echo "RELEASE_NAME=v${{ env.VERSION }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          git fetch --no-tags origin master Pre-Master
+
+          $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
+          if ([string]::IsNullOrWhiteSpace($tagCommit)) {
+            Write-Error "Unable to resolve commit for tag $env:RELEASE_TAG."
+            exit 1
+          }
+
+          git merge-base --is-ancestor $tagCommit origin/master
+          $isMasterRelease = $LASTEXITCODE -eq 0
         }
 
-    # Step 9: Create GitHub Release
+        if ($isMasterRelease) {
+          echo "PRE_RELEASE=false" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "RELEASE_NAME=${{ steps.resolve_release.outputs.release_tag }}" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          "pre_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_name=${{ steps.resolve_release.outputs.release_tag }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        } else {
+          if ($isTagRelease) {
+            git merge-base --is-ancestor $tagCommit origin/Pre-Master
+            $isPreMasterRelease = $LASTEXITCODE -eq 0
+          } else {
+            $isPreMasterRelease = $env:GITHUB_REF -eq 'refs/heads/Pre-Master'
+          }
+
+          if (-not $isPreMasterRelease) {
+            Write-Warning "Tagged commit is not contained in master or Pre-Master. Defaulting to pre-release."
+          }
+
+          echo "PRE_RELEASE=true" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          echo "RELEASE_NAME=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -Append -Encoding utf8 $Env:GITHUB_ENV
+          "pre_release=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_name=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        }
+
+    # Step 10: Create GitHub Release and upload the asset in a single step
     - name: Create Release
-      if: steps.check_release.outputs.release_exists == 'false'
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
-        tag_name: v${{ env.VERSION }}
-        release_name: ${{ env.RELEASE_NAME }}
+        tag_name: ${{ steps.resolve_release.outputs.release_tag }}
+        name: ${{ steps.determine_release_type.outputs.release_name }}
         draft: false
-        prerelease: ${{ env.PRE_RELEASE }}
+        prerelease: ${{ steps.determine_release_type.outputs.pre_release }}
+        files: ./MagicChatbox-${{ env.VERSION }}.zip
         body: |
           <div align="center">
             <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
@@ -160,10 +436,10 @@ jobs:
 
           <div align="center">
             <p>
-              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/v${{ env.VERSION }}/MagicChatbox-${{ env.VERSION }}.zip">
+              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/${{ steps.resolve_release.outputs.release_tag }}/MagicChatbox-${{ env.VERSION }}.zip">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
               </a>
-              <a href="${{ steps.virustotal_report.outputs.REPORT_URL }}">
+              <a href="${{ steps.virustotal_report.outputs.report_url }}">
                 <img src="https://custom-icon-badges.herokuapp.com/badge/-Virus%20Scan%20Result-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
               </a>
             </p>
@@ -177,7 +453,7 @@ jobs:
           </div>
 
           1. **Download** the .zip file from the link above.
-          2. Make sure you have [**.NET 9**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-9.0.4-windows-x64-installer) installed on your system.
+          2. Make sure you have the [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed on your system.
           3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
           4. Open the extracted folder from your chosen location.
           5. Run <code>MagicChatbox.exe</code> to launch the application.
@@ -211,15 +487,3 @@ jobs:
             </ul>
             <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
           </div>
-
-    # Step 10: Upload Release Asset
-    - name: Upload Release Asset
-      if: steps.check_release.outputs.release_exists == 'false'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.MY_PAT }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./MagicChatbox-${{ env.VERSION }}.zip
-        asset_name: MagicChatbox-${{ env.VERSION }}.zip
-        asset_content_type: application/zip

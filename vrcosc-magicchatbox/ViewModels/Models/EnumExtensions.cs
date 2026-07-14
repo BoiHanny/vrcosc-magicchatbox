@@ -4,6 +4,9 @@ using System.Reflection;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
+    /// <summary>
+    /// Extension methods for enum types, providing access to <see cref="DescriptionAttribute"/> values.
+    /// </summary>
     public static class EnumExtensions
     {
         public static string GetDescription(this Enum value)

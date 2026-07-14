@@ -1,0 +1,722 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.WindowActivitySection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=sections:WindowActivitySectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,1">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.Settings_WindowActivity, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="Window activity options"
+                TextOptions.TextRenderingMode="ClearType" />
+        </Grid>
+
+
+        <Grid
+            Grid.Row="1"
+            Width="auto"
+            Margin="20,5,2,0"
+            Visibility="{Binding AppSettings.Settings_WindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0">
+                <TextBlock
+                    Width="auto"
+                    Padding="0,10,0,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="15"
+                    Foreground="{StaticResource TextDangerRedBrush}"
+                    Text="{Binding WindowActivity.ErrorInWindowActivityMsg, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding WindowActivity.ErrorInWindowActivity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox
+                    x:Name="enhancedapp_checkbox"
+                    Margin="0,6,0,0"
+                    IsChecked="{Binding IntegrationSettings.ApplicationHookV2, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">
+                    Enhanced hook for better app names
+                </CheckBox>
+                <CheckBox
+                    x:Name="WindowActivityTitleScan_checkbox"
+                    Margin="0,6,0,0"
+                    IsChecked="{Binding WindowActivitySettings.TitleScan, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}">
+                    Show more info about focusing app
+                </CheckBox>
+                <StackPanel Visibility="{Binding WindowActivitySettings.TitleScan, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <CheckBox
+                        x:Name="AutoShowTitleOnNewAppn_checkbox"
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.AutoShowTitleOnNewApp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Auto show info on new app
+                    </CheckBox>
+                    <CheckBox
+                        x:Name="TitleOnAppVR_checkbox"
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.TitleOnAppVR, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show info in VR mode
+                    </CheckBox>
+                    <CheckBox
+                        x:Name="LimitTitleOnApp_checkbox"
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.LimitTitleOnApp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Limit info length on app
+                    </CheckBox>
+                    <StackPanel Margin="0,10,0,-10" Visibility="{Binding WindowActivitySettings.LimitTitleOnApp, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock
+                            Grid.Column="0"
+                            Padding="0,0,0,0"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="15"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            Text="max title length" />
+                        <TextBox
+                            x:Name="MaxShowTitleCount_INT"
+                            Width="40"
+                            Margin="0,3,0,10"
+                            Padding="5,0,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.MaxShowTitleCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <CheckBox
+                        x:Name="LimitTitleOnsApp_checkbox"
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.ShowFocusedApp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show desktop focused app
+                    </CheckBox>
+                    <CheckBox
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.ShowRegexColumn, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show custom regex column (per-app title filter)
+                    </CheckBox>
+                    <CheckBox
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding WindowActivitySettings.UseGlobalRegex, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Apply global regex to all app titles
+                    </CheckBox>
+                    <StackPanel
+                        Margin="24,4,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding WindowActivitySettings.UseGlobalRegex, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{StaticResource TextBodyBrush}"
+                            Text="Global regex: " />
+                        <TextBox
+                            Width="300"
+                            Padding="5,2"
+                            VerticalContentAlignment="Center"
+                            FontSize="13"
+                            Text="{Binding WindowActivitySettings.GlobalRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ToolTip="Applied to every window title. Use either a capture regex or pattern =&gt; replacement. Example: ^(.+?)(?:\s*[-–—]\s*[^-–—]+\s*[-–—]\s*(.+)|\s*[-–—]\s*[^-–—]+)?$ =&gt; $1 $2" />
+                    </StackPanel>
+
+                    <!--  Content Filters  -->
+                    <CheckBox
+                        Margin="0,10,0,0"
+                        IsChecked="{Binding WindowActivitySettings.EnableTitleFilters, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Enable content filters on title info
+                    </CheckBox>
+                    <StackPanel Margin="24,4,0,0" Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Set per-app filters in the 'Content filter' column below. Use the global rules here for patterns that apply to ALL apps."
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Comma-separate words/phrases or use regex:&lt;pattern&gt;. Exclude hides matching titles. Remove cuts matched text out and keeps the rest."
+                            TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding WindowActivitySettings.TitleFilters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Grid.Column="0"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                            ToolTip="Enable or disable this global rule" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            Width="100"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            ItemsSource="{Binding Source={x:Static modules:TitleFilterRule.FilterModes}}"
+                                            SelectedItem="{Binding Mode, Mode=TwoWay}"
+                                            Style="{StaticResource DarkComboBoxStyle}"
+                                            ToolTip="Exclude: hide titles containing the pattern.&#x0a;Include: only show titles containing the pattern.&#x0a;Remove: cut matching text from the title.">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBox
+                                            Grid.Column="2"
+                                            MinWidth="120"
+                                            Margin="0,0,6,0"
+                                            Padding="6,4"
+                                            VerticalContentAlignment="Center"
+                                            FontSize="12"
+                                            Text="{Binding Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. Example remove regex: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
+                                        <Button
+                                            Grid.Column="3"
+                                            Width="24"
+                                            Height="24"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center"
+                                            Command="{Binding DataContext.RemoveTitleFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="✕"
+                                            FontSize="11"
+                                            Style="{StaticResource CircleButton}"
+                                            ToolTip="Remove this global rule" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button
+                            Width="140"
+                            Margin="0,6,0,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding AddTitleFilterCommand}"
+                            Content="＋ Add global rule"
+                            Style="{StaticResource Status_Button_style_Small}"
+                            ToolTip="Add a global content filter that applies to all apps"
+                            Visibility="Visible" />
+                    </StackPanel>
+                    <CheckBox
+                        Margin="0,10,0,0"
+                        IsChecked="{Binding WindowActivitySettings.HideOutputWhenPrivateApp, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}"
+                        ToolTip="When the focused app is marked private in the scanned apps list, Window Activity outputs nothing instead of the private label.">
+                        Hide output completely when application is set to private
+                    </CheckBox>
+
+                    <TextBlock
+                        Width="auto"
+                        Padding="0,10,0,0"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="15"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="Desktop mode style" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox
+                            x:Name="WindowActivityDesktopTitle"
+                            Width="auto"
+                            Margin="0,3,0,0"
+                            Padding="5,0,5,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.DesktopTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox
+                            x:Name="WindowActivityDesktopFocusTitle"
+                            Width="auto"
+                            Margin="5,3,0,0"
+                            Padding="5,0,5,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.DesktopFocusTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding WindowActivitySettings.ShowFocusedApp, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox
+                            x:Name="PrivateAppCustom"
+                            Width="auto"
+                            Margin="4,3,0,0"
+                            Padding="5,0,5,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.PrivateName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding WindowActivitySettings.ShowFocusedApp, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <CheckBox
+                        x:Name="IntgrScanFsorc_checkbox"
+                        Margin="0,6,0,0"
+                        IsChecked="{Binding IntegrationSettings.IntgrScanForce, Mode=TwoWay}"
+                        Style="{DynamicResource SettingsCheckbox}">
+                        Show VR focused app
+                    </CheckBox>
+                    <TextBlock
+                        Width="auto"
+                        Padding="0,10,0,0"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="15"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="VR mode style" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox
+                            x:Name="WindowActivityVRTitle"
+                            Width="auto"
+                            Margin="0,3,0,0"
+                            Padding="5,0,5,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.VrTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox
+                            x:Name="WindowActivityVRFocusTitle"
+                            Width="auto"
+                            Margin="5,3,0,0"
+                            Padding="5,0,5,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.VrFocusTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding IntegrationSettings.IntgrScanForce, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox
+                            x:Name="PrivateAppCustomVR"
+                            Width="auto"
+                            Margin="4,3,0,0"
+                            Padding="5,0,5,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WindowActivitySettings.PrivateNameVR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding IntegrationSettings.IntgrScanForce, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                </StackPanel>
+
+            </StackPanel>
+            <TextBlock
+                Grid.Row="1"
+                Margin="0,15,0,5"
+                FontFamily="Albert Sans Thin"
+                FontSize="15"
+                Foreground="{StaticResource TextLabelBrush}"
+                Text="Cleanup action" />
+            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                <Button
+                    x:Name="SmartClearnup"
+                    Width="60"
+                    Height="25"
+                    Margin="0,0,5,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding SmartCleanupCommand}"
+                    Content="Smart"
+                    Style="{DynamicResource Status_Button_style}" />
+                <Button
+                    x:Name="ClearnupKeepSettings"
+                    Width="150"
+                    Height="25"
+                    Margin="0,0,5,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding CleanupKeepSettingsCommand}"
+                    Content="Keep apps with settings"
+                    Style="{DynamicResource Status_Button_style}" />
+                <Button
+                    x:Name="ResetWindowActivity"
+                    Width="50"
+                    Height="25"
+                    Margin="0,0,5,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding ResetWindowActivityCommand}"
+                    Content="Reset"
+                    Style="{DynamicResource Status_Button_style}" />
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,3,0,0"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="16"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="{Binding WindowActivity.DeletedAppslabel, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel
+                Grid.Row="3"
+                Margin="0,15,0,0"
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="Filter apps" />
+                <TextBox
+                    Width="190"
+                    Margin="0,0,8,0"
+                    Padding="5,0"
+                    VerticalContentAlignment="Center"
+                    FontSize="14"
+                    Text="{Binding WindowActivity.AppFilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="Search by process or custom app name" />
+                <CheckBox
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding WindowActivity.ShowImportantAppsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Style="{DynamicResource SettingsCheckbox}"
+                    ToolTip="Shows apps with custom/private settings or apps focused more than once.">
+                    Important only
+                </CheckBox>
+                <TextBlock
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextLabelBrush}"
+                    Text="Min focused" />
+                <TextBox
+                    Width="45"
+                    Margin="0,0,8,0"
+                    Padding="5,0"
+                    VerticalContentAlignment="Center"
+                    FontSize="14"
+                    Text="{Binding WindowActivity.MinimumFocusCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="Show apps focused at least this many times" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontFamily="Albert Sans Thin"
+                    FontSize="14"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    Text="{Binding WindowActivity.FilteredAppsSummary, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <Border
+                Grid.Row="4"
+                Width="auto"
+                MinWidth="745"
+                Margin="0,15,1,0"
+                HorizontalAlignment="Stretch"
+                CornerRadius="5">
+                <Border.Background>
+                    <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                        <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                        <GradientStop Offset="1" Color="{StaticResource GradientDeepPurpleColor}" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="125" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="65" />
+                        <ColumnDefinition Width="185" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button
+                        Grid.Column="0"
+                        Margin="3,0"
+                        Command="{Binding WindowActivity.SortByProcessNameCommand}"
+                        Style="{StaticResource Sort_Button_style}">
+                        <TextBlock
+                            Padding="5"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="App" />
+                    </Button>
+                    <Button
+                        Grid.Column="1"
+                        Margin="3,0"
+                        Command="{Binding WindowActivity.SortByFocusCountCommand}"
+                        Style="{StaticResource Sort_Button_style}">
+                        <TextBlock
+                            Padding="5"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Focused" />
+                    </Button>
+                    <Button
+                        Grid.Column="2"
+                        Margin="3,0"
+                        Command="{Binding WindowActivity.SortByUsedNewMethodCommand}"
+                        Style="{StaticResource Sort_Button_style}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Enhanced hook" />
+                    </Button>
+                    <Button
+                        Grid.Column="3"
+                        Margin="3,0"
+                        Command="{Binding WindowActivity.SortByIsShowInfoAppCommand}"
+                        Style="{StaticResource Sort_Button_style}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Show info" />
+                    </Button>
+                    <Button
+                        Grid.Column="4"
+                        Margin="3,0"
+                        Command="{Binding WindowActivity.SortByIsPrivateAppCommand}"
+                        Style="{StaticResource Sort_Button_style}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Private" />
+                    </Button>
+                    <Button
+                        Grid.Column="5"
+                        Margin="3,0"
+                        Command="{Binding WindowActivity.SortByApplyCustomAppNameCommand}"
+                        Style="{StaticResource Sort_Button_style}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Custom app name" />
+                    </Button>
+                    <Button
+                        Grid.Column="6"
+                        MinWidth="200"
+                        Margin="3,0"
+                        HorizontalAlignment="Stretch"
+                        Style="{StaticResource Sort_Button_style}"
+                        ToolTip="Per-app content filter. Hide matching titles, show only matching titles, or remove matched text from the title."
+                        Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Content filter" />
+                    </Button>
+                    <Button
+                        Grid.Column="7"
+                        Margin="3,0"
+                        HorizontalAlignment="Stretch"
+                        Style="{StaticResource Sort_Button_style}"
+                        Visibility="{Binding WindowActivitySettings.ShowRegexColumn, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="14"
+                            Text="Custom reg…"
+                            TextTrimming="CharacterEllipsis"
+                            ToolTip="Custom regex" />
+                    </Button>
+                </Grid>
+                <Border.Effect>
+                    <DropShadowEffect
+                        BlurRadius="10"
+                        Direction="0"
+                        Opacity="0.5"
+                        RenderingBias="Performance"
+                        ShadowDepth="0"
+                        Color="black" />
+                </Border.Effect>
+            </Border>
+            <ItemsControl
+                Grid.Row="5"
+                HorizontalAlignment="Stretch"
+                ItemsSource="{Binding WindowActivity.ScannedAppsView, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ProcessInfo}">
+                        <Border
+                            Margin="0,6,0,0"
+                            CornerRadius="5"
+                            RenderOptions.BitmapScalingMode="NearestNeighbor">
+                            <Border.Background>
+                                <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                                    <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                                    <GradientStop Offset="1" Color="{StaticResource GradientDeepPurpleColor}" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="125" />
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="65" />
+                                    <ColumnDefinition Width="185" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="16"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="{Binding ProcessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="16"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="{Binding FocusCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="16"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="{Binding UsedNewMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <CheckBox
+                                    x:Name="ShowTitle"
+                                    Grid.Column="3"
+                                    Width="23"
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding ShowTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{DynamicResource SettingsCheckbox}" />
+                                <CheckBox
+                                    x:Name="IsPrivateApp"
+                                    Grid.Column="4"
+                                    Width="23"
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding IsPrivateApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{DynamicResource SettingsCheckbox}" />
+                                <StackPanel Grid.Column="5" Orientation="Horizontal">
+                                    <CheckBox
+                                        x:Name="ApplyCustomAppName"
+                                        Width="23"
+                                        Margin="5,0,0,0"
+                                        IsChecked="{Binding ApplyCustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}" />
+                                    <TextBox
+                                        Width="173"
+                                        Margin="5,0,0,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="15"
+                                        GotKeyboardFocus="ScannedAppTextBox_GotKeyboardFocus"
+                                        IsEnabled="{Binding ApplyCustomAppName}"
+                                        LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
+                                        Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <!--  Per-app content filter (visible when enabled in settings)  -->
+                                <StackPanel
+                                    Grid.Column="6"
+                                    MinWidth="200"
+                                    Orientation="Horizontal"
+                                    Visibility="{Binding DataContext.WindowActivitySettings.EnableTitleFilters, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <ComboBox
+                                        Width="80"
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        SelectedIndex="{Binding ContentFilterMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{StaticResource DarkComboBoxStyle}"
+                                        ToolTip="None: no filter.&#x0a;Exclude: hide info when a rule matches.&#x0a;Include: only show info when a rule matches.&#x0a;Remove: cut matching text and keep the rest.">
+                                        <ComboBoxItem Content="None" />
+                                        <ComboBoxItem Content="Exclude" />
+                                        <ComboBoxItem Content="Include" />
+                                        <ComboBoxItem Content="Remove" />
+                                    </ComboBox>
+                                    <TextBox
+                                        Width="110"
+                                        Margin="4,0,0,0"
+                                        Padding="4,2"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="12"
+                                        GotKeyboardFocus="ScannedAppTextBox_GotKeyboardFocus"
+                                        IsEnabled="{Binding ContentFilterEnabled}"
+                                        LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
+                                        Text="{Binding ContentFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ToolTip="Comma-separated words/phrases or regex:&lt;pattern&gt;. To remove ' - dif - ' and keep after: regex:\s*[-–—]\s*dif\s*[-–—]\s*" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="7"
+                                    Orientation="Horizontal"
+                                    Visibility="{Binding DataContext.WindowActivitySettings.ShowRegexColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <CheckBox
+                                        Width="23"
+                                        Margin="5,0,0,0"
+                                        IsChecked="{Binding UseCustomRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Style="{DynamicResource SettingsCheckbox}" />
+                                    <TextBox
+                                        MinWidth="100"
+                                        Margin="5,0,5,0"
+                                        Padding="5,0,0,0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="14"
+                                        GotKeyboardFocus="ScannedAppTextBox_GotKeyboardFocus"
+                                        IsEnabled="{Binding UseCustomRegex}"
+                                        LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
+                                        Text="{Binding CustomRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ToolTip="{Binding CustomRegex}" />
+                                </StackPanel>
+                            </Grid>
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Direction="0"
+                                    Opacity="0.5"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="black" />
+                            </Border.Effect>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+    </Grid>
+</UserControl>

@@ -4,6 +4,11 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Converts a boolean to an opacity value. Returns <see cref="TrueOpacity"/> when
+    /// <c>true</c> and <see cref="FalseOpacity"/> when <c>false</c>.
+    /// Defaults: <c>TrueOpacity = 1.0</c>, <c>FalseOpacity = 0.4</c>.
+    /// </summary>
     public class BoolToOpacityConverter : IValueConverter
     {
         public double TrueOpacity { get; set; } = 1.0;

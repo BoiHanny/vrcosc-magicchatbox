@@ -1,0 +1,104 @@
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.ViewModels.Sections;
+
+namespace vrcosc_magicchatbox.UI.Dialogs;
+
+/// <summary>
+/// Friendly Spotify OAuth setup dialog with privacy choices.
+/// </summary>
+public partial class SpotifyAuth : Window
+{
+    private readonly SpotifySectionViewModel _vm;
+
+    public SpotifyAuth(SpotifySectionViewModel vm)
+    {
+        _vm = vm;
+        InitializeComponent();
+        ClientIdBox.Text = vm.Settings.ClientId;
+        ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
+        AllowTitle.IsChecked = vm.Settings.AllowTrackTitleInOutput;
+        AllowArtist.IsChecked = vm.Settings.AllowArtistInOutput;
+        AllowAlbum.IsChecked = vm.Settings.AllowAlbumInOutput;
+        AllowDevice.IsChecked = vm.Settings.AllowDeviceInOutput;
+        PrivacyMode.IsChecked = vm.Settings.PrivacyMode;
+    }
+
+    private void OpenDashboard_Click(object sender, RoutedEventArgs e)
+        => _vm.OpenDeveloperDashboardCommand.Execute(null);
+
+    private void ClientIdBox_TextChanged(object sender, TextChangedEventArgs e)
+        => ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
+
+    private void PasteClientId_Click(object sender, RoutedEventArgs e)
+    {
+        string text;
+        try
+        {
+            text = Clipboard.GetText().Trim();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Clipboard access failed: {ex.Message}");
+            StatusText.Foreground = Brushes.OrangeRed;
+            StatusText.Text = "Could not read clipboard — try copying again.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+
+        ClientIdBox.Text = text;
+        ConnectButton.IsEnabled = true;
+    }
+
+    private async void Connect_Click(object sender, RoutedEventArgs e)
+    {
+        ConnectButton.IsEnabled = false;
+        StatusText.Foreground = Brushes.LightYellow;
+        StatusText.Text = "Opening Spotify in your browser. Complete the approval, then return here...";
+
+        _vm.Settings.AllowTrackTitleInOutput = AllowTitle.IsChecked == true;
+        _vm.Settings.AllowArtistInOutput = AllowArtist.IsChecked == true;
+        _vm.Settings.AllowAlbumInOutput = AllowAlbum.IsChecked == true;
+        _vm.Settings.AllowDeviceInOutput = AllowDevice.IsChecked == true;
+        _vm.Settings.PrivacyMode = PrivacyMode.IsChecked == true;
+        _vm.Settings.PrivacyChoicesCompleted = true;
+
+        try
+        {
+            await _vm.ConnectWithClientIdAsync(ClientIdBox.Text);
+            if (_vm.Display.IsConnected)
+            {
+                DialogResult = true;
+                Close();
+                return;
+            }
+
+            StatusText.Foreground = Brushes.OrangeRed;
+            StatusText.Text = "Spotify did not connect. Check your Client ID and redirect URI, then try again.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Foreground = Brushes.OrangeRed;
+            StatusText.Text = $"Spotify setup failed: {ex.Message}";
+        }
+        finally
+        {
+            ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
+        }
+    }
+
+    private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
+
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseLeftButtonDown(e);
+        if (e.GetPosition(this).Y < 35)
+            DragMove();
+    }
+}

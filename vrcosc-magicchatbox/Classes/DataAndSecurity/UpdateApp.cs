@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using System;
@@ -6,90 +6,284 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
+/// <summary>
+/// Handles application updates and rollbacks: downloading releases from GitHub,
+/// extracting ZIPs with path-traversal protection, backing up the current installation,
+/// and restarting into the updated or rolled-back version.
+/// </summary>
 public class UpdateApp
 {
+    private static readonly SemaphoreSlim PrepareUpdateGate = new(1, 1);
+    private const string ExecutableName = "MagicChatbox.exe";
+    private const int UpdateLocationMetadataVersion = 2;
     private string backupPath;
     private string currentAppPath;
     private readonly string dataPath;
+    private string maintenanceRunnerPath;
     private string magicChatboxExePath;
     private string tempPath;
     private string unzipPath;
+    private readonly AppUpdateState _updateState;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IUiDispatcher _dispatcher;
 
-    public UpdateApp(bool createNewAppLocation = false)
+    public UpdateApp(AppUpdateState updateState, IHttpClientFactory httpClientFactory, IUiDispatcher dispatcher, bool createNewAppLocation = false)
     {
+        _updateState = updateState;
+        _httpClientFactory = httpClientFactory;
+        _dispatcher = dispatcher;
         dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vrcosc-MagicChatbox");
         InitializePaths(createNewAppLocation);
     }
 
     private void CopyContentsFromUnzipPath(DirectoryInfo currentAppDirectory)
     {
-        DirectoryInfo sourceDirectory = new DirectoryInfo(unzipPath);
-        foreach (FileInfo file in sourceDirectory.GetFiles())
-        {
-            file.CopyTo(Path.Combine(currentAppPath, file.Name), true);
-        }
-
-        foreach (DirectoryInfo sourceSubDirectory in sourceDirectory.GetDirectories())
-        {
-            DirectoryInfo targetSubDirectory = currentAppDirectory.CreateSubdirectory(sourceSubDirectory.Name);
-            foreach (FileInfo file in sourceSubDirectory.GetFiles())
-            {
-                file.CopyTo(Path.Combine(targetSubDirectory.FullName, file.Name), true);
-            }
-        }
+        string sourceRoot = ResolveApplicationDirectory(unzipPath);
+        CopyDirectoryContents(new DirectoryInfo(sourceRoot), currentAppDirectory);
     }
+
+    private static bool PathsEqual(string left, string right) =>
+        string.Equals(
+            Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            StringComparison.OrdinalIgnoreCase);
 
     private void CopyDirectory(DirectoryInfo source, DirectoryInfo target)
     {
+        CopyDirectoryContents(source, target);
+    }
+
+    private void CopyDirectoryContents(DirectoryInfo source, DirectoryInfo target)
+    {
         Directory.CreateDirectory(target.FullName);
 
-        // Copy each file into the new directory
         foreach (FileInfo fileInfo in source.GetFiles())
         {
             fileInfo.CopyTo(Path.Combine(target.FullName, fileInfo.Name), true);
         }
 
-        // Copy each subdirectory using recursion
         foreach (DirectoryInfo subDirectory in source.GetDirectories())
         {
-            DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDirectory.Name);
-            CopyDirectory(subDirectory, nextTargetSubDir);
+            DirectoryInfo nextTargetSubDir = new(Path.Combine(target.FullName, subDirectory.Name));
+            CopyDirectoryContents(subDirectory, nextTargetSubDir);
         }
     }
 
+    private static void NormalizeAttributes(DirectoryInfo directory)
+    {
+        foreach (FileInfo file in directory.GetFiles("*", System.IO.SearchOption.AllDirectories))
+        {
+            file.Attributes = FileAttributes.Normal;
+        }
+
+        foreach (DirectoryInfo subDirectory in directory.GetDirectories("*", System.IO.SearchOption.AllDirectories))
+        {
+            subDirectory.Attributes = FileAttributes.Normal;
+        }
+    }
+
+    private static void ExecuteWithRetry(Action action, string operationName, int maxAttempts = 5, int delayMs = 500)
+    {
+        Exception? lastException = null;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                action();
+                return;
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                lastException = ex;
+                if (attempt == maxAttempts)
+                {
+                    break;
+                }
+
+                Thread.Sleep(delayMs);
+            }
+        }
+
+        throw new IOException($"{operationName} failed after {maxAttempts} attempts.", lastException);
+    }
+
+    private void ClearDirectoryContents(string path)
+    {
+        DirectoryInfo directory = new(path);
+        if (!directory.Exists)
+        {
+            directory.Create();
+            return;
+        }
+
+        NormalizeAttributes(directory);
+
+        foreach (FileInfo file in directory.GetFiles())
+        {
+            file.Attributes = FileAttributes.Normal;
+            file.Delete();
+        }
+
+        foreach (DirectoryInfo subDirectory in directory.GetDirectories())
+        {
+            NormalizeAttributes(subDirectory);
+            subDirectory.Delete(true);
+        }
+    }
+
+    private static string NormalizePathOrFallback(string? storedPath, string fallbackPath, bool requireExistingDirectory = false)
+    {
+        if (string.IsNullOrWhiteSpace(storedPath))
+        {
+            return fallbackPath;
+        }
+
+        try
+        {
+            string fullPath = Path.GetFullPath(storedPath);
+            if (requireExistingDirectory && !Directory.Exists(fullPath))
+            {
+                return fallbackPath;
+            }
+
+            return fullPath;
+        }
+        catch
+        {
+            return fallbackPath;
+        }
+    }
+
+    private static void ClearAndRecreateDirectory(string path, string operationName)
+    {
+        ExecuteWithRetry(() =>
+        {
+            if (Directory.Exists(path))
+            {
+                DirectoryInfo directory = new(path);
+                NormalizeAttributes(directory);
+
+                foreach (FileInfo file in directory.GetFiles("*", System.IO.SearchOption.AllDirectories))
+                {
+                    file.Attributes = FileAttributes.Normal;
+                }
+
+                foreach (DirectoryInfo subDirectory in directory.GetDirectories("*", System.IO.SearchOption.AllDirectories))
+                {
+                    subDirectory.Attributes = FileAttributes.Normal;
+                }
+
+                directory.Delete(true);
+            }
+
+            Directory.CreateDirectory(path);
+        }, operationName);
+    }
+
+    private string ResolveApplicationDirectory(string extractedRoot)
+    {
+        string fullRoot = Path.GetFullPath(extractedRoot);
+        string directExePath = Path.Combine(fullRoot, ExecutableName);
+        if (File.Exists(directExePath))
+        {
+            return fullRoot;
+        }
+
+        string[] candidateDirectories = Directory
+            .GetFiles(fullRoot, ExecutableName, System.IO.SearchOption.AllDirectories)
+            .Select(Path.GetDirectoryName)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Select(path => Path.GetFullPath(path!))
+            .Where(path =>
+                path.Equals(fullRoot, StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith(fullRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(path => path.Count(c => c == Path.DirectorySeparatorChar))
+            .ThenBy(path => path.Length)
+            .ToArray();
+
+        if (candidateDirectories.Length == 0)
+        {
+            throw new FileNotFoundException($"Could not find {ExecutableName} in extracted update package.");
+        }
+
+        return candidateDirectories[0];
+    }
+
+    private void SaveResolvedUpdateLocation(string? backupDirectory = null)
+    {
+        string resolvedAppDirectory = ResolveApplicationDirectory(unzipPath);
+        magicChatboxExePath = Path.Combine(resolvedAppDirectory, ExecutableName);
+        SaveUpdateLocation(backupDirectory);
+    }
+
+    private void ResetUpdateWorkspacePaths()
+    {
+        tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
+        unzipPath = Path.Combine(tempPath, "update_unzip");
+        maintenanceRunnerPath = Path.Combine(tempPath, "maintenance_runner");
+        magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
+    }
 
     private async Task DownloadAndExtractUpdate(string zipPath)
     {
-        using (WebClient webClient = new WebClient())
+        string updateUrl = _updateState.UpdateURL;
+        if (string.IsNullOrWhiteSpace(updateUrl) ||
+            !Uri.TryCreate(updateUrl, UriKind.Absolute, out var uri) ||
+            uri.Scheme != "https" ||
+            !uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
         {
-            await webClient.DownloadFileTaskAsync(ViewModel.Instance.UpdateURL, zipPath);
+            throw new InvalidOperationException($"Untrusted update URL rejected: {updateUrl}");
         }
 
+        var httpClient = _httpClientFactory.CreateClient("GitHub");
+        httpClient.Timeout = TimeSpan.FromMinutes(5);
+        using var response = await httpClient.GetAsync(updateUrl, HttpCompletionOption.ResponseHeadersRead);
+        response.EnsureSuccessStatusCode();
+
+        if (File.Exists(zipPath))
+        {
+            File.Delete(zipPath);
+        }
+
+        await using (var fs = new FileStream(zipPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            await response.Content.CopyToAsync(fs);
+            await fs.FlushAsync();
+        }
+
+        string targetFullPath = Path.GetFullPath(unzipPath);
         using (ZipArchive archive = ZipFile.OpenRead(zipPath))
         {
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                // Build the full path for the entry's extraction
-                string destinationPath = Path.Combine(unzipPath, entry.FullName);
+                string destinationPath = Path.GetFullPath(Path.Combine(unzipPath, entry.FullName));
 
-                // If the entry is a directory itself (ends in a slash), ensure it's created
+                // Prevent path traversal: ensure extracted path stays within target
+                if (!destinationPath.StartsWith(targetFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                    && !destinationPath.Equals(targetFullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"Zip entry path traversal blocked: {entry.FullName}");
+                }
+
                 if (entry.FullName.EndsWith("/"))
                 {
                     Directory.CreateDirectory(destinationPath);
                 }
                 else
                 {
-                    // Ensure the directory for this file exists
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+                    string directory = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(directory))
+                        Directory.CreateDirectory(directory);
                     entry.ExtractToFile(destinationPath, true);
                 }
             }
@@ -99,120 +293,133 @@ public class UpdateApp
 
     private void ExtractCustomZip(string zipPath)
     {
-        try
+        string targetFullPath = Path.GetFullPath(unzipPath);
+        using (ZipArchive archive = ZipFile.OpenRead(zipPath))
         {
-            using (ZipArchive archive = ZipFile.OpenRead(zipPath))
+            foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                foreach (ZipArchiveEntry entry in archive.Entries)
-                {
-                    // Build the full path for the entry's extraction
-                    string destinationPath = Path.Combine(unzipPath, entry.FullName);
+                string destinationPath = Path.GetFullPath(Path.Combine(unzipPath, entry.FullName));
 
-                    // If the entry is a directory (ends with '/'), only create the directory
-                    if (string.IsNullOrEmpty(entry.Name))
-                    {
-                        Directory.CreateDirectory(destinationPath);
-                    }
-                    else
-                    {
-                        // Ensure the directory for this file exists
-                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
-                        // Extract the file
-                        entry.ExtractToFile(destinationPath, true); // Overwrites the file if it already exists
-                    }
+                // Prevent path traversal: ensure extracted path stays within target
+                if (!destinationPath.StartsWith(targetFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                    && !destinationPath.Equals(targetFullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"Zip entry path traversal blocked: {entry.FullName}");
+                }
+
+                if (string.IsNullOrEmpty(entry.Name))
+                {
+                    Directory.CreateDirectory(destinationPath);
+                }
+                else
+                {
+                    string directory = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(directory))
+                        Directory.CreateDirectory(directory);
+                    entry.ExtractToFile(destinationPath, true);
                 }
             }
-            Logging.WriteInfo($"Extracted custom ZIP to: {unzipPath}");
+        }
+
+        Logging.WriteInfo($"Extracted custom ZIP to: {unzipPath}");
+    }
+
+    private void HandleAccessIssues(bool admin, string relaunchArgument)
+    {
+        if (!admin && TryRelaunchElevated(relaunchArgument))
+        {
+            return;
+        }
+
+        Logging.WriteException(new Exception("Access denied while applying files. Try running MagicChatbox as administrator."), MSGBox: true, autoclose: true);
+    }
+
+    /// <summary>
+    /// Relaunches the current executable elevated and exits this process.
+    /// Returns false when the relaunch fails (e.g. the UAC prompt is cancelled).
+    /// </summary>
+    private static bool TryRelaunchElevated(string relaunchArgument)
+    {
+        try
+        {
+            string currentExePath = Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, ExecutableName);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = currentExePath,
+                Arguments = relaunchArgument,
+                UseShellExecute = true,
+                Verb = "runas",
+                WorkingDirectory = Path.GetDirectoryName(currentExePath)
+            });
+            Environment.Exit(0);
+            return true;
         }
         catch (Exception ex)
         {
-            // Handle exceptions (e.g., logging, user notification)
-            Logging.WriteException(ex, MSGBox: true);
+            Logging.WriteException(ex, MSGBox: false);
+            return false;
         }
     }
 
-    private void HandleAccessIssues(bool admin)
+    private void PrepareMaintenanceRunner()
     {
-        Logging.WriteException(new Exception("Access denied, trying to run as admin"), MSGBox: true, autoclose: true);
+        string sourceDirectory = GetCurrentAppDirectory();
+        if (PathsEqual(sourceDirectory, maintenanceRunnerPath))
+        {
+            return;
+        }
+
+        ClearAndRecreateDirectory(maintenanceRunnerPath, "Prepare maintenance runner");
+        CopyDirectoryContents(new DirectoryInfo(sourceDirectory), new DirectoryInfo(maintenanceRunnerPath));
     }
 
     private void InitializePaths(bool createNewAppLocation)
     {
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
-        string actualCurrentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        string actualCurrentAppPath = GetCurrentAppDirectory();
+        string defaultBackupPath = Path.Combine(dataPath, "backup");
 
-        // Ensure the dataPath directory exists
         if (!Directory.Exists(dataPath))
         {
             Directory.CreateDirectory(dataPath);
             Logging.WriteInfo($"Created data directory at: {dataPath}");
         }
 
-        if (!File.Exists(jsonFilePath))
-        {
-            SetDefaultPaths();
-            SaveUpdateLocation();
-        }
-        else
-        {
-            var settingsJson = File.ReadAllText(jsonFilePath);
+        SetDefaultPaths();
 
-            if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+        if (!createNewAppLocation && File.Exists(jsonFilePath))
+        {
+            try
             {
-                Logging.WriteInfo("The app_location.json file is empty or corrupted.");
-                SetDefaultPaths();
-                SaveUpdateLocation();
-            }
-            else
-            {
-                try
+                string settingsJson = File.ReadAllText(jsonFilePath);
+
+                if (string.IsNullOrWhiteSpace(settingsJson) || settingsJson.All(c => c == '\0'))
+                {
+                    Logging.WriteInfo("The app_location.json file is empty or corrupted.");
+                    SetDefaultPaths();
+                }
+                else
                 {
                     JObject appLocation = JObject.Parse(settingsJson);
-                    currentAppPath = appLocation["currentAppPath"]?.ToString();
-
-                    // Check if the current app path matches the actual current app path
-                    if (createNewAppLocation)
-                    {
-                        SetDefaultPaths();
-                        SaveUpdateLocation();
-                    }
-                    else
-                    {
-                        // Existing code to set paths from app_location.json
-                        tempPath = appLocation["tempPath"]?.ToString();
-                        unzipPath = appLocation["unzipPath"]?.ToString();
-                        magicChatboxExePath = appLocation["magicChatboxExePath"]?.ToString();
-                        backupPath = Path.Combine(dataPath, "backup");
-                    }
+                    currentAppPath = NormalizePathOrFallback(appLocation["currentAppPath"]?.ToString(), actualCurrentAppPath, requireExistingDirectory: true);
+                    ResetUpdateWorkspacePaths();
+                    backupPath = NormalizePathOrFallback(appLocation["backupPath"]?.ToString(), defaultBackupPath, requireExistingDirectory: true);
                 }
-                catch (Newtonsoft.Json.JsonReaderException ex)
-                {
-                    Logging.WriteInfo($"Error parsing app_location.json: {ex.Message}");
-                    SetDefaultPaths();
-                    SaveUpdateLocation();
-                }
+            }
+            catch (Exception ex) when (ex is Newtonsoft.Json.JsonReaderException || ex is IOException || ex is UnauthorizedAccessException)
+            {
+                Logging.WriteInfo($"Error reading app_location.json: {ex.Message}");
+                SetDefaultPaths();
             }
         }
 
-        // Ensure tempPath directory exists
-        if (!Directory.Exists(tempPath))
+        try
         {
-            Directory.CreateDirectory(tempPath);
-            Logging.WriteInfo($"Created temp directory at: {tempPath}");
+            SaveUpdateLocation();
         }
-
-        // Ensure unzipPath directory exists
-        if (!Directory.Exists(unzipPath))
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
         {
-            Directory.CreateDirectory(unzipPath);
-            Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
-        }
-
-        // Ensure backupPath directory exists
-        if (!Directory.Exists(backupPath))
-        {
-            Directory.CreateDirectory(backupPath);
-            Logging.WriteInfo($"Created backup directory at: {backupPath}");
+            Logging.WriteInfo($"Could not save app_location.json: {ex.Message}");
         }
     }
 
@@ -233,7 +440,7 @@ public class UpdateApp
         {
             if (ex is UnauthorizedAccessException || ex is IOException)
             {
-                HandleAccessIssues(admin);
+                HandleAccessIssues(admin, "-updateadmin");
             }
             else
             {
@@ -245,57 +452,68 @@ public class UpdateApp
 
     private void SaveUpdateLocation(string backupPath = null)
     {
+        Directory.CreateDirectory(dataPath);
+
         JObject appLocation = new JObject(
+            new JProperty("metadataVersion", UpdateLocationMetadataVersion),
             new JProperty("currentAppPath", currentAppPath),
             new JProperty("tempPath", tempPath),
             new JProperty("unzipPath", unzipPath),
+            new JProperty("maintenanceRunnerPath", maintenanceRunnerPath),
+            new JProperty("backupPath", backupPath ?? this.backupPath),
             new JProperty("magicChatboxExePath", magicChatboxExePath)
         );
 
-        if (backupPath != null)
-        {
-            appLocation.Add(new JProperty("backupPath", backupPath));
-        }
-
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
-        File.WriteAllText(jsonFilePath, appLocation.ToString());
+        string tempFilePath = jsonFilePath + ".tmp";
+        File.WriteAllText(tempFilePath, appLocation.ToString());
+        File.Move(tempFilePath, jsonFilePath, overwrite: true);
     }
 
     private void SetDefaultPaths()
     {
-        currentAppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
-        unzipPath = Path.Combine(tempPath, "update_unzip");
-        magicChatboxExePath = Path.Combine(unzipPath, "MagicChatbox.exe");
+        currentAppPath = GetCurrentAppDirectory();
+        ResetUpdateWorkspacePaths();
         backupPath = Path.Combine(dataPath, "backup");
+    }
 
-        // Ensure tempPath and unzipPath directories exist
-        if (!Directory.Exists(tempPath))
+    private static string GetCurrentAppDirectory()
+        => Path.GetFullPath(AppContext.BaseDirectory);
+
+    private void ResetExtractionWorkspace()
+    {
+        ExecuteWithRetry(() =>
         {
             Directory.CreateDirectory(tempPath);
-            Logging.WriteInfo($"Created temp directory at: {tempPath}");
-        }
 
-        if (!Directory.Exists(unzipPath))
-        {
+            if (Directory.Exists(unzipPath))
+            {
+                ClearDirectoryContents(unzipPath);
+                Directory.Delete(unzipPath, true);
+            }
+
             Directory.CreateDirectory(unzipPath);
-            Logging.WriteInfo($"Created unzip directory at: {unzipPath}");
-        }
+        }, "Prepare update workspace");
+    }
 
-        // Ensure backupPath directory exists
-        if (!Directory.Exists(backupPath))
-        {
-            Directory.CreateDirectory(backupPath);
-            Logging.WriteInfo($"Created backup directory at: {backupPath}");
-        }
+    private void StartMaintenanceRunner(string argument)
+    {
+        PrepareMaintenanceRunner();
+        SaveUpdateLocation();
+        StartNewApplication(argument, maintenanceRunnerPath);
     }
 
     private void StartNewApplication()
     {
+        string exePath = Path.GetFullPath(Path.Combine(currentAppPath, ExecutableName));
+        string appDir = Path.GetFullPath(currentAppPath);
+        if (!exePath.StartsWith(appDir, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Invalid application path detected.");
+
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = Path.Combine(currentAppPath, "MagicChatbox.exe"),
-            UseShellExecute = true,
+            FileName = exePath,
+            UseShellExecute = false,
             WorkingDirectory = currentAppPath
         };
         Process.Start(startInfo);
@@ -304,11 +522,16 @@ public class UpdateApp
 
     private void StartNewApplication(string argument, string Directory)
     {
+        string exePath = Path.GetFullPath(Path.Combine(Directory, ExecutableName));
+        string appDir = Path.GetFullPath(Directory);
+        if (!exePath.StartsWith(appDir, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Invalid application path detected.");
+
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = Path.Combine(Directory, "MagicChatbox.exe"),
+            FileName = exePath,
             Arguments = argument,
-            UseShellExecute = true,
+            UseShellExecute = false,
             WorkingDirectory = Directory
         };
         Process.Start(startInfo);
@@ -322,10 +545,10 @@ public class UpdateApp
         {
             if (Directory.Exists(backupPath))
             {
-                string exePath = Path.Combine(backupPath, "MagicChatbox.exe");
+                string exePath = Path.Combine(backupPath, ExecutableName);
                 if (File.Exists(exePath))
                 {
-                    ViewModel.Instance.RollBackVersion = GetApplicationVersion(exePath);
+                    _updateState.RollBackVersion = GetApplicationVersion(exePath);
                     return true;
                 }
             }
@@ -335,9 +558,20 @@ public class UpdateApp
 
     public void ClearBackUp()
     {
-        if (Directory.Exists(backupPath))
+        if (!Directory.Exists(backupPath))
+            return;
+
+        try
         {
-            Directory.Delete(backupPath, true);
+            ExecuteWithRetry(() =>
+            {
+                ClearDirectoryContents(backupPath);
+                Directory.Delete(backupPath, true);
+            }, "Delete backup directory", maxAttempts: 10, delayMs: 750);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Delayed backup cleanup skipped: {ex.Message}");
         }
     }
 
@@ -352,33 +586,33 @@ public class UpdateApp
         return null;
     }
 
-    public async void PrepareUpdate(string customZipPath = null)
+    public async Task PrepareUpdate(string customZipPath = null)
     {
+        bool gateAcquired = false;
         try
         {
+            gateAcquired = await PrepareUpdateGate.WaitAsync(0);
+            if (!gateAcquired)
+            {
+                UpdateStatus("Update already in progress.");
+                Logging.WriteInfo("Ignored duplicate update request because an update is already being prepared.");
+                return;
+            }
+
             bool useCustomZip = !string.IsNullOrEmpty(customZipPath);
 
-            // Create a backup before updating
-            if (!Directory.Exists(backupPath))
-            {
-                UpdateStatus("Creating backup directory");
-                Directory.CreateDirectory(backupPath);
-                Logging.WriteInfo($"Created backup directory at: {backupPath}");
-            }
-            else
-            {
-                // Clear previous backup
-                UpdateStatus("Clearing previous backup");
-                Directory.Delete(backupPath, true);
-                Directory.CreateDirectory(backupPath);
-                Logging.WriteInfo($"Cleared and recreated backup directory at: {backupPath}");
-            }
+            UpdateStatus("Preparing backup directory");
+            ClearAndRecreateDirectory(backupPath, "Prepare backup directory");
+            Logging.WriteInfo($"Prepared backup directory at: {backupPath}");
+
             UpdateStatus("Creating backup");
             CopyDirectory(new DirectoryInfo(currentAppPath), new DirectoryInfo(backupPath));
 
-            // Update app_location.json with backupPath information
-            SaveUpdateLocation(backupPath: backupPath); // Adjust SaveUpdateLocation method accordingly
+            SaveUpdateLocation(backupPath);
             Logging.WriteInfo("Saved update location with backupPath.");
+
+            UpdateStatus("Preparing update workspace");
+            ResetExtractionWorkspace();
 
             if (!useCustomZip)
             {
@@ -392,20 +626,31 @@ public class UpdateApp
                 ExtractCustomZip(customZipPath);
             }
 
-            // Start the updated application with a specific argument
-            StartNewApplication("-update", unzipPath);
+            string launchDirectory = ResolveApplicationDirectory(unzipPath);
+            magicChatboxExePath = Path.Combine(launchDirectory, ExecutableName);
+            SaveUpdateLocation(backupPath);
+            StartMaintenanceRunner("-update");
         }
         catch (Exception ex)
         {
             UpdateStatus("Update failed.");
-            Application.Current.Dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
+                _updateState.CanUpdate = true;
+                _updateState.CanUpdateLabel = true;
                 Logging.WriteException(ex, MSGBox: true);
             });
         }
+        finally
+        {
+            if (gateAcquired)
+            {
+                PrepareUpdateGate.Release();
+            }
+        }
     }
 
-    public void RollbackApplication(StartUp startUp)
+    public void RollbackApplication(StartUp startUp, bool admin = false)
     {
         UpdateStatus("Rolling back to previous version", startUp, 25);
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
@@ -413,34 +658,78 @@ public class UpdateApp
         {
             UpdateStatus("Backup information found", startUp, 50);
             JObject appLocation = JObject.Parse(File.ReadAllText(jsonFilePath));
-            string backupPath = appLocation["backupPath"].ToString();
+            string rollbackSourcePath = NormalizePathOrFallback(appLocation["backupPath"]?.ToString(), backupPath, requireExistingDirectory: true);
 
-            if (!Directory.Exists(backupPath))
+            if (!Directory.Exists(rollbackSourcePath))
             {
                 UpdateStatus("Backup directory not found. Rollback cannot proceed.", startUp);
-                Thread.Sleep(2000);
+                Thread.Sleep(Core.Constants.UpdateSleepDelayMs);
                 return;
             }
 
+            string rollbackRecoveryPath = Path.Combine(dataPath, "rollback_recovery");
+            UpdateStatus("Backing up current version", startUp, 60);
+            try
+            {
+                ClearAndRecreateDirectory(rollbackRecoveryPath, "Prepare rollback recovery backup");
+                CopyDirectory(new DirectoryInfo(currentAppPath), new DirectoryInfo(rollbackRecoveryPath));
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+            {
+                HandleAccessIssues(admin, "-rollbackadmin");
+                return;
+            }
 
             UpdateStatus("Clearing current app path", startUp, 75);
-            // Ensure the current app path is cleared before restoring from backup
-            Directory.Delete(currentAppPath, true);
-            Directory.CreateDirectory(currentAppPath);
+            bool backupRefreshSucceeded = false;
+            try
+            {
+                ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Clear current app path");
 
-            // Restore from backup
-            UpdateStatus("Restoring from backup", startUp, 90);
-            CopyDirectory(new DirectoryInfo(backupPath), new DirectoryInfo(currentAppPath));
+                UpdateStatus("Restoring from backup", startUp, 90);
+                CopyDirectory(new DirectoryInfo(rollbackSourcePath), new DirectoryInfo(currentAppPath));
+                magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
 
-            // Start the application normally after rollback
+                UpdateStatus("Preserving rollback path", startUp, 95);
+                ClearAndRecreateDirectory(backupPath, "Refresh backup directory after rollback");
+                CopyDirectory(new DirectoryInfo(rollbackRecoveryPath), new DirectoryInfo(backupPath));
+                SaveUpdateLocation(backupPath);
+                backupRefreshSucceeded = true;
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+            {
+                HandleAccessIssues(admin, "-rollbackadmin");
+                return;
+            }
+            finally
+            {
+                // Only discard the roll-forward recovery copy once the backup was refreshed from it;
+                // if the refresh failed, keep it so a retry can still rebuild the backup.
+                if (backupRefreshSucceeded)
+                {
+                    try
+                    {
+                        if (Directory.Exists(rollbackRecoveryPath))
+                        {
+                            ClearDirectoryContents(rollbackRecoveryPath);
+                            Directory.Delete(rollbackRecoveryPath, true);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"Rollback recovery cleanup skipped: {ex.Message}");
+                    }
+                }
+            }
+
             UpdateStatus("Starting application", startUp, 100);
             Thread.Sleep(500);
-            StartNewApplication("-clearbackup", currentAppPath);
+            StartNewApplication();
         }
         else
         {
             UpdateStatus("Backup information not found. Rollback cannot proceed.", startUp);
-            Thread.Sleep(2000);
+            Thread.Sleep(Core.Constants.UpdateSleepDelayMs);
         }
     }
 
@@ -449,18 +738,18 @@ public class UpdateApp
     {
         OpenFileDialog openFileDialog = new OpenFileDialog
         {
-            Filter = "MagicChatbox ZIP file (*.zip)|*.zip", // Filter to allow only ZIP files
-            Multiselect = false // Allow only one file to be selected
+            Filter = "MagicChatbox ZIP file (*.zip)|*.zip",
+            Multiselect = false
         };
 
-        bool? result = openFileDialog.ShowDialog(); // Show the dialog and get the result
+        bool? result = openFileDialog.ShowDialog();
 
-        if (result == true) // Check if a file was selected
+        if (result == true)
         {
             string selectedFilePath = openFileDialog.FileName;
             if (File.Exists(selectedFilePath))
             {
-                PrepareUpdate(selectedFilePath);
+                _ = PrepareUpdate(selectedFilePath);
             }
         }
     }
@@ -469,44 +758,135 @@ public class UpdateApp
     {
         if (CheckIfBackupExists())
         {
-            StartNewApplication("-rollback", backupPath);
+            StartMaintenanceRunner("-rollback");
+            return;
         }
 
+        Logging.WriteException(new Exception("No rollback backup was found."), MSGBox: true);
     }
 
     public void UpdateApplication(bool admin = false, string customZipPath = null)
     {
         bool useCustomZip = !string.IsNullOrEmpty(customZipPath);
-        DirectoryInfo currentAppDirectory = new DirectoryInfo(currentAppPath);
 
         if (useCustomZip)
         {
             unzipPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_custom_update");
-            magicChatboxExePath = Path.Combine(unzipPath, "MagicChatbox.exe");
+            magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
+            ResetExtractionWorkspace();
             ExtractCustomZip(customZipPath);
         }
-        else
+
+        DirectoryInfo currentAppDirectory = new DirectoryInfo(currentAppPath);
+
+        try
         {
-            MoveToRecycleBin(currentAppDirectory, admin);
-            CopyContentsFromUnzipPath(currentAppDirectory);
+            ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Replace current installation");
+            string sourceRoot = ResolveApplicationDirectory(unzipPath);
+            ExecuteWithRetry(() => CopyDirectoryContents(new DirectoryInfo(sourceRoot), currentAppDirectory), "Copy update files");
+            magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
+            SaveUpdateLocation();
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+        {
+            // Elevation can fix access issues; the elevated instance retries the update.
+            if (!admin && TryRelaunchElevated("-updateadmin"))
+            {
+                return;
+            }
+
+            string failureMessage = DescribeUpdateFailure(ex);
+            if (TryRestoreFromBackup())
+            {
+                Logging.WriteException(
+                    new Exception($"{failureMessage} The previous version has been restored."),
+                    MSGBox: true,
+                    autoclose: true);
+                StartNewApplication();
+            }
+            else
+            {
+                Logging.WriteException(new Exception(failureMessage), MSGBox: true, autoclose: true);
+            }
+
+            return;
         }
 
         StartNewApplication();
     }
 
-    public static void UpdateStatus(string message, StartUp startUp = null, double proc = 50)
+    /// <summary>
+    /// Restores the previous installation from the update backup after a failed update.
+    /// Returns false when no usable backup exists or the restore itself fails.
+    /// </summary>
+    private bool TryRestoreFromBackup()
     {
-        if (Application.Current != null)
+        try
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            // Clearing the install dir must never destroy the restore source itself.
+            string installRoot = Path.GetFullPath(currentAppPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string backupRoot = Path.GetFullPath(backupPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (backupRoot.Equals(installRoot, StringComparison.OrdinalIgnoreCase) ||
+                backupRoot.StartsWith(installRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             {
-                if (startUp != null)
-                    startUp.UpdateProgress(message, proc);
-                else
-                {
-                    ViewModel.Instance.UpdateStatustxt = message;
-                }
-            });
+                return false;
+            }
+
+            if (!Directory.Exists(backupPath) || !File.Exists(Path.Combine(backupPath, ExecutableName)))
+            {
+                return false;
+            }
+
+            ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Clear installation for restore");
+            ExecuteWithRetry(
+                () => CopyDirectoryContents(new DirectoryInfo(backupPath), new DirectoryInfo(currentAppPath)),
+                "Restore previous version");
+            magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
+            return true;
         }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return false;
+        }
+    }
+
+    private static string DescribeUpdateFailure(Exception ex)
+    {
+        // ExecuteWithRetry wraps the last failure in an IOException; classify the root cause.
+        Exception root = ex;
+        while (root.InnerException != null)
+        {
+            root = root.InnerException;
+        }
+
+        const int HrDiskFull = unchecked((int)0x80070070);
+        const int HrHandleDiskFull = unchecked((int)0x80070027);
+        const int HrSharingViolation = unchecked((int)0x80070020);
+        const int HrLockViolation = unchecked((int)0x80070021);
+
+        string reason = root switch
+        {
+            UnauthorizedAccessException => "access was denied while applying files. Try running MagicChatbox as administrator.",
+            IOException { HResult: HrDiskFull or HrHandleDiskFull } => "the disk is full.",
+            IOException { HResult: HrSharingViolation or HrLockViolation } => "a file is locked by another program (antivirus or a running MagicChatbox instance). Close it and try again.",
+            FileNotFoundException or DirectoryNotFoundException => "the update package is incomplete or missing files.",
+            _ => root.Message
+        };
+
+        return $"Update failed: {reason}";
+    }
+
+    public void UpdateStatus(string message, StartUp startUp = null, double proc = 50)
+    {
+        _dispatcher.BeginInvoke(() =>
+        {
+            if (startUp != null)
+                startUp.UpdateProgress(message, proc);
+            else
+            {
+                _updateState.UpdateStatustxt = message;
+            }
+        });
     }
 }

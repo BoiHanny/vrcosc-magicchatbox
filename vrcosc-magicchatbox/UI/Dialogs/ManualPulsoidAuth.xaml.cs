@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+using System;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
-using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -12,59 +11,49 @@ namespace vrcosc_magicchatbox.UI.Dialogs
     /// </summary>
     public partial class ManualPulsoidAuth : Window
     {
-        static PulsoidOAuthHandler oauthHandler;
-        public ManualPulsoidAuth()
+        private readonly PulsoidOAuthHandler _oauthHandler;
+        private readonly PulsoidModule _heartRateConnector;
+        private readonly Action<bool> _setPulsoidAuth;
+        private readonly INavigationService _nav;
+
+        public ManualPulsoidAuth(PulsoidModule heartRateConnector, Action<bool> setPulsoidAuth, PulsoidOAuthHandler oauthHandler, INavigationService nav)
         {
             InitializeComponent();
+            _heartRateConnector = heartRateConnector;
+            _setPulsoidAuth = setPulsoidAuth;
+            _oauthHandler = oauthHandler;
+            _nav = nav;
         }
 
         private void Button_close_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
-        
 
-        private static async Task ConnectPulSOidWebTask()
-        {
-            try
-            {
-                string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                const string clientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
-                const string redirectUri = "http://localhost:7384/";
-                const string scope = "data:heart_rate:read,profile:read,data:statistics:read";
-                var authorizationEndpoint = $"https://pulsoid.net/oauth2/authorize?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}&response_mode=web_page";
-
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = authorizationEndpoint,
-                    UseShellExecute = true
-                });
-
-
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-            }
-        }
 
         private void ConnectWithPulsoidWeb_Click(object sender, RoutedEventArgs e)
         {
-            _ = ConnectPulSOidWebTask();
+            string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            const string clientId = Core.Constants.PulsoidClientId;
+            const string redirectUri = Core.Constants.PulsoidOAuthRedirectUri;
+            const string scope = Core.Constants.PulsoidOAuthScope;
+            var authorizationEndpoint = $"{Core.Constants.PulsoidOAuthEndpoint}?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}&response_mode=web_page";
+
+            _nav.OpenUrl(authorizationEndpoint);
 
             FirstPage.Visibility = Visibility.Hidden;
             SecondPage.Visibility = Visibility.Visible;
 
             CenterWindowAtBottom();
             Topmost = true;
+            Activate();
+            Focus();
         }
 
         private void CenterWindowAtBottom()
         {
-            // Determine which screen the mouse cursor is on.
             var currentScreen = System.Windows.Forms.Screen.FromPoint(System.Windows.Forms.Cursor.Position);
 
-            // Calculate center and bottom coordinates.
             double centerX = currentScreen.WorkingArea.Left + currentScreen.WorkingArea.Width / 2;
             double bottomY = currentScreen.WorkingArea.Bottom;
 
@@ -76,41 +65,78 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private async void Connect_Click(object sender, RoutedEventArgs e)
         {
-            oauthHandler = PulsoidOAuthHandler.Instance;
-
-            bool isValidToken = await oauthHandler.ValidateTokenAsync(Token.Password);
-
-            if (isValidToken)
+            string token = ExtractAccessToken(Token.Password);
+            if (string.IsNullOrWhiteSpace(token))
             {
-                ViewModel.Instance.PulsoidAccessTokenOAuth = Token.Password;
-                ViewModel.Instance.PulsoidAuthConnected = true;
-                this.Close();
+                MessageBox.Show("Missing access token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
-            else
+
+            try
             {
-                MessageBox.Show("Invalid token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                bool isValidToken = await _oauthHandler.ValidateTokenAsync(token);
+
+                if (isValidToken)
+                {
+                    _heartRateConnector.Settings.AccessTokenOAuth = token;
+                    // Persist immediately — waiting for shutdown risks losing the token on crash/kill
+                    _heartRateConnector.SaveSettings();
+                    _setPulsoidAuth(true);
+                    Close();
+                }
+                else
+                {
+                    MessageBox.Show("Invalid token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Pulsoid token validation failed: {ex.Message}");
+                MessageBox.Show($"Could not validate the token: {ex.Message}", "Pulsoid connection failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
 
         private void Token_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            string password = Token.Password;
-
-            if (IsValidGuid(password))
-            {
-                Connect.IsEnabled = true;
-            }
-            else
-            {
-                Connect.IsEnabled = false;
-            }
+            string token = ExtractAccessToken(Token.Password);
+            Connect.IsEnabled = !string.IsNullOrWhiteSpace(token);
         }
 
-        private bool IsValidGuid(string str)
+        private static string ExtractAccessToken(string input)
         {
-            Guid guidOutput;
-            return Guid.TryParse(str, out guidOutput);
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            string trimmed = input.Trim();
+
+            int hashIndex = trimmed.IndexOf('#');
+            if (hashIndex >= 0 && hashIndex < trimmed.Length - 1)
+            {
+                trimmed = trimmed.Substring(hashIndex + 1);
+            }
+
+            int queryIndex = trimmed.IndexOf('?');
+            if (queryIndex >= 0 && queryIndex < trimmed.Length - 1)
+            {
+                trimmed = trimmed.Substring(queryIndex + 1);
+            }
+
+            int tokenIndex = trimmed.IndexOf("access_token=", StringComparison.OrdinalIgnoreCase);
+            if (tokenIndex >= 0)
+            {
+                trimmed = trimmed.Substring(tokenIndex + "access_token=".Length);
+            }
+
+            int ampIndex = trimmed.IndexOf('&');
+            if (ampIndex >= 0)
+            {
+                trimmed = trimmed.Substring(0, ampIndex);
+            }
+
+            return trimmed.Trim();
         }
 
 

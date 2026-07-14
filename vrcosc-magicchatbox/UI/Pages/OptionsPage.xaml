@@ -1,0 +1,191 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.OptionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:options="clr-namespace:vrcosc_magicchatbox.UI.Pages.Options"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:OptionsPageViewModel,
+                                     IsDesignTimeCreatable=False}"
+    d:DesignHeight="550"
+    d:DesignWidth="900"
+    mc:Ignorable="d">
+
+    <ScrollViewer
+        x:Name="MainScroll"
+        Padding="0,0,0,12"
+        CanContentScroll="False"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <ContentControl
+                x:Name="OptionsWrapper_Status"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="status">
+                <options:StatusSection x:Name="Section_Status" DataContext="{Binding StatusSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_VrcRadar"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="vrc-radar">
+                <options:VrcRadarSection x:Name="Section_VRCRadar" DataContext="{Binding VrcRadarSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Pulsoid"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="pulsoid">
+                <options:PulsoidSection x:Name="Section_Pulsoid" DataContext="{Binding PulsoidSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Time"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="time">
+                <options:TimeOptionsSection x:Name="Section_Time" DataContext="{Binding TimeOptionsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Weather"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="weather">
+                <options:WeatherSection x:Name="Section_Weather" DataContext="{Binding WeatherSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Twitch"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="twitch">
+                <options:TwitchSection x:Name="Section_Twitch" DataContext="{Binding TwitchSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_TikTokLive"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tiktok-live">
+                <options:TikTokLiveSection x:Name="Section_TikTokLive" DataContext="{Binding TikTokLiveSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Discord"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="discord">
+                <options:DiscordSection x:Name="Section_Discord" DataContext="{Binding DiscordSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Spotify"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="spotify">
+                <options:SpotifySection x:Name="Section_Spotify" DataContext="{Binding SpotifySection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_OpenAI"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="openai">
+                <options:OpenAISection x:Name="Section_OpenAI" DataContext="{Binding OpenAISection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_ComponentStats"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="component-stats">
+                <options:ComponentStatsSection x:Name="Section_ComponentStats" DataContext="{Binding ComponentStatsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_NetworkStatistics"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="network-statistics">
+                <options:NetworkStatisticsSection x:Name="Section_NetworkStatistics" DataContext="{Binding NetworkStatisticsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Chatting"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="chatting">
+                <options:ChattingOptionsSection x:Name="Section_Chatting" DataContext="{Binding ChattingOptionsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Tts"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tts">
+                <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" DataContext="{Binding TtsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_MediaLink"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="media-link">
+                <options:MediaLinkSection x:Name="MediaLinkSectionControl" DataContext="{Binding MediaLinkSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_AppOptions"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="app-options">
+                <options:AppOptionsSection x:Name="AppOptionsSectionControl" DataContext="{Binding AppOptionsSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_EggDev"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="egg-dev"
+                Visibility="{Binding EggDevSection.AppState.Egg_Dev, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <options:EggDevSection x:Name="EggDevSectionControl" DataContext="{Binding EggDevSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_TrackerBattery"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tracker-battery">
+                <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Privacy"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="privacy">
+                <options:PrivacySection x:Name="PrivacySectionControl" DataContext="{Binding PrivacySection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_WindowActivity"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="window-activity">
+                <options:WindowActivitySection x:Name="WindowActivitySectionControl" DataContext="{Binding WindowActivitySection}" />
+            </ContentControl>
+
+            <TextBlock
+                Margin="12,14,12,8"
+                HorizontalAlignment="Center"
+                FontFamily="Albert Sans Thin"
+                FontSize="11"
+                Foreground="{StaticResource TextMutedBrush}"
+                TextAlignment="Center"
+                TextWrapping="Wrap">
+                <Run Text="By using MagicChatbox, you agree to the " />
+                <Hyperlink
+                    Foreground="{StaticResource TextLabelBrush}"
+                    NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md"
+                    RequestNavigate="Hyperlink_RequestNavigate"
+                    ToolTip="Opens the Privacy &amp; Security policy on GitHub">
+                    <Run Text="Privacy &amp; Security Policy" />
+                </Hyperlink>
+                <Run Text=" and " />
+                <Hyperlink
+                    Foreground="{StaticResource TextLabelBrush}"
+                    NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md"
+                    RequestNavigate="Hyperlink_RequestNavigate"
+                    ToolTip="Opens the Software License on GitHub">
+                    <Run Text="Software License" />
+                </Hyperlink>
+                <Run Text="." />
+            </TextBlock>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

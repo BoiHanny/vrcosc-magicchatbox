@@ -1,0 +1,107 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.TimeOptionsSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:TimeOptionsSectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.Settings_Time, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="Time options"
+                TextOptions.TextRenderingMode="ClearType" />
+        </Grid>
+        <Grid
+            Grid.Row="1"
+            Height="Auto"
+            Margin="34,10,0,0"
+            Visibility="{Binding AppSettings.Settings_Time, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel>
+                <CheckBox
+                    x:Name="PrefixTime_checkbox"
+                    Content="Show 'My time:' before the time integration"
+                    IsChecked="{Binding TimeSettings.PrefixTime, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}" />
+
+                <CheckBox
+                    x:Name="Time24H_checkbox"
+                    Content="24-hour time format"
+                    IsChecked="{Binding TimeSettings.Time24H, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}" />
+                <CheckBox
+                    x:Name="UseSystemCultureForTime"
+                    Content="Use current system culture for formatting time"
+                    IsChecked="{Binding TimeSettings.UseSystemCulture, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}" />
+                <CheckBox
+                    x:Name="AutoSetDaylight_checkbox"
+                    Content="Automatically apply daylight saving time"
+                    IsChecked="{Binding TimeSettings.AutoSetDaylight, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}" />
+                <CheckBox
+                    x:Name="DaylightSavingTime_checkbox"
+                    Content="Apply daylight saving time"
+                    IsChecked="{Binding TimeSettings.UseDaylightSavingTime, Mode=TwoWay}"
+                    Style="{DynamicResource SettingsCheckbox}"
+                    Visibility="{Binding TimeSettings.AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox
+                    x:Name="TimeShowTimeZone_checkbox"
+                    Content="Use a custom time zone"
+                    IsChecked="{Binding TimeSettings.TimeShowTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Style="{DynamicResource SettingsCheckbox}" />
+                <StackPanel
+                    Width="auto"
+                    Margin="0,0,0,15"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal"
+                    Visibility="{Binding TimeSettings.TimeShowTimeZone, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+                    <ComboBox
+                        x:Name="TimeZoneComboBox"
+                        Width="183"
+                        DisplayMemberPath="Value"
+                        FontSize="11.5"
+                        ItemsSource="{Binding Source={x:Static modules:TimeSettings.TimezoneFriendlyNames}}"
+                        SelectedValue="{Binding TimeSettings.SelectedTimeZone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        SelectedValuePath="Key" />
+                    <TextBlock
+                        Margin="10,2,5,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Shows the selected time zone instead of your system's local time." />
+                </StackPanel>
+
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
