@@ -5,6 +5,12 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Returns <see cref="Visibility.Collapsed"/> when the bound boolean is <c>true</c>
+    /// and <see cref="Visibility.Visible"/> when it is <c>false</c>.
+    /// Unlike <c>InverseBoolToHiddenConverter</c>, the name reflects the WPF
+    /// <c>Visibility</c> semantic used here.
+    /// </summary>
     public class InverseBoolToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

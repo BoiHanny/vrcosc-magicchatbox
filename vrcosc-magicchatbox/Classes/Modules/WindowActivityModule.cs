@@ -1,36 +1,90 @@
-﻿using System;
-using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-public static class WindowActivityModule
+/// <summary>
+/// Service that tracks focused Windows processes, resolves display names, and produces formatted
+/// window-activity strings for the VRChat chat overlay.
+/// </summary>
+public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivityService
 {
-    // Constants and Structs
     private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
     private const uint SHGFI_DISPLAYNAME = 0x00000200;
 
-    private static bool _usedNewMethod = false;
-    private static readonly string _vrChatDirectory = @"C:\Steam\steamapps\common\VRChat";
-    private static readonly string _vrChatExecutable = "vrchat.exe";
+    private bool _usedNewMethod = false;
+    private readonly string _vrChatDirectory;
+    private readonly string _vrChatExecutable = "vrchat.exe";
 
-    private static void AddNewProcessToViewModel(string processName, string windowTitle)
+    private readonly ISettingsProvider<WindowActivitySettings> _settingsProvider;
+    public WindowActivitySettings Settings => _settingsProvider.Value;
+    public void SaveSettings() => _settingsProvider.Save();
+
+    private readonly WindowActivityDisplayState WA;
+    private readonly IAppState AppState;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly IPrivacyConsentService _consentService;
+    private readonly IToastService? _toast;
+    private DateTime _waLastErrorToast = DateTime.MinValue;
+
+    public WindowActivityModule(
+        ISettingsProvider<WindowActivitySettings> settingsProvider,
+        WindowActivityDisplayState windowActivityDisplay,
+        IAppState appState,
+        IEnvironmentService environmentService,
+        IUiDispatcher dispatcher,
+        IPrivacyConsentService consentService,
+        IToastService? toast = null)
+    {
+        _settingsProvider = settingsProvider;
+        WA = windowActivityDisplay;
+        AppState = appState;
+        _vrChatDirectory = environmentService.VrcPath;
+        _dispatcher = dispatcher;
+        _consentService = consentService;
+        _toast = toast;
+        if (string.Equals(Settings.GlobalRegex, WindowActivitySettings.LegacyDefaultGlobalRegex, StringComparison.Ordinal))
+            Settings.GlobalRegex = WindowActivitySettings.DefaultGlobalRegex;
+
+        _consentService.ConsentChanged += (_, e) =>
+        {
+            if (e.Hook == PrivacyHook.WindowActivity && e.NewState == ConsentState.Denied)
+            {
+                _dispatcher.BeginInvoke(() =>
+                {
+                    WA.ScannedApps.Clear();
+                    WA.LastProcessFocused = null;
+                });
+            }
+        };
+    }
+
+    private void AddNewProcessToViewModel(string processName, string windowTitle)
     {
         try
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            _dispatcher.BeginInvoke(() =>
             {
                 ProcessInfo processInfo = new ProcessInfo
                 {
                     LastTitle = windowTitle,
-                    ShowTitle = ViewModel.Instance.AutoShowTitleOnNewApp,
+                    ShowTitle = Settings.AutoShowTitleOnNewApp,
                     ProcessName = processName,
                     UsedNewMethod = _usedNewMethod,
                     ApplyCustomAppName = false,
@@ -39,25 +93,26 @@ public static class WindowActivityModule
                     FocusCount = 1
                 };
 
-                ViewModel.Instance.ScannedApps.Add(processInfo);
-                ViewModel.Instance.LastProcessFocused = processInfo;
+                WA.ScannedApps.Add(processInfo);
+                WA.LastProcessFocused = processInfo;
             });
         }
         catch (Exception ex)
         {
-            ViewModel.Instance.ErrorInWindowActivity = true;
+            WA.ErrorInWindowActivity = true;
             string errormsg = $"Error in AddNewProcessToViewModel: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
         }
     }
 
-    private static bool CheckTitleCondition(ProcessInfo existingProcessInfo, string windowTitle)
+    private bool CheckTitleCondition(ProcessInfo existingProcessInfo, string windowTitle)
     {
-        bool showTitle1stCheck = ViewModel.Instance.WindowActivityTitleScan
+        bool showTitle1stCheck = Settings.TitleScan
                                 && existingProcessInfo.ShowTitle
                                 && !string.IsNullOrEmpty(windowTitle);
-        if (!ViewModel.Instance.TitleOnAppVR && ViewModel.Instance.IsVRRunning)
+        if (!Settings.TitleOnAppVR && AppState.IsVRRunning)
         {
             showTitle1stCheck = false;
         }
@@ -65,7 +120,7 @@ public static class WindowActivityModule
         return showTitle1stCheck;
     }
 
-    private static string ConstructReturnString(ProcessInfo existingProcessInfo, string processName, string windowTitle)
+    private string ConstructReturnString(ProcessInfo existingProcessInfo, string processName, string windowTitle)
     {
         try
         {
@@ -76,66 +131,159 @@ public static class WindowActivityModule
             }
             else
             {
-                if (ViewModel.Instance.LastProcessFocused.ProcessName != processName)
+                if (WA.LastProcessFocused == null || WA.LastProcessFocused.ProcessName != processName)
                 {
                     existingProcessInfo.FocusCount++;
-                    ViewModel.Instance.LastProcessFocused = existingProcessInfo;
+                    WA.LastProcessFocused = existingProcessInfo;
                 }
-
-                bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
 
                 if (existingProcessInfo.IsPrivateApp)
                 {
-                    if (ViewModel.Instance.IsVRRunning)
+                    if (Settings.HideOutputWhenPrivateApp)
                     {
-                        return ViewModel.Instance.WindowActivityPrivateNameVR;
-                    }
-                    else
-                    {
-                        return ViewModel.Instance.WindowActivityPrivateName;
+                        return string.Empty;
                     }
 
+                    return AppState.IsVRRunning
+                        ? Settings.PrivateNameVR
+                        : Settings.PrivateName;
                 }
-                else if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
+
+                // Global regex is applied before title length limiting in FormatWindowTitle.
+                windowTitle = ApplyCustomRegex(existingProcessInfo, windowTitle);
+
+                bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
+
+                if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
                 {
-                    return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " (" + windowTitle + ")" : string.Empty);
+                    return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && Settings.TitleScan ? " (" + windowTitle + ")" : string.Empty);
                 }
-                else
-                {
-                    return "'" + processName + "'" + (titleCheck && ViewModel.Instance.WindowActivityTitleScan ? " ( " + windowTitle + ")" : string.Empty);
-                }
+
+                return "'" + processName + "'" + (titleCheck && Settings.TitleScan ? " ( " + windowTitle + ")" : string.Empty);
             }
         }
         catch (Exception ex)
         {
-            ViewModel.Instance.ErrorInWindowActivity = true;
+            WA.ErrorInWindowActivity = true;
             string errormsg = $"Error in ConstructReturnString: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return processName;
         }
 
     }
 
-    private static string FormatWindowTitle(string fullTitle)
+    /// <summary>
+    /// Applies the global regex transform to a window title. A rule can use "pattern => replacement";
+    /// otherwise the first capture group is used for compatibility.
+    /// </summary>
+    private string ApplyGlobalRegex(string windowTitle)
     {
-        // Truncate the application name after the hyphen.
-        int index = fullTitle.LastIndexOf(" - ");
-        if (index > 0)
+        if (!Settings.UseGlobalRegex
+            || string.IsNullOrWhiteSpace(Settings.GlobalRegex)
+            || string.IsNullOrEmpty(windowTitle))
+            return windowTitle;
+
+        return TitleContentFilter.ApplyRegexTransform(windowTitle, Settings.GlobalRegex);
+    }
+
+    /// <summary>
+    /// Applies a per-app custom regex transform to the window title. A rule can use "pattern => replacement";
+    /// otherwise the first capture group is used for compatibility.
+    /// </summary>
+    private static string ApplyCustomRegex(ProcessInfo process, string windowTitle)
+    {
+        if (!process.UseCustomRegex
+            || string.IsNullOrWhiteSpace(process.CustomRegex)
+            || string.IsNullOrEmpty(windowTitle))
+            return windowTitle;
+
+        return TitleContentFilter.ApplyRegexTransform(windowTitle, process.CustomRegex);
+    }
+
+    private string FormatWindowTitle(string fullTitle, ProcessInfo? process = null)
+    {
+        fullTitle = fullTitle?.Trim() ?? string.Empty;
+        fullTitle = ApplyGlobalRegex(fullTitle);
+
+        // Apply per-app content filter first (takes priority)
+        if (process != null && process.HasContentFilter && !string.IsNullOrWhiteSpace(fullTitle))
         {
-            fullTitle = fullTitle.Substring(0, index);
+            fullTitle = ApplyPerAppFilter(fullTitle, process);
+            if (string.IsNullOrEmpty(fullTitle))
+                return string.Empty;
         }
 
-        // Check length for further truncation.
-        if (ViewModel.Instance.LimitTitleOnApp && fullTitle.Length > ViewModel.Instance.MaxShowTitleCount)
+        if (Settings.EnableTitleFilters && Settings.TitleFilters.Count > 0 && !string.IsNullOrWhiteSpace(fullTitle))
         {
-            fullTitle = fullTitle.Substring(0, ViewModel.Instance.MaxShowTitleCount) + "...";
+            fullTitle = ApplyTitleFilters(fullTitle);
+            if (string.IsNullOrEmpty(fullTitle))
+                return string.Empty;
+        }
+
+        if (Settings.LimitTitleOnApp && fullTitle.Length > Settings.MaxShowTitleCount)
+        {
+            fullTitle = fullTitle.Substring(0, Settings.MaxShowTitleCount) + "...";
         }
 
         return fullTitle;
     }
 
-    private static string GetFileDescription(string filePath)
+    private static string ApplyPerAppFilter(string text, ProcessInfo process)
+    {
+        return process.ContentFilterMode switch
+        {
+            1 => TitleContentFilter.MatchesAny(text, process.ContentFilter) ? string.Empty : text,
+            2 => TitleContentFilter.MatchesAny(text, process.ContentFilter) ? text : string.Empty,
+            3 => TitleContentFilter.RemoveMatches(text, process.ContentFilter),
+            _ => text
+        };
+    }
+
+    private string ApplyTitleFilters(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
+
+        string originalText = text;
+        string output = text;
+        bool hasIncludeRules = false;
+        bool matchedInclude = false;
+
+        foreach (var rule in Settings.TitleFilters)
+        {
+            if (!rule.IsEnabled || string.IsNullOrWhiteSpace(rule.Pattern))
+                continue;
+
+            bool matches = TitleContentFilter.MatchesAny(originalText, rule.Pattern);
+
+            if (rule.Mode == FilterMode.Exclude && matches)
+                return string.Empty;
+
+            if (rule.Mode == FilterMode.Include)
+            {
+                hasIncludeRules = true;
+                if (matches)
+                    matchedInclude = true;
+            }
+        }
+
+        if (hasIncludeRules && !matchedInclude)
+            return string.Empty;
+
+        foreach (var rule in Settings.TitleFilters)
+        {
+            if (!rule.IsEnabled || string.IsNullOrWhiteSpace(rule.Pattern) || rule.Mode != FilterMode.Remove)
+                continue;
+
+            output = TitleContentFilter.RemoveMatches(output, rule.Pattern);
+        }
+
+        return output;
+    }
+
+    private string GetFileDescription(string filePath)
     {
         try
         {
@@ -153,38 +301,47 @@ public static class WindowActivityModule
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
 
-    private static string GetNameFromAutomationElement(IntPtr hwnd)
+    private string GetNameFromAutomationElement(IntPtr hwnd)
     {
-
         try
         {
-            AutomationElement element = AutomationElement.FromHandle(hwnd);
-            if (element != null)
+            // UIAutomation can block for 20+ seconds if the target app is hung.
+            // Run on a background thread with a 2-second timeout.
+            var task = Task.Run(() =>
             {
-                return element.Current.Name;
-            }
-            return "Unknown";
+                AutomationElement element = AutomationElement.FromHandle(hwnd);
+                return element?.Current.Name ?? "Unknown";
+            });
+
+            if (task.Wait(TimeSpan.FromSeconds(2)))
+                return task.Result;
+
+            return "Unknown"; // Timed out — app is likely hung
         }
         catch (Exception ex)
         {
-            ViewModel.Instance.ErrorInWindowActivity = true;
-            string errormsg = $"Error in GetNameFromAutomationElement (HandleID:{{hwnd}}): {ex.Message}";
+            WA.ErrorInWindowActivity = true;
+            string errormsg = $"Error in GetNameFromAutomationElement (HandleID:{hwnd}): {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "Unknown";
         }
-
-
-
     }
 
-    private static string GetNameFromSHGetFileInfo(Process process, string processName)
+    private string GetNameFromSHGetFileInfo(Process process, string processName)
     {
         if (string.IsNullOrEmpty(processName) || processName == "Unknown")
         {
+            string? processPath = TryGetProcessPath(process);
+            if (string.IsNullOrEmpty(processPath))
+            {
+                return processName;
+            }
+
             SHFILEINFO shinfo = new SHFILEINFO();
             IntPtr result = SHGetFileInfo(
-                process.MainModule.FileName,
+                processPath,
                 FILE_ATTRIBUTE_NORMAL,
                 ref shinfo,
                 (uint)System.Runtime.InteropServices.Marshal.SizeOf(shinfo),
@@ -198,14 +355,14 @@ public static class WindowActivityModule
         return processName;
     }
 
-    private static string GetProcessName(IntPtr hwnd, Process process, int attempts)
+    private string GetProcessName(IntPtr hwnd, Process process, int attempts)
     {
 
 
         string processName = "Unknown";
         try
         {
-            if (process.ProcessName == "ApplicationFrameHost" && ViewModel.Instance.ApplicationHookV2)
+            if (process.ProcessName == "ApplicationFrameHost" && Settings.ApplicationHookV2)
             {
                 processName = GetNameFromAutomationElement(hwnd);
                 _usedNewMethod = true;
@@ -221,10 +378,11 @@ public static class WindowActivityModule
         }
         catch (Exception ex)
         {
-            ViewModel.Instance.ErrorInWindowActivity = true;
+            WA.ErrorInWindowActivity = true;
             string errormsg = $"Error in GetProcessName ({processName}): {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return processName;
         }
 
@@ -233,15 +391,13 @@ public static class WindowActivityModule
     [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
     private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
-    // P/Invoke Methods
     [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
     private static extern int GetWindowTextLength(IntPtr hWnd);
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-    // Private Methods
-    private static string GetWindowTitle(IntPtr hwnd)
+    private string GetWindowTitle(IntPtr hwnd, ProcessInfo? process = null)
     {
         try
         {
@@ -250,61 +406,98 @@ public static class WindowActivityModule
 
             if (GetWindowText(hwnd, sb, length) > 0)
             {
-                return FormatWindowTitle(sb.ToString());
+                return FormatWindowTitle(sb.ToString(), process);
             }
 
             return "";
         }
         catch (Exception ex)
         {
-            ViewModel.Instance.ErrorInWindowActivity = true;
+            WA.ErrorInWindowActivity = true;
             string errormsg = $"Error in GetWindowTitle: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "";
         }
 
     }
 
-    private static string RemoveExeExtension(string processName)
+    private string RemoveExeExtension(string processName)
     {
         return processName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
             ? processName.Substring(0, processName.Length - 4)
             : processName;
     }
 
+    private static string? TryGetProcessPath(Process process)
+    {
+        try
+        {
+            return process.MainModule?.FileName;
+        }
+        catch (Win32Exception)
+        {
+            return null;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+        catch (NotSupportedException)
+        {
+            return null;
+        }
+    }
+
     [System.Runtime.InteropServices.DllImport("shell32.dll")]
     private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
 
-    private static string TryGetFileDescriptionOrProcessName(Process process)
+    private string TryGetFileDescriptionOrProcessName(Process process)
     {
-        if (ViewModel.Instance.ApplicationHookV2)
+        if (Settings.ApplicationHookV2)
         {
-            try
+            string? processPath = TryGetProcessPath(process);
+            if (!string.IsNullOrEmpty(processPath))
             {
                 _usedNewMethod = true;
-                return GetFileDescription(process.MainModule.FileName);
-            }
-            catch (System.ComponentModel.Win32Exception ex)
-            {
-                _usedNewMethod = false;
-                return process.ProcessName;
+                return GetFileDescription(processPath);
             }
         }
         _usedNewMethod = false;
         return process.ProcessName;
     }
 
-    // Public Methods
-    public static int CleanAndKeepAppsWithSettings()
+    private Process? TryFindOscServerProcess(out string? processPath)
+    {
+        foreach (var process in Process.GetProcessesByName("install"))
+        {
+            string? candidatePath = TryGetProcessPath(process);
+            if (string.IsNullOrEmpty(candidatePath))
+            {
+                continue;
+            }
+
+            if (candidatePath.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                processPath = candidatePath;
+                return process;
+            }
+        }
+
+        processPath = null;
+        return null;
+    }
+
+    public int CleanAndKeepAppsWithSettings()
     {
         int removed = 0;
-        for (int i = ViewModel.Instance.ScannedApps.Count - 1; i >= 0; i--)
+        for (int i = WA.ScannedApps.Count - 1; i >= 0; i--)
         {
-            var app = ViewModel.Instance.ScannedApps[i];
+            var app = WA.ScannedApps[i];
             if (!app.IsPrivateApp && !app.ApplyCustomAppName && string.IsNullOrEmpty(app.CustomAppName))
             {
-                ViewModel.Instance.ScannedApps.RemoveAt(i);
+                WA.ScannedApps.RemoveAt(i);
                 removed++;
             }
         }
@@ -313,8 +506,11 @@ public static class WindowActivityModule
 
 
 
-    public static string GetForegroundProcessName()
+    public string GetForegroundProcessName()
     {
+        if (!_consentService.IsApproved(PrivacyHook.WindowActivity))
+            return "'An app'";
+
         try
         {
             const int maxRetries = 3;
@@ -334,7 +530,8 @@ public static class WindowActivityModule
                 }
 
                 GetWindowThreadProcessId(hwnd, out uint pid);
-                process = Process.GetProcesses().FirstOrDefault(p => p.Id == pid);
+                try { process = Process.GetProcessById((int)pid); }
+                catch (ArgumentException) { process = null; }
 
                 if (process == null)
                 {
@@ -346,7 +543,7 @@ public static class WindowActivityModule
                 string windowTitle = "";
 
                 ProcessInfo existingProcessInfo = null;
-                existingProcessInfo = ViewModel.Instance.ScannedApps?.FirstOrDefault(info => info.ProcessName == processName);
+                existingProcessInfo = WA.ScannedApps?.FirstOrDefault(info => info.ProcessName == processName);
 
                 if (existingProcessInfo == null)
                 {
@@ -356,15 +553,15 @@ public static class WindowActivityModule
                 {
                     if (existingProcessInfo.ShowTitle)
                     {
-                        windowTitle = GetWindowTitle(hwnd);
+                        windowTitle = GetWindowTitle(hwnd, existingProcessInfo);
                     }
                 }
-                ViewModel.Instance.ErrorInWindowActivity = false;
+                WA.ErrorInWindowActivity = false;
                 return ConstructReturnString(existingProcessInfo, processName, windowTitle);
 
             }
 
-            ViewModel.Instance.ErrorInWindowActivity = true;
+            WA.ErrorInWindowActivity = true;
 
             StringBuilder errorMsgBuilder = new StringBuilder($"Couldn't retrieve app title after 3 attempts || HandleID: {hwnd}");
 
@@ -387,34 +584,33 @@ public static class WindowActivityModule
 
 
             Logging.WriteException(new Exception(errormsg), MSGBox: false);
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "'An app'";
 
         }
         catch (Exception ex)
         {
-            ViewModel.Instance.ErrorInWindowActivity = true;
+            WA.ErrorInWindowActivity = true;
             string errormsg = $"Error in GetForegroundProcessName: {ex.Message}";
             Logging.WriteException(ex, MSGBox: false);
 
-            if (ViewModel.Instance.ErrorInWindowActivity)
+            if (WA.ErrorInWindowActivity)
             {
                 errormsg += ", error in window activity.";
             }
 
-            ViewModel.Instance.ErrorInWindowActivityMsg = errormsg;
+            WA.ErrorInWindowActivityMsg = errormsg;
+            FireWaErrorToast();
             return "'An app'";
         }
     }
 
-    public static bool IsOSCServerSuspended()
+    public bool IsOSCServerSuspended()
     {
-        var process = Process.GetProcessesByName("install")
-                             .FirstOrDefault(p => p.MainModule.FileName.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase));
-
+        var process = TryFindOscServerProcess(out string? processPath);
         if (process != null)
         {
-            var processPath = process.MainModule?.FileName;
             if (!string.IsNullOrEmpty(processPath) && Path.GetDirectoryName(processPath) == _vrChatDirectory)
             {
                 if (File.Exists(Path.Combine(_vrChatDirectory, _vrChatExecutable)))
@@ -427,14 +623,11 @@ public static class WindowActivityModule
         return false;
     }
 
-    public static void KillOSCServer()
+    public void KillOSCServer()
     {
-        var process = Process.GetProcessesByName("install")
-                             .FirstOrDefault(p => p.MainModule.FileName.EndsWith("install.exe", StringComparison.OrdinalIgnoreCase));
-
+        var process = TryFindOscServerProcess(out string? processPath);
         if (process != null)
         {
-            var processPath = process.MainModule?.FileName;
             if (!string.IsNullOrEmpty(processPath) && Path.GetDirectoryName(processPath) == _vrChatDirectory)
             {
                 if (File.Exists(Path.Combine(_vrChatDirectory, _vrChatExecutable)))
@@ -445,8 +638,16 @@ public static class WindowActivityModule
         }
     }
 
+    private void FireWaErrorToast()
+    {
+        if (_toast == null) return;
+        if ((DateTime.UtcNow - _waLastErrorToast).TotalSeconds < 60) return;
+        _waLastErrorToast = DateTime.UtcNow;
+        _toast.Show("🪟 Window Activity", WA.ErrorInWindowActivityMsg, ToastType.Warning, key: "window-activity-error");
+    }
 
-    public static int ResetWindowActivity()
+
+    public int ResetWindowActivity()
     {
         int removed = 0;
         var result = MessageBox.Show(
@@ -457,7 +658,7 @@ public static class WindowActivityModule
 
         if (result == MessageBoxResult.OK)
         {
-            ViewModel.Instance.ScannedApps.Clear();
+            WA.ScannedApps.Clear();
             removed++;
         }
         return removed;
@@ -465,18 +666,18 @@ public static class WindowActivityModule
 
 
 
-    public static int SmartCleanup()
+    public int SmartCleanup()
     {
         int removed = 0;
-        for (int i = ViewModel.Instance.ScannedApps.Count - 1; i >= 0; i--)
+        for (int i = WA.ScannedApps.Count - 1; i >= 0; i--)
         {
-            var app = ViewModel.Instance.ScannedApps[i];
+            var app = WA.ScannedApps[i];
             if (app.FocusCount < 15 &&
                 !app.IsPrivateApp &&
                 !app.ApplyCustomAppName &&
                 string.IsNullOrEmpty(app.CustomAppName))
             {
-                ViewModel.Instance.ScannedApps.RemoveAt(i);
+                WA.ScannedApps.RemoveAt(i);
                 removed++;
             }
         }
@@ -494,8 +695,5 @@ public static class WindowActivityModule
         [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 80)]
         public string szTypeName;
     }
-
-
-
 
 }

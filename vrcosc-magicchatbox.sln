@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MagicChatbox", "vrcosc-magi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicChatboxAPI", "MagicChatboxAPI\MagicChatboxAPI.csproj", "{C0B24731-C59E-4AC1-B4B7-988B254F645E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicChatbox.Tests", "MagicChatbox.Tests\MagicChatbox.Tests.csproj", "{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Beta|Any CPU = Beta|Any CPU
@@ -26,6 +28,12 @@ Global
 		{C0B24731-C59E-4AC1-B4B7-988B254F645E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0B24731-C59E-4AC1-B4B7-988B254F645E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0B24731-C59E-4AC1-B4B7-988B254F645E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}.Beta|Any CPU.ActiveCfg = Beta|Any CPU
+		{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}.Beta|Any CPU.Build.0 = Beta|Any CPU
+		{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BBD8F09-F182-4C03-98C0-C05BCA57FEEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

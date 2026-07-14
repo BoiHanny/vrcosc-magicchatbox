@@ -1,0 +1,825 @@
+<Window
+    x:Class="vrcosc_magicchatbox.UI.Tray.TrayMenuWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+    Width="358"
+    AllowsTransparency="True"
+    Background="Transparent"
+    Deactivated="Window_Deactivated"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    SizeToContent="Height"
+    Topmost="True"
+    WindowStartupLocation="Manual"
+    WindowStyle="None">
+    <Window.Resources>
+        <Style x:Key="TrayMenuButtonStyle" TargetType="{x:Type primitives:ButtonBase}">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type primitives:ButtonBase}">
+                        <Border
+                            x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#3348378A" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource BorderAccentPurpleBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#5548378A" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TrayMediaButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Margin" Value="3,0" />
+            <Setter Property="Background" Value="#2848378A" />
+            <Setter Property="BorderBrush" Value="#557169B7" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border
+                            x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#4A31B7B4" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentTealBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#6648378A" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border
+        Padding="12"
+        BorderBrush="{StaticResource BorderAccentPurpleBrush}"
+        BorderThickness="1"
+        CornerRadius="18"
+        SnapsToDevicePixels="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#32135E" />
+                <GradientStop Offset="0.44" Color="{StaticResource SurfaceCardColor}" />
+                <GradientStop Offset="0.82" Color="{StaticResource SurfaceDarkColor}" />
+                <GradientStop Offset="1" Color="#102928" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect
+                BlurRadius="22"
+                Direction="270"
+                Opacity="0.45"
+                ShadowDepth="5"
+                Color="#110820" />
+        </Border.Effect>
+
+        <ScrollViewer
+            MaxHeight="720"
+            HorizontalScrollBarVisibility="Disabled"
+            PanningMode="VerticalOnly"
+            VerticalScrollBarVisibility="Visible">
+            <StackPanel>
+                <Grid Margin="6,2,6,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border
+                        Width="34"
+                        Height="34"
+                        Background="#2231B7B4"
+                        CornerRadius="17">
+                        <Image Margin="6" Source="/Img/Icons/MagicChatbox_ico.png" />
+                    </Border>
+                    <StackPanel
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            FontFamily="Albert Sans"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource TextSectionHeaderBrush}"
+                            Text="MagicChatbox" />
+                        <TextBlock
+                            FontFamily="Albert Sans"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Quick actions" />
+                    </StackPanel>
+                </Grid>
+
+                <Button Click="Open_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Margin="0,0,10,0" Text="✨" />
+                        <TextBlock Text="Open MagicChatbox" />
+                    </DockPanel>
+                </Button>
+
+                <Border
+                    Height="1"
+                    Margin="8,8"
+                    Background="#557169B7" />
+
+                <TextBlock
+                    Margin="8,0,8,4"
+                    FontFamily="Albert Sans"
+                    FontSize="10"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    Text="Use the compact sections below, or open the full page from each section."
+                    TextWrapping="Wrap" />
+                <Border
+                    x:Name="WindowsMediaWidget"
+                    Margin="0,8,0,0"
+                    Padding="10"
+                    Background="#2231B7B4"
+                    BorderBrush="#5531B7B4"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    PreviewMouseDown="CollapseDetailPanels_PreviewMouseDown"
+                    Visibility="Collapsed">
+                    <StackPanel>
+                        <DockPanel Margin="0,0,0,6" LastChildFill="True">
+                            <TextBlock
+                                Margin="0,0,8,0"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                Text="🎧" />
+                            <StackPanel>
+                                <TextBlock
+                                    x:Name="WindowsMediaTitle"
+                                    FontFamily="Albert Sans"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    x:Name="WindowsMediaSubtitle"
+                                    FontFamily="Albert Sans"
+                                    FontSize="10"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </DockPanel>
+                        <Grid
+                            Margin="0,0,0,8"
+                            Background="Transparent"
+                            Cursor="Hand"
+                            MouseLeftButtonDown="WindowsMediaProgressTrack_MouseLeftButtonDown"
+                            ToolTip="Click to seek Windows media">
+                            <ProgressBar
+                                x:Name="WindowsMediaProgressBar"
+                                Height="4"
+                                VerticalAlignment="Top"
+                                Foreground="{StaticResource AccentTealBrush}"
+                                IsHitTestVisible="False"
+                                Maximum="100"
+                                Minimum="0"
+                                Value="0" />
+                            <TextBlock
+                                x:Name="WindowsMediaProgressText"
+                                Margin="0,12,0,0"
+                                HorizontalAlignment="Right"
+                                FontFamily="Albert Sans"
+                                FontSize="10"
+                                Foreground="{StaticResource TextMutedBrush}" />
+                        </Grid>
+                        <StackPanel
+                            x:Name="WindowsMediaControls"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Button
+                                Click="WindowsMediaPrevious_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Previous">
+                                <TextBlock Text="⏮" />
+                            </Button>
+                            <Button
+                                Click="WindowsMediaPlayPause_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Play / pause">
+                                <TextBlock x:Name="WindowsMediaPlayPauseText" Text="⏯" />
+                            </Button>
+                            <Button
+                                Click="WindowsMediaNext_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Next">
+                                <TextBlock Text="⏭" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    x:Name="SpotifyWidget"
+                    Margin="0,8,0,0"
+                    Padding="10"
+                    Background="#2237D160"
+                    BorderBrush="#5537D160"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    PreviewMouseDown="CollapseDetailPanels_PreviewMouseDown"
+                    Visibility="Collapsed">
+                    <StackPanel>
+                        <DockPanel Margin="0,0,0,6" LastChildFill="True">
+                            <TextBlock
+                                Margin="0,0,8,0"
+                                Foreground="{StaticResource TextPrimaryBrush}"
+                                Text="🟢" />
+                            <StackPanel>
+                                <TextBlock
+                                    x:Name="SpotifyTitle"
+                                    FontFamily="Albert Sans"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    x:Name="SpotifySubtitle"
+                                    FontFamily="Albert Sans"
+                                    FontSize="10"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    x:Name="SpotifyProgress"
+                                    FontFamily="Albert Sans"
+                                    FontSize="10"
+                                    Foreground="{StaticResource AccentTealBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </DockPanel>
+                        <ProgressBar
+                            x:Name="SpotifyProgressBar"
+                            Height="4"
+                            Margin="0,0,0,8"
+                            Foreground="#FF37D160"
+                            Maximum="100"
+                            Minimum="0"
+                            Value="0" />
+                        <StackPanel
+                            x:Name="SpotifyControls"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Button
+                                Click="SpotifyPrevious_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Spotify previous">
+                                <TextBlock Text="⏮" />
+                            </Button>
+                            <Button
+                                Click="SpotifyPlayPause_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Spotify play / pause">
+                                <TextBlock x:Name="SpotifyPlayPauseText" Text="⏯" />
+                            </Button>
+                            <Button
+                                Click="SpotifyNext_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Spotify next">
+                                <TextBlock Text="⏭" />
+                            </Button>
+                            <Button
+                                Click="SpotifyLike_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Like / unlike">
+                                <TextBlock x:Name="SpotifyLikeText" Text="♡" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    x:Name="ChattingCard"
+                    Margin="0,8,0,0"
+                    Padding="10"
+                    Background="#1E7169B7"
+                    BorderBrush="#4D7169B7"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    PreviewMouseDown="CollapseDetailPanels_PreviewMouseDown">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Albert Sans"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="Chatting" />
+                                <TextBlock
+                                    x:Name="TrayChatHelp"
+                                    Margin="0,2,10,0"
+                                    FontFamily="Albert Sans"
+                                    FontSize="10"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Type here or open the full chat page." />
+                            </StackPanel>
+                            <Button
+                                Grid.Column="1"
+                                Width="34"
+                                Height="26"
+                                Click="Chatting_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Open Chatting page">
+                                <TextBlock Text="↗" />
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <TextBox
+                                x:Name="TrayChatText"
+                                Height="36"
+                                Padding="4,0,74,0"
+                                HorizontalContentAlignment="Left"
+                                VerticalContentAlignment="Center"
+                                FontFamily="Albert Sans"
+                                FontSize="13"
+                                GotKeyboardFocus="TrayChatText_GotKeyboardFocus"
+                                KeyDown="TrayChatText_KeyDown"
+                                MaxLength="144"
+                                Style="{StaticResource LightInputTextBox}"
+                                TextChanged="TrayChatText_TextChanged"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Padding="12,0,78,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans"
+                                FontSize="13"
+                                Foreground="{StaticResource TextDarkMutedBrush}"
+                                IsHitTestVisible="False"
+                                Opacity="0.74"
+                                Text="Send a chat message">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=TrayChatText}" Value="">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Text, ElementName=TrayChatText}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock
+                                x:Name="TrayChatCount"
+                                Margin="0,0,8,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans"
+                                FontSize="10"
+                                Foreground="{StaticResource TextMutedBrush}"
+                                IsHitTestVisible="False"
+                                Text="0/144" />
+                        </Grid>
+                        <StackPanel
+                            x:Name="TrayChatActions"
+                            Grid.Row="2"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="TrayChatPasteButton"
+                                Width="56"
+                                Click="TrayChatPaste_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Paste from clipboard">
+                                <TextBlock Text="Paste" />
+                            </Button>
+                            <Button
+                                x:Name="TrayChatClearButton"
+                                Width="34"
+                                Click="TrayChatClear_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Clear chat">
+                                <TextBlock Text="✕" />
+                            </Button>
+                            <Button
+                                x:Name="TrayChatSendButton"
+                                Width="58"
+                                Click="TrayChatSend_Click"
+                                Style="{StaticResource TrayMediaButtonStyle}"
+                                ToolTip="Send chat now">
+                                <TextBlock Text="Send" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ToggleButton
+                        x:Name="StatusPanelSwitch"
+                        Click="StatusPanel_Click"
+                        Style="{StaticResource TrayMenuButtonStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Text="💬" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Status groups" />
+                                <TextBlock
+                                    Margin="0,1,0,0"
+                                    FontSize="10"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Expand to pick groups and cycle source" />
+                            </StackPanel>
+                            <TextBlock
+                                x:Name="StatusPanelArrow"
+                                Grid.Column="2"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource TextMutedBrush}"
+                                Text="➤">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform Angle="0" />
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </Grid>
+                    </ToggleButton>
+                    <Button
+                        Grid.Column="1"
+                        Width="34"
+                        Height="26"
+                        Margin="6,2,0,2"
+                        Click="StatusPage_Click"
+                        Style="{StaticResource TrayMediaButtonStyle}"
+                        ToolTip="Open full Status page">
+                        <TextBlock Text="↗" />
+                    </Button>
+                </Grid>
+
+                <Border
+                    x:Name="StatusPanel"
+                    Margin="0,4,0,0"
+                    Padding="8"
+                    Background="#182D315D"
+                    BorderBrush="#3D31B7B4"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    Visibility="Collapsed">
+                    <StackPanel>
+                        <ToggleButton Click="StatusCycle_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🔁" />
+                                <TextBlock Text="Cycle statuses" />
+                                <TextBlock
+                                    x:Name="StatusCycleStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </ToggleButton>
+                        <ToggleButton Click="StatusCycleOverride_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🎯" />
+                                <TextBlock Text="Cycle source" />
+                                <TextBlock
+                                    x:Name="StatusCycleOverrideStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </ToggleButton>
+                        <TextBlock
+                            Margin="8,6,8,2"
+                            FontFamily="Albert Sans"
+                            FontSize="10"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Pick the group shown on the Status page. When cycle source is set to selected group, cycling only pulls from that group."
+                            TextWrapping="Wrap" />
+                        <Border
+                            Margin="0,6,0,0"
+                            Padding="4"
+                            Background="#10201833"
+                            BorderBrush="#4D31B7B4"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <StackPanel x:Name="StatusGroupsPanel" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ToggleButton
+                        x:Name="IntegrationPanelSwitch"
+                        Click="IntegrationPanel_Click"
+                        Style="{StaticResource TrayMenuButtonStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Text="🧩" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Manage integrations" />
+                                <TextBlock
+                                    Margin="0,1,0,0"
+                                    FontSize="10"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="Expand to see live On / VR / Desktop routing" />
+                            </StackPanel>
+                            <TextBlock
+                                x:Name="IntegrationPanelArrow"
+                                Grid.Column="2"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource TextMutedBrush}"
+                                Text="➤">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform Angle="0" />
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </Grid>
+                    </ToggleButton>
+                    <Button
+                        Grid.Column="1"
+                        Width="34"
+                        Height="26"
+                        Margin="6,2,0,2"
+                        Click="Integrations_Click"
+                        Style="{StaticResource TrayMediaButtonStyle}"
+                        ToolTip="Open full Integrations page">
+                        <TextBlock Text="↗" />
+                    </Button>
+                </Grid>
+
+                <Border
+                    x:Name="IntegrationPanel"
+                    Margin="0,4,0,0"
+                    Padding="8"
+                    Background="#16201833"
+                    BorderBrush="#3D7169B7"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    Visibility="Collapsed">
+                    <StackPanel>
+                        <Button Click="StatusIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="💬" />
+                                <TextBlock Text="Status" />
+                                <TextBlock
+                                    x:Name="StatusIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="MediaLinkIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🎧" />
+                                <TextBlock Text="Windows Media" />
+                                <TextBlock
+                                    x:Name="MediaLinkIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="SpotifyIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🟢" />
+                                <TextBlock Text="Spotify" />
+                                <TextBlock
+                                    x:Name="SpotifyIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="TwitchIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="📺" />
+                                <TextBlock Text="Twitch" />
+                                <TextBlock
+                                    x:Name="TwitchIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="TikTokIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🎵" />
+                                <TextBlock Text="TikTok" />
+                                <TextBlock
+                                    x:Name="TikTokIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="DiscordIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="💬" />
+                                <TextBlock Text="Discord" />
+                                <TextBlock
+                                    x:Name="DiscordIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="SoundpadIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🔊" />
+                                <TextBlock Text="Soundpad" />
+                                <TextBlock
+                                    x:Name="SoundpadIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="WindowActivityIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🪟" />
+                                <TextBlock Text="Window activity" />
+                                <TextBlock
+                                    x:Name="WindowActivityIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="CurrentTimeIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🕒" />
+                                <TextBlock Text="Current time" />
+                                <TextBlock
+                                    x:Name="CurrentTimeIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="WeatherIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="☁" />
+                                <TextBlock Text="Weather" />
+                                <TextBlock
+                                    x:Name="WeatherIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="HeartRateIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="💗" />
+                                <TextBlock Text="Heart rate" />
+                                <TextBlock
+                                    x:Name="HeartRateIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="ComponentStatsIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="📊" />
+                                <TextBlock Text="Component stats" />
+                                <TextBlock
+                                    x:Name="ComponentStatsIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="TrackerBatteryIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🔋" />
+                                <TextBlock Text="Tracker battery" />
+                                <TextBlock
+                                    x:Name="TrackerBatteryIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="VrcRadarIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="📍" />
+                                <TextBlock Text="VRC radar" />
+                                <TextBlock
+                                    x:Name="VrcRadarIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                        <Button Click="NetworkIntegration_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="0,0,10,0" Text="🌐" />
+                                <TextBlock Text="Network stats" />
+                                <TextBlock
+                                    x:Name="NetworkIntegrationStateText"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right" />
+                            </DockPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <ToggleButton
+                    x:Name="MasterSwitch"
+                    Margin="0,8,0,0"
+                    Click="MasterSwitch_Click"
+                    Style="{StaticResource TrayMenuButtonStyle}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Margin="0,0,10,0" Text="📡" />
+                        <TextBlock Text="Send to VRChat" />
+                        <TextBlock
+                            x:Name="MasterSwitchStateText"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Right"
+                            Foreground="{StaticResource AccentTealBrush}"
+                            Text="On" />
+                    </DockPanel>
+                </ToggleButton>
+
+                <Button Click="VoiceChat_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Margin="0,0,10,0" Text="🎙" />
+                        <TextBlock x:Name="VoiceChatText" Text="Voice Chat" />
+                    </DockPanel>
+                </Button>
+                <ToggleButton
+                    x:Name="AfkSwitch"
+                    Click="AfkSwitch_Click"
+                    Style="{StaticResource TrayMenuButtonStyle}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Margin="0,0,10,0" Text="🌙" />
+                        <TextBlock Text="AFK Now" />
+                        <TextBlock
+                            x:Name="AfkSwitchStateText"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Right"
+                            Foreground="{StaticResource AccentTealBrush}"
+                            Text="Off" />
+                    </DockPanel>
+                </ToggleButton>
+
+                <Border
+                    Height="1"
+                    Margin="8,8"
+                    Background="#557169B7" />
+
+                <Button Click="Exit_Click" Style="{StaticResource TrayMenuButtonStyle}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Margin="0,0,10,0" Text="✕" />
+                        <TextBlock Foreground="{StaticResource TextDangerRedBrush}" Text="Exit MagicChatbox" />
+                    </DockPanel>
+                </Button>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</Window>

@@ -1,0 +1,234 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.ViewModels.State;
+
+namespace vrcosc_magicchatbox.Core.Osc;
+
+/// <summary>
+/// Assembles the final OSC message from <see cref="IOscProvider"/> instances.
+/// Replaces the hardcoded Add* methods in OSCController.BuildOSC().
+/// Uses <see cref="ModuleFaultTracker"/> to skip providers that have failed
+/// repeatedly, preventing cascading failures.
+/// </summary>
+public sealed class OscOutputBuilder
+{
+    private const string DefaultSeparator = " ┆ ";
+
+    private readonly IEnumerable<IOscProvider> _providers;
+    private readonly IAppState _appState;
+    private readonly IntegrationDisplayState _integrationDisplay;
+    private readonly AppSettings _appSettings;
+    private readonly ModuleFaultTracker _faultTracker;
+    private readonly HashSet<string> _unorderedProvidersLogged = new(StringComparer.OrdinalIgnoreCase);
+
+    public OscOutputBuilder(
+        IEnumerable<IOscProvider> providers,
+        IAppState appState,
+        IntegrationDisplayState integrationDisplay,
+        ISettingsProvider<AppSettings> appSettingsProvider,
+        ModuleFaultTracker faultTracker)
+    {
+        _providers = providers;
+        _appState = appState;
+        _integrationDisplay = integrationDisplay;
+        _appSettings = appSettingsProvider.Value;
+        _faultTracker = faultTracker;
+    }
+
+    /// <summary>
+    /// Builds the OSC message by iterating providers in the user's sort order.
+    /// If the combined message exceeds the 144-char limit, lowest-priority
+    /// segments are dropped until the message fits (graceful degradation).
+    /// </summary>
+    public OscBuildResult Build(bool allowExternalRefresh = true)
+    {
+        string separator = GetSeparator();
+        string prefix = ExpandNewlines(_appSettings.OscMessagePrefix);
+        string suffix = ExpandNewlines(_appSettings.OscMessageSuffix);
+        bool isVR = _appState.IsVRRunning;
+
+        var providerMap = new Dictionary<string, IOscProvider>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in _providers)
+        {
+            providerMap.TryAdd(p.SortKey, p);
+        }
+
+        IEnumerable<string> orderedKeys = _integrationDisplay.IntegrationSortOrder?.Count > 0
+            ? _integrationDisplay.IntegrationSortOrder
+            : IntegrationDisplayState.DefaultSortOrder;
+
+        var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var collected = new List<(string Text, string UiKey, int Priority)>();
+
+        void TryAddProvider(IOscProvider provider)
+        {
+            // Enablement must be checked first: IsFaulted can hand out a
+            // one-shot probe token, which must only be consumed when TryBuild
+            // will actually run and resolve it via RecordSuccess/RecordFailure.
+            if (!provider.IsEnabledForCurrentMode(isVR))
+                return;
+
+            if (_faultTracker.IsFaulted(provider.SortKey))
+                return;
+
+            var context = new OscBuildContext
+            {
+                CurrentSegments = collected.Select(c => c.Text).ToList(),
+                Separator = separator,
+                Prefix = prefix,
+                Suffix = suffix,
+                IsVRRunning = isVR,
+                AllowExternalRefresh = allowExternalRefresh
+            };
+
+            OscSegment? segment;
+            try
+            {
+                segment = provider.TryBuild(context);
+                _faultTracker.RecordSuccess(provider.SortKey);
+            }
+            catch (Exception ex)
+            {
+                _faultTracker.RecordFailure(provider.SortKey, ex);
+                Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
+                return;
+            }
+
+            if (segment == null || string.IsNullOrEmpty(segment.Text))
+                return;
+
+            string text = ExpandNewlines(segment.Text);
+            collected.Add((text, provider.UiKey, provider.Priority));
+        }
+
+        foreach (var key in orderedKeys)
+        {
+            if (!providerMap.TryGetValue(key, out var provider))
+                continue;
+            usedKeys.Add(key);
+            TryAddProvider(provider);
+        }
+
+        // Then any providers not in the sort order (safety net).
+        // Log each unknown SortKey once so registry drift is visible without spamming logs.
+        foreach (var provider in _providers)
+        {
+            if (usedKeys.Contains(provider.SortKey))
+                continue;
+
+            if (_unorderedProvidersLogged.Add(provider.SortKey))
+            {
+                Classes.DataAndSecurity.Logging.WriteInfo(
+                    $"OscOutputBuilder: provider '{provider.SortKey}' (UiKey '{provider.UiKey}') is not present in IntegrationSortOrder; appending via safety-net path.");
+            }
+
+            TryAddProvider(provider);
+        }
+
+        var trimmed = new List<string>();
+        while (collected.Count > 0)
+        {
+            string message = AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix);
+            if (message.Length <= OscBuildContext.MaxOscLength)
+                break;
+
+            // Find the lowest-priority segment (highest Priority number)
+            int worstIdx = 0;
+            for (int i = 1; i < collected.Count; i++)
+            {
+                if (collected[i].Priority > collected[worstIdx].Priority)
+                    worstIdx = i;
+            }
+
+            trimmed.Add(collected[worstIdx].UiKey);
+            collected.RemoveAt(worstIdx);
+        }
+
+        string finalMessage = collected.Count > 0
+            ? AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix)
+            : string.Empty;
+
+        // Hard safety net: even with pathological prefix/suffix/separator sizes,
+        // we must never exceed the OSC chatbox limit. Trim loop above is the
+        // normal path; this guard catches edge cases (e.g. prefix+suffix alone
+        // > MaxOscLength) so a malformed user template can't corrupt the wire.
+        finalMessage = ClampToOscLimit(finalMessage);
+
+        return new OscBuildResult
+        {
+            Message = finalMessage,
+            ExceededLimit = trimmed.Count > 0,
+            IncludedProviders = collected.Select(c => c.UiKey).ToList(),
+            TrimmedProviders = trimmed
+        };
+    }
+
+    #region Helpers
+
+    private static string AssembleMessage(IEnumerable<string> segments, string separator, string prefix, string suffix)
+    {
+        string message = string.Join(separator, segments);
+        if (!string.IsNullOrEmpty(message))
+            message = $"{prefix}{message}{suffix}";
+        return message;
+    }
+
+    private string GetSeparator()
+    {
+        if (_appSettings.SeperateWithENTERS)
+            return "\n";
+        return NormalizeSeparator(_appSettings.OscMessageSeparator);
+    }
+
+    /// <summary>
+    /// Returns the user-configured separator, falling back to the default when
+    /// the value is null, empty, or whitespace-only.
+    /// </summary>
+    internal static string NormalizeSeparator(string? configured)
+    {
+        return string.IsNullOrWhiteSpace(configured) ? DefaultSeparator : configured;
+    }
+
+    /// <summary>
+    /// Expands user-typed escape sequences to real newlines. Only the C-style
+    /// backslash-n escape is honoured; literal "/n" is intentionally preserved
+    /// because it appears verbatim in templates (e.g. URLs, dates).
+    /// Real '\n' characters in the input pass through unchanged.
+    /// </summary>
+    internal static string ExpandNewlines(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+        return value.Replace("\\n", "\n");
+    }
+
+    /// <summary>
+    /// Hard upper-bound guard. Truncates the final OSC message if anything
+    /// (huge prefix/suffix, exotic separator, future bugs) lets it exceed
+    /// the chatbox limit. Respects UTF-16 surrogate pairs.
+    /// </summary>
+    internal static string ClampToOscLimit(string message)
+    {
+        if (string.IsNullOrEmpty(message) || message.Length <= Constants.OscMaxMessageLength)
+            return message ?? string.Empty;
+
+        int cut = Constants.OscMaxMessageLength;
+        // Don't split a surrogate pair across the boundary.
+        if (cut > 0 && char.IsHighSurrogate(message[cut - 1]))
+            cut--;
+
+        string truncated = message.Substring(0, cut);
+
+        Classes.DataAndSecurity.Logging.WriteInfo(
+            $"OscOutputBuilder: final message length {message.Length} exceeded OSC limit {Constants.OscMaxMessageLength}; truncated to {truncated.Length}. " +
+            "Check OSC prefix/suffix/separator settings.");
+
+        return truncated;
+    }
+
+    #endregion
+}

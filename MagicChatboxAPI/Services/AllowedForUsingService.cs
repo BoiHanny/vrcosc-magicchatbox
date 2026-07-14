@@ -1,4 +1,4 @@
-﻿using MagicChatboxAPI.Events;
+using MagicChatboxAPI.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +47,7 @@ namespace MagicChatboxAPI.Services
 
         public AllowedForUsingService()
         {
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         }
 
         #endregion
@@ -114,14 +114,14 @@ namespace MagicChatboxAPI.Services
 
                 if (!Directory.Exists(basePath))
                 {
-                    Console.WriteLine($"[AllowedForUsingService] VRChat OSC folder not found: {basePath}");
+                    System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] VRChat OSC folder not found: {basePath}");
                     return userIds;
                 }
 
                 var userDirectories = Directory.GetDirectories(basePath, "usr_*");
                 if (userDirectories == null || userDirectories.Length == 0)
                 {
-                    Console.WriteLine("[AllowedForUsingService] No user directories found.");
+                    System.Diagnostics.Debug.WriteLine("[AllowedForUsingService] No user directories found.");
                     return userIds;
                 }
 
@@ -140,7 +140,7 @@ namespace MagicChatboxAPI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AllowedForUsingService] Error scanning user IDs: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] Error scanning user IDs: {ex.Message}");
             }
 
             return userIds.Distinct().ToList();
@@ -179,7 +179,7 @@ namespace MagicChatboxAPI.Services
                         bool acknowledged = await AcknowledgeBanAsync(userId);
                         if (!acknowledged)
                         {
-                            Console.WriteLine($"[AllowedForUsingService] Failed to acknowledge ban for user {userId}.");
+                            System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] Failed to acknowledge ban for user {userId}.");
                         }
 
                         // Fire the BanDetected event with the ban reason.
@@ -199,7 +199,7 @@ namespace MagicChatboxAPI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AllowedForUsingService] Monitoring error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] Monitoring error: {ex.Message}");
             }
         }
 
@@ -219,7 +219,7 @@ namespace MagicChatboxAPI.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[AllowedForUsingService] API returned {response.StatusCode}: {errorContent}");
+                    System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] API returned {response.StatusCode}: {errorContent}");
                     // In case of error, treat user as allowed for safety.
                     return (true, string.Empty);
                 }
@@ -227,7 +227,7 @@ namespace MagicChatboxAPI.Services
                 var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse>();
                 if (apiResponse == null)
                 {
-                    Console.WriteLine("[AllowedForUsingService] API response was null.");
+                    System.Diagnostics.Debug.WriteLine("[AllowedForUsingService] API response was null.");
                     return (true, string.Empty);
                 }
 
@@ -239,7 +239,7 @@ namespace MagicChatboxAPI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AllowedForUsingService] CheckSingleUserWithReasonAsync error for userId={userId}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] CheckSingleUserWithReasonAsync error for userId={userId}: {ex.Message}");
                 return (true, string.Empty);
             }
         }
@@ -256,14 +256,14 @@ namespace MagicChatboxAPI.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[AllowedForUsingService] Acknowledge API returned {response.StatusCode}: {errorContent}");
+                    System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] Acknowledge API returned {response.StatusCode}: {errorContent}");
                     return false;
                 }
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AllowedForUsingService] Error acknowledging ban for user {userId}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] Error acknowledging ban for user {userId}: {ex.Message}");
                 return false;
             }
         }

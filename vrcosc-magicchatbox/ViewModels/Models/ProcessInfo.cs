@@ -2,6 +2,10 @@
 
 namespace vrcosc_magicchatbox.ViewModels
 {
+    /// <summary>
+    /// Represents a tracked Windows process with display customization options
+    /// for the Window Activity feature.
+    /// </summary>
     public class ProcessInfo : INotifyPropertyChanged
     {
         private bool _applyCustomAppName;
@@ -16,6 +20,10 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private bool _ShowTitle = false;
         private bool _usedNewMethod;
+        private bool _useCustomRegex;
+        private string _customRegex = string.Empty;
+        private string _contentFilter = string.Empty;
+        private int _contentFilterMode; // 0=None, 1=Hide, 2=Include, 3=Remove
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -102,5 +110,64 @@ namespace vrcosc_magicchatbox.ViewModels
                 NotifyPropertyChanged(nameof(UsedNewMethod));
             }
         }
+
+        /// <summary>When true, apply <see cref="CustomRegex"/> to the window title before displaying.</summary>
+        public bool UseCustomRegex
+        {
+            get { return _useCustomRegex; }
+            set
+            {
+                _useCustomRegex = value;
+                NotifyPropertyChanged(nameof(UseCustomRegex));
+            }
+        }
+
+        /// <summary>Regex pattern applied to the window title. First capture group is used as display text.</summary>
+        public string CustomRegex
+        {
+            get { return _customRegex; }
+            set
+            {
+                _customRegex = value;
+                NotifyPropertyChanged(nameof(CustomRegex));
+            }
+        }
+
+        /// <summary>
+        /// Per-app content filter pattern.
+        /// Applied after regex extraction. Works with <see cref="ContentFilterMode"/>.
+        /// </summary>
+        public string ContentFilter
+        {
+            get { return _contentFilter; }
+            set
+            {
+                _contentFilter = value ?? string.Empty;
+                NotifyPropertyChanged(nameof(ContentFilter));
+                NotifyPropertyChanged(nameof(HasContentFilter));
+            }
+        }
+
+        /// <summary>
+        /// Filter mode for this app: 0=None, 1=Hide when matches, 2=Show only when matches, 3=Remove matches.
+        /// Stored as int for JSON serialization compatibility.
+        /// </summary>
+        public int ContentFilterMode
+        {
+            get { return _contentFilterMode; }
+            set
+            {
+                _contentFilterMode = value;
+                NotifyPropertyChanged(nameof(ContentFilterMode));
+                NotifyPropertyChanged(nameof(HasContentFilter));
+                NotifyPropertyChanged(nameof(ContentFilterEnabled));
+            }
+        }
+
+        /// <summary>Whether the content filter textbox should be enabled (mode is not None).</summary>
+        public bool ContentFilterEnabled => _contentFilterMode != 0;
+
+        /// <summary>Whether this app has an active content filter configured.</summary>
+        public bool HasContentFilter => _contentFilterMode != 0 && !string.IsNullOrWhiteSpace(_contentFilter);
     }
 }

@@ -1,0 +1,591 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.SpotifySection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:SpotifySectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <ToggleButton
+            Grid.Row="0"
+            Width="Auto"
+            Height="30"
+            HorizontalAlignment="Left"
+            FontSize="15"
+            FontWeight="Bold"
+            Foreground="{StaticResource TextSectionHeaderBrush}"
+            IsChecked="{Binding AppSettings.Settings_Spotify, Mode=TwoWay}"
+            Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+            Tag="Spotify options"
+            TextOptions.TextRenderingMode="ClearType" />
+
+        <Grid
+            Grid.Row="1"
+            Height="Auto"
+            Margin="34,10,0,0"
+            Visibility="{Binding AppSettings.Settings_Spotify, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel>
+                <!--  Pre-release banner  -->
+                <Border
+                    Margin="0,0,0,10"
+                    BorderBrush="#735A41"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Style="{StaticResource OptionCardStyle}">
+                    <Border.Background>
+                        <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                            <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                            <GradientStop Offset="1" Color="{StaticResource GradientDeepPurpleColor}" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="13"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        TextWrapping="Wrap">
+                        <Run Text="🧪 Pre-release: The first-class Spotify integration is new in this version. Please report any issues on" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="GitHub" />
+                        </Hyperlink>
+                        <Run Text="or in our" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentTealBrush}"
+                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
+                            RequestNavigate="Hyperlink_RequestNavigate">
+                            <Run Text="Discord server" />
+                        </Hyperlink>
+                        <Run Text="." />
+                    </TextBlock>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                Width="auto"
+                                Height="30"
+                                Padding="5"
+                                Click="ConnectSpotify_Click"
+                                IsEnabled="{Binding CanStartConnection}"
+                                Style="{StaticResource Status_Button_style}"
+                                Visibility="{Binding Display.IsConnected, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,5,0"
+                                        Source="/Img/Icons/spotify_ico.png" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        Text="Connect Spotify" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Width="auto"
+                                Height="30"
+                                Padding="5"
+                                Command="{Binding DisconnectSpotifyCommand}"
+                                Style="{StaticResource Status_Button_style}"
+                                Visibility="{Binding Display.IsConnected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image
+                                        Width="18"
+                                        Height="18"
+                                        Margin="0,0,5,0"
+                                        Source="/Img/Icons/spotify_ico.png" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        Text="Disconnect Spotify" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Width="auto"
+                                Height="30"
+                                Margin="6,0,0,0"
+                                Padding="5"
+                                Command="{Binding RefreshSpotifyCommand}"
+                                Style="{StaticResource Status_Button_style}"
+                                Visibility="{Binding Display.IsConnected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    Text="Refresh playback" />
+                            </Button>
+                        </StackPanel>
+                        <TextBlock
+                            Margin="2,6,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding StatusText, UpdateSourceTrigger=PropertyChanged}" />
+                        <Border
+                            Margin="0,10,0,0"
+                            Padding="10,8"
+                            Background="#33FFC107"
+                            BorderBrush="{StaticResource StatusWarningBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="{StaticResource StatusWarningBrush}"
+                                    Text="★ Spotify Premium and an active device are required for playback controls." />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Foreground="#AB8326"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="If playback buttons do nothing, open Spotify on your phone, desktop app, or web player first. MagicChatbox can only control a live Spotify device." />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="{Binding Display.ErrorText}"
+                                    Visibility="{Binding HasDisplayError, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Connection setup" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="MagicChatbox uses Spotify's OAuth PKCE flow — it never stores your password. When you click Connect Spotify, a browser window opens so you can authorize access. Your Client ID is entered in the setup dialog." />
+                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                            <TextBlock
+                                Width="76"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Redirect URI" />
+                            <TextBox
+                                Width="276"
+                                Margin="8,0,8,0"
+                                Padding="5,0,0,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="13"
+                                IsReadOnly="True"
+                                Text="{Binding RedirectUri, Mode=OneWay}" />
+                            <Button
+                                Width="70"
+                                Height="26"
+                                Command="{Binding CopyRedirectUriCommand}"
+                                Content="Copy"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+                        <TextBlock
+                            Margin="2,6,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Add this redirect URI in your Spotify Developer Dashboard app settings. It's the local callback used during the OAuth handshake." />
+                        <CheckBox
+                            Margin="0,8,0,0"
+                            IsChecked="{Binding Settings.AutoConnectOnStartup, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Auto-connect on startup
+                        </CheckBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="MediaLink coexistence" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Controls how Spotify and MediaLink behave when both are enabled. Prefer dedicated Spotify hides Spotify sessions from MediaLink, Allow both keeps both sources live, and Ask me once prompts you the first time they overlap." />
+                        <ComboBox
+                            Width="160"
+                            HorizontalAlignment="Left"
+                            FontSize="12"
+                            ItemsSource="{Binding MediaLinkCoexistenceModes}"
+                            SelectedItem="{Binding Settings.MediaLinkCoexistence, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Output template" />
+                        <TextBlock
+                            Margin="0,3,0,4"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Tokens: {play_icon}, {title}, {artist}, {album}, {device}, {volume}, {progress}, {seekbar}, {elapsed}, {duration}, {remaining}, {percent}, {liked_icon}, {explicit_icon}, {shuffle_icon}, {repeat_icon}, {queue}, {separator}" />
+                        <Button
+                            Width="105"
+                            Height="25"
+                            Margin="0,0,0,5"
+                            HorizontalAlignment="Left"
+                            Command="{Binding CopyTemplateTokensCommand}"
+                            Content="Copy tokens"
+                            Style="{StaticResource Status_Button_style}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox
+                                Width="420"
+                                Padding="5,0,0,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding Settings.OutputTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox
+                                Width="130"
+                                Margin="8,0,0,0"
+                                DisplayMemberPath="Name"
+                                FontSize="12"
+                                ItemsSource="{Binding TemplatePresets}"
+                                SelectedValue="{Binding SelectedPresetName, Mode=TwoWay}"
+                                SelectedValuePath="Name">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="IsEnabled" Value="True" />
+                                        <Setter Property="Opacity" Value="1" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                                <Setter Property="Opacity" Value="0.45" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                        </StackPanel>
+                        <TextBox
+                            Width="420"
+                            Margin="0,6,0,0"
+                            Padding="5,0,0,0"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding Settings.PartyTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Border
+                            Margin="0,8,0,0"
+                            Padding="10,8"
+                            Background="#1A1DB954"
+                            BorderBrush="{StaticResource AccentSpotifyBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image
+                                        Width="14"
+                                        Height="14"
+                                        Margin="0,0,6,0"
+                                        VerticalAlignment="Center"
+                                        Source="/Img/Icons/spotify_ico.png" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="{StaticResource AccentSpotifyBrush}"
+                                        Text="CHATBOX OUTPUT PREVIEW" />
+                                </StackPanel>
+                                <Label
+                                    Margin="0,4,0,0"
+                                    Content="{Binding OutputPreview, UpdateSourceTrigger=PropertyChanged}"
+                                    FontSize="14"
+                                    Foreground="{StaticResource TextPrimaryBrush}" />
+                                <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Text="{Binding PreviewLengthText, StringFormat='Characters: {0}'}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Icons and fallback text" />
+                        <TextBlock
+                            Margin="0,3,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Customize the short pieces that tokens insert. Leave any icon blank to hide it." />
+                        <WrapPanel Margin="0,2,0,0">
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Playing" />
+                                <TextBox Width="46" Text="{Binding Settings.IconPlaying, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Paused" />
+                                <TextBox Width="46" Text="{Binding Settings.IconPaused, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Explicit" />
+                                <TextBox Width="46" Text="{Binding Settings.IconExplicit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Liked" />
+                                <TextBox Width="46" Text="{Binding Settings.IconLiked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Unliked" />
+                                <TextBox Width="46" Text="{Binding Settings.IconUnliked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Separator" />
+                                <TextBox Width="80" Text="{Binding Settings.Separator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </WrapPanel>
+                        <WrapPanel Margin="0,3,0,0">
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Disconnected text" />
+                                <TextBox Width="190" Text="{Binding Settings.DisconnectedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Nothing playing text" />
+                                <TextBox Width="190" Text="{Binding Settings.EmptyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Paused text" />
+                                <TextBox Width="150" Text="{Binding Settings.PausedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,10,6">
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Privacy text" />
+                                <TextBox Width="120" Text="{Binding Settings.PrivacyHiddenText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Privacy and token toggles" />
+                        <WrapPanel Margin="0,4,0,0">
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowTrackTitleInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow title
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowArtistInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow artist
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowAlbumInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow album
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowDeviceInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow device
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowVolumeInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow volume
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.AllowPlaybackStateInOutput, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Allow play state
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.PrivacyMode, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Privacy mode
+                            </CheckBox>
+                        </WrapPanel>
+                        <WrapPanel Margin="0,4,0,0">
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowTitle, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Title token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowArtist, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Artist token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowAlbum, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Album token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowProgress, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Progress token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowDevice, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Device token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowVolume, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Volume token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowExplicit, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Explicit token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowLiked, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Liked token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowShuffle, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Shuffle token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowRepeat, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Repeat token
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.PartyModeEnabled, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Party/DJ mode
+                            </CheckBox>
+                        </WrapPanel>
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Progress style" />
+                            <ComboBox
+                                Width="120"
+                                Margin="8,0,16,0"
+                                ItemsSource="{Binding ProgressDisplayModes}"
+                                SelectedItem="{Binding Settings.ProgressDisplayMode, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <CheckBox IsChecked="{Binding Settings.AutoDowngradeProgress, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Auto-downgrade if too long</CheckBox>
+                        </StackPanel>
+                        <TextBlock
+                            Margin="2,4,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Pick a seekbar style from the shared MediaLink styles. Create and import custom styles in the Media Link section." />
+                        <StackPanel
+                            Margin="0,6,0,0"
+                            Orientation="Horizontal"
+                            Visibility="{Binding IsSeekbarMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Seekbar style" />
+                            <ComboBox
+                                Width="280"
+                                Margin="8,0,0,0"
+                                DisplayMemberPath="StyleName"
+                                ItemsSource="{Binding SeekbarStyles}"
+                                SelectedItem="{Binding SelectedSeekbarStyle, Mode=TwoWay}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Widget and polling" />
+                        <WrapPanel Margin="0,4,0,0">
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowWidgetProgress, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Widget progress
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowWidgetDevice, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Widget device
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowWidgetControls, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Widget controls
+                            </CheckBox>
+                            <CheckBox
+                                Margin="0,0,12,4"
+                                IsChecked="{Binding Settings.ShowWidgetVolume, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Widget volume
+                            </CheckBox>
+                        </WrapPanel>
+                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Active poll (sec)" />
+                            <TextBox
+                                Width="50"
+                                Margin="8,0,16,0"
+                                Text="{Binding Settings.PollingIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Idle poll (sec)" />
+                            <TextBox
+                                Width="50"
+                                Margin="8,0,0,0"
+                                Text="{Binding Settings.IdlePollingIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

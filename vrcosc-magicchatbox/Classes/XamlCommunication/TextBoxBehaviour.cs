@@ -1,10 +1,15 @@
-﻿using System.Windows.Input;
-using System.Windows;
-using vrcosc_magicchatbox.ViewModels;
+﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Attached behaviour that intercepts Enter and Escape key presses inside a
+    /// <see cref="TextBox"/> and commits or cancels a <see cref="StatusItem"/> inline edit.
+    /// Attach via <c>local:TextBoxBehaviour.HandleEnterKey="True"</c>.
+    /// </summary>
     public static class TextBoxBehaviour
     {
         public static bool GetHandleEnterKey(DependencyObject obj)
@@ -43,13 +48,11 @@ namespace vrcosc_magicchatbox.Classes
 
                 if (e.Key == Key.Escape)
                 {
-                    // Run your logic to cancel the edit here
                     item.editMsg = "";
                     item.IsEditing = false;
                 }
                 else if (e.Key == Key.Enter)
                 {
-                    // If enter is pressed, IsEditing is set to false
                     item.editMsg = textBox.Text;
                     item.IsEditing = false;
                 }

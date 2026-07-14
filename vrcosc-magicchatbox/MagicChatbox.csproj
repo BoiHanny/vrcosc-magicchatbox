@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.130</Version>
-    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
+	<Version>0.9.210</Version>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>True</UseWPF>
+    <UseWindowsForms>True</UseWindowsForms>
     <Configurations>Debug;Release;Beta</Configurations>
     <DebugType>portable</DebugType>
     <ApplicationIcon>Img\MagicOSC_icon.ico</ApplicationIcon>
@@ -54,6 +55,7 @@
     <None Remove="Img\Icons\Cut_ico.png" />
     <None Remove="Img\Icons\Delete_ico.png" />
     <None Remove="Img\Icons\Discord.png" />
+    <None Remove="Img\Icons\Discord_ico.png" />
     <None Remove="Img\Icons\DOTNET.png" />
     <None Remove="Img\Icons\downgrade.png" />
     <None Remove="Img\Icons\Edit_ico.png" />
@@ -86,10 +88,15 @@
     <None Remove="Img\Icons\spotify_ico.png" />
     <None Remove="Img\Icons\subtract_ico.png" />
     <None Remove="Img\Icons\SystemTime_ico.png" />
+    <None Remove="Img\Icons\TikTok_ico.png" />
     <None Remove="Img\Icons\Translate_ico.png" />
+    <None Remove="Img\Icons\Twitch_ico.png" />
     <None Remove="Img\Icons\Unfavorite_ico.png" />
     <None Remove="Img\Icons\Upload.png" />
+    <None Remove="Img\Icons\VRCRadar_ico.png" />
+    <None Remove="Img\Icons\VR_bat_ico.png" />
     <None Remove="Img\Icons\Wand_ico.png" />
+    <None Remove="Img\Icons\Weather_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
     <None Remove="Img\Icons\yes.png" />
     <None Remove="Img\MagicOSC_icon.png" />
@@ -124,6 +131,7 @@
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Discord.png" />
+    <Resource Include="Img\Icons\Discord_ico.png" />
     <Resource Include="Img\Icons\DOTNET.png" />
     <Resource Include="Img\Icons\downgrade.png" />
     <Resource Include="Img\Icons\Edit_ico.png" />
@@ -164,12 +172,17 @@
     <Resource Include="Img\Icons\SystemTime_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\TikTok_ico.png" />
     <Resource Include="Img\Icons\Translate_ico.png" />
+    <Resource Include="Img\Icons\Twitch_ico.png" />
     <Resource Include="Img\Icons\Unfavorite_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="Img\Icons\Upload.png" />
+    <Resource Include="Img\Icons\VRCRadar_ico.png" />
+    <Resource Include="Img\Icons\VR_bat_ico.png" />
     <Resource Include="Img\Icons\Wand_ico.png" />
+    <Resource Include="Img\Icons\Weather_ico.png" />
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
@@ -185,6 +198,11 @@
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="libs\openvr_api.dll">
+      <Link>openvr_api.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Include="Json\voices.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -192,20 +210,27 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
     <PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.6" />
-    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.5" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+    <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
-    <PackageReference Include="NLog" Version="6.0.7" />
-	  <PackageReference Include="OpenAI-DotNet" Version="8.8.8" />
-	  <PackageReference Include="System.Management" Version="10.0.2" />
+    <PackageReference Include="NHotkey.Wpf" Version="4.0.0" />
+    <PackageReference Include="NLog" Version="6.1.4" />
+	  <PackageReference Include="OpenAI" Version="2.12.0" />
+	  <PackageReference Include="System.Management" Version="10.0.9" />
+    <PackageReference Include="TwitchLib.Api" Version="3.10.2" />
+    <PackageReference Include="OpenVR.NET" Version="0.8.5" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.9" />
+    <PackageReference Include="TikTokLive_Sharp" Version="1.2.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
   </ItemGroup>
 
   <ItemGroup>
@@ -233,6 +258,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Dialogs\OpenAIAuth.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Dialogs\TwitchAuth.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

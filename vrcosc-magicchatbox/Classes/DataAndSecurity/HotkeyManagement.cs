@@ -1,34 +1,68 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using NHotkey;
 using NHotkey.Wpf;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
+/// <summary>
+/// Manages global and local hotkey registration, persistence, and dispatch.
+/// Configuration is stored as JSON in the user's data directory.
+/// </summary>
 public class HotkeyManagement
 {
-    private static HotkeyManagement _instance;
+    private readonly TtsSettings _ttsSettings;
+    private readonly AppSettings _appSettings;
+    private readonly IOscSender _oscSender;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly Lazy<ITrayIconService> _trayIconService;
+
     private Dictionary<string, HotkeyInfo> _hotkeyActions;
     private Window _mainWindow;
     private readonly string HotkeyConfigFile;
+    private bool _isInitialized;
 
-    private HotkeyManagement()
+    public string TrayShortcutDisplayText { get; private set; } = string.Empty;
+
+    public HotkeyManagement(
+        IEnvironmentService env,
+        IOscSender oscSender,
+        ISettingsProvider<TtsSettings> ttsSettings,
+        ISettingsProvider<AppSettings> appSettings,
+        IUiDispatcher dispatcher,
+        Lazy<ITrayIconService> trayIconService)
     {
+        _oscSender = oscSender;
+        _ttsSettings = ttsSettings.Value;
+        _appSettings = appSettings.Value;
+        _dispatcher = dispatcher;
+        _trayIconService = trayIconService;
         _hotkeyActions = new Dictionary<string, HotkeyInfo>();
-        HotkeyConfigFile = Path.Combine(ViewModel.Instance.DataPath, "HotkeyConfiguration.json");
+        HotkeyConfigFile = Path.Combine(env.DataPath, "HotkeyConfiguration.json");
         LoadHotkeyConfigurations();
+        _appSettings.PropertyChanged += AppSettings_PropertyChanged;
     }
 
     private void AddDefaultHotkeys()
     {
-        AddKeyBinding("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
-        // Add other default hotkeys here
+        AddDefaultHotkey("ToggleVoiceGlobal", Key.V, ModifierKeys.Alt, ToggleVoice);
+        AddKeyBinding("OpenTrayMenuGlobal", Key.X, ModifierKeys.Alt, OpenTrayMenu);
+    }
+
+    private void AddDefaultHotkey(string name, Key key, ModifierKeys modifiers, Action action)
+    {
+        if (!_hotkeyActions.ContainsKey(name))
+            AddKeyBinding(name, key, modifiers, action);
     }
 
     private void AddKeyBinding(string name, Key key, ModifierKeys modifiers, Action action)
@@ -43,7 +77,7 @@ public class HotkeyManagement
         return hotkeyName switch
         {
             "ToggleVoiceGlobal" => ToggleVoice,
-            // Add other hotkey actions here
+            "OpenTrayMenuGlobal" => OpenTrayMenu,
             _ => null
         };
     }
@@ -61,7 +95,6 @@ public class HotkeyManagement
 
             var json = File.ReadAllText(HotkeyConfigFile);
 
-            // Check if the JSON string is empty, contains only null characters, or is whitespace
             if (string.IsNullOrWhiteSpace(json) || json.All(c => c == '\0'))
             {
                 Logging.WriteException(new Exception("The hotkey configurations file is empty or corrupted."), MSGBox: false);
@@ -78,11 +111,16 @@ public class HotkeyManagement
                 return;
             }
 
-            _hotkeyActions.Clear();
+            // Parse into a staging dictionary so the live collection is only replaced
+            // once the file content has been fully processed.
+            var loaded = new Dictionary<string, HotkeyInfo>();
             foreach (var entry in deserialized)
             {
-                if (!Enum.TryParse<Key>(entry.Value["Key"], out var key) ||
-                    !Enum.TryParse<ModifierKeys>(entry.Value["Modifiers"], out var modifiers))
+                if (entry.Value == null ||
+                    !entry.Value.TryGetValue("Key", out var keyText) ||
+                    !entry.Value.TryGetValue("Modifiers", out var modifiersText) ||
+                    !Enum.TryParse<Key>(keyText, out var key) ||
+                    !Enum.TryParse<ModifierKeys>(modifiersText, out var modifiers))
                 {
                     Logging.WriteException(new Exception($"Failed to parse hotkey configuration for {entry.Key}."), MSGBox: true);
                     continue;
@@ -95,12 +133,18 @@ public class HotkeyManagement
                     continue;
                 }
 
-                AddKeyBinding(entry.Key, key, modifiers, action);
+                loaded[entry.Key] = new HotkeyInfo(key, modifiers, action);
             }
+
+            _hotkeyActions = loaded;
+            AddDefaultHotkeys();
+            SaveHotkeyConfigurations();
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: true);
+            // Corrupt/unreadable file must not leave the user without any hotkeys.
+            AddDefaultHotkeys();
         }
     }
 
@@ -110,7 +154,7 @@ public class HotkeyManagement
         {
             if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
             {
-                Application.Current.Dispatcher.Invoke(hotkeyInfo.Action);
+                _dispatcher.BeginInvoke(hotkeyInfo.Action);
             }
         }
         catch (Exception ex)
@@ -121,33 +165,99 @@ public class HotkeyManagement
 
     private void RegisterAllGlobalHotkeys()
     {
+        TrayShortcutDisplayText = string.Empty;
         foreach (var kvp in _hotkeyActions)
         {
+            if (kvp.Key == "OpenTrayMenuGlobal" && !_appSettings.OpenTrayWithAltX)
+                continue;
+
             RegisterGlobalHotkey(kvp.Key, kvp.Value);
+        }
+    }
+
+    private void AppSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!_isInitialized || e.PropertyName != nameof(AppSettings.OpenTrayWithAltX))
+            return;
+
+        _dispatcher.BeginInvoke(UpdateTrayHotkeyRegistration);
+    }
+
+    private void UpdateTrayHotkeyRegistration()
+    {
+        if (!_hotkeyActions.TryGetValue("OpenTrayMenuGlobal", out HotkeyInfo hotkeyInfo))
+            return;
+
+        if (_appSettings.OpenTrayWithAltX)
+        {
+            RegisterGlobalHotkey("OpenTrayMenuGlobal", hotkeyInfo);
+            return;
+        }
+
+        TrayShortcutDisplayText = string.Empty;
+        UnregisterGlobalHotkey("OpenTrayMenuGlobal");
+    }
+
+    private static void UnregisterGlobalHotkey(string name)
+    {
+        try
+        {
+            HotkeyManager.Current.Remove(name);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to unregister hotkey {name}: {ex.Message}");
         }
     }
 
 
     private void RegisterGlobalHotkey(string name, HotkeyInfo hotkeyInfo)
     {
+        if (name == "OpenTrayMenuGlobal")
+        {
+            RegisterTrayHotkey(name, hotkeyInfo);
+            return;
+        }
+
+        TryRegisterGlobalHotkey(name, hotkeyInfo, showAlreadyRegisteredMessage: true);
+    }
+
+    private bool RegisterTrayHotkey(string name, HotkeyInfo hotkeyInfo)
+    {
+        if (TryRegisterGlobalHotkey(name, hotkeyInfo, showAlreadyRegisteredMessage: false))
+        {
+            TrayShortcutDisplayText = FormatHotkey(hotkeyInfo);
+            return true;
+        }
+
+        Logging.WriteInfo("Alt+X tray menu hotkey could not be registered.");
+        return false;
+    }
+
+    private bool TryRegisterGlobalHotkey(string name, HotkeyInfo hotkeyInfo, bool showAlreadyRegisteredMessage)
+    {
         try
         {
             HotkeyManager.Current.AddOrReplace(name, hotkeyInfo.Key, hotkeyInfo.Modifiers, OnGlobalHotkeyPressed);
+            return true;
         }
         catch (HotkeyAlreadyRegisteredException)
         {
-            // Handle already registered hotkey case
-            Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose: true);
+            if (showAlreadyRegisteredMessage)
+                Logging.WriteException(new Exception($"Hotkey {name} is already registered"), MSGBox: true, autoclose: true);
+            else
+                Logging.WriteInfo($"Hotkey {FormatHotkey(hotkeyInfo)} is already registered.");
         }
         catch (Exception ex)
         {
-            // Handle other exceptions
             Logging.WriteException(ex: ex, MSGBox: false);
         }
+
+        return false;
     }
 
 
-    private static void SetupLocalHotkey(Window window)
+    private void SetupLocalHotkey(Window window)
     {
         window.KeyDown += (sender, e) =>
         {
@@ -162,14 +272,22 @@ public class HotkeyManagement
         };
     }
 
-    private static void ToggleVoice()
+    private void ToggleVoice()
     {
-        ViewModel.Instance.ToggleVoiceCommand.Execute(null);
+        if (_ttsSettings.ToggleVoiceWithV)
+            _oscSender.ToggleVoice(true);
+    }
+
+    private void OpenTrayMenu()
+    {
+        if (_appSettings.OpenTrayWithAltX)
+            _trayIconService.Value.OpenContextMenu();
     }
 
     public void Initialize(Window mainWindow)
     {
         _mainWindow = mainWindow;
+        _isInitialized = true;
         SetupLocalHotkey(_mainWindow);
         RegisterAllGlobalHotkeys();
     }
@@ -186,7 +304,8 @@ public class HotkeyManagement
         try
         {
             var json = JsonConvert.SerializeObject(serializableHotkeyActions, Formatting.Indented);
-            File.WriteAllText(HotkeyConfigFile, json);
+            if (!AtomicFileWriter.WriteAllText(HotkeyConfigFile, json))
+                Logging.WriteInfo("Failed to save hotkey configurations.");
         }
         catch (Exception ex)
         {
@@ -194,7 +313,10 @@ public class HotkeyManagement
         }
     }
 
-    public static HotkeyManagement Instance => _instance ?? (_instance = new HotkeyManagement());
+    private static string FormatHotkey(HotkeyInfo hotkeyInfo)
+        => hotkeyInfo.Modifiers == ModifierKeys.None
+            ? hotkeyInfo.Key.ToString()
+            : $"{hotkeyInfo.Modifiers}+{hotkeyInfo.Key}";
 
     [JsonObject(MemberSerialization.OptIn)]
     private class HotkeyInfo

@@ -6,6 +6,11 @@ using System.Windows.Input;
 
 namespace vrcosc_magicchatbox.Classes
 {
+    /// <summary>
+    /// Behavior that intercepts <see cref="Key"/> presses on an attached
+    /// <see cref="UIElement"/> and executes a bound <see cref="ICommand"/>,
+    /// suppressing the event so text-input controls are not affected.
+    /// </summary>
     public class CustomKeyBinding : Behavior<UIElement>
     {
         public Key Key
