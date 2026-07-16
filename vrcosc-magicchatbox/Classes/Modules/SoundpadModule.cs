@@ -2,11 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -19,16 +15,34 @@ using vrcosc_magicchatbox.ViewModels;
 namespace vrcosc_magicchatbox.Classes.Modules;
 
 /// <summary>
-/// Module that interfaces with the Soundpad application over a named pipe, providing playback
-/// control and status monitoring.
+/// Module that interfaces with the Soundpad application over its remote-control named pipe,
+/// providing playback control and now-playing monitoring. Status comes from GetPlayStatus()
+/// and GetTitleText() pipe queries, which keep working while Soundpad is minimized to the
+/// system tray; window-title scraping remains only as a fallback for old Soundpad versions
+/// whose free edition exposes no pipe.
 /// </summary>
 public partial class SoundpadModule : ObservableObject, IModule
 {
-    private bool _isInitialized = false;
-    private string _soundpadLocation;
-    private System.Timers.Timer _stateTimer;
-    private readonly object _updateLock = new object();
-    private int ErrorCount = 0;
+    private const string SoundpadProcessName = "Soundpad";
+    private const int PipeConnectTimeoutMs = 500;
+    private const int PipeRequestTimeoutMs = 2000;
+    // After this many consecutive pipe failures, only retry connecting every PipeBackoffTicks polls.
+    private const int PipeBackoffThreshold = 3;
+    private const int PipeBackoffTicks = 10;
+    // After this many consecutive poll exceptions, auto-disable the integration.
+    private const int MaxConsecutivePollFailures = 5;
+
+    private readonly SoundpadPipeClient _client = new();
+    private readonly System.Timers.Timer _stateTimer;
+    private int _pollGate;
+    // Bumped whenever monitoring stops; in-flight polls compare it before applying state so a
+    // late dispatcher callback can't repopulate data that a stop/consent-revoke just cleared.
+    private int _pollEpoch;
+    private int _pipeFailureStreak;
+    private int _ticksUntilPipeRetry;
+    private int _consecutivePollFailures;
+    private bool _pipeEverConnected;
+    private string _soundpadLocation = string.Empty;
     private bool _disposed;
     private readonly IToastService? _toast;
     private volatile bool _soundpadErrorShown;
@@ -74,12 +88,12 @@ public partial class SoundpadModule : ObservableObject, IModule
             AutoReset = true,
             Enabled = false
         };
-        _stateTimer.Elapsed += (sender, e) => UpdateSoundpadState(false);
+        _stateTimer.Elapsed += (sender, e) => _ = PollAsync();
 
         _consentService.ConsentChanged += OnConsentChanged;
 
         if (ShouldStartMonitoring())
-            InitializeSoundpadModuleAsync();
+            StartModule();
     }
 
     private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
@@ -93,6 +107,9 @@ public partial class SoundpadModule : ObservableObject, IModule
             {
                 StopModule();
                 PlayingSong = string.Empty;
+                CurrentSoundpadState = soundpadState.NotRunning;
+                PlayingNow = false;
+                Stopped = true;
                 IsSoundpadRunning = false;
                 EnablePanel = false;
             });
@@ -100,7 +117,7 @@ public partial class SoundpadModule : ObservableObject, IModule
         }
         else if (e.NewState == ConsentState.Approved && ShouldStartMonitoring())
         {
-            InitializeAndStartModuleIfNeeded();
+            StartModule();
         }
     }
 
@@ -109,270 +126,296 @@ public partial class SoundpadModule : ObservableObject, IModule
     public bool IsRunning => _stateTimer?.Enabled ?? false;
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
-    public Task StopAsync(CancellationToken ct = default) { _stateTimer?.Stop(); return Task.CompletedTask; }
-    public void SaveSettings() { }
 
-    private const string PipeName = "sp_remote_control";
-
-    private void ExecuteSoundpadCommand(string arguments)
+    public Task StopAsync(CancellationToken ct = default)
     {
-        if (!IsSoundpadRunning)
-        {
-            Error = true;
-            ErrorString = "😞 Soundpad is not running.";
-            return;
-        }
-
-        // Strip the "-rc " prefix — pipe protocol takes raw commands.
-        string command = arguments.StartsWith("-rc ", StringComparison.OrdinalIgnoreCase)
-            ? arguments[4..]
-            : arguments;
-
-        _ = SendPipeCommandAsync(command);
+        Interlocked.Increment(ref _pollEpoch);
+        _stateTimer?.Stop();
+        _client.Disconnect();
+        return Task.CompletedTask;
     }
 
+    public void SaveSettings() { }
+
     /// <summary>
-    /// Sends a command to Soundpad via named pipe (microsecond latency, zero process overhead).
-    /// Falls back to Process.Start if the pipe is unavailable.
+    /// One poll cycle: process check → pipe status queries → legacy window-title fallback.
+    /// Overlapping ticks are skipped instead of queued.
     /// </summary>
-    private async Task SendPipeCommandAsync(string command)
+    private async Task PollAsync()
     {
+        if (_disposed || !_stateTimer.Enabled)
+            return;
+        if (Interlocked.Exchange(ref _pollGate, 1) == 1)
+            return;
+
+        int epoch = Volatile.Read(ref _pollEpoch);
+        Process[] soundpadProcs = Array.Empty<Process>();
         try
         {
-            using var pipe = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            await pipe.ConnectAsync(1000).ConfigureAwait(false);
+            soundpadProcs = Process.GetProcessesByName(SoundpadProcessName);
+            var soundpadProc = soundpadProcs.FirstOrDefault();
+            if (soundpadProc == null)
+            {
+                _client.Disconnect();
+                _pipeFailureStreak = 0;
+                _ticksUntilPipeRetry = 0;
+                ApplyState(epoch, soundpadState.NotRunning, playingNow: false, stopped: true, song: string.Empty,
+                    isRunning: false, error: true, errorMessage: "😞 Soundpad is not running.");
+                return;
+            }
 
-            byte[] buffer = Encoding.UTF8.GetBytes(command);
-            await pipe.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-            await pipe.FlushAsync().ConfigureAwait(false);
+            var status = SoundpadPlayStatus.Unknown;
+            string? titleResponse = null;
 
-            byte[] responseBuffer = new byte[4096];
-            int bytesRead = await pipe.ReadAsync(responseBuffer, 0, responseBuffer.Length).ConfigureAwait(false);
+            if (await TryEnsurePipeAsync().ConfigureAwait(false))
+            {
+                string? statusResponse = (await _client.SendRequestAsync("GetPlayStatus()", PipeRequestTimeoutMs).ConfigureAwait(false)).Response;
+                status = SoundpadStatusParser.ParsePlayStatus(statusResponse);
+                if (statusResponse == null)
+                {
+                    RegisterPipeFailure();
+                }
+                else
+                {
+                    _pipeFailureStreak = 0;
+                    _pipeEverConnected = true;
+                    if (status is SoundpadPlayStatus.Playing or SoundpadPlayStatus.Paused or SoundpadPlayStatus.Seeking)
+                        titleResponse = (await _client.SendRequestAsync("GetTitleText()", PipeRequestTimeoutMs).ConfigureAwait(false)).Response;
+                }
+            }
 
-            Error = false;
-            ErrorString = string.Empty;
-        }
-        catch (TimeoutException)
-        {
-            FallbackProcessStart(command);
-        }
-        catch (IOException)
-        {
-            FallbackProcessStart(command);
+            if (status == SoundpadPlayStatus.Unknown)
+            {
+                PollFromWindowTitle(epoch, soundpadProc);
+                return;
+            }
+
+            string song = SoundpadStatusParser.ParseNowPlayingTitle(titleResponse);
+            // The frame title lags behind playback start (and the pipe can break between the
+            // two queries) — keep the last known song rather than blanking it for a tick.
+            if (song.Length == 0 && status != SoundpadPlayStatus.Stopped)
+                song = PlayingSong;
+
+            switch (status)
+            {
+                case SoundpadPlayStatus.Playing:
+                case SoundpadPlayStatus.Seeking:
+                    ApplyState(epoch, soundpadState.Playing, playingNow: true, stopped: false, song: song);
+                    break;
+                case SoundpadPlayStatus.Paused:
+                    ApplyState(epoch, soundpadState.Paused, playingNow: false, stopped: false, song: song);
+                    break;
+                default:
+                    ApplyState(epoch, soundpadState.Stopped, playingNow: false, stopped: true, song: string.Empty);
+                    break;
+            }
+            _consecutivePollFailures = 0;
         }
         catch (Exception ex)
         {
-            Error = true;
-            ErrorString = "😞 Failed to execute Soundpad command.";
             Logging.WriteException(ex, MSGBox: false);
+            // Leave IsSoundpadRunning/PlayingSong untouched — a transient poll failure must not
+            // flip UI state; only surface the error.
+            SetError("😞 An error occurred while updating Soundpad state.");
+            if (++_consecutivePollFailures >= MaxConsecutivePollFailures)
+            {
+                _consecutivePollFailures = 0;
+                _toast?.Show("🎵 Soundpad", "Soundpad integration disabled after repeated errors — re-enable it to retry.", ToastType.Warning, key: "soundpad-autodisable");
+                _dispatcher.BeginInvoke(() => _integrationSettings.IntgrSoundpad = false);
+            }
+        }
+        finally
+        {
+            foreach (var proc in soundpadProcs)
+                proc.Dispose();
+            Interlocked.Exchange(ref _pollGate, 0);
         }
     }
 
-    private void FallbackProcessStart(string command)
+    private async Task<bool> TryEnsurePipeAsync()
     {
-        if (string.IsNullOrEmpty(_soundpadLocation)) return;
+        if (_client.IsConnected)
+            return true;
+
+        if (_ticksUntilPipeRetry > 0)
+        {
+            _ticksUntilPipeRetry--;
+            return false;
+        }
+
+        bool connected = await _client.TryConnectAsync(PipeConnectTimeoutMs).ConfigureAwait(false);
+        if (!connected)
+            RegisterPipeFailure();
+        return connected;
+    }
+
+    private void RegisterPipeFailure()
+    {
+        _pipeFailureStreak++;
+        if (_pipeFailureStreak >= PipeBackoffThreshold)
+            _ticksUntilPipeRetry = PipeBackoffTicks;
+    }
+
+    /// <summary>
+    /// Legacy status source for Soundpad versions without a remote-control pipe. Blind while
+    /// Soundpad is minimized to the tray (MainWindowTitle is empty there).
+    /// </summary>
+    private void PollFromWindowTitle(int epoch, Process soundpadProc)
+    {
+        string title = string.Empty;
+        try
+        {
+            title = soundpadProc.MainWindowTitle;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            // A pipe that worked before is just transiently broken (Soundpad restart, sleep/wake);
+            // only blame the Soundpad version when the pipe never answered at all.
+            string message = _pipeEverConnected
+                ? "😞 Lost the Soundpad connection — reconnecting…"
+                : "😞 Unable to read Soundpad — remote control unavailable and its window is minimized to the tray. Updating Soundpad usually fixes this.";
+            ApplyState(epoch, soundpadState.Unknown, playingNow: false, stopped: true, song: string.Empty,
+                error: true, errorMessage: message);
+            return;
+        }
+
+        bool paused = SoundpadStatusParser.IsPausedTitle(title);
+        string song = SoundpadStatusParser.ParseNowPlayingTitle(title);
+        if (string.IsNullOrEmpty(song))
+            ApplyState(epoch, soundpadState.Stopped, playingNow: false, stopped: true, song: string.Empty);
+        else if (paused)
+            ApplyState(epoch, soundpadState.Paused, playingNow: false, stopped: false, song: song);
+        else
+            ApplyState(epoch, soundpadState.Playing, playingNow: true, stopped: false, song: song);
+    }
+
+    private void ApplyState(int epoch, soundpadState state, bool playingNow, bool stopped, string song,
+        bool isRunning = true, bool error = false, string errorMessage = "")
+    {
+        _dispatcher.BeginInvoke(() =>
+        {
+            // Stale poll: monitoring was stopped (or consent revoked) after this cycle started.
+            if (epoch != Volatile.Read(ref _pollEpoch))
+                return;
+
+            IsSoundpadRunning = isRunning;
+            CurrentSoundpadState = state;
+            PlayingNow = playingNow;
+            Stopped = stopped;
+            PlayingSong = song;
+            Error = error;
+            ErrorString = error ? errorMessage : string.Empty;
+        });
+    }
+
+    private void SetError(string message)
+    {
+        _dispatcher.BeginInvoke(() =>
+        {
+            Error = true;
+            ErrorString = message;
+        });
+    }
+
+    /// <summary>
+    /// Sends an action command over the pipe, then refreshes the now-playing state shortly
+    /// after. The "Soundpad.exe -rc" fallback only runs when the request never reached
+    /// Soundpad — a delivered-but-unanswered command may have executed and must not be retried.
+    /// </summary>
+    private async Task SendCommandAsync(string command)
+    {
+        if (!IsSoundpadRunning)
+        {
+            SetError("😞 Soundpad is not running.");
+            return;
+        }
+
+        try
+        {
+            var reply = await _client.SendRequestAsync(command, PipeRequestTimeoutMs).ConfigureAwait(false);
+            if (reply.Response == null)
+            {
+                if (reply.RequestDelivered)
+                {
+                    SetError("😞 Soundpad did not confirm the command.");
+                    return;
+                }
+                if (!TryFallbackProcessStart(command))
+                {
+                    SetError("😞 Failed to execute Soundpad command.");
+                    return;
+                }
+            }
+            else if (!SoundpadStatusParser.IsSuccessResponse(reply.Response))
+            {
+                SetError($"😞 Soundpad rejected the command ({reply.Response}).");
+                return;
+            }
+
+            // Accepted is not completed — give Soundpad a moment, then refresh now-playing.
+            await Task.Delay(150).ConfigureAwait(false);
+            await PollAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            SetError("😞 Failed to execute Soundpad command.");
+        }
+    }
+
+    private bool TryFallbackProcessStart(string command)
+    {
+        string location = ResolveSoundpadLocation();
+        if (string.IsNullOrEmpty(location))
+            return false;
+
         try
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = _soundpadLocation,
+                FileName = location,
                 Arguments = $"-rc {command}",
                 CreateNoWindow = true,
                 UseShellExecute = false,
             });
-            Error = false;
-            ErrorString = string.Empty;
+            return true;
         }
         catch (Exception ex)
         {
-            Error = true;
-            ErrorString = "😞 Failed to execute Soundpad command.";
             Logging.WriteException(ex, MSGBox: false);
+            return false;
         }
     }
 
-    private string GetSoundpadLocation()
+    private string ResolveSoundpadLocation()
     {
+        if (!string.IsNullOrEmpty(_soundpadLocation))
+            return _soundpadLocation;
+
+        Process[] procs = Array.Empty<Process>();
         try
         {
-            var soundpadProc = Process.GetProcessesByName("Soundpad").FirstOrDefault();
-            if (soundpadProc != null)
-            {
-                return soundpadProc.MainModule.FileName;
-            }
-            return string.Empty;
+            procs = Process.GetProcessesByName(SoundpadProcessName);
+            _soundpadLocation = procs.FirstOrDefault()?.MainModule?.FileName ?? string.Empty;
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
-            Logging.WriteException(new System.Exception("Soundpad not found"), MSGBox: false);
-            Error = true;
-            ErrorString = "😞 Unable to find Soundpad location.";
-            return string.Empty;
+            // Access denied when Soundpad runs elevated and MagicChatBox does not; the pipe
+            // still works in that case, so this is quietly non-fatal.
+            Logging.WriteException(new Exception("Unable to resolve Soundpad location (is Soundpad running as administrator?)", ex), MSGBox: false);
+            _soundpadLocation = string.Empty;
         }
-    }
-
-    private void InitializeAndStartModuleIfNeeded()
-    {
-        if (ShouldStartMonitoring())
+        finally
         {
-            if (!IsSoundpadRunning)
-            {
-                UpdateSoundpadState(false);
-            }
-            if (!_isInitialized && IsSoundpadRunning)
-            {
-                InitializeSoundpadModuleAsync();
-            }
-            StartModule();
+            foreach (var proc in procs)
+                proc.Dispose();
         }
-    }
-
-    private async Task InitializeSoundpadModuleAsync()
-    {
-        await System.Threading.Tasks.Task.Run(() =>
-        {
-            UpdateSoundpadState(true);
-            if (IsSoundpadRunning && string.IsNullOrEmpty(_soundpadLocation))
-            {
-                _soundpadLocation = GetSoundpadLocation();
-                EnablePanel = true;
-                _isInitialized = true;
-            }
-            InitializeAndStartModuleIfNeeded();
-        });
-    }
-
-    private void UpdateCurrentState(string title)
-    {
-        title = Regex.Replace(title, @"\s*\[.*?\]\s*", " ").Trim();
-
-        _dispatcher.BeginInvoke(() =>
-        {
-            if (string.IsNullOrEmpty(title))
-            {
-                // Unable to get the title, possibly minimized to tray
-                CurrentSoundpadState = soundpadState.Unknown;
-                PlayingNow = false;
-                Stopped = true;
-                PlayingSong = string.Empty;
-            }
-            else if (title.Contains("II "))
-            {
-                CurrentSoundpadState = soundpadState.Paused;
-                PlayingNow = false;
-                Stopped = false;
-                PlayingSong = title.Replace("Soundpad - ", "").Replace(" II", "").Trim();
-                Error = false;
-                ErrorString = string.Empty;
-            }
-            else if (!string.IsNullOrWhiteSpace(title) && !title.Equals("Soundpad"))
-            {
-                CurrentSoundpadState = soundpadState.Playing;
-                PlayingNow = true;
-                Stopped = false;
-                PlayingSong = title.Replace("Soundpad - ", "").Trim();
-                Error = false;
-                ErrorString = string.Empty;
-            }
-            else
-            {
-                CurrentSoundpadState = soundpadState.Stopped;
-                PlayingNow = false;
-                Stopped = true;
-                PlayingSong = string.Empty;
-                Error = false;
-                ErrorString = string.Empty;
-            }
-        });
-    }
-
-    private void UpdateCurrentStateBasedOnRunningStatus(Process soundpadProc)
-    {
-        if (IsSoundpadRunning && soundpadProc != null)
-        {
-            string title = string.Empty;
-            try
-            {
-                title = soundpadProc.MainWindowTitle;
-
-                if (string.IsNullOrEmpty(title))
-                {
-                    // Soundpad is minimized to system tray or title is inaccessible
-                    Error = true;
-                    ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
-                    UpdateCurrentState(string.Empty);
-                }
-                else
-                {
-                    Error = false;
-                    ErrorString = string.Empty;
-                    UpdateCurrentState(title);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Error = true;
-                ErrorString = "😞 Unable to read Soundpad, Ensure it is not minimized system tray.";
-                Logging.WriteException(ex, MSGBox: false);
-                UpdateCurrentState(string.Empty);
-            }
-        }
-        else
-        {
-            Error = true;
-            ErrorString = "😞 Soundpad is not running.";
-            _dispatcher.BeginInvoke(() =>
-            {
-                CurrentSoundpadState = soundpadState.NotRunning;
-                PlayingNow = false;
-                PlayingSong = string.Empty;
-            });
-        }
-    }
-
-
-    private void UpdateSoundpadState(bool fromStart)
-    {
-        lock (_updateLock)
-        {
-            try
-            {
-
-                var soundpadProc = Process.GetProcessesByName("Soundpad").FirstOrDefault();
-
-                _dispatcher.BeginInvoke(() =>
-                {
-                    IsSoundpadRunning = soundpadProc != null;
-                    UpdateCurrentStateBasedOnRunningStatus(soundpadProc);
-                });
-
-                if (!IsSoundpadRunning && !fromStart)
-                {
-                    EnablePanel = true;
-                    ErrorString = "😞 Soundpad is not running.";
-                    Error = true;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Error = true;
-                ErrorString = "😞 An error occurred while updating Soundpad state.";
-                Logging.WriteException(ex, MSGBox: false);
-
-                if (ErrorCount < 5)
-                {
-                    ErrorCount++;
-                }
-                else
-                {
-                    _dispatcher.BeginInvoke(() =>
-                    {
-                        _integrationSettings.IntgrSoundpad = false;
-                    });
-                    ErrorCount = 0;
-                }
-            }
-        }
+        return _soundpadLocation;
     }
 
     public string GetPlayingSong()
@@ -395,35 +438,19 @@ public partial class SoundpadModule : ObservableObject, IModule
                propertyName == nameof(_integrationSettings.IntgrSoundpad_DESKTOP);
     }
 
-    public void PlayNextSound()
-    {
-        ExecuteSoundpadCommand("-rc DoPlayNextSound()");
-    }
+    public void PlayNextSound() => _ = SendCommandAsync("DoPlayNextSound()");
 
-    public void PlayPreviousSound()
-    {
-        ExecuteSoundpadCommand("-rc DoPlayPreviousSound()");
-    }
+    public void PlayPreviousSound() => _ = SendCommandAsync("DoPlayPreviousSound()");
 
-    public void PlayRandomSound()
-    {
-        ExecuteSoundpadCommand($"-rc DoPlayRandomSound()");
-    }
+    public void PlayRandomSound() => _ = SendCommandAsync("DoPlayRandomSound()");
 
     public void PlaySound(int index, bool speakers, bool mic)
-    {
-        ExecuteSoundpadCommand($"-rc DoPlaySound({index},{speakers.ToString().ToLowerInvariant()},{mic.ToString().ToLowerInvariant()})");
-    }
+        => _ = SendCommandAsync($"DoPlaySound({index},{speakers.ToString().ToLowerInvariant()},{mic.ToString().ToLowerInvariant()})");
 
-    public void PlaySoundByIndex(int index)
-    {
-        ExecuteSoundpadCommand($"-rc DoPlaySound({index})");
-    }
+    public void PlaySoundByIndex(int index) => _ = SendCommandAsync($"DoPlaySound({index})");
 
     public void PlaySoundFromCategory(int categoryIndex, int soundIndex)
-    {
-        ExecuteSoundpadCommand($"-rc DoPlaySoundFromCategory({categoryIndex},{soundIndex})");
-    }
+        => _ = SendCommandAsync($"DoPlaySoundFromCategory({categoryIndex},{soundIndex})");
 
     public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
     {
@@ -431,7 +458,7 @@ public partial class SoundpadModule : ObservableObject, IModule
         {
             if (ShouldStartMonitoring())
             {
-                InitializeAndStartModuleIfNeeded();
+                StartModule();
             }
             else
             {
@@ -451,37 +478,46 @@ public partial class SoundpadModule : ObservableObject, IModule
 
     public void StartModule()
     {
-        if (_isInitialized)
-        {
-            _stateTimer.Start();
-        }
+        if (_disposed)
+            return;
+
+        _dispatcher.BeginInvoke(() => EnablePanel = true);
+        _pipeFailureStreak = 0;
+        _ticksUntilPipeRetry = 0;
+        _consecutivePollFailures = 0;
+        _stateTimer.Start();
+        _ = PollAsync();
     }
 
     public void StopModule()
     {
-        if (_isInitialized)
-        {
-            _stateTimer.Stop();
-        }
-        if (!IsSoundpadRunning)
+        Interlocked.Increment(ref _pollEpoch);
+        _stateTimer?.Stop();
+        _client.Disconnect();
+        _dispatcher.BeginInvoke(() =>
         {
             EnablePanel = false;
-        }
+            Error = false;
+            ErrorString = string.Empty;
+        });
     }
 
     public void StopSound()
     {
-        ExecuteSoundpadCommand("-rc DoStopSound()");
-        Stopped = true;
-        PlayingNow = false;
+        _ = SendCommandAsync("DoStopSound()");
+        _dispatcher.BeginInvoke(() =>
+        {
+            Stopped = true;
+            PlayingNow = false;
+        });
     }
 
     public void TogglePause()
     {
         if (Stopped)
-            ExecuteSoundpadCommand("-rc DoPlayCurrentSoundAgain()");
+            _ = SendCommandAsync("DoPlayCurrentSoundAgain()");
         else
-            ExecuteSoundpadCommand("-rc DoTogglePause()");
+            _ = SendCommandAsync("DoTogglePause()");
     }
 
     public void Dispose()
@@ -489,8 +525,11 @@ public partial class SoundpadModule : ObservableObject, IModule
         if (_disposed) return;
         _disposed = true;
 
+        Interlocked.Increment(ref _pollEpoch);
+        _consentService.ConsentChanged -= OnConsentChanged;
         _stateTimer?.Stop();
         _stateTimer?.Dispose();
+        _client.Dispose();
     }
 
     partial void OnErrorChanged(bool value)
