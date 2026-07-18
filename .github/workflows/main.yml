@@ -8,6 +8,12 @@ on:
     tags:
       - 'v*'
 
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
 env:
   Solution_Name: vrcosc-magicchatbox.sln
   Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
@@ -16,17 +22,18 @@ env:
 jobs:
   build-and-release:
     runs-on: windows-latest
+    timeout-minutes: 30
     permissions:
       contents: write
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         fetch-depth: 0
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
         dotnet-version: '10.0.x'
 
@@ -80,8 +87,10 @@ jobs:
     # Step 3: Check if a release with this tag already exists
     - name: Check if Release Exists
       id: check_release
-      uses: actions/github-script@v7
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
+        retries: 3
+        retry-exempt-status-codes: 400,401,404,422
         script: |
           const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
           try {
@@ -102,9 +111,11 @@ jobs:
     - name: Ensure Release Tag Exists (Actions token)
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
       id: ensure_tag_actions
-      uses: actions/github-script@v7
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         github-token: ${{ github.token }}
+        retries: 3
+        retry-exempt-status-codes: 400,401,404,422
         script: |
           const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
           const owner = context.repo.owner;
@@ -143,9 +154,11 @@ jobs:
     - name: Ensure Release Tag Exists (MY_PAT fallback)
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.ensure_tag_actions.outputs.tag_ready != 'true'
       id: ensure_tag_pat
-      uses: actions/github-script@v7
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         github-token: ${{ secrets.MY_PAT }}
+        retries: 3
+        retry-exempt-status-codes: 400,401,404,422
         script: |
           const tag = `${{ steps.resolve_release.outputs.release_tag }}`;
           const owner = context.repo.owner;
@@ -303,15 +316,38 @@ jobs:
           exit 1
         }
 
-        $response = Invoke-RestMethod `
-          -Uri "https://www.virustotal.com/api/v3/files" `
-          -Method Post `
-          -Headers @{
-            "x-apikey" = $apiKey
-          } `
-          -Form @{
-            "file" = $fileInfo
+        function Invoke-VirusTotalRequest {
+          param([scriptblock]$Request, [int]$MaxAttempts = 4)
+
+          for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+            try {
+              return & $Request
+            }
+            catch {
+              $statusCode = $_.Exception.Response.StatusCode.value__
+              $retryable = $statusCode -eq 429 -or $statusCode -ge 500
+              if (-not $retryable -or $attempt -eq $MaxAttempts) {
+                throw
+              }
+              $delay = 5 * [math]::Pow(2, $attempt - 1)
+              Write-Host "VirusTotal upload failed (status $statusCode), attempt $attempt/$MaxAttempts. Retrying in ${delay}s..."
+              Start-Sleep -Seconds $delay
+            }
           }
+        }
+
+        $response = Invoke-VirusTotalRequest -Request {
+          Invoke-RestMethod `
+            -Uri "https://www.virustotal.com/api/v3/files" `
+            -Method Post `
+            -Headers @{
+              "x-apikey" = $apiKey
+            } `
+            -Form @{
+              "file" = $fileInfo
+            } `
+            -TimeoutSec 120
+        }
 
         $analysisId = $response.data.id
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -331,29 +367,42 @@ jobs:
           exit 1
         }
 
-        $maxAttempts = 20
-        $delaySeconds = 15
+        # VirusTotal's public API allows ~4 req/min; 20s spacing keeps this loop under that with margin.
+        $maxAttempts = 15
+        $delaySeconds = 20
         $sha256 = $null
 
         for ($i = 1; $i -le $maxAttempts; $i++) {
           Write-Host "Checking VirusTotal analysis status (attempt $i/$maxAttempts)..."
 
-          $response = Invoke-RestMethod `
-            -Uri "https://www.virustotal.com/api/v3/analyses/$analysisId" `
-            -Method Get `
-            -Headers @{
-              "x-apikey" = $apiKey
+          try {
+            $response = Invoke-RestMethod `
+              -Uri "https://www.virustotal.com/api/v3/analyses/$analysisId" `
+              -Method Get `
+              -Headers @{
+                "x-apikey" = $apiKey
+              } `
+              -TimeoutSec 500
+
+            $status = $response.data.attributes.status
+            $sha256 = $response.meta.file_info.sha256
+
+            if ($status -eq "completed" -and -not [string]::IsNullOrWhiteSpace($sha256)) {
+              Write-Host "VirusTotal analysis completed. SHA256: $sha256"
+              break
             }
 
-          $status = $response.data.attributes.status
-          $sha256 = $response.meta.file_info.sha256
-
-          if ($status -eq "completed" -and -not [string]::IsNullOrWhiteSpace($sha256)) {
-            Write-Host "VirusTotal analysis completed. SHA256: $sha256"
-            break
+            Write-Host "Status: $status — waiting ${delaySeconds}s..."
+          }
+          catch {
+            $statusCode = $_.Exception.Response.StatusCode.value__
+            if ($statusCode -and $statusCode -lt 500 -and $statusCode -ne 429) {
+              Write-Error "VirusTotal API returned a non-retryable error ($statusCode): $($_.Exception.Message)"
+              exit 1
+            }
+            Write-Host "Transient error checking VirusTotal status ($statusCode) — waiting ${delaySeconds}s before retry..."
           }
 
-          Write-Host "Status: $status — waiting ${delaySeconds}s..."
           Start-Sleep -Seconds $delaySeconds
         }
 
@@ -377,6 +426,10 @@ jobs:
           $isMasterRelease = $env:GITHUB_REF -eq 'refs/heads/master'
         } else {
           git fetch --no-tags origin master Pre-Master
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to fetch master/Pre-Master from origin."
+            exit 1
+          }
 
           $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
           if ([string]::IsNullOrWhiteSpace($tagCommit)) {
@@ -415,7 +468,7 @@ jobs:
     - name: Create Release
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: create_release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
       env:
         GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       with:
