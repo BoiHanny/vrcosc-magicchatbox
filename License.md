@@ -10,7 +10,7 @@
 
  
 > **Scope:**  
-> This Agreement addresses legal aspects including modification, redistribution, and protection of core components. It does **not** cover user conduct while running the software. For usage rules, please see the [MagicChatbox Terms of Service (TOS)](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md).
+> This Agreement addresses legal aspects including modification, redistribution, and protection of core components. It does **not** cover user conduct while running the software. For usage rules, please see the [MagicChatbox Terms of Service (TOS)](https://github.com/BoiHanny/VR Pac-Man chat box/blob/master/Security.md).
 
 ---
 > [!WARNING] 
