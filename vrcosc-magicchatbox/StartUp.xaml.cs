@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,9 +8,6 @@ using System.Windows.Media.Animation;
 
 namespace vrcosc_magicchatbox
 {
-    /// <summary>
-    /// Loading splash with rolling 3-strip step display, per-step timing, and smooth progress bar.
-    /// </summary>
     public partial class StartUp : Window
     {
         private readonly Stopwatch _globalTimer = Stopwatch.StartNew();
@@ -29,11 +26,6 @@ namespace vrcosc_magicchatbox
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Advance to a new step. The previous step rolls up, the current message becomes the
-        /// active strip, and <paramref name="nextHint"/> (if any) previews below at 0.5 opacity.
-        /// The progress bar animates smoothly to <paramref name="value"/>.
-        /// </summary>
         public void UpdateProgress(string message, double value, string? nextHint = null)
         {
             if (!Dispatcher.CheckAccess())
@@ -93,7 +85,6 @@ namespace vrcosc_magicchatbox
             }
             catch (ObjectDisposedException)
             {
-                // Startup is already ending; continue with normal shutdown.
             }
 
             _ = Task.Run(async () =>

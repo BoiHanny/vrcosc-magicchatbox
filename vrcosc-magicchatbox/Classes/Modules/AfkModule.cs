@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>Persisted settings for the AFK detection module.</summary>
 public partial class AfkModuleSettings : ObservableObject
 {
     public event EventHandler SettingsChanged;
@@ -85,7 +84,6 @@ public partial class AfkModuleSettings : ObservableObject
             }
             catch (Exception ex)
             {
-                // Transient IO lock (AV/indexer) must not propagate out of the module constructor.
                 Logging.WriteInfo($"Error reading AFK settings: {ex.Message}");
                 return new AfkModuleSettings { _settingsPath = settingsPath };
             }
@@ -104,9 +102,6 @@ public partial class AfkModuleSettings : ObservableObject
     }
 }
 
-/// <summary>
-/// Detects user AFK state via system idle time and manages AFK display in VRChat chatbox.
-/// </summary>
 public partial class AfkModule : ObservableObject, IModule
 {
     private readonly IAppState _appState;
@@ -193,9 +188,6 @@ public partial class AfkModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Builds the AFK status string from current settings and elapsed AFK time.
-    /// </summary>
     public string GenerateAFKString()
     {
         string afkString = "";
@@ -331,9 +323,6 @@ public partial class AfkModule : ObservableObject, IModule
         OverrideButtonVisible = true;
     }
 
-    /// <summary>
-    /// Formats a <see cref="TimeSpan"/> into a compact human-readable string (e.g. "1ʰ 2ᵐ 3ˢ").
-    /// </summary>
     public static string FormatDuration(TimeSpan duration, bool useSmallLetters)
     {
         var parts = new List<string>();

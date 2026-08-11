@@ -1,13 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using vrcosc_magicchatbox.Services.Hardware;
 using Xunit;
 
 namespace MagicChatbox.Tests.Services.Hardware;
 
-/// <summary>
-/// Adapter selection used to be a substring test for the literal word "integrated", which no real
-/// adapter name contains — so it degenerated to "whatever DXGI enumerated first".
-/// </summary>
 public class GpuAdapterSelectorTests
 {
     private const ulong Gib = 1UL << 30;
@@ -35,7 +31,6 @@ public class GpuAdapterSelectorTests
     private static FakeAdapter Warp(uint index = 0) =>
         new("Microsoft Basic Render Driver", index, GpuVendors.Microsoft, 0);
 
-    // ---- Vendor mapping --------------------------------------------------
 
     [Theory]
     [InlineData(0x1002u, GpuVendor.Amd)]
@@ -50,7 +45,6 @@ public class GpuAdapterSelectorTests
     public void NullVendorIdIsUnknown()
         => Assert.Equal(GpuVendor.Unknown, GpuVendors.FromVendorId(null));
 
-    // ---- Selection -------------------------------------------------------
 
     [Fact]
     public void SingleDiscreteCardIsSelected()
@@ -63,8 +57,6 @@ public class GpuAdapterSelectorTests
     [Fact]
     public void RyzenIgpuPlusRadeonDgpu_PicksTheDiscreteCard()
     {
-        // Both report vendor 0x1002, and "AMD Radeon(TM) Graphics" does not contain the word
-        // "integrated" — this is exactly the case the old rule got wrong.
         var adapters = new List<FakeAdapter> { RyzenIgpu(index: 0), Rx6900Xt(index: 1) };
 
         var selected = GpuAdapterSelector.SelectPrimary(adapters);
@@ -103,7 +95,6 @@ public class GpuAdapterSelectorTests
     [Fact]
     public void WarpIsIgnoredEvenWithoutTheSoftwareFlag()
     {
-        // Under RDP and in some VMs the software flag isn't set, so the vendor id is the only signal.
         var adapters = new List<FakeAdapter> { Warp(index: 0), IntelIgpu(index: 1) };
 
         Assert.Equal("Intel(R) UHD Graphics 770", GpuAdapterSelector.SelectPrimary(adapters)?.Name);
@@ -130,7 +121,6 @@ public class GpuAdapterSelectorTests
     {
         var adapters = new List<FakeAdapter> { IntelIgpu(index: 0), RyzenIgpu(index: 1) };
 
-        // Neither clears the discrete VRAM bar, so AMD wins on vendor rank.
         Assert.Equal("AMD Radeon(TM) Graphics", GpuAdapterSelector.SelectPrimary(adapters)?.Name);
     }
 

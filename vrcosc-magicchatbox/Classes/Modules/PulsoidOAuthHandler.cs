@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,10 +14,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Handles Pulsoid OAuth token validation and browser-based authentication flow.
-/// Implements IPulsoidTokenValidator for narrow injection into transport-layer code.
-/// </summary>
 public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
 {
     private bool disposed = false;
@@ -141,7 +137,6 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
             if (httpListener != null && secondListener != null)
                 return;
 
-            // Build in locals so a failed Start() never leaves a half-initialized field behind
             HttpListener first = null;
             HttpListener second = null;
             try
@@ -176,7 +171,6 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
     }
 
-    // Cleanup must never throw — StopListeners runs from finally blocks and Dispose
     private static void CloseListenerSafely(HttpListener listener)
     {
         if (listener == null)

@@ -1,12 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Settings for the window activity module, including title display, private app names, and focus tracking.
-/// </summary>
 public partial class WindowActivitySettings : VersionedSettings
 {
     public const string LegacyDefaultGlobalRegex = @"^(.+?)(?:\s*[-–—]\s*[^-–—]+)?$";
@@ -28,18 +25,13 @@ public partial class WindowActivitySettings : VersionedSettings
     [ObservableProperty] private bool _showFocusedApp = true;
     [ObservableProperty] private bool _applicationHookV2 = true;
 
-    /// <summary>Show the custom regex column in the scanned apps list.</summary>
     [ObservableProperty] private bool _showRegexColumn = false;
 
-    /// <summary>Apply a global regex to ALL window titles before per-app regex.</summary>
     [ObservableProperty] private bool _useGlobalRegex = true;
 
-    /// <summary>Global regex transform applied to every window title.</summary>
     [ObservableProperty] private string _globalRegex = DefaultGlobalRegex;
 
-    /// <summary>Enable content filtering on window title extra info (after regex extraction).</summary>
     [ObservableProperty] private bool _enableTitleFilters = false;
 
-    /// <summary>Content filter rules applied to the extracted title text.</summary>
     public ObservableCollection<TitleFilterRule> TitleFilters { get; set; } = new();
 }

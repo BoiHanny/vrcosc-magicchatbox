@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,9 +21,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// TikTok module with a public profile follower summary and an opt-in experimental LIVE connector.
-/// </summary>
 public sealed partial class TikTokLiveModule : ObservableObject, IModule
 {
     private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenAI.Chat;
 using System;
@@ -19,11 +19,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
-    /// <summary>
-    /// Page-specific ViewModel for the Chatting page. Owns all chat-input,
-    /// IntelliChat, Whisper commands, and chat send/stop/edit/resend logic.
-    /// Uses Lazy&lt;IModuleHost&gt; for lazily-created module references.
-    /// </summary>
     public partial class ChattingPageViewModel : ObservableObject
     {
         private const string BoxColorNormal = "#FF6B5F98";
@@ -43,7 +38,6 @@ namespace vrcosc_magicchatbox.ViewModels
         private IntelliChatModule? IntelliChat => _moduleHost.Value.IntelliChat;
         private WhisperModule? Whisper => _moduleHost.Value.Whisper;
 
-        // Lazily resolved services (circular dependency at construction time)
         private readonly Lazy<ScanLoopService> _scanLoop;
         private ScanLoopService ScanLoop => _scanLoop.Value;
 
@@ -60,19 +54,10 @@ namespace vrcosc_magicchatbox.ViewModels
         public ChatSettings ChatSettings { get; }
         public IModuleHost Modules => _moduleHost.Value;
 
-        /// <summary>Exposes VR running state for style triggers (GlowyToggleButtonVR).</summary>
         public bool IsVRRunning => _appState.IsVRRunning;
 
-        /// <summary>
-        /// Event raised when UI should scroll the recent chat to the end.
-        /// Code-behind subscribes to handle the ScrollViewer interaction.
-        /// </summary>
         public event Action? ScrollToEndRequested;
 
-        /// <summary>
-        /// Initializes the chatting page ViewModel, wiring together chat status, IntelliChat,
-        /// Whisper, TTS, and command services needed for the chat input UI.
-        /// </summary>
         public ChattingPageViewModel(
             ChatStatusDisplayState chatStatus,
             IAppState appState,
@@ -182,9 +167,6 @@ namespace vrcosc_magicchatbox.ViewModels
             SendChat();
         }
 
-        /// <summary>
-        /// Sends the current chat text to VRChat OSC.
-        /// </summary>
         [RelayCommand]
         public void SendChat()
         {
@@ -233,10 +215,6 @@ namespace vrcosc_magicchatbox.ViewModels
             return true;
         }
 
-        /// <summary>
-        /// Awaits an OSC chat send and surfaces a failure through the chat feedback text
-        /// instead of discarding the result. Never throws.
-        /// </summary>
         private async Task SendOscMessageWithFeedbackAsync(bool fx, int delay, bool reportFailure = true)
         {
             try
@@ -259,7 +237,6 @@ namespace vrcosc_magicchatbox.ViewModels
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             Osc.ClearChat(running);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
-            // A false result with no running chat is a normal no-op, not a failure.
             _ = SendOscMessageWithFeedbackAsync(false, smalldelay, reportFailure: running != null);
             _ = ScanLoop.Scantick();
             TtsPlayback.CancelAllTts();
@@ -345,10 +322,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>
-        /// Updates the chat box character count and color state.
-        /// Called from code-behind TextChanged handler.
-        /// </summary>
         public void UpdateChatBoxCount(string text)
         {
             int count = text.Length;
@@ -544,20 +517,12 @@ namespace vrcosc_magicchatbox.ViewModels
 
         #region Whisper Transcription Handling
 
-        /// <summary>
-        /// Handles transcription text from WhisperModule — appends to chat input,
-        /// trims to 140 chars on word boundary.
-        /// </summary>
         public void OnTranscriptionReceived(string newTranscription)
         {
             string current = _chatStatus.NewChattingTxt + " " + newTranscription;
             _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(current, 140);
         }
 
-        /// <summary>
-        /// Handles WhisperModule SentChatMessage event — sends the current chat.
-        /// Must be called on UI thread.
-        /// </summary>
         public void OnWhisperSentChat() => SendChat();
 
         private static string TrimToLastMaxCharacters(string text, int maxCharacters)
@@ -575,10 +540,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         #region Chat edit state machine
 
-        /// <summary>
-        /// Begins editing a chat item. Sets MsgReplace and Opacity.
-        /// Code-behind handles the focus/caret UI concern after this.
-        /// </summary>
         public void BeginChatEdit(ChatItem item)
         {
             item.MsgReplace = item.Msg.EndsWith(" ") ? item.Msg : item.Msg + " ";
@@ -586,9 +547,6 @@ namespace vrcosc_magicchatbox.ViewModels
             item.Opacity = "1";
         }
 
-        /// <summary>
-        /// Confirms or cancels a chat edit. Returns true if focus should return to main input.
-        /// </summary>
         public bool ConfirmChatEdit(ChatItem item)
         {
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
@@ -612,9 +570,6 @@ namespace vrcosc_magicchatbox.ViewModels
             return true;
         }
 
-        /// <summary>
-        /// Handles Enter key during chat edit. Returns true if focus should return to main input.
-        /// </summary>
         public bool HandleEditEnter(string editText)
         {
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
@@ -629,9 +584,6 @@ namespace vrcosc_magicchatbox.ViewModels
             return true;
         }
 
-        /// <summary>
-        /// Handles Escape key during chat edit.
-        /// </summary>
         public void HandleEditEscape()
         {
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
@@ -642,9 +594,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>
-        /// Handles real-time text change during chat edit.
-        /// </summary>
         public void HandleEditTextChanged(string newText)
         {
             if (!CS.RealTimeChatEdit) return;

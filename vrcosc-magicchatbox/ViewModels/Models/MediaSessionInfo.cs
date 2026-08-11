@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,10 +12,6 @@ using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
-    /// <summary>
-    /// Represents an active media playback session, exposing properties for title, artist,
-    /// playback status, seek position, and per-session user preferences.
-    /// </summary>
     [DebuggerDisplay("{FriendlyAppName} - {TimePeekEnabled} - {TimePosition}/{CurrentTime}/{FullTime} live:{IsLiveTime}")]
     public class MediaSessionInfo : INotifyPropertyChanged, IDisposable
     {
@@ -28,7 +24,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         private Timer _updateTimer;
         private bool _disposed;
 
-        /// <summary>True once Dispose has run; a disposed instance has a dead update timer and must not be revived.</summary>
         public bool IsDisposed => _disposed;
 
         private bool _IsActive;
@@ -45,9 +40,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
             {
-                // Match the OSC pipeline, which reads the extrapolated CurrentTime each scan tick.
-                // Raise both notifications so any UI bound to CurrentTime or TimePosition advances
-                // smoothly between Windows media-controller timeline events.
                 var handler = PropertyChanged;
                 if (handler != null)
                 {
@@ -114,9 +106,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
                 _PlaybackStatus = value;
 
-                // Restart the extrapolation baseline only on a real transition. Re-applying the
-                // same "Playing" status (the resync loop does this every 2s) used to rewind the
-                // displayed position back to the last stored snapshot.
                 _lastUpdateTime = DateTime.UtcNow;
                 NotifyPropertyChanged(nameof(PlaybackStatus));
                 NotifyPropertyChanged(nameof(PlayingNow));
@@ -293,29 +282,13 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private DateTime? _timelineStaleSinceUtc;
 
-        /// <summary>
-        /// How long this session has been waiting for a usable timeline, or <see cref="TimeSpan.Zero"/>
-        /// when it is not stale. Drives the policy's grace window so a player that stops emitting
-        /// timeline events cannot keep the seekbar hidden forever.
-        /// </summary>
         public TimeSpan TimelineStaleAge
             => _timelineStaleSinceUtc is { } since
                 ? DateTime.UtcNow - since
                 : TimeSpan.Zero;
 
-        /// <summary>
-        /// True when this source publishes no duration at all (live stream, call audio, a
-        /// notification sound) rather than being mid-transition. Keeps the seekbar hidden and takes
-        /// the session out of the resync poll loop until a real timeline or a track change arrives.
-        /// </summary>
         public bool HasNoTimeline { get; private set; }
 
-        /// <param name="restartStaleClock">
-        /// True when this is a fresh wait — a track change. The clock must restart then, or the
-        /// new track inherits the previous one's accumulated age and settles immediately.
-        /// Repeated stale markings within one track keep the original timestamp so the age
-        /// actually accumulates.
-        /// </param>
         public void MarkTimelineStale(bool restartStaleClock = false)
         {
             if (restartStaleClock)
@@ -329,11 +302,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             NotifyPropertyChanged(nameof(TimePosition));
         }
 
-        /// <summary>
-        /// Settles a source that has reported no duration for long enough that this is clearly its
-        /// nature rather than a transition. Unlike <see cref="MarkTimelineStale"/> this stops the
-        /// 2-second resync loop from re-polling it across the WinRT boundary for as long as it plays.
-        /// </summary>
         public void MarkTimelineDurationless()
         {
             _timelineStaleSinceUtc = null;
@@ -385,9 +353,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             get
             {
-                // Only extrapolate when the player is actively playing AND we have a known
-                // duration. For live streams or unknown duration (FullTime <= 0) we keep the
-                // stored value so the UI doesn't show an ever-growing fake position.
                 if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
                     && _FullTime > TimeSpan.Zero)
                 {
@@ -502,15 +467,8 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
     }
 
-    /// <summary>
-    /// Stores persisted user preferences for a media session, keyed by session ID.
-    /// </summary>
     public class MediaSessionSettings
     {
-        /// <summary>
-        /// Guards every read and write of the shared SavedSessionSettings list, which is
-        /// touched from media-manager callback threads, the UI thread, and persistence.
-        /// </summary>
         public static readonly object SavedSessionsLock = new object();
 
         public bool AutoSwitch { get; set; }

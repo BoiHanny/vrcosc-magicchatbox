@@ -1,11 +1,7 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Abstraction over OSCSender for sending OSC messages to VRChat.
-/// Enables constructor injection and testability.
-/// </summary>
 public interface IOscSender
 {
     Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,9 +17,6 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox
 {
-    /// <summary>
-    /// Main application window. Owns the scan loop, module host, and persistence coordinator lifecycle.
-    /// </summary>
     public partial class MainWindow : Window
     {
         private const int WM_ENTERSIZEMOVE = 0x0231;
@@ -193,9 +190,6 @@ namespace vrcosc_magicchatbox
             VM.SelectedMenuIndex = VM.AppSettingsInstance.CurrentMenuItem;
         }
 
-        /// <summary>
-        /// Called after the window is shown and first frame rendered — starts background scan loop.
-        /// </summary>
         public void StartBackgroundProcessing()
         {
             _scanLoop.Start();
@@ -264,7 +258,6 @@ namespace vrcosc_magicchatbox
 
             _shutdownRequested = true;
 
-            // Cancel the window closing event temporarily to await the async task
             e.Cancel = true;
 
             try
@@ -348,9 +341,6 @@ namespace vrcosc_magicchatbox
 
         private string _lastOverlayStep = "";
 
-        /// <summary>
-        /// Updates the startup overlay progress display (call from any thread).
-        /// </summary>
         public void UpdateOverlayProgress(string currentStep, double progressPercent, string nextHint = "")
         {
             if (!Dispatcher.CheckAccess())
@@ -371,9 +361,6 @@ namespace vrcosc_magicchatbox
             OverlayProgressBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, anim);
         }
 
-        /// <summary>
-        /// Fades out and collapses the startup overlay.
-        /// </summary>
         public void HideStartupOverlay()
         {
             if (!Dispatcher.CheckAccess())

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,9 +9,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Settings for the weather display module, including location, units, layout, and condition overrides.
-/// </summary>
 public partial class WeatherSettings : VersionedSettings
 {
     public static IEnumerable<WeatherLayoutMode> AvailableLayoutModes { get; } = Enum.GetValues(typeof(WeatherLayoutMode)).Cast<WeatherLayoutMode>().ToList();

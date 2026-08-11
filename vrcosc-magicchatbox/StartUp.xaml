@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     x:Class="vrcosc_magicchatbox.StartUp"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -92,7 +92,6 @@
                         Text="Sit back, relax, and let us prepare your app"
                         TextWrapping="Wrap" />
 
-                    <!--  Progress bar with smooth animation  -->
                     <ProgressBar
                         x:Name="ProgressBar"
                         Height="9"
@@ -108,10 +107,8 @@
                         </ProgressBar.RenderTransform>
                     </ProgressBar>
 
-                    <!--  Rolling 3-strip step display  -->
                     <Grid Height="60" ClipToBounds="True">
                         <StackPanel x:Name="StepPanel" Margin="0,0,0,0">
-                            <!--  Previous step (faded)  -->
                             <Grid Height="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -134,7 +131,6 @@
                                     Opacity="0.5"
                                     Text="" />
                             </Grid>
-                            <!--  Current step (full opacity)  -->
                             <Grid Height="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -156,7 +152,6 @@
                                     Foreground="#444444"
                                     Text="" />
                             </Grid>
-                            <!--  Next step (faded preview)  -->
                             <Grid Height="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />

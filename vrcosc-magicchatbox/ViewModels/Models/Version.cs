@@ -3,10 +3,6 @@ using System.Linq;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
-    /// <summary>
-    /// Normalizes an application version string to the <c>0.MINOR.BUILD</c> format used
-    /// for display and comparison across the app.
-    /// </summary>
     public class Version
     {
         public Version(string version)

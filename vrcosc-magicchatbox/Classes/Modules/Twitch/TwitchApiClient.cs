@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,10 +12,6 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Twitch;
 
-/// <summary>
-/// Handles all raw Twitch Helix API communication.
-/// Stateless regarding UI — only manages API session (credentials, cached broadcaster ID).
-/// </summary>
 public sealed class TwitchApiClient : ITwitchApiClient
 {
     private readonly TwitchAPI _api = new();

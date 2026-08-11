@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,10 +11,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Manages the main OSC build/send tick and pause/chat timers.
-/// TTS and persistence are handled by dedicated services.
-/// </summary>
 public sealed class ScanLoopService : IDisposable
 {
     private Timer? _backgroundCheck;
@@ -126,9 +122,6 @@ public sealed class ScanLoopService : IDisposable
         StopChatUpdateTimer();
     }
 
-    /// <summary>
-    /// Main timer tick handler — manages pause state and triggers scan loop.
-    /// </summary>
     private void OnBackgroundTick()
     {
         Interlocked.Exchange(ref _tickQueued, 0);
@@ -151,9 +144,6 @@ public sealed class ScanLoopService : IDisposable
         }
     }
 
-    /// <summary>
-    /// Core OSC tick — collects enabled module data, rebuilds the status text, then sends the OSC message.
-    /// </summary>
     public async Task Scantick(bool firstRun = false)
     {
         if (!_started || _disposed) return;
@@ -216,8 +206,6 @@ public sealed class ScanLoopService : IDisposable
         {
             var tasks = new List<Task>();
 
-            // Throttle VR runtime check — process enumeration is expensive and VR state
-            // rarely changes; cap to VrCheckMinInterval regardless of user scan interval.
             if (IsVrCheckDue())
             {
                 tasks.Add(_faultTracker.RunGuardedAsync(
@@ -227,7 +215,6 @@ public sealed class ScanLoopService : IDisposable
                 _lastVrCheckUtc = DateTime.UtcNow;
             }
 
-            // Throttle focused window scan + guard against duplicate in-flight scans.
             if (_integrationSettings.IntgrScanWindowActivity
                 && IsWindowActivityDue()
                 && Interlocked.CompareExchange(ref _windowActivityInFlight, 1, 0) == 0)
@@ -276,8 +263,6 @@ public sealed class ScanLoopService : IDisposable
         var formatted = await Task.Run(
             () => _timeFormatting.GetFormattedCurrentTime()).ConfigureAwait(false);
 
-        // Skip the UI-bound property set when nothing changed — avoids spurious
-        // PropertyChanged notifications on sub-second scan intervals.
         if (!string.Equals(formatted, _lastFormattedCurrentTime, StringComparison.Ordinal))
         {
             _lastFormattedCurrentTime = formatted;
@@ -389,7 +374,6 @@ public sealed class ScanLoopService : IDisposable
 
     private void OnChatUpdateTimerTick(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        // Marshal to UI thread — ObservableCollection (LastMessages) is not thread-safe
         _dispatcher.BeginInvoke(() =>
         {
             try

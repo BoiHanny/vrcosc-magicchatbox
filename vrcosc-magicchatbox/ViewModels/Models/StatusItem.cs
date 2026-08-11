@@ -3,9 +3,6 @@ using System.ComponentModel;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
-    /// <summary>
-    /// Represents a saved VRChat status message with metadata for cycling, favourites, and in-place editing.
-    /// </summary>
     public class StatusItem : INotifyPropertyChanged
     {
         private DateTime _CreationDate;

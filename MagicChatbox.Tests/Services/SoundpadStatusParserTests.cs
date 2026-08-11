@@ -1,4 +1,4 @@
-using vrcosc_magicchatbox.Services;
+﻿using vrcosc_magicchatbox.Services;
 using Xunit;
 
 namespace MagicChatbox.Tests.Services;
@@ -60,7 +60,6 @@ public sealed class SoundpadStatusParserTests
     [InlineData(null, "")]
     [InlineData("R-404: Command not found.", "")]
     [InlineData("Soundpad - my sound [0:12]", "my sound")]
-    // Live-verified paused format on Soundpad 4.0.30: marker precedes "Soundpad".
     [InlineData(" II  Soundpad - my sound", "my sound")]
     [InlineData(" II  Soundpad", "")]
     public void ParseNowPlayingTitle_ExtractsSoundName(string? title, string expected)

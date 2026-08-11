@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -8,10 +8,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Formats the current time using user TimeSettings.
-/// Extracted from ComponentStatsModule.GetTime() to eliminate static coupling.
-/// </summary>
 public sealed class TimeFormattingService : ITimeFormattingService
 {
     private readonly TimeSettings _ts;
@@ -90,7 +86,6 @@ public sealed class TimeFormattingService : ITimeFormattingService
             offset = tzInfo.BaseUtcOffset;
             if (_ts.UseDaylightSavingTime)
             {
-                // Use the adjustment rule matching the current date, not just the first rule
                 var rules = tzInfo.GetAdjustmentRules();
                 var matchingRule = rules.FirstOrDefault(r =>
                     localDateTime.DateTime >= r.DateStart && localDateTime.DateTime <= r.DateEnd);

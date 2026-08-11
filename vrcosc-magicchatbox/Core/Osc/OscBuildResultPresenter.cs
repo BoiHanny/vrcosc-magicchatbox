@@ -1,11 +1,7 @@
-using vrcosc_magicchatbox.ViewModels.State;
+﻿using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc;
 
-/// <summary>
-/// Applies OSC build results to WPF-bound display state.
-/// Keeps OscOutputBuilder focused on producing the Chatbox Message.
-/// </summary>
 public sealed class OscBuildResultPresenter
 {
     private readonly OscDisplayState _oscDisplay;

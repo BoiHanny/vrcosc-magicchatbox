@@ -41,4 +41,8 @@ public partial class PrivacySettings : VersionedSettings
     [ObservableProperty] private ConsentState _vrcLogReaderConsent = ConsentState.Unknown;
     [ObservableProperty] private int _vrcLogReaderConsentVersion = 0;
     [ObservableProperty] private DateTime? _vrcLogReaderDecidedAt;
+
+    [ObservableProperty] private ConsentState _vrPerformanceConsent = ConsentState.Unknown;
+    [ObservableProperty] private int _vrPerformanceConsentVersion = 0;
+    [ObservableProperty] private DateTime? _vrPerformanceDecidedAt;
 }

@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.IO.Pipes;
@@ -9,16 +9,10 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Low-level Discord IPC client using native Named Pipes.
-/// Implements the Discord RPC wire protocol: 8-byte header (opcode LE32 + length LE32) + UTF-8 JSON payload.
-/// </summary>
 public sealed class DiscordIpcClient : IDisposable
 {
     private const int HeaderSize = 8;
 
-    // Large GET_SELECTED_VOICE_CHANNEL responses (near-full voice channels) are legitimate
-    // multi-hundred-KB frames; anything beyond 4MB indicates a corrupt or misaligned header.
     private const int MaxFrameLength = 4 * 1024 * 1024;
 
     private NamedPipeClientStream? _pipe;
@@ -31,19 +25,12 @@ public sealed class DiscordIpcClient : IDisposable
     private int _reconnectAttempts;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
-    /// <summary>Raised on the read-loop thread when a JSON message arrives.</summary>
     public event Action<JObject>? MessageReceived;
 
-    /// <summary>Raised when the pipe disconnects unexpectedly.</summary>
     public event Action<Exception?>? Disconnected;
 
-    /// <summary>True when the pipe is connected.</summary>
     public bool IsConnected => _pipe?.IsConnected == true;
 
-    /// <summary>
-    /// Attempts to connect to Discord's IPC pipe (tries discord-ipc-0 through discord-ipc-9).
-    /// Returns true on success.
-    /// </summary>
     public async Task<bool> ConnectAsync(CancellationToken ct = default)
     {
         for (int i = 0; i <= Core.Constants.DiscordIpcMaxPipeIndex; i++)
@@ -79,9 +66,6 @@ public sealed class DiscordIpcClient : IDisposable
         return false;
     }
 
-    /// <summary>
-    /// Sends the initial handshake frame (opcode 0).
-    /// </summary>
     public async Task SendHandshakeAsync(string clientId)
     {
         var payload = new JObject
@@ -92,17 +76,11 @@ public sealed class DiscordIpcClient : IDisposable
         await WriteFrameAsync(0, payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Sends a standard RPC frame (opcode 1).
-    /// </summary>
     public async Task SendFrameAsync(JObject payload)
     {
         await WriteFrameAsync(1, payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Sends an AUTHENTICATE command with the given access token.
-    /// </summary>
     public async Task SendAuthenticateAsync(string accessToken, string nonce)
     {
         var payload = new JObject
@@ -117,10 +95,6 @@ public sealed class DiscordIpcClient : IDisposable
         await SendFrameAsync(payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Sends an AUTHORIZE command to request OAuth scopes via Discord's native consent dialog.
-    /// Returns immediately; the response arrives via <see cref="MessageReceived"/>.
-    /// </summary>
     public async Task SendAuthorizeAsync(string clientId, string[] scopes, string nonce)
     {
         var payload = new JObject
@@ -136,9 +110,6 @@ public sealed class DiscordIpcClient : IDisposable
         await SendFrameAsync(payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Sends a SUBSCRIBE command for the given event.
-    /// </summary>
     public async Task SubscribeAsync(string evt, JObject? args = null, string? nonce = null)
     {
         var payload = new JObject
@@ -152,9 +123,6 @@ public sealed class DiscordIpcClient : IDisposable
         await SendFrameAsync(payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Sends a GET_SELECTED_VOICE_CHANNEL command to fetch current channel state.
-    /// </summary>
     public async Task SendGetSelectedVoiceChannelAsync(string? nonce = null)
     {
         var payload = new JObject
@@ -165,10 +133,6 @@ public sealed class DiscordIpcClient : IDisposable
         await SendFrameAsync(payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Sends a SET_ACTIVITY command for Discord Rich Presence.
-    /// Works after HANDSHAKE + AUTHENTICATE. Activity fields follow the Discord RPC spec.
-    /// </summary>
     public async Task SendSetActivityAsync(JObject? activity, string? nonce = null)
     {
         var payload = new JObject
@@ -178,15 +142,11 @@ public sealed class DiscordIpcClient : IDisposable
             ["args"] = new JObject
             {
                 ["pid"] = Environment.ProcessId,
-                ["activity"] = activity // null clears the activity
-            }
+                ["activity"] = activity            }
         };
         await SendFrameAsync(payload).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Starts auto-reconnect loop with exponential backoff.
-    /// </summary>
     public void StartAutoReconnect(Func<Task> onReconnected)
     {
         _reconnectCts?.Cancel();
@@ -226,9 +186,6 @@ public sealed class DiscordIpcClient : IDisposable
         }, ct);
     }
 
-    /// <summary>
-    /// Disconnects gracefully.
-    /// </summary>
     public void Disconnect()
     {
         _intentionalDisconnect = true;
@@ -287,17 +244,14 @@ public sealed class DiscordIpcClient : IDisposable
 
                     switch (opcode)
                     {
-                        case 1: // FRAME
-                            try { MessageReceived?.Invoke(payload); }
+                        case 1:                            try { MessageReceived?.Invoke(payload); }
                             catch (Exception ex) { Logging.WriteInfo($"Discord message handler error: {ex.Message}"); }
                             break;
 
-                        case 2: // CLOSE
-                            Logging.WriteInfo($"Discord IPC received CLOSE: {payload}");
+                        case 2:                            Logging.WriteInfo($"Discord IPC received CLOSE: {payload}");
                             break;
 
-                        case 3: // PING → respond with PONG
-                            await WriteFrameAsync(4, payload).ConfigureAwait(false);
+                        case 3:                            await WriteFrameAsync(4, payload).ConfigureAwait(false);
                             break;
                     }
                 }
@@ -328,16 +282,12 @@ public sealed class DiscordIpcClient : IDisposable
         {
             ct.ThrowIfCancellationRequested();
             int read = await _pipe!.ReadAsync(header, totalRead, HeaderSize - totalRead, ct).ConfigureAwait(false);
-            if (read == 0) return (-1, null); // pipe closed
-            totalRead += read;
+            if (read == 0) return (-1, null);            totalRead += read;
         }
 
         int opcode = BitConverter.ToInt32(header, 0);
         int length = BitConverter.ToInt32(header, 4);
 
-        // Skipping a frame without consuming its declared payload would permanently desync
-        // the pipe, so an implausible length is fatal: return the closed-pipe sentinel so the
-        // read loop exits, fires Disconnected, and auto-reconnect rebuilds an aligned stream.
         if (length <= 0 || length > MaxFrameLength)
         {
             Logging.WriteInfo($"Discord IPC frame length {length} out of range (opcode {opcode}); closing pipe to realign.");

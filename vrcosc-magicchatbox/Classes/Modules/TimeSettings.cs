@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -6,14 +6,8 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Settings for the time display module, including timezone selection and format options.
-/// </summary>
 public partial class TimeSettings : VersionedSettings
 {
-    /// <summary>
-    /// Static lookup for timezone display names. Formerly on ViewModel.
-    /// </summary>
     public static Dictionary<Timezone, string> TimezoneFriendlyNames { get; } = new()
     {
         { Timezone.UTC, "Coordinated Universal Time (UTC)" },

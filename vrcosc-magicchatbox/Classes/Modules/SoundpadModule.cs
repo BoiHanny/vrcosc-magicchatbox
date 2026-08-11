@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -14,29 +14,18 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Module that interfaces with the Soundpad application over its remote-control named pipe,
-/// providing playback control and now-playing monitoring. Status comes from GetPlayStatus()
-/// and GetTitleText() pipe queries, which keep working while Soundpad is minimized to the
-/// system tray; window-title scraping remains only as a fallback for old Soundpad versions
-/// whose free edition exposes no pipe.
-/// </summary>
 public partial class SoundpadModule : ObservableObject, IModule
 {
     private const string SoundpadProcessName = "Soundpad";
     private const int PipeConnectTimeoutMs = 500;
     private const int PipeRequestTimeoutMs = 2000;
-    // After this many consecutive pipe failures, only retry connecting every PipeBackoffTicks polls.
     private const int PipeBackoffThreshold = 3;
     private const int PipeBackoffTicks = 10;
-    // After this many consecutive poll exceptions, auto-disable the integration.
     private const int MaxConsecutivePollFailures = 5;
 
     private readonly SoundpadPipeClient _client = new();
     private readonly System.Timers.Timer _stateTimer;
     private int _pollGate;
-    // Bumped whenever monitoring stops; in-flight polls compare it before applying state so a
-    // late dispatcher callback can't repopulate data that a stop/consent-revoke just cleared.
     private int _pollEpoch;
     private int _pipeFailureStreak;
     private int _ticksUntilPipeRetry;
@@ -137,10 +126,6 @@ public partial class SoundpadModule : ObservableObject, IModule
 
     public void SaveSettings() { }
 
-    /// <summary>
-    /// One poll cycle: process check → pipe status queries → legacy window-title fallback.
-    /// Overlapping ticks are skipped instead of queued.
-    /// </summary>
     private async Task PollAsync()
     {
         if (_disposed || !_stateTimer.Enabled)
@@ -191,8 +176,6 @@ public partial class SoundpadModule : ObservableObject, IModule
             }
 
             string song = SoundpadStatusParser.ParseNowPlayingTitle(titleResponse);
-            // The frame title lags behind playback start (and the pipe can break between the
-            // two queries) — keep the last known song rather than blanking it for a tick.
             if (song.Length == 0 && status != SoundpadPlayStatus.Stopped)
                 song = PlayingSong;
 
@@ -214,8 +197,6 @@ public partial class SoundpadModule : ObservableObject, IModule
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            // Leave IsSoundpadRunning/PlayingSong untouched — a transient poll failure must not
-            // flip UI state; only surface the error.
             SetError("😞 An error occurred while updating Soundpad state.");
             if (++_consecutivePollFailures >= MaxConsecutivePollFailures)
             {
@@ -256,10 +237,6 @@ public partial class SoundpadModule : ObservableObject, IModule
             _ticksUntilPipeRetry = PipeBackoffTicks;
     }
 
-    /// <summary>
-    /// Legacy status source for Soundpad versions without a remote-control pipe. Blind while
-    /// Soundpad is minimized to the tray (MainWindowTitle is empty there).
-    /// </summary>
     private void PollFromWindowTitle(int epoch, Process soundpadProc)
     {
         string title = string.Empty;
@@ -274,8 +251,6 @@ public partial class SoundpadModule : ObservableObject, IModule
 
         if (string.IsNullOrWhiteSpace(title))
         {
-            // A pipe that worked before is just transiently broken (Soundpad restart, sleep/wake);
-            // only blame the Soundpad version when the pipe never answered at all.
             string message = _pipeEverConnected
                 ? "😞 Lost the Soundpad connection — reconnecting…"
                 : "😞 Unable to read Soundpad — remote control unavailable and its window is minimized to the tray. Updating Soundpad usually fixes this.";
@@ -299,7 +274,6 @@ public partial class SoundpadModule : ObservableObject, IModule
     {
         _dispatcher.BeginInvoke(() =>
         {
-            // Stale poll: monitoring was stopped (or consent revoked) after this cycle started.
             if (epoch != Volatile.Read(ref _pollEpoch))
                 return;
 
@@ -322,11 +296,6 @@ public partial class SoundpadModule : ObservableObject, IModule
         });
     }
 
-    /// <summary>
-    /// Sends an action command over the pipe, then refreshes the now-playing state shortly
-    /// after. The "Soundpad.exe -rc" fallback only runs when the request never reached
-    /// Soundpad — a delivered-but-unanswered command may have executed and must not be retried.
-    /// </summary>
     private async Task SendCommandAsync(string command)
     {
         if (!IsSoundpadRunning)
@@ -357,7 +326,6 @@ public partial class SoundpadModule : ObservableObject, IModule
                 return;
             }
 
-            // Accepted is not completed — give Soundpad a moment, then refresh now-playing.
             await Task.Delay(150).ConfigureAwait(false);
             await PollAsync().ConfigureAwait(false);
         }
@@ -405,8 +373,6 @@ public partial class SoundpadModule : ObservableObject, IModule
         }
         catch (Exception ex)
         {
-            // Access denied when Soundpad runs elevated and MagicChatBox does not; the pipe
-            // still works in that case, so this is quietly non-fatal.
             Logging.WriteException(new Exception("Unable to resolve Soundpad location (is Soundpad running as administrator?)", ex), MSGBox: false);
             _soundpadLocation = string.Empty;
         }

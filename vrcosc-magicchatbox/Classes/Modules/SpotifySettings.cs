@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
@@ -57,10 +57,6 @@ public sealed class SpotifyTemplatePreset
     public bool SupportsSeekbar => SpotifySettings.TemplateSupportsSeekbar(Template);
 }
 
-/// <summary>
-/// Persisted settings for the first-class Spotify Web API integration.
-/// OAuth tokens are encrypted with the same DPAPI pattern used by other integrations.
-/// </summary>
 public partial class SpotifySettings : VersionedSettings
 {
     [ObservableProperty] private string _clientId = string.Empty;

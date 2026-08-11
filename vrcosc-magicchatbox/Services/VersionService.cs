@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
@@ -15,10 +15,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Checks GitHub for application updates and compares versions.
-/// Extracted from DataController — owns all update-check logic.
-/// </summary>
 public sealed class VersionService : IVersionService
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -65,10 +61,8 @@ public sealed class VersionService : IVersionService
         if (checkAgain)
             await Task.Delay(1000);
 
-        // SemaphoreSlim prevents re-entrant update checks (fixes race in old bool guard)
         if (!await _updateLock.WaitAsync(0))
         {
-            // Another check is running — wait for it to finish
             await _updateLock.WaitAsync();
             _updateLock.Release();
             return;
@@ -134,7 +128,6 @@ public sealed class VersionService : IVersionService
                     {
                         _updateState.PreReleaseVersion = new ViewModels.Models.Version(
                             Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
-                        // Use the URL from THIS matched prerelease (fixes bug where releases[0] was used)
                         _updateState.PreReleaseURL = preReleaseDownloadUrl ?? string.Empty;
                     }
                     break;
@@ -175,10 +168,6 @@ public sealed class VersionService : IVersionService
         }
     }
 
-    /// <summary>
-    /// Compares current app version against latest/pre-release and updates display state.
-    /// Uses numeric comparison (not string) to handle version segments correctly.
-    /// </summary>
     private void CompareVersions()
     {
         try
@@ -247,10 +236,6 @@ public sealed class VersionService : IVersionService
         }
     }
 
-    /// <summary>
-    /// Numeric version comparison. Parses "0.9.001" into segments and compares
-    /// each numerically, avoiding lexicographic bugs (e.g. "0.10" &lt; "0.9").
-    /// </summary>
     private static int CompareVersionNumbers(string a, string b)
     {
         if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))

@@ -7,10 +7,6 @@ using System.Windows.Media.Effects;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    /// <summary>
-    /// Returns a <see cref="BlurEffect"/> with a radius of 5 when the bound boolean is
-    /// <c>false</c>, and a zero-radius effect (no blur) when it is <c>true</c>.
-    /// </summary>
     public class BoolToBlurEffectConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

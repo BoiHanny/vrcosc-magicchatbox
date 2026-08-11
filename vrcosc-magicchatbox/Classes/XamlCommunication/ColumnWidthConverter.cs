@@ -5,10 +5,6 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    /// <summary>
-    /// Converts an <c>ActualWidth</c> double to a column width by subtracting a fixed
-    /// 50-pixel offset. Returns 0 if the result would be negative.
-    /// </summary>
     public class ColumnWidthConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

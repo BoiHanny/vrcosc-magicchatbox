@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -15,10 +15,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Spotify OAuth2 Authorization Code + PKCE flow for desktop clients.
-/// No client secret is used.
-/// </summary>
 public sealed class SpotifyOAuthHandler : IDisposable
 {
     private readonly INavigationService _nav;
@@ -39,8 +35,6 @@ public sealed class SpotifyOAuthHandler : IDisposable
         if (string.IsNullOrWhiteSpace(normalizedClientId))
             throw new InvalidOperationException("Spotify Client ID is required before authentication.");
 
-        // Start the callback listener before opening the browser. Binding failures (port in use,
-        // blocked URL ACL) used to surface two minutes later as an indistinguishable "timed out".
         try
         {
             StartListener();
@@ -98,8 +92,6 @@ public sealed class SpotifyOAuthHandler : IDisposable
                 return SpotifyAuthOutcome.Failure(SpotifyAuthFailureReason.StateMismatch);
             }
 
-            // Spotify reports authorize-step problems here (denied consent, unregistered redirect
-            // URI, unknown client). This used to be rendered into the browser tab and dropped.
             string error = query["error"] ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(error))
             {
@@ -183,8 +175,6 @@ public sealed class SpotifyOAuthHandler : IDisposable
 
         if (!response.IsSuccessStatusCode)
         {
-            // The body is where Spotify says *why* — e.g. invalid_grant when the refresh token was
-            // revoked. Logging only the status code hid the one useful piece of information.
             var (error, description) = SpotifyAuthOutcome.ParseErrorBody(body);
             Logging.WriteInfo(
                 $"Spotify token refresh failed ({(int)response.StatusCode} {response.StatusCode}): {error} {description}".TrimEnd());

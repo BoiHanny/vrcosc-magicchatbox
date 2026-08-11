@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,10 +12,6 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Manages the runtime UI collection for weather condition overrides.
-/// Reads/writes the serialized string from WeatherSettings.WeatherConditionOverrides.
-/// </summary>
 public partial class WeatherOverrideState : ObservableObject
 {
     private ObservableCollection<WeatherConditionOverrideItem> _items;
@@ -28,9 +24,6 @@ public partial class WeatherOverrideState : ObservableObject
         _weatherService = weatherService;
     }
 
-    /// <summary>
-    /// Must be called after DI is ready to bind to WeatherSettings.
-    /// </summary>
     public void Initialize(WeatherSettings settings)
     {
         _settings = settings;
@@ -85,7 +78,6 @@ public partial class WeatherOverrideState : ObservableObject
 
     private void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        // React to both CustomText AND CustomIcon changes (fixes icon persistence bug)
         if (e.PropertyName != nameof(WeatherConditionOverrideItem.CustomText) &&
             e.PropertyName != nameof(WeatherConditionOverrideItem.CustomIcon))
             return;

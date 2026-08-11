@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,9 +9,6 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Settings for the tracker battery display module, including layout, thresholds, and sort options.
-/// </summary>
 public partial class TrackerBatterySettings : VersionedSettings
 {
     public static IEnumerable<TrackerBatterySortMode> AvailableSortModes { get; } = Enum.GetValues(typeof(TrackerBatterySortMode)).Cast<TrackerBatterySortMode>().ToList();
@@ -78,9 +75,5 @@ public partial class TrackerBatterySettings : VersionedSettings
         }
     }
 
-    /// <summary>
-    /// Persisted tracker device list — restored across restarts.
-    /// At runtime this is copied into TrackerDisplayState.TrackerDevices.
-    /// </summary>
     [ObservableProperty] private ObservableCollection<TrackerDevice> _savedDevices = new();
 }

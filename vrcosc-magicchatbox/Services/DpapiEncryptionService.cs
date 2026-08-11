@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// DPAPI-based encryption service. Data is bound to the current Windows user.
-/// </summary>
 public sealed class DpapiEncryptionService : IEncryptionService
 {
     public string? Encrypt(string plainText)
@@ -34,7 +31,6 @@ public sealed class DpapiEncryptionService : IEncryptionService
         }
         catch (CryptographicException)
         {
-            // Old AES-encrypted data or machine-bound data — token must be re-entered
             return null;
         }
         catch (FormatException)

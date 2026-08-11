@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -6,9 +6,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
-    /// <summary>
-    /// Interaction logic for ManualPulsoidAuth.xaml
-    /// </summary>
     public partial class ManualPulsoidAuth : Window
     {
         private readonly PulsoidOAuthHandler _oauthHandler;
@@ -79,7 +76,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 if (isValidToken)
                 {
                     _heartRateConnector.Settings.AccessTokenOAuth = token;
-                    // Persist immediately — waiting for shutdown risks losing the token on crash/kill
                     _heartRateConnector.SaveSettings();
                     _setPulsoidAuth(true);
                     Close();

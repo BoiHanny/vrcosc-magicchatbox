@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.WindowActivitySection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -159,7 +159,6 @@
                             ToolTip="Applied to every window title. Use either a capture regex or pattern =&gt; replacement. Example: ^(.+?)(?:\s*[-–—]\s*[^-–—]+\s*[-–—]\s*(.+)|\s*[-–—]\s*[^-–—]+)?$ =&gt; $1 $2" />
                     </StackPanel>
 
-                    <!--  Content Filters  -->
                     <CheckBox
                         Margin="0,10,0,0"
                         IsChecked="{Binding WindowActivitySettings.EnableTitleFilters, Mode=TwoWay}"
@@ -649,7 +648,6 @@
                                         LostKeyboardFocus="ScannedAppTextBox_LostKeyboardFocus"
                                         Text="{Binding CustomAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
-                                <!--  Per-app content filter (visible when enabled in settings)  -->
                                 <StackPanel
                                     Grid.Column="6"
                                     MinWidth="200"

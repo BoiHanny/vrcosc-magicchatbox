@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -9,10 +9,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs;
 
-/// <summary>
-/// First-run wizard: privacy hook configuration with TOS/SLA links in the footer.
-/// DialogResult is true only when the user clicks "Accept &amp; Continue".
-/// </summary>
 public partial class TosAndPrivacyWizard : Window
 {
     private readonly IPrivacyConsentService _consentService;
@@ -100,15 +96,16 @@ public partial class TosAndPrivacyWizard : Window
             warning: null,
             isApproved: DefaultApproved(hook)),
 
+        PrivacyHook.VrPerformance => new HookItem(hook,
+            title: "🎯  VR Performance  (SteamVR frame timing)",
+            description: "Reads SteamVR's compositor counters — frame rate, reprojection, dropped frames and GPU " +
+                         "frame time — so you can see performance while wearing the headset. All data stays local.",
+            warning: "Requires SteamVR. Players using VDXR, the Oculus runtime, or a standalone headset won't see this.",
+            isApproved: DefaultApproved(hook)),
+
         _ => new HookItem(hook, hook.ToString(), string.Empty, null, DefaultApproved(hook)),
     };
 
-    /// <summary>
-    /// Returns the effective approved state for a hook:
-    /// - If the user has already made a decision, honour it.
-    /// - On first run (Unknown), default WindowActivity, MediaSession, AfkSensor,
-    ///   and InternetAccess to ON; everything else OFF.
-    /// </summary>
     private bool DefaultApproved(PrivacyHook hook) =>
         _consentService.GetState(hook) switch
         {

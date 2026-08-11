@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,10 +16,6 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Main Pulsoid monitoring module that connects to the Pulsoid WebSocket,
-/// processes heart rate data, and sends updates to VRChat via OSC.
-/// </summary>
 public partial class PulsoidModule : ObservableObject, IModule
 {
     private CancellationTokenSource _cts;
@@ -111,7 +107,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         RefreshTrendSymbols();
         RefreshTimeRanges();
 
-        // Subscribe to client events (fire on background threads — marshal to UI where needed)
         _client.HeartRateReceived += OnHeartRateReceived;
         _client.ConnectionFailed += OnConnectionFailed;
         _client.ConnectionStateChanged += OnConnectionStateChanged;
@@ -244,8 +239,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         if (!Settings.ThrottleHR || rawHR <= Settings.ThrottleHRMax)
             return rawHR;
 
-        const int maxHumanHR = 200; // Absolute physiological limit
-        int baseHR = Settings.ThrottleHRMax;
+        const int maxHumanHR = 200;        int baseHR = Settings.ThrottleHRMax;
         int allowedSpread = Settings.ThrottleMaxAdditional;
 
         int excess = rawHR - baseHR;
@@ -300,10 +294,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         OscSender.SendOscParam($"{baseAddress}_Hundreds", hundreds);
     }
 
-    /// <summary>
-    /// Send HR and associated parameters to the avatar via OSC.
-    /// </summary>
-    /// <param name="isHRBeat">True if this is triggered by a new HR reading, false if a fallback update.</param>
     private void SendHRToOSC(bool isHRBeat)
     {
         if (!_integrationSettings.IntgrHeartRate_OSC) return;
@@ -440,7 +430,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         }
         finally
         {
-            // Only clean up if this is still the active attempt (avoids disposing a newer CTS)
             if (ReferenceEquals(_cts, cts))
             {
                 cts.Dispose();
@@ -491,7 +480,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     {
         if (Settings.ShowHeartRateTrendIndicator)
         {
-            // Clamp: a non-positive sample rate (unvalidated TextBox) would dequeue an empty queue
             int sampleRate = Math.Max(1, Settings.HeartRateTrendIndicatorSampleRate);
             if (_heartRateHistory.Count >= sampleRate)
             {
@@ -870,7 +858,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         new PulsoidTrendSymbolSet { UpwardTrendSymbol = "🔺", DownwardTrendSymbol = "🔻" },
     };
 
-        // Guard against a damaged settings file with a null selection — heal to the first symbol set
         var selectedSymbol = Settings.SelectedPulsoidTrendSymbol?.CombinedTrendSymbol;
         var symbolExists = selectedSymbol != null && Settings.PulsoidTrendSymbols.Any(s => s.CombinedTrendSymbol == selectedSymbol);
 

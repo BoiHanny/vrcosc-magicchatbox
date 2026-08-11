@@ -1,4 +1,4 @@
-using MagicChatboxAPI.Services;
+﻿using MagicChatboxAPI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Common;
@@ -28,15 +28,8 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox
 {
-    /// <summary>
-    /// Application entry point. Bootstraps the DI container, runs startup migration, and
-    /// shows the main window after all services and modules are initialized.
-    /// </summary>
     public partial class App : Application
     {
-        /// <summary>
-        /// DI service provider — use App.Services to resolve dependencies.
-        /// </summary>
         public static IServiceProvider Services { get; private set; } = null!;
 
         private static readonly Lazy<AppSettings> _lazyAppSettings = new(() =>
@@ -65,7 +58,6 @@ namespace vrcosc_magicchatbox
         private long _watchdogBaselineTicks = Environment.TickCount64;
         private string _lastStartupPhase = "Process created.";
 
-        // Crash-loop breaker for handled dispatcher exceptions (only touched on the UI thread).
         private static readonly TimeSpan HandledDispatcherExceptionWindow = TimeSpan.FromSeconds(60);
         private const int MaxHandledDispatcherExceptionsInWindow = 3;
         private readonly System.Collections.Generic.Queue<DateTime> _handledDispatcherExceptionTimes = new();
@@ -138,7 +130,6 @@ namespace vrcosc_magicchatbox
                 _loggingReady = true;
                 LogStartupPhase("Logging configured.");
 
-                // Initialize static Logging with DI services (eliminates service locator in Logging.cs)
                 Logging.Initialize(
                     Services.GetRequiredService<AppUpdateState>(),
                     Services.GetRequiredService<IEnvironmentService>(),
@@ -167,7 +158,6 @@ namespace vrcosc_magicchatbox
 
                 var vm = await RunRequiredStartupTaskAsync("core state preparation", () =>
                 {
-                    // Initialize static defaults for model classes (eliminates service locator in models)
                     ChatItem.DefaultChatStatus = Services.GetRequiredService<ChatStatusDisplayState>();
                     TrackerDevice.DefaultTrackerSettings = Services.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>().Value;
                     LogStartupPhase("Model defaults initialized.");
@@ -239,8 +229,6 @@ namespace vrcosc_magicchatbox
                 }
 
                 bool tosJustAccepted = false;
-                // Modal TOS/privacy dialogs wait on the user — the startup watchdog must not
-                // hard-exit while this flag is set.
                 _interactiveStartupPhase = true;
                 {
                     LogStartupPhase("Checking TOS/privacy wizard state.");
@@ -251,7 +239,6 @@ namespace vrcosc_magicchatbox
                         var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider);
                         DialogWindowHelper.PrepareModal(wizard, loadingWindow);
                         tosJustAccepted = wizard.ShowDialog() == true;
-                        // If wizard was dismissed, fall through to per-hook consent dialog below
                     }
                 }
 
@@ -268,8 +255,6 @@ namespace vrcosc_magicchatbox
                     }
                 }
                 _interactiveStartupPhase = false;
-                // Give the remaining startup work a fresh watchdog budget: the user may have
-                // spent minutes in the TOS/privacy dialogs above.
                 Interlocked.Exchange(ref _watchdogBaselineTicks, Environment.TickCount64);
 
                 await InitializeComponentsWithProgress(loadingWindow, startupCancellation.Token);
@@ -286,8 +271,6 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<IStatePersistenceCoordinator>(),
                     Services.GetRequiredService<ITrayIconService>(),
                     Services.GetRequiredService<HotkeyManagement>());
-                // DataContext is NOT set yet — Show() renders an empty shell in ~570ms
-                // instead of hanging while WPF evaluates every binding + automation peer.
                 Logging.WriteInfo("MainWindow instance created.");
 
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
@@ -335,7 +318,6 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.HideStartupOverlay();
 
-                // Signal that startup is complete — modules waiting for auto-start can now proceed
                 Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
                 Logging.WriteInfo("[Startup] Startup-complete signal fired.");
 
@@ -368,7 +350,6 @@ namespace vrcosc_magicchatbox
                 InitializeUserMonitoring();
                 Logging.WriteInfo("[Startup] User monitoring initialized.");
 
-                // Start background scan loop LAST — after window is visible and splash is gone
                 Logging.WriteInfo("[Startup] Starting background scan loop...");
                 mainWindow.StartBackgroundProcessing();
                 Logging.WriteInfo("[Startup] Background processing started.");
@@ -387,25 +368,24 @@ namespace vrcosc_magicchatbox
                 {
                     loadingWindow?.Close();
                 }
-                catch { /* window may already be closing */ }
+                catch { }
 
                 Shutdown();
             }
             catch (Exception ex)
             {
                 LogStartupPhase($"Startup failed: {ex}");
-                // If logging is available, use it; otherwise fall back to MessageBox
                 try
                 {
                     Logging.WriteException(ex, MSGBox: false);
                 }
-                catch { /* logging itself may have failed */ }
+                catch { }
 
                 try
                 {
                     loadingWindow?.Close();
                 }
-                catch { /* window may not be open */ }
+                catch { }
 
                 MessageBox.Show(
                     $"MagicChatbox failed to start:\n\n{ex.Message}\n\nPlease report this error.",
@@ -463,7 +443,6 @@ namespace vrcosc_magicchatbox
                 }
                 catch (ApplicationException)
                 {
-                    // Mutex was not owned at shutdown; no recovery is needed.
                 }
             }
 
@@ -528,17 +507,12 @@ namespace vrcosc_magicchatbox
         {
             try
             {
-                // Poll on a short interval and measure the budget from a baseline that resets
-                // whenever a modal dialog phase ends, so time the user spent reading the TOS is
-                // never counted against genuine-hang detection.
                 while (true)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
                     if (_startupCompleted || cancellationToken.IsCancellationRequested)
                         return;
 
-                    // Modal TOS/privacy dialogs legitimately wait on the user — keep the clock
-                    // pinned to "now" while one is open so it can never elapse mid-dialog.
                     if (_interactiveStartupPhase)
                     {
                         Interlocked.Exchange(ref _watchdogBaselineTicks, Environment.TickCount64);
@@ -557,7 +531,6 @@ namespace vrcosc_magicchatbox
                     }
                     catch
                     {
-                        // Logging may not be ready if startup stalled early.
                     }
 
                     await Task.Yield();
@@ -587,9 +560,6 @@ namespace vrcosc_magicchatbox
                 LogManager.LoadConfiguration(nlogConfigPath);
             }
 
-            // After configuration is loaded, cache a logger instance for the
-            // static Logging helper to avoid initializing NLog during
-            // FirstChanceException handling which can cause recursive errors.
             try
             {
                 var logger = LogManager.GetCurrentClassLogger();
@@ -597,7 +567,6 @@ namespace vrcosc_magicchatbox
             }
             catch
             {
-                // ignore - Logging will fallback to Console.Error when needed
             }
         }
 
@@ -614,7 +583,6 @@ namespace vrcosc_magicchatbox
                 }
                 catch
                 {
-                    // Fall through to early file logging.
                 }
             }
 
@@ -741,7 +709,6 @@ namespace vrcosc_magicchatbox
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            // Unrecoverable faults and failures before startup finished keep the fail-fast path.
             if (!_startupCompleted ||
                 e.Exception is OutOfMemoryException ||
                 e.Exception is AccessViolationException ||
@@ -751,8 +718,6 @@ namespace vrcosc_magicchatbox
                 return;
             }
 
-            // Crash-loop breaker: repeated faults in a short window mean something is
-            // systematically broken — fall back to the dialog + exit path.
             DateTime now = DateTime.UtcNow;
             _handledDispatcherExceptionTimes.Enqueue(now);
             while (_handledDispatcherExceptionTimes.Count > 0 &&
@@ -773,7 +738,6 @@ namespace vrcosc_magicchatbox
             }
             catch
             {
-                // The handler itself must never throw.
             }
 
             e.Handled = true;
@@ -788,7 +752,6 @@ namespace vrcosc_magicchatbox
             }
             catch
             {
-                // Toast surface unavailable — the exception is already logged.
             }
         }
 
@@ -800,7 +763,6 @@ namespace vrcosc_magicchatbox
             }
             catch
             {
-                // Logging must never take down the finalizer thread.
             }
 
             e.SetObserved();
@@ -896,7 +858,6 @@ namespace vrcosc_magicchatbox
 
             Services.GetRequiredService<WeatherOverrideState>().Initialize(_weatherSettings);
 
-            // ── Wave 1: File I/O (all independent, run in parallel) ──
             loadingWindow.UpdateProgress("Loading your saved data...", 20, "Firing up modules...");
             await Task.WhenAll(
                 RunOptionalStartupTaskAsync("settings restore", () =>
@@ -941,7 +902,6 @@ namespace vrcosc_magicchatbox
             LogStep("Wave 1 complete");
             cancellationToken.ThrowIfCancellationRequested();
 
-            // ── Wave 2: Module initialization (independent, run in parallel) ──
             loadingWindow.UpdateProgress("Firing up modules...", 55, "Finishing the last startup modules...");
             await Task.WhenAll(
                 RunOptionalStartupTaskAsync("ComponentStats", async () =>
@@ -987,7 +947,6 @@ namespace vrcosc_magicchatbox
             LogStep("Wave 2 complete");
             cancellationToken.ThrowIfCancellationRequested();
 
-            // ── Wave 3: Final wiring (MediaLink + runtime modules + seekbar) ──
             loadingWindow.UpdateProgress("Finishing the last startup modules...", 85, "Starting runtime modules...");
             ApplicationMediaController = new MediaLinkModule(
                 _integrationSettings.IntgrScanMediaLink,

@@ -1,10 +1,9 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for the status message settings section.</summary>
 public partial class StatusSection : UserControl
 {
     private StatusSectionViewModel VM => (StatusSectionViewModel)DataContext;

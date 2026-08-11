@@ -1,58 +1,37 @@
-using System;
+﻿using System;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using vrcosc_magicchatbox.Core;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Spotify;
 
-/// <summary>Why a Spotify OAuth attempt did not produce a token.</summary>
 public enum SpotifyAuthFailureReason
 {
-    /// <summary>No failure — a token was returned.</summary>
     None = 0,
 
-    /// <summary>The local callback listener could not start (port in use, URL ACL, firewall).</summary>
     ListenerUnavailable,
 
-    /// <summary>The browser never returned to the callback within the allotted window.</summary>
     TimedOut,
 
-    /// <summary>The redirect carried a different <c>state</c> than the one we sent.</summary>
     StateMismatch,
 
-    /// <summary>Spotify reported an error on the authorize step, or sent no code.</summary>
     AuthorizationDenied,
 
-    /// <summary>Spotify rejected the authorization-code-for-token exchange.</summary>
     TokenExchangeRejected,
 
-    /// <summary>Spotify replied with something that could not be parsed.</summary>
     MalformedResponse,
 
-    /// <summary>Anything not covered above.</summary>
     Unexpected,
 }
 
-/// <summary>
-/// Result of a Spotify OAuth attempt, carrying enough detail to tell the user what to fix.
-/// <para>
-/// Previously every failure collapsed into a null return and a single generic message, so a
-/// mis-registered redirect URI, an unrecognised Client ID and an occupied callback port were
-/// indistinguishable to the person trying to connect.
-/// </para>
-/// </summary>
 public sealed record SpotifyAuthOutcome
 {
-    /// <summary>The token, when the flow succeeded.</summary>
     public SpotifyTokenResult? Token { get; init; }
 
-    /// <summary>Which step failed. <see cref="SpotifyAuthFailureReason.None"/> on success.</summary>
     public SpotifyAuthFailureReason Reason { get; init; }
 
-    /// <summary>Spotify's machine-readable error code, e.g. <c>invalid_client</c>.</summary>
     public string? SpotifyError { get; init; }
 
-    /// <summary>Spotify's own description, or a local diagnostic. Never contains a code or token.</summary>
     public string? Detail { get; init; }
 
     public bool Succeeded => Token != null;
@@ -66,11 +45,6 @@ public sealed record SpotifyAuthOutcome
         string? spotifyError = null)
         => new() { Reason = reason, Detail = detail, SpotifyError = spotifyError };
 
-    /// <summary>
-    /// Pulls <c>error</c> / <c>error_description</c> out of a Spotify error body. Spotify puts the
-    /// actual cause there (for example <c>invalid_grant: Invalid redirect URI</c>) and the app used
-    /// to throw the whole body away, keeping only the status code.
-    /// </summary>
     public static (string? Error, string? Description) ParseErrorBody(string? body)
     {
         if (string.IsNullOrWhiteSpace(body))
@@ -80,8 +54,6 @@ public sealed record SpotifyAuthOutcome
         {
             var json = JObject.Parse(body);
 
-            // Token endpoint: {"error":"invalid_grant","error_description":"..."}
-            // Web API:        {"error":{"status":401,"message":"..."}}
             var error = json["error"];
             if (error is JObject nested)
                 return (nested["status"]?.ToString(), nested["message"]?.ToString());
@@ -90,12 +62,10 @@ public sealed record SpotifyAuthOutcome
         }
         catch (Exception)
         {
-            // Not JSON — a proxy or captive portal can return HTML here.
             return (null, null);
         }
     }
 
-    /// <summary>An actionable sentence for the connect dialog and toast.</summary>
     public string BuildUserMessage()
     {
         if (Succeeded)

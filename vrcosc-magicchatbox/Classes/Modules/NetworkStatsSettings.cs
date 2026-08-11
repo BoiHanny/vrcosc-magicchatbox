@@ -1,11 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Persisted settings for the network statistics display module.
-/// </summary>
 public partial class NetworkStatsSettings : VersionedSettings
 {
     [ObservableProperty] private bool _showCurrentDown = true;

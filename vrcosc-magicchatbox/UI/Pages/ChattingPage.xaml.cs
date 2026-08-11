@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -11,7 +11,6 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.UI.Pages
 {
-    /// <summary>Code-behind for the chatting page, handling keyboard input, inline editing, and scroll-to-end.</summary>
     public partial class ChattingPage : UserControl
     {
         private ChattingPageViewModel VM => (ChattingPageViewModel)DataContext;
@@ -28,7 +27,6 @@ namespace vrcosc_magicchatbox.UI.Pages
                     FocusChatInput();
             };
 
-            // Wire scroll-to-end when DataContext arrives (may be deferred past Show).
             DataContextChanged += (_, args) =>
             {
                 if (args.OldValue is ChattingPageViewModel oldVm && _scrollToEndHandler != null)

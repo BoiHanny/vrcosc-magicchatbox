@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -9,10 +9,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for OpenAI integration options.
-/// Complete binding surface for OpenAISection.xaml.
-/// </summary>
 public partial class OpenAISectionViewModel : ObservableObject
 {
     private readonly ISettingsProvider<OpenAISettings> _settingsProvider;
@@ -30,10 +26,6 @@ public partial class OpenAISectionViewModel : ObservableObject
 
     private readonly Lazy<IModuleHost> _moduleHost;
 
-    /// <summary>
-    /// Initializes the OpenAI section ViewModel with the IntelliChat module, settings,
-    /// app-state, and supporting services.
-    /// </summary>
     public OpenAISectionViewModel(
         ISettingsProvider<OpenAISettings> settingsProvider,
         OpenAIDisplayState displayState,

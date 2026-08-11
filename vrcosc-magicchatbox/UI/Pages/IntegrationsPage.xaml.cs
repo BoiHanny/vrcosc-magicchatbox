@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -13,7 +13,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Pages
 {
-    /// <summary>Code-behind for the integrations page; applies and tracks the user-defined integration sort order.</summary>
     public partial class IntegrationsPage : UserControl
     {
         private ObservableCollection<string> _integrationSortOrder;
@@ -22,7 +21,6 @@ namespace vrcosc_magicchatbox.UI.Pages
         public IntegrationsPage()
         {
             InitializeComponent();
-            // Wire integration order when DataContext arrives (may be deferred past Show).
             DataContextChanged += (_, e) =>
             {
                 if (e.OldValue is IntegrationsPageViewModel oldVm)
@@ -54,6 +52,7 @@ namespace vrcosc_magicchatbox.UI.Pages
                 { "Window", WindowActivityItem },
                 { "HeartRate", HeartRateItem },
                 { "TrackerBattery", TrackerBatteryItem },
+                { "VrPerformance", VrPerformanceItem },
                 { "Component", ComponentStatsItem },
                 { "Network", NetworkStatsItem },
                 { "Time", TimeItem },

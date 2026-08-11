@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -14,10 +14,6 @@ using vrcosc_magicchatbox.Core.State;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Owns ScannedApps collection, sorting, error state, and related commands
-/// for the Window Activity section of the UI.
-/// </summary>
 public partial class WindowActivityDisplayState : ObservableObject
 {
     private readonly object _lock = new();
@@ -241,10 +237,6 @@ public partial class WindowActivityDisplayState : ObservableObject
             return;
         }
 
-        // Debounce/aggregate resort+refresh: many ProcessInfo items emit
-        // PropertyChanged events in rapid bursts (focus count tick, title updates).
-        // Sorting+refreshing per-event causes UI-thread sort storms and
-        // can deadlock against CollectionViewSource refresh.
         ScheduleResortAndRefreshDebounced();
     }
 
@@ -369,8 +361,7 @@ public partial class WindowActivityDisplayState : ObservableObject
 
         try
         {
-            await Task.Delay(150, token); // 150ms debounce
-            if (!token.IsCancellationRequested)
+            await Task.Delay(150, token);            if (!token.IsCancellationRequested)
             {
                 RefreshScannedAppsView();
             }
@@ -393,9 +384,6 @@ public partial class WindowActivityDisplayState : ObservableObject
 
         try
         {
-            // Aggregate bursts of ProcessInfo property changes into a single
-            // resort+refresh pass. 200ms is below human perception threshold
-            // but long enough to absorb timer-driven update storms.
             await Task.Delay(200, token);
             if (!token.IsCancellationRequested)
             {

@@ -1,34 +1,24 @@
-namespace vrcosc_magicchatbox.Core.Privacy;
+﻿namespace vrcosc_magicchatbox.Core.Privacy;
 
 public enum PrivacyHook
 {
-    /// <summary>
-    /// Hardware stats through Windows APIs, WMI, and the user-mode GPU vendor libraries
-    /// (atiadlxx.dll / nvml.dll). No kernel-mode sensor driver is loaded.
-    /// </summary>
     HardwareMonitor = 0,
 
-    /// <summary>UIAutomation + GetForegroundWindow — reads currently focused window title and process name.</summary>
     WindowActivity = 1,
 
-    /// <summary>Windows SMTC — reads media metadata (title, artist) from media players.</summary>
     MediaSession = 2,
 
-    /// <summary>GetLastInputInfo — reads the timestamp of the last keyboard/mouse event.</summary>
     AfkSensor = 3,
 
-    /// <summary>Outbound HTTP — Twitch API, Pulsoid heart-rate API, Weather service.</summary>
     InternetAccess = 4,
 
-    /// <summary>Valve.VR / OpenVR — connects to SteamVR to read HMD, controller, and tracker battery levels.</summary>
     VrTrackerBattery = 5,
 
-    /// <summary>System.Net.NetworkInformation — reads network interface byte counters for throughput display.</summary>
     NetworkStats = 6,
 
-    /// <summary>Named pipe IPC — connects to the Soundpad desktop application for playback control.</summary>
     SoundpadBridge = 7,
 
-    /// <summary>File read — parses VRChat output_log.txt for world info, player events, and session stats.</summary>
     VrcLogReader = 8,
+
+    VrPerformance = 9,
 }

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -7,16 +7,8 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Models
 {
-    /// <summary>
-    /// Represents a single chat message item in the recent messages list,
-    /// with live-edit and resend support.
-    /// </summary>
     public partial class ChatItem : INotifyPropertyChanged
     {
-        /// <summary>
-        /// Set once from App.OnStartup after DI is built.
-        /// Used by the parameterless ctor (JSON deserialization).
-        /// </summary>
         internal static ChatStatusDisplayState? DefaultChatStatus { get; set; }
 
         private readonly ChatStatusDisplayState _chatStatus;
@@ -48,7 +40,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             _chatStatus = chatStatus;
         }
 
-        /// <summary>Parameterless ctor for JSON deserialization only.</summary>
         public ChatItem()
         {
             _chatStatus = DefaultChatStatus

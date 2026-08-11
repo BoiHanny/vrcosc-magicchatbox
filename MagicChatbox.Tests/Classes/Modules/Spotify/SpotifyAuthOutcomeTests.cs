@@ -1,16 +1,11 @@
-using vrcosc_magicchatbox.Classes.Modules.Spotify;
+﻿using vrcosc_magicchatbox.Classes.Modules.Spotify;
 using vrcosc_magicchatbox.Core;
 using Xunit;
 
 namespace MagicChatbox.Tests.Classes.Modules.Spotify;
 
-/// <summary>
-/// Every OAuth failure used to collapse into "Connection cancelled or timed out. Check the Client
-/// ID and redirect URI." — which named neither the real cause nor the fix.
-/// </summary>
 public class SpotifyAuthOutcomeTests
 {
-    // ---- Error-body parsing ---------------------------------------------
 
     [Fact]
     public void ParseErrorBody_ReadsTheTokenEndpointShape()
@@ -45,7 +40,6 @@ public class SpotifyAuthOutcomeTests
         Assert.Null(description);
     }
 
-    // ---- Message mapping -------------------------------------------------
 
     [Fact]
     public void RedirectUriRejection_NamesTheExactUriToRegister()
@@ -126,7 +120,6 @@ public class SpotifyAuthOutcomeTests
     [Fact]
     public void FailureNeverExposesSecrets()
     {
-        // Only Spotify's own error fields flow into the message; the code and verifier must not.
         var outcome = SpotifyAuthOutcome.Failure(
             SpotifyAuthFailureReason.TokenExchangeRejected,
             "Invalid redirect URI",

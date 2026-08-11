@@ -2,10 +2,6 @@
 
 namespace vrcosc_magicchatbox.Classes
 {
-    /// <summary>
-    /// Attached property that exposes a <c>ShadowTrigger</c> boolean on any
-    /// <see cref="DependencyObject"/> for use as a XAML trigger target.
-    /// </summary>
     public class ButtonProperties
     {
         public static readonly DependencyProperty ShadowTriggerProperty =
