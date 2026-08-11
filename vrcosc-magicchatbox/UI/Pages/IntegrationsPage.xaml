@@ -17,14 +17,53 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <ListBox
-        x:Name="IntegrationsList"
-        HorizontalAlignment="Stretch"
-        Background="Transparent"
-        BorderThickness="0"
-        RenderOptions.BitmapScalingMode="NearestNeighbor"
-        ScrollViewer.CanContentScroll="False"
-        ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--
+            Integrations are gated per mode (VR / Desktop). Something switched on but hidden in the
+            current mode produces nothing at all, which used to be completely silent.
+        -->
+        <Border
+            Grid.Row="0"
+            Margin="10,5,19,0"
+            Padding="10,7"
+            HorizontalAlignment="Stretch"
+            Background="#332B1B4A"
+            BorderBrush="#9B7FD9"
+            BorderThickness="1"
+            CornerRadius="5"
+            d:Visibility="Visible"
+            Visibility="{Binding HasModeVisibilityWarning, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,7,0"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Text="👁" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    d:Text="Enabled but not shown in VR mode: Network Statistics."
+                    FontFamily="Comfortaa Light"
+                    FontSize="12"
+                    Foreground="#D9CCF5"
+                    Text="{Binding ModeVisibilityWarning, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <ListBox
+            x:Name="IntegrationsList"
+            Grid.Row="1"
+            HorizontalAlignment="Stretch"
+            Background="Transparent"
+            BorderThickness="0"
+            RenderOptions.BitmapScalingMode="NearestNeighbor"
+            ScrollViewer.CanContentScroll="False"
+            ScrollViewer.HorizontalScrollBarVisibility="Hidden">
         <ListBox.ItemContainerStyle>
             <Style TargetType="ListBoxItem">
                 <Setter Property="Template">
@@ -759,29 +798,29 @@
                                 </TextBlock>
 
                             </StackPanel>
+                            <!--
+                                Elevation can no longer fix anything here — the vendor GPU sensor
+                                APIs are user-mode. The one remaining actionable case is a missing
+                                Hardware Monitor consent, so that is all this offers.
+                            -->
                             <StackPanel
                                 HorizontalAlignment="Right"
                                 d:Visibility="Visible"
                                 Orientation="Horizontal"
-                                Visibility="{Binding ComponentStats.IsThereAComponentThatIsNotGettingTempOrWattage, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                Visibility="{Binding CanResolveComponentStatsAccessIssue, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <Button
-                                    x:Name="RestartApplicationAsAdmin"
+                                    x:Name="ResolveComponentStatsAccess"
                                     Height="30"
                                     Margin="3"
                                     VerticalAlignment="Top"
-                                    Click="RestartApplicationAsAdmin_Click"
-                                    IsEnabled="{Binding CanResolveComponentStatsAccessIssue}"
+                                    Click="ResolveComponentStatsAccess_Click"
                                     Opacity="0.7"
                                     Style="{StaticResource Status_Button_style}">
                                     <Button.ContentTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <Image
-                                                    Height="18"
-                                                    Margin="4,0,4,0"
-                                                    Source="/Img/Icons/admin.png" />
                                                 <TextBlock
-                                                    Margin="0,-2,5,0"
+                                                    Margin="8,-2,8,0"
                                                     VerticalAlignment="Center"
                                                     FontSize="15"
                                                     Text="{Binding ComponentStatsAccessWarningText}" />
@@ -2878,5 +2917,6 @@
 
 
 
-    </ListBox>
+        </ListBox>
+    </Grid>
 </UserControl>

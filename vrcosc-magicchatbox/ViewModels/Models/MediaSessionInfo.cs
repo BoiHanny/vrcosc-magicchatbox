@@ -109,7 +109,14 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             get { return _PlaybackStatus; }
             set
             {
+                if (_PlaybackStatus == value)
+                    return;
+
                 _PlaybackStatus = value;
+
+                // Restart the extrapolation baseline only on a real transition. Re-applying the
+                // same "Playing" status (the resync loop does this every 2s) used to rewind the
+                // displayed position back to the last stored snapshot.
                 _lastUpdateTime = DateTime.UtcNow;
                 NotifyPropertyChanged(nameof(PlaybackStatus));
                 NotifyPropertyChanged(nameof(PlayingNow));
@@ -284,16 +291,63 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        public void MarkTimelineStale()
+        private DateTime? _timelineStaleSinceUtc;
+
+        /// <summary>
+        /// How long this session has been waiting for a usable timeline, or <see cref="TimeSpan.Zero"/>
+        /// when it is not stale. Drives the policy's grace window so a player that stops emitting
+        /// timeline events cannot keep the seekbar hidden forever.
+        /// </summary>
+        public TimeSpan TimelineStaleAge
+            => _timelineStaleSinceUtc is { } since
+                ? DateTime.UtcNow - since
+                : TimeSpan.Zero;
+
+        /// <summary>
+        /// True when this source publishes no duration at all (live stream, call audio, a
+        /// notification sound) rather than being mid-transition. Keeps the seekbar hidden and takes
+        /// the session out of the resync poll loop until a real timeline or a track change arrives.
+        /// </summary>
+        public bool HasNoTimeline { get; private set; }
+
+        /// <param name="restartStaleClock">
+        /// True when this is a fresh wait — a track change. The clock must restart then, or the
+        /// new track inherits the previous one's accumulated age and settles immediately.
+        /// Repeated stale markings within one track keep the original timestamp so the age
+        /// actually accumulates.
+        /// </param>
+        public void MarkTimelineStale(bool restartStaleClock = false)
         {
+            if (restartStaleClock)
+                _timelineStaleSinceUtc = DateTime.UtcNow;
+            else
+                _timelineStaleSinceUtc ??= DateTime.UtcNow;
+
             IsTimelineStale = true;
+            HasNoTimeline = false;
+            TimePeekEnabled = false;
+            NotifyPropertyChanged(nameof(TimePosition));
+        }
+
+        /// <summary>
+        /// Settles a source that has reported no duration for long enough that this is clearly its
+        /// nature rather than a transition. Unlike <see cref="MarkTimelineStale"/> this stops the
+        /// 2-second resync loop from re-polling it across the WinRT boundary for as long as it plays.
+        /// </summary>
+        public void MarkTimelineDurationless()
+        {
+            _timelineStaleSinceUtc = null;
+            IsTimelineStale = false;
+            HasNoTimeline = true;
             TimePeekEnabled = false;
             NotifyPropertyChanged(nameof(TimePosition));
         }
 
         public void MarkTimelineFresh()
         {
+            _timelineStaleSinceUtc = null;
             IsTimelineStale = false;
+            HasNoTimeline = false;
         }
 
         private DateTime _lastUpdateTime;

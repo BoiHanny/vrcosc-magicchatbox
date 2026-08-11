@@ -4,12 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Security.Principal;
-using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -216,14 +212,74 @@ public partial class IntegrationsPageViewModel : ObservableObject
         if (_faultResetMap.TryGetValue(e.PropertyName, out var faultReset) && faultReset.GetValue())
             FaultTracker.ResetFault(faultReset.SortKey);
 
+        HandleModeVisibility(e.PropertyName);
+
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
     }
 
+    /// <summary>
+    /// Turning a master toggle on while the current mode's visibility flag is off used to produce
+    /// nothing at all, silently. Say so and offer the fix — but do not apply it.
+    /// <para>
+    /// A per-mode switch the user turned off is a deliberate choice: for MediaLink and Window
+    /// Activity it is exactly what keeps a track title or a focused-window title off OSC outside
+    /// VR. Flipping it back on their behalf would silently resume broadcasting that, so the change
+    /// stays theirs to make.
+    /// </para>
+    /// </summary>
+    private void HandleModeVisibility(string propertyName)
+    {
+        if (!propertyName.StartsWith("Intgr", StringComparison.Ordinal))
+            return;
+
+        if (IntegrationModeVisibility.TryDescribeHiddenMode(
+                IntegrationSettings, propertyName, AppState.IsVRRunning, out var hidden))
+        {
+            string mode = AppState.IsVRRunning ? "VR" : "Desktop";
+            _toast.Show(
+                "👁️ Not shown in this mode",
+                hidden.CanEnableInCurrentMode
+                    ? $"{hidden.DisplayName} is on, but its {mode} switch is off — it won't appear in {mode} mode."
+                    : $"{hidden.DisplayName} is on, but it can't run in {mode} mode.",
+                ToastType.Warning,
+                hidden.CanEnableInCurrentMode
+                    ? new ToastAction($"Show in {mode} mode", () =>
+                    {
+                        if (IntegrationModeVisibility.TryEnableCurrentMode(
+                                IntegrationSettings, propertyName, AppState.IsVRRunning, out _))
+                            _integrationSettingsProvider.Save();
+
+                        OnPropertyChanged(nameof(ModeVisibilityWarning));
+                        OnPropertyChanged(nameof(HasModeVisibilityWarning));
+                        return Task.CompletedTask;
+                    })
+                    : null,
+                durationMs: 8000,
+                key: $"mode-visibility-{propertyName}");
+        }
+
+        OnPropertyChanged(nameof(ModeVisibilityWarning));
+        OnPropertyChanged(nameof(HasModeVisibilityWarning));
+    }
+
+    /// <summary>
+    /// Names integrations that are switched on but produce nothing in the mode the user is in.
+    /// Null when nothing is hidden.
+    /// </summary>
+    public string? ModeVisibilityWarning
+        => IntegrationModeVisibility.BuildWarning(IntegrationSettings, AppState.IsVRRunning);
+
+    public bool HasModeVisibilityWarning => ModeVisibilityWarning != null;
+
     private void OnAppStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(IAppState.IsVRRunning) || e.PropertyName == nameof(ViewModel.IsVRRunning))
+        {
             OnPropertyChanged(nameof(IsVRRunning));
+            OnPropertyChanged(nameof(ModeVisibilityWarning));
+            OnPropertyChanged(nameof(HasModeVisibilityWarning));
+        }
     }
 
     private void OnIntegrationDisplayPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -287,7 +343,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RestartAsAdmin() => ExecuteRestartAsAdmin();
+    private void ResolveComponentStatsAccess() => ExecuteResolveComponentStatsAccess();
 
     [RelayCommand]
     private async Task MediaPlayPause(MediaSessionInfo? m)
@@ -409,15 +465,13 @@ public partial class IntegrationsPageViewModel : ObservableObject
             key: "spotify-medialink-coexist");
     }
 
-    public string ComponentStatsAccessWarningText =>
-        !_consent.IsApproved(PrivacyHook.HardwareMonitor)
-            ? "Enable Hardware Monitor permission"
-            : IsProcessElevated()
-                ? "Some stats aren't available on this system"
-                : "Some stats may need admin rights";
+    /// <summary>
+    /// The only actionable hardware-stats problem left. Elevation is no longer one of them: there
+    /// is no kernel driver to install, and the vendor sensor APIs are user-mode.
+    /// </summary>
+    public string ComponentStatsAccessWarningText => "Enable Hardware Monitor permission";
 
-    public bool CanResolveComponentStatsAccessIssue =>
-        !_consent.IsApproved(PrivacyHook.HardwareMonitor) || !IsProcessElevated();
+    public bool CanResolveComponentStatsAccessIssue => !_consent.IsApproved(PrivacyHook.HardwareMonitor);
 
     private void ScanTrackerBatteryDevices()
     {
@@ -428,79 +482,23 @@ public partial class IntegrationsPageViewModel : ObservableObject
         }
     }
 
-    private void ExecuteRestartAsAdmin()
+    /// <summary>
+    /// Sends the user to Privacy &amp; Permissions, the one remaining fix for missing hardware stats.
+    /// Replaces the former "restart as administrator" relaunch, which could not help once the
+    /// kernel-driver dependency was removed.
+    /// </summary>
+    private void ExecuteResolveComponentStatsAccess()
     {
-        if (!_consent.IsApproved(PrivacyHook.HardwareMonitor))
-        {
-            _menuNav.NavigateToPrivacy();
-            _toast.Show(
-                "🔒 Permission Required",
-                "Enable Hardware Monitor in Privacy & Permissions first.",
-                ToastType.Warning,
-                durationMs: 5000,
-                key: "hw-monitor-consent-required");
+        if (_consent.IsApproved(PrivacyHook.HardwareMonitor))
             return;
-        }
 
-        if (IsProcessElevated())
-        {
-            _toast.Show(
-                "🖥️ Hardware Monitor",
-                "MagicChatbox is already running as administrator. Missing temp/power stats are likely unsupported or blocked on this system.",
-                ToastType.Info,
-                durationMs: 6000,
-                key: "hw-monitor-already-elevated");
-            return;
-        }
-
-        _persistence.Value.PersistAllState();
-        try
-        {
-            string processPath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
-            if (string.IsNullOrWhiteSpace(processPath))
-                throw new InvalidOperationException("Unable to determine the current executable path for admin relaunch.");
-
-            var proc = new ProcessStartInfo
-            {
-                UseShellExecute = true,
-                WorkingDirectory = Path.GetDirectoryName(processPath) ?? Environment.CurrentDirectory,
-                FileName = processPath,
-                Arguments = BuildCurrentArgumentString(),
-                Verb = "runas"
-            };
-            Process.Start(proc);
-            Thread.Sleep(1000);
-            Environment.Exit(0);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
-    }
-
-    private static bool IsProcessElevated()
-    {
-        using var identity = WindowsIdentity.GetCurrent();
-        var principal = new WindowsPrincipal(identity);
-        return principal.IsInRole(WindowsBuiltInRole.Administrator);
-    }
-
-    private static string BuildCurrentArgumentString()
-    {
-        return string.Join(" ",
-            Environment.GetCommandLineArgs()
-                .Skip(1)
-                .Select(QuoteCommandLineArgument));
-    }
-
-    private static string QuoteCommandLineArgument(string argument)
-    {
-        if (string.IsNullOrEmpty(argument))
-            return "\"\"";
-
-        return argument.Contains(' ') || argument.Contains('"')
-            ? $"\"{argument.Replace("\"", "\\\"")}\""
-            : argument;
+        _menuNav.NavigateToPrivacy();
+        _toast.Show(
+            "🔒 Permission Required",
+            "Enable Hardware Monitor in Privacy & Permissions to read CPU and GPU stats.",
+            ToastType.Warning,
+            durationMs: 5000,
+            key: "hw-monitor-consent-required");
     }
 
     /// <summary>

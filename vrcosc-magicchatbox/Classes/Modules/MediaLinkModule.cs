@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules.Media;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
@@ -40,8 +41,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     private MediaManager? mediaManager = null;
     private static readonly TimeSpan MediaSnapshotResyncInterval = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan TimelineRefreshAfterMediaChangeDelay = TimeSpan.FromMilliseconds(750);
-    private static readonly TimeSpan TimelineBackwardDriftTolerance = TimeSpan.FromMilliseconds(1250);
-    private static readonly TimeSpan TimelineBackwardJumpThreshold = TimeSpan.FromSeconds(5);
     private Timer? mediaSnapshotResyncTimer;
     private int mediaSnapshotResyncInProgress;
     private ConcurrentDictionary<string, (MediaSessionInfo, DateTime)> recentlyClosedSessions = new ConcurrentDictionary<string, (MediaSessionInfo, DateTime)>(
@@ -178,71 +177,47 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         GlobalSystemMediaTransportControlsSessionTimelineProperties args,
         bool rejectUnchangedStaleTimeline = false)
     {
-        TimeSpan fullTime = args.EndTime - args.StartTime;
-        TimeSpan currentTime = args.Position;
-        if (args.StartTime != TimeSpan.Zero)
-            currentTime -= args.StartTime;
+        var snapshot = MediaTimelinePolicy.Normalize(args.StartTime, args.EndTime, args.Position);
 
-        if (fullTime > TimeSpan.Zero)
+        var decision = MediaTimelinePolicy.Evaluate(new TimelineEvaluationInput
         {
-            if (currentTime < TimeSpan.Zero)
-                currentTime = TimeSpan.Zero;
-            if (currentTime > fullTime)
-                currentTime = fullTime;
+            IncomingFull = snapshot.Full,
+            IncomingCurrent = snapshot.Current,
+            StoredFull = sessionInfo.FullTime,
+            StoredCurrent = sessionInfo.StoredCurrentTime,
+            ExtrapolatedCurrent = sessionInfo.CurrentTime,
+            IsTimelineStale = sessionInfo.IsTimelineStale,
+            StaleAge = sessionInfo.TimelineStaleAge,
+            IsPlaying = sessionInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing,
+            RejectUnchangedStaleTimeline = rejectUnchangedStaleTimeline,
+        });
 
-            if (rejectUnchangedStaleTimeline
-                && sessionInfo.IsTimelineStale
-                && TimelineValuesMatch(sessionInfo.FullTime, fullTime)
-                && TimelineValuesMatch(sessionInfo.StoredCurrentTime, currentTime))
-            {
+        switch (decision)
+        {
+            case TimelineDecision.Accept:
+                sessionInfo.FullTime = snapshot.Full;
+                sessionInfo.CurrentTime = snapshot.Current;
+                sessionInfo.TimePeekEnabled = true;
+                sessionInfo.MarkTimelineFresh();
+                return true;
+
+            case TimelineDecision.NoTimeline:
+                // The player has no usable duration right now (Spotify publishes an empty timeline
+                // mid-transition). Stay stale so the resync loop keeps polling — marking this
+                // "fresh" is what used to strand the seekbar for the rest of the track.
+                sessionInfo.MarkTimelineStale();
                 return false;
-            }
 
-            if (ShouldIgnoreRegressiveTimelineUpdate(sessionInfo, fullTime, currentTime))
+            case TimelineDecision.NoTimelineSettled:
+                // Long enough without a duration that this is the source's nature, not a
+                // transition. Settle it so a live stream or call audio stops being re-polled
+                // over WinRT every 2 seconds for as long as it plays.
+                sessionInfo.MarkTimelineDurationless();
                 return false;
 
-            sessionInfo.FullTime = fullTime;
-            sessionInfo.CurrentTime = currentTime;
-            sessionInfo.TimePeekEnabled = true;
-            sessionInfo.MarkTimelineFresh();
-            return true;
+            default:
+                return false;
         }
-
-        sessionInfo.TimePeekEnabled = false;
-        sessionInfo.MarkTimelineFresh();
-        return false;
-    }
-
-    private static bool TimelineValuesMatch(TimeSpan left, TimeSpan right)
-        => Math.Abs((left - right).TotalMilliseconds) <= 500;
-
-    private static bool ShouldIgnoreRegressiveTimelineUpdate(MediaSessionInfo sessionInfo, TimeSpan fullTime, TimeSpan currentTime)
-    {
-        if (sessionInfo.PlaybackStatus != GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-            return false;
-
-        // A timeline marked stale (e.g. metadata changed) must always accept the next snapshot —
-        // otherwise the seekbar can get stuck on the previous song when the new track happens
-        // to fall inside the drift window.
-        if (sessionInfo.IsTimelineStale)
-            return false;
-
-        if (!TimelineValuesMatch(sessionInfo.FullTime, fullTime))
-            return false;
-
-        TimeSpan storedCurrentTime = sessionInfo.StoredCurrentTime;
-
-        // Any meaningful backward movement in the *stored* (non-extrapolated) position is a
-        // legitimate user seek — honor it even when it's small (a few seconds). Only a tiny
-        // jitter tolerance is allowed so the player can re-emit the same snapshot.
-        if (currentTime < storedCurrentTime - TimeSpan.FromMilliseconds(250))
-            return false;
-
-        // Suppress only when the incoming position is slightly behind our *extrapolated*
-        // CurrentTime — that pattern indicates clock/scheduler drift, not a real seek.
-        TimeSpan extrapolatedDelta = sessionInfo.CurrentTime - currentTime;
-        return extrapolatedDelta > TimelineBackwardDriftTolerance &&
-               extrapolatedDelta <= TimelineBackwardJumpThreshold;
     }
 
     private void ApplyPlaybackSnapshot(
@@ -308,8 +283,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         sessionInfo.Artist = properties.Artist;
         sessionInfo.Title = properties.Title;
 
+        // A track change starts a fresh wait for a timeline, so the stale clock restarts with it.
         if (staleTimelineOnChange && changed)
-            sessionInfo.MarkTimelineStale();
+            sessionInfo.MarkTimelineStale(restartStaleClock: true);
 
         return changed;
     }
@@ -627,8 +603,13 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
+            // Any active/playing session without a working seekbar needs polling — not just the
+            // ones flagged stale. A session can end up with TimePeekEnabled false and no stale
+            // flag, and would otherwise never be looked at again. Sources that have settled as
+            // genuinely duration-less are excluded: re-polling them can never produce a seekbar.
             var sessions = _dispatcher.Invoke(() => _mediaLink.MediaSessions
-                    .Where(session => session.IsTimelineStale &&
+                    .Where(session => (session.IsTimelineStale || !session.TimePeekEnabled) &&
+                                      !session.HasNoTimeline &&
                                       (session.IsActive ||
                                        session.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing))
                     .ToList());

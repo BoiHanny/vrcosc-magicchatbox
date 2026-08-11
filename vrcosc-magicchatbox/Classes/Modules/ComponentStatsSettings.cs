@@ -18,6 +18,13 @@ public partial class ComponentStatsSettings : VersionedSettings
     [ObservableProperty] private bool _gPU3DHook = false;
     [ObservableProperty] private bool _gPU3DVRAMHook = false;
 
+    /// <summary>
+    /// Use the graphics driver's own user-mode sensor libraries for GPU temperature, power, fan
+    /// and clocks. Turning this off falls back to Windows performance counters, which can only
+    /// report load and VRAM. Kept as an escape hatch for unusual driver installs.
+    /// </summary>
+    [ObservableProperty] private bool _enableVendorGpuSensors = true;
+
     [ObservableProperty] private bool _showGpuFanSpeed = false;
     [ObservableProperty] private bool _showGpuCoreClock = false;
     [ObservableProperty] private bool _showGpuMemoryClock = false;

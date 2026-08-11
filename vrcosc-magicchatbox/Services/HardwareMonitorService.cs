@@ -9,16 +9,24 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Services.Hardware;
 
 namespace vrcosc_magicchatbox.Services;
 
 /// <summary>
-/// Driverless hardware monitor built on Windows APIs and WMI. It intentionally avoids
-/// kernel-mode sensor drivers such as WinRing0 so opening the app cannot trigger BYOVD alerts.
+/// Hardware monitor built on Windows APIs and WMI, with user-mode vendor GPU sensors layered on
+/// top. No kernel-mode sensor driver is loaded: the vendor layer is GPU-only, which reaches AMD
+/// through <c>atiadlxx.dll</c> and NVIDIA through <c>nvml.dll</c>.
+/// <para>
+/// Per-sensor resolution order is: vendor API → nvidia-smi (NVIDIA adapters only) → Windows
+/// performance counters → DXGI. Windows-only sources cannot report temperature, power, fan or
+/// clocks at all, which is why an AMD card previously showed nothing for them.
+/// </para>
 /// </summary>
 public sealed class HardwareMonitorService : IHardwareMonitorService
 {
     private readonly object _lock = new();
+    private readonly LhmGpuSensorProvider _vendorGpu = new();
     private IReadOnlyList<string>? _gpuCache;
     private IReadOnlyList<GpuInfo>? _gpuInfoCache;
     private string? _cpuNameCache;
@@ -26,6 +34,15 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     private DateTime _nvidiaSmiCapturedAtUtc;
     private bool _nvidiaSmiUnavailable;
     private bool _loggedNvidiaSmiUnavailable;
+    private int _nvidiaSmiFailures;
+    private const int MaxNvidiaSmiFailures = 3;
+    private DateTime _nvidiaSmiRetryAfterUtc;
+
+    /// <summary>
+    /// How long nvidia-smi is left alone after repeated unusable output. A parked dGPU or a driver
+    /// reload is transient, so this backs off rather than latching for the rest of the process.
+    /// </summary>
+    private static readonly TimeSpan NvidiaSmiFailureCooldown = TimeSpan.FromMinutes(5);
     private readonly Dictionary<string, PerformanceCounter> _performanceCounters = new(StringComparer.OrdinalIgnoreCase);
     private GpuPerformanceSnapshot _gpuPerformanceSnapshot = GpuPerformanceSnapshot.Empty;
     private DateTime _gpuPerformanceCapturedAtUtc;
@@ -148,10 +165,21 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
 
         PrimeCpuBaseline();
+        PrimeGpuBaseline();
+
+        if (VendorGpuSensorsEnabled)
+            _vendorGpu.TryOpen();
     }
 
+    /// <summary>
+    /// Stops monitoring for this session. Deliberately keeps the performance-counter handles:
+    /// every rate counter discards its first sample, and this is called on each VR↔desktop
+    /// transition, so tearing the cache down here guaranteed a null GPU load on the next tick.
+    /// </summary>
     public void Close()
     {
+        _vendorGpu.Close();
+
         lock (_lock)
         {
             _isOpen = false;
@@ -169,15 +197,14 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             _previousUserTime = 0;
             _cpuNameCache = null;
 
-            // NVIDIA caches + unavailable flags — re-detect on next session
+            // Drop cached samples and clear the transient back-off so the next session gets a
+            // fresh attempt — the GPU may have woken up since. The hard "nvidia-smi is not
+            // installed here" verdict is kept: that is a property of the machine, not of the
+            // session, and HasNvidiaAdapter() already stops us shelling out on non-NVIDIA systems.
             _nvidiaSmiCache = null;
             _nvidiaSmiCapturedAtUtc = default;
-            _nvidiaSmiUnavailable = false;
-            _loggedNvidiaSmiUnavailable = false;
-
-            foreach (var counter in _performanceCounters.Values)
-                counter.Dispose();
-            _performanceCounters.Clear();
+            _nvidiaSmiFailures = 0;
+            _nvidiaSmiRetryAfterUtc = default;
         }
     }
 
@@ -187,6 +214,71 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         // tick after Open() can return a real load value instead of null.
         PrimeCpuBaseline();
         _ = GetGpuPerformanceSnapshot();
+    }
+
+    /// <summary>
+    /// True while the user-mode vendor sensor layer should be used. Turns itself off after the
+    /// provider fails to initialise repeatedly, so an unusual driver degrades to the Windows-only
+    /// path instead of taking hardware stats down with it.
+    /// </summary>
+    public bool VendorGpuSensorsEnabled { get; set; } = true;
+
+    private bool VendorGpuActive => VendorGpuSensorsEnabled && !_vendorGpu.IsPermanentlyUnavailable;
+
+    /// <summary>
+    /// Reads one sensor from the vendor layer, opening it lazily. Returns null when the layer is
+    /// off, unavailable, or simply does not expose that sensor for this card.
+    /// </summary>
+    private float? ReadVendorSensor(string? gpuName, Func<GpuSensorReadings, float?> selector)
+    {
+        if (!VendorGpuActive)
+            return null;
+
+        if (!_vendorGpu.IsOpen && !_vendorGpu.TryOpen())
+            return null;
+
+        var readings = _vendorGpu.Read(gpuName ?? ResolveGpuInfo(null)?.Name);
+        return readings == null ? null : selector(readings);
+    }
+
+    /// <summary>
+    /// A one-line summary of which GPU was picked and which sensor source answered. Written to the
+    /// log at startup and surfaced in diagnostics so a report from an unusual machine is actionable.
+    /// </summary>
+    public string GetHardwareMonitorStatusMessage()
+    {
+        var adapters = GetGpuInfoFromWindows();
+        string adapterList = adapters.Count == 0
+            ? "no adapters enumerated"
+            : string.Join("; ", adapters.Select(a =>
+                $"{a.Name} [vendor 0x{a.VendorId ?? 0:X4}, {(a.AdapterRamBytes ?? 0) / (1024 * 1024)} MiB]"));
+
+        var selected = ResolveGpuInfo(null);
+        string counters = GetGpuPerformanceSnapshot().IsEmpty
+            ? "GPU Engine counters: no data"
+            : "GPU Engine counters: ok";
+
+        return $"adapters: {adapterList} | selected: {selected?.Name ?? "none"} | "
+             + $"{_vendorGpu.DescribeStatus()} | {counters}";
+    }
+
+    /// <summary>
+    /// Creates the GPU performance counters and throws away their first sample, which every rate
+    /// counter needs before it can produce a value. Without this the first tick after each Open()
+    /// reports no GPU load at all — invisible on NVIDIA, where nvidia-smi covers it, but the whole
+    /// story on AMD, where these counters are the only Windows-native source.
+    /// </summary>
+    private void PrimeGpuBaseline()
+    {
+        try
+        {
+            _ = ReadPerformanceCounterValues("GPU Engine", "Utilization Percentage");
+            _ = ReadPerformanceCounterValues("GPU Adapter Memory", "Dedicated Usage");
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"GPU counter baseline priming failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -241,29 +333,48 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     public float? GetGpuLoad(string gpuName, string sensorName)
     {
-        if (sensorName.Contains("D3D", StringComparison.OrdinalIgnoreCase))
+        bool wants3D = sensorName.Contains("D3D", StringComparison.OrdinalIgnoreCase);
+
+        float? vendor = wants3D
+            ? ReadVendorSensor(gpuName, r => r.D3DLoad ?? r.CoreLoad)
+            : ReadVendorSensor(gpuName, r => r.CoreLoad);
+        if (vendor != null)
+            return vendor;
+
+        if (wants3D)
             return GetGpuEngineUtilization(gpuName, "3D") ?? ResolveNvidiaSample(gpuName)?.GpuUtilization;
 
         return ResolveNvidiaSample(gpuName)?.GpuUtilization ??
                GetGpuEngineUtilization(gpuName);
     }
 
-    public float? GetGpuTemperature(string gpuName) => ResolveNvidiaSample(gpuName)?.TemperatureC;
+    public float? GetGpuTemperature(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.CoreTemperatureC)
+           ?? ResolveNvidiaSample(gpuName)?.TemperatureC;
 
     /// <summary>
-    /// GPU hotspot temperature is not exposed by the driverless pipeline
-    /// (Windows Performance Counters / DXGI / nvidia-smi don't surface it).
-    /// Always returns null. Tracked as follow-up: NVML / ADL / IGCL integration.
+    /// Hot-spot (junction) temperature. Only the vendor sensor layer exposes it — Windows
+    /// performance counters, DXGI and nvidia-smi all lack it — so this is null when that layer
+    /// is unavailable or the card does not report the sensor.
     /// </summary>
-    public float? GetGpuHotspotTemperature(string gpuName) => null;
+    public float? GetGpuHotspotTemperature(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.HotspotTemperatureC);
 
-    public float? GetGpuPower(string gpuName) => ResolveNvidiaSample(gpuName)?.PowerW;
+    public float? GetGpuPower(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.PowerWatts)
+           ?? ResolveNvidiaSample(gpuName)?.PowerW;
 
     public float? GetGpuVramUsed(string gpuName, string sensorName)
-        => ResolveNvidiaSample(gpuName)?.MemoryUsedMiB ?? GetGpuDedicatedMemoryUsageMiB(gpuName);
+        => ReadVendorSensor(gpuName, r => r.VramUsedMiB)
+           ?? ResolveNvidiaSample(gpuName)?.MemoryUsedMiB
+           ?? GetGpuDedicatedMemoryUsageMiB(gpuName);
 
     public float? GetGpuVramTotal(string gpuName, string sensorName)
     {
+        float? vendorTotal = ReadVendorSensor(gpuName, r => r.VramTotalMiB);
+        if (vendorTotal is > 0)
+            return vendorTotal;
+
         var nvidiaSample = ResolveNvidiaSample(gpuName);
         if (nvidiaSample?.MemoryTotalMiB is > 0)
             return nvidiaSample.MemoryTotalMiB;
@@ -362,7 +473,27 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         return null;
     }
 
-    public void Dispose() => Close();
+    /// <summary>
+    /// Full teardown, unlike <see cref="Close"/> which only ends a monitoring session. This is
+    /// where the performance-counter handles and the vendor sensor layer actually go away.
+    /// </summary>
+    public void Dispose()
+    {
+        Close();
+        _vendorGpu.Dispose();
+
+        lock (_lock)
+        {
+            foreach (var counter in _performanceCounters.Values)
+                counter.Dispose();
+            _performanceCounters.Clear();
+
+            _nvidiaSmiUnavailable = false;
+            _loggedNvidiaSmiUnavailable = false;
+            _nvidiaSmiFailures = 0;
+            _nvidiaSmiRetryAfterUtc = default;
+        }
+    }
 
     public float? GetCpuLoadBasic()
     {
@@ -414,16 +545,28 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         _hasPreviousSystemTimes = true;
     }
 
-    public float? GetGpuFanSpeed(string gpuName) => ResolveNvidiaSample(gpuName)?.FanPercent;
+    public float? GetGpuFanSpeed(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.FanPercent)
+           ?? ResolveNvidiaSample(gpuName)?.FanPercent;
 
-    public float? GetGpuCoreClock(string gpuName) => ResolveNvidiaSample(gpuName)?.GraphicsClockMHz;
+    public float? GetGpuCoreClock(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.CoreClockMhz)
+           ?? ResolveNvidiaSample(gpuName)?.GraphicsClockMHz;
 
-    public float? GetGpuMemoryClock(string gpuName) => ResolveNvidiaSample(gpuName)?.MemoryClockMHz;
+    public float? GetGpuMemoryClock(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.MemoryClockMhz)
+           ?? ResolveNvidiaSample(gpuName)?.MemoryClockMHz;
 
-    public float? GetGpuMemoryTemperature(string gpuName) => ResolveNvidiaSample(gpuName)?.MemoryTemperatureC;
+    public float? GetGpuMemoryTemperature(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.MemoryTemperatureC)
+           ?? ResolveNvidiaSample(gpuName)?.MemoryTemperatureC;
 
     public float? GetGpuMemoryLoad(string gpuName)
     {
+        float? vendorLoad = ReadVendorSensor(gpuName, r => r.MemoryLoad);
+        if (vendorLoad is not null)
+            return vendorLoad;
+
         var sample = ResolveNvidiaSample(gpuName);
         if (sample?.MemoryUtilization is not null)
             return sample.MemoryUtilization;
@@ -459,11 +602,13 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return candidate.Contains(normalizedRequested, StringComparison.OrdinalIgnoreCase) ||
                        normalizedRequested.Contains(candidate, StringComparison.OrdinalIgnoreCase);
             });
-            if (match != null) return match;
+
+            // An explicit name that matches nothing must not silently fall through to another
+            // adapter, or an AMD card ends up reporting the NVIDIA card's sensors.
+            return match;
         }
 
-        return gpus.FirstOrDefault(g => !g.Name.Contains("integrated", StringComparison.OrdinalIgnoreCase))
-               ?? gpus[0];
+        return GpuAdapterSelector.SelectPrimary(gpus) ?? gpus[0];
     }
 
     private IReadOnlyList<GpuInfo> GetGpuInfoFromWindows()
@@ -528,7 +673,11 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                         desc.DedicatedVideoMemory.ToUInt64(),
                         FormatLuidToken(desc.AdapterLuid),
                         desc.VendorId,
-                        desc.DeviceId));
+                        desc.DeviceId)
+                    {
+                        AdapterIndex = adapterIndex,
+                        Flags = desc.Flags,
+                    });
                 }
                 finally
                 {
@@ -561,16 +710,18 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 .Select(obj =>
                 {
                     string? name = obj["Name"]?.ToString();
+                    string? adapterCompatibility = obj["AdapterCompatibility"]?.ToString();
+                    string? pnpDeviceId = obj["PNPDeviceID"]?.ToString();
                     return string.IsNullOrWhiteSpace(name)
                         ? null
                         : new GpuInfo(
                             name.Trim(),
                             TryReadUInt64(obj["AdapterRAM"]),
                             null,
+                            GpuVendors.ParseWmiVendorId(pnpDeviceId, adapterCompatibility),
                             null,
-                            null,
-                            obj["AdapterCompatibility"]?.ToString(),
-                            obj["PNPDeviceID"]?.ToString());
+                            adapterCompatibility,
+                            pnpDeviceId);
                 })
                 .OfType<GpuInfo>()
                 .DistinctBy(gpu => gpu.Name, StringComparer.OrdinalIgnoreCase)
@@ -816,6 +967,14 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     private NvidiaSmiSample? ResolveNvidiaSample(string? gpuName)
     {
+        // Never answer for a non-NVIDIA card. Without this an AMD Radeon reports the NVIDIA
+        // card's temperature, power and clocks on a hybrid machine.
+        if (!string.IsNullOrWhiteSpace(gpuName) &&
+            GpuVendors.FromVendorId(ResolveGpuInfo(gpuName)?.VendorId) != GpuVendor.Nvidia)
+        {
+            return null;
+        }
+
         var samples = GetNvidiaSmiSamples();
         if (samples.Count == 0)
             return null;
@@ -836,14 +995,22 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return candidate.Contains(normalizedRequested, StringComparison.OrdinalIgnoreCase) ||
                        normalizedRequested.Contains(candidate, StringComparison.OrdinalIgnoreCase);
             });
-            if (match != null) return match;
+
+            // A named request that matches nothing gets nothing — falling through to samples[0]
+            // is how one card's readings ended up attributed to another.
+            return match;
         }
 
-        return samples[0];
+        return samples.Count == 1 ? samples[0] : null;
     }
 
     private IReadOnlyList<NvidiaSmiSample> GetNvidiaSmiSamples()
     {
+        // Never shell out on a machine with no NVIDIA adapter. A leftover nvidia-smi.exe used to
+        // cost up to two process launches with a 1500ms wait each, every 2s tick, forever.
+        if (!HasNvidiaAdapter())
+            return Array.Empty<NvidiaSmiSample>();
+
         lock (_lock)
         {
             if (_nvidiaSmiCache != null &&
@@ -854,6 +1021,18 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
             if (_nvidiaSmiUnavailable)
                 return Array.Empty<NvidiaSmiSample>();
+
+            // Backing off after repeated unusable output — but not forever. Latching here would
+            // blank GPU temperature, power, fan and clocks for the rest of the process after a
+            // few slow reads, which is routine while a hybrid laptop's dGPU is parked.
+            if (_nvidiaSmiRetryAfterUtc != default)
+            {
+                if (DateTime.UtcNow < _nvidiaSmiRetryAfterUtc)
+                    return Array.Empty<NvidiaSmiSample>();
+
+                _nvidiaSmiRetryAfterUtc = default;
+                _nvidiaSmiFailures = 0;
+            }
         }
 
         IReadOnlyList<NvidiaSmiSample> samples = QueryNvidiaSmi();
@@ -880,7 +1059,19 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             string? output = RunNvidiaSmiQuery(executablePath, includeMemoryTemperature: true);
             output ??= RunNvidiaSmiQuery(executablePath, includeMemoryTemperature: false);
             if (string.IsNullOrWhiteSpace(output))
+            {
+                // The binary exists but produced nothing usable — a stale install, a driver
+                // mismatch, or a sleeping GPU. Stop retrying it after a few rounds instead of
+                // spawning processes for the rest of the session.
+                RecordNvidiaSmiFailure();
                 return Array.Empty<NvidiaSmiSample>();
+            }
+
+            lock (_lock)
+            {
+                _nvidiaSmiFailures = 0;
+                _nvidiaSmiRetryAfterUtc = default;
+            }
 
             return output
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
@@ -892,8 +1083,35 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         catch (Exception ex)
         {
             Logging.WriteInfo($"nvidia-smi read error: {ex.Message}");
+            RecordNvidiaSmiFailure();
             return Array.Empty<NvidiaSmiSample>();
         }
+    }
+
+    /// <summary>True when any enumerated adapter is NVIDIA silicon.</summary>
+    private bool HasNvidiaAdapter()
+        => GetGpuInfoFromWindows().Any(gpu => GpuVendors.FromVendorId(gpu.VendorId) == GpuVendor.Nvidia);
+
+    /// <summary>
+    /// Counts an unusable nvidia-smi read and, once they pile up, pauses further attempts for
+    /// <see cref="NvidiaSmiFailureCooldown"/>. Deliberately a back-off rather than a permanent
+    /// verdict: the causes (parked dGPU, driver reload, a slow first launch) all pass on their own.
+    /// </summary>
+    private void RecordNvidiaSmiFailure()
+    {
+        int failures;
+        lock (_lock)
+        {
+            failures = ++_nvidiaSmiFailures;
+            if (failures < MaxNvidiaSmiFailures)
+                return;
+
+            _nvidiaSmiRetryAfterUtc = DateTime.UtcNow + NvidiaSmiFailureCooldown;
+        }
+
+        Logging.WriteInfo(
+            $"nvidia-smi produced no usable output after {failures} attempts; pausing it for " +
+            $"{NvidiaSmiFailureCooldown.TotalMinutes:F0} minutes.");
     }
 
     private static string? RunNvidiaSmiQuery(string executablePath, bool includeMemoryTemperature)
@@ -1099,7 +1317,18 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         uint? VendorId = null,
         uint? DeviceId = null,
         string? AdapterCompatibility = null,
-        string? PnpDeviceId = null);
+        string? PnpDeviceId = null) : IGpuAdapter
+    {
+        /// <summary>DXGI enumeration order, used as a stable tie-break during selection.</summary>
+        public uint AdapterIndex { get; init; }
+
+        /// <summary>DXGI_ADAPTER_FLAG bits; bit 1 marks a software rasterizer.</summary>
+        public uint Flags { get; init; }
+
+        ulong? IGpuAdapter.DedicatedVideoMemoryBytes => AdapterRamBytes;
+
+        bool IGpuAdapter.IsSoftwareAdapter => (Flags & DxgiAdapterFlagSoftware) != 0;
+    }
 
     private sealed record GpuEngineMetric(
         string? LuidToken,
@@ -1127,6 +1356,9 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             _processDedicatedBytesByLuid = processDedicatedBytesByLuid;
             _adapterDedicatedBytesByLuid = adapterDedicatedBytesByLuid;
         }
+
+        /// <summary>True when no counter data was captured at all.</summary>
+        public bool IsEmpty => _engines.Count == 0;
 
         public float? GetEngineUtilization(string? luidToken, string? engineTypeFilter)
         {

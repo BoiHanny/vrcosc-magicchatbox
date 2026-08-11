@@ -38,8 +38,8 @@ public partial class TosAndPrivacyWizard : Window
     {
         PrivacyHook.HardwareMonitor => new HookItem(hook,
             title: "🖥️  Hardware Monitor  (CPU · RAM · GPU · VRAM)",
-            description: "Reads available CPU, RAM, GPU, and VRAM stats using driverless Windows APIs, WMI, " +
-                         "and the NVIDIA driver tool when available. No WinRing0 kernel driver is bundled.",
+            description: "Reads available CPU, RAM, GPU, and VRAM stats using Windows APIs, WMI, and your " +
+                         "graphics driver's own user-mode libraries. No kernel-mode sensor driver is loaded.",
             warning: "Denying this disables Component Stats completely.",
             isApproved: DefaultApproved(hook)),
 

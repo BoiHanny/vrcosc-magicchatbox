@@ -33,11 +33,32 @@ public sealed class SpotifyOAuthHandler : IDisposable
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<SpotifyTokenResult?> AuthenticateAsync(string clientId)
+    public async Task<SpotifyAuthOutcome> AuthenticateAsync(string clientId)
     {
         string normalizedClientId = clientId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(normalizedClientId))
             throw new InvalidOperationException("Spotify Client ID is required before authentication.");
+
+        // Start the callback listener before opening the browser. Binding failures (port in use,
+        // blocked URL ACL) used to surface two minutes later as an indistinguishable "timed out".
+        try
+        {
+            StartListener();
+        }
+        catch (HttpListenerException ex)
+        {
+            Logging.WriteInfo($"Spotify OAuth listener could not start on {Constants.SpotifyOAuthRedirectUri}: {ex.Message} (Win32 {ex.ErrorCode}).");
+            StopListener();
+            return SpotifyAuthOutcome.Failure(
+                SpotifyAuthFailureReason.ListenerUnavailable,
+                $"{ex.Message} (Win32 {ex.ErrorCode})");
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Spotify OAuth listener could not start on {Constants.SpotifyOAuthRedirectUri}: {ex.Message}");
+            StopListener();
+            return SpotifyAuthOutcome.Failure(SpotifyAuthFailureReason.ListenerUnavailable, ex.Message);
+        }
 
         try
         {
@@ -45,7 +66,6 @@ public sealed class SpotifyOAuthHandler : IDisposable
             string challenge = GenerateCodeChallenge(verifier);
             string state = GenerateCodeVerifier();
 
-            StartListener();
             string authUrl = $"{Constants.SpotifyOAuthEndpoint}" +
                              $"?client_id={Uri.EscapeDataString(normalizedClientId)}" +
                              $"&response_type=code" +
@@ -64,7 +84,7 @@ public sealed class SpotifyOAuthHandler : IDisposable
             if (completed == timeoutTask)
             {
                 Logging.WriteInfo("Spotify OAuth timed out waiting for browser redirect.");
-                return null;
+                return SpotifyAuthOutcome.Failure(SpotifyAuthFailureReason.TimedOut);
             }
 
             var context = await listenerTask.ConfigureAwait(false);
@@ -75,51 +95,65 @@ public sealed class SpotifyOAuthHandler : IDisposable
                 Logging.WriteInfo("Spotify OAuth state mismatch.");
                 await SendHtmlResponseAsync(context.Response,
                     "<h2>MagicChatbox</h2><p>Spotify authorization failed security validation. Please try again.</p>").ConfigureAwait(false);
-                return null;
+                return SpotifyAuthOutcome.Failure(SpotifyAuthFailureReason.StateMismatch);
             }
 
+            // Spotify reports authorize-step problems here (denied consent, unregistered redirect
+            // URI, unknown client). This used to be rendered into the browser tab and dropped.
             string error = query["error"] ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(error))
             {
+                string description = query["error_description"] ?? string.Empty;
+                Logging.WriteInfo($"Spotify OAuth authorization rejected: {error} {description}".TrimEnd());
                 await SendHtmlResponseAsync(context.Response,
                     $"<h2>MagicChatbox</h2><p>Spotify authorization failed: {WebUtility.HtmlEncode(error)}</p><p>You can close this tab.</p>").ConfigureAwait(false);
-                return null;
+                return SpotifyAuthOutcome.Failure(
+                    SpotifyAuthFailureReason.AuthorizationDenied,
+                    string.IsNullOrWhiteSpace(description) ? null : description,
+                    error);
             }
 
             string code = query["code"] ?? string.Empty;
             if (string.IsNullOrWhiteSpace(code))
             {
+                Logging.WriteInfo("Spotify OAuth redirect carried neither a code nor an error.");
                 await SendHtmlResponseAsync(context.Response,
                     "<h2>MagicChatbox</h2><p>No Spotify authorization code received. Please try again.</p>").ConfigureAwait(false);
-                return null;
+                return SpotifyAuthOutcome.Failure(
+                    SpotifyAuthFailureReason.AuthorizationDenied,
+                    "Spotify's redirect carried no authorization code.");
             }
 
-            var token = await ExchangeCodeAsync(normalizedClientId, code, verifier).ConfigureAwait(false);
-            if (token == null)
+            var exchange = await ExchangeCodeAsync(normalizedClientId, code, verifier).ConfigureAwait(false);
+            if (!exchange.Succeeded)
             {
                 await SendHtmlResponseAsync(context.Response,
                     "<h2>MagicChatbox</h2><p>Spotify token exchange failed. Check your Client ID and redirect URI.</p><p>You can close this tab.</p>").ConfigureAwait(false);
-                return null;
+                return exchange;
             }
 
             await SendHtmlResponseAsync(context.Response,
                 "<h2>MagicChatbox</h2><p>Spotify connected! This tab will close automatically.</p><script>setTimeout(function(){ window.close(); }, 2000);</script>").ConfigureAwait(false);
-            return token;
+            return exchange;
         }
         catch (ObjectDisposedException)
         {
             Logging.WriteInfo("Spotify OAuth listener was stopped.");
-            return null;
+            return SpotifyAuthOutcome.Failure(
+                SpotifyAuthFailureReason.ListenerUnavailable,
+                "The callback listener was closed before Spotify responded.");
         }
-        catch (HttpListenerException)
+        catch (HttpListenerException ex)
         {
-            Logging.WriteInfo("Spotify OAuth listener error.");
-            return null;
+            Logging.WriteInfo($"Spotify OAuth listener error: {ex.Message} (Win32 {ex.ErrorCode}).");
+            return SpotifyAuthOutcome.Failure(
+                SpotifyAuthFailureReason.ListenerUnavailable,
+                $"{ex.Message} (Win32 {ex.ErrorCode})");
         }
         catch (Exception ex)
         {
             Logging.WriteException(new Exception("Spotify authentication failed.", ex), MSGBox: false);
-            return null;
+            return SpotifyAuthOutcome.Failure(SpotifyAuthFailureReason.Unexpected, ex.Message);
         }
         finally
         {
@@ -145,17 +179,22 @@ public sealed class SpotifyOAuthHandler : IDisposable
 
         using var client = _httpClientFactory.CreateClient();
         using var response = await client.PostAsync(Constants.SpotifyTokenEndpoint, content, cancellationToken).ConfigureAwait(false);
+        string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
         if (!response.IsSuccessStatusCode)
         {
-            Logging.WriteInfo($"Spotify token refresh failed ({response.StatusCode}).");
+            // The body is where Spotify says *why* — e.g. invalid_grant when the refresh token was
+            // revoked. Logging only the status code hid the one useful piece of information.
+            var (error, description) = SpotifyAuthOutcome.ParseErrorBody(body);
+            Logging.WriteInfo(
+                $"Spotify token refresh failed ({(int)response.StatusCode} {response.StatusCode}): {error} {description}".TrimEnd());
             return null;
         }
 
-        string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return ParseTokenResponse(body);
     }
 
-    private async Task<SpotifyTokenResult?> ExchangeCodeAsync(string clientId, string code, string verifier)
+    private async Task<SpotifyAuthOutcome> ExchangeCodeAsync(string clientId, string code, string verifier)
     {
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -168,14 +207,25 @@ public sealed class SpotifyOAuthHandler : IDisposable
 
         using var client = _httpClientFactory.CreateClient();
         using var response = await client.PostAsync(Constants.SpotifyTokenEndpoint, content).ConfigureAwait(false);
+        string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
         if (!response.IsSuccessStatusCode)
         {
-            Logging.WriteInfo($"Spotify token exchange failed ({response.StatusCode}).");
-            return null;
+            var (error, description) = SpotifyAuthOutcome.ParseErrorBody(body);
+            Logging.WriteInfo(
+                $"Spotify token exchange failed ({(int)response.StatusCode} {response.StatusCode}): {error} {description}".TrimEnd());
+            return SpotifyAuthOutcome.Failure(
+                SpotifyAuthFailureReason.TokenExchangeRejected,
+                description,
+                error);
         }
 
-        string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        return ParseTokenResponse(body);
+        var token = ParseTokenResponse(body);
+        return token == null
+            ? SpotifyAuthOutcome.Failure(
+                SpotifyAuthFailureReason.MalformedResponse,
+                "Spotify's token response was missing an access token.")
+            : SpotifyAuthOutcome.Success(token);
     }
 
     private static SpotifyTokenResult? ParseTokenResponse(string body)
