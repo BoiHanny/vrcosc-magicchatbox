@@ -18,6 +18,7 @@ public partial class SpotifyAuth : Window
     public SpotifyAuth(SpotifySectionViewModel vm)
     {
         _vm = vm;
+        DataContext = vm;
         InitializeComponent();
         ClientIdBox.Text = vm.Settings.ClientId;
         ConnectButton.IsEnabled = !string.IsNullOrWhiteSpace(ClientIdBox.Text);
@@ -80,7 +81,8 @@ public partial class SpotifyAuth : Window
             }
 
             StatusText.Foreground = Brushes.OrangeRed;
-            StatusText.Text = "Spotify did not connect. Check your Client ID and redirect URI, then try again.";
+            StatusText.Text = _vm.LastConnectionError
+                ?? "Spotify did not connect. Check your Client ID and redirect URI, then try again.";
         }
         catch (Exception ex)
         {

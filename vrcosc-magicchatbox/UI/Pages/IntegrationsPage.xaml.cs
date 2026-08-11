@@ -119,8 +119,8 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void Update_Click(object sender, RoutedEventArgs e)
             => VM?.ManualBuildOscCommand.Execute(null);
 
-        private void RestartApplicationAsAdmin_Click(object sender, RoutedEventArgs e)
-            => VM?.RestartAsAdminCommand.Execute(null);
+        private void ResolveComponentStatsAccess_Click(object sender, RoutedEventArgs e)
+            => VM?.ResolveComponentStatsAccessCommand.Execute(null);
 
         private void MediaSessionPausePlay_Click(object sender, RoutedEventArgs e)
             => VM?.MediaPlayPauseCommand.Execute((sender as Button)?.Tag as MediaSessionInfo);

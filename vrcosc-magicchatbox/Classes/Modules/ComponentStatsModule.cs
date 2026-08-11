@@ -516,7 +516,23 @@ public class ComponentStatsModule : IModule
             }
             else
             {
-                return _hwService.GetGpuName(StaticSettings.SelectedGPU);
+                string resolved = _hwService.GetGpuName(StaticSettings.SelectedGPU);
+                if (!string.IsNullOrEmpty(resolved))
+                    return resolved;
+
+                // The saved card no longer resolves — swapped out, renamed by a driver update, or
+                // enumerated by a different source than when it was saved. The service refuses to
+                // substitute another adapter (correctly, or an AMD card reports NVIDIA sensors),
+                // so repair the setting here instead of returning null forever.
+                string fallback = _hwService.GetGpuName(null);
+                Logging.WriteInfo(
+                    $"Selected GPU '{StaticSettings.SelectedGPU}' no longer matches any adapter; " +
+                    $"falling back to '{fallback ?? "none"}'.");
+
+                if (!string.IsNullOrEmpty(fallback))
+                    StaticSettings.SelectedGPU = fallback;
+
+                return fallback;
             }
         }
         catch (Exception ex)
@@ -873,8 +889,18 @@ public class ComponentStatsModule : IModule
             return "";
         }
 
-        string result = "😞 " + string.Join(", ", notAvailableComponents) + " stats may not be available on your system...";
-        return result;
+        string names = string.Join(", ", notAvailableComponents);
+
+        // "We tried and it isn't there" and "we never got a reading" must not read the same.
+        // When the vendor sensor layer is off there is a concrete thing the user can do about it.
+        if (!_hwService.VendorGpuSensorsEnabled &&
+            notAvailableComponents.Contains(StatsComponentType.GPU.ToString()))
+        {
+            return $"{names} stats need GPU sensors, which are switched off in settings.";
+        }
+
+        return $"No readings yet for {names}. If this persists, make sure your GPU driver is "
+             + "installed and up to date — the log line starting \"Hardware monitor:\" says what was detected.";
     }
 
     public bool IsStatAvailable(StatsComponentType type)
@@ -1183,12 +1209,23 @@ public class ComponentStatsModule : IModule
         QueueDdrVersionFetchIfNeeded();
     }
 
+    private bool _loggedHardwareStatus;
+
     public void StartMonitoringComponents()
     {
         try
         {
+            _hwService.VendorGpuSensorsEnabled = StaticSettings.EnableVendorGpuSensors;
             _hwService.Open();
             RefreshGpuList();
+
+            // Log once per session: which adapters exist, which one was picked, and which sensor
+            // source is answering. Without it a "GPU stats unavailable" report is unactionable.
+            if (!_loggedHardwareStatus)
+            {
+                _loggedHardwareStatus = true;
+                Logging.WriteInfo($"Hardware monitor: {_hwService.GetHardwareMonitorStatusMessage()}");
+            }
         }
         catch (Exception ex)
         {

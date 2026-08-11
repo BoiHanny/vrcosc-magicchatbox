@@ -2,7 +2,10 @@ namespace vrcosc_magicchatbox.Core.Privacy;
 
 public enum PrivacyHook
 {
-    /// <summary>Driverless hardware stats through Windows APIs and WMI.</summary>
+    /// <summary>
+    /// Hardware stats through Windows APIs, WMI, and the user-mode GPU vendor libraries
+    /// (atiadlxx.dll / nvml.dll). No kernel-mode sensor driver is loaded.
+    /// </summary>
     HardwareMonitor = 0,
 
     /// <summary>UIAutomation + GetForegroundWindow — reads currently focused window title and process name.</summary>

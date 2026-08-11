@@ -143,7 +143,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             _display.ClearPlayback("Spotify disabled");
     }
 
-    public Task<SpotifyTokenResult?> AuthenticateAsync()
+    public Task<SpotifyAuthOutcome> AuthenticateAsync()
         => _oauth.AuthenticateAsync(Settings.ClientId);
 
     public async Task ApplyTokenResultAsync(SpotifyTokenResult token)

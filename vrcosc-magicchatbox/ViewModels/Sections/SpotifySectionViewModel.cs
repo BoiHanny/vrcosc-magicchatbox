@@ -56,6 +56,12 @@ public partial class SpotifySectionViewModel : ObservableObject
     [ObservableProperty] private string _outputPreview = string.Empty;
     [ObservableProperty] private string _previewLengthText = $"0/{Constants.OscMaxMessageLength}";
 
+    /// <summary>
+    /// What actually went wrong on the last connect attempt, in the user's terms.
+    /// Null once a connection succeeds.
+    /// </summary>
+    [ObservableProperty] private string? _lastConnectionError;
+
     public bool CanStartConnection => !IsConnecting;
     public bool HasDisplayError => !string.IsNullOrWhiteSpace(Display.ErrorText);
 
@@ -160,14 +166,18 @@ public partial class SpotifySectionViewModel : ObservableObject
             Settings.ClientId = clientId.Trim();
             _settingsProvider.Save();
 
-            var token = await spotify.AuthenticateAsync();
-            if (token == null)
+            var outcome = await spotify.AuthenticateAsync();
+            if (!outcome.Succeeded)
             {
-                _toast.Show("Spotify", "Connection cancelled or timed out. Check the Client ID and redirect URI.", ToastType.Warning, key: "spotify-auth-failed");
+                // Report what Spotify (or Windows) actually said. A mis-registered redirect URI,
+                // an unknown Client ID and an occupied callback port all used to read identically.
+                LastConnectionError = outcome.BuildUserMessage();
+                _toast.Show("Spotify", LastConnectionError, ToastType.Warning, key: "spotify-auth-failed");
                 return;
             }
 
-            await spotify.ApplyTokenResultAsync(token);
+            LastConnectionError = null;
+            await spotify.ApplyTokenResultAsync(outcome.Token!);
             IntegrationSettings.IntgrSpotify = true;
             await spotify.StartAsync();
             _toast.Show("Spotify", "Connected securely with PKCE. You're ready to show Spotify in chatbox.", ToastType.Success, key: "spotify-connected");

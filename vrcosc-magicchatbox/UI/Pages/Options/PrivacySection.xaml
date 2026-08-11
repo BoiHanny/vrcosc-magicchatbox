@@ -123,7 +123,7 @@
                                     FontFamily="Albert Sans Thin"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Driverless CPU, RAM, GPU, and VRAM stats. Denying this disables Component Stats."
+                                    Text="CPU, RAM, GPU, and VRAM stats — no kernel driver. Denying this disables Component Stats."
                                     TextWrapping="Wrap" />
                             </StackPanel>
 

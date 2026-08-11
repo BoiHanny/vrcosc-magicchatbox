@@ -14,6 +14,18 @@ public interface IHardwareMonitorService : IDisposable
     void Close();
 
     /// <summary>
+    /// Whether the user-mode vendor GPU sensor layer may be used. Turning it off falls back to
+    /// Windows-only sources, which cannot report temperature, power, fan speed or clocks.
+    /// </summary>
+    bool VendorGpuSensorsEnabled { get; set; }
+
+    /// <summary>
+    /// Which adapters were found, which one was selected, and which sensor sources are answering.
+    /// Written to the log so a report from an unusual machine is actionable without a debugger.
+    /// </summary>
+    string GetHardwareMonitorStatusMessage();
+
+    /// <summary>
     /// Polls all hardware sensors once. Call this at the start of each tick cycle,
     /// then read cached values from the getters below (zero-cost reads).
     /// </summary>
