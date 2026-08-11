@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -14,7 +14,6 @@ public partial class ToastItemViewModel : ObservableObject
     public ToastType Type { get; }
     public ToastAction? Action { get; }
 
-    /// <summary>Optional deduplication key — a new Show() with the same key silently replaces the existing one.</summary>
     public string? Key { get; }
 
     internal bool IsDismissed { get; private set; }
@@ -30,8 +29,7 @@ public partial class ToastItemViewModel : ObservableObject
         ToastType.Warning => new SolidColorBrush(Color.FromRgb(0xFF, 0xC1, 0x07)),
         ToastType.Error => new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)),
         ToastType.Privacy => new SolidColorBrush(Color.FromRgb(0xC3, 0xA9, 0xFF)),
-        _ => new SolidColorBrush(Color.FromRgb(0x31, 0xB7, 0xB4)), // Info = teal
-    };
+        _ => new SolidColorBrush(Color.FromRgb(0x31, 0xB7, 0xB4)),    };
 
     public string TypeIcon => Type switch
     {

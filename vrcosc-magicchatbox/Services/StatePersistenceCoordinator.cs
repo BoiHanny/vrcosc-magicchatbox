@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -8,10 +8,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// God-save coordinator — knows about every service/module that needs saving.
-/// Temporary: Phase 6C will replace this with IStateSaveParticipant auto-discovery.
-/// </summary>
 public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
 {
     private readonly Lazy<IOscSender> _oscSender;
@@ -87,7 +83,6 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         }
         catch (Exception ex)
         {
-            // One failed step must not prevent the rest of shutdown persistence.
             Logging.WriteException(ex, MSGBox: false);
             Logging.WriteInfo($"StatePersistenceCoordinator: '{stepName}' failed: {ex.Message}");
         }
@@ -149,7 +144,6 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         }
         catch (Exception ex)
         {
-            // OSC clear failing should not block persistence of user data.
             Logging.WriteException(ex, MSGBox: false);
             Logging.WriteInfo($"StatePersistenceCoordinator: OSC clear failed during shutdown: {ex.Message}");
         }

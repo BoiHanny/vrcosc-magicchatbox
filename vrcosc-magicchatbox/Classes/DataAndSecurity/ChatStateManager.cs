@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -10,10 +10,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
-/// <summary>
-/// Manages chat state: creating chat messages, clearing chat, and maintaining message history.
-/// Registered as DI singleton.
-/// </summary>
 public class ChatStateManager
 {
     private readonly ChatSettings _chatSettings;
@@ -39,9 +35,6 @@ public class ChatStateManager
         _dispatcher = dispatcher;
     }
 
-    /// <summary>
-    /// Clears the active chat and resets related ViewModel state.
-    /// </summary>
     public void ClearChat(ChatItem lastSendChat = null)
     {
         _chatStatus.ScanPause = false;
@@ -57,10 +50,6 @@ public class ChatStateManager
         }
     }
 
-    /// <summary>
-    /// Creates a chat message from the current NewChattingTxt, applies prefix if enabled,
-    /// sets scan-pause state, and optionally adds a ChatItem to the message history.
-    /// </summary>
     public void CreateChat(bool createItem, string? messageText = null)
     {
         try
@@ -106,8 +95,6 @@ public class ChatStateManager
             CanLiveEdit = _chatSettings.ChatLiveEdit
         };
 
-        // Mutate ObservableCollection on the UI thread to avoid cross-thread
-        // CollectionChanged exceptions in WPF bindings.
         void Apply()
         {
             if (_chatSettings.ChatLiveEdit)
@@ -133,8 +120,6 @@ public class ChatStateManager
                 item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
             }
 
-            // Replace collection wholesale to force binding refresh in one Reset
-            // notification rather than churning through Clear() + N Add() events.
             _chatStatus.LastMessages = new ObservableCollection<ChatItem>(_chatStatus.LastMessages);
         }
 

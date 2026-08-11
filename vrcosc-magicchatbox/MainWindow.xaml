@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     x:Class="vrcosc_magicchatbox.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -32,7 +32,6 @@
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <!--  DataContext is set in App.xaml.cs to ViewModel.Instance  -->
 
 
     <Grid>
@@ -120,7 +119,6 @@
 
 
 
-                <!--  Toast notification overlay — above all content, bottom-right  -->
                 <controls:ToastOverlay
                     Grid.Row="1"
                     Grid.ColumnSpan="2"
@@ -459,7 +457,6 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  V2 announcement  -->
                         <TextBlock
                             Grid.Row="0"
                             Margin="0,0,0,2"
@@ -479,7 +476,6 @@
                             </TextBlock.Effect>
                         </TextBlock>
 
-                        <!--  Update status text  -->
                         <TextBlock
                             Grid.Row="1"
                             Margin="0,0,0,6"
@@ -491,7 +487,6 @@
                             TextAlignment="Center"
                             TextWrapping="Wrap" />
 
-                        <!--  View changes link  -->
                         <TextBlock
                             x:Name="GitHubChanges"
                             Grid.Row="2"
@@ -510,7 +505,6 @@
                             </TextBlock.InputBindings>
                         </TextBlock>
 
-                        <!--  Version row: check btn + version + supporter label  -->
                         <StackPanel
                             Grid.Row="3"
                             HorizontalAlignment="Center"
@@ -653,7 +647,6 @@
                                                 Text="Away from keyboard:">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <!--  Default values  -->
                                                         <Setter Property="Foreground" Value="#B49AD1" />
                                                         <Setter Property="Text" Value="Inactive" />
                                                         <Setter Property="Opacity" Value="0.7" />
@@ -667,7 +660,6 @@
                                                                     Color="Black" />
                                                             </Setter.Value>
                                                         </Setter>
-                                                        <!--  Change values based on Modules.Afk.IsAfk  -->
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
                                                                 <Setter Property="Foreground" Value="#7DD9AA" />
@@ -696,7 +688,6 @@
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <!--  Default values  -->
                                                         <Setter Property="Foreground" Value="#D38D9C" />
                                                         <Setter Property="Text" Value="Inactive" />
                                                         <Setter Property="Opacity" Value="0.7" />
@@ -710,7 +701,6 @@
                                                                     Color="Black" />
                                                             </Setter.Value>
                                                         </Setter>
-                                                        <!--  Change values based on Modules.Afk.IsAfk  -->
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
                                                                 <Setter Property="Foreground" Value="#7DF8AA" />
@@ -725,7 +715,6 @@
                                         </StackPanel>
                                         <Grid.Style>
                                             <Style TargetType="Grid">
-                                                <!--  Default values  -->
                                                 <Setter Property="Background" Value="#391E72" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
@@ -754,7 +743,6 @@
                                                     RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <!--  Default values  -->
                                                             <Setter Property="Foreground" Value="#B49AD1" />
                                                             <Setter Property="Text" Value="Will be AFK in:" />
                                                             <Setter Property="Opacity" Value="0.7" />
@@ -768,7 +756,6 @@
                                                                         Color="Black" />
                                                                 </Setter.Value>
                                                             </Setter>
-                                                            <!--  Change values based on Modules.Afk.IsAfk  -->
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
                                                                     <Setter Property="Text" Value="You are AFK for:" />
@@ -795,7 +782,6 @@
                                                     RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <!--  Default values  -->
                                                             <Setter Property="Foreground" Value="#BEBED3" />
                                                             <Setter Property="Text" Value="{Binding Modules.Afk.RemainingTimeUntilAFK}" />
                                                             <Setter Property="Opacity" Value="0.7" />
@@ -809,7 +795,6 @@
                                                                         Color="Black" />
                                                                 </Setter.Value>
                                                             </Setter>
-                                                            <!--  Change values based on Modules.Afk.IsAfk  -->
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
                                                                     <Setter Property="Text" Value="{Binding Modules.Afk.TimeCurrentlyAFK}" />
@@ -1175,7 +1160,6 @@
             </Grid>
         </Border>
 
-        <!--  Startup overlay — OUTSIDE blurred Border so it's never blurred  -->
         <Grid
             x:Name="StartupOverlay"
             Panel.ZIndex="200"
@@ -1210,7 +1194,6 @@
                     </TextBlock.Effect>
                 </TextBlock>
 
-                <!--  Progress bar  -->
                 <ProgressBar
                     x:Name="OverlayProgressBar"
                     Width="280"
@@ -1219,13 +1202,11 @@
                     Background="#FF3A2F54"
                     Foreground="#FF7C5CBF" />
 
-                <!--  Rolling 3-strip step display  -->
                 <Grid
                     Width="320"
                     Height="54"
                     ClipToBounds="True">
                     <StackPanel>
-                        <!--  Previous step (faded)  -->
                         <TextBlock
                             x:Name="OverlayPrevStep"
                             FontFamily="Albert Sans Thin"
@@ -1235,7 +1216,6 @@
                             Text=""
                             TextAlignment="Center"
                             TextTrimming="CharacterEllipsis" />
-                        <!--  Current step  -->
                         <TextBlock
                             x:Name="OverlayCurrentStep"
                             Margin="0,2"
@@ -1246,7 +1226,6 @@
                             Text="Starting your interfaces..."
                             TextAlignment="Center"
                             TextTrimming="CharacterEllipsis" />
-                        <!--  Next step (faded preview)  -->
                         <TextBlock
                             x:Name="OverlayNextStep"
                             FontFamily="Albert Sans Thin"

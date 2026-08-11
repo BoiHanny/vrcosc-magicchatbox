@@ -1,14 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
-/// <summary>
-/// Wraps <see cref="ComponentStatsModule"/> and exposes all component-stats
-/// UI properties that were previously delegate wrappers on ViewModel.
-/// </summary>
 public partial class ComponentStatsViewModel : ObservableObject
 {
     private readonly ComponentStatsModule _module;
@@ -24,9 +20,6 @@ public partial class ComponentStatsViewModel : ObservableObject
     public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList =>
         new ReadOnlyObservableCollection<ComponentStatsItem>(_statsList);
 
-    /// <summary>
-    /// Replaces the in-progress stats list with <paramref name="newList"/> and notifies observers.
-    /// </summary>
     public void UpdateComponentStatsList(ObservableCollection<ComponentStatsItem> newList)
     {
         _statsList.Clear();
@@ -34,10 +27,6 @@ public partial class ComponentStatsViewModel : ObservableObject
             _statsList.Add(item);
     }
 
-    /// <summary>
-    /// Rebuilds the stats list from the module's current data, adding missing items
-    /// and removing stale ones while preserving existing entries.
-    /// </summary>
     public void SyncComponentStatsList()
     {
         _statsList.Clear();
@@ -346,10 +335,6 @@ public partial class ComponentStatsViewModel : ObservableObject
 
     public string VRAMHardwareName => _module.GetHardwareName(StatsComponentType.VRAM);
 
-    /// <summary>
-    /// Fires <see cref="System.ComponentModel.INotifyPropertyChanged.PropertyChanged"/> for every
-    /// public property, forcing all bound UI elements to re-evaluate their values.
-    /// </summary>
     public void RefreshAllProperties()
     {
         OnPropertyChanged(nameof(CPUHardwareName));

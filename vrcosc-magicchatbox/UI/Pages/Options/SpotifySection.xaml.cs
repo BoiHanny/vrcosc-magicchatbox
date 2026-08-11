@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -8,7 +8,6 @@ using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for Spotify integration settings.</summary>
 public partial class SpotifySection : UserControl
 {
     public SpotifySection()

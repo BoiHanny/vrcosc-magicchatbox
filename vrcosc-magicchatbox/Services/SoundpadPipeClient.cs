@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -8,19 +8,8 @@ using System.Threading.Tasks;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Outcome of one pipe request. <see cref="Response"/> is null when no response was received;
-/// <see cref="RequestDelivered"/> tells whether the request bytes were written to Soundpad —
-/// callers must not blindly retry a delivered command (it may have executed).
-/// </summary>
 public readonly record struct SoundpadPipeReply(string? Response, bool RequestDelivered);
 
-/// <summary>
-/// Persistent client for Soundpad's remote-control named pipe (\\.\pipe\sp_remote_control).
-/// The connection is reused across requests and re-established on demand after a broken pipe.
-/// Exactly one request/response pair is in flight at a time: Soundpad's pipe can break when
-/// requests are pipelined or sent within the same millisecond.
-/// </summary>
 public sealed class SoundpadPipeClient : IDisposable
 {
     public const string DefaultPipeName = "sp_remote_control";
@@ -42,7 +31,6 @@ public sealed class SoundpadPipeClient : IDisposable
 
     public bool IsConnected => _pipe?.IsConnected == true;
 
-    /// <summary>Connects if not already connected. Returns false when the pipe is unavailable.</summary>
     public async Task<bool> TryConnectAsync(int timeoutMs = 1000, CancellationToken ct = default)
     {
         if (_disposed) return false;
@@ -57,10 +45,6 @@ public sealed class SoundpadPipeClient : IDisposable
         }
     }
 
-    /// <summary>
-    /// Sends a raw remote-control command (e.g. "GetPlayStatus()") and returns Soundpad's
-    /// response, or a null response when Soundpad is unreachable or the request timed out.
-    /// </summary>
     public async Task<SoundpadPipeReply> SendRequestAsync(string command, int timeoutMs = 2000, CancellationToken ct = default)
     {
         if (_disposed) return new SoundpadPipeReply(null, false);
@@ -71,8 +55,6 @@ public sealed class SoundpadPipeClient : IDisposable
             if (pipe == null)
                 return new SoundpadPipeReply(null, false);
 
-            // The official reference client spaces requests by at least 1 ms:
-            // same-millisecond bursts can break the pipe.
             if (_lastRequestTimestamp != 0)
             {
                 TimeSpan sinceLast = Stopwatch.GetElapsedTime(_lastRequestTimestamp);
@@ -106,11 +88,8 @@ public sealed class SoundpadPipeClient : IDisposable
         }
     }
 
-    /// <summary>Drops the connection; the next request reconnects automatically.</summary>
     public void Disconnect()
     {
-        // Deliberately not gated: disposing the pipe aborts any in-flight read, which
-        // SendRequestAsync already handles as a broken connection.
         DisconnectCore();
     }
 
@@ -137,8 +116,6 @@ public sealed class SoundpadPipeClient : IDisposable
             await pipe.ConnectAsync(timeoutMs, ct).ConfigureAwait(false);
             try
             {
-                // Message read mode gives exact response framing; Soundpad's large XML
-                // replies (GetSoundlist) would otherwise need a length heuristic.
                 pipe.ReadMode = PipeTransmissionMode.Message;
                 _messageMode = true;
             }
@@ -149,7 +126,6 @@ public sealed class SoundpadPipeClient : IDisposable
             _pipe = pipe;
             if (_disposed)
             {
-                // Dispose() raced the connect — don't leak a live connection.
                 DisconnectCore();
                 return null;
             }
@@ -177,8 +153,6 @@ public sealed class SoundpadPipeClient : IDisposable
                 break;
         }
 
-        // PipeStream signals a broken pipe as a 0-byte read (EOF), not an exception.
-        // Soundpad never sends an empty response, so nothing-received means the pipe died.
         if (ms.Length == 0)
             throw new IOException("The Soundpad pipe was closed before a response was received.");
 
@@ -194,7 +168,6 @@ public sealed class SoundpadPipeClient : IDisposable
         }
         catch (IOException)
         {
-            // A broken pipe can throw on close; there is nothing left to release.
         }
     }
 }

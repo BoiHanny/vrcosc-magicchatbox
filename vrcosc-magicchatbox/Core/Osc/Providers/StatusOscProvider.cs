@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -11,10 +11,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Status message + AFK override → OSC segment.
-/// Includes status cycling (stateful pre-build step).
-/// </summary>
 public sealed class StatusOscProvider : IOscProvider
 {
     private readonly Lazy<IModuleHost> _modules;
@@ -63,7 +59,6 @@ public sealed class StatusOscProvider : IOscProvider
     {
         var afk = _modules.Value.Afk;
 
-        // AFK override takes priority
         if (afk != null && afk.IsAfk && afk.Settings.EnableAfkDetection)
         {
             string afkText = afk.GenerateAFKString();
@@ -74,7 +69,6 @@ public sealed class StatusOscProvider : IOscProvider
         if (!_intgr.IntgrStatus || _chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
             return null;
 
-        // Cycle status if enabled (stateful pre-build step)
         if (_app.CycleStatus)
             CycleStatus();
 
@@ -109,7 +103,6 @@ public sealed class StatusOscProvider : IOscProvider
 
         }
 
-        // Build candidate list: UseInCycle AND group must be active for cycling
         var activeGroupIds = _chatStatus.GroupList
             .Where(g => g.IsActiveForCycle)
             .Select(g => g.GroupId)
@@ -125,9 +118,6 @@ public sealed class StatusOscProvider : IOscProvider
         CycleItems(cycleItems);
     }
 
-    /// <summary>
-    /// Advances to the next item in <paramref name="cycleItems"/> respecting interval and random mode.
-    /// </summary>
     private void CycleItems(System.Collections.Generic.List<StatusItem> cycleItems)
     {
         if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
@@ -170,7 +160,6 @@ public sealed class StatusOscProvider : IOscProvider
             }
             else
             {
-                // Active item is outside cycle candidates — advance to first eligible
                 foreach (var item in _chatStatus.StatusList) item.IsActive = false;
                 cycleItems[0].IsActive = true;
                 cycleItems[0].LastUsed = DateTime.Now;

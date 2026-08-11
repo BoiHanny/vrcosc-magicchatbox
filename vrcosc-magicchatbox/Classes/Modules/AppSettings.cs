@@ -1,13 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Application-wide persisted settings.
-/// </summary>
 public partial class AppSettings : VersionedSettings
 {
     public const double OscTickIntervalDefaultSeconds = 1.0;
@@ -83,6 +80,7 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_WindowActivity = false;
     [ObservableProperty] private bool _settings_VrcRadar = false;
     [ObservableProperty] private bool _settings_TrackerBattery = false;
+    [ObservableProperty] private bool _settings_VrPerformance = false;
 
     [ObservableProperty] private bool _settingsDev = false;
     [ObservableProperty] private bool _avatarSyncExecute = true;

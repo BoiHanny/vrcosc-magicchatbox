@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -19,9 +19,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
-    /// <summary>
-    /// Page ViewModel for the Status page. Owns add/delete/edit, sorting, groups, selection mode, and cycling.
-    /// </summary>
     public partial class StatusPageViewModel : ObservableObject
     {
         private const string DefaultGroupName = "Default";
@@ -48,7 +45,6 @@ namespace vrcosc_magicchatbox.ViewModels
         public AppSettings AppSettings { get; }
         public ObservableCollection<StatusItem> SelectedItems { get; } = new();
 
-        /// <summary>True when any item is currently being inline-edited.</summary>
         public bool IsAnyItemEditing => _chatStatus.StatusList.Any(i => i.IsEditing);
 
         public ICollectionView? FilteredView
@@ -122,7 +118,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 string savedId = AppSettings.LastSelectedGroupId;
                 if (string.IsNullOrEmpty(savedId))
                 {
-                    // "All groups" was selected
                     SelectedGroup = null;
                 }
                 else
@@ -213,7 +208,6 @@ namespace vrcosc_magicchatbox.ViewModels
             OnPropertyChanged(nameof(SelectedGroupDisplayName));
             OnPropertyChanged(nameof(IsAllGroupsSelected));
 
-            // Persist selected group across restarts
             AppSettings.LastSelectedGroupId = value?.GroupId ?? "";
 
             if (AppSettings.CycleOverrideCurrentGroup)
@@ -223,7 +217,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 g.IsPopupSelected = (g == value);
         }
 
-        /// <summary>True when "All groups" is the active filter (SelectedGroup is null).</summary>
         public bool IsAllGroupsSelected => SelectedGroup == null;
 
         [RelayCommand]
@@ -274,14 +267,12 @@ namespace vrcosc_magicchatbox.ViewModels
         private void ToggleGroupCycleActive(StatusGroup? group)
         {
             if (group == null) return;
-            // IsActiveForCycle is already toggled by the ToggleButton's IsChecked binding
             _statusListService.SaveStatusList();
         }
 
         [RelayCommand]
         private void ToggleCycleOverride()
         {
-            // IsChecked TwoWay binding already toggled CycleOverrideCurrentGroup
             if (AppSettings.CycleOverrideCurrentGroup && SelectedGroup != null)
                 AppSettings.CycleOverrideGroupId = SelectedGroup.GroupId;
             else if (!AppSettings.CycleOverrideCurrentGroup)
@@ -442,7 +433,7 @@ namespace vrcosc_magicchatbox.ViewModels
             {
                 Logging.WriteException(ex, MSGBox: false);
                 try { _statusListService.LoadStatusList(); }
-                catch { /* best-effort reload */ }
+                catch { }
             }
         }
 
@@ -576,7 +567,6 @@ namespace vrcosc_magicchatbox.ViewModels
             catch (Exception ex) { Logging.WriteException(ex, MSGBox: false); }
         }
 
-        /// <summary>Export a specific group (called from the group popup).</summary>
         [RelayCommand]
         private void ShareGroup(StatusGroup? group)
         {

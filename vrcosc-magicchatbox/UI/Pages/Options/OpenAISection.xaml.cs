@@ -1,11 +1,10 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for the OpenAI integration settings section.</summary>
 public partial class OpenAISection : UserControl
 {
     public OpenAISection()

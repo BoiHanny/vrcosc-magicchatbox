@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -6,10 +6,6 @@ using vrcosc_magicchatbox.Core.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Routes in-app navigation by mutating SelectedMenuIndex
-/// and toggling the AppSettings visibility flags.
-/// </summary>
 public sealed class MenuNavigationService : IMenuNavigationService
 {
     private const int MaxHistoryDepth = 3;
@@ -36,6 +32,7 @@ public sealed class MenuNavigationService : IMenuNavigationService
             { "Settings_Chatting", v => appSettings.Settings_Chatting = v },
             { "Settings_ComponentStats", v => appSettings.Settings_ComponentStats = v },
             { "Settings_TrackerBattery", v => appSettings.Settings_TrackerBattery = v },
+            { "Settings_VrPerformance", v => appSettings.Settings_VrPerformance = v },
             { "Settings_NetworkStatistics", v => appSettings.Settings_NetworkStatistics = v },
             { "Settings_AppOptions", v => appSettings.Settings_AppOptions = v },
             { "Settings_TTS", v => appSettings.Settings_TTS = v },
@@ -52,10 +49,8 @@ public sealed class MenuNavigationService : IMenuNavigationService
         };
     }
 
-    /// <summary>Wires the action that expands the Privacy section in the Options page.</summary>
     public void SetExpandPrivacyAction(Action expandPrivacy) => _expandPrivacy = expandPrivacy;
 
-    /// <summary>Wires the callback that scrolls the Options page to a named section.</summary>
     public void SetScrollToSectionAction(Action<string> scrollToSection) => _scrollToSection = scrollToSection;
 
     public void ActivateSetting(string settingName)

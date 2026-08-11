@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -32,6 +32,7 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
         PrivacyHook.NetworkStats => Settings.NetworkStatsConsent,
         PrivacyHook.SoundpadBridge => Settings.SoundpadBridgeConsent,
         PrivacyHook.VrcLogReader => Settings.VrcLogReaderConsent,
+        PrivacyHook.VrPerformance => Settings.VrPerformanceConsent,
         _ => throw new ArgumentOutOfRangeException(nameof(hook), hook, "Unknown privacy hook."),
     };
 
@@ -44,10 +45,6 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
 
     private void SetState(PrivacyHook hook, ConsentState newState)
     {
-        // Mutate + persist under lock so concurrent Approve/Deny/Reset calls cannot
-        // interleave a half-updated PrivacySettings into the save pipeline. The
-        // ConsentChanged event is fired AFTER the lock is released so subscribers
-        // (some of which dispatch UI work) cannot deadlock against another caller.
         lock (_stateLock)
         {
             switch (hook)
@@ -88,6 +85,10 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
                     Settings.VrcLogReaderConsent = newState;
                     Settings.VrcLogReaderDecidedAt = DateTime.UtcNow;
                     break;
+                case PrivacyHook.VrPerformance:
+                    Settings.VrPerformanceConsent = newState;
+                    Settings.VrPerformanceDecidedAt = DateTime.UtcNow;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(hook), hook, "Unknown privacy hook.");
             }
@@ -102,8 +103,6 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
             }
         }
 
-        // Notify subscribers outside the lock. Isolate failures per-handler so a
-        // misbehaving subscriber cannot starve later subscribers of the event.
         var handler = ConsentChanged;
         if (handler == null)
             return;

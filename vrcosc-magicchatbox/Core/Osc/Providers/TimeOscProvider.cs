@@ -1,13 +1,9 @@
-using vrcosc_magicchatbox.Classes.Modules;
+﻿using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Current local time → OSC segment.
-/// Reads pre-formatted time from <see cref="IntegrationDisplayState.CurrentTime"/>.
-/// </summary>
 public sealed class TimeOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;

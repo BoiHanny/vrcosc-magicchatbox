@@ -2,10 +2,6 @@
 
 namespace vrcosc_magicchatbox.ViewModels
 {
-    /// <summary>
-    /// Represents a tracked Windows process with display customization options
-    /// for the Window Activity feature.
-    /// </summary>
     public class ProcessInfo : INotifyPropertyChanged
     {
         private bool _applyCustomAppName;
@@ -23,8 +19,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _useCustomRegex;
         private string _customRegex = string.Empty;
         private string _contentFilter = string.Empty;
-        private int _contentFilterMode; // 0=None, 1=Hide, 2=Include, 3=Remove
-
+        private int _contentFilterMode;
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged(string propertyName)
@@ -111,7 +106,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>When true, apply <see cref="CustomRegex"/> to the window title before displaying.</summary>
         public bool UseCustomRegex
         {
             get { return _useCustomRegex; }
@@ -122,7 +116,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>Regex pattern applied to the window title. First capture group is used as display text.</summary>
         public string CustomRegex
         {
             get { return _customRegex; }
@@ -133,10 +126,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>
-        /// Per-app content filter pattern.
-        /// Applied after regex extraction. Works with <see cref="ContentFilterMode"/>.
-        /// </summary>
         public string ContentFilter
         {
             get { return _contentFilter; }
@@ -148,10 +137,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>
-        /// Filter mode for this app: 0=None, 1=Hide when matches, 2=Show only when matches, 3=Remove matches.
-        /// Stored as int for JSON serialization compatibility.
-        /// </summary>
         public int ContentFilterMode
         {
             get { return _contentFilterMode; }
@@ -164,10 +149,8 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>Whether the content filter textbox should be enabled (mode is not None).</summary>
         public bool ContentFilterEnabled => _contentFilterMode != 0;
 
-        /// <summary>Whether this app has an active content filter configured.</summary>
         public bool HasContentFilter => _contentFilterMode != 0 && !string.IsNullOrWhiteSpace(_contentFilter);
     }
 }

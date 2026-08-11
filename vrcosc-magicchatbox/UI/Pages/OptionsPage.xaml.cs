@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -7,17 +7,14 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.UI.Pages;
 
-/// <summary>Code-behind for the options page, wiring routed toggle events and delegating TTS output selection.</summary>
 public partial class OptionsPage : UserControl
 {
-    /// <summary>Maps AppSettings property names to the named section controls.</summary>
     private Dictionary<string, FrameworkElement>? _sectionMap;
 
     public OptionsPage()
     {
         InitializeComponent();
 
-        // Handle all checkbox/toggle state changes via routed event bubbling
         AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent,
             new RoutedEventHandler(OnSettingToggled));
         AddHandler(System.Windows.Controls.Primitives.ToggleButton.UncheckedEvent,
@@ -57,6 +54,7 @@ public partial class OptionsPage : UserControl
             ["Settings_AppOptions"] = OptionsWrapper_AppOptions,
             ["Settings_EggDev"] = OptionsWrapper_EggDev,
             ["Settings_TrackerBattery"] = OptionsWrapper_TrackerBattery,
+            ["Settings_VrPerformance"] = OptionsWrapper_VrPerformance,
             ["Settings_Privacy"] = OptionsWrapper_Privacy,
             ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity,
         };
@@ -67,7 +65,6 @@ public partial class OptionsPage : UserControl
         EnsureSectionMap();
         if (_sectionMap != null && _sectionMap.TryGetValue(settingName, out var section))
         {
-            // Wait for layout to complete, then scroll the section into view
             Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
             {
                 section.BringIntoView();

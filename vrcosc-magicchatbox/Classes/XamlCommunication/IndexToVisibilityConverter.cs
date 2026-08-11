@@ -1,15 +1,10 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    /// <summary>
-    /// Converts a selected index (int) to Visibility.
-    /// If the bound value equals the ConverterParameter, returns Visible; otherwise Hidden.
-    /// Usage: Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
-    /// </summary>
     public class IndexToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

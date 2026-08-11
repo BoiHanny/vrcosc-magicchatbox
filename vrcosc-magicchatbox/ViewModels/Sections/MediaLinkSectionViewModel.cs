@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System;
@@ -12,10 +12,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for MediaLink options.
-/// Complete binding surface for MediaLinkSection.xaml.
-/// </summary>
 public partial class MediaLinkSectionViewModel : ObservableObject
 {
     private readonly Lazy<IMediaLinkPersistenceService> _mediaLinkSvc;
@@ -27,10 +23,6 @@ public partial class MediaLinkSectionViewModel : ObservableObject
     public MediaLinkSettings MediaLinkSettings { get; }
     public MediaLinkDisplayState MediaLink { get; }
 
-    /// <summary>
-    /// Initializes the media-link section ViewModel with media, OSC, settings, module,
-    /// and app-state dependencies.
-    /// </summary>
     public MediaLinkSectionViewModel(
         Lazy<IMediaLinkPersistenceService> mediaLinkSvc,
         ISettingsProvider<AppSettings> appSettingsProvider,

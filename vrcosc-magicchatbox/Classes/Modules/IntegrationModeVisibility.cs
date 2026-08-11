@@ -1,20 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// One integration's master toggle paired with the VR and Desktop visibility flags that gate it
-/// in <c>Core/Osc/Providers/*.IsEnabledForCurrentMode</c>.
-/// </summary>
-/// <param name="MasterPropertyName">Property on <see cref="IntegrationSettings"/> that switches the integration on.</param>
-/// <param name="DisplayName">Human-readable name used in warnings and toasts.</param>
-/// <param name="IsMasterEnabled">Reads the master toggle.</param>
-/// <param name="IsVisibleInVr">Reads the VR visibility flag.</param>
-/// <param name="EnableInVr">Turns the VR flag on, or null when VR visibility is not switchable.</param>
-/// <param name="IsVisibleOnDesktop">Reads the Desktop visibility flag.</param>
-/// <param name="EnableOnDesktop">Turns the Desktop flag on, or null when the integration cannot run on desktop.</param>
 public sealed record IntegrationModeGate(
     string MasterPropertyName,
     string DisplayName,
@@ -24,34 +13,20 @@ public sealed record IntegrationModeGate(
     Func<IntegrationSettings, bool> IsVisibleOnDesktop,
     Action<IntegrationSettings>? EnableOnDesktop)
 {
-    /// <summary>True when this integration would produce output in the given mode.</summary>
     public bool IsVisibleIn(IntegrationSettings settings, bool isVR)
         => isVR ? IsVisibleInVr(settings) : IsVisibleOnDesktop(settings);
 
-    /// <summary>True when the given mode's flag can be switched on at all.</summary>
     public bool CanEnableIn(bool isVR)
         => (isVR ? EnableInVr : EnableOnDesktop) is not null;
 
-    /// <summary>Switches on the given mode's flag. No-op when that mode is not switchable.</summary>
     public void EnableIn(IntegrationSettings settings, bool isVR)
         => (isVR ? EnableInVr : EnableOnDesktop)?.Invoke(settings);
 }
 
-/// <summary>An integration that is switched on but produces nothing in the current mode.</summary>
 public readonly record struct HiddenIntegration(string DisplayName, bool CanEnableInCurrentMode);
 
-/// <summary>
-/// Every integration is gated by <c>master &amp;&amp; (isVR ? X_VR : X_DESKTOP)</c>, and several
-/// per-mode defaults ship off. Flipping only the master toggle then produces nothing at all, with
-/// no feedback anywhere — the most common "I enabled it and nothing showed up in VRChat" report.
-/// <para>
-/// Weather is deliberately absent: its effective master lives on <c>WeatherSettings.ShowWeatherInTime</c>
-/// rather than <see cref="IntegrationSettings"/>, so it has no entry here.
-/// </para>
-/// </summary>
 public static class IntegrationModeVisibility
 {
-    /// <summary>All master-toggle → mode-pair mappings, matching the OSC providers one for one.</summary>
     public static IReadOnlyList<IntegrationModeGate> Gates { get; } = new IntegrationModeGate[]
     {
         new(nameof(IntegrationSettings.IntgrStatus), "Status",
@@ -119,10 +94,13 @@ public static class IntegrationModeVisibility
             s => s.IntgrVrcRadar_VR, s => s.IntgrVrcRadar_VR = true,
             s => s.IntgrVrcRadar_DESKTOP, s => s.IntgrVrcRadar_DESKTOP = true),
 
-        // Tracker battery reads SteamVR devices, so there is no desktop path to switch on.
-        // It is listed anyway so enabling it outside VR explains itself instead of doing nothing.
         new(nameof(IntegrationSettings.IntgrTrackerBattery), "Tracker Battery (VR only)",
             s => s.IntgrTrackerBattery,
+            _ => true, null,
+            _ => false, null),
+
+        new(nameof(IntegrationSettings.IntgrVrPerformance), "VR Performance (VR only)",
+            s => s.IntgrVrPerformance,
             _ => true, null,
             _ => false, null),
     };
@@ -130,13 +108,9 @@ public static class IntegrationModeVisibility
     private static readonly Dictionary<string, IntegrationModeGate> GatesByMaster =
         Gates.ToDictionary(gate => gate.MasterPropertyName, StringComparer.Ordinal);
 
-    /// <summary>Looks up the gate owning a master-toggle property name.</summary>
     public static bool TryGetGate(string masterPropertyName, out IntegrationModeGate gate)
         => GatesByMaster.TryGetValue(masterPropertyName ?? string.Empty, out gate!);
 
-    /// <summary>
-    /// Integrations that are switched on but invisible in the mode the user is currently in.
-    /// </summary>
     public static IReadOnlyList<HiddenIntegration> GetHiddenInCurrentMode(IntegrationSettings settings, bool isVR)
     {
         if (settings == null)
@@ -148,10 +122,6 @@ public static class IntegrationModeVisibility
             .ToList();
     }
 
-    /// <summary>
-    /// Describes a just-enabled integration that will produce nothing in the current mode, so the
-    /// caller can tell the user and offer the fix. Returns false when there is nothing to say.
-    /// </summary>
     public static bool TryDescribeHiddenMode(
         IntegrationSettings settings,
         string masterPropertyName,
@@ -170,11 +140,6 @@ public static class IntegrationModeVisibility
         return true;
     }
 
-    /// <summary>
-    /// Switches on the current mode's visibility flag for a freshly enabled integration.
-    /// Returns true only when it actually changed something, so the caller can persist and notify.
-    /// The other mode's flag is never touched.
-    /// </summary>
     public static bool TryEnableCurrentMode(
         IntegrationSettings settings,
         string masterPropertyName,
@@ -197,9 +162,6 @@ public static class IntegrationModeVisibility
         return gate.IsVisibleIn(settings, isVR);
     }
 
-    /// <summary>
-    /// Banner text naming every integration that is on but hidden right now, or null when clean.
-    /// </summary>
     public static string? BuildWarning(IntegrationSettings settings, bool isVR)
     {
         var hidden = GetHiddenInCurrentMode(settings, isVR);

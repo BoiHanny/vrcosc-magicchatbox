@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.Modules;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Provides weather data retrieval, formatting, and refresh management.
-/// </summary>
 public interface IWeatherService
 {
     WeatherSettings Settings { get; }

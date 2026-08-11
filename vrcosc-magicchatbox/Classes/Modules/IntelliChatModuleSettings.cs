@@ -1,10 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>Persisted settings for the IntelliChat AI text-enhancement module.</summary>
 public partial class IntelliChatModuleSettings : VersionedSettings
 {
     [ObservableProperty]

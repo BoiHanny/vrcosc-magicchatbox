@@ -1,11 +1,10 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for the text-to-speech options settings section.</summary>
 public partial class TtsOptionsSection : UserControl
 {
     private TtsSectionViewModel? VM => DataContext as TtsSectionViewModel;

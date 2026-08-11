@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,7 +63,6 @@ public sealed class SoundpadPipeClientTests
         await using var server = CreateServer(pipeName, PipeTransmissionMode.Message);
         using var client = new SoundpadPipeClient(pipeName);
 
-        // Larger than the client's 64 KB read buffer, like a big GetSoundlist() reply.
         string bigResponse = "<Soundlist>" + new string('x', 300_000) + "</Soundlist>";
         Task<string> serverTask = ServeOneRequestAsync(server, bigResponse);
         var reply = await client.SendRequestAsync("GetSoundlist()", timeoutMs: 10000);
@@ -101,11 +100,9 @@ public sealed class SoundpadPipeClientTests
         await firstServe;
         await firstServer.DisposeAsync();
 
-        // The connection is now broken; the request fails and drops the connection...
         var failed = await client.SendRequestAsync("GetPlayStatus()", timeoutMs: 1000);
         Assert.Null(failed.Response);
 
-        // ...and the next request transparently reconnects to a fresh server.
         await using var secondServer = CreateServer(pipeName, PipeTransmissionMode.Message);
         Task<string> secondServe = ServeOneRequestAsync(secondServer, "PAUSED");
         Assert.Equal("PAUSED", (await client.SendRequestAsync("GetPlayStatus()", timeoutMs: 5000)).Response);
@@ -119,8 +116,6 @@ public sealed class SoundpadPipeClientTests
         var server = CreateServer(pipeName, PipeTransmissionMode.Message);
         using var client = new SoundpadPipeClient(pipeName);
 
-        // Server accepts, reads the request, then dies without replying: the client's read
-        // sees a 0-byte EOF, which must surface as a broken pipe (null), not as response "".
         var serverTask = Task.Run(async () =>
         {
             await server.WaitForConnectionAsync();
@@ -143,7 +138,6 @@ public sealed class SoundpadPipeClientTests
         await using var server = CreateServer(pipeName, PipeTransmissionMode.Message);
         using var client = new SoundpadPipeClient(pipeName);
 
-        // Server consumes the request but never answers (Soundpad busy/hung).
         var serverTask = Task.Run(async () =>
         {
             await server.WaitForConnectionAsync();
@@ -153,7 +147,6 @@ public sealed class SoundpadPipeClientTests
 
         var reply = await client.SendRequestAsync("GetPlayStatus()", timeoutMs: 500);
 
-        // Delivered-but-unanswered: callers must NOT retry the command via another channel.
         Assert.Null(reply.Response);
         Assert.True(reply.RequestDelivered);
         Assert.False(client.IsConnected);
@@ -167,8 +160,6 @@ public sealed class SoundpadPipeClientTests
         await using var server = CreateServer(pipeName, PipeTransmissionMode.Message);
         using var client = new SoundpadPipeClient(pipeName);
 
-        // Server accepts but never reads: with the pipe's zero-byte buffer the write itself
-        // cannot complete, so the request is reported as undelivered (fallback is safe).
         Task accept = server.WaitForConnectionAsync();
         var reply = await client.SendRequestAsync("GetPlayStatus()", timeoutMs: 300);
 

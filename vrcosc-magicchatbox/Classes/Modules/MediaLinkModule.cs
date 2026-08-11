@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,9 +21,6 @@ using static WindowsMediaController.MediaManager;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Manages Windows media sessions and exposes playback state and metadata for the VRChat chatbox.
-/// </summary>
 public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 {
     private readonly IAppState _appState;
@@ -52,9 +49,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     public DateTime LastMediaChangeTime { get; private set; } = DateTime.UtcNow;
 
 
-    /// <summary>
-    /// Initializes the module, wires property-change listeners, and optionally starts the media manager.
-    /// </summary>
     public MediaLinkModule(
         bool shouldStart,
         IPrivacyConsentService consentService,
@@ -202,16 +196,10 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 return true;
 
             case TimelineDecision.NoTimeline:
-                // The player has no usable duration right now (Spotify publishes an empty timeline
-                // mid-transition). Stay stale so the resync loop keeps polling — marking this
-                // "fresh" is what used to strand the seekbar for the rest of the track.
                 sessionInfo.MarkTimelineStale();
                 return false;
 
             case TimelineDecision.NoTimelineSettled:
-                // Long enough without a duration that this is the source's nature, not a
-                // transition. Settle it so a live stream or call audio stops being re-polled
-                // over WinRT every 2 seconds for as long as it plays.
                 sessionInfo.MarkTimelineDurationless();
                 return false;
 
@@ -283,7 +271,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         sessionInfo.Artist = properties.Artist;
         sessionInfo.Title = properties.Title;
 
-        // A track change starts a fresh wait for a timeline, so the stale clock restarts with it.
         if (staleTimelineOnChange && changed)
             sessionInfo.MarkTimelineStale(restartStaleClock: true);
 
@@ -342,7 +329,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         foreach (var expiredSession in expiredSessions)
         {
-            // Conditional remove: skip entries refreshed by a reopen/re-close since the snapshot.
             if (recentlyClosedSessions.TryRemove(expiredSession))
                 expiredSession.Value.Item1.Dispose();
         }
@@ -473,7 +459,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 }
                 else
                 {
-                    // Expired or disposed park entry — drop it so a fresh, live instance is built below.
                     recentlyClosedSessions.TryRemove(session.Id, out _);
                 }
             }
@@ -499,7 +484,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                         {
                             _mediaLink.MediaSessions.Remove(duplicate);
 
-                            // Dispose dropped duplicates unless still parked for a grace-period restore.
                             if (!recentlyClosedSessions.Values.Any(v => ReferenceEquals(v.Item1, duplicate)))
                             {
                                 if (duplicate.Session != null)
@@ -603,10 +587,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
-            // Any active/playing session without a working seekbar needs polling — not just the
-            // ones flagged stale. A session can end up with TimePeekEnabled false and no stale
-            // flag, and would otherwise never be looked at again. Sources that have settled as
-            // genuinely duration-less are excluded: re-polling them can never produce a seekbar.
             var sessions = _dispatcher.Invoke(() => _mediaLink.MediaSessions
                     .Where(session => (session.IsTimelineStale || !session.TimePeekEnabled) &&
                                       !session.HasNoTimeline &&
@@ -638,10 +618,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    /// <summary>
-    /// Stops the media manager and disposes tracked sessions without unhooking the settings/consent
-    /// listeners, so a later settings toggle or consent approval can restart the module.
-    /// </summary>
     private void Stop()
     {
         StopMediaSnapshotResyncTimer();
@@ -679,10 +655,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             info.Dispose();
     }
 
-    /// <summary>
-    /// Unsubscribes all event handlers and disposes the underlying <see cref="MediaManager"/> instance.
-    /// Reserved for app shutdown — runtime enable/disable goes through <see cref="Stop"/>.
-    /// </summary>
     public void Dispose()
     {
         _appState.PropertyChanged -= ViewModel_PropertyChanged;
@@ -701,9 +673,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         await S.ControlSession.TrySkipNextAsync();
     }
 
-    /// <summary>
-    /// Updates the current session's timeline properties (position and duration) from the Windows media API.
-    /// </summary>
     public void MediaManager_OnAnyTimelinePropertyChanged(MediaSession sender, GlobalSystemMediaTransportControlsSessionTimelineProperties args)
     {
         var sessionInfo = sessionInfoLookup.GetValueOrDefault(sender);
@@ -764,9 +733,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
 
 
-    /// <summary>
-    /// Restores persisted per-session display settings (title, artist, auto-switch, etc.) onto <paramref name="session"/>.
-    /// </summary>
     public void SessionRestore(MediaSessionInfo session)
     {
         MediaSessionSettings savedSettings = new MediaSessionSettings();
@@ -787,7 +753,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             }
         }
 
-        // Apply outside the lock — the setters re-enter SaveOrDeleteSettings, which locks itself.
         if (matchingSettings != null && !session.TimeoutRestore)
         {
             session.ShowTitle = savedSettings.ShowTitle;
@@ -798,9 +763,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    /// <summary>
-    /// Starts the <see cref="MediaManager"/> and subscribes to all media session events.
-    /// </summary>
     public void Start()
     {
         if (mediaManager != null)
@@ -826,9 +788,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
 
 
-    /// <summary>
-    /// Defines the progress-bar visual style (characters, length, time format) used by the media display.
-    /// </summary>
     public class MediaLinkStyle : INotifyPropertyChanged
     {
         private bool displayTime = true;

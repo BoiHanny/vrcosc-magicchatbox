@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -19,10 +19,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Service that tracks focused Windows processes, resolves display names, and produces formatted
-/// window-activity strings for the VRChat chat overlay.
-/// </summary>
 public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivityService
 {
     private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
@@ -149,7 +145,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                         : Settings.PrivateName;
                 }
 
-                // Global regex is applied before title length limiting in FormatWindowTitle.
                 windowTitle = ApplyCustomRegex(existingProcessInfo, windowTitle);
 
                 bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
@@ -174,10 +169,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     }
 
-    /// <summary>
-    /// Applies the global regex transform to a window title. A rule can use "pattern => replacement";
-    /// otherwise the first capture group is used for compatibility.
-    /// </summary>
     private string ApplyGlobalRegex(string windowTitle)
     {
         if (!Settings.UseGlobalRegex
@@ -188,10 +179,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return TitleContentFilter.ApplyRegexTransform(windowTitle, Settings.GlobalRegex);
     }
 
-    /// <summary>
-    /// Applies a per-app custom regex transform to the window title. A rule can use "pattern => replacement";
-    /// otherwise the first capture group is used for compatibility.
-    /// </summary>
     private static string ApplyCustomRegex(ProcessInfo process, string windowTitle)
     {
         if (!process.UseCustomRegex
@@ -207,7 +194,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         fullTitle = fullTitle?.Trim() ?? string.Empty;
         fullTitle = ApplyGlobalRegex(fullTitle);
 
-        // Apply per-app content filter first (takes priority)
         if (process != null && process.HasContentFilter && !string.IsNullOrWhiteSpace(fullTitle))
         {
             fullTitle = ApplyPerAppFilter(fullTitle, process);
@@ -305,8 +291,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
     {
         try
         {
-            // UIAutomation can block for 20+ seconds if the target app is hung.
-            // Run on a background thread with a 2-second timeout.
             var task = Task.Run(() =>
             {
                 AutomationElement element = AutomationElement.FromHandle(hwnd);
@@ -316,8 +300,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             if (task.Wait(TimeSpan.FromSeconds(2)))
                 return task.Result;
 
-            return "Unknown"; // Timed out — app is likely hung
-        }
+            return "Unknown";        }
         catch (Exception ex)
         {
             WA.ErrorInWindowActivity = true;

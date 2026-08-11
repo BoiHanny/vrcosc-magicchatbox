@@ -1,11 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// OSC connection settings, including primary and secondary output addresses and ports.
-/// </summary>
 public partial class OscSettings : VersionedSettings
 {
     [ObservableProperty] private string _oscIP = "127.0.0.1";

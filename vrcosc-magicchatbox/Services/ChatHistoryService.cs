@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,9 +11,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Loads and saves chat message history (LastMessages) to disk.
-/// </summary>
 public sealed class ChatHistoryService : IChatHistoryService
 {
     private readonly IEnvironmentService _env;
@@ -96,9 +93,6 @@ public sealed class ChatHistoryService : IChatHistoryService
                 return;
             }
 
-            // Persist empty collections explicitly. Previously this method short-circuited
-            // when the collection was empty, which meant clearing chat history left the
-            // stale on-disk file behind and it resurrected on next launch.
             string json = JsonConvert.SerializeObject(_chatStatus.LastMessages, Formatting.Indented);
 
             if (json == null)

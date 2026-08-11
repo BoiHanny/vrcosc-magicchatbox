@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -6,10 +6,6 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Owns MediaLink session list, saved session settings, and seekbar style selection.
-/// Extracted from ViewModel to isolate MediaLink runtime display concerns.
-/// </summary>
 public sealed partial class MediaLinkDisplayState : ObservableObject
 {
     private ObservableCollection<MediaSessionInfo> _mediaSessions = new();

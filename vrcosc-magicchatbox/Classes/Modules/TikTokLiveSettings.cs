@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.ComponentModel;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -24,14 +24,6 @@ public enum TikTokOutputOrder
     LiveThenProfile
 }
 
-/// <summary>
-/// Persisted settings for the TikTok module. The type name is kept for compatibility
-/// with the first experimental live-only settings file.
-/// Template placeholders:
-///   Profile: {profile}, {display_name}, {followers}, {follower_count}, {change}, {change_count}, {updated}
-///   Live summary: {live}, {host}, {viewers}, {viewer_count}, {likes}, {like_count}, {room}
-///   Events:  {user}, {unique_id}, {message}, {gift}, {count}, {amount}, {viewers}, {total}, {host}
-/// </summary>
 [CurrentSchema(3)]
 public partial class TikTokLiveSettings : VersionedSettings
 {

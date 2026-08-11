@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,11 +15,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for App Options (general settings).
-/// Owns OSC reset, rollback, update-by-zip, folder open, and favorites reset.
-/// Complete binding surface for AppOptionsSection.xaml.
-/// </summary>
 public partial class AppOptionsSectionViewModel : ObservableObject
 {
     private readonly IEnvironmentService _env;
@@ -38,10 +33,6 @@ public partial class AppOptionsSectionViewModel : ObservableObject
     public IEnvironmentService Environment => _env;
     public ISettingsProvider<IntegrationSettings> IntegrationSettingsProvider { get; }
 
-    /// <summary>
-    /// Initializes the app-options section ViewModel with navigation, update, settings,
-    /// and all required module and service dependencies.
-    /// </summary>
     public AppOptionsSectionViewModel(
         ISettingsProvider<AppSettings> appSettingsProvider,
         ISettingsProvider<TtsSettings> ttsSettingsProvider,
@@ -134,6 +125,5 @@ public partial class AppOptionsSectionViewModel : ObservableObject
             return;
         }
         _statusListSvc.Value.LoadStatusList();
-        _menuNav.NavigateToPage(1); // Navigate to Status page
-    }
+        _menuNav.NavigateToPage(1);    }
 }

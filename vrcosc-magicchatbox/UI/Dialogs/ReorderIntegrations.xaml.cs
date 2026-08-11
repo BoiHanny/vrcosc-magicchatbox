@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,9 +10,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
-    /// <summary>
-    /// Interaction logic for ReorderIntegrations.xaml
-    /// </summary>
     public partial class ReorderIntegrations : Window
     {
         public ObservableCollection<string> TempOrder { get; }

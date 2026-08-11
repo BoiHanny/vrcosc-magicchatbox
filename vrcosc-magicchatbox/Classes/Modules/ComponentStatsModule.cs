@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,9 +20,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Polls hardware sensors (CPU, GPU, RAM, VRAM) and generates the stats description string for the VRChat chatbox.
-/// </summary>
 public class ComponentStatsModule : IModule
 {
     private string FileName = null;
@@ -46,7 +43,6 @@ public class ComponentStatsModule : IModule
         StatsComponentType.RAM,
     };
 
-    // GPU list cache — ObservableCollection so the ComboBox binding updates when items arrive
     public ObservableCollection<string> GPUList { get; } = new();
 
     private readonly IHardwareMonitorService _hwService;
@@ -84,9 +80,6 @@ public class ComponentStatsModule : IModule
     private ComponentStatsViewModel _statsVm;
     private ComponentStatsViewModel StatsVm => _statsVm;
 
-    /// <summary>
-    /// Late-bound setter for ComponentStatsViewModel (avoids circular dependency).
-    /// </summary>
     public void SetStatsViewModel(ComponentStatsViewModel vm)
     {
         _statsVm = vm;
@@ -381,7 +374,6 @@ public class ComponentStatsModule : IModule
     {
         var current = StatsVm.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
 
-        // GlobalMemoryStatusEx via kernel32 (driverless, sub-microsecond) — preferred path
         var wmiMem = _hwService.GetWindowsMemoryInfo();
         if (wmiMem.HasValue)
         {
@@ -405,9 +397,6 @@ public class ComponentStatsModule : IModule
         return ("N/A", "N/A");
     }
 
-    /// <summary>
-    /// Updates display-name side-effects on a ComponentStatsItem when hardware name is resolved.
-    /// </summary>
     private void UpdateHardwareName(ComponentStatsItem current, string hardwareName)
     {
         if (current == null || string.IsNullOrEmpty(hardwareName)) return;
@@ -520,10 +509,6 @@ public class ComponentStatsModule : IModule
                 if (!string.IsNullOrEmpty(resolved))
                     return resolved;
 
-                // The saved card no longer resolves — swapped out, renamed by a driver update, or
-                // enumerated by a different source than when it was saved. The service refuses to
-                // substitute another adapter (correctly, or an AMD card reports NVIDIA sensors),
-                // so repair the setting here instead of returning null forever.
                 string fallback = _hwService.GetGpuName(null);
                 Logging.WriteInfo(
                     $"Selected GPU '{StaticSettings.SelectedGPU}' no longer matches any adapter; " +
@@ -664,9 +649,6 @@ public class ComponentStatsModule : IModule
         return string.IsNullOrWhiteSpace(Settings.StatsSeparator) ? " ¦ " : Settings.StatsSeparator;
     }
 
-    /// <summary>
-    /// Builds the combined stats string from all enabled component items for display in the chatbox.
-    /// </summary>
     public string GenerateStatsDescription()
     {
         QueueDdrVersionFetchIfNeeded();
@@ -685,8 +667,6 @@ public class ComponentStatsModule : IModule
 
                 if (stat.ComponentType == StatsComponentType.CPU && hasCpu)
                 {
-                    // CPU temperature/wattage are not exposed by the driverless pipeline.
-                    // Guard assignments so we don't trigger PropertyChanged/auto-save on every tick.
                     if (stat.ShowWattage) stat.ShowWattage = false;
                     if (stat.ShowTemperature) stat.ShowTemperature = false;
                     if (stat.cantShowWattage) stat.cantShowWattage = false;
@@ -870,9 +850,6 @@ public class ComponentStatsModule : IModule
     }
 
 
-    /// <summary>
-    /// Returns a human-readable string listing components that have no data available.
-    /// </summary>
     public string GetWhitchComponentsAreNotAvailableString()
     {
         List<string> notAvailableComponents = new List<string>();
@@ -891,8 +868,6 @@ public class ComponentStatsModule : IModule
 
         string names = string.Join(", ", notAvailableComponents);
 
-        // "We tried and it isn't there" and "we never got a reading" must not read the same.
-        // When the vendor sensor layer is off there is a concrete thing the user can do about it.
         if (!_hwService.VendorGpuSensorsEnabled &&
             notAvailableComponents.Contains(StatsComponentType.GPU.ToString()))
         {
@@ -972,9 +947,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    /// <summary>
-    /// Loads persisted component stats configuration from disk, or seeds defaults if none exists.
-    /// </summary>
     public void LoadComponentStats()
     {
         try
@@ -999,7 +971,6 @@ public class ComponentStatsModule : IModule
             var loadedStats = JsonConvert.DeserializeObject<List<ComponentStatsItem>>(jsonData);
             if (loadedStats != null)
             {
-                // Strip legacy FPS entries and normalize to exactly one item per supported type
                 var filtered = loadedStats
                     .Where(s => s.ComponentType != StatsComponentType.FPS)
                     .GroupBy(s => s.ComponentType)
@@ -1012,8 +983,6 @@ public class ComponentStatsModule : IModule
                 {
                     if (filtered.TryGetValue(type, out var existing))
                     {
-                        // One-time normalization: CPU temp/wattage are not available via the
-                        // driverless pipeline, so clear stale flags persisted by older builds.
                         if (existing.ComponentType == StatsComponentType.CPU)
                         {
                             if (existing.ShowWattage) { existing.ShowWattage = false; needsResave = true; }
@@ -1025,7 +994,6 @@ public class ComponentStatsModule : IModule
                     }
                     else
                     {
-                        // Add a sensible default for this newly supported type
                         var unit = type == StatsComponentType.CPU || type == StatsComponentType.GPU ? "﹪" : "ᵍᵇ";
                         var item = new ComponentStatsItem(
                             type.ToString(), type.GetSmallName(), type, "", "", false, unit)
@@ -1060,7 +1028,6 @@ public class ComponentStatsModule : IModule
         {
             Logging.WriteException(ex, MSGBox: false);
             _toast?.Show("⚙️ Hardware Monitor", "Failed to load component stats configuration.", ToastType.Error, key: "hw-stats-load-failed");
-            // Never leave the module blank: fall back to defaults like the missing-file path.
             if (_componentStats.Count == 0)
                 InitializeDefaultStats();
         }
@@ -1219,8 +1186,6 @@ public class ComponentStatsModule : IModule
             _hwService.Open();
             RefreshGpuList();
 
-            // Log once per session: which adapters exist, which one was picked, and which sensor
-            // source is answering. Without it a "GPU stats unavailable" report is unactionable.
             if (!_loggedHardwareStatus)
             {
                 _loggedHardwareStatus = true;
@@ -1258,9 +1223,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    /// <summary>
-    /// Checks if a stats update is due and, if so, polls hardware and regenerates the display string.
-    /// </summary>
     public void TickAndUpdate()
     {
         if (ShouldUpdateComponentStats())
@@ -1287,9 +1249,6 @@ public class ComponentStatsModule : IModule
 
 
 
-    /// <summary>
-    /// Refreshes all component stat values from the hardware service and returns <see langword="true"/> if any changed.
-    /// </summary>
     public bool UpdateStats()
     {
         void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)

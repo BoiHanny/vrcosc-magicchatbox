@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,9 +11,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Loads and saves the application process history (ScannedApps) to disk.
-/// </summary>
 public sealed class AppHistoryService : IAppHistoryService
 {
     private readonly IEnvironmentService _env;
@@ -27,9 +24,6 @@ public sealed class AppHistoryService : IAppHistoryService
         _dispatcher = dispatcher;
     }
 
-    /// <summary>
-    /// Loads the app history from disk, falling back to an empty collection on failure.
-    /// </summary>
     public void LoadAppHistory()
     {
         try
@@ -70,9 +64,6 @@ public sealed class AppHistoryService : IAppHistoryService
         }
     }
 
-    /// <summary>
-    /// Serializes the current app history to disk as JSON.
-    /// </summary>
     public void SaveAppHistory()
     {
         try
@@ -82,8 +73,6 @@ public sealed class AppHistoryService : IAppHistoryService
                 return;
             }
 
-            // Always serialize, even if the collection is empty or null — emit "[]"
-            // so explicit clears persist instead of resurrecting stale data from disk.
             var scannedApps = _windowActivity.ScannedApps ?? new ObservableCollection<ProcessInfo>();
             string json = JsonConvert.SerializeObject(scannedApps);
 
@@ -100,10 +89,6 @@ public sealed class AppHistoryService : IAppHistoryService
         }
     }
 
-    /// <summary>
-    /// Ensures the specified directory exists, creating it if necessary.
-    /// Returns false on IO failure.
-    /// </summary>
     public bool CreateIfMissing(string path)
     {
         try

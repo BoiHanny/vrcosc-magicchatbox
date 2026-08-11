@@ -1,21 +1,13 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Runtime display state for the Chat/Status input UI.
-/// Owns text inputs, top-bar labels, character count displays,
-/// typing indicator, countdown, scan-pause state,
-/// and the StatusList / LastMessages collections.
-/// </summary>
 public partial class ChatStatusDisplayState : ObservableObject
 {
     [ObservableProperty] private bool _scanPause;
 
-    // Custom property: ScanLoopService does self-assignment to force UI refresh,
-    // so we must always raise PropertyChanged (no same-value short-circuit).
     private int _scanPauseCountDown;
     public int ScanPauseCountDown
     {

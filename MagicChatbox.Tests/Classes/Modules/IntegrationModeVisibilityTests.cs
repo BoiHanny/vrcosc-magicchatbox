@@ -1,14 +1,9 @@
-using System.Linq;
+﻿using System.Linq;
 using vrcosc_magicchatbox.Classes.Modules;
 using Xunit;
 
 namespace MagicChatbox.Tests.Classes.Modules;
 
-/// <summary>
-/// Every integration is gated by <c>master &amp;&amp; (isVR ? X_VR : X_DESKTOP)</c>. Several per-mode
-/// defaults ship off, so flipping only the master toggle used to produce nothing, silently —
-/// the "I enabled it and nothing showed up in VRChat" report.
-/// </summary>
 public class IntegrationModeVisibilityTests
 {
     [Fact]
@@ -19,7 +14,6 @@ public class IntegrationModeVisibilityTests
         Assert.NotEmpty(names);
     }
 
-    // ---- The defaults that actually bite --------------------------------
 
     [Fact]
     public void NetworkStatistics_EnabledInVr_IsHiddenByDefault()
@@ -51,7 +45,6 @@ public class IntegrationModeVisibilityTests
         Assert.DoesNotContain(hidden, h => h.DisplayName == "Network Statistics");
     }
 
-    // ---- Auto-enable ----------------------------------------------------
 
     [Fact]
     public void TryEnableCurrentMode_TurnsOnTheVrFlagAndLeavesDesktopAlone()
@@ -130,7 +123,6 @@ public class IntegrationModeVisibilityTests
             settings, "IntgrSomethingThatDoesNotExist", isVR: true, out _));
     }
 
-    // ---- Tracker battery has no desktop path ----------------------------
 
     [Fact]
     public void TrackerBattery_OnDesktop_IsReportedAsNotFixable()
@@ -155,7 +147,6 @@ public class IntegrationModeVisibilityTests
         Assert.DoesNotContain(hidden, h => h.DisplayName.StartsWith("Tracker Battery"));
     }
 
-    // ---- Banner text ----------------------------------------------------
 
     [Fact]
     public void BuildWarning_IsNullWhenNothingIsHidden()
@@ -187,8 +178,6 @@ public class IntegrationModeVisibilityTests
         var settings = new IntegrationSettings
         {
             IntgrTrackerBattery = true,
-            // Current Time ships enabled with its desktop flag off (see the test below), which
-            // would otherwise contribute a fixable entry and bring the suggestion back.
             IntgrScanWindowTime = false,
         };
 
@@ -202,9 +191,6 @@ public class IntegrationModeVisibilityTests
     [Fact]
     public void FreshInstallOnDesktop_AlreadyHidesCurrentTime()
     {
-        // Documents a real shipped default: IntgrScanWindowTime is on but IntgrCurrentTime_DESKTOP
-        // is off, so a desktop user never sees the clock and is given no reason why. The banner
-        // now says so instead of leaving them to guess.
         var settings = new IntegrationSettings();
 
         var hidden = IntegrationModeVisibility.GetHiddenInCurrentMode(settings, isVR: false);

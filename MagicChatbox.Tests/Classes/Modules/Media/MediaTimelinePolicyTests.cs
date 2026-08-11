@@ -1,14 +1,9 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.Modules.Media;
 using Xunit;
 
 namespace MagicChatbox.Tests.Classes.Modules.Media;
 
-/// <summary>
-/// Covers the rules that decide whether the MediaLink seekbar keeps updating.
-/// Regression origin: a session that received a zero-duration snapshot during a Spotify track
-/// transition lost its seekbar and was excluded from the only loop that polled it back.
-/// </summary>
 public class MediaTimelinePolicyTests
 {
     private static readonly TimeSpan Track = TimeSpan.FromSeconds(210);
@@ -39,7 +34,6 @@ public class MediaTimelinePolicyTests
         };
     }
 
-    // ---- Normalize -------------------------------------------------------
 
     [Fact]
     public void Normalize_SubtractsStartTimeFromPosition()
@@ -73,7 +67,6 @@ public class MediaTimelinePolicyTests
         Assert.Equal(TimeSpan.Zero, snapshot.Full);
     }
 
-    // ---- NoTimeline ------------------------------------------------------
 
     [Fact]
     public void ZeroDuration_IsNoTimeline()
@@ -89,7 +82,6 @@ public class MediaTimelinePolicyTests
         Assert.Equal(TimelineDecision.NoTimeline, decision);
     }
 
-    // ---- Unchanged-stale rejection --------------------------------------
 
     [Fact]
     public void StaleAndUnchanged_IsRejected_SoTheOldSongsPositionIsNotShown()
@@ -153,14 +145,10 @@ public class MediaTimelinePolicyTests
         Assert.Equal(TimelineDecision.RejectUnchangedStale, decision);
     }
 
-    // ---- Unchanged-stale rejection does not time out ---------------------
 
     [Fact]
     public void StaleAndUnchanged_IsStillRejectedNoMatterHowLongTheWait()
     {
-        // An unchanged stale snapshot is the *previous* track's timeline by definition, so no
-        // amount of waiting makes accepting it correct. Showing 1:30/3:00 from the last song
-        // against the new song's title is worse than showing no seekbar at all.
         foreach (var age in new[]
                  {
                      TimeSpan.Zero,
@@ -180,7 +168,6 @@ public class MediaTimelinePolicyTests
         }
     }
 
-    // ---- Duration-less sources settle instead of being polled forever ----
 
     [Fact]
     public void NoDurationBriefly_StaysNoTimeline_SoTheResyncKeepsLooking()
@@ -207,7 +194,6 @@ public class MediaTimelinePolicyTests
     [Fact]
     public void NoDurationWhenNotStale_IsNeverSettled()
     {
-        // StaleAge is meaningless unless the session is actually stale.
         var decision = MediaTimelinePolicy.Evaluate(Input(
             incomingFull: TimeSpan.Zero,
             isStale: false,
@@ -216,7 +202,6 @@ public class MediaTimelinePolicyTests
         Assert.Equal(TimelineDecision.NoTimeline, decision);
     }
 
-    // ---- Regressive drift ------------------------------------------------
 
     [Fact]
     public void SmallBackwardsDriftWhilePlaying_IsSuppressed()
@@ -280,19 +265,16 @@ public class MediaTimelinePolicyTests
         Assert.Equal(TimelineDecision.Accept, decision);
     }
 
-    // ---- The reported scenario, end to end ------------------------------
 
     [Fact]
     public void TrackTransition_RecoversOnceTheNewTimelineArrives()
     {
-        // Spotify publishes an empty timeline mid-transition.
         var duringTransition = MediaTimelinePolicy.Evaluate(Input(
             incomingFull: TimeSpan.Zero,
             isStale: true,
             rejectUnchangedStale: true));
         Assert.Equal(TimelineDecision.NoTimeline, duringTransition);
 
-        // Then the new track's timeline lands and must be taken.
         var afterTransition = MediaTimelinePolicy.Evaluate(Input(
             incomingFull: TimeSpan.FromSeconds(185),
             incomingCurrent: TimeSpan.FromSeconds(1),
@@ -307,9 +289,6 @@ public class MediaTimelinePolicyTests
     [Fact]
     public void RepeatOneSameTrack_RecoversWithoutAnyGraceWindow()
     {
-        // Repeat-one replays a track with an identical duration. The metadata does not change, so
-        // nothing marks the timeline stale and the unchanged-stale rule never applies; the restart
-        // reads as a large backward jump, which is always honoured.
         var restart = MediaTimelinePolicy.Evaluate(Input(
             incomingCurrent: TimeSpan.Zero,
             storedCurrent: TimeSpan.FromSeconds(207),
@@ -324,9 +303,6 @@ public class MediaTimelinePolicyTests
     [Fact]
     public void StaleAtTrackStart_RecoversAsSoonAsThePositionAdvances()
     {
-        // The one case the removed grace window addressed: stale while the stored position happens
-        // to equal the incoming one. It resolves itself within a second of playback rather than
-        // needing a timer that would otherwise re-admit the previous track's timeline.
         var deadlocked = Input(
             incomingCurrent: TimeSpan.Zero,
             storedCurrent: TimeSpan.Zero,
@@ -336,7 +312,6 @@ public class MediaTimelinePolicyTests
 
         Assert.Equal(TimelineDecision.RejectUnchangedStale, MediaTimelinePolicy.Evaluate(deadlocked));
 
-        // One resync tick later the player has moved past the 500 ms match tolerance.
         var advanced = deadlocked with { IncomingCurrent = TimeSpan.FromSeconds(2) };
         Assert.Equal(TimelineDecision.Accept, MediaTimelinePolicy.Evaluate(advanced));
     }

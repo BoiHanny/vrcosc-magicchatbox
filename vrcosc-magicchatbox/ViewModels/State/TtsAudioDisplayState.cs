@@ -1,13 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Owns TTS voice lists, audio device selection, and TTS button state.
-/// Extracted from ViewModel to isolate TTS/Audio runtime display concerns.
-/// </summary>
 public sealed partial class TtsAudioDisplayState : ObservableObject
 {
     [ObservableProperty]

@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.PrivacySection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -34,7 +34,6 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!--  Section header  -->
         <Grid Grid.Row="0">
             <ToggleButton
                 Width="Auto"
@@ -49,7 +48,6 @@
                 TextOptions.TextRenderingMode="ClearType" />
         </Grid>
 
-        <!--  Expanded content  -->
         <Grid
             Grid.Row="1"
             Height="Auto"
@@ -57,7 +55,6 @@
             Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
             <StackPanel>
-                <!--  Pre-release banner  -->
                 <Border
                     Margin="0,0,0,10"
                     BorderBrush="#735A41"
@@ -105,7 +102,6 @@
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
 
-                        <!--  HardwareMonitor row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -160,7 +156,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  WindowActivity row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -214,7 +209,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  MediaSession row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -268,7 +262,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  AfkSensor row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -322,7 +315,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  InternetAccess row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -376,7 +368,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  VrTrackerBattery row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -430,7 +421,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  NetworkStats row  -->
                         <Grid Margin="0,4,10,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -484,7 +474,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  SoundpadBridge row  -->
                         <Grid Margin="0,4,10,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -538,7 +527,6 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <!--  VrcLogReader row  -->
                         <Grid Margin="0,4,10,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -585,6 +573,60 @@
                                     Height="26"
                                     Command="{Binding RevokeHookCommand}"
                                     CommandParameter="{x:Static privacy:PrivacyHook.VrcLogReader}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
+                        <Grid Margin="0,4,10,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="13"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="🎯  VR Performance" />
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="SteamVR compositor — frame rate, reprojection, dropped frames and GPU frame time. Requires SteamVR"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding VrPerformanceState}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VrPerformance}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VrPerformance}"
                                     Content="Revoke"
                                     Style="{StaticResource Status_Button_style}" />
                             </StackPanel>

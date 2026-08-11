@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
@@ -6,22 +6,10 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Services.Hardware;
 
-/// <summary>
-/// Reads GPU sensors through LibreHardwareMonitor with <b>only</b> <c>IsGpuEnabled</c> set.
-/// <para>
-/// This exists because the driverless pipeline has no AMD data source at all: temperature, hotspot,
-/// power, fan and clocks were hardcoded to <c>nvidia-smi</c>, and load/VRAM rested solely on Windows
-/// performance counters. LHM's AMD path is user-mode <c>atiadlxx.dll</c> and its NVIDIA path is
-/// <c>nvml.dll</c>; neither loads a kernel driver. PawnIO is only reached from the CPU, motherboard
-/// and RAM-SPD groups, which stay disabled here.
-/// </para>
-/// </summary>
 public sealed class LhmGpuSensorProvider : IDisposable
 {
-    /// <summary>Sensors are re-read at most this often; every getter shares one refresh.</summary>
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(1);
 
-    /// <summary>After this many failed opens the provider gives up for the rest of the process.</summary>
     private const int MaxOpenFailures = 2;
 
     private readonly object _lock = new();
@@ -32,22 +20,16 @@ public sealed class LhmGpuSensorProvider : IDisposable
     private bool _loggedUnavailable;
     private bool _disposed;
 
-    /// <summary>False once initialisation has failed enough times to stop trying.</summary>
     public bool IsPermanentlyUnavailable
     {
         get { lock (_lock) return _openFailures >= MaxOpenFailures; }
     }
 
-    /// <summary>True while a LibreHardwareMonitor session is open.</summary>
     public bool IsOpen
     {
         get { lock (_lock) return _computer != null; }
     }
 
-    /// <summary>
-    /// Opens a GPU-only monitoring session. Returns false and self-disables after repeated
-    /// failures so a broken or unusual driver can never take the whole stats subsystem down.
-    /// </summary>
     public bool TryOpen()
     {
         lock (_lock)
@@ -77,8 +59,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
                 IsPowerMonitorEnabled = false,
             };
 
-            // Computer.AddGroups has no exception handling of its own, so a hardware group that
-            // throws during construction escapes straight out of Open().
             computer.Open();
         }
         catch (Exception ex)
@@ -112,7 +92,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
         return true;
     }
 
-    /// <summary>Closes the session. Safe to call when not open.</summary>
     public void Close()
     {
         Computer? computer;
@@ -127,17 +106,12 @@ public sealed class LhmGpuSensorProvider : IDisposable
         TryCloseQuietly(computer);
     }
 
-    /// <summary>Names of every GPU the provider can see.</summary>
     public IReadOnlyList<string> GetHardwareNames()
     {
         var snapshot = GetSnapshot();
         return snapshot.Keys.ToList();
     }
 
-    /// <summary>
-    /// Readings for the named GPU. Falls back to the only visible GPU when the name doesn't match,
-    /// and returns null when the provider has nothing at all.
-    /// </summary>
     public GpuSensorReadings? Read(string? gpuName)
     {
         var snapshot = GetSnapshot();
@@ -163,16 +137,12 @@ public sealed class LhmGpuSensorProvider : IDisposable
             if (match != null)
                 return match;
 
-            // A name that matches nothing gets nothing, matching HardwareMonitorService's
-            // ResolveGpuInfo and ResolveNvidiaSample. Falling back to the only visible GPU is how
-            // the selected iGPU ends up reporting the dGPU's hotspot temperature and board power.
             return null;
         }
 
         return snapshot.Count == 1 ? snapshot.Values.First() : null;
     }
 
-    /// <summary>A one-line description of what the provider is doing, for diagnostics.</summary>
     public string DescribeStatus()
     {
         if (IsPermanentlyUnavailable)
@@ -211,10 +181,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
             IReadOnlyDictionary<string, GpuSensorReadings> empty;
             lock (_lock)
             {
-                // Stamp the clock on the failure path too. HardwareMonitorService calls this once
-                // per sensor, so without throttling here a driver in a bad state makes a single
-                // stats tick run ReadAll a dozen-plus times, each enumerating and updating every
-                // GPU before throwing again.
                 _readings = new Dictionary<string, GpuSensorReadings>(StringComparer.OrdinalIgnoreCase);
                 _capturedAtUtc = DateTime.UtcNow;
                 shouldLog = !_loggedUnavailable;
@@ -233,7 +199,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
             _readings = fresh;
             _capturedAtUtc = DateTime.UtcNow;
 
-            // Let a later failure speak up again once the card has recovered.
             _loggedUnavailable = false;
             return _readings;
         }
@@ -265,8 +230,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
                 FanPercent = Read(hardware, SensorType.Control, "GPU Fan"),
                 CoreClockMhz = Read(hardware, SensorType.Clock, "GPU Core"),
                 MemoryClockMhz = Read(hardware, SensorType.Clock, "GPU Memory"),
-                // Sensor names differ by vendor: AMD publishes "GPU Memory Used/Total", while
-                // NVIDIA only exposes the D3D dedicated-memory counters.
                 VramUsedMiB = Read(hardware, SensorType.SmallData, "GPU Memory Used", "D3D Dedicated Memory Used"),
                 VramTotalMiB = Read(hardware, SensorType.SmallData, "GPU Memory Total", "D3D Dedicated Memory Total"),
             };
@@ -278,11 +241,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
         return result;
     }
 
-    /// <summary>
-    /// Finds a sensor value by type, preferring the given names in order. Falls back to the first
-    /// sensor of that type only when no name was requested, so an unrelated sensor can never be
-    /// reported as, say, the hotspot temperature.
-    /// </summary>
     private static float? Read(IHardware hardware, SensorType type, params string[] preferredNames)
     {
         var candidates = hardware.Sensors.Where(s => s.SensorType == type).ToList();

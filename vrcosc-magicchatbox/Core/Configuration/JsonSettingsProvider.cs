@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
@@ -12,14 +12,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Core.Configuration;
 
-/// <summary>
-/// JSON file-backed settings provider with auto-save.
-/// - Resolves file path to %APPDATA%\Vrcosc-MagicChatbox\{TypeName}.json
-/// - Thread-safe, corruption-resistant (ignores NUL-filled files)
-/// - Atomic writes (temp file → rename) to prevent corruption on crash
-/// - Debounced auto-save: subscribes to INotifyPropertyChanged on the settings
-///   object and saves 2 seconds after the last property change
-/// </summary>
 public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable where T : class, new()
 {
     private T _settings;
@@ -88,16 +80,11 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             }
             catch (JsonException ex)
             {
-                // The file content itself is unparseable: quarantine it so the defaults
-                // saved later don't silently overwrite the evidence.
                 Logging.WriteInfo($"Error loading settings for {typeof(T).Name}: {ex.Message}");
                 BackupCorruptSettingsFile(ex);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                // The file could not be read (AV/sync lock, ACL denial) but may be perfectly
-                // valid — do not quarantine it. Run on in-memory defaults for this session
-                // and refuse all saves so the intact file on disk is never overwritten.
                 _loadFailed = true;
                 Logging.WriteException(
                     new IOException(
@@ -117,18 +104,12 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             if (!_loadFailed)
                 SubscribeAutoSave();
 
-            // Outside the try: a throwing event subscriber must not condemn a good file as corrupt.
             SettingsChanged?.Invoke(this, EventArgs.Empty);
             if (resetApplied)
                 Save();
         }
     }
 
-    /// <summary>
-    /// Reads the settings file, retrying briefly on sharing violations and access
-    /// denials (AV scanners, backup/sync tools) so a transiently locked file is
-    /// not misread as corrupt.
-    /// </summary>
     private static string ReadFileWithRetry(string path)
     {
         const int maxAttempts = 3;
@@ -145,11 +126,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         }
     }
 
-    /// <summary>
-    /// After deserialization, check whether the loaded file is stale enough to warrant
-    /// resetting individual properties or the entire module to defaults.
-    /// Silently logs any resets that fire.
-    /// </summary>
     private bool ApplyVersionResets()
     {
         if (_settings is not VersionedSettings vs)
@@ -209,14 +185,9 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     {
         lock (_lock)
         {
-            // A provider can be constructed (e.g. injected for on-demand use) without its
-            // Value ever being read. Serializing the never-materialized null would replace
-            // the file on disk with the literal text "null", wiping the user's settings.
             if (_settings is null)
                 return;
 
-            // After a failed (locked/denied) load the provider holds in-memory defaults;
-            // persisting them would overwrite a potentially intact file on disk.
             if (_loadFailed)
                 return;
 
@@ -227,7 +198,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
                 var json = JsonConvert.SerializeObject(_settings, Formatting.Indented);
 
-                // Atomic write (temp file → rename) with bounded retry/backoff.
                 saved = AtomicFileWriter.WriteAllText(_filePath, json);
             }
             catch (Exception ex)
@@ -246,10 +216,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         }
     }
 
-    /// <summary>
-    /// Surfaces a once-per-session toast when settings cannot be persisted. Best-effort:
-    /// the DI container may be mid-disposal during a shutdown Save(), so all faults are swallowed.
-    /// </summary>
     private static void NotifySaveFailed()
     {
         try
@@ -263,7 +229,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         }
         catch
         {
-            // Container disposed or toast host unavailable — the error was already logged.
         }
     }
 
@@ -315,7 +280,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         {
             if (_disposed) return;
 
-            // Reuse existing timer if possible to avoid dispose/recreate race
             if (_debounceTimer != null)
             {
                 _debounceTimer.Change(DebounceDelayMs, Timeout.Infinite);
@@ -327,11 +291,6 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
         }
     }
 
-    /// <summary>
-    /// Writes the current app version and schema version into the settings object
-    /// so they are persisted to the JSON file on the next save.
-    /// No-op for settings classes that don't inherit VersionedSettings.
-    /// </summary>
     private void StampVersion()
     {
         if (_settings is not VersionedSettings vs) return;

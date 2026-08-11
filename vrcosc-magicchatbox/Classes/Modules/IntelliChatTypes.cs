@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,7 +6,6 @@ using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>Marks an <see cref="IntelliGPTModel"/> enum field with its API model type (e.g. "Chat", "STT").</summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class ModelTypeInfoAttribute : Attribute
 {
@@ -18,14 +17,9 @@ public class ModelTypeInfoAttribute : Attribute
     public string ModelType { get; }
 }
 
-/// <summary>
-/// Marks an <see cref="IntelliGPTModel"/> enum field as a reasoning model that does NOT support
-/// sampling parameters (Temperature, TopP, FrequencyPenalty, PresencePenalty).
-/// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class ReasoningModelAttribute : Attribute { }
 
-/// <summary>Enumerates available OpenAI models, tagged with their type via <see cref="ModelTypeInfoAttribute"/>.</summary>
 public enum IntelliGPTModel
 {
     [Description("gpt-5.2"), ModelTypeInfo("Chat")]
@@ -86,7 +80,6 @@ public enum IntelliGPTModel
     Moderation_Latest,
 }
 
-/// <summary>Tracks prompt and completion token counts for a single model within a session.</summary>
 public partial class ModelTokenUsage : ObservableObject
 {
     [ObservableProperty]
@@ -101,7 +94,6 @@ public partial class ModelTokenUsage : ObservableObject
     public int TotalTokens => PromptTokens + CompletionTokens;
 }
 
-/// <summary>Aggregates per-model token usage for a single calendar day.</summary>
 public partial class DailyTokenUsage : ObservableObject
 {
     [ObservableProperty]
@@ -120,7 +112,6 @@ public partial class DailyTokenUsage : ObservableObject
     public int TotalDailyTokens => ModelUsages.Sum(mu => mu.TotalTokens);
 }
 
-/// <summary>Persists and exposes cumulative OpenAI token usage across all models and days.</summary>
 public class TokenUsageData : ObservableObject
 {
     private string _lastRequestModelName;
@@ -171,7 +162,6 @@ public class TokenUsageData : ObservableObject
     public int TotalDailyTokens => DailyUsages.LastOrDefault()?.TotalDailyTokens ?? 0;
 }
 
-/// <summary>Represents a language the user can translate into or target for AI-generated text.</summary>
 public partial class SupportedIntelliChatLanguage : ObservableObject
 {
     [ObservableProperty]
@@ -187,7 +177,6 @@ public partial class SupportedIntelliChatLanguage : ObservableObject
     private string language;
 }
 
-/// <summary>Defines an AI writing style (name, description, and temperature) used when generating or rewriting text.</summary>
 public partial class IntelliChatWritingStyle : ObservableObject
 {
     [ObservableProperty]

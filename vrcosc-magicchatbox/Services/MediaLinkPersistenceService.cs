@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,9 +15,6 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Loads and saves media link session data and seekbar styles to disk.
-/// </summary>
 public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
 {
     private readonly IEnvironmentService _env;
@@ -103,9 +100,6 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
                 return;
             }
 
-            // Always serialize — empty/null lists persist as "[]" so explicit clears
-            // are not overridden by stale on-disk data on the next launch.
-            // Snapshot under the shared lock so a concurrent mutation can't break serialization.
             List<MediaSessionSettings> sessions;
             lock (MediaSessionSettings.SavedSessionsLock)
             {

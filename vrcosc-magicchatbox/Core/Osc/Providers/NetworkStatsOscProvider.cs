@@ -1,13 +1,9 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Network upload/download stats → OSC segment.
-/// Wraps <see cref="NetworkStatisticsModule.GenerateDescription"/>.
-/// </summary>
 public sealed class NetworkStatsOscProvider : IOscProvider
 {
     private readonly Lazy<NetworkStatisticsModule> _netStats;

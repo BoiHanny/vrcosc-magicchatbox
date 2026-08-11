@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,10 +10,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Handles TTS audio fetch + playback via the TikTok API.
-/// Extracted from ScanLoopService to follow SRP.
-/// </summary>
 public sealed class TtsPlaybackService : ITtsPlaybackService
 {
     private readonly Lazy<TTSModule> _tts;
@@ -48,9 +44,6 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
         }
         foreach (var cts in cancelled)
         {
-            // Only cancel here; the owning PlayTtsAsync disposes its own CTS in finally.
-            // Disposing it here would make the owner's later cts2.Token access throw
-            // ObjectDisposedException, misreported as a TTS error instead of a clean cancel.
             cts.Cancel();
         }
     }
@@ -68,11 +61,7 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
             if (_ttsSettings.TtsCutOff)
                 CancelAllTts();
 
-            // Registered before the fetch so TtsCutOff/CancelAllTts can cancel a TTS
-            // that is still downloading, not just one that is already playing.
             var cts2 = new CancellationTokenSource();
-            // Capture the token before registering: a CancellationToken stays valid after its
-            // source is cancelled+disposed, so a concurrent cancel produces a clean cancel.
             CancellationToken token = cts2.Token;
             lock (_tokensLock)
                 _activeCancellationTokens.Add(cts2);

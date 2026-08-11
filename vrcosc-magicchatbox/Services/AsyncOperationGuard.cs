@@ -1,15 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Guards async operations against cascading failures.
-/// After <see cref="MaxConsecutiveFailures"/> the operation is auto-disabled
-/// until <see cref="Reset"/> is called or the cooldown expires.
-/// </summary>
 public sealed class AsyncOperationGuard
 {
     public int MaxConsecutiveFailures { get; set; } = 3;
@@ -17,10 +12,6 @@ public sealed class AsyncOperationGuard
 
     private readonly ConcurrentDictionary<string, FaultState> _states = new();
 
-    /// <summary>
-    /// Runs <paramref name="action"/> if the operation hasn't been faulted out.
-    /// Tracks success/failure and auto-disables after repeated failures.
-    /// </summary>
     public async Task RunGuardedAsync(string operationName, Func<Task> action, TimeSpan? timeout = null)
     {
         var state = _states.GetOrAdd(operationName, _ => new FaultState());
@@ -87,9 +78,6 @@ public sealed class AsyncOperationGuard
             $"Guarded operation '{operationName}' timed out after {timeout.TotalSeconds:0.#}s.");
     }
 
-    /// <summary>
-    /// Runs a synchronous action with the same fault-tracking semantics.
-    /// </summary>
     public async Task RunGuardedAsync(string operationName, Action action, TimeSpan? timeout = null)
     {
         await RunGuardedAsync(operationName, () =>
@@ -99,13 +87,11 @@ public sealed class AsyncOperationGuard
         }, timeout).ConfigureAwait(false);
     }
 
-    /// <summary>Returns true if the named operation is currently auto-disabled.</summary>
     public bool IsDisabled(string operationName)
     {
         return _states.TryGetValue(operationName, out var s) && s.IsDisabled;
     }
 
-    /// <summary>Resets fault state for one or all operations.</summary>
     public void Reset(string? operationName = null)
     {
         if (operationName is not null)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Threading;
@@ -11,7 +11,6 @@ namespace vrcosc_magicchatbox.Core.Toast;
 
 public sealed class ToastService : IToastService
 {
-    /// <summary>Duration (ms) of the exit animation — must match the XAML storyboard duration.</summary>
     public const int ExitAnimationMs = 220;
 
     private const int MaxToasts = 4;
@@ -42,7 +41,6 @@ public sealed class ToastService : IToastService
     {
         _ui.BeginInvoke(() =>
         {
-            // Silently replace any existing toast with the same key (no animation — just remove)
             if (key != null)
             {
                 for (int i = Toasts.Count - 1; i >= 0; i--)
@@ -55,7 +53,6 @@ public sealed class ToastService : IToastService
                 }
             }
 
-            // Instant eviction when at cap — avoid spawning exit-animation timers under rapid calls
             while (Toasts.Count >= MaxToasts)
             {
                 Toasts[0].MarkDismissed();

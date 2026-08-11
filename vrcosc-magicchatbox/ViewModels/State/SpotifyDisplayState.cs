@@ -1,11 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Runtime UI state for the Spotify integration card, widget, and options preview.
-/// </summary>
 public partial class SpotifyDisplayState : ObservableObject
 {
     [ObservableProperty] private bool _isConnected;

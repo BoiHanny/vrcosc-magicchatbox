@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -21,11 +21,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
-/// <summary>
-/// ViewModel for the Integrations page. Owns commands for tracker scan,
-/// manual OSC build, media controls, soundpad controls, and admin relaunch.
-/// Used as DataContext for IntegrationsPage.xaml.
-/// </summary>
 public partial class IntegrationsPageViewModel : ObservableObject
 {
     private readonly ChatStatusDisplayState _chatStatus;
@@ -64,10 +59,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly Lazy<ScanLoopService> _scanLoop;
     private readonly Lazy<IStatePersistenceCoordinator> _persistence;
 
-    /// <summary>
-    /// Initializes the integrations page ViewModel with module host, persistence, media, and
-    /// OSC services needed to coordinate all integration panels.
-    /// </summary>
     public IntegrationsPageViewModel(
         ChatStatusDisplayState chatStatus,
         Lazy<IModuleHost> moduleHost,
@@ -76,6 +67,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<WeatherSettings> weatherSettingsProvider,
+        ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> vrPerformanceSettingsProvider,
         Lazy<ComponentStatsViewModel> componentStats,
         Lazy<ScanLoopService> scanLoop,
         Lazy<IStatePersistenceCoordinator> persistence,
@@ -104,6 +96,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         SpotifySettings = spotifySettingsProvider.Value;
         WeatherSettings = weatherSettingsProvider.Value;
+        VrPerformanceSettings = vrPerformanceSettingsProvider.Value;
         Tracker = tracker;
         AppState = appState;
         _menuNav = menuNav;
@@ -123,7 +116,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             }
         };
 
-        // Guard map: property name → (required hook, value getter, revert action).
         _guardMap = new Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)>
         {
             { nameof(IntegrationSettings.IntgrComponentStats),      (PrivacyHook.HardwareMonitor, () => IntegrationSettings.IntgrComponentStats,      () => IntegrationSettings.IntgrComponentStats = false) },
@@ -137,10 +129,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  (PrivacyHook.NetworkStats,     () => IntegrationSettings.IntgrNetworkStatistics,   () => IntegrationSettings.IntgrNetworkStatistics = false) },
             { nameof(IntegrationSettings.IntgrSoundpad),           (PrivacyHook.SoundpadBridge,   () => IntegrationSettings.IntgrSoundpad,            () => IntegrationSettings.IntgrSoundpad = false) },
             { nameof(IntegrationSettings.IntgrVrcRadar),           (PrivacyHook.VrcLogReader,     () => IntegrationSettings.IntgrVrcRadar,            () => IntegrationSettings.IntgrVrcRadar = false) },
+            { nameof(IntegrationSettings.IntgrVrPerformance),      (PrivacyHook.VrPerformance,    () => IntegrationSettings.IntgrVrPerformance,       () => IntegrationSettings.IntgrVrPerformance = false) },
         };
 
-        // Fault-reset map: toggle property name → (OSC provider SortKey, value getter).
-        // Weather has no master toggle, so its per-mode switches are mapped instead.
         _faultResetMap = new Dictionary<string, (string SortKey, Func<bool> GetValue)>
         {
             { nameof(IntegrationSettings.IntgrStatus),             ("Status",         () => IntegrationSettings.IntgrStatus) },
@@ -154,6 +145,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrHeartRate),          ("HeartRate",      () => IntegrationSettings.IntgrHeartRate) },
             { nameof(IntegrationSettings.IntgrComponentStats),     ("Component",      () => IntegrationSettings.IntgrComponentStats) },
             { nameof(IntegrationSettings.IntgrTrackerBattery),     ("TrackerBattery", () => IntegrationSettings.IntgrTrackerBattery) },
+            { nameof(IntegrationSettings.IntgrVrPerformance),      ("VrPerformance",  () => IntegrationSettings.IntgrVrPerformance) },
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  ("Network",        () => IntegrationSettings.IntgrNetworkStatistics) },
             { nameof(IntegrationSettings.IntgrWeather_VR),         ("Weather",        () => IntegrationSettings.IntgrWeather_VR) },
             { nameof(IntegrationSettings.IntgrWeather_DESKTOP),    ("Weather",        () => IntegrationSettings.IntgrWeather_DESKTOP) },
@@ -164,11 +156,15 @@ public partial class IntegrationsPageViewModel : ObservableObject
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
     }
 
-    // Instance guard map built in constructor so closures capture the correct IntegrationSettings instance.
     private readonly Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)> _guardMap;
     private readonly Dictionary<string, (string SortKey, Func<bool> GetValue)> _faultResetMap;
 
     public bool IsVRRunning => AppState.IsVRRunning;
+
+    public Classes.Modules.Vr.VrPerformanceSettings VrPerformanceSettings { get; }
+
+    public IReadOnlyList<Classes.Modules.Vr.VrPerformanceDisplayMode> VrPerformanceDisplayModes { get; } =
+        (Classes.Modules.Vr.VrPerformanceDisplayMode[])Enum.GetValues(typeof(Classes.Modules.Vr.VrPerformanceDisplayMode));
 
     public string TrackerBattery_LastScanDisplay => IntegrationDisplay.TrackerBatteryLastScanDisplay;
 
@@ -194,8 +190,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         if (e.PropertyName == null) return;
         if (_guardMap.TryGetValue(e.PropertyName, out var guard) && guard.GetValue() && !_consent.IsApproved(guard.Hook))
         {
-            guard.Revert(); // flip the toggle back to false (safe: SetProperty is no-op when value unchanged)
-            var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
+            guard.Revert();            var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
             _toast.Show(
                 "🔒 Permission Required",
                 $"{icon} {name} access is needed. Enable it in Privacy & Permissions.",
@@ -206,9 +201,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             return;
         }
 
-        // Toggling an integration ON clears its OSC provider's fault state so a
-        // previously auto-disabled provider recovers immediately instead of
-        // waiting out the fault cooldown.
         if (_faultResetMap.TryGetValue(e.PropertyName, out var faultReset) && faultReset.GetValue())
             FaultTracker.ResetFault(faultReset.SortKey);
 
@@ -218,16 +210,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             HandleSpotifyMediaLinkCoexistence();
     }
 
-    /// <summary>
-    /// Turning a master toggle on while the current mode's visibility flag is off used to produce
-    /// nothing at all, silently. Say so and offer the fix — but do not apply it.
-    /// <para>
-    /// A per-mode switch the user turned off is a deliberate choice: for MediaLink and Window
-    /// Activity it is exactly what keeps a track title or a focused-window title off OSC outside
-    /// VR. Flipping it back on their behalf would silently resume broadcasting that, so the change
-    /// stays theirs to make.
-    /// </para>
-    /// </summary>
     private void HandleModeVisibility(string propertyName)
     {
         if (!propertyName.StartsWith("Intgr", StringComparison.Ordinal))
@@ -263,10 +245,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
         OnPropertyChanged(nameof(HasModeVisibilityWarning));
     }
 
-    /// <summary>
-    /// Names integrations that are switched on but produce nothing in the mode the user is in.
-    /// Null when nothing is hidden.
-    /// </summary>
     public string? ModeVisibilityWarning
         => IntegrationModeVisibility.BuildWarning(IntegrationSettings, AppState.IsVRRunning);
 
@@ -452,7 +430,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             SpotifySettings.MediaLinkCoexistence != SpotifyMediaLinkCoexistence.Ask)
             return;
 
-        // Default to PreferSpotify for reliability and notify user via toast
         SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.PreferSpotify;
         _spotifySettingsProvider.Save();
 
@@ -465,10 +442,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             key: "spotify-medialink-coexist");
     }
 
-    /// <summary>
-    /// The only actionable hardware-stats problem left. Elevation is no longer one of them: there
-    /// is no kernel driver to install, and the vendor sensor APIs are user-mode.
-    /// </summary>
     public string ComponentStatsAccessWarningText => "Enable Hardware Monitor permission";
 
     public bool CanResolveComponentStatsAccessIssue => !_consent.IsApproved(PrivacyHook.HardwareMonitor);
@@ -482,11 +455,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Sends the user to Privacy &amp; Permissions, the one remaining fix for missing hardware stats.
-    /// Replaces the former "restart as administrator" relaunch, which could not help once the
-    /// kernel-driver dependency was removed.
-    /// </summary>
     private void ExecuteResolveComponentStatsAccess()
     {
         if (_consent.IsApproved(PrivacyHook.HardwareMonitor))
@@ -501,9 +469,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             key: "hw-monitor-consent-required");
     }
 
-    /// <summary>
-    /// Seeks a media session to a specific position based on progress bar click.
-    /// </summary>
     public async Task SeekMedia(MediaSessionInfo? session, double progressFraction, double maximum)
     {
         if (session == null) return;

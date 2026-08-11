@@ -1,4 +1,4 @@
-using Microsoft.VisualBasic.FileIO;
+﻿using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using System;
@@ -15,11 +15,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
-/// <summary>
-/// Handles application updates and rollbacks: downloading releases from GitHub,
-/// extracting ZIPs with path-traversal protection, backing up the current installation,
-/// and restarting into the updated or rolled-back version.
-/// </summary>
 public class UpdateApp
 {
     private static readonly SemaphoreSlim PrepareUpdateGate = new(1, 1);
@@ -268,7 +263,6 @@ public class UpdateApp
             {
                 string destinationPath = Path.GetFullPath(Path.Combine(unzipPath, entry.FullName));
 
-                // Prevent path traversal: ensure extracted path stays within target
                 if (!destinationPath.StartsWith(targetFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
                     && !destinationPath.Equals(targetFullPath, StringComparison.OrdinalIgnoreCase))
                 {
@@ -300,7 +294,6 @@ public class UpdateApp
             {
                 string destinationPath = Path.GetFullPath(Path.Combine(unzipPath, entry.FullName));
 
-                // Prevent path traversal: ensure extracted path stays within target
                 if (!destinationPath.StartsWith(targetFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
                     && !destinationPath.Equals(targetFullPath, StringComparison.OrdinalIgnoreCase))
                 {
@@ -334,10 +327,6 @@ public class UpdateApp
         Logging.WriteException(new Exception("Access denied while applying files. Try running MagicChatbox as administrator."), MSGBox: true, autoclose: true);
     }
 
-    /// <summary>
-    /// Relaunches the current executable elevated and exits this process.
-    /// Returns false when the relaunch fails (e.g. the UAC prompt is cancelled).
-    /// </summary>
     private static bool TryRelaunchElevated(string relaunchArgument)
     {
         try
@@ -703,8 +692,6 @@ public class UpdateApp
             }
             finally
             {
-                // Only discard the roll-forward recovery copy once the backup was refreshed from it;
-                // if the refresh failed, keep it so a retry can still rebuild the backup.
                 if (backupRefreshSucceeded)
                 {
                     try
@@ -789,7 +776,6 @@ public class UpdateApp
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
         {
-            // Elevation can fix access issues; the elevated instance retries the update.
             if (!admin && TryRelaunchElevated("-updateadmin"))
             {
                 return;
@@ -815,15 +801,10 @@ public class UpdateApp
         StartNewApplication();
     }
 
-    /// <summary>
-    /// Restores the previous installation from the update backup after a failed update.
-    /// Returns false when no usable backup exists or the restore itself fails.
-    /// </summary>
     private bool TryRestoreFromBackup()
     {
         try
         {
-            // Clearing the install dir must never destroy the restore source itself.
             string installRoot = Path.GetFullPath(currentAppPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             string backupRoot = Path.GetFullPath(backupPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             if (backupRoot.Equals(installRoot, StringComparison.OrdinalIgnoreCase) ||
@@ -853,7 +834,6 @@ public class UpdateApp
 
     private static string DescribeUpdateFailure(Exception ex)
     {
-        // ExecuteWithRetry wraps the last failure in an IOException; classify the root cause.
         Exception root = ex;
         while (root.InnerException != null)
         {

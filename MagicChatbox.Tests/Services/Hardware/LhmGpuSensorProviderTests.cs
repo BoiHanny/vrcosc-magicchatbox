@@ -1,14 +1,9 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Services.Hardware;
 using Xunit;
 
 namespace MagicChatbox.Tests.Services.Hardware;
 
-/// <summary>
-/// Hardware-dependent smoke tests. They assert lifecycle safety rather than specific readings, so
-/// they pass on a build agent with no GPU as well as on a real machine. Actual sensor values are
-/// verified manually — see the plan's verification section.
-/// </summary>
 public class LhmGpuSensorProviderTests
 {
     [Fact]
@@ -22,7 +17,6 @@ public class LhmGpuSensorProviderTests
         provider.Close();
         provider.TryOpen();
 
-        // Whether a GPU was found is machine-dependent; not throwing is not.
         Assert.NotNull(provider.DescribeStatus());
     }
 
@@ -62,9 +56,6 @@ public class LhmGpuSensorProviderTests
 
         var readings = provider.Read("Definitely Not A Real GPU 9999");
 
-        // An explicit name that matches nothing must resolve to nothing, however many GPUs are
-        // present. Falling back to the only visible adapter is how a selected iGPU ends up
-        // reporting the dGPU's hotspot temperature and board power.
         Assert.Null(readings);
     }
 
@@ -75,7 +66,6 @@ public class LhmGpuSensorProviderTests
         if (!provider.TryOpen())
             return;
 
-        // The fallback is only correct when the caller expressed no preference.
         if (provider.GetHardwareNames().Count == 1)
             Assert.NotNull(provider.Read(null));
     }

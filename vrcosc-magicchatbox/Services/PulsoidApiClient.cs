@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
@@ -13,11 +13,6 @@ using vrcosc_magicchatbox.Classes.Modules;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Pure network client for the Pulsoid API.
-/// Handles WebSocket streaming (with exponential-backoff reconnection) and REST statistics.
-/// All events fire on background threads — callers must marshal to UI if needed.
-/// </summary>
 public sealed class PulsoidApiClient : IPulsoidClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -161,10 +156,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
         DisposeWebSocket();
     }
 
-    /// <summary>
-    /// Reads WebSocket messages until the connection dropsor is cancelled.
-    /// On recoverable failures, validates token and attempts reconnection from within ConnectAsync's retry loop.
-    /// </summary>
     private async Task ReceiveLoopAsync(string accessToken, CancellationToken ct)
     {
         var buffer = new byte[1024];
@@ -208,8 +199,7 @@ public sealed class PulsoidApiClient : IPulsoidClient
                         shouldAttemptReconnect = false;
                         return;
                     }
-                    break; // Break to reconnect via ConnectAsync retry loop
-                }
+                    break;                }
                 catch (OperationCanceledException)
                 {
                     shouldAttemptReconnect = false;
@@ -244,7 +234,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
                 {
                     Logging.WriteInfo("WebSocket connection lost, attempting reconnection...");
                     await Task.Delay(5000, ct).ConfigureAwait(false);
-                    // Recurse into ConnectAsync for a fresh retry session
                     await ConnectAsync(accessToken, ct).ConfigureAwait(false);
                 }
                 else
@@ -256,9 +245,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
         }
     }
 
-    /// <summary>
-    /// Parses raw heart rate from a Pulsoid WebSocket message (plain int or JSON).
-    /// </summary>
     private static int ParseHeartRate(string message)
     {
         try

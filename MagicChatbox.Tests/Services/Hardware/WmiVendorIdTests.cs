@@ -1,13 +1,8 @@
-using vrcosc_magicchatbox.Services.Hardware;
+﻿using vrcosc_magicchatbox.Services.Hardware;
 using Xunit;
 
 namespace MagicChatbox.Tests.Services.Hardware;
 
-/// <summary>
-/// Win32_VideoController has no vendor-id column, so the WMI fallback path has to recover it from
-/// the strings WMI does report. Without that every adapter there looks like an unknown vendor,
-/// which silently switches nvidia-smi off on exactly the machines where DXGI already failed.
-/// </summary>
 public class WmiVendorIdTests
 {
     [Theory]
@@ -32,7 +27,6 @@ public class WmiVendorIdTests
     [Fact]
     public void RealNvidiaAdapterResolvesToNvidiaVendor()
     {
-        // The end-to-end point of the fix: this is what HasNvidiaAdapter() gates nvidia-smi on.
         uint? vendorId = GpuVendors.ParseWmiVendorId(
             @"PCI\VEN_10DE&DEV_2704&SUBSYS_51111462&REV_A1\4&D7CE646&0&0009", "NVIDIA");
 

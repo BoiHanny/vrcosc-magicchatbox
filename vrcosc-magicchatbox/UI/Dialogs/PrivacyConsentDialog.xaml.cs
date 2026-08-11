@@ -90,6 +90,13 @@ public partial class PrivacyConsentDialog : Window
             warning: null,
             isApproved: _consentService.IsApproved(hook)),
 
+        PrivacyHook.VrPerformance => new HookItem(hook,
+            title: "🎯  VR Performance  (SteamVR frame timing)",
+            description: "Reads SteamVR's compositor counters — frame rate, reprojection, dropped frames and GPU " +
+                         "frame time — so you can see performance while wearing the headset. All data stays local.",
+            warning: "Requires SteamVR. Players using VDXR, the Oculus runtime, or a standalone headset won't see this.",
+            isApproved: _consentService.IsApproved(hook)),
+
         _ => new HookItem(hook, hook.ToString(), string.Empty, null, _consentService.IsApproved(hook)),
     };
 

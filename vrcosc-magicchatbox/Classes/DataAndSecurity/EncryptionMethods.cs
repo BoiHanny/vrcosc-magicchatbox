@@ -4,10 +4,6 @@ using System.Text;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
-/// <summary>
-/// Provides encryption/decryption using Windows DPAPI (ProtectedData).
-/// Data is bound to the current Windows user — no hardcoded keys or IVs.
-/// </summary>
 internal static class EncryptionMethods
 {
     public static string DecryptString(string cipherText)
@@ -24,7 +20,6 @@ internal static class EncryptionMethods
         }
         catch (CryptographicException ex)
         {
-            // Old AES-encrypted data or corrupted — token must be re-entered
             Logging.WriteInfo($"Decryption failed (token may need re-entry): {ex.Message}");
             return null;
         }

@@ -1,12 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Runtime display state for the OSC output panel.
-/// Owns the OSC preview string, message counts, and character limit display.
-/// </summary>
 public partial class OscDisplayState : ObservableObject
 {
     [ObservableProperty] private string _oscToSent = string.Empty;

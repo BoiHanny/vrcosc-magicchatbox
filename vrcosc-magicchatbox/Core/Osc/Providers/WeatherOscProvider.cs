@@ -1,13 +1,9 @@
-using vrcosc_magicchatbox.Classes.Modules;
+﻿using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Weather conditions → OSC segment.
-/// Wraps <see cref="IWeatherService.BuildWeatherOnlyText"/>.
-/// </summary>
 public sealed class WeatherOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;

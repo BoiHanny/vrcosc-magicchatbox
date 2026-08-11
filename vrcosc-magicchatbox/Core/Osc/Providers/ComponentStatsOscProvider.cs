@@ -1,13 +1,9 @@
-using vrcosc_magicchatbox.Classes.Modules;
+﻿using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: CPU/GPU/RAM stats → OSC segment.
-/// Reads pre-formatted text from <see cref="IntegrationDisplayState.ComponentStatCombined"/>.
-/// </summary>
 public sealed class ComponentStatsOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;

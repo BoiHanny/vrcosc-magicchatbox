@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,10 +6,6 @@ using vrcosc_magicchatbox.Classes.Modules;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Manages emoji cycling, shuffling, and list operations.
-/// Reads the emoji collection from AppSettings.
-/// </summary>
 public partial class EmojiService : ObservableObject
 {
     private readonly AppSettings _appSettings;

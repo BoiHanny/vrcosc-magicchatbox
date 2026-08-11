@@ -1,14 +1,10 @@
-using System.Text;
+﻿using System.Text;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Foreground window/app activity → OSC segment.
-/// Reads focused window name from <see cref="ChatStatusDisplayState.FocusedWindow"/>.
-/// </summary>
 public sealed class WindowOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;

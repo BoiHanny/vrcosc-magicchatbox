@@ -1,6 +1,5 @@
-namespace vrcosc_magicchatbox.Core.Privacy;
+﻿namespace vrcosc_magicchatbox.Core.Privacy;
 
-/// <summary>Shared helper for human-readable privacy hook names and icons.</summary>
 public static class PrivacyHookInfo
 {
     public static (string Name, string Icon) Get(PrivacyHook hook) => hook switch
@@ -14,6 +13,7 @@ public static class PrivacyHookInfo
         PrivacyHook.NetworkStats => ("Network Statistics", "📶"),
         PrivacyHook.SoundpadBridge => ("Soundpad Bridge", "🔊"),
         PrivacyHook.VrcLogReader => ("VRChat Log Reader", "📡"),
+        PrivacyHook.VrPerformance => ("VR Performance", "🎯"),
         _ => (hook.ToString(), "🔒"),
     };
 }

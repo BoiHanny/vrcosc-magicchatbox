@@ -1,14 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Persisted settings for the Discord voice channel integration.
-/// Template placeholders: {channel}, {count}, {speaking}, {speaking_count}, {mute_emoji}, {mute_state}, {voice_state}
-/// </summary>
 public partial class DiscordSettings : VersionedSettings
 {
     [ObservableProperty] private string _template = "🔊 {channel} ({count}) | 🎙️ {speaking}";
@@ -33,20 +29,14 @@ public partial class DiscordSettings : VersionedSettings
     [ObservableProperty] private bool _sendMuteDeafenOsc = false;
     [ObservableProperty] private bool _sendVoiceStateOsc = false;
 
-    /// <summary>Enable Discord Rich Presence showing VRChat world info.</summary>
     [ObservableProperty] private bool _enableRichPresence = false;
-    /// <summary>Details line template. Placeholders: {world}, {count}, {type}, {region}</summary>
     [ObservableProperty] private string _richPresenceDetails = "In {world}";
-    /// <summary>State line template. Same placeholders.</summary>
     [ObservableProperty] private string _richPresenceState = "{count} players • {type}";
-    /// <summary>Show a "Join" button in Rich Presence for public instances.</summary>
     [ObservableProperty] private bool _richPresenceShowJoinButton = false;
-    /// <summary>Large image tooltip text.</summary>
     [ObservableProperty] private string _richPresenceLargeText = "VRChat";
     [ObservableProperty] private string _richPresenceLargeImageKey = "vrchat_logo";
     [ObservableProperty] private string _richPresenceSmallImageKey = "magicchatbox";
     [ObservableProperty] private string _richPresenceSmallText = "MagicChatbox";
-    /// <summary>Show elapsed time since joining current world.</summary>
     [ObservableProperty] private bool _richPresenceShowElapsed = true;
     [ObservableProperty] private bool _richPresenceShowVrDesktopMode = true;
     [ObservableProperty] private string _richPresenceJoinButtonLabel = "Join World";
@@ -99,13 +89,8 @@ public partial class DiscordSettings : VersionedSettings
     private string _refreshTokenEncrypted = string.Empty;
     private string _refreshToken = string.Empty;
 
-    // Token expiry (UTC ticks) — 0 means unknown/never
     [ObservableProperty] private long _tokenExpiresAtUtcTicks;
 
-    /// <summary>
-    /// Whether the OAuth token was granted with the 'rpc' scope. Defaults to true so
-    /// legacy v0.9.181 implicit-grant tokens keep authenticating after the setting is added.
-    /// </summary>
     [ObservableProperty] private bool _hasRpcScope = true;
 
     [JsonIgnore]
@@ -170,9 +155,6 @@ public partial class DiscordSettings : VersionedSettings
         }
     }
 
-    /// <summary>
-    /// Built-in template presets. Not persisted — UI only.
-    /// </summary>
     public static readonly (string Name, string Value)[] TemplatePresets =
     [
         ("Detailed",      "🔊 {channel} ({count}) | 🎙️ {speaking} {mute_emoji}"),
@@ -186,11 +168,6 @@ public partial class DiscordSettings : VersionedSettings
         ("Emoji Rich",    "🎧 {channel} | 👥 {count} | 🎙️ {speaking} | {mute_emoji}"),
     ];
 
-    /// <summary>
-    /// Built-in Rich Presence detail presets.
-    /// Variables: {world}, {count}, {type}, {region}, {status}, {mode}, {time}, {media},
-    /// {unique}, {peak}, {worlds}, {heart_rate}, {cpu}, {window}, {weather}, {network}, {viewers}, {vr_battery}
-    /// </summary>
     public static readonly (string Name, string Details, string State)[] RichPresencePresets =
     [
         ("World Info",    "In {world}",               "{count} players • {type}"),

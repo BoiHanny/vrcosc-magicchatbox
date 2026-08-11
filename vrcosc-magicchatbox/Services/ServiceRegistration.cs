@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using MagicChatboxAPI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -24,9 +24,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Configures the DI container with all application services.
-/// </summary>
 public static class ServiceRegistration
 {
     public static IServiceProvider ConfigureServices(int profileNumber = 0)
@@ -57,7 +54,12 @@ public static class ServiceRegistration
 
         services.AddSingleton<IHardwareMonitorService, HardwareMonitorService>();
 
-        // Privacy consent service — gates sensitive OS hooks (hardware metadata, UIAutomation, SMTC, GetLastInputInfo)
+        services.AddSingleton<Services.Vr.IOpenVrRuntime, Services.Vr.OpenVrRuntime>();
+        services.AddSingleton<Services.Vr.IOpenVrSessionService>(sp => new Services.Vr.OpenVrSessionService(
+            sp.GetRequiredService<Services.Vr.IOpenVrRuntime>(),
+            sp.GetRequiredService<IAppState>(),
+            sp.GetRequiredService<IPrivacyConsentService>()));
+
         services.AddSingleton<IPrivacyConsentService, PrivacyConsentService>();
         services.AddSingleton<PrivacySectionViewModel>();
 
@@ -71,12 +73,10 @@ public static class ServiceRegistration
             sp.GetRequiredService<IPrivacyConsentService>(),
             sp.GetRequiredService<IToastService>()));
 
-        // Time formatting — extracted from ComponentStatsModule.GetTime() to break static coupling
         services.AddSingleton<ITimeFormattingService, TimeFormattingService>();
 
         services.AddSingleton<IUiDispatcher, WpfUiDispatcher>();
 
-        // Unified settings provider — JsonSettingsProvider<T> receives the profile-aware IEnvironmentService above.
         services.AddSingleton(typeof(ISettingsProvider<>), typeof(JsonSettingsProvider<>));
 
         services.AddSingleton<IntegrationDisplayState>();
@@ -150,6 +150,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
             sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
             sp.GetRequiredService<ISettingsProvider<WeatherSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings>>(),
             new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>(), LazyThreadSafetyMode.PublicationOnly),
             new Lazy<ScanLoopService>(() => sp.GetRequiredService<ScanLoopService>()),
             new Lazy<IStatePersistenceCoordinator>(() => sp.GetRequiredService<IStatePersistenceCoordinator>()),
@@ -210,6 +211,12 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>()));
+        services.AddSingleton<VrPerformanceSectionViewModel>(sp => new VrPerformanceSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<IntegrationDisplayState>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<PulsoidSectionViewModel>(sp => new PulsoidSectionViewModel(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<PulsoidOAuthHandler>(() => sp.GetRequiredService<PulsoidOAuthHandler>()),
@@ -288,6 +295,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<DiscordSectionViewModel>(),
             sp.GetRequiredService<SpotifySectionViewModel>(),
             sp.GetRequiredService<TrackerBatterySectionViewModel>(),
+            sp.GetRequiredService<VrPerformanceSectionViewModel>(),
             sp.GetRequiredService<PulsoidSectionViewModel>(),
             sp.GetRequiredService<OpenAISectionViewModel>(),
             sp.GetRequiredService<TtsSectionViewModel>(),
@@ -301,7 +309,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<PrivacySectionViewModel>(),
             sp.GetRequiredService<VrcRadarSectionViewModel>()));
 
-        // In-app menu/tab navigation — deferred ViewModel resolution breaks circular dep
         services.AddSingleton<IMenuNavigationService>(sp =>
         {
             var nav = new MenuNavigationService(
@@ -394,7 +401,6 @@ public static class ServiceRegistration
             new Classes.Modules.DiscordOAuthHandler(
                 sp.GetRequiredService<INavigationService>()));
 
-        // Spotify OAuth handler — Authorization Code + PKCE (no client secret)
         services.AddSingleton<Classes.Modules.SpotifyOAuthHandler>(sp =>
             new Classes.Modules.SpotifyOAuthHandler(
                 sp.GetRequiredService<INavigationService>(),
@@ -457,9 +463,6 @@ public static class ServiceRegistration
         .AddPolicyHandler(retryPolicy)
         .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
-        // Twitch — retry for reads only; writes (announcements, shoutouts)
-        // are non-idempotent and must NOT be auto-retried.
-        // The TwitchModule is responsible for deciding whether to retry writes.
         services.AddHttpClient(Constants.HttpClients.Twitch, client =>
         {
             client.BaseAddress = new Uri(Constants.TwitchApiBaseUrl);
@@ -484,10 +487,6 @@ public static class ServiceRegistration
                 : Policy.NoOpAsync<HttpResponseMessage>())
         .AddPolicyHandler(CreateCircuitBreakerPolicy());
 
-        // Spotify: 429 is NOT retried or circuit-broken here — SpotifyModule honors
-        // Retry-After and applies its own cooldown. Polly only retries safe transient
-        // 5xx/408/network errors on GET requests. HttpClient timeout (15s) exceeds the
-        // module's RefreshTimeout (12s) so the module CTS controls cancellation.
         services.AddHttpClient(Constants.HttpClients.Spotify, client =>
         {
             client.BaseAddress = new Uri(Constants.SpotifyApiBaseUrl);
@@ -515,7 +514,6 @@ public static class ServiceRegistration
 
         services.AddHttpClient();
 
-        // ComponentStatsModule — explicit factory (needs Lazy<ScanLoopService> to break circular dep)
         services.AddSingleton<ComponentStatsModule>(sp => new ComponentStatsModule(
             sp.GetRequiredService<ISettingsProvider<ComponentStatsSettings>>(),
             sp.GetRequiredService<ISettingsProvider<TimeSettings>>(),
@@ -562,8 +560,6 @@ public static class ServiceRegistration
                 sp.GetRequiredService<EmojiService>(),
                 sp.GetRequiredService<Core.State.IUiDispatcher>()));
 
-        // Providers whose constructors take Lazy<T> require explicit factory registrations
-        // because MSDI cannot auto-resolve Lazy<T> from a conventional AddSingleton<T, TImpl>().
         services.AddSingleton<IOscProvider>(sp => new StatusOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
@@ -581,6 +577,9 @@ public static class ServiceRegistration
         services.AddSingleton<IOscProvider>(sp => new TrackerBatteryOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
+        services.AddSingleton<IOscProvider>(sp => new VrPerformanceOscProvider(
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<IntegrationDisplayState>()));
         services.AddSingleton<IOscProvider, ComponentStatsOscProvider>();
         services.AddSingleton<IOscProvider>(sp => new NetworkStatsOscProvider(
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
@@ -615,8 +614,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<SpotifyDisplayState>(),
             new Lazy<IMediaLinkService>(() => App.ApplicationMediaController)));
 
-        // OscOutputBuilder — explicit factory: MSDI's reflection-based resolution
-        // struggles with constructors that combine IEnumerable<T> + other params.
         services.AddSingleton<OscOutputBuilder>(sp => new OscOutputBuilder(
             sp.GetServices<IOscProvider>(),
             sp.GetRequiredService<IAppState>(),

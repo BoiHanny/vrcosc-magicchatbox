@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,11 +13,6 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: MediaLink (Windows media sessions) → OSC segment.
-/// Budget-aware: uses <see cref="OscBuildContext"/> to decide whether
-/// progress bars / timestamps fit within the 144-char limit.
-/// </summary>
 public sealed class MediaLinkOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;
@@ -179,8 +174,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
             return text;
 
         double pct = full.TotalSeconds == 0 ? 0 : (current.TotalSeconds / full.TotalSeconds) * 100;
-        int available = context.RemainingCharsIf(text) - 4; // leave small margin
-        var style = _mediaLink.SelectedMediaLinkSeekbarStyle;
+        int available = context.RemainingCharsIf(text) - 4;        var style = _mediaLink.SelectedMediaLinkSeekbarStyle;
 
         switch (_mls.TimeSeekStyle)
         {

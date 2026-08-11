@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
@@ -6,10 +6,6 @@ using vrcosc_magicchatbox.Core.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Pulsoid heart rate → OSC segment.
-/// Wraps <see cref="PulsoidModule.GetHeartRateString"/>.
-/// </summary>
 public sealed class HeartRateOscProvider : IOscProvider
 {
     private readonly Lazy<IModuleHost> _modules;

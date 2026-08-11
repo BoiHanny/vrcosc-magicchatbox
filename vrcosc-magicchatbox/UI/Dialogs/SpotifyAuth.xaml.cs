@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -8,9 +8,6 @@ using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Dialogs;
 
-/// <summary>
-/// Friendly Spotify OAuth setup dialog with privacy choices.
-/// </summary>
 public partial class SpotifyAuth : Window
 {
     private readonly SpotifySectionViewModel _vm;

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
 using OpenAI.Chat;
@@ -19,10 +19,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Provides AI-powered text enhancement features (completion, translation, grammar check, etc.)
-/// via the OpenAI chat API, integrated with the VRChat chatbox.
-/// </summary>
 public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<IntelliChatUiStatusMessage>
 {
     private readonly IEnvironmentService _env;
@@ -34,8 +30,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
 
-    // CTS of the current (most recent) request; swapped per request via ResetCancellationToken,
-    // detached by CancelAllCurrentTasks. A request whose CTS no longer sits here was superseded.
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _isInitialized = false;
 
@@ -69,10 +63,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         Initialize();
     }
 
-    /// <summary>
-    /// Handles status messages from WhisperModule (and any future senders).
-    /// Applies text+visibility to IntelliChat UI label, with auto-hide for transient messages.
-    /// </summary>
     public void Receive(IntelliChatUiStatusMessage message)
     {
         try
@@ -291,13 +281,11 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
         if (ex is OperationCanceledException)
         {
-            // Superseded by a newer request (or CancelAllCurrentTasks): the newer request owns the UI — stay silent.
             if (requestCts == null || !ReferenceEquals(_cancellationTokenSource, requestCts))
             {
                 return;
             }
 
-            // Still the current request, so cancellation can only have come from its own CancelAfter timeout.
             if (requestCts.IsCancellationRequested)
             {
                 UpdateErrorState(true, "The operation was cancelled due to a timeout.");
@@ -390,10 +378,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
 
     }
-    /// <summary>
-    /// Adds a user-defined writing style with the given parameters. Assigns IDs starting at 1000 to avoid
-    /// collisions with built-in style IDs (1–999).
-    /// </summary>
     public void AddWritingStyle(string styleName, string styleDescription, double temperature)
     {
         int nextId = Settings.SupportedWritingStyles.DefaultIfEmpty().Max(style => style?.ID ?? 999) + 1;
@@ -434,10 +418,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     }
 
 
-    /// <summary>
-    /// Validates and corrects the selected writing style and language against the current supported lists,
-    /// and verifies that all model enum values are still defined.
-    /// </summary>
     public void EnsureValidSelections()
     {
         var selectedStyle = Settings.SelectedWritingStyle != null
@@ -482,9 +462,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     }
 
-    /// <summary>
-    /// Generates an AI text completion or next-word prediction for <paramref name="inputText"/> using the selected writing style.
-    /// </summary>
     public async Task GenerateCompletionOrPredictionAsync(string inputText, bool isNextWordPrediction = false)
     {
         if (string.IsNullOrWhiteSpace(inputText))
@@ -550,7 +527,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         finally
         {
-            // A superseded request must not clear the label the newer request just set.
             if (requestCts == null || ReferenceEquals(_cancellationTokenSource, requestCts))
             {
                 Settings.IntelliChatUILabel = false;
@@ -560,9 +536,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
 
 
-    /// <summary>
-    /// Generates a creative, context-aware conversation opener and places it in the waiting-to-accept queue.
-    /// </summary>
     public async Task GenerateConversationStarterAsync()
     {
         if (!_chatService.IsClientAvailable)
@@ -654,10 +627,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         return "Unknown";
     }
 
-    /// <summary>
-    /// Returns true for models that do NOT support sampling parameters (Temperature, TopP, etc.).
-    /// These are reasoning-class models like o1/o3 family.
-    /// </summary>
     public static bool IsReasoningModel(IntelliGPTModel model)
     {
         var memberInfo = typeof(IntelliGPTModel).GetMember(model.ToString());
@@ -665,10 +634,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             && memberInfo[0].GetCustomAttributes(typeof(ReasoningModelAttribute), false).Length > 0;
     }
 
-    /// <summary>
-    /// Builds <see cref="ChatCompletionOptions"/> with automatic temperature/topP gating
-    /// for reasoning models that do not support sampling parameters.
-    /// </summary>
     public static ChatCompletionOptions BuildChatOptions(
         IntelliGPTModel model,
         int maxOutputTokens,
@@ -688,9 +653,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         return options;
     }
 
-    /// <summary>
-    /// Loads persisted <see cref="IntelliChatModuleSettings"/> from disk, merges built-in defaults, and validates selections.
-    /// </summary>
     public void LoadSettings()
     {
         var filePath = Path.Combine(_env.DataPath, IntelliChatSettingsFileName);
@@ -745,9 +707,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
 
 
-    /// <summary>
-    /// Submits <paramref name="text"/> to the OpenAI Moderations API and returns <see langword="true"/> if no policy violations are detected.
-    /// </summary>
     public async Task<bool> ModerationCheckPassedAsync(string text, bool cancelAllTasks = true)
     {
         if (cancelAllTasks)
@@ -784,13 +743,11 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
         catch (OperationCanceledException)
         {
-            // Superseded by a newer request: abort this action silently so it cannot cancel the newer one.
             if (requestCts == null || !ReferenceEquals(_cancellationTokenSource, requestCts))
             {
                 return false;
             }
 
-            // Timed out: fail open so a slow moderation endpoint doesn't block the action.
             Settings.IntelliChatUILabel = false;
 
             UpdateErrorState(false, string.Empty);
@@ -799,9 +756,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     }
 
 
-    /// <summary>
-    /// Rewrites <paramref name="text"/> using the given writing style (or the currently selected style if null).
-    /// </summary>
     public async Task PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
     {
         if (!_chatService.IsClientAvailable)
@@ -864,9 +818,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
 
 
-    /// <summary>
-    /// Translates <paramref name="text"/> into the given target language (or the currently selected language if null).
-    /// </summary>
     public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
     {
         if (!_chatService.IsClientAvailable)
@@ -931,9 +882,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
 
 
-    /// <summary>
-    /// Corrects spelling and grammar in <paramref name="text"/> and places the result in the waiting-to-accept queue.
-    /// </summary>
     public async Task PerformSpellingAndGrammarCheckAsync(string text)
     {
         if (!_chatService.IsClientAvailable)
@@ -1035,11 +983,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         SaveSettings();
     }
 
-    /// <summary>
-    /// Begins a new request scope: installs a fresh CTS (cancelled after <paramref name="timeoutInSeconds"/>)
-    /// as the current one, cancelling and disposing the superseded request's CTS.
-    /// Callers must pass the returned source's token to their service call.
-    /// </summary>
     public CancellationTokenSource ResetCancellationToken(int timeoutInSeconds)
     {
         var requestCts = new CancellationTokenSource();
@@ -1062,9 +1005,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
     }
 
-    /// <summary>
-    /// Condenses <paramref name="text"/> to 140 characters or fewer, retrying up to twice if the first response still exceeds the limit.
-    /// </summary>
     public async Task ShortenTextAsync(string text, int retryCount = 0)
     {
         if (!EnsureInitializedAndNotEmpty(text))

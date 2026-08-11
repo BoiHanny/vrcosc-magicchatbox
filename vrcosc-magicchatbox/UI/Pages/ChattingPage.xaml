@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.ChattingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -204,15 +204,12 @@
                         <Style TargetType="{x:Type Grid}">
                             <Setter Property="Visibility" Value="Visible" />
                             <Style.Triggers>
-                                <!--  Trigger to make the Grid visible when NewChattingTxt has text  -->
                                 <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
-                                <!--  Trigger to keep the Grid collapsed when NewChattingTxt has no text  -->
                                 <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
-                                <!--  Default state when there is content in the Text  -->
                                 <DataTrigger Binding="{Binding Text, ElementName=NewChattingTxt}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
@@ -597,7 +594,6 @@
 
 
 
-                        <!--  Image  -->
                         <Image
                             Grid.RowSpan="2"
                             Grid.Column="1"
