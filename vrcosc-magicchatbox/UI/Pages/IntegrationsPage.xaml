@@ -333,7 +333,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="With this integration, you can write an epic status message that will be displayed in the chatbox.."
+                                Text="Say whatever you want. Save a pile of messages, cycle them, and drop to AFK when you wander off."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -444,7 +444,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderTransformOrigin="0.5,0.5"
-                                Text="With this integration, you can show if you're in VR or desktop mode, and in desktop mode, it displays the currently focused application."
+                                Text="VR or desktop, and what you're buried in. Mark any app private and it stays your business."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -727,7 +727,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="This integration displays your heart rate in the chatbox and can send it to OSC, similar to the retired 'HRtoVRChat.' Compatible only with Pulsoid."
+                                Text="Your pulse, live — in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -940,7 +940,7 @@
                                     FontSize="13"
                                     Foreground="{StaticResource AccentLightPurpleBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Monitor controllers and trackers. Output controls live in settings." />
+                                    Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it." />
                             </StackPanel>
                             <StackPanel
                                 Grid.Column="2"
@@ -1167,7 +1167,7 @@
                                     FontSize="13"
                                     Foreground="{StaticResource AccentLightPurpleBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Frame rate, reprojection and dropped frames from SteamVR. Requires SteamVR."
+                                    Text="Frames, reprojection and headroom from SteamVR. Stays quiet until something actually goes wrong."
                                     TextWrapping="Wrap" />
                             </StackPanel>
                             <StackPanel
@@ -1379,7 +1379,7 @@
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="With this integration, you can display your CPU, GPU, RAM, and VRAM usage in real-time."
+                                    Text="CPU, GPU, RAM and VRAM — load, temps, wattage and clocks, live. Settle the specs question for good."
                                     TextWrapping="Wrap">
                                     <TextBlock.Foreground>
                                         <RadialGradientBrush>
@@ -1495,7 +1495,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Display real-time network stats such as download and upload speeds."
+                                Text="Live up and down speeds, session peaks and totals. Proof it&#x27;s the world lagging, not you."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -1607,7 +1607,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Displays local time with optional time zone conversion."
+                                Text="Your local time and zone. Ends the &quot;wait, what time is it for you?&quot; question forever."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -1727,7 +1727,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Display local weather details like temperature, feels-like, wind, and humidity."
+                                Text="Conditions where you actually are — temperature, feels-like, wind and humidity, tucked in beside your clock."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -1889,7 +1889,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Show live stream status, viewer count, and current game."
+                                Text="Live status, viewers and category — plus shoutouts and announcements you can fire off without leaving VR."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -2019,7 +2019,7 @@
                                             <GradientStop Offset="1" Color="#FFD9E0FF" />
                                         </RadialGradientBrush>
                                     </TextBlock.Foreground>
-                                    <Run Text="Profile followers can run alone. LIVE is optional for stream overlays; both can combine in your chosen order." />
+                                    <Run Text="Follower counts on their own, or go LIVE for follows and gifts landing in real time. Run either, or both." />
                                 </TextBlock>
 
                                 <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
@@ -2200,7 +2200,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Show who's speaking in your Discord voice channel."
+                                Text="Who's talking in your voice channel — and your VRChat world on your Discord profile, if you want it."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -2357,7 +2357,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Real-time VRChat log parser — world info, player events, and session stats."
+                                Text="Reads VRChat&#x27;s own log: where you are, who came and went, and every photo you took."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -2612,7 +2612,7 @@
                                             <GradientStop Offset="1" Color="{StaticResource AccentLightPurpleColor}" />
                                         </RadialGradientBrush>
                                     </TextBlock.Foreground>
-                                    <Run Text="Display audio clips from Soundpad during playback; hidden when paused or inactive." />
+                                    <Run Text="Shows the clip you just played, so the room knows exactly who did that. Quiet when nothing&#x27;s playing." />
                                 </TextBlock>
                             </StackPanel>
                             <StackPanel
@@ -2742,7 +2742,7 @@
                                             <GradientStop Offset="1" Color="#FFD9E0FF" />
                                         </RadialGradientBrush>
                                     </TextBlock.Foreground>
-                                    <Run Text="Shows current track in chatbox. Customize template, toggle tokens, set polling interval, and configure Party/DJ output in Spotify settings." />
+                                    <Run Text="The full Spotify picture — liked, explicit, shuffle, queue and device — arranged however you like with your own template." />
                                 </TextBlock>
 
 
@@ -3060,7 +3060,7 @@
                                     FontSize="13"
                                     Foreground="LightGray"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="With this integration, you can show the song and author on individual Media Sessions (Spotify, Chrome, etc)"
+                                    Text="Whatever&#x27;s playing on your PC — Spotify, YouTube, a browser tab. No account, no setup, just music."
                                     TextWrapping="Wrap" />
                             </StackPanel>
                             <StackPanel
