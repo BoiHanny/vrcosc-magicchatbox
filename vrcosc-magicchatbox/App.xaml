@@ -1585,20 +1585,6 @@
 
             <!--  Control deck + scrollbar tokens. The accent ramp means exactly one thing across the app:
                   "this is on". Only the master switch wears it, so it never competes with the status rail.  -->
-            <SolidColorBrush x:Key="DeckSurfaceBrush" Color="#FF2C2148" />
-            <SolidColorBrush x:Key="DeckSurfaceHoverBrush" Color="#FF3A2D5A" />
-            <SolidColorBrush x:Key="DeckSurfacePressedBrush" Color="#FF221A3C" />
-            <SolidColorBrush x:Key="DeckEdgeBrush" Color="#FF4A3C72" />
-            <SolidColorBrush x:Key="DeckEdgeHoverBrush" Color="#FFA97BFF" />
-            <SolidColorBrush x:Key="DeckTextBrush" Color="#FFC6B9E8" />
-            <SolidColorBrush x:Key="DeckTextMutedBrush" Color="#FF9689B8" />
-            <SolidColorBrush x:Key="DeckTextOnBrush" Color="#FF17102E" />
-
-            <SolidColorBrush x:Key="RouteOnBrush" Color="#FFB9A6EE" />
-            <SolidColorBrush x:Key="RouteOnEdgeBrush" Color="#FFD3C4FF" />
-            <SolidColorBrush x:Key="FeatureOnFillBrush" Color="#3DB96BFF" />
-            <SolidColorBrush x:Key="FeatureOnEdgeBrush" Color="#FFB96BFF" />
-            <SolidColorBrush x:Key="FeatureOnTextBrush" Color="#FFEFE4FF" />
 
             <!--  Off track is LIGHTER than the tile, not darker. A dark track measured 1.37:1 against the
                   tile surface, which made the app's primary control the least visible thing in its row.  -->
