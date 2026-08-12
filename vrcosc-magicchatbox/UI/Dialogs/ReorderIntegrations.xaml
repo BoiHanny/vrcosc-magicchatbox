@@ -96,7 +96,16 @@
                     ItemsSource="{Binding TempOrder}"
                     PreviewMouseLeftButtonDown="OrderList_PreviewMouseLeftButtonDown"
                     PreviewMouseMove="OrderList_PreviewMouseMove"
-                    Style="{StaticResource DarkListBoxStyle}" />
+                    Style="{StaticResource DarkListBoxStyle}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock
+                                Opacity="{Binding RowOpacity}"
+                                Text="{Binding Label}"
+                                ToolTip="{Binding RowToolTip}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
 
                 <StackPanel
                     Grid.Column="1"
