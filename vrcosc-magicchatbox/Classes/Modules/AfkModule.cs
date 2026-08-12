@@ -69,38 +69,66 @@ public partial class AfkModuleSettings : ObservableObject
     private bool overrideAfk = false;
 
     // The four fields above are what a style is made of, and were the whole story before styles
-    // existed. They are kept so an older settings file can be read and turned into a style once; the
-    // line that gets sent is built from the collection below.
+    // existed. They are kept so an older settings file can be read and turned into a style once.
+
+    /// <summary>
+    /// Only the styles you made yourself are written to disk. The ones that ship with MagicChatbox
+    /// are rebuilt from code on every load, the same way the media link seekbar presets are, so
+    /// improving them in a new version actually reaches people instead of being shadowed forever by
+    /// a copy frozen in a settings file.
+    /// </summary>
     [ObservableProperty]
-    private ObservableCollection<AfkStyle> styles = new();
+    private ObservableCollection<AfkStyle> customStyles = new();
+
+    /// <summary>
+    /// Reads the "Styles" array written by the one build that persisted the presets alongside your
+    /// own. Migrated into CustomStyles on load and then dropped, so the shipped ones stop being
+    /// frozen copies and yours survive.
+    /// </summary>
+    [ObservableProperty]
+    [property: JsonProperty("Styles", NullValueHandling = NullValueHandling.Ignore)]
+    private ObservableCollection<AfkStyle>? legacyStyles;
 
     [ObservableProperty]
     private string activeStyleId = string.Empty;
 
-    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(Styles, ActiveStyleId);
+    /// <summary>What the pickers show: the shipped styles first, then yours. Never persisted.</summary>
+    [JsonIgnore]
+    public ObservableCollection<AfkStyle> AllStyles { get; } = new();
 
-    /// <summary>Run once after loading: turns a pre-styles settings file into a style list.</summary>
-    public void EnsureStyles()
+    [JsonIgnore]
+    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(AllStyles, ActiveStyleId);
+
+    /// <summary>
+    /// Rebuilds the visible list from code plus your own styles. Safe to run more than once.
+    /// Returns true when the settings file itself needs rewriting - that is, when presets that were
+    /// once persisted have just been dropped in favour of the code ones.
+    /// </summary>
+    public bool EnsureStyles()
     {
-        if (Styles.Count > 0)
-        {
-            // A stored id can outlive the style it pointed at; fall back rather than send nothing.
-            var resolved = AfkStyleSeed.Resolve(Styles, ActiveStyleId);
-            if (resolved != null && resolved.Id != ActiveStyleId)
-                ActiveStyleId = resolved.Id;
+        bool hadPersistedPresets = LegacyStyles != null;
 
-            return;
-        }
-
-        var seeded = AfkStyleSeed.Build(
+        var seeded = AfkStyleSeed.Compose(
+            CustomStyles,
+            LegacyStyles,
+            ActiveStyleId,
             AfkPrefix,
             ShowPrefixIcon,
             AfkMessageForTimeStamp,
             AfkMessageWithoutTimeStamp,
             ShowAFKTime);
 
-        Styles = new ObservableCollection<AfkStyle>(seeded.Styles);
+        if (!ReferenceEquals(CustomStyles, seeded.CustomStyles))
+            CustomStyles = new ObservableCollection<AfkStyle>(seeded.CustomStyles);
+
+        LegacyStyles = null;
+
+        AllStyles.Clear();
+        foreach (var style in seeded.AllStyles)
+            AllStyles.Add(style);
+
         ActiveStyleId = seeded.ActiveId;
+        return hadPersistedPresets;
     }
 
     public static AfkModuleSettings LoadSettings(string settingsPath)
@@ -191,7 +219,12 @@ public partial class AfkModule : ObservableObject, IModule
         _consentService = consentService;
         var settingsPath = Path.Combine(env.DataPath, "AfkModuleSettings.json");
         Settings = AfkModuleSettings.LoadSettings(settingsPath);
-        Settings.EnsureStyles();
+
+        // Rewrite once when presets are being lifted out of the settings file, so the stale copies
+        // are actually gone rather than sitting there waiting to be read again.
+        if (Settings.EnsureStyles())
+            Settings.SaveSettings();
+
         Settings.SettingsChanged += Settings_SettingsChanged;
         _appState.PropertyChanged += ViewModel_PropertyChanged;
         lastActionTime = DateTime.Now;

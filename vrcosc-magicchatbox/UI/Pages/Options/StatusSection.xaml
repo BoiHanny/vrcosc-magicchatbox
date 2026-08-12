@@ -342,7 +342,44 @@
                                 Content="Delete"
                                 Style="{DynamicResource Status_Button_style}"
                                 ToolTip="Delete this style. The ones that ship with MagicChatbox cannot be deleted." />
+
+                            <Button
+                                Height="26"
+                                Margin="16,0,0,0"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.ExportStylesCommand}"
+                                Content="Export"
+                                Style="{DynamicResource Status_Button_style}"
+                                ToolTip="Save the styles you made to a file. The ones that ship with the app are not included - they are already in it." />
+
+                            <Button
+                                Height="26"
+                                Margin="6,0,0,0"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.ImportStylesCommand}"
+                                Content="Import"
+                                Style="{DynamicResource Status_Button_style}"
+                                ToolTip="Load styles from a file. They are added to yours, never on top of them." />
                         </StackPanel>
+
+                        <TextBlock
+                            Margin="4,0,4,6"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            FontStyle="Italic"
+                            Foreground="#FFFFD79A"
+                            Text="{Binding AfkStyles.EditHint}"
+                            TextWrapping="Wrap">
+                            <TextBlock.Style>
+                                <Style BasedOn="{StaticResource OptionHelpTextStyle}" TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding AfkStyles.EditHint}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
                         <Grid Margin="4,4,4,0">
                             <Grid.ColumnDefinitions>
@@ -372,6 +409,7 @@
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
                                 FontSize="14"
+                                IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                             <CheckBox
@@ -380,6 +418,7 @@
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
                                 IsChecked="{Binding AfkStyles.SelectedStyle.ShowPrefix, Mode=TwoWay}"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 Style="{DynamicResource SettingsCheckbox}">
                                 Prefix
                             </CheckBox>
@@ -391,6 +430,7 @@
                                 VerticalContentAlignment="Center"
                                 FontSize="14"
                                 IsEnabled="{Binding AfkStyles.SelectedStyle.ShowPrefix}"
+                                IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                             <CheckBox
@@ -399,6 +439,7 @@
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
                                 IsChecked="{Binding AfkStyles.SelectedStyle.ShowTime, Mode=TwoWay}"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 Style="{DynamicResource SettingsCheckbox}"
                                 ToolTip="Show how long you have been away">
                                 With clock
@@ -411,6 +452,7 @@
                                 VerticalContentAlignment="Center"
                                 FontSize="14"
                                 IsEnabled="{Binding AfkStyles.SelectedStyle.ShowTime}"
+                                IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.MessageWithTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 ToolTip="The duration is added straight after this text, so end it with a space." />
 
@@ -430,6 +472,7 @@
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
                                 FontSize="14"
+                                IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.MessageWithoutTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 ToolTip="Used when the clock is off, and whenever there is no duration to show yet." />
                         </Grid>
@@ -529,6 +572,7 @@
                                 Margin="0,0,6,0"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ApplyComposerToCommand}"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 CommandParameter="WithTime"
                                 Content="Use for with clock"
                                 Style="{DynamicResource Status_Button_style}" />
@@ -537,6 +581,7 @@
                                 Margin="0,0,6,0"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ApplyComposerToCommand}"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 CommandParameter="WithoutTime"
                                 Content="Use for no clock"
                                 Style="{DynamicResource Status_Button_style}" />
@@ -544,6 +589,7 @@
                                 Height="26"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ApplyComposerToCommand}"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 CommandParameter="Prefix"
                                 Content="Use as prefix"
                                 Style="{DynamicResource Status_Button_style}" />

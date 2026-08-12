@@ -1,10 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Afk;
 using vrcosc_magicchatbox.Core.Osc;
@@ -64,7 +68,14 @@ public partial class AfkStyleViewModel : ObservableObject
     /// selection back through the two-way binding - which is how selecting nothing at all ended up
     /// silently changing which style was active.
     /// </summary>
-    public ObservableCollection<AfkStyle>? Styles => Settings?.Styles;
+    public ObservableCollection<AfkStyle>? Styles => Settings?.AllStyles;
+
+    /// <summary>Shipped styles come from code, so the editor shows them but will not let them be changed.</summary>
+    public bool CanEditSelected => SelectedStyle is { IsBuiltIn: false };
+
+    public string EditHint => SelectedStyle is { IsBuiltIn: true }
+        ? "This one ships with MagicChatbox, so it updates with the app. Duplicate it to make it yours."
+        : string.Empty;
 
     public AfkStyle? SelectedStyle
     {
@@ -149,7 +160,7 @@ public partial class AfkStyleViewModel : ObservableObject
 
     private void OnSettingsChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(AfkModuleSettings.Styles)
+        if (e.PropertyName is nameof(AfkModuleSettings.CustomStyles)
                            or nameof(AfkModuleSettings.ActiveStyleId))
             _dispatcher.BeginInvoke(RaiseStyleChanged);
     }
@@ -186,6 +197,8 @@ public partial class AfkStyleViewModel : ObservableObject
         OnPropertyChanged(nameof(PreviewLine));
         OnPropertyChanged(nameof(PreviewCost));
         OnPropertyChanged(nameof(CanDeleteSelected));
+        OnPropertyChanged(nameof(CanEditSelected));
+        OnPropertyChanged(nameof(EditHint));
         DeleteStyleCommand.NotifyCanExecuteChanged();
     }
 
@@ -199,7 +212,8 @@ public partial class AfkStyleViewModel : ObservableObject
         var source = settings.ActiveStyle;
         var created = source?.Clone(NextName(settings, source.Name)) ?? new AfkStyle { Name = "New style" };
 
-        settings.Styles.Add(created);
+        settings.CustomStyles.Add(created);
+        settings.AllStyles.Add(created);
         settings.ActiveStyleId = created.Id;
         settings.SaveSettings();
         RaiseStyleChanged();
@@ -213,13 +227,116 @@ public partial class AfkStyleViewModel : ObservableObject
         if (settings == null || style == null || style.IsBuiltIn)
             return;
 
-        settings.Styles.Remove(style);
+        settings.CustomStyles.Remove(style);
+        settings.AllStyles.Remove(style);
 
         // Never leave nothing selected: the AFK line would go blank with no way to tell why.
-        var next = AfkStyleSeed.Resolve(settings.Styles, null);
+        var next = AfkStyleSeed.Resolve(settings.AllStyles, null);
         settings.ActiveStyleId = next?.Id ?? string.Empty;
         settings.SaveSettings();
         RaiseStyleChanged();
+    }
+
+    /// <summary>
+    /// Writes out only the styles you made. The shipped ones are code, so exporting a copy of them
+    /// would only give the machine on the other end a stale duplicate of what it already has.
+    /// </summary>
+    [RelayCommand]
+    private void ExportStyles()
+    {
+        var settings = Settings;
+        if (settings == null || settings.CustomStyles.Count == 0)
+            return;
+
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "AFK styles (*.json)|*.json",
+                FileName = "AfkStyles",
+                Title = "Export your AFK styles",
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var payload = new AfkStyleExport
+            {
+                Styles = settings.CustomStyles.ToList(),
+                SelectedStyleId = AfkStyleSeed.IsBuiltInId(settings.ActiveStyleId) ? null : settings.ActiveStyleId,
+            };
+
+            File.WriteAllText(dialog.FileName, JsonConvert.SerializeObject(payload, Formatting.Indented));
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+    }
+
+    [RelayCommand]
+    private void ImportStyles()
+    {
+        var settings = Settings;
+        if (settings == null)
+            return;
+
+        try
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "AFK styles (*.json)|*.json|All files (*.*)|*.*",
+                Title = "Import AFK styles",
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var payload = JsonConvert.DeserializeObject<AfkStyleExport>(File.ReadAllText(dialog.FileName));
+            if (payload?.Styles == null || payload.Styles.Count == 0)
+                return;
+
+            AfkStyle? lastImported = null;
+
+            foreach (var incoming in payload.Styles)
+            {
+                // Nothing arriving from a file may claim to be shipped, and nothing may land on an id
+                // already in use - either would let an import quietly overwrite what is already here.
+                var copy = incoming.Clone(UniqueName(settings, incoming.Name));
+                copy.IsBuiltIn = false;
+
+                settings.CustomStyles.Add(copy);
+                settings.AllStyles.Add(copy);
+                lastImported = copy;
+            }
+
+            if (lastImported != null)
+                settings.ActiveStyleId = lastImported.Id;
+
+            settings.SaveSettings();
+            RaiseStyleChanged();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+    }
+
+    private sealed class AfkStyleExport
+    {
+        public List<AfkStyle> Styles { get; set; } = new();
+        public string? SelectedStyleId { get; set; }
+    }
+
+    private static string UniqueName(AfkModuleSettings settings, string baseName)
+    {
+        string candidate = string.IsNullOrWhiteSpace(baseName) ? "Imported style" : baseName;
+        int suffix = 2;
+
+        while (settings.AllStyles.Any(s => string.Equals(s.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+            candidate = $"{baseName} {suffix++}";
+
+        return candidate;
     }
 
     [RelayCommand]
@@ -262,7 +379,7 @@ public partial class AfkStyleViewModel : ObservableObject
         string candidate = $"{baseName} copy";
         int suffix = 2;
 
-        while (settings.Styles.Any(s => string.Equals(s.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+        while (settings.AllStyles.Any(s => string.Equals(s.Name, candidate, StringComparison.OrdinalIgnoreCase)))
             candidate = $"{baseName} copy {suffix++}";
 
         return candidate;
