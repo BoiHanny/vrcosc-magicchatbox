@@ -228,6 +228,13 @@ public partial class IntegrationsPageViewModel : ObservableObject
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
 
+        if (e.PropertyName == nameof(IntegrationSettings.HiddenStripCollapsed))
+        {
+            RaiseHiddenStateChanged();
+            _integrationSettingsProvider.Save();
+            return;
+        }
+
         HandleMasterChangedWhileHidden(e.PropertyName);
     }
 
@@ -554,9 +561,17 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public bool HasHiddenTiles => HiddenChips.Count > 0;
 
-    public string HiddenHeader => HiddenChips.Count == 1
-        ? "You hid 1 tile · it's still running"
-        : $"You hid {HiddenChips.Count} tiles · they're still running";
+    public string HiddenSummary => IntegrationSettings.HiddenStripCollapsed
+        ? $"👁 {HiddenChips.Count} hidden  ›"
+        : $"👁 {HiddenChips.Count} hidden  ⌄";
+
+    public bool HiddenChipsVisible => !IntegrationSettings.HiddenStripCollapsed;
+
+    public bool ShowAllActionVisible => HiddenChipsVisible && CanShowAll;
+
+    public bool TidySwitchedOffVisible => HiddenChipsVisible && CanTidySwitchedOff;
+
+    public bool TidyModeUnavailableVisible => HiddenChipsVisible && CanTidyModeUnavailable;
 
     public bool CanShowAll => HiddenChips.Count >= 2;
 
@@ -757,7 +772,11 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public void RaiseHiddenStateChanged()
     {
         OnPropertyChanged(nameof(HasHiddenTiles));
-        OnPropertyChanged(nameof(HiddenHeader));
+        OnPropertyChanged(nameof(HiddenSummary));
+        OnPropertyChanged(nameof(HiddenChipsVisible));
+        OnPropertyChanged(nameof(ShowAllActionVisible));
+        OnPropertyChanged(nameof(TidySwitchedOffVisible));
+        OnPropertyChanged(nameof(TidyModeUnavailableVisible));
         OnPropertyChanged(nameof(CanShowAll));
         OnPropertyChanged(nameof(EverythingHidden));
         OnPropertyChanged(nameof(SwitchedOffVisibleCount));

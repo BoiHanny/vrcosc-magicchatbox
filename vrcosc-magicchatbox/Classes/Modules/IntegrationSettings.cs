@@ -87,6 +87,9 @@ public partial class IntegrationSettings : VersionedSettings
 
     [ObservableProperty] private bool _tileHideHintShown = false;
 
+    // Collapses the hidden-tiles strip down to a single pill.
+    [ObservableProperty] private bool _hiddenStripCollapsed = false;
+
     [JsonIgnore]
     [ObservableProperty] private bool _intgrScanForce = true;
 }
