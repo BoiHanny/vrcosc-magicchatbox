@@ -8,7 +8,10 @@ using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
@@ -38,6 +41,7 @@ namespace vrcosc_magicchatbox
         private HwndSource? _windowSource;
         private bool _shutdownRequested;
         public bool _isTrayClosing;
+        private readonly ISettingsProvider<AppSettings> _appSettingsProvider;
         public ViewModel VM => (ViewModel)DataContext;
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -52,6 +56,81 @@ namespace vrcosc_magicchatbox
             _windowSource?.AddHook(WindowProc);
 
             this.StateChanged += MainWindow_StateChanged;
+        }
+
+        /// <summary>
+        /// Puts the window back where it was, including which monitor. Restores nothing if that place no
+        /// longer exists - an unplugged second monitor would otherwise leave the window off-screen with
+        /// no way to drag it back.
+        /// </summary>
+        private void RestoreWindowPlacement()
+        {
+            try
+            {
+                var settings = _appSettingsProvider?.Value;
+                if (settings == null) return;
+
+                var virtualScreen = new Rect(
+                    SystemParameters.VirtualScreenLeft,
+                    SystemParameters.VirtualScreenTop,
+                    SystemParameters.VirtualScreenWidth,
+                    SystemParameters.VirtualScreenHeight);
+
+                var placement = WindowPlacementPolicy.Resolve(
+                    settings.WindowLeft,
+                    settings.WindowTop,
+                    settings.WindowWidth,
+                    settings.WindowHeight,
+                    virtualScreen,
+                    new Size(MinWidth, MinHeight));
+
+                if (placement is { } rect)
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual;
+                    Left = rect.Left;
+                    Top = rect.Top;
+                    Width = rect.Width;
+                    Height = rect.Height;
+                }
+
+                if (settings.WindowMaximized)
+                    WindowState = WindowState.Maximized;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Could not restore window placement: {ex.Message}");
+            }
+        }
+
+        private void SaveWindowPlacement()
+        {
+            try
+            {
+                var settings = _appSettingsProvider?.Value;
+                if (settings == null) return;
+
+                // Minimised carries no useful geometry, and while maximised the live Left/Top/Width/Height
+                // describe the maximised frame rather than the size to come back to.
+                if (WindowState == WindowState.Minimized)
+                    return;
+
+                var bounds = WindowState == WindowState.Maximized
+                    ? RestoreBounds
+                    : new Rect(Left, Top, Width, Height);
+
+                if (bounds.IsEmpty || double.IsNaN(bounds.Left) || double.IsNaN(bounds.Top))
+                    return;
+
+                settings.WindowLeft = bounds.Left;
+                settings.WindowTop = bounds.Top;
+                settings.WindowWidth = bounds.Width;
+                settings.WindowHeight = bounds.Height;
+                settings.WindowMaximized = WindowState == WindowState.Maximized;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Could not save window placement: {ex.Message}");
+            }
         }
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
@@ -119,7 +198,8 @@ namespace vrcosc_magicchatbox
             IModuleHost moduleHost,
             IStatePersistenceCoordinator persistence,
             ITrayIconService trayIconService,
-            HotkeyManagement hotkeyManagement)
+            HotkeyManagement hotkeyManagement,
+            ISettingsProvider<AppSettings> appSettingsProvider)
         {
             InitializeComponent();
 
@@ -129,6 +209,12 @@ namespace vrcosc_magicchatbox
             _persistence = persistence;
             _trayIconService = trayIconService;
             _hotkeyManagement = hotkeyManagement;
+            _appSettingsProvider = appSettingsProvider;
+
+            // Before Show(), so the window opens where it was left instead of appearing centred and
+            // then jumping. DataContext is not assigned until after Show(), which is why this reads
+            // the settings directly rather than going through the view model.
+            RestoreWindowPlacement();
 
             Closing += MainWindow_ClosingAsync;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
@@ -246,6 +332,10 @@ namespace vrcosc_magicchatbox
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            // Captured before the tray branch: closing to tray is still the last place the user put the
+            // window, and it is the geometry they expect back when it reopens.
+            SaveWindowPlacement();
+
             if (VM.AppSettingsInstance.CloseToTray && !_isTrayClosing)
             {
                 e.Cancel = true;

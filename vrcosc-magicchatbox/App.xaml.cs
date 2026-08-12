@@ -276,7 +276,8 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<Core.Services.IModuleHost>(),
                     Services.GetRequiredService<IStatePersistenceCoordinator>(),
                     Services.GetRequiredService<ITrayIconService>(),
-                    Services.GetRequiredService<HotkeyManagement>());
+                    Services.GetRequiredService<HotkeyManagement>(),
+                    Services.GetRequiredService<Core.Configuration.ISettingsProvider<Classes.Modules.AppSettings>>());
                 Logging.WriteInfo("MainWindow instance created.");
 
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
