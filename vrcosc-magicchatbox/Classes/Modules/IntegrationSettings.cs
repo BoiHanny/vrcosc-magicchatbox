@@ -25,7 +25,12 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrVrcRadar = false;
     [ObservableProperty] private bool _intgrTrackerBattery = false;
     [ObservableProperty] private bool _intgrVrPerformance = false;
+    // IntgrLyrics is the master: is the lyrics module running at all. Which players it follows is
+    // the two flags below, one per card, so switching lyrics off on MediaLink leaves Spotify alone.
+    // Both default false and are reconciled against the master on load - see LyricsSourceSelection.
     [ObservableProperty] private bool _intgrLyrics = false;
+    [ObservableProperty] private bool _intgrLyrics_Spotify = false;
+    [ObservableProperty] private bool _intgrLyrics_MediaLink = false;
     [ObservableProperty] private bool _intgrLyrics_VR = true;
     [ObservableProperty] private bool _intgrLyrics_DESKTOP = true;
 

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Osc;
 using vrcosc_magicchatbox.Core.Privacy;
@@ -52,6 +53,45 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     private readonly Lazy<ComponentStatsViewModel> _componentStats;
     public ComponentStatsViewModel ComponentStats => _componentStats.Value;
+
+    // The two LYRICS chips used to bind to the same master flag, so switching lyrics off on the
+    // Media link card switched it off on Spotify too. Each card now owns its own source, and the
+    // master follows along as "either of them".
+    public bool LyricsFromSpotify
+    {
+        get => IntegrationSettings.IntgrLyrics_Spotify;
+        set => ApplyLyricSources(CurrentLyricSources.WithSpotify(value));
+    }
+
+    public bool LyricsFromMediaLink
+    {
+        get => IntegrationSettings.IntgrLyrics_MediaLink;
+        set => ApplyLyricSources(CurrentLyricSources.WithMediaLink(value));
+    }
+
+    private LyricsSourceSelection CurrentLyricSources
+        => LyricsSourceCoordinator.Read(IntegrationSettings);
+
+    private void ApplyLyricSources(LyricsSourceSelection sources)
+    {
+        LyricsSourceCoordinator.Write(IntegrationSettings, sources);
+        RaiseLyricSourceChanged();
+    }
+
+    // Anything that turns the master off - the privacy guard revoking Internet Access, the Lyrics
+    // row in Options - has to take the sources with it, or the chips claim to be on while nothing
+    // is running.
+    private void SyncLyricSourcesWithMaster()
+    {
+        LyricsSourceCoordinator.SyncWithMaster(IntegrationSettings);
+        RaiseLyricSourceChanged();
+    }
+
+    private void RaiseLyricSourceChanged()
+    {
+        OnPropertyChanged(nameof(LyricsFromSpotify));
+        OnPropertyChanged(nameof(LyricsFromMediaLink));
+    }
 
     private TrackerBatteryModule? TrackerBatteryModule => _moduleHost.Value.TrackerBattery;
     private SoundpadModule? Soundpad => _moduleHost.Value.Soundpad;
@@ -224,6 +264,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
             FaultTracker.ResetFault(faultReset.SortKey);
 
         HandleModeVisibility(e.PropertyName);
+
+        if (e.PropertyName == nameof(IntegrationSettings.IntgrLyrics))
+            SyncLyricSourcesWithMaster();
 
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();

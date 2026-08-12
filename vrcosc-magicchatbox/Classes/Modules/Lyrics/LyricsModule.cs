@@ -227,8 +227,10 @@ public partial class LyricsModule : ObservableObject, IModule
             _integrationSettings.IntgrLyrics,
             hasSpotifySource: source != null && source.SourceName == SpotifySourceName,
             hasMediaSource: source != null && source.SourceName != SpotifySourceName,
-            _integrationSettings.IntgrScanMediaLink,
-            _integrationSettings.IntgrSpotify);
+            // A card with nothing playing parks on a host that lyrics are actually switched on for,
+            // not merely on whichever integration happens to be enabled.
+            mediaLinkEnabled: _integrationSettings.IntgrScanMediaLink && _integrationSettings.IntgrLyrics_MediaLink,
+            spotifyEnabled: _integrationSettings.IntgrSpotify && _integrationSettings.IntgrLyrics_Spotify);
 
     private string DescribeNoSource()
     {
@@ -257,7 +259,8 @@ public partial class LyricsModule : ObservableObject, IModule
 
     private PositionSource? ResolvePosition()
     {
-        if (_spotify.IsConnected && _spotify.HasPlayback && _spotify.IsPlaying)
+        if (_integrationSettings.IntgrLyrics_Spotify
+            && _spotify.IsConnected && _spotify.HasPlayback && _spotify.IsPlaying)
         {
             return new PositionSource(
                 _spotify.Title,
@@ -268,6 +271,9 @@ public partial class LyricsModule : ObservableObject, IModule
                 SpotifySourceName,
                 $"spotify:{_spotify.TrackId}");
         }
+
+        if (!_integrationSettings.IntgrLyrics_MediaLink)
+            return null;
 
         var sessions = SnapshotSessions();
 
