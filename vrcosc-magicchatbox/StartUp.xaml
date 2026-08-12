@@ -358,7 +358,11 @@
                                 <Grid.Triggers>
                                     <EventTrigger RoutedEvent="Loaded">
                                         <BeginStoryboard>
-                                            <Storyboard RepeatBehavior="Forever">
+                                            <!--  The delay lets the byline finish fading up first. Starting
+                                                  on Loaded put the first pass underneath the reveal, so the
+                                                  two read as one slow fade instead of a glint across a name
+                                                  that is already there.  -->
+                                            <Storyboard BeginTime="0:0:1.4" RepeatBehavior="Forever">
                                                 <!--  Held at the far side after each pass so the name is
                                                       its own colours most of the time and the shine reads
                                                       as an occasional glint rather than a strobe.  -->
