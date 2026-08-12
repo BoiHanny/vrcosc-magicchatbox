@@ -815,6 +815,35 @@
         <Setter Property="Margin" Value="0,2,4,2" />
     </Style>
 
+    <Style x:Key="HiddenStripToggle" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="#9C8DC4" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontFamily" Value="Comfortaa Light" />
+        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="Margin" Value="0,2,6,2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="summaryBorder"
+                        Padding="{TemplateBinding Padding}"
+                        Background="Transparent"
+                        CornerRadius="9">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="summaryBorder" Property="Background" Value="#33FFFFFF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style
         x:Key="HiddenTileActionButton"
         TargetType="Button">

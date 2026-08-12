@@ -84,6 +84,11 @@ namespace vrcosc_magicchatbox.UI.Pages
             IntegrationsList.BeginInit();
             IntegrationsList.Items.Clear();
 
+            // The hidden strip is the first item rather than a pinned row above the list, so it scrolls
+            // away with the content instead of permanently taking space at the top of the page.
+            if (HiddenStripItem != null && hidden.Count > 0)
+                IntegrationsList.Items.Add(HiddenStripItem);
+
             foreach (var key in orderedKeys)
             {
                 if (itemMap.TryGetValue(key, out var item))
