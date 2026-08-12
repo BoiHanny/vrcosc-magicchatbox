@@ -22,6 +22,7 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     [ObservableProperty] private SoundpadModule _soundpad;
     [ObservableProperty] private TrackerBatteryModule _trackerBattery;
     [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceModule _vrPerformance;
+    [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsModule _lyrics;
     [ObservableProperty] private WhisperModule _whisper;
     [ObservableProperty] private AfkModule _afk;
 

@@ -1,0 +1,373 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.LyricsSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:LyricsSectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                FontSize="15"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextSectionHeaderBrush}"
+                IsChecked="{Binding AppSettings.Settings_Lyrics, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="Lyrics (MediaLink &amp; Spotify)"
+                TextOptions.TextRenderingMode="ClearType" />
+        </Grid>
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="34,10,0,0"
+            d:Visibility="Visible"
+            Visibility="{Binding AppSettings.Settings_Lyrics, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontFamily="Comfortaa Light"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="Where it runs" />
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="Lyrics ride along with MediaLink and Spotify, so the same switch sits on both of their cards on the Integrations page."
+                        TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <ToggleButton
+                            Height="22"
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center"
+                            Content="Lyrics"
+                            IsChecked="{Binding IntegrationSettings.IntgrLyrics, Mode=TwoWay}"
+                            Style="{StaticResource GlowyToggleButtonLyrics}" />
+                        <ToggleButton
+                            Width="60"
+                            Height="22"
+                            Margin="0,0,5,0"
+                            VerticalAlignment="Center"
+                            Content="DESKTOP"
+                            IsChecked="{Binding IntegrationSettings.IntgrLyrics_DESKTOP, Mode=TwoWay}"
+                            Style="{StaticResource GlowyToggleButtonDT}" />
+                        <ToggleButton
+                            Width="30"
+                            Height="22"
+                            VerticalAlignment="Center"
+                            Content="VR"
+                            IsChecked="{Binding IntegrationSettings.IntgrLyrics_VR, Mode=TwoWay}"
+                            Style="{StaticResource GlowyToggleButtonVR}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource BorderMutedBrush}"
+                        Text="{Binding HostSummary}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontFamily="Comfortaa Light"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="Now playing" />
+
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="13"
+                        Foreground="{StaticResource BorderMutedBrush}"
+                        Text="{Binding Display.NowPlaying}"
+                        TextWrapping="Wrap" />
+
+                    <Border
+                        Margin="0,8,0,0"
+                        Padding="10,6"
+                        Background="{StaticResource AccentDeepPurpleBrush}"
+                        CornerRadius="4">
+                        <TextBlock
+                            FontFamily="Comfortaa Light"
+                            FontSize="15"
+                            Foreground="White"
+                            Text="{Binding Display.CurrentLine}"
+                            TextWrapping="Wrap" />
+                    </Border>
+
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="{Binding Display.StatusText}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="{Binding Display.PositionSource, StringFormat='Position from {0}'}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontFamily="Comfortaa Light"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="Timing" />
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="Community timings vary between tracks. Nudge until the words land with the music."
+                        TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button
+                            Width="52"
+                            Height="26"
+                            Margin="0,0,4,0"
+                            Command="{Binding NudgeOffsetCommand}"
+                            CommandParameter="-500"
+                            Content="−500"
+                            Style="{StaticResource Status_Button_style}" />
+                        <Button
+                            Width="52"
+                            Height="26"
+                            Margin="0,0,4,0"
+                            Command="{Binding NudgeOffsetCommand}"
+                            CommandParameter="-100"
+                            Content="−100"
+                            Style="{StaticResource Status_Button_style}" />
+                        <Button
+                            Width="60"
+                            Height="26"
+                            Margin="0,0,4,0"
+                            Command="{Binding ResetOffsetCommand}"
+                            Content="Reset"
+                            Style="{StaticResource Status_Button_style}" />
+                        <Button
+                            Width="52"
+                            Height="26"
+                            Margin="0,0,4,0"
+                            Command="{Binding NudgeOffsetCommand}"
+                            CommandParameter="100"
+                            Content="+100"
+                            Style="{StaticResource Status_Button_style}" />
+                        <Button
+                            Width="52"
+                            Height="26"
+                            Margin="0,0,10,0"
+                            Command="{Binding NudgeOffsetCommand}"
+                            CommandParameter="500"
+                            Content="+500"
+                            Style="{StaticResource Status_Button_style}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource BorderMutedBrush}"
+                            Text="{Binding OffsetSummary}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontFamily="Comfortaa Light"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="How it looks" />
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="Long lines scroll across the space that is left. These previews show a roomy line and a cramped one."
+                        TextWrapping="Wrap" />
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Roomy" />
+                        <Border
+                            Grid.Column="1"
+                            Padding="8,4"
+                            Background="{StaticResource AccentDeepPurpleBrush}"
+                            CornerRadius="4">
+                            <TextBlock
+                                FontFamily="Comfortaa Light"
+                                FontSize="14"
+                                Foreground="White"
+                                Text="{Binding RoomyPreview}"
+                                TextWrapping="Wrap" />
+                        </Border>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="11"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Cramped" />
+                        <Border
+                            Grid.Column="1"
+                            Padding="8,4"
+                            Background="{StaticResource AccentDeepPurpleBrush}"
+                            CornerRadius="4">
+                            <TextBlock
+                                FontFamily="Comfortaa Light"
+                                FontSize="14"
+                                Foreground="White"
+                                Text="{Binding TightPreview}"
+                                TextWrapping="Wrap" />
+                        </Border>
+                    </Grid>
+
+                    <CheckBox
+                        Margin="0,10,0,2"
+                        Content="Show a ♪ before the lyric"
+                        IsChecked="{Binding Settings.ShowNoteIcon, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        Margin="0,2"
+                        Content="Show ♪ during instrumental breaks"
+                        IsChecked="{Binding Settings.ShowGapMarker, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <TextBlock
+                            Width="210"
+                            VerticalAlignment="Center"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="12"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Hide the lyric below this many characters" />
+                        <TextBox
+                            Width="60"
+                            Text="{Binding Settings.MinimumCharacters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontFamily="Comfortaa Light"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="Sharing space with the song title" />
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="The chatbox holds 144 characters for every integration together. Hiding the title while a lyric shows roughly doubles the room the words get."
+                        TextWrapping="Wrap" />
+
+                    <ComboBox
+                        Width="280"
+                        HorizontalAlignment="Left"
+                        ItemsSource="{Binding CoexistenceModes}"
+                        SelectedItem="{Binding Settings.Coexistence, Mode=TwoWay}"
+                        Style="{StaticResource DarkComboBoxStyle}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontFamily="Comfortaa Light"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="Where lyrics come from" />
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="Your own .lrc files are used first when a folder is set. Anything not found there is looked up on LRCLIB, a free community lyrics database. Lyrics are contributed by its users and MagicChatBox does not own them."
+                        TextWrapping="Wrap" />
+
+                    <CheckBox
+                        Margin="0,2"
+                        Content="Use my own .lrc files first"
+                        IsChecked="{Binding Settings.UseLocalFiles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <TextBox
+                            Width="300"
+                            VerticalAlignment="Center"
+                            Text="{Binding Settings.LocalLyricsFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            Width="80"
+                            Height="26"
+                            Margin="6,0,0,0"
+                            Command="{Binding BrowseLocalFolderCommand}"
+                            Content="Browse"
+                            Style="{StaticResource Status_Button_style}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

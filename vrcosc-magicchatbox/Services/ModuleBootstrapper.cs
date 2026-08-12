@@ -6,6 +6,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Spotify;
 using vrcosc_magicchatbox.Classes.Modules.Vr;
+using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
@@ -47,6 +48,9 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> _vrPerformanceSettingsProvider;
     private readonly Vr.IOpenVrSessionService _openVrSession;
+    private readonly ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings> _lyricsSettingsProvider;
+    private readonly Lyrics.LyricsResolver _lyricsResolver;
+    private readonly LyricsDisplayState _lyricsDisplay;
     private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
     private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
     private readonly ISettingsProvider<VrcLogSettings> _vrcLogSettingsProvider;
@@ -87,6 +91,9 @@ public class ModuleBootstrapper
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
         ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> vrPerformanceSettingsProvider,
         Vr.IOpenVrSessionService openVrSession,
+        ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings> lyricsSettingsProvider,
+        Lyrics.LyricsResolver lyricsResolver,
+        LyricsDisplayState lyricsDisplay,
         ISettingsProvider<DiscordSettings> discordSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<VrcLogSettings> vrcLogSettingsProvider,
@@ -123,6 +130,9 @@ public class ModuleBootstrapper
         _trackerSettingsProvider = trackerSettingsProvider;
         _vrPerformanceSettingsProvider = vrPerformanceSettingsProvider;
         _openVrSession = openVrSession;
+        _lyricsSettingsProvider = lyricsSettingsProvider;
+        _lyricsResolver = lyricsResolver;
+        _lyricsDisplay = lyricsDisplay;
         _discordSettingsProvider = discordSettingsProvider;
         _spotifySettingsProvider = spotifySettingsProvider;
         _vrcLogSettingsProvider = vrcLogSettingsProvider;
@@ -218,6 +228,14 @@ public class ModuleBootstrapper
             _appState,
             _integrationDisplay,
             _consentService));
+        var lyrics = await CreateRuntimeModuleAsync("Lyrics", () => new LyricsModule(
+            _lyricsSettingsProvider,
+            integrationSettings,
+            _lyricsResolver,
+            _mediaLinkDisplay,
+            _spotifyDisplay,
+            _lyricsDisplay,
+            _consentService));
         var vrcRadar = await CreateRuntimeModuleAsync("VrcRadar", () => new VrcLogModule(
             _vrcLogSettingsProvider,
             integrationSettings,
@@ -299,6 +317,16 @@ public class ModuleBootstrapper
 
                 if (integrationSettings.IntgrVrPerformance)
                     _ = vrPerformance.StartAsync();
+            }
+
+            if (lyrics != null)
+            {
+                _host.Lyrics = lyrics;
+                _host.RegisterModule(lyrics);
+                integrationSettings.PropertyChanged += lyrics.PropertyChangedHandler;
+
+                if (integrationSettings.IntgrLyrics)
+                    _ = lyrics.StartAsync();
             }
 
             if (vrcRadar != null)

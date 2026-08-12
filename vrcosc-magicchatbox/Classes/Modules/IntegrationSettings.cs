@@ -25,6 +25,9 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrVrcRadar = false;
     [ObservableProperty] private bool _intgrTrackerBattery = false;
     [ObservableProperty] private bool _intgrVrPerformance = false;
+    [ObservableProperty] private bool _intgrLyrics = false;
+    [ObservableProperty] private bool _intgrLyrics_VR = true;
+    [ObservableProperty] private bool _intgrLyrics_DESKTOP = true;
 
     [ObservableProperty] private bool _intgrComponentStats_VR = true;
     [ObservableProperty] private bool _intgrComponentStats_DESKTOP = false;
