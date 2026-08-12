@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
+using vrcosc_magicchatbox.Classes.Modules;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -103,8 +104,20 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _trackerBatteryLastScanDisplay = "Last scan: Never";
     [ObservableProperty] private string _trackerBatteryPreview = string.Empty;
     [ObservableProperty] private string _componentStatCombined = string.Empty;
-    [ObservableProperty] private DateTime _componentStatsLastUpdate = DateTime.Now;
     [ObservableProperty] private bool _componentStatsRunning;
+
+    // Null until a reading actually lands. It used to default to DateTime.Now, so the tile showed the
+    // time the app started as though it were the time the stats last refreshed.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ComponentStatsStatusText))]
+    private DateTime? _componentStatsLastUpdate;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ComponentStatsStatusText))]
+    private ComponentStatsPhase _componentStatsPhase = ComponentStatsPhase.Off;
+
+    public string ComponentStatsStatusText
+        => ComponentStatsStatus.Describe(ComponentStatsPhase, ComponentStatsLastUpdate);
 
     [ObservableProperty] private string _vrPerformanceCombined = string.Empty;
     [ObservableProperty] private bool _vrPerformanceRunning;

@@ -154,8 +154,12 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
 
         PrimeCpuBaseline();
-        PrimeGpuBaseline();
 
+        // The GPU performance-counter baseline is deliberately NOT primed here. Priming it measured
+        // 12584ms of a 12966ms open: it constructs one PerformanceCounter per engine instance per
+        // process and every one of them is new on that first pass. It only seeds the fallback used
+        // when the vendor sensors and the NVIDIA path both come back empty, so the snapshot now
+        // builds its own counters the first time something actually asks for it.
         if (VendorGpuSensorsEnabled)
             _vendorGpu.TryOpen();
     }
@@ -223,25 +227,22 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 $"{a.Name} [vendor 0x{a.VendorId ?? 0:X4}, {(a.AdapterRamBytes ?? 0) / (1024 * 1024)} MiB]"));
 
         var selected = ResolveGpuInfo(null);
-        string counters = GetGpuPerformanceSnapshot().IsEmpty
-            ? "GPU Engine counters: no data"
-            : "GPU Engine counters: ok";
+
+        // Reports only what has already been captured, and never asks for a fresh snapshot. Asking
+        // cost 8.6s of a 9.0s startup: this line runs once on the first open, and building the
+        // counters is precisely the work the fallback exists to avoid until something needs it.
+        string counters;
+        lock (_lock)
+        {
+            counters = _gpuPerformanceCapturedAtUtc == default
+                ? "GPU Engine counters: not read yet"
+                : _gpuPerformanceSnapshot.IsEmpty
+                    ? "GPU Engine counters: no data"
+                    : "GPU Engine counters: ok";
+        }
 
         return $"adapters: {adapterList} | selected: {selected?.Name ?? "none"} | "
              + $"{_vendorGpu.DescribeStatus()} | {counters}";
-    }
-
-    private void PrimeGpuBaseline()
-    {
-        try
-        {
-            _ = ReadPerformanceCounterValues("GPU Engine", "Utilization Percentage");
-            _ = ReadPerformanceCounterValues("GPU Adapter Memory", "Dedicated Usage");
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteInfo($"GPU counter baseline priming failed: {ex.Message}");
-        }
     }
 
     private void PrimeCpuBaseline()
