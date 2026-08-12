@@ -940,4 +940,404 @@
         </Setter>
     </Style>
 
+
+    <!--  Deck tokens live here, beside the deck styles: a merged dictionary cannot resolve a
+          StaticResource declared in its parent.  -->
+    <SolidColorBrush x:Key="DeckSurfaceBrush" Color="#FF2C2148" />
+    <SolidColorBrush x:Key="DeckSurfaceHoverBrush" Color="#FF3A2D5A" />
+    <SolidColorBrush x:Key="DeckSurfacePressedBrush" Color="#FF221A3C" />
+    <SolidColorBrush x:Key="DeckEdgeBrush" Color="#FF4A3C72" />
+    <SolidColorBrush x:Key="DeckEdgeHoverBrush" Color="#FFA97BFF" />
+    <SolidColorBrush x:Key="DeckTextBrush" Color="#FFC6B9E8" />
+    <SolidColorBrush x:Key="DeckTextMutedBrush" Color="#FF9689B8" />
+    <SolidColorBrush x:Key="DeckTextOnBrush" Color="#FF17102E" />
+    <SolidColorBrush x:Key="RouteOnBrush" Color="#FFB9A6EE" />
+    <SolidColorBrush x:Key="RouteOnEdgeBrush" Color="#FFD3C4FF" />
+    <SolidColorBrush x:Key="FeatureOnFillBrush" Color="#3DB96BFF" />
+    <SolidColorBrush x:Key="FeatureOnEdgeBrush" Color="#FFB96BFF" />
+    <SolidColorBrush x:Key="FeatureOnTextBrush" Color="#FFEFE4FF" />
+
+    <!--  ============================================================================================
+          THE CONTROL DECK. One height (22), one radius (6), one font. What a control DOES is carried
+          by its fill, not its size: routes are solid when lit, features are tinted outlines, doors and
+          hide are filled and borderless, and only the master switch wears the accent ramp.
+
+          Every existing Glowy* / CustomizePillButton style is left untouched - seven of them are used
+          by MainWindow, StatusPage, ChattingPage and the Options sections.
+          ============================================================================================  -->
+
+    <Style x:Key="TileControlDeck" TargetType="StackPanel">
+        <Setter Property="Width" Value="246" />
+        <Setter Property="Orientation" Value="Vertical" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Margin" Value="0,6,2,0" />
+    </Style>
+
+    <!--  Rows are right-anchored and the fixed-position control is LAST, so variable width is absorbed
+          on the left where it reads as margin. That is what keeps the mode chips on the same x across
+          all sixteen tiles without reserving empty slots.  -->
+    <Style x:Key="DeckOutputRow" TargetType="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style x:Key="DeckChromeRow" TargetType="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <Style x:Key="DeckChipBase" TargetType="ToggleButton">
+        <Setter Property="Height" Value="22" />
+        <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+        <!--  WPF suppresses tooltips on disabled elements, and a disabled chip is exactly when the
+              user most needs to know why.  -->
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+    </Style>
+
+    <!--  DESKTOP and VR are two INDEPENDENT booleans, so they stay two separate chips with a real gap.
+          Fusing them into one segmented pill would read as a mutually-exclusive picker and remove the
+          mis-click buffer between two un-undoable toggles.  -->
+    <Style
+        x:Key="RouteChip"
+        BasedOn="{StaticResource DeckChipBase}"
+        TargetType="ToggleButton">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="route"
+                        Padding="{TemplateBinding Padding}"
+                        Background="Transparent"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="route" Property="Background" Value="#1FFFFFFF" />
+                            <Setter TargetName="route" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="route" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="route" Property="Background" Value="{StaticResource RouteOnBrush}" />
+                            <Setter TargetName="route" Property="BorderBrush" Value="{StaticResource RouteOnEdgeBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource DeckTextOnBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style
+        x:Key="RouteChipDesktop"
+        BasedOn="{StaticResource RouteChip}"
+        TargetType="ToggleButton">
+        <Setter Property="Width" Value="58" />
+        <Setter Property="Content" Value="DESKTOP" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="AutomationProperties.Name" Value="Show on desktop" />
+        <Setter Property="ToolTip" Value="Show this integration while you're on desktop." />
+    </Style>
+
+    <Style
+        x:Key="RouteChipVr"
+        BasedOn="{StaticResource RouteChip}"
+        TargetType="ToggleButton">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Content" Value="VR" />
+        <Setter Property="AutomationProperties.Name" Value="Show in VR" />
+        <Setter Property="ToolTip" Value="Show this integration while you're in VR." />
+    </Style>
+
+    <!--  The honest-absence answer. A ContentControl, not a Border: Border has no Content property, so
+          a Border style cannot carry its own label. Wears the live chips' ground so it reads as the
+          same kind of object rather than a hole.  -->
+    <Style x:Key="RouteChipStatic" TargetType="ContentControl">
+        <Setter Property="Width" Value="96" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Content" Value="VR ONLY" />
+        <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+        <Setter Property="ToolTip" Value="This integration only appears while you're in VR. It has no desktop mode." />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Border
+                        Background="{StaticResource DeckSurfaceBrush}"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style
+        x:Key="FeatureChip"
+        BasedOn="{StaticResource DeckChipBase}"
+        TargetType="ToggleButton">
+        <Setter Property="MinWidth" Value="36" />
+        <Setter Property="Padding" Value="9,0" />
+        <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="chip"
+                        Padding="{TemplateBinding Padding}"
+                        Background="Transparent"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="chip" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                            <Setter TargetName="chip" Property="Background" Value="#14FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="chip" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="chip" Property="Background" Value="{StaticResource FeatureOnFillBrush}" />
+                            <Setter TargetName="chip" Property="BorderBrush" Value="{StaticResource FeatureOnEdgeBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource FeatureOnTextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="chip" Property="BorderBrush" Value="#1FFFFFFF" />
+                            <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+                            <Setter Property="Opacity" Value="0.55" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TileDoorButton" TargetType="Button">
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Background" Value="{StaticResource DeckSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+        <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Padding" Value="11,0,10,0" />
+        <Setter Property="Content" Value="CUSTOMIZE ›" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="door"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="door" Property="Background" Value="{StaticResource DeckSurfaceHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="door" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  Its own template rather than BasedOn TileDoorButton: a derived style cannot retarget the base
+          template's parts, so inheriting would leave the base hover trigger fighting this one.  -->
+    <Style x:Key="TileHideButton" TargetType="Button">
+        <Setter Property="Width" Value="26" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="Background" Value="{StaticResource DeckSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Content" Value="👁" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="eye"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="eye" Property="Background" Value="{StaticResource DeckSurfaceHoverBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="eye" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <!--  The one sanctioned exception. Because every other chip is now uniform, the holo treatment
+          reads as deliberately special rather than as a fourth unrelated style. Re-cut to the deck's
+          22px / radius 6. The sheen animates the element's own RenderTransform: a TranslateTransform
+          named inside a TransformGroup gets frozen by WPF and throws the moment it is animated.  -->
+    <Style
+        x:Key="FeatureChipLyrics"
+        BasedOn="{StaticResource DeckChipBase}"
+        TargetType="ToggleButton">
+        <Setter Property="MinWidth" Value="36" />
+        <Setter Property="Padding" Value="9,0" />
+        <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid>
+                        <Border
+                            x:Name="chipBase"
+                            Background="Transparent"
+                            CornerRadius="6"
+                            SnapsToDevicePixels="True" />
+
+                        <Border
+                            x:Name="holoFill"
+                            CornerRadius="6"
+                            Opacity="0"
+                            SnapsToDevicePixels="True">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                    <GradientStop Offset="0" Color="#3FE0D2" />
+                                    <GradientStop Offset="0.35" Color="#6E9BFF" />
+                                    <GradientStop Offset="0.65" Color="#B96BFF" />
+                                    <GradientStop Offset="1" Color="#FF6FC7" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+
+                        <Border
+                            x:Name="sheenClip"
+                            ClipToBounds="True"
+                            CornerRadius="6"
+                            IsHitTestVisible="False"
+                            Opacity="0">
+                            <Border
+                                x:Name="sheen"
+                                Width="16"
+                                HorizontalAlignment="Left">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Offset="0" Color="#00FFFFFF" />
+                                        <GradientStop Offset="0.5" Color="#A6FFFFFF" />
+                                        <GradientStop Offset="1" Color="#00FFFFFF" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.LayoutTransform>
+                                    <SkewTransform AngleX="-20" />
+                                </Border.LayoutTransform>
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="-24" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Border>
+
+                        <Border
+                            x:Name="holoEdge"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            IsHitTestVisible="False"
+                            Opacity="0.55"
+                            SnapsToDevicePixels="True">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                    <GradientStop Offset="0" Color="#5FE6D8" />
+                                    <GradientStop Offset="0.5" Color="#A97BFF" />
+                                    <GradientStop Offset="1" Color="#FF8AD2" />
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                        </Border>
+
+                        <ContentPresenter
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="chipBase" Property="Background" Value="#3D3852" />
+                            <Setter TargetName="holoEdge" Property="Opacity" Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="holoFill" Property="Opacity" Value="1" />
+                            <Setter TargetName="holoEdge" Property="Opacity" Value="1" />
+                            <Setter Property="Foreground" Value="#FF1B1030" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="sheenClip"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="1"
+                                            Duration="0:0:0.15" />
+                                        <DoubleAnimation
+                                            BeginTime="0:0:0.15"
+                                            Storyboard.TargetName="sheen"
+                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                            From="-24"
+                                            To="90"
+                                            Duration="0:0:0.7" />
+                                        <DoubleAnimation
+                                            BeginTime="0:0:0.7"
+                                            Storyboard.TargetName="sheenClip"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="1"
+                                            To="0"
+                                            Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.55" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

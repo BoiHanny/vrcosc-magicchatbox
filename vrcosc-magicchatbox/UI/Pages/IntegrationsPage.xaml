@@ -113,10 +113,10 @@
             x:Name="IntegrationsList"
             Grid.Row="1"
             HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
             Background="Transparent"
             BorderThickness="0"
             RenderOptions.BitmapScalingMode="NearestNeighbor"
-            HorizontalContentAlignment="Stretch"
             ScrollViewer.CanContentScroll="False"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemContainerStyle>
@@ -135,8 +135,10 @@
                                     <ContentPresenter HorizontalAlignment="Stretch" />
                                 </Border>
                                 <ControlTemplate.Triggers>
-                                    <!--  A soft halo on hover: the tiles keep their own look, they just
-                                          acknowledge the cursor.  -->
+                                    <!--
+                                        A soft halo on hover: the tiles keep their own look, they just
+                                        acknowledge the cursor.
+                                    -->
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter TargetName="itemHost" Property="Effect">
                                             <Setter.Value>
@@ -155,9 +157,11 @@
                     </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
-            <!--  Hidden tiles. Lives inside the list as its first item so it scrolls away with the
-                  content instead of permanently occupying the top of the page. Compact by design: one
-                  wrapping row, and collapsible to a single pill.  -->
+            <!--
+                Hidden tiles. Lives inside the list as its first item so it scrolls away with the
+                content instead of permanently occupying the top of the page. Compact by design: one
+                wrapping row, and collapsible to a single pill.
+            -->
             <ListBoxItem
                 x:Name="HiddenStripItem"
                 Focusable="False"
@@ -180,8 +184,10 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <!--  A thin iridescent rail, borrowing the Lyrics palette so this reads as part of
-                              the same family without shouting.  -->
+                        <!--
+                            A thin iridescent rail, borrowing the Lyrics palette so this reads as part of
+                            the same family without shouting.
+                        -->
                         <Border
                             Grid.Column="0"
                             Width="2"
@@ -201,93 +207,93 @@
                             Margin="7,3,6,3"
                             Orientation="Horizontal">
 
-                        <ToggleButton
-                            VerticalAlignment="Center"
-                            Content="{Binding HiddenSummary, UpdateSourceTrigger=PropertyChanged}"
-                            IsChecked="{Binding IntegrationSettings.HiddenStripCollapsed, Mode=TwoWay}"
-                            Style="{StaticResource HiddenStripToggle}"
-                            ToolTip="Show or hide this list of hidden tiles." />
+                            <ToggleButton
+                                VerticalAlignment="Center"
+                                Content="{Binding HiddenSummary, UpdateSourceTrigger=PropertyChanged}"
+                                IsChecked="{Binding IntegrationSettings.HiddenStripCollapsed, Mode=TwoWay}"
+                                Style="{StaticResource HiddenStripToggle}"
+                                ToolTip="Show or hide this list of hidden tiles." />
 
-                        <ItemsControl
-                            VerticalAlignment="Center"
-                            ItemsSource="{Binding HiddenChips}"
-                            Visibility="{Binding HiddenChipsVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button
-                                        Command="{Binding DataContext.ShowTileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding Key}"
-                                        Style="{StaticResource HiddenTileChipButton}"
-                                        ToolTip="{Binding ToolTip}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <!--  Filled = still switched on and running, hollow = switched off.  -->
-                                            <Ellipse
-                                                Width="5"
-                                                Height="5"
-                                                Margin="0,0,5,0"
-                                                VerticalAlignment="Center"
-                                                Stroke="#9C8DC4"
-                                                StrokeThickness="1">
-                                                <Ellipse.Style>
-                                                    <Style TargetType="Ellipse">
-                                                        <Setter Property="Fill" Value="Transparent" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                                <Setter Property="Fill" Value="#7BE495" />
-                                                                <Setter Property="Stroke" Value="#7BE495" />
-                                                                                                                            <Setter Property="Effect">
-                                                                    <Setter.Value>
-                                                                        <DropShadowEffect
-                                                                            BlurRadius="6"
-                                                                            Opacity="0.9"
-                                                                            RenderingBias="Performance"
-                                                                            ShadowDepth="0"
-                                                                            Color="#7BE495" />
-                                                                    </Setter.Value>
-                                                                </Setter>
-</DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Ellipse.Style>
-                                            </Ellipse>
-                                            <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
-                                        </StackPanel>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            <ItemsControl
+                                VerticalAlignment="Center"
+                                ItemsSource="{Binding HiddenChips}"
+                                Visibility="{Binding HiddenChipsVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button
+                                            Command="{Binding DataContext.ShowTileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding Key}"
+                                            Style="{StaticResource HiddenTileChipButton}"
+                                            ToolTip="{Binding ToolTip}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <!--  Filled = still switched on and running, hollow = switched off.  -->
+                                                <Ellipse
+                                                    Width="5"
+                                                    Height="5"
+                                                    Margin="0,0,5,0"
+                                                    VerticalAlignment="Center"
+                                                    Stroke="#9C8DC4"
+                                                    StrokeThickness="1">
+                                                    <Ellipse.Style>
+                                                        <Style TargetType="Ellipse">
+                                                            <Setter Property="Fill" Value="Transparent" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                                    <Setter Property="Fill" Value="#7BE495" />
+                                                                    <Setter Property="Stroke" Value="#7BE495" />
+                                                                    <Setter Property="Effect">
+                                                                        <Setter.Value>
+                                                                            <DropShadowEffect
+                                                                                BlurRadius="6"
+                                                                                Opacity="0.9"
+                                                                                RenderingBias="Performance"
+                                                                                ShadowDepth="0"
+                                                                                Color="#7BE495" />
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Ellipse.Style>
+                                                </Ellipse>
+                                                <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                                                <Border
-                            Width="1"
-                            Margin="3,5,5,5"
-                            Background="#3F3363"
-                            Visibility="{Binding HiddenChipsVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <Border
+                                Width="1"
+                                Margin="3,5,5,5"
+                                Background="#3F3363"
+                                Visibility="{Binding HiddenChipsVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
-<Button
-                            VerticalAlignment="Center"
-                            Command="{Binding ShowAllTilesCommand}"
-                            Content="Show all"
-                            Style="{StaticResource HiddenTileActionButton}"
-                            Visibility="{Binding ShowAllActionVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button
+                                VerticalAlignment="Center"
+                                Command="{Binding ShowAllTilesCommand}"
+                                Content="Show all"
+                                Style="{StaticResource HiddenTileActionButton}"
+                                Visibility="{Binding ShowAllActionVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <Button
-                            VerticalAlignment="Center"
-                            Command="{Binding TidySwitchedOffCommand}"
-                            Content="{Binding TidySwitchedOffLabel, UpdateSourceTrigger=PropertyChanged}"
-                            Style="{StaticResource HiddenTileActionButton}"
-                            Visibility="{Binding TidySwitchedOffVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button
+                                VerticalAlignment="Center"
+                                Command="{Binding TidySwitchedOffCommand}"
+                                Content="{Binding TidySwitchedOffLabel, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource HiddenTileActionButton}"
+                                Visibility="{Binding TidySwitchedOffVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <Button
-                            VerticalAlignment="Center"
-                            Command="{Binding TidyModeUnavailableCommand}"
-                            Content="{Binding TidyModeUnavailableLabel, UpdateSourceTrigger=PropertyChanged}"
-                            Style="{StaticResource HiddenTileActionButton}"
-                            Visibility="{Binding TidyModeUnavailableVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button
+                                VerticalAlignment="Center"
+                                Command="{Binding TidyModeUnavailableCommand}"
+                                Content="{Binding TidyModeUnavailableLabel, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource HiddenTileActionButton}"
+                                Visibility="{Binding TidyModeUnavailableVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
                         </WrapPanel>
                     </Grid>
@@ -295,8 +301,10 @@
             </ListBoxItem>
 
             <ListBoxItem Name="StatusItem" Opacity="{Binding IntegrationDisplay.StatusOpacity}">
-                <Border Margin="5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -352,9 +360,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/PersonalMsg_ico.png" />
                             </Grid>
                         </Border>
@@ -378,50 +386,31 @@
                             </StackPanel>
 
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Say whatever you want. Save a pile of messages, cycle them, and drop to AFK when you wander off."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top"
-                            Orientation="Horizontal">
-                            <Button
-                                Margin="0,0,4,0"
-                                AutomationProperties.Name="Hide this tile"
-                                Click="HideTile_Click"
-                                Style="{StaticResource HideTilePillButton}"
-                                ToolTip="Hide this tile from the list. The integration stays switched on." />
-                            <Button
-                                Margin="0,0,5,0"
-                                Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_Status"
-                                Style="{StaticResource CustomizePillButton}" />
-                            <ToggleButton
-                                Width="60"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="DESKTOP"
-                                IsChecked="{Binding IntegrationSettings.IntgrStatus_DESKTOP, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonDT}" />
-                            <ToggleButton
-                                Width="30"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="VR"
-                                IsChecked="{Binding IntegrationSettings.IntgrStatus_VR, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonVR}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrStatus_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrStatus_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Status"
+                                    Style="{StaticResource TileDoorButton}" />
+                            </StackPanel>
                         </StackPanel>
                         <CheckBox
                             Name="Status_switch"
@@ -436,8 +425,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="WindowActivityItem" Opacity="{Binding IntegrationDisplay.WindowOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -493,9 +484,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/WindowActivity_ico.png" />
                             </Grid>
                         </Border>
@@ -519,62 +510,36 @@
                             </StackPanel>
 
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderTransformOrigin="0.5,0.5"
                                 Text="VR or desktop, and what you're buried in. Mark any app private and it stays your business."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top">
-                            <StackPanel Orientation="Horizontal">
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton
+                                    Content="FORCE VR"
+                                    IsChecked="{Binding IntegrationSettings.IntgrScanForce, Mode=TwoWay}"
+                                    IsEnabled="{Binding IntegrationSettings.IntgrWindowActivity_VR, Converter={StaticResource InvertBooleanConverter}}"
+                                    Style="{StaticResource FeatureChip}"
+                                    ToolTip="Force VR output. Already covered when this integration is shown in VR." />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrWindowActivity_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrWindowActivity_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
                                 <Button
-                                    Margin="0,0,4,0"
                                     AutomationProperties.Name="Hide this tile"
                                     Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
+                                    Style="{StaticResource TileHideButton}"
                                     ToolTip="Hide this tile from the list. The integration stays switched on." />
                                 <Button
-                                    Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
                                     CommandParameter="Settings_WindowActivity"
-                                    Style="{StaticResource CustomizePillButton}" />
-                                <ToggleButton
-                                    Width="60"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntegrationSettings.IntgrWindowActivity_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonDT}" />
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrWindowActivity_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonVR}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,3,0,0"
-                                HorizontalAlignment="Right"
-                                Orientation="Horizontal">
-                                <ToggleButton
-                                    Width="57"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="Force VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrScanForce, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}"
-                                    Visibility="{Binding IntegrationSettings.IntgrWindowActivity_VR, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                    Style="{StaticResource TileDoorButton}" />
                             </StackPanel>
                         </StackPanel>
                         <CheckBox
@@ -590,8 +555,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="HeartRateItem" Opacity="{Binding IntegrationDisplay.HeartRateOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -647,9 +614,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/HeartRate_ico.png" />
                             </Grid>
                         </Border>
@@ -832,61 +799,35 @@
                             </Grid>
 
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top">
-                            <StackPanel Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_HeartRate"
-                                    Style="{StaticResource CustomizePillButton}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
-                                    Width="60"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntegrationSettings.IntgrHeartRate_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonDT}" />
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrHeartRate_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonVR}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,3,0,0"
-                                HorizontalAlignment="Right"
-                                Orientation="Horizontal">
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
                                     Content="OSC"
                                     IsChecked="{Binding IntegrationSettings.IntgrHeartRate_OSC, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}" />
+                                    Style="{StaticResource FeatureChip}"
+                                    ToolTip="OSC" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrHeartRate_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrHeartRate_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_HeartRate"
+                                    Style="{StaticResource TileDoorButton}" />
                             </StackPanel>
                         </StackPanel>
                         <CheckBox
@@ -916,14 +857,16 @@
                         Visibility="{Binding IntegrationSettings.IntgrTrackerBattery, Converter={StaticResource InverseBoolToHiddenConverter}}">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
-                        <Border Margin="5,15,5,5" CornerRadius="5"
-                            Background="{StaticResource TileSurfaceBrush}">
+                        <Border
+                            Margin="5,15,5,5"
+                            Background="{StaticResource TileSurfaceBrush}"
+                            CornerRadius="5">
                             <StackPanel Margin="6">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock
@@ -932,9 +875,7 @@
                                         FontSize="13"
                                         Foreground="{StaticResource TextSectionHeaderBrush}"
                                         Text="Active devices" />
-                                    <TextBlock
-                                        Style="{StaticResource TileStatusPill}"
-                                        Text="{Binding IntegrationDisplay.TrackerBatteryDeviceSummary}" />
+                                    <TextBlock Style="{StaticResource TileStatusPill}" Text="{Binding IntegrationDisplay.TrackerBatteryDeviceSummary}" />
                                     <TextBlock
                                         Margin="10,0,0,0"
                                         VerticalAlignment="Center"
@@ -983,15 +924,15 @@
                     <Border
                         Grid.Row="0"
                         Margin="5,0,5,5"
-                        CornerRadius="5"
-                        Background="{StaticResource TileSurfaceBrush}">
+                        Background="{StaticResource TileSurfaceBrush}"
+                        CornerRadius="5">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -1040,9 +981,9 @@
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
-                                    <Image 
-                                        Effect="{StaticResource ImageShadowEffect}" 
-                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                    <Image
+                                        Effect="{StaticResource ImageShadowEffect}"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/VR_bat_ico.png" />
                                 </Grid>
                             </Border>
@@ -1074,22 +1015,21 @@
                                     Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Margin="0,5,100,0"
-                                VerticalAlignment="Top"
-                                Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_TrackerBattery"
-                                    Style="{StaticResource CustomizePillButton}" />
+                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
+                                    <ContentControl Style="{StaticResource RouteChipStatic}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_TrackerBattery"
+                                        Style="{StaticResource TileDoorButton}" />
+                                </StackPanel>
                             </StackPanel>
                             <CheckBox
                                 Name="TrackerBattery_switch"
@@ -1119,14 +1059,16 @@
                         Visibility="{Binding IntegrationSettings.IntgrVrPerformance, Converter={StaticResource InverseBoolToHiddenConverter}}">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
-                        <Border Margin="5,15,5,5" CornerRadius="5"
-                            Background="{StaticResource TileSurfaceBrush}">
+                        <Border
+                            Margin="5,15,5,5"
+                            Background="{StaticResource TileSurfaceBrush}"
+                            CornerRadius="5">
                             <StackPanel Margin="6">
                                 <StackPanel Margin="3,0,0,4" Orientation="Horizontal">
                                     <TextBlock
@@ -1238,15 +1180,15 @@
                     <Border
                         Grid.Row="0"
                         Margin="5,0,5,5"
-                        CornerRadius="5"
-                        Background="{StaticResource TileSurfaceBrush}">
+                        Background="{StaticResource TileSurfaceBrush}"
+                        CornerRadius="5">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -1295,9 +1237,9 @@
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
-                                    <Image 
-                                        Effect="{StaticResource ImageShadowEffect}" 
-                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                    <Image
+                                        Effect="{StaticResource ImageShadowEffect}"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/vr-performance.png" />
                                 </Grid>
                             </Border>
@@ -1329,22 +1271,21 @@
                                     Text="Frames, reprojection and headroom from SteamVR. Stays quiet until something actually goes wrong."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Margin="0,5,100,0"
-                                VerticalAlignment="Top"
-                                Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_VrPerformance"
-                                    Style="{StaticResource CustomizePillButton}" />
+                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
+                                    <ContentControl Style="{StaticResource RouteChipStatic}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_VrPerformance"
+                                        Style="{StaticResource TileDoorButton}" />
+                                </StackPanel>
                             </StackPanel>
                             <CheckBox
                                 Name="VrPerformance_switch"
@@ -1374,14 +1315,16 @@
                         Visibility="{Binding IntegrationDisplay.ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
-                        <Border Margin="5,15,5,5" CornerRadius="5"
-                            Background="{StaticResource TileSurfaceBrush}">
+                        <Border
+                            Margin="5,15,5,5"
+                            Background="{StaticResource TileSurfaceBrush}"
+                            CornerRadius="5">
                             <Grid>
                                 <StackPanel Margin="4,4" Orientation="Horizontal">
                                     <CheckBox
@@ -1469,15 +1412,15 @@
                     <Border
                         Grid.Row="0"
                         Margin="5,0,5,5"
-                        CornerRadius="5"
-                        Background="{StaticResource TileSurfaceBrush}">
+                        Background="{StaticResource TileSurfaceBrush}"
+                        CornerRadius="5">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -1526,9 +1469,9 @@
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
-                                    <Image 
-                                        Effect="{StaticResource ImageShadowEffect}" 
-                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                    <Image
+                                        Effect="{StaticResource ImageShadowEffect}"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/ComponentStats_ico.png" />
                                 </Grid>
                             </Border>
@@ -1563,50 +1506,31 @@
                                 </StackPanel>
 
                                 <TextBlock
-                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
+                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Text="Load, temps, wattage and clocks for your CPU, GPU, RAM and VRAM. Settle the specs question for good."
-                                    TextWrapping="Wrap">
-                                </TextBlock>
+                                    TextWrapping="Wrap" />
                             </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Margin="0,5,0,0"
-                                VerticalAlignment="Top"
-                                Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_ComponentStats"
-                                    Style="{StaticResource CustomizePillButton}" />
-                                <ToggleButton
-                                    Width="60"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntegrationSettings.IntgrComponentStats_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonDT}" />
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Content="VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrComponentStats_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonVR}" />
+                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrComponentStats_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrComponentStats_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_ComponentStats"
+                                        Style="{StaticResource TileDoorButton}" />
+                                </StackPanel>
                             </StackPanel>
                             <CheckBox
                                 Name="ComponentStats_Switch"
@@ -1624,8 +1548,10 @@
 
             </ListBoxItem>
             <ListBoxItem Name="NetworkStatsItem" Opacity="{Binding NetworkStats_Opacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -1681,9 +1607,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/NetworkStats_ico.png" />
                             </Grid>
                         </Border>
@@ -1707,50 +1633,31 @@
                             </StackPanel>
 
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Live up and down speeds, session peaks and totals. Proof it&#x27;s the world lagging, not you."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top"
-                            Orientation="Horizontal">
-                            <Button
-                                Margin="0,0,4,0"
-                                AutomationProperties.Name="Hide this tile"
-                                Click="HideTile_Click"
-                                Style="{StaticResource HideTilePillButton}"
-                                ToolTip="Hide this tile from the list. The integration stays switched on." />
-                            <Button
-                                Margin="0,0,5,0"
-                                Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_NetworkStatistics"
-                                Style="{StaticResource CustomizePillButton}" />
-                            <ToggleButton
-                                Width="60"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="DESKTOP"
-                                IsChecked="{Binding IntegrationSettings.IntgrNetworkStatistics_DESKTOP, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonDT}" />
-                            <ToggleButton
-                                Width="30"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="VR"
-                                IsChecked="{Binding IntegrationSettings.IntgrNetworkStatistics_VR, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonVR}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrNetworkStatistics_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrNetworkStatistics_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_NetworkStatistics"
+                                    Style="{StaticResource TileDoorButton}" />
+                            </StackPanel>
                         </StackPanel>
                         <CheckBox
                             Name="NetworkStats_switch"
@@ -1765,8 +1672,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="TimeItem" Opacity="{Binding IntegrationDisplay.TimeOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -1822,9 +1731,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/SystemTime_ico.png" />
                             </Grid>
                         </Border>
@@ -1849,50 +1758,31 @@
 
 
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Your local time and zone. Ends the &quot;wait, what time is it for you?&quot; question forever."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top"
-                            Orientation="Horizontal">
-                            <Button
-                                Margin="0,0,4,0"
-                                AutomationProperties.Name="Hide this tile"
-                                Click="HideTile_Click"
-                                Style="{StaticResource HideTilePillButton}"
-                                ToolTip="Hide this tile from the list. The integration stays switched on." />
-                            <Button
-                                Margin="0,0,5,0"
-                                Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_Time"
-                                Style="{StaticResource CustomizePillButton}" />
-                            <ToggleButton
-                                Width="60"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="DESKTOP"
-                                IsChecked="{Binding IntegrationSettings.IntgrCurrentTime_DESKTOP, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonDT}" />
-                            <ToggleButton
-                                Width="30"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="VR"
-                                IsChecked="{Binding IntegrationSettings.IntgrCurrentTime_VR, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonVR}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrCurrentTime_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrCurrentTime_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Time"
+                                    Style="{StaticResource TileDoorButton}" />
+                            </StackPanel>
                         </StackPanel>
                         <CheckBox
                             Name="SystemTime_switch"
@@ -1907,8 +1797,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="WeatherItem" Opacity="{Binding IntegrationDisplay.WeatherOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -1964,9 +1856,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/Weather_ico.png" />
                             </Grid>
                         </Border>
@@ -1999,50 +1891,31 @@
                                     Visibility="{Binding WeatherSettings.ShowWeatherInTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Conditions where you actually are: temperature, feels-like, wind and humidity, tucked in beside your clock."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top"
-                            Orientation="Horizontal">
-                            <Button
-                                Margin="0,0,4,0"
-                                AutomationProperties.Name="Hide this tile"
-                                Click="HideTile_Click"
-                                Style="{StaticResource HideTilePillButton}"
-                                ToolTip="Hide this tile from the list. The integration stays switched on." />
-                            <Button
-                                Margin="0,0,5,0"
-                                Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_Weather"
-                                Style="{StaticResource CustomizePillButton}" />
-                            <ToggleButton
-                                Width="60"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="DESKTOP"
-                                IsChecked="{Binding IntegrationSettings.IntgrWeather_DESKTOP, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonDT}" />
-                            <ToggleButton
-                                Width="30"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="VR"
-                                IsChecked="{Binding IntegrationSettings.IntgrWeather_VR, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonVR}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrWeather_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrWeather_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Weather"
+                                    Style="{StaticResource TileDoorButton}" />
+                            </StackPanel>
                         </StackPanel>
                         <CheckBox
                             Name="Weather_switch"
@@ -2057,8 +1930,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="TwitchItem" Opacity="{Binding IntegrationDisplay.TwitchOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -2114,9 +1989,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/Twitch_ico.png" />
                             </Grid>
                         </Border>
@@ -2163,9 +2038,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <TextBlock
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        Text="{Binding Modules.Twitch.StatusMessage}">
+                                    <TextBlock Effect="{StaticResource TextBlockShadowEffect}" Text="{Binding Modules.Twitch.StatusMessage}">
                                         <TextBlock.Style>
                                             <Style BasedOn="{StaticResource TileStatusPill}" TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#C9C3D9" />
@@ -2188,51 +2061,32 @@
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Live status, viewers and category, plus shoutouts and announcements you can fire off without leaving VR."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
 
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top"
-                            Orientation="Horizontal">
-                            <Button
-                                Margin="0,0,4,0"
-                                AutomationProperties.Name="Hide this tile"
-                                Click="HideTile_Click"
-                                Style="{StaticResource HideTilePillButton}"
-                                ToolTip="Hide this tile from the list. The integration stays switched on." />
-                            <Button
-                                Margin="0,0,5,0"
-                                Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_Twitch"
-                                Style="{StaticResource CustomizePillButton}" />
-                            <ToggleButton
-                                Width="60"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="DESKTOP"
-                                IsChecked="{Binding IntegrationSettings.IntgrTwitch_DESKTOP, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonDT}" />
-                            <ToggleButton
-                                Width="30"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="VR"
-                                IsChecked="{Binding IntegrationSettings.IntgrTwitch_VR, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonVR}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrTwitch_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrTwitch_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Twitch"
+                                    Style="{StaticResource TileDoorButton}" />
+                            </StackPanel>
                         </StackPanel>
                         <CheckBox
                             Name="Twitch_switch"
@@ -2247,8 +2101,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="TikTokLiveItem" Opacity="{Binding IntegrationDisplay.TikTokLiveOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -2264,32 +2120,32 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-<!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
-<Border
-    Grid.Column="0"
-    Width="3"
-    Margin="-3,-3,0,-3"
-    HorizontalAlignment="Left"
-    CornerRadius="5,0,0,5"
-    IsHitTestVisible="False">
-    <Border.Style>
-        <Style TargetType="Border">
-            <Setter Property="Background" Value="#1AFFFFFF" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IntegrationSettings.IntgrTikTokLive}" Value="True">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
-                                <GradientStop Offset="0" Color="#3FE0D2" />
-                                <GradientStop Offset="1" Color="#B96BFF" />
-                            </LinearGradientBrush>
-                        </Setter.Value>
-                    </Setter>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Border.Style>
-</Border>
+                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <Border
+                            Grid.Column="0"
+                            Width="3"
+                            Margin="-3,-3,0,-3"
+                            HorizontalAlignment="Left"
+                            CornerRadius="5,0,0,5"
+                            IsHitTestVisible="False">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#1AFFFFFF" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrTikTokLive}" Value="True">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                                        <GradientStop Offset="0" Color="#3FE0D2" />
+                                                        <GradientStop Offset="1" Color="#B96BFF" />
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
 
 
 
@@ -2307,7 +2163,7 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                            <Image
+                                <Image
                                     Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/TikTok_ico.png" />
@@ -2329,18 +2185,18 @@
                                     Text="TikTok"
                                     TextWrapping="Wrap" />
                                 <TextBlock
-                                    Style="{StaticResource TileStatusPill}"
                                     Opacity="0.8"
+                                    Style="{StaticResource TileStatusPill}"
                                     Text="{Binding Modules.TikTokLive.ProfileStatusText, FallbackValue='Set a TikTok profile username.'}" />
                             </StackPanel>
 
                             <StackPanel Visibility="{Binding IntegrationSettings.IntgrTikTokLive, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <TextBlock
-                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
+                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     TextWrapping="Wrap">
                                     <Run Text="Follower counts on their own, or go LIVE for follows and gifts landing in real time. Run either, or both." />
@@ -2374,54 +2230,26 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top">
-                            <StackPanel Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_TikTokLive"
-                                    Style="{StaticResource CustomizePillButton}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
-                                    Width="60"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntegrationSettings.IntgrTikTokLive_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonDT}" />
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Content="VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrTikTokLive_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonVR}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,3,0,0"
-                                HorizontalAlignment="Right"
-                                Orientation="Horizontal">
-                                <ToggleButton
-                                    Width="40"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
                                     Content="LIVE"
                                     IsChecked="{Binding Modules.TikTokLive.Settings.EnableLiveConnector, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}"
+                                    Style="{StaticResource FeatureChip}"
                                     ToolTip="Experimental TikTok LIVE connector. Off by default; profile followers still work without it" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrTikTokLive_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrTikTokLive_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_TikTokLive"
+                                    Style="{StaticResource TileDoorButton}" />
                             </StackPanel>
                         </StackPanel>
 
@@ -2438,8 +2266,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="DiscordItem" Opacity="{Binding IntegrationDisplay.DiscordOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -2495,9 +2325,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/Discord_ico.png" />
                             </Grid>
                         </Border>
@@ -2545,68 +2375,41 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        Style="{StaticResource TileStatusPill}"
                                         Effect="{StaticResource TextBlockShadowEffect}"
+                                        Style="{StaticResource TileStatusPill}"
                                         Text="{Binding Modules.Discord.CurrentChannelName, FallbackValue='Not connected'}" />
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Who's talking in your voice channel, and your VRChat world on your Discord profile if you want it."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top">
-                            <StackPanel Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_Discord"
-                                    Style="{StaticResource CustomizePillButton}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
-                                    Width="60"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntegrationSettings.IntgrDiscord_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonDT}" />
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
-                                    Content="VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrDiscord_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonVR}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,3,0,0"
-                                HorizontalAlignment="Right"
-                                Orientation="Horizontal">
-                                <ToggleButton
-                                    Width="40"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    VerticalAlignment="Center"
                                     Content="RICH"
                                     IsChecked="{Binding Modules.Discord.Settings.EnableRichPresence, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButton}"
+                                    Style="{StaticResource FeatureChip}"
                                     ToolTip="Discord Rich Presence: show VRChat status in your Discord profile" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrDiscord_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrDiscord_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_Discord"
+                                    Style="{StaticResource TileDoorButton}" />
                             </StackPanel>
                         </StackPanel>
                         <CheckBox
@@ -2622,8 +2425,10 @@
                 </Border>
             </ListBoxItem>
             <ListBoxItem Name="VrcRadarItem" Opacity="{Binding IntegrationDisplay.VrcRadarOpacity}">
-                <Border Margin="5,0,5,5" CornerRadius="5"
-                    Background="{StaticResource TileSurfaceBrush}">
+                <Border
+                    Margin="5,0,5,5"
+                    Background="{StaticResource TileSurfaceBrush}"
+                    CornerRadius="5">
                     <Border.Effect>
                         <DropShadowEffect
                             BlurRadius="9"
@@ -2679,9 +2484,9 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
-                                <Image 
-                                    Effect="{StaticResource ImageShadowEffect}" 
-                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/VRCRadar_ico.png" />
                             </Grid>
                         </Border>
@@ -2729,56 +2534,37 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        Style="{StaticResource TileStatusPill}"
                                         Effect="{StaticResource TextBlockShadowEffect}"
+                                        Style="{StaticResource TileStatusPill}"
                                         Text="{Binding Modules.VrcRadar.CurrentWorldName, FallbackValue='Not in a world'}" />
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
+                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="Reads VRChat&#x27;s own log: where you are, who came and went, and every photo you took."
-                                TextWrapping="Wrap">
-                            </TextBlock>
+                                TextWrapping="Wrap" />
                         </StackPanel>
-                        <StackPanel
-                            Grid.Column="2"
-                            Margin="0,5,0,0"
-                            VerticalAlignment="Top"
-                            Orientation="Horizontal">
-                            <Button
-                                Margin="0,0,4,0"
-                                AutomationProperties.Name="Hide this tile"
-                                Click="HideTile_Click"
-                                Style="{StaticResource HideTilePillButton}"
-                                ToolTip="Hide this tile from the list. The integration stays switched on." />
-                            <Button
-                                Margin="0,0,5,0"
-                                Command="{Binding ActivateSettingCommand}"
-                                CommandParameter="Settings_VrcRadar"
-                                Style="{StaticResource CustomizePillButton}" />
-                            <ToggleButton
-                                Width="60"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="DESKTOP"
-                                IsChecked="{Binding IntegrationSettings.IntgrVrcRadar_DESKTOP, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonDT}" />
-                            <ToggleButton
-                                Width="30"
-                                Height="19"
-                                Margin="0,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                Content="VR"
-                                IsChecked="{Binding IntegrationSettings.IntgrVrcRadar_VR, Mode=TwoWay}"
-                                Style="{StaticResource GlowyToggleButtonVR}" />
+                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Style="{StaticResource DeckOutputRow}">
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVrcRadar_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVrcRadar_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource DeckChromeRow}">
+                                <Button
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource TileHideButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
+                                    Command="{Binding ActivateSettingCommand}"
+                                    CommandParameter="Settings_VrcRadar"
+                                    Style="{StaticResource TileDoorButton}" />
+                            </StackPanel>
                         </StackPanel>
                         <CheckBox
                             Name="VrcRadar_switch"
@@ -2814,11 +2600,11 @@
                             CornerRadius="5">
                             <Border.Effect>
                                 <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                    BlurRadius="9"
+                                    Opacity="0.5"
+                                    RenderingBias="Performance"
+                                    ShadowDepth="0"
+                                    Color="#FF150C33" />
                             </Border.Effect>
                             <Grid>
                                 <Border
@@ -2930,15 +2716,17 @@
 
                         </Border>
                     </Border>
-                    <Border Margin="5,0,5,5" CornerRadius="5"
-                        Background="{StaticResource TileSurfaceBrush}">
+                    <Border
+                        Margin="5,0,5,5"
+                        Background="{StaticResource TileSurfaceBrush}"
+                        CornerRadius="5">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -2987,9 +2775,9 @@
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
-                                    <Image 
-                                        Effect="{StaticResource ImageShadowEffect}" 
-                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                    <Image
+                                        Effect="{StaticResource ImageShadowEffect}"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/Soundpad.png" />
                                 </Grid>
                             </Border>
@@ -3013,50 +2801,32 @@
                                 </StackPanel>
 
                                 <TextBlock
-                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
+                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     TextWrapping="Wrap">
                                     <Run Text="Shows the clip you just played, so the room knows exactly who did that. Quiet when nothing&#x27;s playing." />
                                 </TextBlock>
                             </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Margin="0,5,0,0"
-                                VerticalAlignment="Top"
-                                Orientation="Horizontal">
-                                <Button
-                                    Margin="0,0,4,0"
-                                    AutomationProperties.Name="Hide this tile"
-                                    Click="HideTile_Click"
-                                    Style="{StaticResource HideTilePillButton}"
-                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                <Button
-                                    Margin="0,0,5,0"
-                                    Command="{Binding ActivateSettingCommand}"
-                                    CommandParameter="Settings_Privacy"
-                                    Style="{StaticResource CustomizePillButton}" />
-                                <ToggleButton
-                                    Width="60"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Content="DESKTOP"
-                                    IsChecked="{Binding IntegrationSettings.IntgrSoundpad_DESKTOP, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonDT}" />
-                                <ToggleButton
-                                    Width="30"
-                                    Height="19"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Content="VR"
-                                    IsChecked="{Binding IntegrationSettings.IntgrSoundpad_VR, Mode=TwoWay}"
-                                    Style="{StaticResource GlowyToggleButtonVR}" />
+                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrSoundpad_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrSoundpad_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Privacy"
+                                        Style="{StaticResource TileDoorButton}" />
+                                </StackPanel>
                             </StackPanel>
                             <CheckBox
                                 Name="Soundpad_switch"
@@ -3074,24 +2844,24 @@
 
             </ListBoxItem>
 
-            <ListBoxItem
-                Name="SpotifyItem"
-                Opacity="{Binding IntegrationDisplay.SpotifyOpacity}">
+            <ListBoxItem Name="SpotifyItem" Opacity="{Binding IntegrationDisplay.SpotifyOpacity}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Border Margin="5,0,5,5" CornerRadius="5"
-                        Background="{StaticResource TileSurfaceBrush}">
+                    <Border
+                        Margin="5,0,5,5"
+                        Background="{StaticResource TileSurfaceBrush}"
+                        CornerRadius="5">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -3140,9 +2910,9 @@
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
-                                    <Image 
-                                        Effect="{StaticResource ImageShadowEffect}" 
-                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                    <Image
+                                        Effect="{StaticResource ImageShadowEffect}"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/spotify_ico.png" />
                                 </Grid>
                             </Border>
@@ -3161,17 +2931,17 @@
                                         Text="Spotify"
                                         TextWrapping="Wrap" />
                                     <TextBlock
-                                        Style="{StaticResource TileStatusPill}"
                                         Opacity="0.8"
+                                        Style="{StaticResource TileStatusPill}"
                                         Text="{Binding SpotifyDisplay.StatusText, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
 
                                 <TextBlock
-                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
+                                    Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     TextWrapping="Wrap">
                                     <Run Text="The full Spotify picture: liked, explicit, shuffle, queue and device, arranged however you like with your own template." />
@@ -3179,60 +2949,31 @@
 
 
                             </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Margin="0,5,0,0"
-                                VerticalAlignment="Top">
-                                <StackPanel Orientation="Horizontal">
-                                    <Button
-                                        Margin="0,0,4,0"
-                                        AutomationProperties.Name="Hide this tile"
-                                        Click="HideTile_Click"
-                                        Style="{StaticResource HideTilePillButton}"
-                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                    <Button
-                                        Margin="0,0,5,0"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Spotify"
-                                        Style="{StaticResource CustomizePillButton}" />
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton
-                                        Width="60"
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Content="DESKTOP"
-                                        IsChecked="{Binding IntegrationSettings.IntgrSpotify_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButtonDT}" />
-                                    <ToggleButton
-                                        Width="30"
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Content="VR"
-                                        IsChecked="{Binding IntegrationSettings.IntgrSpotify_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButtonVR}" />
-                                </StackPanel>
-                                <StackPanel
-                                    Margin="0,3,5,0"
-                                    HorizontalAlignment="Right"
-                                    Orientation="Horizontal">
-                                    <ToggleButton
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"
-                                        Content="Lyrics"
+                                        Content="LYRICS"
                                         IsChecked="{Binding IntegrationSettings.IntgrLyrics, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButtonLyrics}"
+                                        Style="{StaticResource FeatureChipLyrics}"
                                         ToolTip="Sing along in the chatbox. Follows the track Spotify is playing." />
                                     <ToggleButton
-                                        Height="19"
-                                        VerticalAlignment="Center"
-                                        Content="Transient"
+                                        Content="TRANSIENT"
                                         IsChecked="{Binding SpotifySettings.ShowOnlyOnChange, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}"
+                                        Style="{StaticResource FeatureChip}"
                                         ToolTip="Only show the track for a short while after it changes." />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrSpotify_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrSpotify_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Spotify"
+                                        Style="{StaticResource TileDoorButton}" />
                                 </StackPanel>
                             </StackPanel>
                             <CheckBox
@@ -3428,24 +3169,24 @@
                 </Grid>
             </ListBoxItem>
 
-            <ListBoxItem
-                Name="MediaLinkItem"
-                Opacity="{Binding IntegrationDisplay.MediaLinkOpacity}">
+            <ListBoxItem Name="MediaLinkItem" Opacity="{Binding IntegrationDisplay.MediaLinkOpacity}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
-                    <Border Margin="5,0,5,5" CornerRadius="5"
-                        Background="{StaticResource TileSurfaceBrush}">
+                    <Border
+                        Margin="5,0,5,5"
+                        Background="{StaticResource TileSurfaceBrush}"
+                        CornerRadius="5">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
@@ -3494,9 +3235,9 @@
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
-                                    <Image 
-                                        Effect="{StaticResource ImageShadowEffect}" 
-                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                    <Image
+                                        Effect="{StaticResource ImageShadowEffect}"
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/MediaLink_ico.png" />
                                 </Grid>
                             </Border>
@@ -3529,58 +3270,31 @@
                                     Text="Whatever&#x27;s playing on your PC: Spotify, YouTube, a browser tab. No account, no setup, just music."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Margin="0,5,0,0"
-                                VerticalAlignment="Top">
-                                <StackPanel Orientation="Horizontal">
-                                    <Button
-                                        Margin="0,0,4,0"
-                                        AutomationProperties.Name="Hide this tile"
-                                        Click="HideTile_Click"
-                                        Style="{StaticResource HideTilePillButton}"
-                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
-                                    <Button
-                                        Margin="0,0,5,0"
-                                        Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_MediaLink"
-                                        Style="{StaticResource CustomizePillButton}" />
+                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton
-                                        Width="60"
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"
-                                        Content="DESKTOP"
-                                        IsChecked="{Binding IntegrationSettings.IntgrMediaLink_DESKTOP, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButtonDT}" />
-                                    <ToggleButton
-                                        Width="30"
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"
-                                        Content="VR"
-                                        IsChecked="{Binding IntegrationSettings.IntgrMediaLink_VR, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButtonVR}" />
-                                </StackPanel>
-                                <StackPanel
-                                    Margin="0,3,0,0"
-                                    HorizontalAlignment="Right"
-                                    Orientation="Horizontal">
-                                    <ToggleButton
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"
-                                        Content="Lyrics"
+                                        Content="LYRICS"
                                         IsChecked="{Binding IntegrationSettings.IntgrLyrics, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButtonLyrics}"
+                                        Style="{StaticResource FeatureChipLyrics}"
                                         ToolTip="Sing along in the chatbox. Follows whatever is playing on Windows." />
                                     <ToggleButton
-                                        Height="19"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"
-                                        Content="Transient"
+                                        Content="TRANSIENT"
                                         IsChecked="{Binding MediaLinkSettings.ShowOnlyOnChange, Mode=TwoWay}"
-                                        Style="{StaticResource GlowyToggleButton}" />
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Transient" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrMediaLink_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrMediaLink_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_MediaLink"
+                                        Style="{StaticResource TileDoorButton}" />
                                 </StackPanel>
                             </StackPanel>
                             <CheckBox
@@ -3604,11 +3318,11 @@
                         Visibility="{Binding MediaLinkDisplay.MediaSessions.Count, Converter={StaticResource CountToVisibilityConverter}}">
                         <Border.Effect>
                             <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
+                                BlurRadius="9"
+                                Opacity="0.5"
+                                RenderingBias="Performance"
+                                ShadowDepth="0"
+                                Color="#FF150C33" />
                         </Border.Effect>
                         <ItemsControl
                             Height="auto"
