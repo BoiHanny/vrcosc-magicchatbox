@@ -787,9 +787,11 @@
         </Setter>
     </Style>
 
-    <!--  The quieter sibling of CustomizePillButton: same height and corner radius so tile rows do not
-          change height, but dimmer so it never competes with Customize. Content must be overridden
-          because the base style hardcodes "Customize ›".  -->
+    <!--
+        The quieter sibling of CustomizePillButton: same height and corner radius so tile rows do not
+        change height, but dimmer so it never competes with Customize. Content must be overridden
+        because the base style hardcodes "Customize ›".
+    -->
     <Style
         x:Key="HideTilePillButton"
         BasedOn="{StaticResource CustomizePillButton}"
@@ -805,8 +807,10 @@
         </Style.Triggers>
     </Style>
 
-    <!--  A hidden tile reads as a small, quiet object you can pick back up: soft gradient, hairline
-          edge, and an accent edge on hover so it clearly invites a click.  -->
+    <!--
+        A hidden tile reads as a small, quiet object you can pick back up: soft gradient, hairline
+        edge, and an accent edge on hover so it clearly invites a click.
+    -->
     <Style x:Key="HiddenTileChipButton" TargetType="Button">
         <Setter Property="Foreground" Value="#D6C9F2" />
         <Setter Property="Cursor" Value="Hand" />
@@ -853,9 +857,11 @@
         </Setter>
     </Style>
 
-    <!--  Integration tile palette. The old surface ran DarkSlateBlue to deep purple, which sat flat and
-          slightly muddy; this keeps the same violet family but adds depth across the diagonal and lets
-          the title stay the brightest thing on the tile.  -->
+    <!--
+        Integration tile palette. The old surface ran DarkSlateBlue to deep purple, which sat flat and
+        slightly muddy; this keeps the same violet family but adds depth across the diagonal and lets
+        the title stay the brightest thing on the tile.
+    -->
     <SolidColorBrush x:Key="TileDescriptionBrush" Color="#FFAEA1D6" />
     <SolidColorBrush x:Key="TileIconFrameBrush" Color="#26A98CFF" />
     <SolidColorBrush x:Key="TileIconFrameBorderBrush" Color="#33C3A9FF" />
@@ -866,9 +872,11 @@
         <GradientStop Offset="1" Color="#FF2C2252" />
     </LinearGradientBrush>
 
-    <!--  One look for every "what is this doing right now" line beside a tile title. They were a mix of
-          italic grey, teal and plain white at three different sizes; this makes them read as one kind of
-          thing without touching what each tile binds to.  -->
+    <!--
+        One look for every "what is this doing right now" line beside a tile title. They were a mix of
+        italic grey, teal and plain white at three different sizes; this makes them read as one kind of
+        thing without touching what each tile binds to.
+    -->
     <Style x:Key="TileStatusPill" TargetType="TextBlock">
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Margin" Value="9,1,0,0" />
@@ -909,9 +917,7 @@
         </Setter>
     </Style>
 
-    <Style
-        x:Key="HiddenTileActionButton"
-        TargetType="Button">
+    <Style x:Key="HiddenTileActionButton" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
@@ -941,8 +947,10 @@
     </Style>
 
 
-    <!--  Deck tokens live here, beside the deck styles: a merged dictionary cannot resolve a
-          StaticResource declared in its parent.  -->
+    <!--
+        Deck tokens live here, beside the deck styles: a merged dictionary cannot resolve a
+        StaticResource declared in its parent.
+    -->
     <SolidColorBrush x:Key="DeckSurfaceBrush" Color="#FF2C2148" />
     <SolidColorBrush x:Key="DeckSurfaceHoverBrush" Color="#FF3A2D5A" />
     <SolidColorBrush x:Key="DeckSurfacePressedBrush" Color="#FF221A3C" />
@@ -957,28 +965,29 @@
     <SolidColorBrush x:Key="FeatureOnEdgeBrush" Color="#FFB96BFF" />
     <SolidColorBrush x:Key="FeatureOnTextBrush" Color="#FFEFE4FF" />
 
-    <!--  ============================================================================================
-          THE CONTROL DECK. One height (22), one radius (6), one font. What a control DOES is carried
-          by its fill, not its size: routes are solid when lit, features are tinted outlines, doors and
-          hide are filled and borderless, and only the master switch wears the accent ramp.
+    <!--
+        ============================================================================================
+        THE CONTROL DECK. One height (22), one radius (6), one font. What a control DOES is carried
+        by its fill, not its size: routes are solid when lit, features are tinted outlines, doors and
+        hide are filled and borderless, and only the master switch wears the accent ramp.
+        
+        Every existing Glowy* / CustomizePillButton style is left untouched - seven of them are used
+        by MainWindow, StatusPage, ChattingPage and the Options sections.
+        ============================================================================================
+    -->
 
-          Every existing Glowy* / CustomizePillButton style is left untouched - seven of them are used
-          by MainWindow, StatusPage, ChattingPage and the Options sections.
-          ============================================================================================  -->
-
-    <!--  The link icons that sit beside the tabs. Quiet by default so they never compete with the tab
-          you are actually on, and they only take on a surface when pointed at.  -->
+    <!--
+        The link icons that sit beside the tabs. Quiet by default so they never compete with the tab
+        you are actually on, and they only take on a surface when pointed at.
+    -->
     <Style x:Key="TopBarLinkButton" TargetType="Button">
-        <Setter Property="Width" Value="24" />
-        <Setter Property="Height" Value="24" />
+        <Setter Property="Width" Value="25" />
+        <Setter Property="Height" Value="25" />
         <Setter Property="Margin" Value="1" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
-        <!--  All three read at the same weight. They were 0.6 / 0.4 / 0.4 before, which made the
-              smallest of the three icons look like the loudest thing in the row.  -->
-        <Setter Property="Opacity" Value="0.85" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -1012,9 +1021,11 @@
         <Setter Property="Margin" Value="0,6,2,0" />
     </Style>
 
-    <!--  Rows are right-anchored and the fixed-position control is LAST, so variable width is absorbed
-          on the left where it reads as margin. That is what keeps the mode chips on the same x across
-          all sixteen tiles without reserving empty slots.  -->
+    <!--
+        Rows are right-anchored and the fixed-position control is LAST, so variable width is absorbed
+        on the left where it reads as margin. That is what keeps the mode chips on the same x across
+        all sixteen tiles without reserving empty slots.
+    -->
     <Style x:Key="DeckOutputRow" TargetType="StackPanel">
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="HorizontalAlignment" Value="Right" />
@@ -1036,14 +1047,18 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
-        <!--  WPF suppresses tooltips on disabled elements, and a disabled chip is exactly when the
-              user most needs to know why.  -->
+        <!--
+            WPF suppresses tooltips on disabled elements, and a disabled chip is exactly when the
+            user most needs to know why.
+        -->
         <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
     </Style>
 
-    <!--  DESKTOP and VR are two INDEPENDENT booleans, so they stay two separate chips with a real gap.
-          Fusing them into one segmented pill would read as a mutually-exclusive picker and remove the
-          mis-click buffer between two un-undoable toggles.  -->
+    <!--
+        DESKTOP and VR are two INDEPENDENT booleans, so they stay two separate chips with a real gap.
+        Fusing them into one segmented pill would read as a mutually-exclusive picker and remove the
+        mis-click buffer between two un-undoable toggles.
+    -->
     <Style
         x:Key="RouteChip"
         BasedOn="{StaticResource DeckChipBase}"
@@ -1105,9 +1120,11 @@
         <Setter Property="ToolTip" Value="Show this integration while you're in VR." />
     </Style>
 
-    <!--  The honest-absence answer. A ContentControl, not a Border: Border has no Content property, so
-          a Border style cannot carry its own label. Wears the live chips' ground so it reads as the
-          same kind of object rather than a hole.  -->
+    <!--
+        The honest-absence answer. A ContentControl, not a Border: Border has no Content property, so
+        a Border style cannot carry its own label. Wears the live chips' ground so it reads as the
+        same kind of object rather than a hole.
+    -->
     <Style x:Key="RouteChipStatic" TargetType="ContentControl">
         <Setter Property="Width" Value="96" />
         <Setter Property="Height" Value="22" />
@@ -1211,8 +1228,10 @@
         </Setter>
     </Style>
 
-    <!--  Its own template rather than BasedOn TileDoorButton: a derived style cannot retarget the base
-          template's parts, so inheriting would leave the base hover trigger fighting this one.  -->
+    <!--
+        Its own template rather than BasedOn TileDoorButton: a derived style cannot retarget the base
+        template's parts, so inheriting would leave the base hover trigger fighting this one.
+    -->
     <Style x:Key="TileHideButton" TargetType="Button">
         <Setter Property="Width" Value="26" />
         <Setter Property="Height" Value="22" />
@@ -1248,10 +1267,12 @@
     </Style>
 
 
-    <!--  The one sanctioned exception. Because every other chip is now uniform, the holo treatment
-          reads as deliberately special rather than as a fourth unrelated style. Re-cut to the deck's
-          22px / radius 6. The sheen animates the element's own RenderTransform: a TranslateTransform
-          named inside a TransformGroup gets frozen by WPF and throws the moment it is animated.  -->
+    <!--
+        The one sanctioned exception. Because every other chip is now uniform, the holo treatment
+        reads as deliberately special rather than as a fourth unrelated style. Re-cut to the deck's
+        22px / radius 6. The sheen animates the element's own RenderTransform: a TranslateTransform
+        named inside a TransformGroup gets frozen by WPF and throws the moment it is animated.
+    -->
     <Style
         x:Key="FeatureChipLyrics"
         BasedOn="{StaticResource DeckChipBase}"

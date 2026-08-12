@@ -85,10 +85,12 @@
                     DataContext="{Binding Chatting}"
                     Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
 
-                <!--  The full-width "Some integrations can't be showed because a limit on characters"
-                      bar used to sit here. It covered the page, was sized like a headline, and never
-                      said which integration it meant. The Integrations page now names them in the
-                      same small strip that reports mode visibility.  -->
+                <!--
+                    The full-width "Some integrations can't be showed because a limit on characters"
+                    bar used to sit here. It covered the page, was sized like a headline, and never
+                    said which integration it meant. The Integrations page now names them in the
+                    same small strip that reports mode visibility.
+                -->
 
 
 
@@ -266,11 +268,15 @@
                             Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
                     </Grid>
 
-                    <!--  Discord, GitHub and the wiki, moved out of the preview header where they were
-                          three absolutely-positioned buttons sharing one cell by margin arithmetic.
-                          Two rows, hugging the Options tab: GitHub beside Discord, wiki under Discord.  -->
-                    <!--  Right-aligned to sit against the side panel's edge rather than trailing the
-                          Options tab. 233 is the panel's 225 plus a hair of breathing room.  -->
+                    <!--
+                        Discord, GitHub and the wiki, moved out of the preview header where they were
+                        three absolutely-positioned buttons sharing one cell by margin arithmetic.
+                        Two rows, hugging the Options tab: GitHub beside Discord, wiki under Discord.
+                    -->
+                    <!--
+                        Right-aligned to sit against the side panel's edge rather than trailing the
+                        Options tab. 233 is the panel's 225 plus a hair of breathing room.
+                    -->
                     <Grid
                         Grid.Column="5"
                         Margin="0,0,233,0"
@@ -308,8 +314,8 @@
                             Style="{StaticResource TopBarLinkButton}"
                             ToolTip="Join the MagicChatbox Discord">
                             <Image
-                                Width="17"
-                                Height="17"
+                                Width="19"
+                                Height="19"
                                 RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/Discord.png" />
                         </Button>
@@ -318,12 +324,14 @@
                             x:Name="WikiHelp"
                             Grid.Row="1"
                             Grid.Column="1"
+                            Margin="0,-4,0,0"
                             Command="{Binding OpenWikiCommand}"
                             Style="{StaticResource TopBarLinkButton}"
                             ToolTip="Open the MagicChatbox wiki - guides for every integration and setting">
                             <Image
-                                Width="16"
-                                Height="16"
+                                Width="17"
+                                Height="17"
+                                Margin="0,1,0,0"
                                 RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/Info_ico.png" />
                         </Button>
@@ -636,8 +644,10 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                    <!--  A section label, not a title: it names the panel below it and then gets out of
-                          the way. Letter spacing does the work the old 16px glow was doing.  -->
+                    <!--
+                        A section label, not a title: it names the panel below it and then gets out of
+                        the way. Letter spacing does the work the old 16px glow was doing.
+                    -->
                     <TextBlock
                         Grid.Column="0"
                         HorizontalAlignment="Center"
@@ -648,8 +658,10 @@
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                         Text="P R E V I E W" />
 
-                    <!--  Stays quiet until the line actually starts running out of room, then warms up
-                          and finally goes red. A counter you only notice when it matters.  -->
+                    <!--
+                        Stays quiet until the line actually starts running out of room, then warms up
+                        and finally goes red. A counter you only notice when it matters.
+                    -->
                     <Border
                         Grid.Column="0"
                         Height="18"
@@ -699,9 +711,11 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
                             Orientation="Vertical">
-                            <!--  Which set of statuses is live, switchable without leaving whatever page
-                                  you are on. This is a view onto the same cycle-override the pin on the
-                                  Status page writes, so the two can never disagree.  -->
+                            <!--
+                                Which set of statuses is live, switchable without leaving whatever page
+                                you are on. This is a view onto the same cycle-override the pin on the
+                                Status page writes, so the two can never disagree.
+                            -->
                             <Border
                                 Margin="0,0,0,6"
                                 Padding="11,9"
@@ -744,8 +758,10 @@
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
                                                     <Style.Triggers>
-                                                        <!--  A set with nothing to send is worth noticing before you
-                                                              wonder why the chatbox went quiet.  -->
+                                                        <!--
+                                                            A set with nothing to send is worth noticing before you
+                                                            wonder why the chatbox went quiet.
+                                                        -->
                                                         <DataTrigger Binding="{Binding StatusSets.IsEmptySet}" Value="True">
                                                             <Setter Property="Foreground" Value="#FFFFD79A" />
                                                         </DataTrigger>
@@ -766,10 +782,12 @@
                                 </StackPanel>
                             </Border>
 
-                            <!--  AFK state, in the deck language the integration tiles use: one card, a
-                                  status dot and pill rather than a label reading "Away from keyboard:
-                                  Inactive", and the countdown on its own line where it can be read at a
-                                  glance. The whole card warms up when you are actually away.  -->
+                            <!--
+                                AFK state, in the deck language the integration tiles use: one card, a
+                                status dot and pill rather than a label reading "Away from keyboard:
+                                Inactive", and the countdown on its own line where it can be read at a
+                                glance. The whole card warms up when you are actually away.
+                            -->
                             <Border
                                 Padding="11,9"
                                 BorderThickness="1"
@@ -843,11 +861,15 @@
                                         </Border>
                                     </Grid>
 
-                                    <!--  Swap how you word being away without opening Options. Styles are
-                                          built there; this is just the switch.  -->
-                                    <!--  IsSynchronizedWithCurrentItem is off on purpose. Two ComboBoxes over
-                                          one collection otherwise share its default view's current item, so
-                                          the Options picker and this one drag each other's selection about.  -->
+                                    <!--
+                                        Swap how you word being away without opening Options. Styles are
+                                        built there; this is just the switch.
+                                    -->
+                                    <!--
+                                        IsSynchronizedWithCurrentItem is off on purpose. Two ComboBoxes over
+                                        one collection otherwise share its default view's current item, so
+                                        the Options picker and this one drag each other's selection about.
+                                    -->
                                     <ComboBox
                                         x:Name="AfkStylePicker"
                                         Margin="0,8,0,0"
@@ -858,9 +880,11 @@
                                         Style="{StaticResource FlatComboBoxStyle}"
                                         ToolTip="{Binding AfkStyles.PreviewLine}" />
 
-                                    <!--  Out of the way until you go looking. The style's name is enough
-                                          at a glance; the full line is only worth the space while you are
-                                          actually choosing one, so it appears on hover or focus.  -->
+                                    <!--
+                                        Out of the way until you go looking. The style's name is enough
+                                        at a glance; the full line is only worth the space while you are
+                                        actually choosing one, so it appears on hover or focus.
+                                    -->
                                     <TextBlock
                                         Margin="1,6,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -1156,9 +1180,11 @@
 
                     </StackPanel>
 
-                    <!--  The line as VRChat will receive it. One text layer, not two: the second copy
-                          underneath existed only to cast a white glow, and it cost a full extra text
-                          render of every rebuild while making the words muddier, not brighter.  -->
+                    <!--
+                        The line as VRChat will receive it. One text layer, not two: the second copy
+                        underneath existed only to cast a white glow, and it cost a full extra text
+                        render of every rebuild while making the words muddier, not brighter.
+                    -->
                     <Border
                         Grid.Row="1"
                         Height="157"
