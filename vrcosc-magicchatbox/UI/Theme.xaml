@@ -853,6 +853,19 @@
         </Setter>
     </Style>
 
+    <!--  Integration tile palette. The old surface ran DarkSlateBlue to deep purple, which sat flat and
+          slightly muddy; this keeps the same violet family but adds depth across the diagonal and lets
+          the title stay the brightest thing on the tile.  -->
+    <SolidColorBrush x:Key="TileDescriptionBrush" Color="#FFAEA1D6" />
+    <SolidColorBrush x:Key="TileIconFrameBrush" Color="#26A98CFF" />
+    <SolidColorBrush x:Key="TileIconFrameBorderBrush" Color="#33C3A9FF" />
+
+    <LinearGradientBrush x:Key="TileSurfaceBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FF4A3E85" />
+        <GradientStop Offset="0.55" Color="#FF3A2E6B" />
+        <GradientStop Offset="1" Color="#FF2C2252" />
+    </LinearGradientBrush>
+
     <!--  One look for every "what is this doing right now" line beside a tile title. They were a mix of
           italic grey, teal and plain white at three different sizes; this makes them read as one kind of
           thing without touching what each tile binds to.  -->
