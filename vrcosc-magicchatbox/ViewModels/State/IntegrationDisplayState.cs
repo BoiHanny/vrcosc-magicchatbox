@@ -12,8 +12,13 @@ public partial class IntegrationDisplayState : ObservableObject
     {
         "Status", "Window", "Twitch", "TikTokLive", "Discord", "Spotify", "VrcRadar", "HeartRate", "Component",
         "VrPerformance", "TrackerBattery", "Network", "Weather", "Time", "Soundpad",
-        "MediaLink"
+        "MediaLink", "Lyrics"
     };
+
+    public static readonly IReadOnlyList<string> FollowerKeys = new[] { "Lyrics" };
+
+    public static bool IsFollower(string key)
+        => FollowerKeys.Any(follower => string.Equals(follower, key, StringComparison.OrdinalIgnoreCase));
 
     private ObservableCollection<string> _integrationSortOrder = new(DefaultSortOrder);
     public ObservableCollection<string> IntegrationSortOrder
@@ -86,6 +91,7 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _heartRateOpacity = "1";
     [ObservableProperty] private string _trackerBatteryOpacity = "1";
     [ObservableProperty] private string _vrPerformanceOpacity = "1";
+    [ObservableProperty] private string _lyricsOpacity = "1";
     [ObservableProperty] private string _componentStatOpacity = "1";
     [ObservableProperty] private string _networkStatsOpacity = "1";
     [ObservableProperty] private string _soundpadOpacity = "1";
