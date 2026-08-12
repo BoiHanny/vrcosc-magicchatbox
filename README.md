@@ -335,24 +335,6 @@ and nothing is sent anywhere else.
 
 ---
 
-<div align="center">
-
-### 💜 Built by the community
-
-<a href="https://github.com/BoiHanny/vrcosc-magicchatbox/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=BoiHanny/vrcosc-magicchatbox" alt="Contributors" />
-</a>
-
-<br><br>
-
-<a href="https://star-history.com/#BoiHanny/vrcosc-magicchatbox&Date">
-  <img src="https://api.star-history.com/svg?repos=BoiHanny/vrcosc-magicchatbox&type=Date" alt="Star history" width="600" />
-</a>
-
-</div>
-
----
-
 ## Legal Notice
 
 > [!IMPORTANT]
