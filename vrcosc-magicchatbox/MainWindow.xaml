@@ -1177,6 +1177,23 @@
                                 Source="/Img/Icons/GitHub.png" />
                         </StackPanel>
                     </Button>
+                    <Button
+                        x:Name="WikiHelp"
+                        Width="auto"
+                        Margin="58,3,143,5"
+                        Command="{Binding OpenWikiCommand}"
+                        Opacity="0.4"
+                        Style="{DynamicResource LINK_Button_style}"
+                        ToolTip="Open the MagicChatbox wiki — guides for every integration and setting">
+                        <StackPanel Orientation="Horizontal">
+                            <Image
+                                Width="15"
+                                Height="15"
+                                VerticalAlignment="Center"
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                Source="/Img/Icons/Info_ico.png" />
+                        </StackPanel>
+                    </Button>
 
                 </Grid>
                 <pages:IntegrationsPage

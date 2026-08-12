@@ -141,6 +141,9 @@ namespace vrcosc_magicchatbox.ViewModels
         private void OpenGitHub() => _nav.OpenUrl(Core.Constants.GitHubRepoUrl);
 
         [RelayCommand]
+        private void OpenWiki() => _nav.OpenUrl(Core.Constants.WikiHomeUrl);
+
+        [RelayCommand]
         private void OpenGitHubChanges()
         {
             var url = string.IsNullOrWhiteSpace(UpdateState.TagURL)
