@@ -147,10 +147,42 @@
                 Visibility="{Binding HasHiddenTiles, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                 <Border
                     Margin="5,0,5,6"
-                    Padding="7,4"
-                    Background="#1A2B1B4A"
-                    CornerRadius="5">
-                    <WrapPanel Orientation="Horizontal">
+                    BorderBrush="#3A2F63"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    SnapsToDevicePixels="True">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Offset="0" Color="#4A2E1F5C" />
+                            <GradientStop Offset="1" Color="#242B1B4A" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  A thin iridescent rail, borrowing the Lyrics palette so this reads as part of
+                              the same family without shouting.  -->
+                        <Border
+                            Grid.Column="0"
+                            Width="2"
+                            Margin="5,5,0,5"
+                            CornerRadius="1">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                    <GradientStop Offset="0" Color="#3FE0D2" />
+                                    <GradientStop Offset="0.5" Color="#6E9BFF" />
+                                    <GradientStop Offset="1" Color="#B96BFF" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+
+                        <WrapPanel
+                            Grid.Column="1"
+                            Margin="7,3,6,3"
+                            Orientation="Horizontal">
 
                         <ToggleButton
                             VerticalAlignment="Center"
@@ -191,7 +223,17 @@
                                                             <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                                 <Setter Property="Fill" Value="#7BE495" />
                                                                 <Setter Property="Stroke" Value="#7BE495" />
-                                                            </DataTrigger>
+                                                                                                                            <Setter Property="Effect">
+                                                                    <Setter.Value>
+                                                                        <DropShadowEffect
+                                                                            BlurRadius="6"
+                                                                            Opacity="0.9"
+                                                                            RenderingBias="Performance"
+                                                                            ShadowDepth="0"
+                                                                            Color="#7BE495" />
+                                                                    </Setter.Value>
+                                                                </Setter>
+</DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Ellipse.Style>
@@ -203,7 +245,13 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <Button
+                                                <Border
+                            Width="1"
+                            Margin="3,5,5,5"
+                            Background="#3F3363"
+                            Visibility="{Binding HiddenChipsVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+<Button
                             VerticalAlignment="Center"
                             Command="{Binding ShowAllTilesCommand}"
                             Content="Show all"
@@ -224,7 +272,8 @@
                             Style="{StaticResource HiddenTileActionButton}"
                             Visibility="{Binding TidyModeUnavailableVisible, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
-                    </WrapPanel>
+                        </WrapPanel>
+                    </Grid>
                 </Border>
             </ListBoxItem>
 
