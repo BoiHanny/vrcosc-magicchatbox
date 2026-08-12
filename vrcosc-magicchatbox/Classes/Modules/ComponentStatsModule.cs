@@ -596,14 +596,19 @@ public class ComponentStatsModule : IModule
 
         if (_hwService.IsOpen)
         {
+            // Announced before the close rather than after, so the tile says what it is doing while
+            // the sensor service is being torn down instead of going blank and looking hung.
+            _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Stopping;
             StopMonitoringComponents();
         }
+
+        _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Off;
+        _integrationDisplay.ComponentStatsLastUpdate = null;
     }
 
     private void PerformUpdateActions()
     {
         EnsureComponentStatsLoaded();
-        _integrationDisplay.ComponentStatsRunning = true;
 
         bool hardwareAccessApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
 
@@ -613,12 +618,29 @@ public class ComponentStatsModule : IModule
                 _hwService.Close();
 
             _integrationDisplay.ComponentStatsRunning = false;
+            _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Off;
+            _integrationDisplay.ComponentStatsLastUpdate = null;
             _integrationDisplay.ComponentStatCombined = string.Empty;
             return;
         }
 
         if (!_hwService.IsOpen)
+        {
+            // Running is claimed only once the sensors are actually up. It used to be set on entry,
+            // which lit the tile and its component panel for the whole of a start that had not
+            // produced a single reading yet.
+            _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Starting;
             StartMonitoringComponents();
+
+            if (!_hwService.IsOpen)
+            {
+                _integrationDisplay.ComponentStatsRunning = false;
+                return;
+            }
+        }
+
+        _integrationDisplay.ComponentStatsRunning = true;
+        _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Running;
 
         _hwService.UpdateAll();
         StatsVm.SyncComponentStatsList();

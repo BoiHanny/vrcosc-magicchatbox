@@ -395,7 +395,7 @@
                                 Text="Say whatever you want. Save a pile of messages, cycle them, and drop to AFK when you wander off."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrStatus_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrStatus_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -519,7 +519,7 @@
                                 Text="VR or desktop, and what you're buried in. Mark any app private and it stays your business."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
                                     Content="FORCE VR"
@@ -808,7 +808,7 @@
                                 Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
                                     Content="OSC"
@@ -1015,7 +1015,7 @@
                                     Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ContentControl Style="{StaticResource RouteChipStatic}" />
                                 </StackPanel>
@@ -1271,7 +1271,7 @@
                                     Text="Frames, reprojection and headroom from SteamVR. Stays quiet until something actually goes wrong."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ContentControl Style="{StaticResource RouteChipStatic}" />
                                 </StackPanel>
@@ -1493,6 +1493,10 @@
                                         Text="Component ˢᵗᵃᵗˢ"
                                         TextWrapping="Wrap" />
 
+                                    <!--  Shows the last refresh, or what the integration is busy doing when there is
+                                          no refresh to show. Visibility follows the status text rather than the
+                                          master toggle: the toggle is already off while the sensors are still
+                                          shutting down, so gating on it would hide "stopping…" every time.  -->
                                     <TextBlock
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
@@ -1501,8 +1505,17 @@
                                         FontSize="12"
                                         Foreground="#ABA4B8"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="{Binding IntegrationDisplay.ComponentStatsLastUpdate, StringFormat='{}{0:T}'}"
-                                        Visibility="{Binding IntegrationSettings.IntgrComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                        Text="{Binding IntegrationDisplay.ComponentStatsStatusText}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IntegrationDisplay.ComponentStatsStatusText}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
 
                                 <TextBlock
@@ -1515,7 +1528,7 @@
                                     Text="Load, temps, wattage and clocks for your CPU, GPU, RAM and VRAM. Settle the specs question for good."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrComponentStats_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                     <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrComponentStats_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -1642,7 +1655,7 @@
                                 Text="Live up and down speeds, session peaks and totals. Proof it&#x27;s the world lagging, not you."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrNetworkStatistics_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrNetworkStatistics_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -1767,7 +1780,7 @@
                                 Text="Your local time and zone. Ends the &quot;wait, what time is it for you?&quot; question forever."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrCurrentTime_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrCurrentTime_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -1900,7 +1913,7 @@
                                 Text="Conditions where you actually are: temperature, feels-like, wind and humidity, tucked in beside your clock."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrWeather_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrWeather_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -2071,7 +2084,7 @@
                                 TextWrapping="Wrap" />
 
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrTwitch_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrTwitch_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -2230,7 +2243,7 @@
                             </StackPanel>
                         </StackPanel>
 
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
                                     Content="LIVE"
@@ -2390,7 +2403,7 @@
                                 Text="Who's talking in your voice channel, and your VRChat world on your Discord profile if you want it."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton
                                     Content="RICH"
@@ -2507,7 +2520,7 @@
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Text="VRChat Radar"
                                     TextWrapping="Wrap" />
-                                <StackPanel Margin="8,0,0,0" Orientation="Horizontal">
+                                <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
                                             <Setter Property="Visibility" Value="Collapsed" />
@@ -2549,7 +2562,7 @@
                                 Text="Reads VRChat&#x27;s own log: where you are, who came and went, and every photo you took."
                                 TextWrapping="Wrap" />
                         </StackPanel>
-                                                <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVrcRadar_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                 <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVrcRadar_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -2811,7 +2824,7 @@
                                     <Run Text="Shows the clip you just played, so the room knows exactly who did that. Quiet when nothing&#x27;s playing." />
                                 </TextBlock>
                             </StackPanel>
-                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrSoundpad_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
                                     <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrSoundpad_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
@@ -3270,7 +3283,7 @@
                                     Text="Whatever&#x27;s playing on your PC: Spotify, YouTube, a browser tab. No account, no setup, just music."
                                     TextWrapping="Wrap" />
                             </StackPanel>
-                                                        <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton
                                         Content="LYRICS"
