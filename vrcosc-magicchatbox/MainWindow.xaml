@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="vrcosc_magicchatbox.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -445,132 +445,160 @@
                             ShadowDepth="15"
                             Color="DarkBlue" />
                     </Grid.Effect>
-                    <Grid
+                    <StackPanel
                         Grid.Row="3"
-                        Height="auto"
-                        Margin="8,0,8,8"
+                        Margin="10,0,10,10"
                         VerticalAlignment="Bottom">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
 
-                        <TextBlock
-                            Grid.Row="0"
-                            Margin="0,0,0,2"
-                            HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="13"
-                            FontWeight="DemiBold"
-                            Foreground="{StaticResource BorderMutedBrush}"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="MagicChatbox V2 is on the way">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="25"
-                                    Opacity="0.8"
-                                    ShadowDepth="0"
-                                    Color="#2C2148" />
-                            </TextBlock.Effect>
-                        </TextBlock>
+                        <Border
+                            Margin="0,0,0,9"
+                            Padding="10,6"
+                            Background="#2E1B0F3A"
+                            BorderBrush="#FF473A6B"
+                            BorderThickness="1"
+                            CornerRadius="7">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="0,0,7,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="11"
+                                    Foreground="#FFC0A6FF"
+                                    Text="✦" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="#FFA99BD2"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="MagicChatbox V2 is on the way" />
+                            </StackPanel>
+                        </Border>
 
-                        <TextBlock
-                            Grid.Row="1"
-                            Margin="0,0,0,6"
-                            HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="{Binding UpdateState.UpdateStatustxt}"
-                            TextAlignment="Center"
-                            TextWrapping="Wrap" />
+                        <Border
+                            Padding="13,11"
+                            BorderBrush="#FF564B79"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Offset="0" Color="#FF3F3559" />
+                                    <GradientStop Offset="1" Color="#FF322A46" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                        <TextBlock
-                            x:Name="GitHubChanges"
-                            Grid.Row="2"
-                            Margin="0,0,0,6"
-                            HorizontalAlignment="Center"
-                            Cursor="Hand"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="9"
-                            Foreground="#26A1FA"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Text="View changes on GitHub"
-                            TextDecorations="Underline"
-                            Visibility="{Binding UpdateState.CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            <TextBlock.InputBindings>
-                                <MouseBinding Command="{Binding OpenGitHubChangesCommand}" MouseAction="LeftClick" />
-                            </TextBlock.InputBindings>
-                        </TextBlock>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="10"
+                                            Foreground="#FF8B80AE"
+                                            Text="INSTALLED" />
+                                        <TextBlock
+                                            Margin="0,2,0,0"
+                                            FontFamily="Comfortaa Light"
+                                            FontSize="17"
+                                            Foreground="#FFEDE7FF"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="{Binding UpdateState.AppVersion.VersionNumber}" />
+                                    </StackPanel>
 
-                        <StackPanel
-                            Grid.Row="3"
-                            HorizontalAlignment="Center"
-                            Orientation="Horizontal">
-                            <Button
-                                x:Name="CheckUpdateBtnn"
-                                Margin="0,-3"
-                                Padding="0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top"
-                                Command="{Binding CheckUpdateCommand}"
-                                Style="{StaticResource CircleButton}">
-                                <Image
-                                    Width="12"
-                                    Height="12"
-                                    RenderOptions.BitmapScalingMode="Linear"
-                                    Source="/Img/Icons/Load_ico.png" />
-                            </Button>
-                            <TextBlock
-                                Margin="5,0.5,5,5"
-                                VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelLightBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="{Binding UpdateState.AppVersion.VersionNumber}">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Opacity="0.9"
-                                        ShadowDepth="0"
-                                        Color="{Binding UpdateState.VersionTxtColor}" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <TextBlock
-                                Name="NewVersion"
-                                Margin="0,0.5,5,5"
-                                VerticalAlignment="Center"
-                                Cursor="Hand"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="12"
-                                Foreground="{Binding UpdateState.VersionTxtColor}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="{Binding UpdateState.VersionTxt}">
-                                <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding StartUpdateCommand}" MouseAction="LeftClick" />
-                                </TextBlock.InputBindings>
-                                <TextBlock.Style>
-                                    <Style TargetType="{x:Type TextBlock}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
-                                                <Setter Property="TextDecorations" Value="Underline" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Opacity="0.7"
-                                        ShadowDepth="0"
-                                        Color="{Binding UpdateState.VersionTxtColor}" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                        </StackPanel>
-                    </Grid>
+                                    <Button
+                                        x:Name="CheckUpdateBtnn"
+                                        Grid.Column="1"
+                                        Padding="0"
+                                        VerticalAlignment="Center"
+                                        Command="{Binding CheckUpdateCommand}"
+                                        Style="{StaticResource CircleButton}"
+                                        ToolTip="Check for updates">
+                                        <Image
+                                            Width="12"
+                                            Height="12"
+                                            RenderOptions.BitmapScalingMode="Linear"
+                                            Source="/Img/Icons/Load_ico.png" />
+                                    </Button>
+                                </Grid>
+
+                                <Border
+                                    Height="1"
+                                    Margin="0,11,0,0"
+                                    Background="#FF4C4170" />
+
+                                <Border
+                                    Margin="0,11,0,0"
+                                    Padding="8,6"
+                                    Background="#FF2B2440"
+                                    BorderBrush="{Binding UpdateState.VersionTxtColor}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Cursor="Hand">
+                                    <Border.InputBindings>
+                                        <MouseBinding Command="{Binding StartUpdateCommand}" MouseAction="LeftClick" />
+                                    </Border.InputBindings>
+                                    <TextBlock
+                                        Name="NewVersion"
+                                        HorizontalAlignment="Center"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="12"
+                                        Foreground="{Binding UpdateState.VersionTxtColor}"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding UpdateState.VersionTxt}"
+                                        TextAlignment="Center"
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
+                                                        <Setter Property="TextDecorations" Value="Underline" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+
+                                <TextBlock
+                                    Margin="0,9,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="#FF9186B5"
+                                    Text="{Binding UpdateState.UpdateStatustxt}"
+                                    TextAlignment="Center"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="{x:Type TextBlock}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UpdateState.UpdateStatustxt}" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <TextBlock
+                                    x:Name="GitHubChanges"
+                                    Margin="0,9,0,0"
+                                    HorizontalAlignment="Center"
+                                    Cursor="Hand"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="10"
+                                    Foreground="#FF6FBEFF"
+                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                    Text="View changes on GitHub"
+                                    TextDecorations="Underline"
+                                    Visibility="{Binding UpdateState.CanUpdateLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBlock.InputBindings>
+                                        <MouseBinding Command="{Binding OpenGitHubChangesCommand}" MouseAction="LeftClick" />
+                                    </TextBlock.InputBindings>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                     <TextBlock
                         Grid.Column="0"
                         HorizontalAlignment="Center"
