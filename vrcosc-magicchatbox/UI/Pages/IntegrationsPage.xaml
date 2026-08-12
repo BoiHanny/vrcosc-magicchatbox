@@ -307,7 +307,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -343,7 +343,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -448,7 +448,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -484,7 +484,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -602,7 +602,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -638,7 +638,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -995,7 +995,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58" />
+                                <ColumnDefinition Width="62" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1031,7 +1031,7 @@
                                 Grid.Column="0"
                                 Width="50"
                                 Height="50"
-                                Margin="6,4,2,4"
+                                Margin="6,4,6,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -1250,7 +1250,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58" />
+                                <ColumnDefinition Width="62" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1286,7 +1286,7 @@
                                 Grid.Column="0"
                                 Width="50"
                                 Height="50"
-                                Margin="6,4,2,4"
+                                Margin="6,4,6,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -1481,7 +1481,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58" />
+                                <ColumnDefinition Width="62" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1517,7 +1517,7 @@
                                 Grid.Column="0"
                                 Width="50"
                                 Height="50"
-                                Margin="6,4,2,4"
+                                Margin="6,4,6,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -1636,7 +1636,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1672,7 +1672,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -1777,7 +1777,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1813,7 +1813,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -1919,7 +1919,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1955,7 +1955,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2069,7 +2069,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2105,7 +2105,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2259,7 +2259,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2298,7 +2298,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2450,7 +2450,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2486,7 +2486,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2634,7 +2634,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="58" />
+                            <ColumnDefinition Width="62" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2670,7 +2670,7 @@
                             Grid.Column="0"
                             Width="50"
                             Height="50"
-                            Margin="6,4,2,4"
+                            Margin="6,4,6,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2942,7 +2942,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58" />
+                                <ColumnDefinition Width="62" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -2978,7 +2978,7 @@
                                 Grid.Column="0"
                                 Width="50"
                                 Height="50"
-                                Margin="6,4,2,4"
+                                Margin="6,4,6,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -3076,7 +3076,6 @@
 
             <ListBoxItem
                 Name="SpotifyItem"
-                Margin="3"
                 Opacity="{Binding IntegrationDisplay.SpotifyOpacity}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -3084,7 +3083,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Border Margin="5,0,5,0" CornerRadius="5"
+                    <Border Margin="5,0,5,5" CornerRadius="5"
                         Background="{StaticResource TileSurfaceBrush}">
                         <Border.Effect>
                             <DropShadowEffect
@@ -3096,7 +3095,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58" />
+                                <ColumnDefinition Width="62" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -3132,7 +3131,7 @@
                                 Grid.Column="0"
                                 Width="50"
                                 Height="50"
-                                Margin="6,4,2,4"
+                                Margin="6,4,6,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -3431,7 +3430,6 @@
 
             <ListBoxItem
                 Name="MediaLinkItem"
-                Margin="3"
                 Opacity="{Binding IntegrationDisplay.MediaLinkOpacity}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -3451,7 +3449,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58" />
+                                <ColumnDefinition Width="62" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -3487,7 +3485,7 @@
                                 Grid.Column="0"
                                 Width="50"
                                 Height="50"
-                                Margin="6,4,2,4"
+                                Margin="6,4,6,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
