@@ -28,8 +28,16 @@ public class UnicodeTextStylerTests
         // 'q' has no superscript anywhere in Unicode. Losing it mid-word would be worse than plain.
         Assert.Equal("ᵃq", UnicodeTextStyler.Apply("aq", AfkTextStyle.Superscript));
 
-        // Small caps has no 'q' or 'x' either.
-        Assert.Equal("qx", UnicodeTextStyler.Apply("qx", AfkTextStyle.SmallCaps));
+        // Small caps has no 'x', and the real small capital Q is missing from too many fonts to use.
+        Assert.Equal("ǫx", UnicodeTextStyler.Apply("qx", AfkTextStyle.SmallCaps));
+    }
+
+    [Fact]
+    public void Small_caps_q_uses_the_stand_in_every_generator_uses()
+    {
+        // U+A7AF would be the correct character and renders as a blank box in too many fonts.
+        Assert.Equal("ǫᴜɪᴄᴋ", UnicodeTextStyler.Apply("quick", AfkTextStyle.SmallCaps));
+        Assert.DoesNotContain("ꞯ", UnicodeTextStyler.Apply("quick", AfkTextStyle.SmallCaps));
     }
 
     [Fact]

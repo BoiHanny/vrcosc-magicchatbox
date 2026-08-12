@@ -976,7 +976,9 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Opacity" Value="0.45" />
+        <!--  All three read at the same weight. They were 0.6 / 0.4 / 0.4 before, which made the
+              smallest of the three icons look like the loudest thing in the row.  -->
+        <Setter Property="Opacity" Value="0.85" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -990,7 +992,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="link" Property="Background" Value="#1FFFFFFF" />
+                            <Setter TargetName="link" Property="Background" Value="#24FFFFFF" />
                             <Setter Property="Opacity" Value="1" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">

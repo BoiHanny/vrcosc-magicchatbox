@@ -294,10 +294,12 @@
                     <!--  Discord, GitHub and the wiki, moved out of the preview header where they were
                           three absolutely-positioned buttons sharing one cell by margin arithmetic.
                           Two rows, hugging the Options tab: GitHub beside Discord, wiki under Discord.  -->
+                    <!--  Right-aligned to sit against the side panel's edge rather than trailing the
+                          Options tab. 233 is the panel's 225 plus a hair of breathing room.  -->
                     <Grid
                         Grid.Column="5"
-                        Margin="12,0,0,0"
-                        HorizontalAlignment="Left"
+                        Margin="0,0,233,0"
+                        HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Grid.ColumnDefinitions>
@@ -345,8 +347,8 @@
                             Style="{StaticResource TopBarLinkButton}"
                             ToolTip="Open the MagicChatbox wiki - guides for every integration and setting">
                             <Image
-                                Width="14"
-                                Height="14"
+                                Width="16"
+                                Height="16"
                                 RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/Info_ico.png" />
                         </Button>
@@ -872,6 +874,7 @@
                                           one collection otherwise share its default view's current item, so
                                           the Options picker and this one drag each other's selection about.  -->
                                     <ComboBox
+                                        x:Name="AfkStylePicker"
                                         Margin="0,8,0,0"
                                         DisplayMemberPath="Name"
                                         IsSynchronizedWithCurrentItem="False"
@@ -880,6 +883,9 @@
                                         Style="{StaticResource FlatComboBoxStyle}"
                                         ToolTip="{Binding AfkStyles.PreviewLine}" />
 
+                                    <!--  Out of the way until you go looking. The style's name is enough
+                                          at a glance; the full line is only worth the space while you are
+                                          actually choosing one, so it appears on hover or focus.  -->
                                     <TextBlock
                                         Margin="1,6,0,0"
                                         FontFamily="Albert Sans Thin"
@@ -887,7 +893,24 @@
                                         Foreground="{StaticResource DeckTextMutedBrush}"
                                         Text="{Binding AfkStyles.PreviewLine}"
                                         TextTrimming="CharacterEllipsis"
-                                        ToolTip="{Binding AfkStyles.PreviewLine}" />
+                                        ToolTip="{Binding AfkStyles.PreviewLine}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=AfkStylePicker}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsKeyboardFocusWithin, ElementName=AfkStylePicker}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsDropDownOpen, ElementName=AfkStylePicker}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
 
                                     <Grid Margin="0,8,0,0">
                                         <Grid.ColumnDefinitions>

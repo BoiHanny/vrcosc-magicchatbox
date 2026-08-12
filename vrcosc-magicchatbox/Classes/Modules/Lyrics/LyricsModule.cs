@@ -137,6 +137,21 @@ public partial class LyricsModule : ObservableObject, IModule
                 return;
             }
 
+            // Paused keeps the track loaded - resuming should not cost another lookup - but stops the
+            // words. Position is frozen while paused, so the scheduler would resolve the same lyric
+            // forever, and a visible lyric also hides the song title, which is why pausing used to
+            // leave a stale line on screen with no sign that anything had stopped.
+            if (!source.IsPlaying)
+            {
+                _display.Position = source.Position;
+                _display.PositionSource = source.SourceName;
+                _display.CurrentLine = string.Empty;
+                _display.IsShowingLine = false;
+                _display.SuppressMediaTitle = false;
+                _display.StatusText = _track.IsSynced ? "Paused" : _display.StatusText;
+                return;
+            }
+
             if (!_track.IsSynced)
                 return;
 
@@ -269,7 +284,8 @@ public partial class LyricsModule : ObservableObject, IModule
                 TimeSpan.FromMilliseconds(_spotify.LiveProgressMs),
                 TimeSpan.FromMilliseconds(Math.Max(0, _spotify.DurationMs)),
                 SpotifySourceName,
-                $"spotify:{_spotify.TrackId}");
+                $"spotify:{_spotify.TrackId}",
+                true);
         }
 
         if (!_integrationSettings.IntgrLyrics_MediaLink)
@@ -277,16 +293,21 @@ public partial class LyricsModule : ObservableObject, IModule
 
         var sessions = SnapshotSessions();
 
-        var session =
-            sessions.FirstOrDefault(s =>
-                s.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-            ?? sessions.FirstOrDefault(s =>
-                s.IsActive &&
-                s.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
-            ?? sessions.FirstOrDefault(s => s.IsActive);
+        var candidates = new List<LyricsSessionCandidate>(sessions.Count);
+        for (int i = 0; i < sessions.Count; i++)
+        {
+            candidates.Add(new LyricsSessionCandidate(
+                i,
+                ToPlayback(sessions[i].PlaybackStatus),
+                sessions[i].IsActive,
+                !string.IsNullOrWhiteSpace(sessions[i].Title)));
+        }
 
-        if (session == null || string.IsNullOrWhiteSpace(session.Title))
+        var choice = LyricsSessionPolicy.Choose(candidates);
+        if (!choice.HasSession)
             return null;
+
+        var session = sessions[choice.Index];
 
         return new PositionSource(
             session.Title,
@@ -295,8 +316,17 @@ public partial class LyricsModule : ObservableObject, IModule
             session.CurrentTime,
             session.FullTime,
             MediaSourceName,
-            $"smtc:{session.Artist}|{session.Title}");
+            $"smtc:{session.Artist}|{session.Title}",
+            choice.IsPlaying);
     }
+
+    private static LyricsSessionPlayback ToPlayback(GlobalSystemMediaTransportControlsSessionPlaybackStatus status)
+        => status switch
+        {
+            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing => LyricsSessionPlayback.Playing,
+            GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused => LyricsSessionPlayback.Paused,
+            _ => LyricsSessionPlayback.Stopped,
+        };
 
     public void SaveSettings() => _settingsProvider.Save();
 
@@ -319,5 +349,6 @@ public partial class LyricsModule : ObservableObject, IModule
         TimeSpan Position,
         TimeSpan Duration,
         string SourceName,
-        string Identity);
+        string Identity,
+        bool IsPlaying);
 }
