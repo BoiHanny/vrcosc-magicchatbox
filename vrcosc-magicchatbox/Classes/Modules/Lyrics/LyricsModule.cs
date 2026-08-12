@@ -131,7 +131,7 @@ public partial class LyricsModule : ObservableObject, IModule
                 _display.CurrentLine = string.Empty;
                 _display.IsShowingLine = false;
                 _display.SuppressMediaTitle = false;
-                _display.NowPlaying = $"{source.Artist} — {source.Title}";
+                _display.NowPlaying = $"{source.Artist} - {source.Title}";
                 _display.StatusText = "Looking up lyrics...";
                 BeginLookup(source);
                 return;
@@ -219,7 +219,7 @@ public partial class LyricsModule : ObservableObject, IModule
         if (!_consent.IsApproved(PrivacyHook.InternetAccess))
             return "Internet Access permission is off, so only local .lrc files can be used";
 
-        return $"No synced lyrics found for \"{query.Artist} — {query.Title}\"";
+        return $"No synced lyrics found for \"{query.Artist} - {query.Title}\"";
     }
 
     private LyricsCardPlacement ResolvePlacement(PositionSource? source)

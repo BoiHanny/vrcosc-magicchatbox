@@ -78,31 +78,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  A single quiet line: what this page is, and how much of it is switched on.  -->
-        <Grid Grid.Row="0" Margin="15,7,20,4">
-            <TextBlock
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                FontFamily="Comfortaa Light"
-                FontSize="12"
-                Foreground="#BDAEE2"
-                Text="Integrations" />
-            <TextBlock
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                d:Text="6 of 16 active"
-                FontFamily="Albert Sans Thin"
-                FontSize="11"
-                Foreground="#8D7DB9"
-                Text="{Binding IntegrationSummary, UpdateSourceTrigger=PropertyChanged}" />
-        </Grid>
-
         <Border
-            Grid.Row="1"
+            Grid.Row="0"
             Margin="10,5,19,0"
             Padding="10,7"
             HorizontalAlignment="Stretch"
@@ -131,7 +111,7 @@
 
         <ListBox
             x:Name="IntegrationsList"
-            Grid.Row="2"
+            Grid.Row="1"
             HorizontalAlignment="Stretch"
             Background="Transparent"
             BorderThickness="0"
@@ -327,7 +307,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -361,9 +341,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -371,7 +351,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -468,7 +448,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -502,9 +482,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -512,7 +492,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -622,7 +602,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -656,9 +636,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -666,7 +646,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -1015,7 +995,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="58" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1049,9 +1029,9 @@
 
                             <Border
                                 Grid.Column="0"
-                                Width="40"
-                                Height="40"
-                                Margin="6,4,4,4"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,2,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -1059,7 +1039,7 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="5">
+                                <Grid Margin="4">
                                     <Image 
                                         Effect="{StaticResource ImageShadowEffect}" 
                                         RenderOptions.BitmapScalingMode="HighQuality" 
@@ -1270,7 +1250,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="58" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1304,9 +1284,9 @@
 
                             <Border
                                 Grid.Column="0"
-                                Width="40"
-                                Height="40"
-                                Margin="6,4,4,4"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,2,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -1314,7 +1294,7 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="5">
+                                <Grid Margin="4">
                                     <Image 
                                         Effect="{StaticResource ImageShadowEffect}" 
                                         RenderOptions.BitmapScalingMode="HighQuality" 
@@ -1501,7 +1481,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="58" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1535,9 +1515,9 @@
 
                             <Border
                                 Grid.Column="0"
-                                Width="40"
-                                Height="40"
-                                Margin="6,4,4,4"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,2,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -1545,7 +1525,7 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="5">
+                                <Grid Margin="4">
                                     <Image 
                                         Effect="{StaticResource ImageShadowEffect}" 
                                         RenderOptions.BitmapScalingMode="HighQuality" 
@@ -1656,7 +1636,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1690,9 +1670,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -1700,7 +1680,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -1797,7 +1777,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1831,9 +1811,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -1841,7 +1821,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -1939,7 +1919,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -1973,9 +1953,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -1983,7 +1963,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -2089,7 +2069,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2123,9 +2103,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2133,7 +2113,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -2279,7 +2259,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2316,9 +2296,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2326,7 +2306,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                             <Image
                                     Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
@@ -2470,7 +2450,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2504,9 +2484,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2514,7 +2494,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -2654,7 +2634,7 @@
                     </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="58" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -2688,9 +2668,9 @@
 
                         <Border
                             Grid.Column="0"
-                            Width="40"
-                            Height="40"
-                            Margin="6,4,4,4"
+                            Width="50"
+                            Height="50"
+                            Margin="6,4,2,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="{StaticResource TileIconFrameBrush}"
@@ -2698,7 +2678,7 @@
                             BorderThickness="1"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <Grid Margin="5">
+                            <Grid Margin="4">
                                 <Image 
                                     Effect="{StaticResource ImageShadowEffect}" 
                                     RenderOptions.BitmapScalingMode="HighQuality" 
@@ -2962,7 +2942,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="58" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -2996,9 +2976,9 @@
 
                             <Border
                                 Grid.Column="0"
-                                Width="40"
-                                Height="40"
-                                Margin="6,4,4,4"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,2,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -3006,7 +2986,7 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="5">
+                                <Grid Margin="4">
                                     <Image 
                                         Effect="{StaticResource ImageShadowEffect}" 
                                         RenderOptions.BitmapScalingMode="HighQuality" 
@@ -3116,7 +3096,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="58" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -3150,9 +3130,9 @@
 
                             <Border
                                 Grid.Column="0"
-                                Width="40"
-                                Height="40"
-                                Margin="6,4,4,4"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,2,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -3160,7 +3140,7 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="5">
+                                <Grid Margin="4">
                                     <Image 
                                         Effect="{StaticResource ImageShadowEffect}" 
                                         RenderOptions.BitmapScalingMode="HighQuality" 
@@ -3471,7 +3451,7 @@
                         </Border.Effect>
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="58" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -3505,9 +3485,9 @@
 
                             <Border
                                 Grid.Column="0"
-                                Width="40"
-                                Height="40"
-                                Margin="6,4,4,4"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,2,4"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 Background="{StaticResource TileIconFrameBrush}"
@@ -3515,7 +3495,7 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="5">
+                                <Grid Margin="4">
                                     <Image 
                                         Effect="{StaticResource ImageShadowEffect}" 
                                         RenderOptions.BitmapScalingMode="HighQuality" 

@@ -7,7 +7,7 @@ public readonly record struct LyricsSourceCandidate(string Title, string State);
 
 public static class LyricsSourceStatus
 {
-    public const string NoHost = "Turn on MediaLink or Spotify — lyrics follow whichever one is playing";
+    public const string NoHost = "Turn on MediaLink or Spotify. Lyrics follow whichever one is playing";
     public const string SpotifyIdle = "Waiting for Spotify to start playing";
     public const string NothingPlaying = "Nothing playing";
 
@@ -30,7 +30,7 @@ public static class LyricsSourceStatus
         }
 
         string states = string.Join(", ", sessions.Take(MaxListedSessions).Select(Label));
-        return $"Waiting for playback — {states}";
+        return $"Waiting for playback: {states}";
     }
 
     private static string Label(LyricsSourceCandidate candidate)

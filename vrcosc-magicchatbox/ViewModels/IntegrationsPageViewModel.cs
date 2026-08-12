@@ -559,12 +559,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public ObservableCollection<HiddenTileChip> HiddenChips { get; } = new();
 
-    public int ActiveIntegrationCount => IntegrationTileCatalog.Keys
-        .Count(key => IntegrationTileCatalog.IsMasterOn(key, IntegrationSettings, WeatherSettings));
-
-    public string IntegrationSummary =>
-        $"{ActiveIntegrationCount} of {IntegrationTileCatalog.Keys.Count} active";
-
     public bool HasHiddenTiles => HiddenChips.Count > 0;
 
     public string HiddenSummary => IntegrationSettings.HiddenStripCollapsed
@@ -777,8 +771,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public void RaiseHiddenStateChanged()
     {
-        OnPropertyChanged(nameof(ActiveIntegrationCount));
-        OnPropertyChanged(nameof(IntegrationSummary));
         OnPropertyChanged(nameof(HasHiddenTiles));
         OnPropertyChanged(nameof(HiddenSummary));
         OnPropertyChanged(nameof(HiddenChipsVisible));
