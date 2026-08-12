@@ -1223,6 +1223,16 @@ public class ComponentStatsModule : IModule
         }
     }
 
+    /// <summary>
+    /// Runs the stop path from outside the tick. Turning the integration off stops the tick itself, so
+    /// without this nothing ever closed the sensor service or cleared the "running" state.
+    /// </summary>
+    public void StopAndClear()
+    {
+        PerformStopActions();
+        _integrationDisplay.ComponentStatCombined = string.Empty;
+    }
+
     public void TickAndUpdate()
     {
         if (ShouldUpdateComponentStats())

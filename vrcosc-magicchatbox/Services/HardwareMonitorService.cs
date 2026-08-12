@@ -37,7 +37,10 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     private ulong _previousIdleTime;
     private ulong _previousKernelTime;
     private ulong _previousUserTime;
-    private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(1);
+    // Enumerating the "GPU Engine" performance-counter category walks every engine instance of every
+    // process on every adapter, which costs hundreds of milliseconds and much more on a multi-GPU
+    // machine. Once a second was far more often than a chatbox that refreshes every few seconds needs.
+    private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(3);
     private static readonly Regex GpuCounterLuidRegex = new(
         @"luid_0x(?<high>[0-9a-f]+)_0x(?<low>[0-9a-f]+)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
@@ -186,7 +189,13 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     public void UpdateAll()
     {
         PrimeCpuBaseline();
-        _ = GetGpuPerformanceSnapshot();
+
+        // The GPU performance-counter snapshot is NOT primed here. Reading it walks every engine
+        // instance of every process on every adapter, measured at ~5.7s on a two-GPU machine, which on
+        // its own exceeded the 5s watchdog and disabled the integration in a loop. It is only ever used
+        // as a fallback for GPU load and VRAM when the vendor sensors and the NVIDIA path both return
+        // nothing, so the consumers pull it lazily instead. On a machine with working vendor sensors it
+        // is now never read at all.
     }
 
     public bool VendorGpuSensorsEnabled { get; set; } = true;
@@ -701,6 +710,8 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
     }
 
+    private readonly object _gpuSnapshotReadLock = new();
+
     private GpuPerformanceSnapshot GetGpuPerformanceSnapshot()
     {
         lock (_lock)
@@ -709,14 +720,25 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return _gpuPerformanceSnapshot;
         }
 
-        var snapshot = ReadGpuPerformanceSnapshot();
-        lock (_lock)
+        // Serialised separately from _lock: the read is the expensive part, and two callers arriving
+        // together used to run it concurrently because the cache check released the lock first.
+        lock (_gpuSnapshotReadLock)
         {
-            _gpuPerformanceSnapshot = snapshot;
-            _gpuPerformanceCapturedAtUtc = DateTime.UtcNow;
-        }
+            lock (_lock)
+            {
+                if (DateTime.UtcNow - _gpuPerformanceCapturedAtUtc < GpuPerformanceCounterRefreshInterval)
+                    return _gpuPerformanceSnapshot;
+            }
 
-        return snapshot;
+            var snapshot = ReadGpuPerformanceSnapshot();
+            lock (_lock)
+            {
+                _gpuPerformanceSnapshot = snapshot;
+                _gpuPerformanceCapturedAtUtc = DateTime.UtcNow;
+            }
+
+            return snapshot;
+        }
     }
 
     private GpuPerformanceSnapshot ReadGpuPerformanceSnapshot()
