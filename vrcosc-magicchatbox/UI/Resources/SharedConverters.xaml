@@ -9,6 +9,7 @@
     <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <conv:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
     <conv:InvertBooleanConverter x:Key="InvertBooleanConverter" />
+    <conv:CollectionContainsConverter x:Key="CollectionContainsConverter" />
     <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
     <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
     <conv:TwitchAnnouncementColorToBrushConverter x:Key="TwitchAnnouncementColorToBrushConverter" />

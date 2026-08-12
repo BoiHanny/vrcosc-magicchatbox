@@ -98,6 +98,14 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _soundpadOpacity = "1";
     [ObservableProperty] private string _mediaLinkOpacity = "1";
 
+    /// <summary>
+    /// The UiKeys of the integrations whose text is in the line VRChat is actually receiving right
+    /// now. Not the same question as "is this switched on": an integration can be on and contribute
+    /// nothing, be excluded by its desktop/VR routing, or be trimmed to fit the 144 characters, and
+    /// in all three cases nothing of it is reaching the chatbox.
+    /// </summary>
+    [ObservableProperty] private IReadOnlyCollection<string> _liveOutputKeys = Array.Empty<string>();
+
     [ObservableProperty] private string _currentTime = string.Empty;
     [ObservableProperty] private string _weatherLastSyncDisplay = "Last sync: Never";
     [ObservableProperty] private string _trackerBatteryDeviceSummary = "0/0 connected";

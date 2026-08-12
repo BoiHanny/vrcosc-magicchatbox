@@ -320,7 +320,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -332,7 +335,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrStatus}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Status}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -444,7 +447,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -456,7 +462,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrScanWindowActivity}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Window}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -574,7 +580,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -586,7 +595,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrHeartRate}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=HeartRate}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -941,7 +950,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                            <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                             <Border
                                 Grid.Column="0"
                                 Width="3"
@@ -953,7 +965,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IntegrationSettings.IntgrTrackerBattery}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=TrackerBattery}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -1197,7 +1209,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                            <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                             <Border
                                 Grid.Column="0"
                                 Width="3"
@@ -1209,7 +1224,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IntegrationSettings.IntgrVrPerformance}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=VrPerformance}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -1429,7 +1444,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                            <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                             <Border
                                 Grid.Column="0"
                                 Width="3"
@@ -1441,7 +1459,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IntegrationSettings.IntgrComponentStats}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=ComponentStat}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -1580,7 +1598,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -1592,7 +1613,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrNetworkStatistics}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=NetworkStatistics}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -1704,7 +1725,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -1716,7 +1740,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrScanWindowTime}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Time}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -1829,7 +1853,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -1841,7 +1868,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding WeatherSettings.ShowWeatherInTime}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Weather}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -1962,7 +1989,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -1974,7 +2004,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrTwitch}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Twitch}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -2133,7 +2163,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -2145,7 +2178,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrTikTokLive}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=TikTokLive}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -2298,7 +2331,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -2310,7 +2346,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrDiscord}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Discord}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -2457,7 +2493,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                        <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                         <Border
                             Grid.Column="0"
                             Width="3"
@@ -2469,7 +2508,7 @@
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="#1AFFFFFF" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IntegrationSettings.IntgrVrcRadar}" Value="True">
+                                        <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=VrcRadar}" Value="True">
                                             <Setter Property="Background">
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -2748,7 +2787,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                            <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                             <Border
                                 Grid.Column="0"
                                 Width="3"
@@ -2760,7 +2802,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IntegrationSettings.IntgrSoundpad}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Soundpad}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -2883,7 +2925,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                            <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                             <Border
                                 Grid.Column="0"
                                 Width="3"
@@ -2895,7 +2940,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IntegrationSettings.IntgrSpotify}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Spotify}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -3208,7 +3253,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <!--  Lit when this integration is on, so the page can be scanned without reading toggles.  -->
+                            <!--  Lit while this integration is actually in the line VRChat is receiving - not merely
+                                  switched on. Switched on but contributing nothing, routed away by its
+                                  desktop/VR chips, or trimmed to fit the 144 characters all read as dark,
+                                  so the rail answers "is this reaching the chatbox right now".  -->
                             <Border
                                 Grid.Column="0"
                                 Width="3"
@@ -3220,7 +3268,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IntegrationSettings.IntgrScanMediaLink}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=MediaLink}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
