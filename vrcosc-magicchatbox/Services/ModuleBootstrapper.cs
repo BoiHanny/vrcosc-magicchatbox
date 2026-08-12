@@ -170,6 +170,17 @@ public class ModuleBootstrapper
         var timeSettings = _timeSettingsProvider.Value;
         var integrationSettings = _integrationSettingsProvider.Value;
 
+        // Lyrics used to be one flag wearing two switches. Settings written before the split carry
+        // only the master, so the per-source flags are brought into agreement with it here, once,
+        // before anything reads them.
+        var lyricSources = LyricsSourceSelection.Reconcile(
+            integrationSettings.IntgrLyrics,
+            integrationSettings.IntgrLyrics_Spotify,
+            integrationSettings.IntgrLyrics_MediaLink);
+        integrationSettings.IntgrLyrics_Spotify = lyricSources.Spotify;
+        integrationSettings.IntgrLyrics_MediaLink = lyricSources.MediaLink;
+        integrationSettings.IntgrLyrics = lyricSources.Any;
+
         var pulsoid = await CreateRuntimeModuleAsync("Pulsoid", () => new PulsoidModule(
             _appState,
             _pulsoidClient,

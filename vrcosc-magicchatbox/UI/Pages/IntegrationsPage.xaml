@@ -2966,9 +2966,9 @@
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton
                                         Content="LYRICS"
-                                        IsChecked="{Binding IntegrationSettings.IntgrLyrics, Mode=TwoWay}"
+                                        IsChecked="{Binding LyricsFromSpotify, Mode=TwoWay}"
                                         Style="{StaticResource FeatureChipLyrics}"
-                                        ToolTip="Sing along in the chatbox. Follows the track Spotify is playing." />
+                                        ToolTip="Sing along in the chatbox while Spotify is playing. Media link has its own switch for everything else." />
                                     <ToggleButton
                                         Content="TRANSIENT"
                                         IsChecked="{Binding SpotifySettings.ShowOnlyOnChange, Mode=TwoWay}"
@@ -3287,9 +3287,9 @@
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
                                     <ToggleButton
                                         Content="LYRICS"
-                                        IsChecked="{Binding IntegrationSettings.IntgrLyrics, Mode=TwoWay}"
+                                        IsChecked="{Binding LyricsFromMediaLink, Mode=TwoWay}"
                                         Style="{StaticResource FeatureChipLyrics}"
-                                        ToolTip="Sing along in the chatbox. Follows whatever is playing on Windows." />
+                                        ToolTip="Sing along in the chatbox for whatever Windows is playing. Spotify has its own switch." />
                                     <ToggleButton
                                         Content="TRANSIENT"
                                         IsChecked="{Binding MediaLinkSettings.ShowOnlyOnChange, Mode=TwoWay}"

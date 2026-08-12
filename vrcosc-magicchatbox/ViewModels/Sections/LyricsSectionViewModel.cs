@@ -30,7 +30,17 @@ public partial class LyricsSectionViewModel : ObservableObject
         Display = display;
 
         Settings.PropertyChanged += (_, _) => RefreshPreview();
-        IntegrationSettings.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HostSummary));
+        IntegrationSettings.PropertyChanged += (_, e) =>
+        {
+            // The master can move without this section touching it (privacy, the Integrations page),
+            // and the per-source flags have to follow it back.
+            if (e.PropertyName == nameof(IntegrationSettings.IntgrLyrics))
+                LyricsSourceCoordinator.SyncWithMaster(IntegrationSettings);
+
+            OnPropertyChanged(nameof(LyricsFromSpotify));
+            OnPropertyChanged(nameof(LyricsFromMediaLink));
+            OnPropertyChanged(nameof(HostSummary));
+        };
     }
 
     public LyricsSettings Settings { get; }
@@ -38,23 +48,63 @@ public partial class LyricsSectionViewModel : ObservableObject
     public IntegrationSettings IntegrationSettings { get; }
     public LyricsDisplayState Display { get; }
 
+    public bool LyricsFromSpotify
+    {
+        get => IntegrationSettings.IntgrLyrics_Spotify;
+        set => ApplyLyricSources(LyricsSourceCoordinator.Read(IntegrationSettings).WithSpotify(value));
+    }
+
+    public bool LyricsFromMediaLink
+    {
+        get => IntegrationSettings.IntgrLyrics_MediaLink;
+        set => ApplyLyricSources(LyricsSourceCoordinator.Read(IntegrationSettings).WithMediaLink(value));
+    }
+
+    private void ApplyLyricSources(LyricsSourceSelection sources)
+    {
+        LyricsSourceCoordinator.Write(IntegrationSettings, sources);
+        OnPropertyChanged(nameof(LyricsFromSpotify));
+        OnPropertyChanged(nameof(LyricsFromMediaLink));
+        OnPropertyChanged(nameof(HostSummary));
+    }
+
+    /// <summary>
+    /// Says what will actually happen, which means answering two separate questions: whether lyrics
+    /// are switched on for a player, and whether that player is switched on in the first place.
+    /// </summary>
     public string HostSummary
     {
         get
         {
-            bool media = IntegrationSettings.IntgrScanMediaLink;
-            bool spotify = IntegrationSettings.IntgrSpotify;
+            bool spotify = LyricsFromSpotify;
+            bool media = LyricsFromMediaLink;
 
-            if (media && spotify)
-                return "Spotify is used when it is playing, otherwise whatever Windows is playing.";
+            if (!spotify && !media)
+                return "Lyrics are off. Switch on a player above to start following it.";
+
+            bool spotifyHost = IntegrationSettings.IntgrSpotify;
+            bool mediaHost = IntegrationSettings.IntgrScanMediaLink;
+
+            if (spotify && media)
+            {
+                if (!spotifyHost && !mediaHost)
+                    return "Neither player is switched on, so there is nothing to follow yet. Turn on Spotify or Media link on the Integrations page.";
+                if (!spotifyHost)
+                    return "Following whatever Windows is playing. Spotify is picked first whenever it is playing, but the Spotify integration is switched off.";
+                if (!mediaHost)
+                    return "Following Spotify. Turn on Media link on the Integrations page to also follow browsers and other players.";
+
+                return "Spotify is used whenever it is playing, otherwise whatever Windows is playing.";
+            }
 
             if (spotify)
-                return "Following Spotify. Turn on MediaLink to also follow browsers and other players.";
+                return spotifyHost
+                    ? "Following Spotify only. Anything else Windows plays is ignored."
+                    : "Set to follow Spotify only, but the Spotify integration is switched off on the Integrations page.";
 
-            if (media)
-                return "Following whatever Windows is playing. Turn on Spotify for its own track timing.";
-
-            return "Lyrics have no source yet. Turn on MediaLink or Spotify on the Integrations page.";
+            return mediaHost
+                ? "Following whatever Windows is playing, including Spotify's own window. Spotify's own track timing is not used."
+                : "Set to follow whatever Windows is playing, but Media link is switched off on the Integrations page.";
         }
     }
 
