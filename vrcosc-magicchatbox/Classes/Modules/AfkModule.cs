@@ -2,7 +2,9 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using vrcosc_magicchatbox.Classes.Modules.Afk;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,6 +67,41 @@ public partial class AfkModuleSettings : ObservableObject
 
     [ObservableProperty]
     private bool overrideAfk = false;
+
+    // The four fields above are what a style is made of, and were the whole story before styles
+    // existed. They are kept so an older settings file can be read and turned into a style once; the
+    // line that gets sent is built from the collection below.
+    [ObservableProperty]
+    private ObservableCollection<AfkStyle> styles = new();
+
+    [ObservableProperty]
+    private string activeStyleId = string.Empty;
+
+    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(Styles, ActiveStyleId);
+
+    /// <summary>Run once after loading: turns a pre-styles settings file into a style list.</summary>
+    public void EnsureStyles()
+    {
+        if (Styles.Count > 0)
+        {
+            // A stored id can outlive the style it pointed at; fall back rather than send nothing.
+            var resolved = AfkStyleSeed.Resolve(Styles, ActiveStyleId);
+            if (resolved != null && resolved.Id != ActiveStyleId)
+                ActiveStyleId = resolved.Id;
+
+            return;
+        }
+
+        var seeded = AfkStyleSeed.Build(
+            AfkPrefix,
+            ShowPrefixIcon,
+            AfkMessageForTimeStamp,
+            AfkMessageWithoutTimeStamp,
+            ShowAFKTime);
+
+        Styles = new ObservableCollection<AfkStyle>(seeded.Styles);
+        ActiveStyleId = seeded.ActiveId;
+    }
 
     public static AfkModuleSettings LoadSettings(string settingsPath)
     {
@@ -154,6 +191,7 @@ public partial class AfkModule : ObservableObject, IModule
         _consentService = consentService;
         var settingsPath = Path.Combine(env.DataPath, "AfkModuleSettings.json");
         Settings = AfkModuleSettings.LoadSettings(settingsPath);
+        Settings.EnsureStyles();
         Settings.SettingsChanged += Settings_SettingsChanged;
         _appState.PropertyChanged += ViewModel_PropertyChanged;
         lastActionTime = DateTime.Now;
@@ -190,23 +228,11 @@ public partial class AfkModule : ObservableObject, IModule
 
     public string GenerateAFKString()
     {
-        string afkString = "";
+        var style = Settings.ActiveStyle;
+        if (style == null)
+            return string.Empty;
 
-        if (Settings.ShowPrefixIcon)
-        {
-            afkString += Settings.AfkPrefix + " ";
-        }
-
-        if (Settings.ShowAFKTime && TimeCurrentlyAFK != null)
-        {
-            afkString += Settings.AfkMessageForTimeStamp + TimeCurrentlyAFK;
-        }
-        else
-        {
-            afkString += Settings.AfkMessageWithoutTimeStamp;
-        }
-
-        return afkString.Replace("\\n", "\n").Replace("/n", "\n");
+        return style.Render(TimeCurrentlyAFK);
     }
 
     private void InitializeAfkDetection()

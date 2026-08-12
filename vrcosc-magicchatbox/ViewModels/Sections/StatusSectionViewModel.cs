@@ -19,18 +19,23 @@ public partial class StatusSectionViewModel : ObservableObject
     public IAppState AppState { get; }
     public AfkModule Afk => _moduleHost.Value.Afk;
 
+    /// <summary>Shared with the side panel switch, so an edit here shows up there straight away.</summary>
+    public AfkStyleViewModel AfkStyles { get; }
+
     public StatusSectionViewModel(
         ISettingsProvider<AppSettings> appSettingsProvider,
         ISettingsProvider<TimeSettings> timeSettingsProvider,
         EmojiService emojis,
         IAppState appState,
-        Lazy<IModuleHost> moduleHost)
+        Lazy<IModuleHost> moduleHost,
+        AfkStyleViewModel afkStyles)
     {
         AppSettings = appSettingsProvider.Value;
         TimeSettings = timeSettingsProvider.Value;
         Emojis = emojis;
         AppState = appState;
         _moduleHost = moduleHost;
+        AfkStyles = afkStyles;
     }
 
     [RelayCommand]

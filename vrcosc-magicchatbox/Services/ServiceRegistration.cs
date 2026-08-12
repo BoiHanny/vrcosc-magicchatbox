@@ -131,8 +131,21 @@ public static class ServiceRegistration
             new Lazy<ChattingPageViewModel>(() => sp.GetRequiredService<ChattingPageViewModel>()),
             new Lazy<StatusPageViewModel>(() => sp.GetRequiredService<StatusPageViewModel>()),
             new Lazy<IntegrationsPageViewModel>(() => sp.GetRequiredService<IntegrationsPageViewModel>()),
-            new Lazy<OptionsPageViewModel>(() => sp.GetRequiredService<OptionsPageViewModel>())));
+            new Lazy<OptionsPageViewModel>(() => sp.GetRequiredService<OptionsPageViewModel>()),
+            new Lazy<StatusSetSwitcherViewModel>(() => sp.GetRequiredService<StatusSetSwitcherViewModel>()),
+            new Lazy<AfkStyleViewModel>(() => sp.GetRequiredService<AfkStyleViewModel>())));
         services.AddSingleton<IAppState>(sp => sp.GetRequiredService<ViewModel>());
+
+        services.AddSingleton<AfkStyleViewModel>(sp => new AfkStyleViewModel(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<Core.State.IUiDispatcher>()));
+
+        services.AddSingleton<StatusSetSwitcherViewModel>(sp => new StatusSetSwitcherViewModel(
+            sp.GetRequiredService<ChatStatusDisplayState>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<IStatusListService>(),
+            sp.GetRequiredService<IMenuNavigationService>(),
+            sp.GetRequiredService<Core.State.IUiDispatcher>()));
 
         services.AddSingleton<StatusPageViewModel>(sp => new StatusPageViewModel(
             sp.GetRequiredService<ChatStatusDisplayState>(),
@@ -275,7 +288,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<TimeSettings>>(),
             sp.GetRequiredService<EmojiService>(),
             sp.GetRequiredService<IAppState>(),
-            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<AfkStyleViewModel>()));
         services.AddSingleton<VrcRadarSectionViewModel>(sp => new VrcRadarSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
