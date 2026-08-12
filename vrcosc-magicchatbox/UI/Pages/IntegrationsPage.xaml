@@ -727,7 +727,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Your pulse, live — in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan."
+                                Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -1379,7 +1379,7 @@
                                     FontFamily="Comfortaa Light"
                                     FontSize="13"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="CPU, GPU, RAM and VRAM — load, temps, wattage and clocks, live. Settle the specs question for good."
+                                    Text="Load, temps, wattage and clocks for your CPU, GPU, RAM and VRAM. Settle the specs question for good."
                                     TextWrapping="Wrap">
                                     <TextBlock.Foreground>
                                         <RadialGradientBrush>
@@ -1727,7 +1727,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Conditions where you actually are — temperature, feels-like, wind and humidity, tucked in beside your clock."
+                                Text="Conditions where you actually are: temperature, feels-like, wind and humidity, tucked in beside your clock."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -1889,7 +1889,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Live status, viewers and category — plus shoutouts and announcements you can fire off without leaving VR."
+                                Text="Live status, viewers and category, plus shoutouts and announcements you can fire off without leaving VR."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -2097,7 +2097,7 @@
                                     Content="LIVE"
                                     IsChecked="{Binding Modules.TikTokLive.Settings.EnableLiveConnector, Mode=TwoWay}"
                                     Style="{StaticResource GlowyToggleButton}"
-                                    ToolTip="Experimental TikTok LIVE connector — off by default; profile followers still work without it" />
+                                    ToolTip="Experimental TikTok LIVE connector. Off by default; profile followers still work without it" />
                             </StackPanel>
                         </StackPanel>
 
@@ -2200,7 +2200,7 @@
                                 FontFamily="Comfortaa Light"
                                 FontSize="13"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Who's talking in your voice channel — and your VRChat world on your Discord profile, if you want it."
+                                Text="Who's talking in your voice channel, and your VRChat world on your Discord profile if you want it."
                                 TextWrapping="Wrap">
                                 <TextBlock.Foreground>
                                     <RadialGradientBrush>
@@ -2255,7 +2255,7 @@
                                     Content="RICH"
                                     IsChecked="{Binding Modules.Discord.Settings.EnableRichPresence, Mode=TwoWay}"
                                     Style="{StaticResource GlowyToggleButton}"
-                                    ToolTip="Discord Rich Presence — show VRChat status in your Discord profile" />
+                                    ToolTip="Discord Rich Presence: show VRChat status in your Discord profile" />
                             </StackPanel>
                         </StackPanel>
                         <CheckBox
@@ -2742,7 +2742,7 @@
                                             <GradientStop Offset="1" Color="#FFD9E0FF" />
                                         </RadialGradientBrush>
                                     </TextBlock.Foreground>
-                                    <Run Text="The full Spotify picture — liked, explicit, shuffle, queue and device — arranged however you like with your own template." />
+                                    <Run Text="The full Spotify picture: liked, explicit, shuffle, queue and device, arranged however you like with your own template." />
                                 </TextBlock>
 
 
@@ -3060,7 +3060,7 @@
                                     FontSize="13"
                                     Foreground="LightGray"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Whatever&#x27;s playing on your PC — Spotify, YouTube, a browser tab. No account, no setup, just music."
+                                    Text="Whatever&#x27;s playing on your PC: Spotify, YouTube, a browser tab. No account, no setup, just music."
                                     TextWrapping="Wrap" />
                             </StackPanel>
                             <StackPanel

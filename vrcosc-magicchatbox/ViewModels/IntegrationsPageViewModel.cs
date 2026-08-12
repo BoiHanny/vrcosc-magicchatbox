@@ -276,7 +276,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             _toast.Show(
                 "👁️ Not shown in this mode",
                 hidden.CanEnableInCurrentMode
-                    ? $"{hidden.DisplayName} is on, but its {mode} switch is off — it won't appear in {mode} mode."
+                    ? $"{hidden.DisplayName} is on, but its {mode} switch is off, so it won't appear in {mode} mode."
                     : $"{hidden.DisplayName} is on, but it can't run in {mode} mode.",
                 ToastType.Warning,
                 hidden.CanEnableInCurrentMode
@@ -489,7 +489,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         _toast.Show(
             "🎵 Spotify + MediaLink",
-            "Both are enabled — defaulting to dedicated Spotify output. Change this in Spotify options under 'MediaLink coexistence'.",
+            "Both are enabled, so MagicChatbox is defaulting to dedicated Spotify output. Change this in Spotify options under 'MediaLink coexistence'.",
             ToastType.Info,
             new ToastAction("Open Spotify settings", () => { _menuNav.ActivateSetting("Settings_Spotify"); return Task.CompletedTask; }),
             durationMs: 8000,
@@ -747,8 +747,8 @@ public partial class IntegrationsPageViewModel : ObservableObject
                 tile.DisplayName,
                 running,
                 running
-                    ? $"{tile.DisplayName} — hidden by you. Still switched on. Click to show it again."
-                    : $"{tile.DisplayName} — hidden by you, and switched off. Click to show it again."));
+                    ? $"{tile.DisplayName} is hidden by you. Still switched on. Click to show it again."
+                    : $"{tile.DisplayName} is hidden by you, and switched off. Click to show it again."));
         }
 
         // A follower has no tile of its own, so if every host is hidden its controls are unreachable.
