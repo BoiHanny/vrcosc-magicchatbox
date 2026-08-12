@@ -10,8 +10,39 @@ public class LyricsCardPlacementTests
         bool spotifySource = false,
         bool mediaSource = false,
         bool mediaLink = true,
-        bool spotify = true)
-        => LyricsCardPlacement.Resolve(lyrics, spotifySource, mediaSource, mediaLink, spotify);
+        bool spotify = true,
+        bool lyricsOnMediaLink = true,
+        bool lyricsOnSpotify = true)
+        => LyricsCardPlacement.Resolve(lyrics, spotifySource, mediaSource, mediaLink, spotify, lyricsOnMediaLink, lyricsOnSpotify);
+
+    [Fact]
+    public void TheRibbonNeverLandsOnACardWhoseLyricsSwitchIsOff()
+    {
+        // The reported bug: switching lyrics off on Media link left a panel on the Media link tile
+        // saying "Paused", because with nothing playing the ribbon parked there regardless.
+        var placement = Resolve(lyricsOnMediaLink: false, spotify: false);
+
+        Assert.False(placement.OnMediaLinkCard);
+    }
+
+    [Fact]
+    public void WithLyricsOffForBothPlayersItLandsNowhere()
+    {
+        var placement = Resolve(lyricsOnMediaLink: false, lyricsOnSpotify: false);
+
+        Assert.Equal(LyricsCardPlacement.Nowhere, placement);
+    }
+
+    [Fact]
+    public void ItPrefersAPlayerThatIsActuallyRunning()
+    {
+        // Lyrics on for both, but only Spotify is switched on, so the ribbon belongs there rather
+        // than on a Media link card that has nothing to say.
+        var placement = Resolve(mediaLink: false, spotify: true);
+
+        Assert.True(placement.OnSpotifyCard);
+        Assert.False(placement.OnMediaLinkCard);
+    }
 
     [Fact]
     public void WithLyricsOffNothingIsShownAnywhere()

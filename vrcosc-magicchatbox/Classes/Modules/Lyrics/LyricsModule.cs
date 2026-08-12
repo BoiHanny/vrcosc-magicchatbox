@@ -242,10 +242,12 @@ public partial class LyricsModule : ObservableObject, IModule
             _integrationSettings.IntgrLyrics,
             hasSpotifySource: source != null && source.SourceName == SpotifySourceName,
             hasMediaSource: source != null && source.SourceName != SpotifySourceName,
-            // A card with nothing playing parks on a host that lyrics are actually switched on for,
-            // not merely on whichever integration happens to be enabled.
-            mediaLinkEnabled: _integrationSettings.IntgrScanMediaLink && _integrationSettings.IntgrLyrics_MediaLink,
-            spotifyEnabled: _integrationSettings.IntgrSpotify && _integrationSettings.IntgrLyrics_Spotify);
+            mediaLinkEnabled: _integrationSettings.IntgrScanMediaLink,
+            spotifyEnabled: _integrationSettings.IntgrSpotify,
+            // Kept separate from the integration switches on purpose: a card with nothing playing may
+            // only park where lyrics are actually switched on.
+            lyricsOnMediaLink: _integrationSettings.IntgrLyrics_MediaLink,
+            lyricsOnSpotify: _integrationSettings.IntgrLyrics_Spotify);
 
     private string DescribeNoSource()
     {
