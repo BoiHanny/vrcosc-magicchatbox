@@ -1614,8 +1614,8 @@
                 <GradientStop Offset="1" Color="#FFFF6FC7" />
             </LinearGradientBrush>
 
-            <SolidColorBrush x:Key="ScrollThumbBrush" Color="#59B2A2E0" />
-            <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#A6C3B2F2" />
+            <SolidColorBrush x:Key="ScrollThumbBrush" Color="#8FC0B2F0" />
+            <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#E0D6CCFF" />
             <SolidColorBrush x:Key="ScrollTrackHoverBrush" Color="#1AFFFFFF" />
             <LinearGradientBrush x:Key="AccentRampVerticalBrush" StartPoint="0,1" EndPoint="0,0">
                 <GradientStop Offset="0" Color="#FF3FE0D2" />
@@ -1625,80 +1625,141 @@
 
             <Style x:Key="Switch" TargetType="{x:Type CheckBox}">
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="CheckBox">
-                            <StackPanel Orientation="Horizontal">
-                                <Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0">
+                                    <!--  Focus ring sits outside the track so it never overlaps the thumb.  -->
                                     <Border
-                                        Width="45"
-                                        Height="20"
-                                        Margin="5,0"
-                                        Background="LightGray"
-                                        CornerRadius="10"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                        <Border.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="25"
-                                                Opacity="0.4"
-                                                ShadowDepth="0"
-                                                Color="#251153" />
-                                        </Border.Effect>
-                                    </Border>
+                                        x:Name="focusRing"
+                                        Margin="-2"
+                                        BorderBrush="#FF8FD6FF"
+                                        BorderThickness="1"
+                                        CornerRadius="13"
+                                        Opacity="0"
+                                        SnapsToDevicePixels="True" />
                                     <Border
-                                        x:Name="button"
-                                        Width="25"
-                                        Height="25"
+                                        x:Name="track"
+                                        Width="42"
+                                        Height="22"
+                                        Background="{StaticResource SwitchTrackOffBrush}"
+                                        BorderBrush="{StaticResource SwitchEdgeOffBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="11"
+                                        SnapsToDevicePixels="True" />
+                                    <!--  The thumb rides inside the track. The old 25px ball overhung a 20px
+                                          rail by 2.5px top and bottom, which is most of what dated it.  -->
+                                    <Border
+                                        x:Name="knob"
+                                        Width="16"
+                                        Height="16"
+                                        Margin="3,0,0,0"
                                         HorizontalAlignment="Left"
-                                        CornerRadius="12.5" />
+                                        VerticalAlignment="Center"
+                                        Background="{StaticResource SwitchThumbOffBrush}"
+                                        CornerRadius="8"
+                                        SnapsToDevicePixels="True">
+                                        <Border.RenderTransform>
+                                            <TranslateTransform X="0" />
+                                        </Border.RenderTransform>
+                                    </Border>
                                 </Grid>
+
                                 <ContentPresenter
                                     x:Name="content"
-                                    Margin="10,0,0,0"
+                                    Grid.Column="1"
+                                    Margin="8,0,0,0"
                                     VerticalAlignment="Center"
                                     Content="{TemplateBinding Content}" />
-                            </StackPanel>
-                            <ControlTemplate.Resources>
-                                <Storyboard x:Key="right">
-                                    <ThicknessAnimation
-                                        Storyboard.TargetName="button"
-                                        Storyboard.TargetProperty="Margin"
-                                        From="0,0,0,0"
-                                        To="28,0,0,0"
-                                        Duration="0:0:0.15">
-                                        <ThicknessAnimation.EasingFunction>
-                                            <CircleEase EasingMode="EaseOut" />
-                                        </ThicknessAnimation.EasingFunction>
-                                    </ThicknessAnimation>
-                                </Storyboard>
-                                <Storyboard x:Key="left">
-                                    <ThicknessAnimation
-                                        Storyboard.TargetName="button"
-                                        Storyboard.TargetProperty="Margin"
-                                        From="28,0,0,0"
-                                        To="0,0,0,0"
-                                        Duration="0:0:0.15">
-                                        <ThicknessAnimation.EasingFunction>
-                                            <CircleEase EasingMode="EaseOut" />
-                                        </ThicknessAnimation.EasingFunction>
-                                    </ThicknessAnimation>
-                                </Storyboard>
-                            </ControlTemplate.Resources>
+                            </Grid>
+
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="false">
-                                    <Trigger.ExitActions>
-                                        <RemoveStoryboard BeginStoryboardName="leftt" />
-                                        <BeginStoryboard x:Name="rightt" Storyboard="{StaticResource right}" />
-                                    </Trigger.ExitActions>
-                                    <Setter TargetName="button" Property="Background" Value="#7D7397" />
+                                <!--  Contentless call sites reserve no width.  -->
+                                <Trigger Property="Content" Value="{x:Null}">
+                                    <Setter TargetName="content" Property="Visibility" Value="Collapsed" />
                                 </Trigger>
-                                <Trigger Property="IsChecked" Value="true">
-                                    <Trigger.ExitActions>
-                                        <RemoveStoryboard BeginStoryboardName="rightt" />
-                                        <BeginStoryboard x:Name="leftt" Storyboard="{StaticResource left}" />
-                                    </Trigger.ExitActions>
-                                    <Setter TargetName="button" Property="Background" Value="#1ED760" />
+
+                                <Trigger Property="IsChecked" Value="True">
+                                    <!--  The explicit setter is the resting truth. Tiles are torn down and
+                                          re-added on every reorder and hide, and a position that exists only
+                                          as an animation clock parks the thumb on the wrong side.  -->
+                                    <Setter TargetName="knob" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TranslateTransform X="20" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="track" Property="Background" Value="{StaticResource AccentRampBrush}" />
+                                    <Setter TargetName="track" Property="BorderBrush" Value="{StaticResource SwitchEdgeOnBrush}" />
+                                    <Setter TargetName="knob" Property="Background" Value="{StaticResource SwitchThumbOnBrush}" />
+                                    <Setter TargetName="track" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect
+                                                BlurRadius="12"
+                                                Opacity="0.55"
+                                                RenderingBias="Performance"
+                                                ShadowDepth="0"
+                                                Color="#8FD6FF" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="knob"
+                                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                    To="20"
+                                                    Duration="0:0:0.16">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut" />
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+
+                                <Trigger Property="IsChecked" Value="False">
+                                    <Setter TargetName="knob" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TranslateTransform X="0" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="knob"
+                                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                    To="0"
+                                                    Duration="0:0:0.16">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut" />
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="track" Property="BorderBrush" Value="#FFB9A6EE" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="knob" Property="Opacity" Value="0.85" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                    <Setter TargetName="focusRing" Property="Opacity" Value="1" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.4" />
+                                    <Setter Property="Cursor" Value="Arrow" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -1764,7 +1825,10 @@
                             <!--  Layout width stays 8 so nothing in the app reflows; the bar is thinner
                                   visually, not structurally. Width lives on the setter only, so the
                                   horizontal orientation trigger can actually override it.  -->
-                            <Grid x:Name="GridRoot" Background="{TemplateBinding Background}">
+                            <Grid
+                                x:Name="GridRoot"
+                                Width="8"
+                                Background="{TemplateBinding Background}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="0.00001*" />
                                 </Grid.RowDefinitions>
@@ -1820,6 +1884,8 @@
                                             <RotateTransform Angle="-90" />
                                         </Setter.Value>
                                     </Setter>
+                                    <Setter TargetName="GridRoot" Property="Width" Value="Auto" />
+                                    <Setter TargetName="GridRoot" Property="Height" Value="8" />
                                     <Setter Property="Width" Value="Auto" />
                                     <Setter Property="Height" Value="8" />
                                     <Setter TargetName="PageDown" Property="Command" Value="ScrollBar.PageLeftCommand" />
