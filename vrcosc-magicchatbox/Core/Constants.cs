@@ -78,6 +78,7 @@ public static class Constants
 
     public const string TosVersion = "2025.03.22";
 
+    public const string WikiHomeUrl = GitHubWikiBaseUrl;
     public const string WikiMusicDisplayUrl = GitHubWikiBaseUrl + "%F0%9F%8E%BC-Music-Display";
     public const string WikiHeartRateUrl = GitHubWikiBaseUrl + "%F0%9F%A9%B5-Heart-Rate";
     public const string WikiPulsoidDiscountUrl = GitHubWikiBaseUrl + "Unlock-a-15%25-Discount-on-Pulsoid's-BRO-Plan";
