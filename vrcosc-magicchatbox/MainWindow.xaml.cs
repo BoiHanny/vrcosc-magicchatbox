@@ -451,11 +451,40 @@ namespace vrcosc_magicchatbox
             OverlayProgressBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, anim);
         }
 
+        private double? _revealLeft;
+        private double? _revealTop;
+        private bool _parkedOffScreen;
+
         /// <summary>
-        /// Brings the window up from the zero opacity it was shown at, then hands the property back
-        /// to its binding so the user's own window opacity setting takes over again. Clearing the
-        /// local value matters: leaving one behind would pin the window at full opacity forever and
-        /// quietly break that setting.
+        /// Hides the window for the several seconds it spends laying itself out. Zero opacity alone
+        /// was not enough: the window still gets an HWND, and the desktop compositor paints its frame
+        /// before WPF has drawn anything into it, which reads as a black rectangle appearing behind
+        /// the splash. Parked off the virtual desktop as well, there is nothing to see at all.
+        ///
+        /// A maximized window cannot be parked - Windows snaps it back to a monitor - so that case
+        /// relies on opacity alone.
+        /// </summary>
+        public void PrepareHiddenStart()
+        {
+            Opacity = 0;
+
+            if (WindowState == WindowState.Maximized)
+                return;
+
+            _revealLeft = double.IsNaN(Left) ? null : Left;
+            _revealTop = double.IsNaN(Top) ? null : Top;
+            _parkedOffScreen = true;
+
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = SystemParameters.VirtualScreenLeft - Width - 400;
+            Top = SystemParameters.VirtualScreenTop - Height - 400;
+        }
+
+        /// <summary>
+        /// Puts the window back where it belongs and brings it up, then hands opacity back to its
+        /// binding so the user's own window opacity setting takes over again. Clearing the local
+        /// value matters: leaving one behind would pin the window at full opacity forever and quietly
+        /// break that setting.
         /// </summary>
         public void FadeInAfterStartup()
         {
@@ -463,6 +492,24 @@ namespace vrcosc_magicchatbox
             {
                 Dispatcher.BeginInvoke(FadeInAfterStartup);
                 return;
+            }
+
+            if (_parkedOffScreen)
+            {
+                _parkedOffScreen = false;
+
+                if (_revealLeft is { } left && _revealTop is { } top)
+                {
+                    Left = left;
+                    Top = top;
+                }
+                else
+                {
+                    // No saved placement, so honour what the XAML asked for and centre it.
+                    var area = SystemParameters.WorkArea;
+                    Left = area.Left + ((area.Width - Width) / 2);
+                    Top = area.Top + ((area.Height - Height) / 2);
+                }
             }
 
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))

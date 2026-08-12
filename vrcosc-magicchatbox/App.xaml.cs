@@ -289,7 +289,7 @@ namespace vrcosc_magicchatbox
                 // while the splash is still up saying it is loading. At zero opacity it does all of
                 // that work unseen and is faded in below, once there is something worth looking at.
                 Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
-                mainWindow.Opacity = 0;
+                mainWindow.PrepareHiddenStart();
                 mainWindow.Show();
                 Logging.WriteInfo("[Startup] MainWindow shown.");
                 ShutdownMode = ShutdownMode.OnLastWindowClose;
