@@ -78,6 +78,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -109,9 +110,100 @@
             </StackPanel>
         </Border>
 
+        <!--  Hidden tiles. Deliberately flatter and borderless so this benign, self-inflicted state does
+              not read as a second warning next to the mode banner above it. Collapsed when empty, so a
+              user who never hides anything sees the page exactly as it was.  -->
+        <Border
+            Grid.Row="1"
+            Margin="10,5,19,0"
+            Padding="9,5"
+            HorizontalAlignment="Stretch"
+            d:Visibility="Collapsed"
+            Background="#1F2B1B4A"
+            CornerRadius="5"
+            Visibility="{Binding HasHiddenTiles, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel>
+                <TextBlock
+                    Margin="2,0,0,3"
+                    d:Text="You hid 3 tiles · they're still running"
+                    FontFamily="Comfortaa Light"
+                    FontSize="10.5"
+                    Foreground="#9C8DC4"
+                    Text="{Binding HiddenHeader, UpdateSourceTrigger=PropertyChanged}" />
+
+                <ItemsControl ItemsSource="{Binding HiddenChips}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button
+                                Command="{Binding DataContext.ShowTileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding Key}"
+                                Style="{StaticResource HiddenTileChipButton}"
+                                ToolTip="{Binding ToolTip}">
+                                <StackPanel Orientation="Horizontal">
+                                    <!--  Filled = still switched on and running, hollow = switched off.
+                                          This dot is what makes "hidden is not off" permanently obvious.  -->
+                                    <Ellipse
+                                        Width="5"
+                                        Height="5"
+                                        Margin="0,0,5,0"
+                                        VerticalAlignment="Center"
+                                        Stroke="#9C8DC4"
+                                        StrokeThickness="1">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="Transparent" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                        <Setter Property="Fill" Value="#7BE495" />
+                                                        <Setter Property="Stroke" Value="#7BE495" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <WrapPanel Margin="0,1,0,0" Orientation="Horizontal">
+                    <Button
+                        Command="{Binding ShowAllTilesCommand}"
+                        Content="Show all"
+                        Style="{StaticResource HiddenTileActionButton}"
+                        Visibility="{Binding CanShowAll, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        Command="{Binding TidySwitchedOffCommand}"
+                        Content="{Binding TidySwitchedOffLabel, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource HiddenTileActionButton}"
+                        Visibility="{Binding CanTidySwitchedOff, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        Command="{Binding TidyModeUnavailableCommand}"
+                        Content="{Binding TidyModeUnavailableLabel, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource HiddenTileActionButton}"
+                        Visibility="{Binding CanTidyModeUnavailable, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                </WrapPanel>
+
+                <TextBlock
+                    Margin="2,3,0,0"
+                    FontFamily="Comfortaa Light"
+                    FontSize="10.5"
+                    Foreground="#9C8DC4"
+                    Text="Everything is hidden. Click a name above to bring it back."
+                    Visibility="{Binding EverythingHidden, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </Border>
+
         <ListBox
             x:Name="IntegrationsList"
-            Grid.Row="1"
+            Grid.Row="2"
             HorizontalAlignment="Stretch"
             Background="Transparent"
             BorderThickness="0"
@@ -209,6 +301,12 @@
                             Margin="0,5,0,0"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,4,0"
+                                AutomationProperties.Name="Hide this tile"
+                                Click="HideTile_Click"
+                                Style="{StaticResource HideTilePillButton}"
+                                ToolTip="Hide this tile from the list. The integration stays switched on." />
                             <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
@@ -314,6 +412,12 @@
                             Margin="0,5,0,0"
                             VerticalAlignment="Top">
                             <StackPanel Orientation="Horizontal">
+                                <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
                                 <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
@@ -592,6 +696,12 @@
                             VerticalAlignment="Top">
                             <StackPanel Orientation="Horizontal">
                                 <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
                                     CommandParameter="Settings_HeartRate"
@@ -790,6 +900,12 @@
                                 Margin="0,5,100,0"
                                 VerticalAlignment="Top"
                                 Orientation="Horizontal">
+                                <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
                                 <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
@@ -1013,6 +1129,12 @@
                                 VerticalAlignment="Top"
                                 Orientation="Horizontal">
                                 <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
                                     CommandParameter="Settings_VrPerformance"
@@ -1226,6 +1348,12 @@
                                 VerticalAlignment="Top"
                                 Orientation="Horizontal">
                                 <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
                                     CommandParameter="Settings_ComponentStats"
@@ -1336,6 +1464,12 @@
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
                             <Button
+                                Margin="0,0,4,0"
+                                AutomationProperties.Name="Hide this tile"
+                                Click="HideTile_Click"
+                                Style="{StaticResource HideTilePillButton}"
+                                ToolTip="Hide this tile from the list. The integration stays switched on." />
+                            <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
                                 CommandParameter="Settings_NetworkStatistics"
@@ -1441,6 +1575,12 @@
                             Margin="0,5,0,0"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,4,0"
+                                AutomationProperties.Name="Hide this tile"
+                                Click="HideTile_Click"
+                                Style="{StaticResource HideTilePillButton}"
+                                ToolTip="Hide this tile from the list. The integration stays switched on." />
                             <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
@@ -1555,6 +1695,12 @@
                             Margin="0,5,0,0"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,4,0"
+                                AutomationProperties.Name="Hide this tile"
+                                Click="HideTile_Click"
+                                Style="{StaticResource HideTilePillButton}"
+                                ToolTip="Hide this tile from the list. The integration stays switched on." />
                             <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
@@ -1713,6 +1859,12 @@
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
                             <Button
+                                Margin="0,0,4,0"
+                                AutomationProperties.Name="Hide this tile"
+                                Click="HideTile_Click"
+                                Style="{StaticResource HideTilePillButton}"
+                                ToolTip="Hide this tile from the list. The integration stays switched on." />
+                            <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
                                 CommandParameter="Settings_Twitch"
@@ -1856,6 +2008,12 @@
                             Margin="0,5,0,0"
                             VerticalAlignment="Top">
                             <StackPanel Orientation="Horizontal">
+                                <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
                                 <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
@@ -2011,6 +2169,12 @@
                             VerticalAlignment="Top">
                             <StackPanel Orientation="Horizontal">
                                 <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
                                     CommandParameter="Settings_Discord"
@@ -2161,6 +2325,12 @@
                             Margin="0,5,0,0"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
+                            <Button
+                                Margin="0,0,4,0"
+                                AutomationProperties.Name="Hide this tile"
+                                Click="HideTile_Click"
+                                Style="{StaticResource HideTilePillButton}"
+                                ToolTip="Hide this tile from the list. The integration stays switched on." />
                             <Button
                                 Margin="0,0,5,0"
                                 Command="{Binding ActivateSettingCommand}"
@@ -2404,6 +2574,12 @@
                                 VerticalAlignment="Top"
                                 Orientation="Horizontal">
                                 <Button
+                                    Margin="0,0,4,0"
+                                    AutomationProperties.Name="Hide this tile"
+                                    Click="HideTile_Click"
+                                    Style="{StaticResource HideTilePillButton}"
+                                    ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                <Button
                                     Margin="0,0,5,0"
                                     Command="{Binding ActivateSettingCommand}"
                                     CommandParameter="Settings_Privacy"
@@ -2529,6 +2705,12 @@
                                 Margin="0,5,0,0"
                                 VerticalAlignment="Top">
                                 <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Margin="0,0,4,0"
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource HideTilePillButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
                                     <Button
                                         Margin="0,0,5,0"
                                         Command="{Binding ActivateSettingCommand}"
@@ -2839,6 +3021,12 @@
                                 Margin="0,5,0,0"
                                 VerticalAlignment="Top">
                                 <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Margin="0,0,4,0"
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource HideTilePillButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
                                     <Button
                                         Margin="0,0,5,0"
                                         Command="{Binding ActivateSettingCommand}"

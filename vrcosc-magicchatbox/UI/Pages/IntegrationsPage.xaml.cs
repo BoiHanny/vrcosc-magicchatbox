@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -30,6 +32,12 @@ namespace vrcosc_magicchatbox.UI.Pages
                 {
                     vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
                     HookIntegrationSortOrder();
+
+                    vm.TileLayoutChanged -= OnTileLayoutChanged;
+                    vm.TileLayoutChanged += OnTileLayoutChanged;
+                    vm.TileShown -= OnTileShown;
+                    vm.TileShown += OnTileShown;
+
                     ApplyIntegrationOrder();
                 }
             };
@@ -70,6 +78,7 @@ namespace vrcosc_magicchatbox.UI.Pages
                 ? vm.IntegrationDisplay.IntegrationSortOrder
                 : IntegrationDisplayState.DefaultSortOrder;
 
+            var hidden = IntegrationTileCatalog.ResolveHidden(vm.IntegrationSettings?.HiddenTiles);
             var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             IntegrationsList.BeginInit();
@@ -79,18 +88,58 @@ namespace vrcosc_magicchatbox.UI.Pages
             {
                 if (itemMap.TryGetValue(key, out var item))
                 {
-                    IntegrationsList.Items.Add(item);
+                    // Recorded as used before the hidden check. If a hidden key were left unrecorded, the
+                    // safety-net pass below would add it straight back at the bottom of the list.
                     usedKeys.Add(key);
+
+                    if (!hidden.Contains(key))
+                        IntegrationsList.Items.Add(item);
                 }
             }
 
             foreach (var kvp in itemMap)
             {
-                if (!usedKeys.Contains(kvp.Key))
-                    IntegrationsList.Items.Add(kvp.Value);
+                if (usedKeys.Contains(kvp.Key)) continue;
+                if (hidden.Contains(kvp.Key)) continue;
+                IntegrationsList.Items.Add(kvp.Value);
             }
 
             IntegrationsList.EndInit();
+        }
+
+        private void OnTileLayoutChanged(object sender, EventArgs e) => ApplyIntegrationOrder();
+
+        private void OnTileShown(object sender, string key)
+        {
+            if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+            // The item is only added to Items during the relayout above, so wait for that pass to finish
+            // before trying to scroll to it.
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var container = IntegrationsList.Items
+                    .OfType<ListBoxItem>()
+                    .FirstOrDefault(i => string.Equals(i.Name, tile.ElementName, StringComparison.Ordinal));
+
+                if (container != null)
+                    IntegrationsList.ScrollIntoView(container);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        private void HideTile_Click(object sender, RoutedEventArgs e)
+        {
+            // No CommandParameter anywhere in the XAML: the key is recovered from the tile the button sits in,
+            // so 16 hand-typed strings cannot drift out of sync with itemMap.
+            if (sender is not DependencyObject source) return;
+
+            var container = ItemsControl.ContainerFromElement(IntegrationsList, source) as ListBoxItem;
+            if (container?.Name == null) return;
+
+            var tile = IntegrationTileCatalog.Tiles
+                .FirstOrDefault(t => string.Equals(t.ElementName, container.Name, StringComparison.Ordinal));
+
+            if (tile != null)
+                VM?.HideTileCommand.Execute(tile.Key);
         }
 
         private void HookIntegrationSortOrder()
