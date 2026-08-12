@@ -33,6 +33,7 @@ public partial class SpotifyDisplayState : ObservableObject
     [ObservableProperty] private string _lastSyncDisplay = "Last sync: Never";
     [ObservableProperty] private string _outputPreview = string.Empty;
     [ObservableProperty] private DateTime _lastSyncUtc = DateTime.MinValue;
+    [ObservableProperty] private DateTime _lastTrackChangeUtc;
 
     public bool HasTrack => !string.IsNullOrWhiteSpace(TrackId);
     public bool CanOpenSpotify => !string.IsNullOrWhiteSpace(ExternalUrl);
@@ -72,6 +73,9 @@ public partial class SpotifyDisplayState : ObservableObject
     partial void OnTrackIdChanged(string value)
     {
         OnPropertyChanged(nameof(HasTrack));
+
+        if (!string.IsNullOrWhiteSpace(value))
+            LastTrackChangeUtc = DateTime.UtcNow;
     }
 
     partial void OnExternalUrlChanged(string value)
