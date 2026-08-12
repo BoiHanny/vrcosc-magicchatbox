@@ -78,11 +78,31 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!--  A single quiet line: what this page is, and how much of it is switched on.  -->
+        <Grid Grid.Row="0" Margin="15,7,20,4">
+            <TextBlock
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                FontFamily="Comfortaa Light"
+                FontSize="12"
+                Foreground="#BDAEE2"
+                Text="Integrations" />
+            <TextBlock
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                d:Text="6 of 16 active"
+                FontFamily="Albert Sans Thin"
+                FontSize="11"
+                Foreground="#8D7DB9"
+                Text="{Binding IntegrationSummary, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
         <Border
-            Grid.Row="0"
+            Grid.Row="1"
             Margin="10,5,19,0"
             Padding="10,7"
             HorizontalAlignment="Stretch"
@@ -111,7 +131,7 @@
 
         <ListBox
             x:Name="IntegrationsList"
-            Grid.Row="1"
+            Grid.Row="2"
             HorizontalAlignment="Stretch"
             Background="Transparent"
             BorderThickness="0"
@@ -344,14 +364,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/PersonalMsg_ico.png" />
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/PersonalMsg_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -484,12 +515,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/WindowActivity_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/WindowActivity_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -635,12 +679,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/HeartRate_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/HeartRate_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -931,11 +988,7 @@
                                         Foreground="{StaticResource TextSectionHeaderBrush}"
                                         Text="Active devices" />
                                     <TextBlock
-                                        Margin="10,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="14"
-                                        Foreground="{StaticResource BorderMutedBrush}"
+                                        Style="{StaticResource TileStatusPill}"
                                         Text="{Binding IntegrationDisplay.TrackerBatteryDeviceSummary}" />
                                     <TextBlock
                                         Margin="10,0,0,0"
@@ -1034,12 +1087,25 @@
                                 </Border.Style>
                             </Border>
 
-                            <Image
+                            <Border
                                 Grid.Column="0"
-                                Margin="4"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/VR_bat_ico.png" />
+                                Width="40"
+                                Height="40"
+                                Margin="6,4,4,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#26FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Grid Margin="5">
+                                    <Image 
+                                        Effect="{StaticResource ImageShadowEffect}" 
+                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                        Source="/Img/Icons/VR_bat_ico.png" />
+                                </Grid>
+                            </Border>
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
@@ -1065,7 +1131,8 @@
                                     FontSize="13"
                                     Foreground="{StaticResource AccentLightPurpleBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it." />
+                                    Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it."
+                                    TextWrapping="Wrap" />
                             </StackPanel>
                             <StackPanel
                                 Grid.Column="2"
@@ -1142,10 +1209,7 @@
                                         Text="{Binding IntegrationDisplay.VrPerformanceCombined}" />
                                 </StackPanel>
                                 <TextBlock
-                                    Margin="3,0,0,6"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Style="{StaticResource TileStatusPill}"
                                     Text="{Binding IntegrationDisplay.VrPerformanceStatus}"
                                     TextWrapping="Wrap" />
 
@@ -1288,12 +1352,25 @@
                                 </Border.Style>
                             </Border>
 
-                            <Image
+                            <Border
                                 Grid.Column="0"
-                                Margin="4"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/vr-performance.png" />
+                                Width="40"
+                                Height="40"
+                                Margin="6,4,4,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#26FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Grid Margin="5">
+                                    <Image 
+                                        Effect="{StaticResource ImageShadowEffect}" 
+                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                        Source="/Img/Icons/vr-performance.png" />
+                                </Grid>
+                            </Border>
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
@@ -1516,12 +1593,25 @@
                                 </Border.Style>
                             </Border>
 
-                            <Image
+                            <Border
                                 Grid.Column="0"
-                                Margin="4"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/ComponentStats_ico.png" />
+                                Width="40"
+                                Height="40"
+                                Margin="6,4,4,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#26FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Grid Margin="5">
+                                    <Image 
+                                        Effect="{StaticResource ImageShadowEffect}" 
+                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                        Source="/Img/Icons/ComponentStats_ico.png" />
+                                </Grid>
+                            </Border>
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
@@ -1668,14 +1758,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/NetworkStats_ico.png" />
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/NetworkStats_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -1808,12 +1909,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/SystemTime_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/SystemTime_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -1947,12 +2061,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/Weather_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/Weather_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -2094,12 +2221,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/Twitch_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/Twitch_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -2144,13 +2284,10 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="12"
                                         Text="{Binding Modules.Twitch.StatusMessage}">
                                         <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
+                                            <Style BasedOn="{StaticResource TileStatusPill}" TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#C9C3D9" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Modules.Twitch.Connected}" Value="True">
@@ -2287,12 +2424,25 @@
 
 
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/TikTok_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                            <Image
+                                    Effect="{StaticResource ImageShadowEffect}"
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Source="/Img/Icons/TikTok_ico.png" />
+                            </Grid>
+                        </Border>
 
                         <StackPanel
                             Grid.Column="1"
@@ -2309,12 +2459,7 @@
                                     Text="TikTok"
                                     TextWrapping="Wrap" />
                                 <TextBlock
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="12"
-                                    FontStyle="Italic"
-                                    Foreground="White"
+                                    Style="{StaticResource TileStatusPill}"
                                     Opacity="0.8"
                                     Text="{Binding Modules.TikTokLive.ProfileStatusText, FallbackValue='Set a TikTok profile username.'}" />
                             </StackPanel>
@@ -2477,12 +2622,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/Discord_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/Discord_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -2527,11 +2685,8 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        VerticalAlignment="Center"
+                                        Style="{StaticResource TileStatusPill}"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="12"
-                                        Foreground="#8FE1B6"
                                         Text="{Binding Modules.Discord.CurrentChannelName, FallbackValue='Not connected'}" />
                                 </StackPanel>
                             </StackPanel>
@@ -2661,12 +2816,25 @@
                             </Border.Style>
                         </Border>
 
-                        <Image
+                        <Border
                             Grid.Column="0"
-                            Margin="4"
-                            Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/VRCRadar_ico.png" />
+                            Width="40"
+                            Height="40"
+                            Margin="6,4,4,4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#1FFFFFFF"
+                            BorderBrush="#26FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                            <Grid Margin="5">
+                                <Image 
+                                    Effect="{StaticResource ImageShadowEffect}" 
+                                    RenderOptions.BitmapScalingMode="HighQuality" 
+                                    Source="/Img/Icons/VRCRadar_ico.png" />
+                            </Grid>
+                        </Border>
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
@@ -2711,11 +2879,8 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        VerticalAlignment="Center"
+                                        Style="{StaticResource TileStatusPill}"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="12"
-                                        Foreground="#B0C4FF"
                                         Text="{Binding Modules.VrcRadar.CurrentWorldName, FallbackValue='Not in a world'}" />
                                 </StackPanel>
                             </StackPanel>
@@ -2969,12 +3134,25 @@
                                 </Border.Style>
                             </Border>
 
-                            <Image
+                            <Border
                                 Grid.Column="0"
-                                Margin="4"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/Soundpad.png" />
+                                Width="40"
+                                Height="40"
+                                Margin="6,4,4,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#26FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Grid Margin="5">
+                                    <Image 
+                                        Effect="{StaticResource ImageShadowEffect}" 
+                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                        Source="/Img/Icons/Soundpad.png" />
+                                </Grid>
+                            </Border>
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
@@ -3120,12 +3298,25 @@
                                 </Border.Style>
                             </Border>
 
-                            <Image
+                            <Border
                                 Grid.Column="0"
-                                Margin="4"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/spotify_ico.png" />
+                                Width="40"
+                                Height="40"
+                                Margin="6,4,4,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#26FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Grid Margin="5">
+                                    <Image 
+                                        Effect="{StaticResource ImageShadowEffect}" 
+                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                        Source="/Img/Icons/spotify_ico.png" />
+                                </Grid>
+                            </Border>
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
@@ -3141,12 +3332,7 @@
                                         Text="Spotify"
                                         TextWrapping="Wrap" />
                                     <TextBlock
-                                        Margin="8,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="12"
-                                        FontStyle="Italic"
-                                        Foreground="White"
+                                        Style="{StaticResource TileStatusPill}"
                                         Opacity="0.8"
                                         Text="{Binding SpotifyDisplay.StatusText, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
@@ -3477,12 +3663,25 @@
                                 </Border.Style>
                             </Border>
 
-                            <Image
+                            <Border
                                 Grid.Column="0"
-                                Margin="4"
-                                Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="HighQuality"
-                                Source="/Img/Icons/MediaLink_ico.png" />
+                                Width="40"
+                                Height="40"
+                                Margin="6,4,4,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#1FFFFFFF"
+                                BorderBrush="#26FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Grid Margin="5">
+                                    <Image 
+                                        Effect="{StaticResource ImageShadowEffect}" 
+                                        RenderOptions.BitmapScalingMode="HighQuality" 
+                                        Source="/Img/Icons/MediaLink_ico.png" />
+                                </Grid>
+                            </Border>
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
