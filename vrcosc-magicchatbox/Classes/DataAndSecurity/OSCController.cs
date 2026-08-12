@@ -1,13 +1,9 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Core.Osc;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
-/// <summary>
-/// Thin orchestrator for OSC message building and chat management.
-/// Business logic lives in IOscProvider implementations and ChatStateManager.
-/// </summary>
 public sealed class OSCController
 {
     private readonly ChatStateManager _chatMgr;

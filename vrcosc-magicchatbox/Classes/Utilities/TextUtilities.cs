@@ -1,12 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes.Utilities;
 
-/// <summary>
-/// Pure text-transformation helpers (no side effects, no state).
-/// Extracted from DataController to remove coupling.
-/// </summary>
 public static class TextUtilities
 {
     private static readonly Dictionary<char, string> SuperscriptMapping = new()
@@ -21,10 +17,6 @@ public static class TextUtilities
         {'9', "⁹"}, {',', "'"}, {'.', "'"}, {'%', "⁒"}
     };
 
-    /// <summary>
-    /// Converts each character of the input string to its Unicode superscript equivalent.
-    /// Non-mappable characters are dropped; whitespace is preserved as a regular space.
-    /// </summary>
     public static string TransformToSuperscript(string input)
     {
         if (string.IsNullOrEmpty(input))

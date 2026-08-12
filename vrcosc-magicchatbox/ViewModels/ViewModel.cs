@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.ComponentModel;
@@ -15,11 +15,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 namespace vrcosc_magicchatbox.ViewModels
 {
 
-    /// <summary>
-    /// Root application ViewModel. Serves as the <c>DataContext</c> for <c>MainWindow</c>
-    /// and implements <see cref="Core.State.IAppState"/> so page ViewModels receive a
-    /// single, consistent view of application state via dependency injection.
-    /// </summary>
     public partial class ViewModel : ObservableObject, Core.State.IAppState
     {
         public AppSettings AppSettingsInstance { get; }
@@ -38,12 +33,10 @@ namespace vrcosc_magicchatbox.ViewModels
         public OscDisplayState OscDisplay { get; }
         public TtsAudioDisplayState TtsAudio { get; }
 
-        // Initialized in constructor (needs AppSettings from DI, not available during field init)
         public EmojiService Emojis { get; }
 
         private readonly PulsoidDisplayState _pulsoid;
 
-        // Lazily-resolved services (depend on IAppState = this ViewModel → circular at construction)
         private readonly Lazy<IModuleHost> _modules;
         public IModuleHost Modules => _modules.Value;
 
@@ -53,7 +46,6 @@ namespace vrcosc_magicchatbox.ViewModels
         [ObservableProperty] private bool _Egg_Dev = false;
         [ObservableProperty] private int _MainWindowBlurEffect = 0;
 
-        // Page-specific ViewModels (lazy-resolved to avoid circular dep: page VMs depend on IAppState = this)
         private readonly Lazy<ChattingPageViewModel> _chatting;
         public ChattingPageViewModel Chatting => _chatting.Value;
         private readonly Lazy<StatusPageViewModel> _status;
@@ -62,11 +54,11 @@ namespace vrcosc_magicchatbox.ViewModels
         public IntegrationsPageViewModel Integrations => _integrations.Value;
         private readonly Lazy<OptionsPageViewModel> _options;
         public OptionsPageViewModel Options => _options.Value;
+        private readonly Lazy<StatusSetSwitcherViewModel> _statusSets;
+        public StatusSetSwitcherViewModel StatusSets => _statusSets.Value;
+        private readonly Lazy<AfkStyleViewModel> _afkStyles;
+        public AfkStyleViewModel AfkStyles => _afkStyles.Value;
 
-        /// <summary>
-        /// Initializes the root application ViewModel, wiring all injected state containers,
-        /// settings, services, and lazily-resolved page ViewModels together.
-        /// </summary>
         public ViewModel(
             AppUpdateState updateState,
             OscDisplayState oscDisplay,
@@ -89,7 +81,9 @@ namespace vrcosc_magicchatbox.ViewModels
             Lazy<ChattingPageViewModel> chatting,
             Lazy<StatusPageViewModel> status,
             Lazy<IntegrationsPageViewModel> integrations,
-            Lazy<OptionsPageViewModel> options)
+            Lazy<OptionsPageViewModel> options,
+            Lazy<StatusSetSwitcherViewModel> statusSets,
+            Lazy<AfkStyleViewModel> afkStyles)
         {
             UpdateState = updateState;
             OscDisplay = oscDisplay;
@@ -115,6 +109,8 @@ namespace vrcosc_magicchatbox.ViewModels
             _status = status;
             _integrations = integrations;
             _options = options;
+            _statusSets = statusSets;
+            _afkStyles = afkStyles;
 
             UpdateState.AppVersion = new Models.Version(appInfoService.GetApplicationVersion());
 
@@ -151,6 +147,9 @@ namespace vrcosc_magicchatbox.ViewModels
 
         [RelayCommand]
         private void OpenGitHub() => _nav.OpenUrl(Core.Constants.GitHubRepoUrl);
+
+        [RelayCommand]
+        private void OpenWiki() => _nav.OpenUrl(Core.Constants.WikiHomeUrl);
 
         [RelayCommand]
         private void OpenGitHubChanges()
@@ -209,7 +208,6 @@ namespace vrcosc_magicchatbox.ViewModels
             }
         }
 
-        /// <summary>Observes a fire-and-forget task so failures are logged instead of lost.</summary>
         private static async Task ObserveFireAndForget(Task task)
         {
             try
@@ -226,7 +224,6 @@ namespace vrcosc_magicchatbox.ViewModels
             => OnMasterSwitchToggled();
 
 
-        // Proxy for PulsoidModule PropertyChanged subscription compatibility
         public bool PulsoidAuthConnected
         {
             get => _pulsoid.AuthConnected;
@@ -249,10 +246,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private int _selectedMenuIndex = 3;
 
-        /// <summary>
-        /// Index of the currently selected menu tab (0=Integrations, 1=Status, 2=Chatting, 3=Options).
-        /// Used with IndexToVisibilityConverter in XAML for page visibility.
-        /// </summary>
         public int SelectedMenuIndex
         {
             get => _selectedMenuIndex;

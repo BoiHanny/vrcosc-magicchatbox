@@ -5,9 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Starting MagicChatbox"
-    Width="400"
-    AllowsTransparency="True"
-    Background="Transparent"
+    Width="580"
+    Background="#150A2E"
     Cursor="AppStarting"
     ResizeMode="NoResize"
     SizeToContent="Height"
@@ -15,104 +14,197 @@
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
-        <DropShadowEffect
-            x:Key="ShadowEffect"
-            BlurRadius="20"
-            Opacity="0.4"
-            ShadowDepth="0"
-            Color="Black" />
+        <Style x:Key="StartupProgressBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Border
+                            Background="#241748"
+                            CornerRadius="3"
+                            SnapsToDevicePixels="True">
+                            <Grid ClipToBounds="True">
+                                <Border x:Name="PART_Track" />
+                                <Border
+                                    x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="3">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#6E4FB5" />
+                                            <GradientStop Offset="1" Color="#C3A9FF" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Opacity="0.7"
+                                            RenderingBias="Performance"
+                                            ShadowDepth="0"
+                                            Color="#9E82DD" />
+                                    </Border.Effect>
+                                </Border>
+
+                                <!--  Progress only moves when a step reports in, and the longest step by
+                                      far is the first real layout of the main window - several seconds
+                                      during which the bar sat perfectly still and the whole thing read as
+                                      hung. This sweep never stops. The splash owns its own UI thread, so
+                                      it keeps animating while the main one is busy laying out, which is
+                                      exactly when reassurance is needed.  -->
+                                <Border
+                                    x:Name="shimmer"
+                                    Width="120"
+                                    HorizontalAlignment="Left"
+                                    IsHitTestVisible="False">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#00FFFFFF" />
+                                            <GradientStop Offset="0.5" Color="#4DFFFFFF" />
+                                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="-120" />
+                                    </Border.RenderTransform>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="shimmer"
+                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                            From="-120"
+                                            To="620"
+                                            Duration="0:0:1.6" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StartupGhostButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#A99BD4" />
+            <Setter Property="FontFamily" Value="Albert Sans Thin" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="ghostBorder"
+                            Padding="16,6"
+                            Background="Transparent"
+                            BorderBrush="#463473"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ghostBorder" Property="Background" Value="#2E2050" />
+                                <Setter TargetName="ghostBorder" Property="BorderBrush" Value="#6D55A8" />
+                                <Setter Property="Foreground" Value="#DCD2FF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ghostBorder" Property="Background" Value="#241A40" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
+
     <Border
-        Margin="15"
-        Background="{StaticResource SurfacePrimaryBrush}"
-        Effect="{StaticResource ShadowEffect}"
+        Background="#150A2E"
+        MouseDown="DraggableGrid_MouseLeftButtonDown"
         SnapsToDevicePixels="True">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="40" />
-            </Grid.RowDefinitions>
-            <StackPanel
-                Grid.Row="0"
-                Background="{StaticResource SurfacePrimaryBrush}"
-                Orientation="Horizontal">
-                <Grid
-                    x:Name="grabhandle"
-                    Margin="0,0,70,0"
-                    MouseDown="DraggableGrid_MouseLeftButtonDown">
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="36,-4,0,0"
-                        Padding="0,12,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="White"
-                        Text="MagicChatbox">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="315"
-                                Opacity="1"
-                                ShadowDepth="0"
-                                Color="Black" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                    <Image
-                        Margin="8,5,122,4"
-                        Source="/Img/Icons/MagicChatbox_ico.png"
-                        Stretch="Fill" />
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="117,-4,0,0"
-                        Padding="0,12,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="White"
-                        Text="{Binding UpdateState.AppVersion.VersionNumber}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="315"
-                                Opacity="1"
-                                ShadowDepth="0"
-                                Color="Black" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                </Grid>
-            </StackPanel>
-            <Grid Grid.Row="1" Background="#ADA6BB">
-                <StackPanel Margin="36,20">
-                    <TextBlock
-                        FontSize="13"
-                        Text="Sit back, relax, and let us prepare your app"
-                        TextWrapping="Wrap" />
+        <Border BorderBrush="#33265C" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                    <!--  Progress bar with smooth animation  -->
-                    <ProgressBar
-                        x:Name="ProgressBar"
-                        Height="9"
-                        Margin="0,12,0,6"
-                        RenderTransformOrigin="0.5,0.5">
-                        <ProgressBar.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform ScaleY="-1" />
-                                <SkewTransform />
-                                <RotateTransform />
-                                <TranslateTransform />
-                            </TransformGroup>
-                        </ProgressBar.RenderTransform>
-                    </ProgressBar>
+                <Border Grid.Row="0" Padding="30,26,30,22">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Offset="0" Color="#2E1568" />
+                            <GradientStop Offset="1" Color="#1B0E3C" />
+                        </LinearGradientBrush>
+                    </Border.Background>
 
-                    <!--  Rolling 3-strip step display  -->
-                    <Grid Height="60" ClipToBounds="True">
-                        <StackPanel x:Name="StepPanel" Margin="0,0,0,0">
-                            <!--  Previous step (faded)  -->
-                            <Grid Height="20">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Image
+                            Grid.Column="0"
+                            Width="54"
+                            Height="54"
+                            Margin="0,0,18,0"
+                            VerticalAlignment="Center"
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            Source="/Img/Icons/MagicChatbox_ico.png" />
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="27"
+                                    Foreground="White"
+                                    Text="MagicChatbox" />
+                                <Border
+                                    Margin="12,4,0,0"
+                                    Padding="8,2"
+                                    VerticalAlignment="Center"
+                                    Background="#2C1E58"
+                                    BorderBrush="#4B3689"
+                                    BorderThickness="1"
+                                    CornerRadius="9">
+                                    <TextBlock
+                                        x:Name="VersionText"
+                                        d:Text="0.9.215"
+                                        FontFamily="Albert Sans Thin"
+                                        FontSize="11"
+                                        Foreground="#C3A9FF" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock
+                                Margin="2,6,0,0"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="13"
+                                Foreground="#9B8FC6"
+                                Text="Sit back, relax, and let us prepare your app"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <StackPanel Grid.Row="1" Margin="30,22,30,20">
+                    <ProgressBar x:Name="ProgressBar" Style="{StaticResource StartupProgressBar}" />
+
+                    <Grid
+                        Height="72"
+                        Margin="0,18,0,0"
+                        ClipToBounds="True">
+                        <StackPanel x:Name="StepPanel">
+                            <Grid Height="22">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -120,139 +212,192 @@
                                 <TextBlock
                                     x:Name="PrevStepText"
                                     Grid.Column="0"
-                                    FontSize="11"
-                                    Foreground="#333333"
-                                    Opacity="0.5"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="#6E639A"
                                     Text=""
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     x:Name="PrevStepTime"
                                     Grid.Column="1"
-                                    Margin="8,0,0,0"
-                                    FontSize="10"
-                                    Foreground="#555555"
-                                    Opacity="0.5"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="#5A5185"
                                     Text="" />
                             </Grid>
-                            <!--  Current step (full opacity)  -->
-                            <Grid Height="20">
+
+                            <Grid Height="26">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
+                                <Border
+                                    Grid.Column="0"
+                                    Width="3"
+                                    Height="15"
+                                    Margin="0,0,10,0"
+                                    VerticalAlignment="Center"
+                                    Background="#C3A9FF"
+                                    CornerRadius="2" />
                                 <TextBlock
                                     x:Name="CurrentStepText"
-                                    Grid.Column="0"
-                                    FontSize="12"
-                                    FontWeight="SemiBold"
-                                    Foreground="#111111"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="14"
+                                    Foreground="White"
                                     Text=""
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     x:Name="CurrentStepTime"
-                                    Grid.Column="1"
-                                    Margin="8,0,0,0"
-                                    FontSize="10"
-                                    Foreground="#444444"
+                                    Grid.Column="2"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="#9B8FC6"
                                     Text="" />
                             </Grid>
-                            <!--  Next step (faded preview)  -->
-                            <Grid Height="20">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+
+                            <Grid Height="22">
                                 <TextBlock
                                     x:Name="NextStepText"
-                                    Grid.Column="0"
-                                    FontSize="11"
-                                    Foreground="#333333"
-                                    Opacity="0.5"
+                                    Margin="13,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="12"
+                                    Foreground="#6E639A"
                                     Text=""
                                     TextTrimming="CharacterEllipsis" />
                             </Grid>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
-            </Grid>
-            <Border
-                Grid.Row="2"
-                BorderBrush="{StaticResource TextSubtleBrush}"
-                BorderThickness="0,1,0,0">
-                <Grid>
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="1,0" EndPoint="1,1">
-                            <LinearGradientBrush.RelativeTransform>
-                                <TransformGroup>
-                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
-                                    <RotateTransform Angle="-106.965" CenterX="0.5" CenterY="0.5" />
-                                    <TranslateTransform />
-                                </TransformGroup>
-                            </LinearGradientBrush.RelativeTransform>
-                            <GradientStop Color="#FF3B2075" />
-                            <GradientStop Offset="1" Color="#FF562020" />
-                        </LinearGradientBrush>
-                    </Grid.Background>
-                    <StackPanel
-                        Margin="0,0,24,0"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal">
+
+                <Border
+                    Grid.Row="2"
+                    Padding="30,14"
+                    Background="#110823"
+                    BorderBrush="#2A1E4E"
+                    BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            x:Name="BylineText"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            d:Opacity="1"
+                            Opacity="0"
+                            Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,0,6,0"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="#6A5F94"
+                                Text="Made with ♥ by" />
+                            <!--  The holo treatment the Lyrics chip wears: the same four-stop ramp, drifting
+                                  under the letters, with a sheen that crosses them. It is the last thing
+                                  to arrive on the splash, so it gets to be the flourish.  -->
+                            <Grid>
+                                <TextBlock
+                                    x:Name="BylineName"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="16"
+                                    Text="BoiHanny">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#3FE0D2" />
+                                            <GradientStop Offset="0.35" Color="#6E9BFF" />
+                                            <GradientStop Offset="0.65" Color="#B96BFF" />
+                                            <GradientStop Offset="1" Color="#FF6FC7" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="12"
+                                            Opacity="0.55"
+                                            RenderingBias="Performance"
+                                            ShadowDepth="0"
+                                            Color="#A97BFF" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+
+                                <!--  A white copy of the letters, revealed through a narrow band that
+                                      travels across it. The band is an opacity mask on the text itself,
+                                      so the shine exists only where there are glyphs - the Lyrics chip
+                                      gets away with sweeping a plain rectangle because it crosses a
+                                      filled chip, but over bare text that same rectangle is just a pale
+                                      block sliding past the name.  -->
+                                <TextBlock
+                                    x:Name="BylineShine"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="16"
+                                    Foreground="#FFFFFFFF"
+                                    IsHitTestVisible="False"
+                                    Text="BoiHanny">
+                                    <TextBlock.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop x:Name="ShineLead" Offset="-0.5" Color="#00FFFFFF" />
+                                            <GradientStop x:Name="ShinePeak" Offset="-0.32" Color="#FFFFFFFF" />
+                                            <GradientStop x:Name="ShineTail" Offset="-0.14" Color="#00FFFFFF" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.OpacityMask>
+                                </TextBlock>
+
+                                <Grid.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <!--  The delay lets the byline finish fading up first. Starting
+                                                  on Loaded put the first pass underneath the reveal, so the
+                                                  two read as one slow fade instead of a glint across a name
+                                                  that is already there.  -->
+                                            <Storyboard BeginTime="0:0:1.4" RepeatBehavior="Forever">
+                                                <!--  Held at the far side after each pass so the name is
+                                                      its own colours most of the time and the shine reads
+                                                      as an occasional glint rather than a strobe.  -->
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShineLead" Storyboard.TargetProperty="Offset">
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.5" />
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.0" />
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:2.9" Value="1.0" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShinePeak" Storyboard.TargetProperty="Offset">
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.32" />
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.18" />
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:2.9" Value="1.18" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShineTail" Storyboard.TargetProperty="Offset">
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.14" />
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.36" />
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:2.9" Value="1.36" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Grid.Triggers>
+                            </Grid>
+                        </StackPanel>
+
                         <Button
                             x:Name="CancelButton"
-                            Width="69"
-                            Height="25"
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
                             Click="CancelButton_Click"
                             Content="Cancel"
-                            Style="{StaticResource Status_Button_style}">
-                            <Button.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="0"
-                                    Opacity="0.7"
-                                    ShadowDepth="0"
-                                    Color="#FFCE5050" />
-                            </Button.Effect>
-                        </Button>
-                    </StackPanel>
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="10,2,0,0"
-                        Padding="0,12,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="{StaticResource TextAccentBlueBrush}"
-                        Text="By BoiHanny">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="315"
-                                Opacity="1"
-                                ShadowDepth="0"
-                                Color="#FF122BFF" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="80,4,0,0"
-                        Padding="0,12,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="10"
-                        Foreground="{StaticResource TextAccentBlueBrush}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Direction="315"
-                                Opacity="1"
-                                ShadowDepth="0"
-                                Color="#FFE712FF" />
-                        </TextBlock.Effect><Run Language="en-gb" Text="ItsByMe" /></TextBlock>
-                </Grid>
-            </Border>
-        </Grid>
+                            Style="{StaticResource StartupGhostButton}" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
     </Border>
 </Window>

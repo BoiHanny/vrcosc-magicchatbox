@@ -1,12 +1,9 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Persisted OpenAI credentials and model preferences, stored with encrypted access tokens.
-/// </summary>
 public partial class OpenAISettings : VersionedSettings
 {
     public static string DefaultApiStream { get; } = "b2t8DhYcLcu7Nu0suPcvc8MkHBjZNbEinG/3ybInlUK/5UkyNRVhK145nO7C4Mwhe1Zer1hBcG/F1b5f/BMcNFLXk4K6ozRcK7gHcebJZWnpxEDxjW6DyrZ/si913BPp";

@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace vrcosc_magicchatbox.ViewModels.Models;
 
-/// <summary>
-/// A named group that organizes status items and controls auto-cycle eligibility.
-/// </summary>
 public class StatusGroup : INotifyPropertyChanged
 {
     private string _groupId = Guid.NewGuid().ToString();
@@ -41,7 +38,6 @@ public class StatusGroup : INotifyPropertyChanged
         set { _creationDate = value; Notify(); }
     }
 
-    /// <summary>Transient — not persisted. True while the group name is being edited inline.</summary>
     [Newtonsoft.Json.JsonIgnore]
     public bool IsRenaming
     {
@@ -49,7 +45,6 @@ public class StatusGroup : INotifyPropertyChanged
         set { _isRenaming = value; Notify(); }
     }
 
-    /// <summary>Transient buffer used during inline rename.</summary>
     [Newtonsoft.Json.JsonIgnore]
     public string RenameBuffer
     {
@@ -57,7 +52,6 @@ public class StatusGroup : INotifyPropertyChanged
         set { _renameBuffer = value; Notify(); }
     }
 
-    /// <summary>Transient — not persisted. True when this group is the currently selected/viewed group in the popup.</summary>
     [Newtonsoft.Json.JsonIgnore]
     public bool IsPopupSelected
     {
@@ -65,7 +59,6 @@ public class StatusGroup : INotifyPropertyChanged
         set { if (_isPopupSelected != value) { _isPopupSelected = value; Notify(); } }
     }
 
-    /// <summary>Computed — true when this is the protected Default group (cannot be renamed or deleted).</summary>
     [Newtonsoft.Json.JsonIgnore]
     public bool IsDefault => Name == "Default";
 

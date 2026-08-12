@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace vrcosc_magicchatbox.Core.State;
 
-/// <summary>
-/// WPF implementation of IUiDispatcher, delegates to Application.Current.Dispatcher.
-/// </summary>
 public sealed class WpfUiDispatcher : IUiDispatcher
 {
     public void Invoke(Action action)

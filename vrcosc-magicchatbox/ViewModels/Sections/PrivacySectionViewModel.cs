@@ -1,14 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.UI.Dialogs;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for the Privacy &amp; Permissions options page.
-/// Shows per-hook approval state and provides commands to manage consent.
-/// </summary>
 public partial class PrivacySectionViewModel : ObservableObject
 {
     private readonly IPrivacyConsentService _consentService;
@@ -24,6 +20,7 @@ public partial class PrivacySectionViewModel : ObservableObject
     [ObservableProperty] private ConsentState _networkStatsState;
     [ObservableProperty] private ConsentState _soundpadBridgeState;
     [ObservableProperty] private ConsentState _vrcLogReaderState;
+    [ObservableProperty] private ConsentState _vrPerformanceState;
 
     public PrivacySectionViewModel(IPrivacyConsentService consentService)
     {
@@ -43,6 +40,7 @@ public partial class PrivacySectionViewModel : ObservableObject
         NetworkStatsState = _consentService.GetState(PrivacyHook.NetworkStats);
         SoundpadBridgeState = _consentService.GetState(PrivacyHook.SoundpadBridge);
         VrcLogReaderState = _consentService.GetState(PrivacyHook.VrcLogReader);
+        VrPerformanceState = _consentService.GetState(PrivacyHook.VrPerformance);
     }
 
     [RelayCommand]

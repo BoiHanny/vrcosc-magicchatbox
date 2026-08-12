@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="vrcosc_magicchatbox.UI.Controls.ToastOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -26,12 +26,6 @@
         <ItemsControl.ItemTemplate>
             <DataTemplate DataType="{x:Type toast:ToastItemViewModel}">
 
-                <!--
-                    ClipToBounds="True" clips the accent strip Rectangle to the rounded corners.
-                    Opacity="0" sets the starting value; the entry animation fades/slides it in.
-                    Entry:  slide from X=360 + fade 0→1  (0.25 s EaseOut)
-                    Exit:   slide to  X=360 + fade 1→0  (0.22 s EaseIn, matches ExitAnimationMs)
-                -->
                 <Border
                     Width="320"
                     Margin="0,0,0,8"
@@ -64,7 +58,6 @@
                         <Style TargetType="Border">
                             <Style.Triggers>
 
-                                <!--  Entry: slide in from right + fade in  -->
                                 <EventTrigger RoutedEvent="Border.Loaded">
                                     <BeginStoryboard>
                                         <Storyboard>
@@ -90,7 +83,6 @@
                                     </BeginStoryboard>
                                 </EventTrigger>
 
-                                <!--  Exit: slide out right + fade out (0.22 s = ExitAnimationMs)  -->
                                 <DataTrigger Binding="{Binding IsExiting}" Value="True">
                                     <DataTrigger.EnterActions>
                                         <BeginStoryboard>
@@ -127,10 +119,8 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <!--  Left accent colour strip — clipped to rounded corners by ClipToBounds on the outer Border  -->
                         <Rectangle Grid.Column="0" Fill="{Binding AccentBrush}" />
 
-                        <!--  Content: title + message + optional action button  -->
                         <StackPanel Grid.Column="1" Margin="12,10,4,10">
 
                             <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
@@ -152,7 +142,6 @@
                                 Text="{Binding Message}"
                                 TextWrapping="Wrap" />
 
-                            <!--  Action button with custom template matching app's purple palette  -->
                             <Button
                                 Height="26"
                                 Margin="0,8,0,0"
@@ -188,7 +177,6 @@
 
                         </StackPanel>
 
-                        <!--  Close (✕) button  -->
                         <Button
                             Grid.Column="2"
                             Width="24"

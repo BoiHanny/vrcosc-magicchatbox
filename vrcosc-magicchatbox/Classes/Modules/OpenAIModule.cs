@@ -1,4 +1,4 @@
-using OpenAI;
+﻿using OpenAI;
 using OpenAI.Audio;
 using OpenAI.Chat;
 using System;
@@ -14,9 +14,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Wraps the OpenAI SDK client, handles authentication, and implements speech-to-text transcription for the app.
-/// </summary>
 public class OpenAIModule : ITranscriptionService
 {
     private readonly ISettingsProvider<OpenAISettings> _settingsProvider;
@@ -64,10 +61,6 @@ public class OpenAIModule : ITranscriptionService
     }
 
 
-    /// <summary>
-    /// True only when OpenAI definitively rejected the credentials (HTTP 401 or an
-    /// invalid key/organization message) — never for transient network/server errors.
-    /// </summary>
     private static bool IsDefinitiveAuthFailure(Exception ex)
     {
         if (ex is System.ClientModel.ClientResultException clientResult && clientResult.Status == 401)
@@ -82,8 +75,6 @@ public class OpenAIModule : ITranscriptionService
     {
         Logging.WriteException(ex, MSGBox: false);
 
-        // Only wipe stored credentials when they were definitively rejected; a transient
-        // failure (network down, 5xx, timeout) must not destroy a working key.
         if (IsDefinitiveAuthFailure(ex))
         {
             Settings.AccessTokenEncrypted = string.Empty;
@@ -124,9 +115,6 @@ public class OpenAIModule : ITranscriptionService
         }
     }
 
-    /// <summary>
-    /// Creates and tests an <see cref="OpenAIClient"/> with the supplied credentials, updating connection state on success or failure.
-    /// </summary>
     public async Task InitializeClient(string apiKey, string organizationID)
     {
         if (!_consent.IsApproved(PrivacyHook.InternetAccess))

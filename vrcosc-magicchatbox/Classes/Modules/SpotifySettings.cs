@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
@@ -57,10 +57,6 @@ public sealed class SpotifyTemplatePreset
     public bool SupportsSeekbar => SpotifySettings.TemplateSupportsSeekbar(Template);
 }
 
-/// <summary>
-/// Persisted settings for the first-class Spotify Web API integration.
-/// OAuth tokens are encrypted with the same DPAPI pattern used by other integrations.
-/// </summary>
 public partial class SpotifySettings : VersionedSettings
 {
     [ObservableProperty] private string _clientId = string.Empty;
@@ -118,6 +114,18 @@ public partial class SpotifySettings : VersionedSettings
     [ObservableProperty] private bool _showShuffle = true;
     [ObservableProperty] private bool _showRepeat = true;
     [ObservableProperty] private bool _partyModeEnabled = true;
+    [ObservableProperty] private bool _showOnlyOnChange;
+
+    private double _transientDuration = 25.0;
+    public double TransientDuration
+    {
+        get => _transientDuration;
+        set
+        {
+            if (value < 0) value = 0;
+            SetProperty(ref _transientDuration, value);
+        }
+    }
 
     [ObservableProperty] private string _outputTemplate = "{play_icon} {artist} - {title} {liked_icon} {explicit_icon}";
     [ObservableProperty] private string _partyTemplate = "{play_icon} DJ: {title} - {artist} {queue}";

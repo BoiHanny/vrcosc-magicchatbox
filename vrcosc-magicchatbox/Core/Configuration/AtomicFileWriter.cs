@@ -1,33 +1,15 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Core.Configuration;
 
-/// <summary>
-/// Reusable atomic file write helper.
-///
-/// Writes are durable: payload is first written to a sibling <c>*.tmp</c> file,
-/// then moved over the target with <see cref="File.Move(string, string, bool)"/>.
-/// If the move fails because of a transient sharing violation (e.g. AV/indexer
-/// holding the file), the operation is retried a small, bounded number of
-/// times with a short backoff.
-///
-/// On terminal failure the temp file is cleaned up and the exception is
-/// logged via <see cref="Logging"/>. The original target file is not modified
-/// unless the move succeeds, so callers either see the new content or the
-/// previous content — never a partially written file.
-/// </summary>
 internal static class AtomicFileWriter
 {
     private const int MaxAttempts = 3;
     private const int InitialBackoffMs = 25;
 
-    /// <summary>
-    /// Atomically writes <paramref name="contents"/> to <paramref name="path"/>.
-    /// Returns true on success, false on failure (already logged).
-    /// </summary>
     public static bool WriteAllText(string path, string contents)
     {
         if (string.IsNullOrEmpty(path))
@@ -101,7 +83,6 @@ internal static class AtomicFileWriter
         }
         catch
         {
-            // Best-effort cleanup; ignore.
         }
     }
 }

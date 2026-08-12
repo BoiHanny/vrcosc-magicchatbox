@@ -147,6 +147,20 @@
             </ContentControl>
 
             <ContentControl
+                x:Name="OptionsWrapper_VrPerformance"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="vr-performance">
+                <options:VrPerformanceSection x:Name="VrPerformanceSectionControl" DataContext="{Binding VrPerformanceSection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Lyrics"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="lyrics">
+                <options:LyricsSection x:Name="LyricsSectionControl" DataContext="{Binding LyricsSection}" />
+            </ContentControl>
+
+            <ContentControl
                 x:Name="OptionsWrapper_Privacy"
                 Style="{StaticResource OptionSectionWithResetStyle}"
                 Tag="privacy">

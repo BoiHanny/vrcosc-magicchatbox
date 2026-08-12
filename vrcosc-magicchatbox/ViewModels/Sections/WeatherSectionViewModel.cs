@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -7,10 +7,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for Weather options.
-/// Complete binding surface for WeatherSection.xaml.
-/// </summary>
 public partial class WeatherSectionViewModel : ObservableObject
 {
     private readonly IWeatherService _weatherService;
@@ -20,10 +16,6 @@ public partial class WeatherSectionViewModel : ObservableObject
     public IntegrationDisplayState IntegrationDisplay { get; }
     public WeatherOverrideState WeatherOverride { get; }
 
-    /// <summary>
-    /// Initializes the weather section ViewModel with the weather module, settings,
-    /// app-state, display state, and override-item factory service.
-    /// </summary>
     public WeatherSectionViewModel(
         IWeatherService weatherService,
         ISettingsProvider<AppSettings> appSettingsProvider,

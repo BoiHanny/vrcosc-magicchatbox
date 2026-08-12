@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Newtonsoft.Json;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -33,7 +33,7 @@ public sealed class JsonSettingsProviderTests : IDisposable
 
     public void Dispose()
     {
-        try { Directory.Delete(_dir, recursive: true); } catch { /* best effort */ }
+        try { Directory.Delete(_dir, recursive: true); } catch { }
     }
 
     [Fact]
@@ -49,9 +49,6 @@ public sealed class JsonSettingsProviderTests : IDisposable
     [Fact]
     public void Dispose_WithoutReadingValue_DoesNotClobberExistingFile()
     {
-        // Regression test for the Pulsoid token loss bug: at shutdown PulsoidModule saved
-        // good settings, then the DI container disposed a JsonSettingsProvider whose Value
-        // was never read — which overwrote the file with the literal text "null".
         var saved = new PulsoidModuleSettings { CurrentHeartRateTitle = "Keep me" };
         File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(saved, Formatting.Indented));
         string before = File.ReadAllText(SettingsFile);
@@ -89,8 +86,6 @@ public sealed class JsonSettingsProviderTests : IDisposable
     [Fact]
     public void Value_WhenFileContainsNullLiteral_ReturnsDefaults()
     {
-        // Files damaged by the dispose-null bug contain the literal text "null";
-        // loading one must fall back to defaults instead of returning null.
         File.WriteAllText(SettingsFile, "null");
 
         var provider = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
@@ -102,7 +97,6 @@ public sealed class JsonSettingsProviderTests : IDisposable
     [Fact]
     public void Value_WhenFileIsNulFilled_ReturnsDefaults()
     {
-        // A hard power loss can leave the file NUL-filled (allocated but never flushed).
         File.WriteAllText(SettingsFile, new string('\0', 64));
 
         var provider = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
@@ -144,10 +138,6 @@ public sealed class JsonSettingsProviderTests : IDisposable
     [Fact]
     public void Value_WhenFileIsLockedDuringLoad_DoesNotQuarantineOrOverwriteFile()
     {
-        // A transiently locked file (AV scanner, backup/sync tool) is an IO failure,
-        // not corruption: the provider must fall back to in-memory defaults without
-        // renaming the intact file to .corrupt-* — and must never save those defaults
-        // over the intact file, not even at dispose.
         var saved = new PulsoidModuleSettings { CurrentHeartRateTitle = "Keep me" };
         File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(saved, Formatting.Indented));
         string before = File.ReadAllText(SettingsFile);
@@ -177,7 +167,6 @@ public sealed class JsonSettingsProviderTests : IDisposable
         Assert.Single(Directory.GetFiles(_dir, "*.corrupt-*"));
         Assert.False(File.Exists(SettingsFile));
 
-        // Unlike an IO failure, the corrupt path stays persistable: dispose saves defaults.
         provider.Dispose();
         Assert.True(File.Exists(SettingsFile));
     }
@@ -197,7 +186,6 @@ public sealed class JsonSettingsProviderTests : IDisposable
             Assert.Null(ex);
         }
 
-        // The failed save must leave the previous file content intact.
         Assert.Equal(before, File.ReadAllText(SettingsFile));
         provider.Dispose();
     }

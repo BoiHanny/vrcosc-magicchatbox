@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,16 +9,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Services.Hardware;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Driverless hardware monitor built on Windows APIs and WMI. It intentionally avoids
-/// kernel-mode sensor drivers such as WinRing0 so opening the app cannot trigger BYOVD alerts.
-/// </summary>
 public sealed class HardwareMonitorService : IHardwareMonitorService
 {
     private readonly object _lock = new();
+    private readonly LhmGpuSensorProvider _vendorGpu = new();
     private IReadOnlyList<string>? _gpuCache;
     private IReadOnlyList<GpuInfo>? _gpuInfoCache;
     private string? _cpuNameCache;
@@ -26,6 +24,11 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     private DateTime _nvidiaSmiCapturedAtUtc;
     private bool _nvidiaSmiUnavailable;
     private bool _loggedNvidiaSmiUnavailable;
+    private int _nvidiaSmiFailures;
+    private const int MaxNvidiaSmiFailures = 3;
+    private DateTime _nvidiaSmiRetryAfterUtc;
+
+    private static readonly TimeSpan NvidiaSmiFailureCooldown = TimeSpan.FromMinutes(5);
     private readonly Dictionary<string, PerformanceCounter> _performanceCounters = new(StringComparer.OrdinalIgnoreCase);
     private GpuPerformanceSnapshot _gpuPerformanceSnapshot = GpuPerformanceSnapshot.Empty;
     private DateTime _gpuPerformanceCapturedAtUtc;
@@ -34,7 +37,10 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     private ulong _previousIdleTime;
     private ulong _previousKernelTime;
     private ulong _previousUserTime;
-    private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(1);
+    // Enumerating the "GPU Engine" performance-counter category walks every engine instance of every
+    // process on every adapter, which costs hundreds of milliseconds and much more on a multi-GPU
+    // machine. Once a second was far more often than a chatbox that refreshes every few seconds needs.
+    private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(3);
     private static readonly Regex GpuCounterLuidRegex = new(
         @"luid_0x(?<high>[0-9a-f]+)_0x(?<low>[0-9a-f]+)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
@@ -148,51 +154,97 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
 
         PrimeCpuBaseline();
+
+        // The GPU performance-counter baseline is deliberately NOT primed here. Priming it measured
+        // 12584ms of a 12966ms open: it constructs one PerformanceCounter per engine instance per
+        // process and every one of them is new on that first pass. It only seeds the fallback used
+        // when the vendor sensors and the NVIDIA path both come back empty, so the snapshot now
+        // builds its own counters the first time something actually asks for it.
+        if (VendorGpuSensorsEnabled)
+            _vendorGpu.TryOpen();
     }
 
     public void Close()
     {
+        _vendorGpu.Close();
+
         lock (_lock)
         {
             _isOpen = false;
 
-            // GPU caches
             _gpuCache = null;
             _gpuInfoCache = null;
             _gpuPerformanceSnapshot = GpuPerformanceSnapshot.Empty;
             _gpuPerformanceCapturedAtUtc = default;
 
-            // CPU baselines & name cache — force re-prime on next Open
             _hasPreviousSystemTimes = false;
             _previousIdleTime = 0;
             _previousKernelTime = 0;
             _previousUserTime = 0;
             _cpuNameCache = null;
 
-            // NVIDIA caches + unavailable flags — re-detect on next session
             _nvidiaSmiCache = null;
             _nvidiaSmiCapturedAtUtc = default;
-            _nvidiaSmiUnavailable = false;
-            _loggedNvidiaSmiUnavailable = false;
-
-            foreach (var counter in _performanceCounters.Values)
-                counter.Dispose();
-            _performanceCounters.Clear();
+            _nvidiaSmiFailures = 0;
+            _nvidiaSmiRetryAfterUtc = default;
         }
     }
 
     public void UpdateAll()
     {
-        // Ensure CPU baseline exists before the first delta read so the first
-        // tick after Open() can return a real load value instead of null.
         PrimeCpuBaseline();
-        _ = GetGpuPerformanceSnapshot();
+
+        // The GPU performance-counter snapshot is NOT primed here. Reading it walks every engine
+        // instance of every process on every adapter, measured at ~5.7s on a two-GPU machine, which on
+        // its own exceeded the 5s watchdog and disabled the integration in a loop. It is only ever used
+        // as a fallback for GPU load and VRAM when the vendor sensors and the NVIDIA path both return
+        // nothing, so the consumers pull it lazily instead. On a machine with working vendor sensors it
+        // is now never read at all.
     }
 
-    /// <summary>
-    /// Captures the initial GetSystemTimes snapshot so the first CPU load delta
-    /// is meaningful. Safe to call repeatedly — only writes when no baseline exists.
-    /// </summary>
+    public bool VendorGpuSensorsEnabled { get; set; } = true;
+
+    private bool VendorGpuActive => VendorGpuSensorsEnabled && !_vendorGpu.IsPermanentlyUnavailable;
+
+    private float? ReadVendorSensor(string? gpuName, Func<GpuSensorReadings, float?> selector)
+    {
+        if (!VendorGpuActive)
+            return null;
+
+        if (!_vendorGpu.IsOpen && !_vendorGpu.TryOpen())
+            return null;
+
+        var readings = _vendorGpu.Read(gpuName ?? ResolveGpuInfo(null)?.Name);
+        return readings == null ? null : selector(readings);
+    }
+
+    public string GetHardwareMonitorStatusMessage()
+    {
+        var adapters = GetGpuInfoFromWindows();
+        string adapterList = adapters.Count == 0
+            ? "no adapters enumerated"
+            : string.Join("; ", adapters.Select(a =>
+                $"{a.Name} [vendor 0x{a.VendorId ?? 0:X4}, {(a.AdapterRamBytes ?? 0) / (1024 * 1024)} MiB]"));
+
+        var selected = ResolveGpuInfo(null);
+
+        // Reports only what has already been captured, and never asks for a fresh snapshot. Asking
+        // cost 8.6s of a 9.0s startup: this line runs once on the first open, and building the
+        // counters is precisely the work the fallback exists to avoid until something needs it.
+        string counters;
+        lock (_lock)
+        {
+            counters = _gpuPerformanceCapturedAtUtc == default
+                ? "GPU Engine counters: not read yet"
+                : _gpuPerformanceSnapshot.IsEmpty
+                    ? "GPU Engine counters: no data"
+                    : "GPU Engine counters: ok";
+        }
+
+        return $"adapters: {adapterList} | selected: {selected?.Name ?? "none"} | "
+             + $"{_vendorGpu.DescribeStatus()} | {counters}";
+    }
+
     private void PrimeCpuBaseline()
     {
         try
@@ -241,29 +293,43 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     public float? GetGpuLoad(string gpuName, string sensorName)
     {
-        if (sensorName.Contains("D3D", StringComparison.OrdinalIgnoreCase))
+        bool wants3D = sensorName.Contains("D3D", StringComparison.OrdinalIgnoreCase);
+
+        float? vendor = wants3D
+            ? ReadVendorSensor(gpuName, r => r.D3DLoad ?? r.CoreLoad)
+            : ReadVendorSensor(gpuName, r => r.CoreLoad);
+        if (vendor != null)
+            return vendor;
+
+        if (wants3D)
             return GetGpuEngineUtilization(gpuName, "3D") ?? ResolveNvidiaSample(gpuName)?.GpuUtilization;
 
         return ResolveNvidiaSample(gpuName)?.GpuUtilization ??
                GetGpuEngineUtilization(gpuName);
     }
 
-    public float? GetGpuTemperature(string gpuName) => ResolveNvidiaSample(gpuName)?.TemperatureC;
+    public float? GetGpuTemperature(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.CoreTemperatureC)
+           ?? ResolveNvidiaSample(gpuName)?.TemperatureC;
 
-    /// <summary>
-    /// GPU hotspot temperature is not exposed by the driverless pipeline
-    /// (Windows Performance Counters / DXGI / nvidia-smi don't surface it).
-    /// Always returns null. Tracked as follow-up: NVML / ADL / IGCL integration.
-    /// </summary>
-    public float? GetGpuHotspotTemperature(string gpuName) => null;
+    public float? GetGpuHotspotTemperature(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.HotspotTemperatureC);
 
-    public float? GetGpuPower(string gpuName) => ResolveNvidiaSample(gpuName)?.PowerW;
+    public float? GetGpuPower(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.PowerWatts)
+           ?? ResolveNvidiaSample(gpuName)?.PowerW;
 
     public float? GetGpuVramUsed(string gpuName, string sensorName)
-        => ResolveNvidiaSample(gpuName)?.MemoryUsedMiB ?? GetGpuDedicatedMemoryUsageMiB(gpuName);
+        => ReadVendorSensor(gpuName, r => r.VramUsedMiB)
+           ?? ResolveNvidiaSample(gpuName)?.MemoryUsedMiB
+           ?? GetGpuDedicatedMemoryUsageMiB(gpuName);
 
     public float? GetGpuVramTotal(string gpuName, string sensorName)
     {
+        float? vendorTotal = ReadVendorSensor(gpuName, r => r.VramTotalMiB);
+        if (vendorTotal is > 0)
+            return vendorTotal;
+
         var nvidiaSample = ResolveNvidiaSample(gpuName);
         if (nvidiaSample?.MemoryTotalMiB is > 0)
             return nvidiaSample.MemoryTotalMiB;
@@ -290,9 +356,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         return info.HasValue ? (float)Math.Max(0, info.Value.totalGiB - info.Value.usedGiB) : null;
     }
 
-    /// <summary>
-    /// Uses kernel32 GlobalMemoryStatusEx - fast and driverless.
-    /// </summary>
     public (double totalGiB, double usedGiB)? GetWindowsMemoryInfo()
     {
         try
@@ -336,10 +399,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         return gpus;
     }
 
-    /// <summary>
-    /// DDR version via WMI - queried lazily and with a timeout so a bad WMI provider
-    /// cannot stall the entire app startup path.
-    /// </summary>
     public string? GetDdrVersion()
     {
         try
@@ -362,7 +421,23 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         return null;
     }
 
-    public void Dispose() => Close();
+    public void Dispose()
+    {
+        Close();
+        _vendorGpu.Dispose();
+
+        lock (_lock)
+        {
+            foreach (var counter in _performanceCounters.Values)
+                counter.Dispose();
+            _performanceCounters.Clear();
+
+            _nvidiaSmiUnavailable = false;
+            _loggedNvidiaSmiUnavailable = false;
+            _nvidiaSmiFailures = 0;
+            _nvidiaSmiRetryAfterUtc = default;
+        }
+    }
 
     public float? GetCpuLoadBasic()
     {
@@ -414,16 +489,28 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         _hasPreviousSystemTimes = true;
     }
 
-    public float? GetGpuFanSpeed(string gpuName) => ResolveNvidiaSample(gpuName)?.FanPercent;
+    public float? GetGpuFanSpeed(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.FanPercent)
+           ?? ResolveNvidiaSample(gpuName)?.FanPercent;
 
-    public float? GetGpuCoreClock(string gpuName) => ResolveNvidiaSample(gpuName)?.GraphicsClockMHz;
+    public float? GetGpuCoreClock(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.CoreClockMhz)
+           ?? ResolveNvidiaSample(gpuName)?.GraphicsClockMHz;
 
-    public float? GetGpuMemoryClock(string gpuName) => ResolveNvidiaSample(gpuName)?.MemoryClockMHz;
+    public float? GetGpuMemoryClock(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.MemoryClockMhz)
+           ?? ResolveNvidiaSample(gpuName)?.MemoryClockMHz;
 
-    public float? GetGpuMemoryTemperature(string gpuName) => ResolveNvidiaSample(gpuName)?.MemoryTemperatureC;
+    public float? GetGpuMemoryTemperature(string gpuName)
+        => ReadVendorSensor(gpuName, r => r.MemoryTemperatureC)
+           ?? ResolveNvidiaSample(gpuName)?.MemoryTemperatureC;
 
     public float? GetGpuMemoryLoad(string gpuName)
     {
+        float? vendorLoad = ReadVendorSensor(gpuName, r => r.MemoryLoad);
+        if (vendorLoad is not null)
+            return vendorLoad;
+
         var sample = ResolveNvidiaSample(gpuName);
         if (sample?.MemoryUtilization is not null)
             return sample.MemoryUtilization;
@@ -459,11 +546,11 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return candidate.Contains(normalizedRequested, StringComparison.OrdinalIgnoreCase) ||
                        normalizedRequested.Contains(candidate, StringComparison.OrdinalIgnoreCase);
             });
-            if (match != null) return match;
+
+            return match;
         }
 
-        return gpus.FirstOrDefault(g => !g.Name.Contains("integrated", StringComparison.OrdinalIgnoreCase))
-               ?? gpus[0];
+        return GpuAdapterSelector.SelectPrimary(gpus) ?? gpus[0];
     }
 
     private IReadOnlyList<GpuInfo> GetGpuInfoFromWindows()
@@ -528,7 +615,11 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                         desc.DedicatedVideoMemory.ToUInt64(),
                         FormatLuidToken(desc.AdapterLuid),
                         desc.VendorId,
-                        desc.DeviceId));
+                        desc.DeviceId)
+                    {
+                        AdapterIndex = adapterIndex,
+                        Flags = desc.Flags,
+                    });
                 }
                 finally
                 {
@@ -561,16 +652,18 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 .Select(obj =>
                 {
                     string? name = obj["Name"]?.ToString();
+                    string? adapterCompatibility = obj["AdapterCompatibility"]?.ToString();
+                    string? pnpDeviceId = obj["PNPDeviceID"]?.ToString();
                     return string.IsNullOrWhiteSpace(name)
                         ? null
                         : new GpuInfo(
                             name.Trim(),
                             TryReadUInt64(obj["AdapterRAM"]),
                             null,
+                            GpuVendors.ParseWmiVendorId(pnpDeviceId, adapterCompatibility),
                             null,
-                            null,
-                            obj["AdapterCompatibility"]?.ToString(),
-                            obj["PNPDeviceID"]?.ToString());
+                            adapterCompatibility,
+                            pnpDeviceId);
                 })
                 .OfType<GpuInfo>()
                 .DistinctBy(gpu => gpu.Name, StringComparer.OrdinalIgnoreCase)
@@ -618,6 +711,8 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
     }
 
+    private readonly object _gpuSnapshotReadLock = new();
+
     private GpuPerformanceSnapshot GetGpuPerformanceSnapshot()
     {
         lock (_lock)
@@ -626,14 +721,25 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return _gpuPerformanceSnapshot;
         }
 
-        var snapshot = ReadGpuPerformanceSnapshot();
-        lock (_lock)
+        // Serialised separately from _lock: the read is the expensive part, and two callers arriving
+        // together used to run it concurrently because the cache check released the lock first.
+        lock (_gpuSnapshotReadLock)
         {
-            _gpuPerformanceSnapshot = snapshot;
-            _gpuPerformanceCapturedAtUtc = DateTime.UtcNow;
-        }
+            lock (_lock)
+            {
+                if (DateTime.UtcNow - _gpuPerformanceCapturedAtUtc < GpuPerformanceCounterRefreshInterval)
+                    return _gpuPerformanceSnapshot;
+            }
 
-        return snapshot;
+            var snapshot = ReadGpuPerformanceSnapshot();
+            lock (_lock)
+            {
+                _gpuPerformanceSnapshot = snapshot;
+                _gpuPerformanceCapturedAtUtc = DateTime.UtcNow;
+            }
+
+            return snapshot;
+        }
     }
 
     private GpuPerformanceSnapshot ReadGpuPerformanceSnapshot()
@@ -816,6 +922,12 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     private NvidiaSmiSample? ResolveNvidiaSample(string? gpuName)
     {
+        if (!string.IsNullOrWhiteSpace(gpuName) &&
+            GpuVendors.FromVendorId(ResolveGpuInfo(gpuName)?.VendorId) != GpuVendor.Nvidia)
+        {
+            return null;
+        }
+
         var samples = GetNvidiaSmiSamples();
         if (samples.Count == 0)
             return null;
@@ -836,14 +948,18 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return candidate.Contains(normalizedRequested, StringComparison.OrdinalIgnoreCase) ||
                        normalizedRequested.Contains(candidate, StringComparison.OrdinalIgnoreCase);
             });
-            if (match != null) return match;
+
+            return match;
         }
 
-        return samples[0];
+        return samples.Count == 1 ? samples[0] : null;
     }
 
     private IReadOnlyList<NvidiaSmiSample> GetNvidiaSmiSamples()
     {
+        if (!HasNvidiaAdapter())
+            return Array.Empty<NvidiaSmiSample>();
+
         lock (_lock)
         {
             if (_nvidiaSmiCache != null &&
@@ -854,6 +970,15 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
             if (_nvidiaSmiUnavailable)
                 return Array.Empty<NvidiaSmiSample>();
+
+            if (_nvidiaSmiRetryAfterUtc != default)
+            {
+                if (DateTime.UtcNow < _nvidiaSmiRetryAfterUtc)
+                    return Array.Empty<NvidiaSmiSample>();
+
+                _nvidiaSmiRetryAfterUtc = default;
+                _nvidiaSmiFailures = 0;
+            }
         }
 
         IReadOnlyList<NvidiaSmiSample> samples = QueryNvidiaSmi();
@@ -880,7 +1005,16 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             string? output = RunNvidiaSmiQuery(executablePath, includeMemoryTemperature: true);
             output ??= RunNvidiaSmiQuery(executablePath, includeMemoryTemperature: false);
             if (string.IsNullOrWhiteSpace(output))
+            {
+                RecordNvidiaSmiFailure();
                 return Array.Empty<NvidiaSmiSample>();
+            }
+
+            lock (_lock)
+            {
+                _nvidiaSmiFailures = 0;
+                _nvidiaSmiRetryAfterUtc = default;
+            }
 
             return output
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
@@ -892,8 +1026,29 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         catch (Exception ex)
         {
             Logging.WriteInfo($"nvidia-smi read error: {ex.Message}");
+            RecordNvidiaSmiFailure();
             return Array.Empty<NvidiaSmiSample>();
         }
+    }
+
+    private bool HasNvidiaAdapter()
+        => GetGpuInfoFromWindows().Any(gpu => GpuVendors.FromVendorId(gpu.VendorId) == GpuVendor.Nvidia);
+
+    private void RecordNvidiaSmiFailure()
+    {
+        int failures;
+        lock (_lock)
+        {
+            failures = ++_nvidiaSmiFailures;
+            if (failures < MaxNvidiaSmiFailures)
+                return;
+
+            _nvidiaSmiRetryAfterUtc = DateTime.UtcNow + NvidiaSmiFailureCooldown;
+        }
+
+        Logging.WriteInfo(
+            $"nvidia-smi produced no usable output after {failures} attempts; pausing it for " +
+            $"{NvidiaSmiFailureCooldown.TotalMinutes:F0} minutes.");
     }
 
     private static string? RunNvidiaSmiQuery(string executablePath, bool includeMemoryTemperature)
@@ -1099,7 +1254,16 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         uint? VendorId = null,
         uint? DeviceId = null,
         string? AdapterCompatibility = null,
-        string? PnpDeviceId = null);
+        string? PnpDeviceId = null) : IGpuAdapter
+    {
+        public uint AdapterIndex { get; init; }
+
+        public uint Flags { get; init; }
+
+        ulong? IGpuAdapter.DedicatedVideoMemoryBytes => AdapterRamBytes;
+
+        bool IGpuAdapter.IsSoftwareAdapter => (Flags & DxgiAdapterFlagSoftware) != 0;
+    }
 
     private sealed record GpuEngineMetric(
         string? LuidToken,
@@ -1127,6 +1291,8 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             _processDedicatedBytesByLuid = processDedicatedBytesByLuid;
             _adapterDedicatedBytesByLuid = adapterDedicatedBytesByLuid;
         }
+
+        public bool IsEmpty => _engines.Count == 0;
 
         public float? GetEngineUtilization(string? luidToken, string? engineTypeFilter)
         {

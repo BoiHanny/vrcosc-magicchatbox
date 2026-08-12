@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
@@ -13,14 +13,12 @@ public enum StatisticsTimeRange
     _30d
 }
 
-/// <summary>Contains a single heart-rate reading and its UTC timestamp.</summary>
 public class HeartRateData
 {
     public int HeartRate { get; set; }
     public DateTime MeasuredAt { get; set; }
 }
 
-/// <summary>Aggregate heart-rate statistics returned by the Pulsoid statistics API.</summary>
 public partial class PulsoidStatisticsResponse
 {
     public int average_beats_per_minute { get; set; } = 0;
@@ -30,7 +28,6 @@ public partial class PulsoidStatisticsResponse
     public int streamed_duration_in_seconds { get; set; } = 0;
 }
 
-/// <summary>A paired set of up/down trend symbols shown next to the heart-rate display.</summary>
 public class PulsoidTrendSymbolSet
 {
     public string CombinedTrendSymbol => $"{UpwardTrendSymbol} - {DownwardTrendSymbol}";

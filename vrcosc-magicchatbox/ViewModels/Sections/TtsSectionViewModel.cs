@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -8,10 +8,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for TTS options.
-/// Complete binding surface for TtsOptionsSection.xaml.
-/// </summary>
 public partial class TtsSectionViewModel : ObservableObject
 {
     private readonly INavigationService _nav;
@@ -20,10 +16,6 @@ public partial class TtsSectionViewModel : ObservableObject
     public TtsSettings TtsSettings { get; }
     public TtsAudioDisplayState TtsAudio { get; }
 
-    /// <summary>
-    /// Initializes the TTS section ViewModel with the TTS module, settings, app-state,
-    /// and audio device service.
-    /// </summary>
     public TtsSectionViewModel(
         ISettingsProvider<AppSettings> appSettingsProvider,
         ISettingsProvider<TtsSettings> ttsSettingsProvider,
@@ -36,9 +28,6 @@ public partial class TtsSectionViewModel : ObservableObject
         _nav = nav;
     }
 
-    /// <summary>
-    /// Called when the TTS voice ComboBox selection changes.
-    /// </summary>
     public void OnTtsVoiceSelected(Voice? selectedVoice)
     {
         if (selectedVoice == null) return;
@@ -46,9 +35,6 @@ public partial class TtsSectionViewModel : ObservableObject
         TtsSettings.RecentTikTokTTSVoice = selectedVoice.ApiName;
     }
 
-    /// <summary>
-    /// Called when playback output device selection changes.
-    /// </summary>
     public void OnPlaybackDeviceSelected()
     {
         if (TtsAudio.SelectedPlaybackOutputDevice != null)

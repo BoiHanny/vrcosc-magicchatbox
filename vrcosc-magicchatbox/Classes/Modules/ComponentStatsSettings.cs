@@ -1,13 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Persisted settings for the component stats (CPU/GPU/RAM/VRAM) display module.
-/// </summary>
 public partial class ComponentStatsSettings : VersionedSettings
 {
     [ObservableProperty] private string _selectedGPU = string.Empty;
@@ -17,6 +14,8 @@ public partial class ComponentStatsSettings : VersionedSettings
     [ObservableProperty] private bool _isFahrenheit = false;
     [ObservableProperty] private bool _gPU3DHook = false;
     [ObservableProperty] private bool _gPU3DVRAMHook = false;
+
+    [ObservableProperty] private bool _enableVendorGpuSensors = true;
 
     [ObservableProperty] private bool _showGpuFanSpeed = false;
     [ObservableProperty] private bool _showGpuCoreClock = false;

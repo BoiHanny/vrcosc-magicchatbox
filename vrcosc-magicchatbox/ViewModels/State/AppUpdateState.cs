@@ -1,12 +1,7 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Runtime state for application version checking and update UI.
-/// Written by VersionService.CompareVersions(), UpdateApp.
-/// Read by MainWindow, AppOptionsSection, ApplicationError, StartUp.
-/// </summary>
 public partial class AppUpdateState : ObservableObject
 {
     [ObservableProperty] private string _versionTxt = "Check for updates";

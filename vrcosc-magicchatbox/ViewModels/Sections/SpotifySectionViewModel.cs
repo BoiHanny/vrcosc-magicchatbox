@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
@@ -18,9 +18,6 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// UI-facing Spotify template preset metadata with seekbar availability baked in for the current mode.
-/// </summary>
 public sealed class SpotifyTemplatePresetOption
 {
     public SpotifyTemplatePresetOption(SpotifyTemplatePreset preset, bool isSelectable)
@@ -34,9 +31,6 @@ public sealed class SpotifyTemplatePresetOption
     public bool IsSelectable { get; }
 }
 
-/// <summary>
-/// Section ViewModel for the first-class Spotify integration.
-/// </summary>
 public partial class SpotifySectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _moduleHost;
@@ -56,6 +50,8 @@ public partial class SpotifySectionViewModel : ObservableObject
     [ObservableProperty] private string _outputPreview = string.Empty;
     [ObservableProperty] private string _previewLengthText = $"0/{Constants.OscMaxMessageLength}";
 
+    [ObservableProperty] private string? _lastConnectionError;
+
     public bool CanStartConnection => !IsConnecting;
     public bool HasDisplayError => !string.IsNullOrWhiteSpace(Display.ErrorText);
 
@@ -67,7 +63,6 @@ public partial class SpotifySectionViewModel : ObservableObject
 
     public SpotifyMediaLinkCoexistence[] MediaLinkCoexistenceModes { get; } = Enum.GetValues<SpotifyMediaLinkCoexistence>();
 
-    /// <summary>True when the user has selected Seekbar mode — controls seekbar style dropdown visibility.</summary>
     public bool IsSeekbarMode => Settings.ProgressDisplayMode == SpotifyProgressDisplayMode.Seekbar;
 
     public string? SelectedPresetName
@@ -93,10 +88,8 @@ public partial class SpotifySectionViewModel : ObservableObject
 
     public string RedirectUri => Constants.SpotifyOAuthRedirectUri;
 
-    /// <summary>Available seekbar styles from MediaLink (built-in + custom). Bound directly.</summary>
     public ObservableCollection<MediaLinkStyle>? SeekbarStyles => MediaLinkDisplay.MediaLinkSeekbarStyles;
 
-    /// <summary>Currently selected seekbar style for Spotify output.</summary>
     public MediaLinkStyle? SelectedSeekbarStyle
     {
         get
@@ -160,14 +153,16 @@ public partial class SpotifySectionViewModel : ObservableObject
             Settings.ClientId = clientId.Trim();
             _settingsProvider.Save();
 
-            var token = await spotify.AuthenticateAsync();
-            if (token == null)
+            var outcome = await spotify.AuthenticateAsync();
+            if (!outcome.Succeeded)
             {
-                _toast.Show("Spotify", "Connection cancelled or timed out. Check the Client ID and redirect URI.", ToastType.Warning, key: "spotify-auth-failed");
+                LastConnectionError = outcome.BuildUserMessage();
+                _toast.Show("Spotify", LastConnectionError, ToastType.Warning, key: "spotify-auth-failed");
                 return;
             }
 
-            await spotify.ApplyTokenResultAsync(token);
+            LastConnectionError = null;
+            await spotify.ApplyTokenResultAsync(outcome.Token!);
             IntegrationSettings.IntgrSpotify = true;
             await spotify.StartAsync();
             _toast.Show("Spotify", "Connected securely with PKCE. You're ready to show Spotify in chatbox.", ToastType.Success, key: "spotify-connected");

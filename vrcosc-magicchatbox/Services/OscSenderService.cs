@@ -1,4 +1,4 @@
-using CoreOSC;
+﻿using CoreOSC;
 using System;
 using System.Net;
 using System.Threading;
@@ -11,10 +11,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Instance-based OSC sender service. Replaces the static OSCSender class.
-/// Sends chatbox messages, typing indicators, and avatar parameters to VRChat via OSC.
-/// </summary>
 public sealed class OscSenderService : IOscSender, IDisposable
 {
     private const string CHATBOX_INPUT = "/chatbox/input";
@@ -257,10 +253,6 @@ public sealed class OscSenderService : IOscSender, IDisposable
         return true;
     }
 
-    /// <summary>
-    /// Sends a chatbox message to all configured OSC outputs. Returns false when the
-    /// primary sender is unavailable or the send failed, so callers can surface feedback.
-    /// </summary>
     private async Task<bool> SendMessageAsync(OscMessage message, int delay)
     {
         return await Task.Run(async () =>
@@ -425,26 +417,14 @@ public sealed class OscSenderService : IOscSender, IDisposable
         }
     }
 
-    /// <summary>
-    /// Returns the sender for the configured endpoint, rebuilding only when the endpoint changed.
-    /// The replacement is constructed before the old sender is closed so a failed rebuild can
-    /// never cache a dead socket; on failure the last-good sender stays in use.
-    /// Must be called while holding <see cref="_senderLock"/>.
-    /// </summary>
     private UDPSender? EnsureSender(UDPSender? current, string address, int port)
     {
         if (current != null && address == current.Address && port == current.Port)
             return current;
 
-        // Skip rebuild only for text that is neither a literal IP nor a syntactically valid
-        // hostname (mid-edit keystrokes in the options textbox). A plausible hostname still
-        // flows into the try/catch below so CoreOSC can resolve it — a working config that
-        // uses a LAN machine name or *.local must keep sending after an endpoint change.
         if (!IPAddress.TryParse(address, out _) && Uri.CheckHostName(address) != UriHostNameType.Dns)
             return current;
 
-        // A hostname that already failed to resolve must not re-run a blocking DNS lookup
-        // under the lock on every send; retry only once the configured endpoint text changes.
         string endpoint = $"{address}:{port}";
         if (endpoint == _lastFailedEndpoint)
             return current;

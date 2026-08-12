@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,9 +9,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Settings for the Twitch integration, including channel info, display options, and encrypted auth tokens.
-/// </summary>
 public partial class TwitchSettings : VersionedSettings
 {
     [ObservableProperty] private string _channelName = string.Empty;
@@ -65,7 +62,6 @@ public partial class TwitchSettings : VersionedSettings
     [ObservableProperty] private string _shoutoutAnnouncementTemplate = "Go follow {user} at twitch.tv/{user}";
     [ObservableProperty] private TwitchAnnouncementColor _shoutoutAnnouncementColor = TwitchAnnouncementColor.Purple;
 
-    // Encrypted tokens — only encrypted forms are persisted
     private string _clientIdEncrypted = string.Empty;
     private string _clientId = string.Empty;
 

@@ -1,11 +1,7 @@
-using System;
+﻿using System;
 
 namespace vrcosc_magicchatbox.Core;
 
-/// <summary>
-/// Centralizes magic numbers, timeout values, and configuration constants
-/// that were previously scattered throughout the codebase.
-/// </summary>
 public static class Constants
 {
     public const int OscMaxMessageLength = 144;
@@ -43,10 +39,6 @@ public static class Constants
 
     public const string DiscordClientId = "1495716413980278814";
     public const string DiscordOAuthRedirectUri = "http://localhost:7386/";
-    /// <summary>
-    /// Discord treats RPC scopes as private/approval-gated for many apps. MagicChatbox
-    /// attempts the voice scope first, then falls back to the public identify scope.
-    /// </summary>
     public const string DiscordVoiceOAuthScope = "rpc identify";
     public const string DiscordBasicOAuthScope = "identify";
     public const string DiscordOAuthEndpoint = "https://discord.com/oauth2/authorize";
@@ -57,7 +49,6 @@ public static class Constants
     public static readonly TimeSpan DiscordReconnectMinDelay = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan DiscordReconnectMaxDelay = TimeSpan.FromSeconds(30);
 
-    // Spotify Web API integration — users provide their own public Client ID.
     public const string SpotifyAccountsBaseUrl = "https://accounts.spotify.com/";
     public const string SpotifyApiBaseUrl = "https://api.spotify.com/v1/";
     public const string SpotifyOAuthEndpoint = "https://accounts.spotify.com/authorize";
@@ -85,9 +76,9 @@ public static class Constants
     public const string GitHubSecurityUrl = "https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md";
     public const string GitHubLicenseUrl = "https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/License.md";
 
-    // TOS version identifier — bump when terms require re-acceptance
     public const string TosVersion = "2025.03.22";
 
+    public const string WikiHomeUrl = GitHubWikiBaseUrl;
     public const string WikiMusicDisplayUrl = GitHubWikiBaseUrl + "%F0%9F%8E%BC-Music-Display";
     public const string WikiHeartRateUrl = GitHubWikiBaseUrl + "%F0%9F%A9%B5-Heart-Rate";
     public const string WikiPulsoidDiscountUrl = GitHubWikiBaseUrl + "Unlock-a-15%25-Discount-on-Pulsoid's-BRO-Plan";

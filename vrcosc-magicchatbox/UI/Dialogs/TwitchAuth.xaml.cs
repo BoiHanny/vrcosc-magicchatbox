@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -12,9 +12,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Dialogs;
 
-/// <summary>
-/// Multi-step dialog for entering and validating Twitch API credentials (Client ID + OAuth token).
-/// </summary>
 public partial class TwitchAuth : Window
 {
     private readonly ISettingsProvider<TwitchSettings> _settingsProvider;

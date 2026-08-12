@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -13,12 +13,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Discord Voice Channel integration module.
-/// Connects to local Discord via IPC named pipe, authenticates with OAuth token,
-/// and tracks voice channel membership and speaking status. Rich Presence is
-/// handled separately by DiscordRichPresenceService.
-/// </summary>
 public partial class DiscordModule : ObservableObject, IModule
 {
     private readonly ISettingsProvider<DiscordSettings> _settingsProvider;
@@ -58,7 +52,6 @@ public partial class DiscordModule : ObservableObject, IModule
     [ObservableProperty] private bool _isSelfMuted;
     [ObservableProperty] private bool _isSelfDeafened;
     [ObservableProperty] private bool _isAuthenticated;
-    /// <summary>True after IPC HANDSHAKE READY — Rich Presence works at this point (no OAuth needed).</summary>
     [ObservableProperty] private bool _isReady;
 
     bool IModule.IsRunning => IsRunning;
@@ -126,9 +119,6 @@ public partial class DiscordModule : ObservableObject, IModule
         ResetAllOscParams();
     }
 
-    /// <summary>
-    /// Builds the formatted output string for the OSC chatbox.
-    /// </summary>
     public string GetOutputString()
     {
         if (!IsInVoiceChannel || string.IsNullOrEmpty(_currentChannelId))
@@ -305,7 +295,6 @@ public partial class DiscordModule : ObservableObject, IModule
         }
         else
         {
-            // scopes not in AUTHENTICATE response — trust the stored value from OAuth
             hasRpcScope = Settings.HasRpcScope;
             Logging.WriteInfo($"Discord: No scopes in AUTHENTICATE response, using stored HasRpcScope={hasRpcScope}");
         }
@@ -337,7 +326,6 @@ public partial class DiscordModule : ObservableObject, IModule
         if (evt == "ERROR" || data == null)
         {
             Logging.WriteInfo($"Discord GET_SELECTED_VOICE_CHANNEL error or null data: evt={evt}");
-            // Only clear state if this was NOT a periodic poll (avoid clearing on transient errors)
             if (_currentChannelId == null)
                 ClearVoiceState();
             return;
@@ -351,7 +339,6 @@ public partial class DiscordModule : ObservableObject, IModule
             return;
         }
 
-        // DM/group calls may have null name; fall back to "Call"
         var channelName = data["name"]?.ToString();
         if (string.IsNullOrEmpty(channelName))
             channelName = "Call";
@@ -547,7 +534,6 @@ public partial class DiscordModule : ObservableObject, IModule
         EmitVoiceStateOsc();
         EmitMuteDeafenOsc();
 
-        // Only subscribe to channel events when joining a new channel (not on periodic refresh)
         if (isNewChannel)
         {
             StartChannelRefreshTimer();

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,11 +13,6 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: MediaLink (Windows media sessions) → OSC segment.
-/// Budget-aware: uses <see cref="OscBuildContext"/> to decide whether
-/// progress bars / timestamps fit within the 144-char limit.
-/// </summary>
 public sealed class MediaLinkOscProvider : IOscProvider
 {
     private readonly IntegrationSettings _intgr;
@@ -26,6 +21,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
     private readonly AppSettings _app;
     private readonly MediaLinkDisplayState _mediaLink;
     private readonly SpotifyDisplayState _spotifyDisplay;
+    private readonly LyricsDisplayState _lyricsDisplay;
     private readonly Lazy<IMediaLinkService> _mediaLinkSvc;
 
     public MediaLinkOscProvider(
@@ -35,6 +31,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         ISettingsProvider<AppSettings> appProvider,
         MediaLinkDisplayState mediaLink,
         SpotifyDisplayState spotifyDisplay,
+        LyricsDisplayState lyricsDisplay,
         Lazy<IMediaLinkService> mediaLinkSvc)
     {
         _intgr = intgrProvider.Value;
@@ -43,6 +40,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         _app = appProvider.Value;
         _mediaLink = mediaLink;
         _spotifyDisplay = spotifyDisplay;
+        _lyricsDisplay = lyricsDisplay;
         _mediaLinkSvc = mediaLinkSvc;
     }
 
@@ -58,12 +56,15 @@ public sealed class MediaLinkOscProvider : IOscProvider
         if (!_intgr.IntgrScanMediaLink)
             return null;
 
-        if (_mls.ShowOnlyOnChange)
-        {
-            double elapsed = (DateTime.UtcNow - _mediaLinkSvc.Value.LastMediaChangeTime).TotalSeconds;
-            if (elapsed > _mls.TransientDuration)
-                return null;
-        }
+        if (_intgr.IntgrLyrics && _lyricsDisplay.SuppressMediaTitle)
+            return null;
+
+        if (!TransientWindow.ShouldShow(
+                _mls.ShowOnlyOnChange,
+                _mediaLinkSvc.Value.LastMediaChangeTime,
+                DateTime.UtcNow,
+                _mls.TransientDuration))
+            return null;
 
         string text = BuildMediaText(context);
         if (string.IsNullOrWhiteSpace(text))
@@ -179,8 +180,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
             return text;
 
         double pct = full.TotalSeconds == 0 ? 0 : (current.TotalSeconds / full.TotalSeconds) * 100;
-        int available = context.RemainingCharsIf(text) - 4; // leave small margin
-        var style = _mediaLink.SelectedMediaLinkSeekbarStyle;
+        int available = context.RemainingCharsIf(text) - 4;        var style = _mediaLink.SelectedMediaLinkSeekbarStyle;
 
         switch (_mls.TimeSeekStyle)
         {

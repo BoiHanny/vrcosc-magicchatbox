@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -12,18 +12,12 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Result of a successful Discord OAuth2 authorization.
-/// </summary>
 public sealed record DiscordTokenResult(
     string AccessToken,
     string? RefreshToken,
     int ExpiresIn,
     string? Scope);
 
-/// <summary>
-/// Handles Discord's legacy implicit OAuth flow used by the local RPC voice integration.
-/// </summary>
 public sealed class DiscordOAuthHandler : IDisposable
 {
     private sealed record DiscordOAuthAttemptResult(
@@ -42,13 +36,6 @@ public sealed class DiscordOAuthHandler : IDisposable
         _nav = nav;
     }
 
-    /// <summary>
-    /// Implicit grant OAuth flow (response_type=token) for Discord.
-    /// Discord may reject rpc scopes for apps/accounts without approval, so the flow
-    /// retries with public identify scope to avoid leaving users stuck on invalid_scope.
-    /// The token is returned in the URL fragment, so a small JS bridge page extracts it
-    /// and POSTs it back to our listener. No refresh token is available with this flow.
-    /// </summary>
     public async Task<(DiscordTokenResult? Result, bool HasRpcScope)> AuthenticateImplicitAsync(string? clientId = null)
     {
         if (!TryNormalizeClientId(clientId, out clientId, out string validationMessage))

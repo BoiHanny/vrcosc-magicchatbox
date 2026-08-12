@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,7 +8,10 @@ using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
@@ -17,9 +20,6 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox
 {
-    /// <summary>
-    /// Main application window. Owns the scan loop, module host, and persistence coordinator lifecycle.
-    /// </summary>
     public partial class MainWindow : Window
     {
         private const int WM_ENTERSIZEMOVE = 0x0231;
@@ -41,6 +41,7 @@ namespace vrcosc_magicchatbox
         private HwndSource? _windowSource;
         private bool _shutdownRequested;
         public bool _isTrayClosing;
+        private readonly ISettingsProvider<AppSettings> _appSettingsProvider;
         public ViewModel VM => (ViewModel)DataContext;
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -55,6 +56,81 @@ namespace vrcosc_magicchatbox
             _windowSource?.AddHook(WindowProc);
 
             this.StateChanged += MainWindow_StateChanged;
+        }
+
+        /// <summary>
+        /// Puts the window back where it was, including which monitor. Restores nothing if that place no
+        /// longer exists - an unplugged second monitor would otherwise leave the window off-screen with
+        /// no way to drag it back.
+        /// </summary>
+        private void RestoreWindowPlacement()
+        {
+            try
+            {
+                var settings = _appSettingsProvider?.Value;
+                if (settings == null) return;
+
+                var virtualScreen = new Rect(
+                    SystemParameters.VirtualScreenLeft,
+                    SystemParameters.VirtualScreenTop,
+                    SystemParameters.VirtualScreenWidth,
+                    SystemParameters.VirtualScreenHeight);
+
+                var placement = WindowPlacementPolicy.Resolve(
+                    settings.WindowLeft,
+                    settings.WindowTop,
+                    settings.WindowWidth,
+                    settings.WindowHeight,
+                    virtualScreen,
+                    new Size(MinWidth, MinHeight));
+
+                if (placement is { } rect)
+                {
+                    WindowStartupLocation = WindowStartupLocation.Manual;
+                    Left = rect.Left;
+                    Top = rect.Top;
+                    Width = rect.Width;
+                    Height = rect.Height;
+                }
+
+                if (settings.WindowMaximized)
+                    WindowState = WindowState.Maximized;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Could not restore window placement: {ex.Message}");
+            }
+        }
+
+        private void SaveWindowPlacement()
+        {
+            try
+            {
+                var settings = _appSettingsProvider?.Value;
+                if (settings == null) return;
+
+                // Minimised carries no useful geometry, and while maximised the live Left/Top/Width/Height
+                // describe the maximised frame rather than the size to come back to.
+                if (WindowState == WindowState.Minimized)
+                    return;
+
+                var bounds = WindowState == WindowState.Maximized
+                    ? RestoreBounds
+                    : new Rect(Left, Top, Width, Height);
+
+                if (bounds.IsEmpty || double.IsNaN(bounds.Left) || double.IsNaN(bounds.Top))
+                    return;
+
+                settings.WindowLeft = bounds.Left;
+                settings.WindowTop = bounds.Top;
+                settings.WindowWidth = bounds.Width;
+                settings.WindowHeight = bounds.Height;
+                settings.WindowMaximized = WindowState == WindowState.Maximized;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Could not save window placement: {ex.Message}");
+            }
         }
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
@@ -122,7 +198,8 @@ namespace vrcosc_magicchatbox
             IModuleHost moduleHost,
             IStatePersistenceCoordinator persistence,
             ITrayIconService trayIconService,
-            HotkeyManagement hotkeyManagement)
+            HotkeyManagement hotkeyManagement,
+            ISettingsProvider<AppSettings> appSettingsProvider)
         {
             InitializeComponent();
 
@@ -132,6 +209,12 @@ namespace vrcosc_magicchatbox
             _persistence = persistence;
             _trayIconService = trayIconService;
             _hotkeyManagement = hotkeyManagement;
+            _appSettingsProvider = appSettingsProvider;
+
+            // Before Show(), so the window opens where it was left instead of appearing centred and
+            // then jumping. DataContext is not assigned until after Show(), which is why this reads
+            // the settings directly rather than going through the view model.
+            RestoreWindowPlacement();
 
             Closing += MainWindow_ClosingAsync;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
@@ -193,9 +276,6 @@ namespace vrcosc_magicchatbox
             VM.SelectedMenuIndex = VM.AppSettingsInstance.CurrentMenuItem;
         }
 
-        /// <summary>
-        /// Called after the window is shown and first frame rendered — starts background scan loop.
-        /// </summary>
         public void StartBackgroundProcessing()
         {
             _scanLoop.Start();
@@ -252,6 +332,10 @@ namespace vrcosc_magicchatbox
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            // Captured before the tray branch: closing to tray is still the last place the user put the
+            // window, and it is the geometry they expect back when it reopens.
+            SaveWindowPlacement();
+
             if (VM.AppSettingsInstance.CloseToTray && !_isTrayClosing)
             {
                 e.Cancel = true;
@@ -264,7 +348,6 @@ namespace vrcosc_magicchatbox
 
             _shutdownRequested = true;
 
-            // Cancel the window closing event temporarily to await the async task
             e.Cancel = true;
 
             try
@@ -348,9 +431,6 @@ namespace vrcosc_magicchatbox
 
         private string _lastOverlayStep = "";
 
-        /// <summary>
-        /// Updates the startup overlay progress display (call from any thread).
-        /// </summary>
         public void UpdateOverlayProgress(string currentStep, double progressPercent, string nextHint = "")
         {
             if (!Dispatcher.CheckAccess())
@@ -371,9 +451,81 @@ namespace vrcosc_magicchatbox
             OverlayProgressBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, anim);
         }
 
+        private double? _revealLeft;
+        private double? _revealTop;
+        private bool _parkedOffScreen;
+
         /// <summary>
-        /// Fades out and collapses the startup overlay.
+        /// Hides the window for the several seconds it spends laying itself out. Zero opacity alone
+        /// was not enough: the window still gets an HWND, and the desktop compositor paints its frame
+        /// before WPF has drawn anything into it, which reads as a black rectangle appearing behind
+        /// the splash. Parked off the virtual desktop as well, there is nothing to see at all.
+        ///
+        /// A maximized window cannot be parked - Windows snaps it back to a monitor - so that case
+        /// relies on opacity alone.
         /// </summary>
+        public void PrepareHiddenStart()
+        {
+            Opacity = 0;
+
+            if (WindowState == WindowState.Maximized)
+                return;
+
+            _revealLeft = double.IsNaN(Left) ? null : Left;
+            _revealTop = double.IsNaN(Top) ? null : Top;
+            _parkedOffScreen = true;
+
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = SystemParameters.VirtualScreenLeft - Width - 400;
+            Top = SystemParameters.VirtualScreenTop - Height - 400;
+        }
+
+        /// <summary>
+        /// Puts the window back where it belongs and brings it up, then hands opacity back to its
+        /// binding so the user's own window opacity setting takes over again. Clearing the local
+        /// value matters: leaving one behind would pin the window at full opacity forever and quietly
+        /// break that setting.
+        /// </summary>
+        public void FadeInAfterStartup()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(FadeInAfterStartup);
+                return;
+            }
+
+            if (_parkedOffScreen)
+            {
+                _parkedOffScreen = false;
+
+                if (_revealLeft is { } left && _revealTop is { } top)
+                {
+                    Left = left;
+                    Top = top;
+                }
+                else
+                {
+                    // No saved placement, so honour what the XAML asked for and centre it.
+                    var area = SystemParameters.WorkArea;
+                    Left = area.Left + ((area.Width - Width) / 2);
+                    Top = area.Top + ((area.Height - Height) / 2);
+                }
+            }
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            fadeIn.Completed += (_, _) =>
+            {
+                BeginAnimation(OpacityProperty, null);
+                ClearValue(OpacityProperty);
+            };
+
+            BeginAnimation(OpacityProperty, fadeIn);
+        }
+
         public void HideStartupOverlay()
         {
             if (!Dispatcher.CheckAccess())

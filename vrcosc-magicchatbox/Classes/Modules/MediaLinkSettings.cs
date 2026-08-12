@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +7,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Persisted settings for the MediaLink media-session display module.
-/// </summary>
 public partial class MediaLinkSettings : VersionedSettings
 {
     public static IEnumerable<MediaLinkTimeSeekbar> AvailableTimeSeekbarStyles { get; } = Enum.GetValues(typeof(MediaLinkTimeSeekbar)).Cast<MediaLinkTimeSeekbar>().ToList();
@@ -31,7 +28,6 @@ public partial class MediaLinkSettings : VersionedSettings
     [ObservableProperty] private bool _autoSwitchSpawn = true;
     [ObservableProperty] private int _sessionTimeout = 3;
 
-    // Legacy field kept for JSON deserialization backward-compat; no longer drives behavior.
     [ObservableProperty] private bool _disabled = false;
 
     private double _transientDuration = 25.0;

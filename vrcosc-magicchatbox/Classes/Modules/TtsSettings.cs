@@ -1,11 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Settings for the TTS module, including TikTok voice selection, volume, and playback options.
-/// </summary>
 public partial class TtsSettings : VersionedSettings
 {
     [ObservableProperty] private bool _ttsTikTokEnabled = false;

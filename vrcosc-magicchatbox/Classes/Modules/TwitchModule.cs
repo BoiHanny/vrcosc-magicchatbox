@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -17,10 +17,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Module that polls the Twitch API for live stream status, viewer count, game, and channel info,
-/// then formats the data for display in VRChat chat.
-/// </summary>
 public sealed partial class TwitchModule : ObservableObject, IModule
 {
     private const int MinimumRefreshSeconds = 15;
