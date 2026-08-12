@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using NHotkey;
 using NHotkey.Wpf;
 using System;
@@ -15,10 +15,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
-/// <summary>
-/// Manages global and local hotkey registration, persistence, and dispatch.
-/// Configuration is stored as JSON in the user's data directory.
-/// </summary>
 public class HotkeyManagement
 {
     private readonly TtsSettings _ttsSettings;
@@ -111,8 +107,6 @@ public class HotkeyManagement
                 return;
             }
 
-            // Parse into a staging dictionary so the live collection is only replaced
-            // once the file content has been fully processed.
             var loaded = new Dictionary<string, HotkeyInfo>();
             foreach (var entry in deserialized)
             {
@@ -143,7 +137,6 @@ public class HotkeyManagement
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: true);
-            // Corrupt/unreadable file must not leave the user without any hotkeys.
             AddDefaultHotkeys();
         }
     }

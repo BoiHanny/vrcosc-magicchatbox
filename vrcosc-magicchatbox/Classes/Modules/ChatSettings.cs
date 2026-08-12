@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,9 +6,6 @@ using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Persisted settings for the chatbox messaging behavior.
-/// </summary>
 public partial class ChatSettings : VersionedSettings
 {
     public static IEnumerable<ChatAutocompleteMode> AvailableChatAutocompleteModes { get; } =

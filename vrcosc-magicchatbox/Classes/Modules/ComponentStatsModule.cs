@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,9 +20,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Polls hardware sensors (CPU, GPU, RAM, VRAM) and generates the stats description string for the VRChat chatbox.
-/// </summary>
 public class ComponentStatsModule : IModule
 {
     private string FileName = null;
@@ -46,7 +43,6 @@ public class ComponentStatsModule : IModule
         StatsComponentType.RAM,
     };
 
-    // GPU list cache — ObservableCollection so the ComboBox binding updates when items arrive
     public ObservableCollection<string> GPUList { get; } = new();
 
     private readonly IHardwareMonitorService _hwService;
@@ -84,9 +80,6 @@ public class ComponentStatsModule : IModule
     private ComponentStatsViewModel _statsVm;
     private ComponentStatsViewModel StatsVm => _statsVm;
 
-    /// <summary>
-    /// Late-bound setter for ComponentStatsViewModel (avoids circular dependency).
-    /// </summary>
     public void SetStatsViewModel(ComponentStatsViewModel vm)
     {
         _statsVm = vm;
@@ -381,7 +374,6 @@ public class ComponentStatsModule : IModule
     {
         var current = StatsVm.ComponentStatsList.FirstOrDefault(stat => stat.ComponentType == StatsComponentType.RAM);
 
-        // GlobalMemoryStatusEx via kernel32 (driverless, sub-microsecond) — preferred path
         var wmiMem = _hwService.GetWindowsMemoryInfo();
         if (wmiMem.HasValue)
         {
@@ -405,9 +397,6 @@ public class ComponentStatsModule : IModule
         return ("N/A", "N/A");
     }
 
-    /// <summary>
-    /// Updates display-name side-effects on a ComponentStatsItem when hardware name is resolved.
-    /// </summary>
     private void UpdateHardwareName(ComponentStatsItem current, string hardwareName)
     {
         if (current == null || string.IsNullOrEmpty(hardwareName)) return;
@@ -516,7 +505,19 @@ public class ComponentStatsModule : IModule
             }
             else
             {
-                return _hwService.GetGpuName(StaticSettings.SelectedGPU);
+                string resolved = _hwService.GetGpuName(StaticSettings.SelectedGPU);
+                if (!string.IsNullOrEmpty(resolved))
+                    return resolved;
+
+                string fallback = _hwService.GetGpuName(null);
+                Logging.WriteInfo(
+                    $"Selected GPU '{StaticSettings.SelectedGPU}' no longer matches any adapter; " +
+                    $"falling back to '{fallback ?? "none"}'.");
+
+                if (!string.IsNullOrEmpty(fallback))
+                    StaticSettings.SelectedGPU = fallback;
+
+                return fallback;
             }
         }
         catch (Exception ex)
@@ -595,14 +596,19 @@ public class ComponentStatsModule : IModule
 
         if (_hwService.IsOpen)
         {
+            // Announced before the close rather than after, so the tile says what it is doing while
+            // the sensor service is being torn down instead of going blank and looking hung.
+            _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Stopping;
             StopMonitoringComponents();
         }
+
+        _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Off;
+        _integrationDisplay.ComponentStatsLastUpdate = null;
     }
 
     private void PerformUpdateActions()
     {
         EnsureComponentStatsLoaded();
-        _integrationDisplay.ComponentStatsRunning = true;
 
         bool hardwareAccessApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
 
@@ -612,12 +618,29 @@ public class ComponentStatsModule : IModule
                 _hwService.Close();
 
             _integrationDisplay.ComponentStatsRunning = false;
+            _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Off;
+            _integrationDisplay.ComponentStatsLastUpdate = null;
             _integrationDisplay.ComponentStatCombined = string.Empty;
             return;
         }
 
         if (!_hwService.IsOpen)
+        {
+            // Running is claimed only once the sensors are actually up. It used to be set on entry,
+            // which lit the tile and its component panel for the whole of a start that had not
+            // produced a single reading yet.
+            _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Starting;
             StartMonitoringComponents();
+
+            if (!_hwService.IsOpen)
+            {
+                _integrationDisplay.ComponentStatsRunning = false;
+                return;
+            }
+        }
+
+        _integrationDisplay.ComponentStatsRunning = true;
+        _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Running;
 
         _hwService.UpdateAll();
         StatsVm.SyncComponentStatsList();
@@ -648,9 +671,6 @@ public class ComponentStatsModule : IModule
         return string.IsNullOrWhiteSpace(Settings.StatsSeparator) ? " ¦ " : Settings.StatsSeparator;
     }
 
-    /// <summary>
-    /// Builds the combined stats string from all enabled component items for display in the chatbox.
-    /// </summary>
     public string GenerateStatsDescription()
     {
         QueueDdrVersionFetchIfNeeded();
@@ -669,8 +689,6 @@ public class ComponentStatsModule : IModule
 
                 if (stat.ComponentType == StatsComponentType.CPU && hasCpu)
                 {
-                    // CPU temperature/wattage are not exposed by the driverless pipeline.
-                    // Guard assignments so we don't trigger PropertyChanged/auto-save on every tick.
                     if (stat.ShowWattage) stat.ShowWattage = false;
                     if (stat.ShowTemperature) stat.ShowTemperature = false;
                     if (stat.cantShowWattage) stat.cantShowWattage = false;
@@ -854,9 +872,6 @@ public class ComponentStatsModule : IModule
     }
 
 
-    /// <summary>
-    /// Returns a human-readable string listing components that have no data available.
-    /// </summary>
     public string GetWhitchComponentsAreNotAvailableString()
     {
         List<string> notAvailableComponents = new List<string>();
@@ -873,8 +888,16 @@ public class ComponentStatsModule : IModule
             return "";
         }
 
-        string result = "😞 " + string.Join(", ", notAvailableComponents) + " stats may not be available on your system...";
-        return result;
+        string names = string.Join(", ", notAvailableComponents);
+
+        if (!_hwService.VendorGpuSensorsEnabled &&
+            notAvailableComponents.Contains(StatsComponentType.GPU.ToString()))
+        {
+            return $"{names} stats need GPU sensors, which are switched off in settings.";
+        }
+
+        return $"No readings yet for {names}. If this persists, make sure your GPU driver is "
+             + "installed and up to date — the log line starting \"Hardware monitor:\" says what was detected.";
     }
 
     public bool IsStatAvailable(StatsComponentType type)
@@ -946,9 +969,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    /// <summary>
-    /// Loads persisted component stats configuration from disk, or seeds defaults if none exists.
-    /// </summary>
     public void LoadComponentStats()
     {
         try
@@ -973,7 +993,6 @@ public class ComponentStatsModule : IModule
             var loadedStats = JsonConvert.DeserializeObject<List<ComponentStatsItem>>(jsonData);
             if (loadedStats != null)
             {
-                // Strip legacy FPS entries and normalize to exactly one item per supported type
                 var filtered = loadedStats
                     .Where(s => s.ComponentType != StatsComponentType.FPS)
                     .GroupBy(s => s.ComponentType)
@@ -986,8 +1005,6 @@ public class ComponentStatsModule : IModule
                 {
                     if (filtered.TryGetValue(type, out var existing))
                     {
-                        // One-time normalization: CPU temp/wattage are not available via the
-                        // driverless pipeline, so clear stale flags persisted by older builds.
                         if (existing.ComponentType == StatsComponentType.CPU)
                         {
                             if (existing.ShowWattage) { existing.ShowWattage = false; needsResave = true; }
@@ -999,7 +1016,6 @@ public class ComponentStatsModule : IModule
                     }
                     else
                     {
-                        // Add a sensible default for this newly supported type
                         var unit = type == StatsComponentType.CPU || type == StatsComponentType.GPU ? "﹪" : "ᵍᵇ";
                         var item = new ComponentStatsItem(
                             type.ToString(), type.GetSmallName(), type, "", "", false, unit)
@@ -1034,7 +1050,6 @@ public class ComponentStatsModule : IModule
         {
             Logging.WriteException(ex, MSGBox: false);
             _toast?.Show("⚙️ Hardware Monitor", "Failed to load component stats configuration.", ToastType.Error, key: "hw-stats-load-failed");
-            // Never leave the module blank: fall back to defaults like the missing-file path.
             if (_componentStats.Count == 0)
                 InitializeDefaultStats();
         }
@@ -1183,12 +1198,21 @@ public class ComponentStatsModule : IModule
         QueueDdrVersionFetchIfNeeded();
     }
 
+    private bool _loggedHardwareStatus;
+
     public void StartMonitoringComponents()
     {
         try
         {
+            _hwService.VendorGpuSensorsEnabled = StaticSettings.EnableVendorGpuSensors;
             _hwService.Open();
             RefreshGpuList();
+
+            if (!_loggedHardwareStatus)
+            {
+                _loggedHardwareStatus = true;
+                Logging.WriteInfo($"Hardware monitor: {_hwService.GetHardwareMonitorStatusMessage()}");
+            }
         }
         catch (Exception ex)
         {
@@ -1222,8 +1246,15 @@ public class ComponentStatsModule : IModule
     }
 
     /// <summary>
-    /// Checks if a stats update is due and, if so, polls hardware and regenerates the display string.
+    /// Runs the stop path from outside the tick. Turning the integration off stops the tick itself, so
+    /// without this nothing ever closed the sensor service or cleared the "running" state.
     /// </summary>
+    public void StopAndClear()
+    {
+        PerformStopActions();
+        _integrationDisplay.ComponentStatCombined = string.Empty;
+    }
+
     public void TickAndUpdate()
     {
         if (ShouldUpdateComponentStats())
@@ -1250,9 +1281,6 @@ public class ComponentStatsModule : IModule
 
 
 
-    /// <summary>
-    /// Refreshes all component stat values from the hardware service and returns <see langword="true"/> if any changed.
-    /// </summary>
     public bool UpdateStats()
     {
         void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)

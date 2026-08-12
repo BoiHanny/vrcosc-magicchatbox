@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,9 +19,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Runtime coordinator for Spotify Web API polling, token refresh, and playback controls.
-/// </summary>
 public sealed partial class SpotifyModule : ObservableObject, IModule
 {
     private static readonly TimeSpan TokenRefreshSkew = TimeSpan.FromMinutes(1);
@@ -44,19 +41,12 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
     private readonly IUiDispatcher _dispatcher;
     private readonly IToastService _toast;
 
-    // Single-flight refresh-token gate. Concurrent callers wait for the in-flight
-    // refresh and reuse its result, avoiding parallel refresh-token rotation
-    // (which can invalidate refresh tokens on Spotify's side).
     private readonly SemaphoreSlim _tokenRefreshLock = new(1, 1);
 
-    // Cache: IsTrackSaved by TrackId. Invalidated when the track changes or
-    // when the user toggles like via ToggleLikeAsync.
     private string _likedCacheTrackId = string.Empty;
     private bool _likedCacheValue;
     private bool _likedCacheValid;
 
-    // Queue refresh throttle — independent of playback polling so heavy
-    // queue fetches don't run every poll when party/{queue} is enabled.
     private DateTime _lastQueueRefreshUtc = DateTime.MinValue;
     private string _lastQueuePreview = string.Empty;
 
@@ -143,7 +133,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             _display.ClearPlayback("Spotify disabled");
     }
 
-    public Task<SpotifyTokenResult?> AuthenticateAsync()
+    public Task<SpotifyAuthOutcome> AuthenticateAsync()
         => _oauth.AuthenticateAsync(Settings.ClientId);
 
     public async Task ApplyTokenResultAsync(SpotifyTokenResult token)
@@ -347,7 +337,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         if (string.IsNullOrWhiteSpace(trackId))
             return Task.CompletedTask;
 
-        // Invalidate the liked cache so the next refresh re-queries authoritative state.
         InvalidateLikedCache();
 
         return ExecuteControlAsync((token, ct) => _display.IsLiked
@@ -486,7 +475,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             }
             else if (string.IsNullOrWhiteSpace(trackId))
             {
-                // Track gone — drop the cache so re-acquiring the same id later re-queries.
                 InvalidateLikedCache();
             }
 
@@ -660,7 +648,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         if (string.IsNullOrWhiteSpace(Settings.AccessToken) && string.IsNullOrWhiteSpace(Settings.RefreshToken))
             return null;
 
-        // Fast path — current token is still valid.
         if (!forceRefresh
             && !string.IsNullOrWhiteSpace(Settings.AccessToken)
             && Settings.TokenExpiresAtUtc > DateTime.UtcNow.Add(TokenRefreshSkew))
@@ -676,9 +663,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
             return null;
         }
 
-        // Single-flight gate: only one refresh-token rotation may be in flight.
-        // Concurrent callers wait and then re-check the cached token before issuing
-        // a duplicate refresh that could invalidate the rotated refresh token.
         bool acquired = false;
         try
         {
@@ -689,7 +673,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
                 return string.IsNullOrWhiteSpace(Settings.AccessToken) ? null : Settings.AccessToken;
             }
 
-            // Re-check after acquiring the lock — another caller may have just refreshed.
             if (!forceRefresh
                 && !string.IsNullOrWhiteSpace(Settings.AccessToken)
                 && Settings.TokenExpiresAtUtc > DateTime.UtcNow.Add(TokenRefreshSkew))
@@ -998,7 +981,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         };
     }
 
-    /// <summary>Resolve seekbar style by Spotify-specific ID, thread-safe snapshot.</summary>
     private MediaLinkModule.MediaLinkStyle? ResolveSeekbarStyle()
     {
         var styles = _mediaLinkDisplay.MediaLinkSeekbarStyles;
@@ -1016,7 +998,6 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         }
         catch
         {
-            // Collection may change during enumeration from UI thread; fall through to fallback
         }
 
         return null;

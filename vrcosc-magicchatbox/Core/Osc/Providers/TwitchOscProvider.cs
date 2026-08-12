@@ -1,14 +1,10 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Twitch stream info → OSC segment.
-/// Wraps <see cref="TwitchModule.GetOutputString"/>.
-/// </summary>
 public sealed class TwitchOscProvider : IOscProvider
 {
     private readonly Lazy<IModuleHost> _modules;

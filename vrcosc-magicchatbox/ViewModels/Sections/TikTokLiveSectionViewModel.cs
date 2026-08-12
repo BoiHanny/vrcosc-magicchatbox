@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
@@ -8,9 +8,6 @@ using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for the experimental TikTok Live integration.
-/// </summary>
 public partial class TikTokLiveSectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _moduleHost;

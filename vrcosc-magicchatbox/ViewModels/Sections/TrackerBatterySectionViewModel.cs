@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Windows;
@@ -9,10 +9,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for Tracker Battery options.
-/// Complete binding surface for TrackerBatterySection.xaml.
-/// </summary>
 public partial class TrackerBatterySectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _moduleHost;
@@ -24,10 +20,6 @@ public partial class TrackerBatterySectionViewModel : ObservableObject
     public TrackerDisplayState Tracker { get; }
     public IModuleHost Modules => _moduleHost.Value;
 
-    /// <summary>
-    /// Initializes the tracker-battery section ViewModel with the tracker module,
-    /// app-state, settings, and display-state dependencies.
-    /// </summary>
     public TrackerBatterySectionViewModel(
         Lazy<IModuleHost> moduleHost,
         TrackerDisplayState trackerDisplay,

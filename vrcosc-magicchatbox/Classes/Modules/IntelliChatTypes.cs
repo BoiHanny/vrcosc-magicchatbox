@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,7 +6,6 @@ using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>Marks an <see cref="IntelliGPTModel"/> enum field with its API model type (e.g. "Chat", "STT").</summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class ModelTypeInfoAttribute : Attribute
 {
@@ -18,75 +17,84 @@ public class ModelTypeInfoAttribute : Attribute
     public string ModelType { get; }
 }
 
-/// <summary>
-/// Marks an <see cref="IntelliGPTModel"/> enum field as a reasoning model that does NOT support
-/// sampling parameters (Temperature, TopP, FrequencyPenalty, PresencePenalty).
-/// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class ReasoningModelAttribute : Attribute { }
 
-/// <summary>Enumerates available OpenAI models, tagged with their type via <see cref="ModelTypeInfoAttribute"/>.</summary>
+/// <summary>
+/// Every value here is written out explicitly and must never be reused or renumbered. The selected
+/// model is persisted as its number, so inserting a member in the middle would silently move every
+/// existing user onto whatever now sits at their saved number - a settings file that said whisper-1
+/// yesterday could ask for a chat model today, and transcription would simply stop working.
+/// New models take the next free number at the end, whatever order they read in.
+/// </summary>
 public enum IntelliGPTModel
 {
     [Description("gpt-5.2"), ModelTypeInfo("Chat")]
-    gpt5_2,
+    gpt5_2 = 0,
 
     [Description("gpt-5.1"), ModelTypeInfo("Chat")]
-    gpt5_1,
+    gpt5_1 = 1,
 
     [Description("gpt-5"), ModelTypeInfo("Chat")]
-    gpt5,
+    gpt5 = 2,
 
     [Description("gpt-5-mini"), ModelTypeInfo("Chat")]
-    gpt5_mini,
+    gpt5_mini = 3,
 
     [Description("gpt-5-nano"), ModelTypeInfo("Chat")]
-    gpt5_nano,
+    gpt5_nano = 4,
 
     [Description("gpt-4.1"), ModelTypeInfo("Chat")]
-    gpt4_1,
+    gpt4_1 = 5,
 
     [Description("gpt-4.1-mini"), ModelTypeInfo("Chat")]
-    gpt4_1_mini,
+    gpt4_1_mini = 6,
 
     [Description("gpt-4.1-nano"), ModelTypeInfo("Chat")]
-    gpt4_1_nano,
+    gpt4_1_nano = 7,
 
     [Description("gpt-4o"), ModelTypeInfo("Chat")]
-    gpt4o,
+    gpt4o = 8,
 
     [Description("gpt-4o-mini"), ModelTypeInfo("Chat")]
-    gpt4omini,
+    gpt4omini = 9,
 
     [Description("o1"), ModelTypeInfo("Chat"), ReasoningModel]
-    o1,
+    o1 = 10,
 
     [Description("o1-mini"), ModelTypeInfo("Chat"), ReasoningModel]
-    o1_mini,
+    o1_mini = 11,
 
     [Description("o3"), ModelTypeInfo("Chat"), ReasoningModel]
-    o3,
+    o3 = 12,
 
     [Description("o3-mini"), ModelTypeInfo("Chat"), ReasoningModel]
-    o3_mini,
+    o3_mini = 13,
 
+    // Still supported, and the only transcription model that can translate to English, return
+    // word-level timestamps or produce subtitles.
     [Description("whisper-1"), ModelTypeInfo("STT")]
-    whisper1,
+    whisper1 = 14,
 
     [Description("gpt-4o-mini-transcribe"), ModelTypeInfo("STT")]
-    gpt_4o_mini_transcribe,
+    gpt_4o_mini_transcribe = 15,
 
     [Description("gpt-4o-transcribe"), ModelTypeInfo("STT")]
-    gpt_4o_transcribe,
+    gpt_4o_transcribe = 16,
 
+    // Returns speaker-labelled segments rather than a plain transcript.
     [Description("gpt-4o-transcribe-diarize"), ModelTypeInfo("STT")]
-    gpt_4o_transcribe_diarize,
+    gpt_4o_transcribe_diarize = 17,
 
     [Description("omni-moderation-latest"), ModelTypeInfo("Moderation")]
-    Moderation_Latest,
+    Moderation_Latest = 18,
+
+    // OpenAI's current recommendation for transcribing recorded speech, and what the 4o transcribe
+    // models are now described as legacy against.
+    [Description("gpt-transcribe"), ModelTypeInfo("STT")]
+    gpt_transcribe = 19,
 }
 
-/// <summary>Tracks prompt and completion token counts for a single model within a session.</summary>
 public partial class ModelTokenUsage : ObservableObject
 {
     [ObservableProperty]
@@ -101,7 +109,6 @@ public partial class ModelTokenUsage : ObservableObject
     public int TotalTokens => PromptTokens + CompletionTokens;
 }
 
-/// <summary>Aggregates per-model token usage for a single calendar day.</summary>
 public partial class DailyTokenUsage : ObservableObject
 {
     [ObservableProperty]
@@ -120,7 +127,6 @@ public partial class DailyTokenUsage : ObservableObject
     public int TotalDailyTokens => ModelUsages.Sum(mu => mu.TotalTokens);
 }
 
-/// <summary>Persists and exposes cumulative OpenAI token usage across all models and days.</summary>
 public class TokenUsageData : ObservableObject
 {
     private string _lastRequestModelName;
@@ -171,7 +177,6 @@ public class TokenUsageData : ObservableObject
     public int TotalDailyTokens => DailyUsages.LastOrDefault()?.TotalDailyTokens ?? 0;
 }
 
-/// <summary>Represents a language the user can translate into or target for AI-generated text.</summary>
 public partial class SupportedIntelliChatLanguage : ObservableObject
 {
     [ObservableProperty]
@@ -187,7 +192,6 @@ public partial class SupportedIntelliChatLanguage : ObservableObject
     private string language;
 }
 
-/// <summary>Defines an AI writing style (name, description, and temperature) used when generating or rewriting text.</summary>
 public partial class IntelliChatWritingStyle : ObservableObject
 {
     [ObservableProperty]

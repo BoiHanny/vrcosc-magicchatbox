@@ -1,14 +1,9 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Enforces user bans by notifying the user and terminating the application.
-/// Local data is deliberately left intact: a ban is an unauthenticated server
-/// signal and must never destroy the user's settings, tokens, or history.
-/// </summary>
 public class BanEnforcementService : IBanEnforcementService
 {
     private readonly IAppState _appState;

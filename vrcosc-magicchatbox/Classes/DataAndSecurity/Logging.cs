@@ -17,10 +17,6 @@ internal static class Logging
     private static Core.Services.IVersionService? _versionService;
     private static INavigationService? _nav;
 
-    /// <summary>
-    /// Called once from App.OnStartup after DI container is built.
-    /// Eliminates all service-locator calls from this class.
-    /// </summary>
     public static void Initialize(
         AppUpdateState appUpdateState,
         IEnvironmentService env,
@@ -37,9 +33,6 @@ internal static class Logging
         _nav = nav;
     }
 
-    // Cache logger instance after logging is configured. Avoid calling into
-    // LogManager during first-chance exception handling where logger init
-    // may itself throw and cause recursive first-chance exceptions.
     private static Logger? _logController;
 
     [ThreadStatic]
@@ -47,7 +40,6 @@ internal static class Logging
 
     private static void HandleLoggingError(string context, Exception e)
     {
-        // If we're already writing a log, don't re-enter the logging system.
         if (_isLogging)
         {
             Console.Error.WriteLine($"{context}\n{e.Message}\n{e.StackTrace}");
@@ -69,7 +61,6 @@ internal static class Logging
                 }
             }
 
-            // NLog not available or failed; last-resort fallback to stderr
             Console.Error.WriteLine($"{context}\n{e.Message}\n{e.StackTrace}");
         }
         finally

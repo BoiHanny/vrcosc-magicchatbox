@@ -1,14 +1,10 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Discord voice channel info → OSC segment.
-/// Wraps <see cref="DiscordModule.GetOutputString"/>.
-/// </summary>
 public sealed class DiscordOscProvider : IOscProvider
 {
     private readonly Lazy<IModuleHost> _modules;

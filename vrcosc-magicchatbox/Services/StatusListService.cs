@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.ObjectModel;
@@ -15,11 +15,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Loads, saves, and manages status items and groups for the chatbox status display.
-/// JSON format (v2): { "version": 2, "groups": [...], "items": [...] }
-/// Legacy format (v1): raw array [...] — auto-migrated to Default group on first load.
-/// </summary>
 public sealed class StatusListService : IStatusListService, IDisposable
 {
     private const int CurrentSchemaVersion = 2;
@@ -90,10 +85,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
         {
             _savePending = false;
 
-            // The ObservableCollections are UI-bound: snapshot them on the dispatcher
-            // thread so the debounced ThreadPool save can't race UI mutations.
-            // Must happen outside _saveLock — a UI-thread save waiting on the lock
-            // would deadlock a background thread blocked in Invoke.
             var (groups, items) = _dispatcher.CheckAccess()
                 ? (_chatStatus.GroupList.ToList(), _chatStatus.StatusList.ToList())
                 : _dispatcher.Invoke(() => (_chatStatus.GroupList.ToList(), _chatStatus.StatusList.ToList()));
@@ -152,7 +143,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
         var group = _chatStatus.GroupList.FirstOrDefault(g => g.GroupId == groupId);
         if (group == null) return;
 
-        // Never delete Default group
         var defaultGroup = _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName);
         if (defaultGroup == null || group.GroupId == defaultGroup.GroupId) return;
 
@@ -177,7 +167,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
 
             if (root is JArray)
             {
-                // v1 legacy: raw items array — migrate to Default group
                 MigrateFromLegacyArray(root.ToObject<ObservableCollection<StatusItem>>()
                                        ?? new ObservableCollection<StatusItem>());
                 return;
@@ -220,8 +209,7 @@ public sealed class StatusListService : IStatusListService, IDisposable
             item.GroupId = defaultGroup.GroupId;
 
         SetState(groups, items, checkEggs: true);
-        SaveStatusList(); // persist v2 format immediately
-        Logging.WriteInfo("StatusList migrated from legacy array format to v2 bundle format.");
+        SaveStatusList();        Logging.WriteInfo("StatusList migrated from legacy array format to v2 bundle format.");
     }
 
     private static void EnsureDefaultGroup(ObservableCollection<StatusGroup> groups)
@@ -309,8 +297,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
             _debounceTimer = null;
         }
 
-        // Flush rather than drop a pending debounced save so a quick shutdown
-        // can't lose the last edit (mirrors JsonSettingsProvider.FlushPendingSave).
         if (_savePending)
             SaveStatusListCore();
     }
@@ -345,7 +331,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
             var importedGroups = bundle.Groups ?? new System.Collections.Generic.List<StatusGroup>();
             var importedItems = bundle.Items ?? new System.Collections.Generic.List<StatusItem>();
 
-            // Build oldGroupId → newGroupId mapping (generate fresh IDs to avoid conflicts)
             var groupIdMap = new System.Collections.Generic.Dictionary<string, string>();
             foreach (var group in importedGroups)
             {
@@ -354,7 +339,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
                 group.GroupId = newId;
                 group.CreationDate = DateTime.Now;
 
-                // Protect "Default" group name: rename to avoid collision
                 if (group.Name == DefaultGroupName)
                     group.Name = "Default (Imported)";
 
@@ -369,14 +353,12 @@ public sealed class StatusListService : IStatusListService, IDisposable
             int count = 0;
             foreach (var item in importedItems)
             {
-                // Generate new MSGID to avoid collisions
                 item.MSGID = GenerateRandomId();
 
                 if (item.GroupId != null && groupIdMap.TryGetValue(item.GroupId, out var newGroupId))
                     item.GroupId = newGroupId;
                 else
                 {
-                    // Orphaned — assign to existing Default group
                     var def = _chatStatus.GroupList.FirstOrDefault(g => g.Name == DefaultGroupName);
                     item.GroupId = def?.GroupId;
                 }
@@ -412,7 +394,6 @@ public sealed class StatusListService : IStatusListService, IDisposable
         System.Collections.Generic.IEnumerable<StatusGroup> groups,
         System.Collections.Generic.IEnumerable<StatusItem> items)
     {
-        // Create clean DTOs to strip transient UI state
         var cleanGroups = groups.Select(g => new
         {
             g.GroupId,

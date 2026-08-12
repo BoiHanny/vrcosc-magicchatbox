@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
@@ -13,10 +13,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for Pulsoid integration options.
-/// Complete binding surface for PulsoidSection.xaml.
-/// </summary>
 public partial class PulsoidSectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _moduleHost;
@@ -33,10 +29,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
     public PulsoidOAuthHandler PulsoidOAuth => _pulsoidOAuth.Value;
     public INavigationService Navigation => _nav;
 
-    /// <summary>
-    /// Initializes the Pulsoid section ViewModel with the heart-rate module, display state,
-    /// settings, app-state, and supporting services.
-    /// </summary>
     public PulsoidSectionViewModel(
         Lazy<IModuleHost> moduleHost,
         Lazy<PulsoidOAuthHandler> pulsoidOAuth,
@@ -104,7 +96,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
                 if (await oAuth.ValidateTokenAsync(accessToken))
                 {
                     pulsoid.Settings.AccessTokenOAuth = accessToken;
-                    // Persist immediately — waiting for shutdown risks losing the token on crash/kill
                     pulsoid.SaveSettings();
                     PulsoidAuthConnected = true;
                 }

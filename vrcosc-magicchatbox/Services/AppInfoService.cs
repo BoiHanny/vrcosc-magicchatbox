@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Reflection;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Reads application metadata (version) from the executing assembly.
-/// </summary>
 public class AppInfoService : IAppInfoService
 {
     public string GetApplicationVersion()

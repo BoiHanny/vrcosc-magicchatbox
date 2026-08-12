@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -13,15 +13,13 @@ using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.Services.Vr;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules
 {
-    /// <summary>
-    /// Module that reads SteamVR tracker, controller, and headset battery levels via OpenVR and formats them for display.
-    /// </summary>
     public class TrackerBatteryModule : IModule
     {
         private static readonly Dictionary<string, string> DefaultIconsByKind = new(StringComparer.OrdinalIgnoreCase)
@@ -39,8 +37,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
             { "Tracker", "T" },
             { "BaseStation", "B" }
         };
-        private CVRSystem _vrSystem;
-        private bool _isInitialized;
+        private IDisposable? _sessionLease;
+
+        private CVRSystem? _vrSystem;
         private int _rotationIndex;
         private DateTime _lastRotationUtc = DateTime.MinValue;
         private readonly StringBuilder _stringBuilder = new StringBuilder(256);
@@ -51,17 +50,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string Name => "TrackerBattery";
         public bool IsEnabled { get; set; } = true;
-        public bool IsRunning => _isInitialized;
+        public bool IsRunning => _sessionLease != null && _session.IsAttached;
         public Task InitializeAsync(CancellationToken ct = default) { Initialize(); return Task.CompletedTask; }
         public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
-        public Task StopAsync(CancellationToken ct = default) { ShutdownOpenVR("StopAsync"); return Task.CompletedTask; }
-        public void Dispose() => ShutdownOpenVR("Dispose");
+        public Task StopAsync(CancellationToken ct = default) { ReleaseSession("StopAsync"); return Task.CompletedTask; }
+        public void Dispose() => ReleaseSession("Dispose");
 
         private readonly IAppState _appState;
         private readonly TrackerDisplayState _tracker;
         private readonly IntegrationDisplayState _integrationDisplay;
         private readonly IUiDispatcher _dispatcher;
         private readonly IPrivacyConsentService _consentService;
+        private readonly IOpenVrSessionService _session;
         private readonly IToastService? _toast;
         private volatile bool _trackerErrorShown;
 
@@ -72,6 +72,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             IntegrationDisplayState integrationDisplay,
             IUiDispatcher dispatcher,
             IPrivacyConsentService consentService,
+            IOpenVrSessionService session,
             IToastService? toast = null)
         {
             _settingsProvider = settingsProvider;
@@ -80,6 +81,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _integrationDisplay = integrationDisplay;
             _dispatcher = dispatcher;
             _consentService = consentService;
+            _session = session;
             _toast = toast;
 
             _consentService.ConsentChanged += OnConsentChanged;
@@ -90,16 +92,16 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (e.Hook != PrivacyHook.VrTrackerBattery)
                 return;
 
-            if (e.NewState == ConsentState.Denied && _isInitialized)
+            if (e.NewState == ConsentState.Denied && _sessionLease != null)
             {
-                ShutdownOpenVR("Privacy consent revoked");
+                ReleaseSession("Privacy consent revoked");
                 _toast?.Show("🔒 VR Tracker", "Tracker battery monitoring paused — privacy consent revoked.", ToastType.Privacy, key: "tracker-privacy-denied");
             }
         }
 
         public void Initialize()
         {
-            if (_isInitialized)
+            if (_sessionLease != null)
             {
                 return;
             }
@@ -109,60 +111,29 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return;
             }
 
-            try
-            {
-                EVRInitError error = EVRInitError.None;
-                _vrSystem = Valve.VR.OpenVR.Init(ref error, EVRApplicationType.VRApplication_Background);
-
-                if (error != EVRInitError.None)
-                {
-                    _vrSystem = null;
-                    if (error != EVRInitError.Init_NoServerForBackgroundApp)
-                    {
-                        Logging.WriteInfo($"OpenVR Init Failed: {error}");
-                        if (!_trackerErrorShown)
-                        {
-                            _trackerErrorShown = true;
-                            _toast?.Show("📍 VR Tracker", "SteamVR is not running or could not be reached. Start SteamVR first.", ToastType.Warning, key: "tracker-error");
-                        }
-                    }
-                    return;
-                }
-
-                _isInitialized = true;
-                _trackerErrorShown = false;
-            }
-            catch (Exception ex)
-            {
-                _vrSystem = null;
-                Logging.WriteException(ex, MSGBox: false);
-                _toast?.Show("📍 VR Tracker", "Unexpected error connecting to SteamVR. Will retry automatically.", ToastType.Warning, key: "tracker-error");
-            }
+            _sessionLease = _session.AcquireLease(PrivacyHook.VrTrackerBattery, Name);
         }
 
         public void UpdateDevices()
         {
             if (!_appState.IsVRRunning)
             {
-                ShutdownOpenVR("VR not running");
+                MarkAllDisconnected();
+                UpdateSummary("VR not running");
                 return;
             }
 
-            if (!_isInitialized)
-            {
-                Initialize();
-                if (!_isInitialized)
-                {
-                    UpdateSummary("Waiting for SteamVR...");
-                    return;
-                }
-            }
+            Initialize();
 
+            _vrSystem = _session.System;
             if (_vrSystem == null)
             {
+                MarkAllDisconnected();
+                UpdateSummary("Waiting for SteamVR...");
                 return;
             }
 
+            _trackerErrorShown = false;
             var currentSerialNumbers = new HashSet<string>();
 
             for (uint i = 0; i < Valve.VR.OpenVR.k_unMaxTrackedDeviceCount; i++)
@@ -269,25 +240,14 @@ namespace vrcosc_magicchatbox.Classes.Modules
             UpdateSummary("Scanning...");
         }
 
-        private void ShutdownOpenVR(string reason)
+        private void ReleaseSession(string reason)
         {
             MarkAllDisconnected();
             UpdateSummary(reason);
 
-            if (_isInitialized)
-            {
-                try
-                {
-                    Valve.VR.OpenVR.Shutdown();
-                }
-                catch (Exception ex)
-                {
-                    Logging.WriteInfo($"OpenVR shutdown error (non-fatal): {ex.Message}");
-                }
-
-                _vrSystem = null;
-                _isInitialized = false;
-            }
+            _vrSystem = null;
+            _sessionLease?.Dispose();
+            _sessionLease = null;
         }
 
         private void MarkAllDisconnected()
@@ -690,9 +650,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             {
                 var target = _tracker.TrackerBatteryActiveDevices;
 
-                // Short-circuit if the active-devices set is already in the
-                // desired order. Avoids Clear()+Add() churn that triggers a
-                // Reset notification and forces WPF to drop all item containers.
                 if (target.Count == devices.Count)
                 {
                     bool identical = true;

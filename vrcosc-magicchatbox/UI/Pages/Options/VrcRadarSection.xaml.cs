@@ -1,11 +1,10 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for the VRChat Radar (log parser) settings section.</summary>
 public partial class VrcRadarSection : UserControl
 {
     public VrcRadarSection()

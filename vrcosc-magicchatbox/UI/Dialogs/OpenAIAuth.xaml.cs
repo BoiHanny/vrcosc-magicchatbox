@@ -6,9 +6,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
-    /// <summary>
-    /// Interaction logic for OpenAIAuth.xaml
-    /// </summary>
     public partial class OpenAIAuth : Window
     {
         private readonly OpenAIDisplayState _openAIDisplay;
@@ -27,9 +24,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             _openAISettings = openAISettingsProvider.Value;
             _openAIModule = openAIModule;
             _nav = nav;
-            // Deliberately no state mutation here: opening (and cancelling) this dialog
-            // must never touch stored credentials or connection state. Credentials are
-            // only overwritten on explicit Connect/Disconnect actions.
         }
 
         private void Button_close_Click(object sender, RoutedEventArgs e)

@@ -1,8 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using vrcosc_magicchatbox.Classes.Modules.Afk;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +16,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>Persisted settings for the AFK detection module.</summary>
 public partial class AfkModuleSettings : ObservableObject
 {
     public event EventHandler SettingsChanged;
@@ -67,6 +68,69 @@ public partial class AfkModuleSettings : ObservableObject
     [ObservableProperty]
     private bool overrideAfk = false;
 
+    // The four fields above are what a style is made of, and were the whole story before styles
+    // existed. They are kept so an older settings file can be read and turned into a style once.
+
+    /// <summary>
+    /// Only the styles you made yourself are written to disk. The ones that ship with MagicChatbox
+    /// are rebuilt from code on every load, the same way the media link seekbar presets are, so
+    /// improving them in a new version actually reaches people instead of being shadowed forever by
+    /// a copy frozen in a settings file.
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<AfkStyle> customStyles = new();
+
+    /// <summary>
+    /// Reads the "Styles" array written by the one build that persisted the presets alongside your
+    /// own. Migrated into CustomStyles on load and then dropped, so the shipped ones stop being
+    /// frozen copies and yours survive.
+    /// </summary>
+    [ObservableProperty]
+    [property: JsonProperty("Styles", NullValueHandling = NullValueHandling.Ignore)]
+    private ObservableCollection<AfkStyle>? legacyStyles;
+
+    [ObservableProperty]
+    private string activeStyleId = string.Empty;
+
+    /// <summary>What the pickers show: the shipped styles first, then yours. Never persisted.</summary>
+    [JsonIgnore]
+    public ObservableCollection<AfkStyle> AllStyles { get; } = new();
+
+    [JsonIgnore]
+    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(AllStyles, ActiveStyleId);
+
+    /// <summary>
+    /// Rebuilds the visible list from code plus your own styles. Safe to run more than once.
+    /// Returns true when the settings file itself needs rewriting - that is, when presets that were
+    /// once persisted have just been dropped in favour of the code ones.
+    /// </summary>
+    public bool EnsureStyles()
+    {
+        bool hadPersistedPresets = LegacyStyles != null;
+
+        var seeded = AfkStyleSeed.Compose(
+            CustomStyles,
+            LegacyStyles,
+            ActiveStyleId,
+            AfkPrefix,
+            ShowPrefixIcon,
+            AfkMessageForTimeStamp,
+            AfkMessageWithoutTimeStamp,
+            ShowAFKTime);
+
+        if (!ReferenceEquals(CustomStyles, seeded.CustomStyles))
+            CustomStyles = new ObservableCollection<AfkStyle>(seeded.CustomStyles);
+
+        LegacyStyles = null;
+
+        AllStyles.Clear();
+        foreach (var style in seeded.AllStyles)
+            AllStyles.Add(style);
+
+        ActiveStyleId = seeded.ActiveId;
+        return hadPersistedPresets;
+    }
+
     public static AfkModuleSettings LoadSettings(string settingsPath)
     {
         if (File.Exists(settingsPath))
@@ -85,7 +149,6 @@ public partial class AfkModuleSettings : ObservableObject
             }
             catch (Exception ex)
             {
-                // Transient IO lock (AV/indexer) must not propagate out of the module constructor.
                 Logging.WriteInfo($"Error reading AFK settings: {ex.Message}");
                 return new AfkModuleSettings { _settingsPath = settingsPath };
             }
@@ -104,9 +167,6 @@ public partial class AfkModuleSettings : ObservableObject
     }
 }
 
-/// <summary>
-/// Detects user AFK state via system idle time and manages AFK display in VRChat chatbox.
-/// </summary>
 public partial class AfkModule : ObservableObject, IModule
 {
     private readonly IAppState _appState;
@@ -159,6 +219,12 @@ public partial class AfkModule : ObservableObject, IModule
         _consentService = consentService;
         var settingsPath = Path.Combine(env.DataPath, "AfkModuleSettings.json");
         Settings = AfkModuleSettings.LoadSettings(settingsPath);
+
+        // Rewrite once when presets are being lifted out of the settings file, so the stale copies
+        // are actually gone rather than sitting there waiting to be read again.
+        if (Settings.EnsureStyles())
+            Settings.SaveSettings();
+
         Settings.SettingsChanged += Settings_SettingsChanged;
         _appState.PropertyChanged += ViewModel_PropertyChanged;
         lastActionTime = DateTime.Now;
@@ -193,28 +259,13 @@ public partial class AfkModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Builds the AFK status string from current settings and elapsed AFK time.
-    /// </summary>
     public string GenerateAFKString()
     {
-        string afkString = "";
+        var style = Settings.ActiveStyle;
+        if (style == null)
+            return string.Empty;
 
-        if (Settings.ShowPrefixIcon)
-        {
-            afkString += Settings.AfkPrefix + " ";
-        }
-
-        if (Settings.ShowAFKTime && TimeCurrentlyAFK != null)
-        {
-            afkString += Settings.AfkMessageForTimeStamp + TimeCurrentlyAFK;
-        }
-        else
-        {
-            afkString += Settings.AfkMessageWithoutTimeStamp;
-        }
-
-        return afkString.Replace("\\n", "\n").Replace("/n", "\n");
+        return style.Render(TimeCurrentlyAFK);
     }
 
     private void InitializeAfkDetection()
@@ -331,9 +382,6 @@ public partial class AfkModule : ObservableObject, IModule
         OverrideButtonVisible = true;
     }
 
-    /// <summary>
-    /// Formats a <see cref="TimeSpan"/> into a compact human-readable string (e.g. "1ʰ 2ᵐ 3ˢ").
-    /// </summary>
     public static string FormatDuration(TimeSpan duration, bool useSmallLetters)
     {
         var parts = new List<string>();

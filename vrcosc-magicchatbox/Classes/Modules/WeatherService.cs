@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -17,10 +17,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Service that fetches weather data from the Open-Meteo API and formats it for display,
-/// supporting city name, GPS coordinates, and IP-based location lookup.
-/// </summary>
 public class WeatherService : IWeatherService
 {
     private const string DefaultCityName = "London";
@@ -670,8 +666,6 @@ public class WeatherService : IWeatherService
                 {
                     return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);
                 }
-                // IP geolocation requires outbound HTTP to a third-party service —
-                // gate behind InternetAccess consent and fall back to city otherwise.
                 if (!_consentService.IsApproved(PrivacyHook.InternetAccess))
                 {
                     return await BuildLocationFromCityAsync(Settings.WeatherLocationCity).ConfigureAwait(false);

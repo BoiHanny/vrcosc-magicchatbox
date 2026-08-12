@@ -1,14 +1,10 @@
-using System;
+﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
-/// <summary>
-/// Adapter: Soundpad currently-playing song → OSC segment.
-/// Wraps <see cref="SoundpadModule.GetPlayingSong"/>.
-/// </summary>
 public sealed class SoundpadOscProvider : IOscProvider
 {
     private readonly Lazy<IModuleHost> _modules;

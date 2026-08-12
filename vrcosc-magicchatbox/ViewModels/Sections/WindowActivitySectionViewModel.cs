@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -8,11 +8,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for Window Activity options.
-/// Acts as the complete binding surface for WindowActivitySection.xaml.
-/// Exposes settings, display state, and cleanup commands.
-/// </summary>
 public partial class WindowActivitySectionViewModel : ObservableObject
 {
     private readonly IWindowActivityService _windowActivitySvc;
@@ -22,10 +17,6 @@ public partial class WindowActivitySectionViewModel : ObservableObject
     public IntegrationSettings IntegrationSettings { get; }
     public WindowActivitySettings WindowActivitySettings { get; }
 
-    /// <summary>
-    /// Initializes the window-activity section ViewModel with the window module, app-state,
-    /// settings, navigation, and display-state dependencies.
-    /// </summary>
     public WindowActivitySectionViewModel(
         IWindowActivityService windowActivitySvc,
         WindowActivityDisplayState windowActivity,

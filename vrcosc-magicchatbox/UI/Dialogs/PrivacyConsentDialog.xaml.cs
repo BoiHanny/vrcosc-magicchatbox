@@ -27,8 +27,8 @@ public partial class PrivacyConsentDialog : Window
     {
         PrivacyHook.HardwareMonitor => new HookItem(hook,
             title: "🖥️  Hardware Monitor  (CPU · RAM · GPU · VRAM)",
-            description: "Reads available CPU, RAM, GPU, and VRAM stats using driverless Windows APIs, WMI, " +
-                         "and the NVIDIA driver tool when available. No WinRing0 kernel driver is bundled.",
+            description: "Reads available CPU, RAM, GPU, and VRAM stats using Windows APIs, WMI, and your " +
+                         "graphics driver's own user-mode libraries. No kernel-mode sensor driver is loaded.",
             warning: "Denying this disables Component Stats completely.",
             isApproved: _consentService.IsApproved(hook)),
 
@@ -88,6 +88,13 @@ public partial class PrivacyConsentDialog : Window
             description: "Reads VRChat's output_log.txt to extract world info, player events, and session stats. " +
                          "All data stays local — nothing is sent externally.",
             warning: null,
+            isApproved: _consentService.IsApproved(hook)),
+
+        PrivacyHook.VrPerformance => new HookItem(hook,
+            title: "🎯  VR Performance  (SteamVR frame timing)",
+            description: "Reads SteamVR's compositor counters — frame rate, reprojection, dropped frames and GPU " +
+                         "frame time — so you can see performance while wearing the headset. All data stays local.",
+            warning: "Requires SteamVR. Players using VDXR, the Oculus runtime, or a standalone headset won't see this.",
             isApproved: _consentService.IsApproved(hook)),
 
         _ => new HookItem(hook, hook.ToString(), string.Empty, null, _consentService.IsApproved(hook)),

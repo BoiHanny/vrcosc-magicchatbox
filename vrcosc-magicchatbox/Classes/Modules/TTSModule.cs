@@ -1,4 +1,4 @@
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,9 +17,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Text-to-speech service using TikTok TTS API. Registered as DI singleton.
-/// </summary>
 public class TTSModule
 {
     private readonly TtsSettings _ttsSettings;
@@ -130,7 +127,6 @@ public class TTSModule
             wasapiOut.Init(mp3Reader);
             wasapiOut.Volume = _ttsSettings.TtsVolume;
 
-            // Zero-CPU wait: TaskCompletionSource completes when NAudio fires PlaybackStopped.
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             wasapiOut.PlaybackStopped += (_, _) => tcs.TrySetResult();
 
@@ -139,7 +135,6 @@ public class TTSModule
 
             wasapiOut.Play();
 
-            // Cancellation stops playback → triggers PlaybackStopped → completes tcs.
             using var reg = cancelToken.Register(() => wasapiOut.Stop());
 
             await tcs.Task;

@@ -1,10 +1,12 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Spotify;
+using vrcosc_magicchatbox.Classes.Modules.Vr;
+using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
@@ -15,10 +17,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Centralizes all module creation in a defined startup order.
-/// Replaces scattered creation across App.xaml.cs, ViewModel.StartModules(), and MainWindow.xaml.cs.
-/// </summary>
 public class ModuleBootstrapper
 {
     private static readonly TimeSpan RuntimeModuleCreationTimeout = TimeSpan.FromSeconds(6);
@@ -48,6 +46,11 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TwitchSettings> _twitchSettingsProvider;
     private readonly ISettingsProvider<TikTokLiveSettings> _tikTokLiveSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
+    private readonly ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> _vrPerformanceSettingsProvider;
+    private readonly Vr.IOpenVrSessionService _openVrSession;
+    private readonly ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings> _lyricsSettingsProvider;
+    private readonly Lyrics.LyricsResolver _lyricsResolver;
+    private readonly LyricsDisplayState _lyricsDisplay;
     private readonly ISettingsProvider<DiscordSettings> _discordSettingsProvider;
     private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
     private readonly ISettingsProvider<VrcLogSettings> _vrcLogSettingsProvider;
@@ -58,10 +61,6 @@ public class ModuleBootstrapper
     private readonly IToastService _toast;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>
-    /// Signals that all startup initialization is complete.
-    /// Modules waiting for auto-start should await this before connecting.
-    /// </summary>
     public void SignalStartupComplete() => _startupComplete.TrySetResult();
 
     public ModuleBootstrapper(
@@ -90,6 +89,11 @@ public class ModuleBootstrapper
         ISettingsProvider<TwitchSettings> twitchSettingsProvider,
         ISettingsProvider<TikTokLiveSettings> tikTokLiveSettingsProvider,
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
+        ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> vrPerformanceSettingsProvider,
+        Vr.IOpenVrSessionService openVrSession,
+        ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings> lyricsSettingsProvider,
+        Lyrics.LyricsResolver lyricsResolver,
+        LyricsDisplayState lyricsDisplay,
         ISettingsProvider<DiscordSettings> discordSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<VrcLogSettings> vrcLogSettingsProvider,
@@ -124,6 +128,11 @@ public class ModuleBootstrapper
         _twitchSettingsProvider = twitchSettingsProvider;
         _tikTokLiveSettingsProvider = tikTokLiveSettingsProvider;
         _trackerSettingsProvider = trackerSettingsProvider;
+        _vrPerformanceSettingsProvider = vrPerformanceSettingsProvider;
+        _openVrSession = openVrSession;
+        _lyricsSettingsProvider = lyricsSettingsProvider;
+        _lyricsResolver = lyricsResolver;
+        _lyricsDisplay = lyricsDisplay;
         _discordSettingsProvider = discordSettingsProvider;
         _spotifySettingsProvider = spotifySettingsProvider;
         _vrcLogSettingsProvider = vrcLogSettingsProvider;
@@ -134,9 +143,6 @@ public class ModuleBootstrapper
         _toast = toast;
     }
 
-    /// <summary>
-    /// Phase 1: Register the ComponentStatsModule once optional startup has resolved it.
-    /// </summary>
     public Task RegisterComponentStatsAsync(ComponentStatsModule statsModule)
         => _dispatcher.InvokeAsync(() =>
         {
@@ -144,10 +150,6 @@ public class ModuleBootstrapper
             _host.RegisterModule(statsModule);
         });
 
-    /// <summary>
-    /// Phase 2: Create IntelliChatModule (needed before WhisperModule).
-    /// Safe to call from background thread.
-    /// </summary>
     public IntelliChatModule CreateIntelliChat()
     {
         var module = new IntelliChatModule(
@@ -163,14 +165,21 @@ public class ModuleBootstrapper
         return module;
     }
 
-    /// <summary>
-    /// Phase 3: Create runtime modules (Pulsoid, Soundpad, Twitch, TrackerBattery).
-    /// These subscribe to IntegrationSettings.PropertyChanged for toggle reactivity.
-    /// </summary>
     public async Task CreateRuntimeModulesAsync()
     {
         var timeSettings = _timeSettingsProvider.Value;
         var integrationSettings = _integrationSettingsProvider.Value;
+
+        // Lyrics used to be one flag wearing two switches. Settings written before the split carry
+        // only the master, so the per-source flags are brought into agreement with it here, once,
+        // before anything reads them.
+        var lyricSources = LyricsSourceSelection.Reconcile(
+            integrationSettings.IntgrLyrics,
+            integrationSettings.IntgrLyrics_Spotify,
+            integrationSettings.IntgrLyrics_MediaLink);
+        integrationSettings.IntgrLyrics_Spotify = lyricSources.Spotify;
+        integrationSettings.IntgrLyrics_MediaLink = lyricSources.MediaLink;
+        integrationSettings.IntgrLyrics = lyricSources.Any;
 
         var pulsoid = await CreateRuntimeModuleAsync("Pulsoid", () => new PulsoidModule(
             _appState,
@@ -222,7 +231,22 @@ public class ModuleBootstrapper
             _integrationDisplay,
             _dispatcher,
             _consentService,
+            _openVrSession,
             _toast));
+        var vrPerformance = await CreateRuntimeModuleAsync("VrPerformance", () => new VrPerformanceModule(
+            _vrPerformanceSettingsProvider,
+            _openVrSession,
+            _appState,
+            _integrationDisplay,
+            _consentService));
+        var lyrics = await CreateRuntimeModuleAsync("Lyrics", () => new LyricsModule(
+            _lyricsSettingsProvider,
+            integrationSettings,
+            _lyricsResolver,
+            _mediaLinkDisplay,
+            _spotifyDisplay,
+            _lyricsDisplay,
+            _consentService));
         var vrcRadar = await CreateRuntimeModuleAsync("VrcRadar", () => new VrcLogModule(
             _vrcLogSettingsProvider,
             integrationSettings,
@@ -295,6 +319,27 @@ public class ModuleBootstrapper
                 _host.RegisterModule(tracker);
             }
 
+            if (vrPerformance != null)
+            {
+                _host.VrPerformance = vrPerformance;
+                _host.RegisterModule(vrPerformance);
+
+                integrationSettings.PropertyChanged += vrPerformance.PropertyChangedHandler;
+
+                if (integrationSettings.IntgrVrPerformance)
+                    _ = vrPerformance.StartAsync();
+            }
+
+            if (lyrics != null)
+            {
+                _host.Lyrics = lyrics;
+                _host.RegisterModule(lyrics);
+                integrationSettings.PropertyChanged += lyrics.PropertyChangedHandler;
+
+                if (integrationSettings.IntgrLyrics)
+                    _ = lyrics.StartAsync();
+            }
+
             if (vrcRadar != null)
             {
                 _host.VrcRadar = vrcRadar;
@@ -302,8 +347,6 @@ public class ModuleBootstrapper
                 integrationSettings.PropertyChanged += vrcRadar.PropertyChangedHandler;
             }
 
-            // Wire VRChat Radar → Discord Rich Presence updates.
-            // Rich Presence uses DiscordRichPresence; DiscordModule remains voice IPC only.
             if (vrcRadar != null)
             {
                 vrcRadar.OnVrcWorldStateChanged += () =>
@@ -366,7 +409,6 @@ public class ModuleBootstrapper
                 };
             }
 
-            // ViewModel.PropertyChanged carries IsVRRunning and PulsoidAuthConnected changes
             if (_appState is System.ComponentModel.INotifyPropertyChanged notifier)
             {
                 if (pulsoid != null)
@@ -381,7 +423,6 @@ public class ModuleBootstrapper
                 if (vrcRadar != null)
                     notifier.PropertyChanged += vrcRadar.PropertyChangedHandler;
 
-                // Master switch off → clear Discord Rich Presence
                 notifier.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName == nameof(IAppState.MasterSwitch) && !_appState.MasterSwitch)
@@ -396,15 +437,13 @@ public class ModuleBootstrapper
             }
         });
 
-        // Discord voice auto-connect: start the voice IPC module only when voice auth is available.
         if (discord != null)
         {
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await _startupComplete.Task; // wait for full startup instead of fixed delay
-                    bool hasToken = !string.IsNullOrWhiteSpace(discord.Settings.AccessToken);
+                    await _startupComplete.Task;                    bool hasToken = !string.IsNullOrWhiteSpace(discord.Settings.AccessToken);
 
                     if (discord.Settings.AutoConnectOnStartup && hasToken)
                     {
@@ -466,15 +505,13 @@ public class ModuleBootstrapper
             });
         }
 
-        // VrcRadar auto-start: begin log tailing if integration toggles are enabled
         if (vrcRadar != null)
         {
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await _startupComplete.Task; // wait for full startup instead of fixed delay
-                    if (vrcRadar.ShouldBeRunning())
+                    await _startupComplete.Task;                    if (vrcRadar.ShouldBeRunning())
                     {
                         Logging.WriteInfo("VrcRadar: Auto-starting on startup...");
                         await vrcRadar.StartAsync();
@@ -517,9 +554,6 @@ public class ModuleBootstrapper
         }
     }
 
-    /// <summary>
-    /// Phase 4: Create WhisperModule and AfkModule (require IntelliChatModule to exist).
-    /// </summary>
     public void CreateLateModules()
     {
         var timeSettings = _timeSettingsProvider.Value;

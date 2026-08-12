@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Linq;
@@ -10,10 +10,6 @@ using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for VRChat Radar (log parser) options.
-/// Handles start/stop and exposes log-based settings + live stats.
-/// </summary>
 public partial class VrcRadarSectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _moduleHost;
@@ -26,7 +22,6 @@ public partial class VrcRadarSectionViewModel : ObservableObject
     [ObservableProperty] private bool _isStarting;
     [ObservableProperty] private string? _selectedWorldPresetName;
 
-    /// <summary>Available display mode options for the ComboBox.</summary>
     public RadarDisplayMode[] DisplayModes { get; } =
     [
         RadarDisplayMode.AlwaysShow,
@@ -36,7 +31,6 @@ public partial class VrcRadarSectionViewModel : ObservableObject
         RadarDisplayMode.CompactInfo
     ];
 
-    /// <summary>World template preset names for UI combo box.</summary>
     public string[] WorldPresetNames { get; } = VrcLogSettings.WorldTemplatePresets
         .Select(p => p.Name).ToArray();
 

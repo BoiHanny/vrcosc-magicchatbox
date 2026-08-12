@@ -1,18 +1,16 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Security.Principal;
-using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Osc;
 using vrcosc_magicchatbox.Core.Privacy;
@@ -25,11 +23,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
-/// <summary>
-/// ViewModel for the Integrations page. Owns commands for tracker scan,
-/// manual OSC build, media controls, soundpad controls, and admin relaunch.
-/// Used as DataContext for IntegrationsPage.xaml.
-/// </summary>
 public partial class IntegrationsPageViewModel : ObservableObject
 {
     private readonly ChatStatusDisplayState _chatStatus;
@@ -61,6 +54,45 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly Lazy<ComponentStatsViewModel> _componentStats;
     public ComponentStatsViewModel ComponentStats => _componentStats.Value;
 
+    // The two LYRICS chips used to bind to the same master flag, so switching lyrics off on the
+    // Media link card switched it off on Spotify too. Each card now owns its own source, and the
+    // master follows along as "either of them".
+    public bool LyricsFromSpotify
+    {
+        get => IntegrationSettings.IntgrLyrics_Spotify;
+        set => ApplyLyricSources(CurrentLyricSources.WithSpotify(value));
+    }
+
+    public bool LyricsFromMediaLink
+    {
+        get => IntegrationSettings.IntgrLyrics_MediaLink;
+        set => ApplyLyricSources(CurrentLyricSources.WithMediaLink(value));
+    }
+
+    private LyricsSourceSelection CurrentLyricSources
+        => LyricsSourceCoordinator.Read(IntegrationSettings);
+
+    private void ApplyLyricSources(LyricsSourceSelection sources)
+    {
+        LyricsSourceCoordinator.Write(IntegrationSettings, sources);
+        RaiseLyricSourceChanged();
+    }
+
+    // Anything that turns the master off - the privacy guard revoking Internet Access, the Lyrics
+    // row in Options - has to take the sources with it, or the chips claim to be on while nothing
+    // is running.
+    private void SyncLyricSourcesWithMaster()
+    {
+        LyricsSourceCoordinator.SyncWithMaster(IntegrationSettings);
+        RaiseLyricSourceChanged();
+    }
+
+    private void RaiseLyricSourceChanged()
+    {
+        OnPropertyChanged(nameof(LyricsFromSpotify));
+        OnPropertyChanged(nameof(LyricsFromMediaLink));
+    }
+
     private TrackerBatteryModule? TrackerBatteryModule => _moduleHost.Value.TrackerBattery;
     private SoundpadModule? Soundpad => _moduleHost.Value.Soundpad;
     private SpotifyModule? Spotify => _moduleHost.Value.Spotify;
@@ -68,10 +100,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly Lazy<ScanLoopService> _scanLoop;
     private readonly Lazy<IStatePersistenceCoordinator> _persistence;
 
-    /// <summary>
-    /// Initializes the integrations page ViewModel with module host, persistence, media, and
-    /// OSC services needed to coordinate all integration panels.
-    /// </summary>
     public IntegrationsPageViewModel(
         ChatStatusDisplayState chatStatus,
         Lazy<IModuleHost> moduleHost,
@@ -80,12 +108,14 @@ public partial class IntegrationsPageViewModel : ObservableObject
         ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<WeatherSettings> weatherSettingsProvider,
+        ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> vrPerformanceSettingsProvider,
         Lazy<ComponentStatsViewModel> componentStats,
         Lazy<ScanLoopService> scanLoop,
         Lazy<IStatePersistenceCoordinator> persistence,
         IntegrationDisplayState integrationDisplay,
         MediaLinkDisplayState mediaLinkDisplay,
         SpotifyDisplayState spotifyDisplay,
+        LyricsDisplayState lyricsDisplay,
         TrackerDisplayState tracker,
         IAppState appState,
         IMenuNavigationService menuNav,
@@ -105,9 +135,11 @@ public partial class IntegrationsPageViewModel : ObservableObject
         IntegrationSettings = integrationSettingsProvider.Value;
         MediaLinkDisplay = mediaLinkDisplay;
         SpotifyDisplay = spotifyDisplay;
+        LyricsDisplay = lyricsDisplay;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         SpotifySettings = spotifySettingsProvider.Value;
         WeatherSettings = weatherSettingsProvider.Value;
+        VrPerformanceSettings = vrPerformanceSettingsProvider.Value;
         Tracker = tracker;
         AppState = appState;
         _menuNav = menuNav;
@@ -127,7 +159,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             }
         };
 
-        // Guard map: property name → (required hook, value getter, revert action).
         _guardMap = new Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)>
         {
             { nameof(IntegrationSettings.IntgrComponentStats),      (PrivacyHook.HardwareMonitor, () => IntegrationSettings.IntgrComponentStats,      () => IntegrationSettings.IntgrComponentStats = false) },
@@ -141,10 +172,10 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  (PrivacyHook.NetworkStats,     () => IntegrationSettings.IntgrNetworkStatistics,   () => IntegrationSettings.IntgrNetworkStatistics = false) },
             { nameof(IntegrationSettings.IntgrSoundpad),           (PrivacyHook.SoundpadBridge,   () => IntegrationSettings.IntgrSoundpad,            () => IntegrationSettings.IntgrSoundpad = false) },
             { nameof(IntegrationSettings.IntgrVrcRadar),           (PrivacyHook.VrcLogReader,     () => IntegrationSettings.IntgrVrcRadar,            () => IntegrationSettings.IntgrVrcRadar = false) },
+            { nameof(IntegrationSettings.IntgrVrPerformance),      (PrivacyHook.VrPerformance,    () => IntegrationSettings.IntgrVrPerformance,       () => IntegrationSettings.IntgrVrPerformance = false) },
+            { nameof(IntegrationSettings.IntgrLyrics),             (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrLyrics,              () => IntegrationSettings.IntgrLyrics = false) },
         };
 
-        // Fault-reset map: toggle property name → (OSC provider SortKey, value getter).
-        // Weather has no master toggle, so its per-mode switches are mapped instead.
         _faultResetMap = new Dictionary<string, (string SortKey, Func<bool> GetValue)>
         {
             { nameof(IntegrationSettings.IntgrStatus),             ("Status",         () => IntegrationSettings.IntgrStatus) },
@@ -158,6 +189,8 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrHeartRate),          ("HeartRate",      () => IntegrationSettings.IntgrHeartRate) },
             { nameof(IntegrationSettings.IntgrComponentStats),     ("Component",      () => IntegrationSettings.IntgrComponentStats) },
             { nameof(IntegrationSettings.IntgrTrackerBattery),     ("TrackerBattery", () => IntegrationSettings.IntgrTrackerBattery) },
+            { nameof(IntegrationSettings.IntgrVrPerformance),      ("VrPerformance",  () => IntegrationSettings.IntgrVrPerformance) },
+            { nameof(IntegrationSettings.IntgrLyrics),             ("Lyrics",         () => IntegrationSettings.IntgrLyrics) },
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  ("Network",        () => IntegrationSettings.IntgrNetworkStatistics) },
             { nameof(IntegrationSettings.IntgrWeather_VR),         ("Weather",        () => IntegrationSettings.IntgrWeather_VR) },
             { nameof(IntegrationSettings.IntgrWeather_DESKTOP),    ("Weather",        () => IntegrationSettings.IntgrWeather_DESKTOP) },
@@ -166,13 +199,31 @@ public partial class IntegrationsPageViewModel : ObservableObject
         };
 
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
+
+        // Weather is the one tile whose master switch lives on a different settings object, so its chip
+        // dot and the tidy count would go stale without watching it too.
+        WeatherSettings.PropertyChanged += OnWeatherSettingsChangedForTiles;
+
+        RebuildHiddenChips();
     }
 
-    // Instance guard map built in constructor so closures capture the correct IntegrationSettings instance.
+    private void OnWeatherSettingsChangedForTiles(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(WeatherSettings.ShowWeatherInTime))
+            HandleMasterChangedWhileHidden(e.PropertyName);
+    }
+
     private readonly Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)> _guardMap;
     private readonly Dictionary<string, (string SortKey, Func<bool> GetValue)> _faultResetMap;
 
     public bool IsVRRunning => AppState.IsVRRunning;
+
+    public Classes.Modules.Vr.VrPerformanceSettings VrPerformanceSettings { get; }
+
+    public LyricsDisplayState LyricsDisplay { get; }
+
+    public IReadOnlyList<Classes.Modules.Vr.VrPerformanceDisplayMode> VrPerformanceDisplayModes { get; } =
+        (Classes.Modules.Vr.VrPerformanceDisplayMode[])Enum.GetValues(typeof(Classes.Modules.Vr.VrPerformanceDisplayMode));
 
     public string TrackerBattery_LastScanDisplay => IntegrationDisplay.TrackerBatteryLastScanDisplay;
 
@@ -198,8 +249,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         if (e.PropertyName == null) return;
         if (_guardMap.TryGetValue(e.PropertyName, out var guard) && guard.GetValue() && !_consent.IsApproved(guard.Hook))
         {
-            guard.Revert(); // flip the toggle back to false (safe: SetProperty is no-op when value unchanged)
-            var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
+            guard.Revert();            var (name, icon) = PrivacyHookInfo.Get(guard.Hook);
             _toast.Show(
                 "🔒 Permission Required",
                 $"{icon} {name} access is needed. Enable it in Privacy & Permissions.",
@@ -210,20 +260,119 @@ public partial class IntegrationsPageViewModel : ObservableObject
             return;
         }
 
-        // Toggling an integration ON clears its OSC provider's fault state so a
-        // previously auto-disabled provider recovers immediately instead of
-        // waiting out the fault cooldown.
         if (_faultResetMap.TryGetValue(e.PropertyName, out var faultReset) && faultReset.GetValue())
             FaultTracker.ResetFault(faultReset.SortKey);
 
+        HandleModeVisibility(e.PropertyName);
+
+        if (e.PropertyName == nameof(IntegrationSettings.IntgrLyrics))
+            SyncLyricSourcesWithMaster();
+
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
+
+        if (e.PropertyName == nameof(IntegrationSettings.HiddenStripCollapsed))
+        {
+            RaiseHiddenStateChanged();
+            _integrationSettingsProvider.Save();
+            return;
+        }
+
+        HandleMasterChangedWhileHidden(e.PropertyName);
     }
+
+    /// <summary>
+    /// An integration can be switched on from its Options section rather than its tile. Without this, the
+    /// user gets a success message and no tile, with no clue that they hid it months ago.
+    /// </summary>
+    private void HandleMasterChangedWhileHidden(string propertyName)
+    {
+        if (!IntegrationTileCatalog.TryKeyForMasterProperty(propertyName, out var key)) return;
+        if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+        bool nowOn = tile.IsMasterOn(IntegrationSettings, WeatherSettings);
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+
+        if (nowOn && hidden.Contains(tile.Key))
+        {
+            ShowTile(tile.Key);
+            _toast.Show(
+                "👁 Tile shown again",
+                $"{tile.DisplayName} was hidden, so it's back on the list now that you've switched it on.",
+                ToastType.Info, durationMs: 5000, key: "tile-auto-shown");
+            return;
+        }
+
+        // Chips carry an on/off dot and the tidy pill carries a live count; both go stale without this.
+        RebuildHiddenChips();
+    }
+
+    private void HandleModeVisibility(string propertyName)
+    {
+        if (!propertyName.StartsWith("Intgr", StringComparison.Ordinal))
+            return;
+
+        if (IntegrationModeVisibility.TryDescribeHiddenMode(
+                IntegrationSettings, propertyName, AppState.IsVRRunning, out var hidden))
+        {
+            string mode = AppState.IsVRRunning ? "VR" : "Desktop";
+            _toast.Show(
+                "👁️ Not shown in this mode",
+                hidden.CanEnableInCurrentMode
+                    ? $"{hidden.DisplayName} is on, but its {mode} switch is off, so it won't appear in {mode} mode."
+                    : $"{hidden.DisplayName} is on, but it can't run in {mode} mode.",
+                ToastType.Warning,
+                hidden.CanEnableInCurrentMode
+                    ? new ToastAction($"Show in {mode} mode", () =>
+                    {
+                        if (IntegrationModeVisibility.TryEnableCurrentMode(
+                                IntegrationSettings, propertyName, AppState.IsVRRunning, out _))
+                            _integrationSettingsProvider.Save();
+
+                        OnPropertyChanged(nameof(ModeVisibilityWarning));
+                        OnPropertyChanged(nameof(HasModeVisibilityWarning));
+                        return Task.CompletedTask;
+                    })
+                    : null,
+                durationMs: 8000,
+                key: $"mode-visibility-{propertyName}");
+        }
+
+        OnPropertyChanged(nameof(ModeVisibilityWarning));
+        OnPropertyChanged(nameof(HasModeVisibilityWarning));
+    }
+
+    public string? ModeVisibilityWarning
+        => IntegrationModeVisibility.BuildWarning(IntegrationSettings, AppState.IsVRRunning);
+
+    public bool HasModeVisibilityWarning => ModeVisibilityWarning != null;
+
+    /// <summary>
+    /// Names what got dropped for space. Fading the tile said something was wrong without saying what
+    /// or why, and the old banner for this lived on the main window and said neither.
+    /// </summary>
+    public string? TrimmedWarning
+    {
+        get
+        {
+            var trimmed = IntegrationDisplay.TrimmedOutputKeys;
+            if (trimmed == null || trimmed.Count == 0)
+                return null;
+
+            return $"No room in the 144 characters for {OscProviderNames.DescribeList(trimmed)}.";
+        }
+    }
+
+    public bool HasTrimmedWarning => TrimmedWarning != null;
 
     private void OnAppStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(IAppState.IsVRRunning) || e.PropertyName == nameof(ViewModel.IsVRRunning))
+        {
             OnPropertyChanged(nameof(IsVRRunning));
+            OnPropertyChanged(nameof(ModeVisibilityWarning));
+            OnPropertyChanged(nameof(HasModeVisibilityWarning));
+        }
     }
 
     private void OnIntegrationDisplayPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -235,6 +384,10 @@ public partial class IntegrationsPageViewModel : ObservableObject
                 break;
             case nameof(IntegrationDisplayState.NetworkStatsOpacity):
                 OnPropertyChanged(nameof(NetworkStats_Opacity));
+                break;
+            case nameof(IntegrationDisplayState.TrimmedOutputKeys):
+                OnPropertyChanged(nameof(TrimmedWarning));
+                OnPropertyChanged(nameof(HasTrimmedWarning));
                 break;
         }
     }
@@ -287,7 +440,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RestartAsAdmin() => ExecuteRestartAsAdmin();
+    private void ResolveComponentStatsAccess() => ExecuteResolveComponentStatsAccess();
 
     [RelayCommand]
     private async Task MediaPlayPause(MediaSessionInfo? m)
@@ -396,28 +549,21 @@ public partial class IntegrationsPageViewModel : ObservableObject
             SpotifySettings.MediaLinkCoexistence != SpotifyMediaLinkCoexistence.Ask)
             return;
 
-        // Default to PreferSpotify for reliability and notify user via toast
         SpotifySettings.MediaLinkCoexistence = SpotifyMediaLinkCoexistence.PreferSpotify;
         _spotifySettingsProvider.Save();
 
         _toast.Show(
             "🎵 Spotify + MediaLink",
-            "Both are enabled — defaulting to dedicated Spotify output. Change this in Spotify options under 'MediaLink coexistence'.",
+            "Both are enabled, so MagicChatbox is defaulting to dedicated Spotify output. Change this in Spotify options under 'MediaLink coexistence'.",
             ToastType.Info,
             new ToastAction("Open Spotify settings", () => { _menuNav.ActivateSetting("Settings_Spotify"); return Task.CompletedTask; }),
             durationMs: 8000,
             key: "spotify-medialink-coexist");
     }
 
-    public string ComponentStatsAccessWarningText =>
-        !_consent.IsApproved(PrivacyHook.HardwareMonitor)
-            ? "Enable Hardware Monitor permission"
-            : IsProcessElevated()
-                ? "Some stats aren't available on this system"
-                : "Some stats may need admin rights";
+    public string ComponentStatsAccessWarningText => "Enable Hardware Monitor permission";
 
-    public bool CanResolveComponentStatsAccessIssue =>
-        !_consent.IsApproved(PrivacyHook.HardwareMonitor) || !IsProcessElevated();
+    public bool CanResolveComponentStatsAccessIssue => !_consent.IsApproved(PrivacyHook.HardwareMonitor);
 
     private void ScanTrackerBatteryDevices()
     {
@@ -428,84 +574,20 @@ public partial class IntegrationsPageViewModel : ObservableObject
         }
     }
 
-    private void ExecuteRestartAsAdmin()
+    private void ExecuteResolveComponentStatsAccess()
     {
-        if (!_consent.IsApproved(PrivacyHook.HardwareMonitor))
-        {
-            _menuNav.NavigateToPrivacy();
-            _toast.Show(
-                "🔒 Permission Required",
-                "Enable Hardware Monitor in Privacy & Permissions first.",
-                ToastType.Warning,
-                durationMs: 5000,
-                key: "hw-monitor-consent-required");
+        if (_consent.IsApproved(PrivacyHook.HardwareMonitor))
             return;
-        }
 
-        if (IsProcessElevated())
-        {
-            _toast.Show(
-                "🖥️ Hardware Monitor",
-                "MagicChatbox is already running as administrator. Missing temp/power stats are likely unsupported or blocked on this system.",
-                ToastType.Info,
-                durationMs: 6000,
-                key: "hw-monitor-already-elevated");
-            return;
-        }
-
-        _persistence.Value.PersistAllState();
-        try
-        {
-            string processPath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
-            if (string.IsNullOrWhiteSpace(processPath))
-                throw new InvalidOperationException("Unable to determine the current executable path for admin relaunch.");
-
-            var proc = new ProcessStartInfo
-            {
-                UseShellExecute = true,
-                WorkingDirectory = Path.GetDirectoryName(processPath) ?? Environment.CurrentDirectory,
-                FileName = processPath,
-                Arguments = BuildCurrentArgumentString(),
-                Verb = "runas"
-            };
-            Process.Start(proc);
-            Thread.Sleep(1000);
-            Environment.Exit(0);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        _menuNav.NavigateToPrivacy();
+        _toast.Show(
+            "🔒 Permission Required",
+            "Enable Hardware Monitor in Privacy & Permissions to read CPU and GPU stats.",
+            ToastType.Warning,
+            durationMs: 5000,
+            key: "hw-monitor-consent-required");
     }
 
-    private static bool IsProcessElevated()
-    {
-        using var identity = WindowsIdentity.GetCurrent();
-        var principal = new WindowsPrincipal(identity);
-        return principal.IsInRole(WindowsBuiltInRole.Administrator);
-    }
-
-    private static string BuildCurrentArgumentString()
-    {
-        return string.Join(" ",
-            Environment.GetCommandLineArgs()
-                .Skip(1)
-                .Select(QuoteCommandLineArgument));
-    }
-
-    private static string QuoteCommandLineArgument(string argument)
-    {
-        if (string.IsNullOrEmpty(argument))
-            return "\"\"";
-
-        return argument.Contains(' ') || argument.Contains('"')
-            ? $"\"{argument.Replace("\"", "\\\"")}\""
-            : argument;
-    }
-
-    /// <summary>
-    /// Seeks a media session to a specific position based on progress bar click.
-    /// </summary>
     public async Task SeekMedia(MediaSessionInfo? session, double progressFraction, double maximum)
     {
         if (session == null) return;
@@ -534,4 +616,242 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
+
+    // ---------------------------------------------------------------------------------------------
+    // Hiding tiles. Purely visual: every path here writes HiddenTiles and nothing else, so a hidden
+    // integration keeps running and keeps writing to the chatbox exactly as before.
+    // ---------------------------------------------------------------------------------------------
+
+    public ObservableCollection<HiddenTileChip> HiddenChips { get; } = new();
+
+    public bool HasHiddenTiles => HiddenChips.Count > 0;
+
+    public string HiddenSummary => IntegrationSettings.HiddenStripCollapsed
+        ? $"👁 {HiddenChips.Count} hidden  ›"
+        : $"👁 {HiddenChips.Count} hidden  ⌄";
+
+    public bool HiddenChipsVisible => !IntegrationSettings.HiddenStripCollapsed;
+
+    public bool ShowAllActionVisible => HiddenChipsVisible && CanShowAll;
+
+    public bool TidySwitchedOffVisible => HiddenChipsVisible && CanTidySwitchedOff;
+
+    public bool TidyModeUnavailableVisible => HiddenChipsVisible && CanTidyModeUnavailable;
+
+    public bool CanShowAll => HiddenChips.Count >= 2;
+
+    public bool EverythingHidden => HiddenChips.Count >= IntegrationTileCatalog.Keys.Count;
+
+    private List<string> VisibleKeys() => IntegrationTileCatalog
+        .VisibleKeysInOrder(
+            IntegrationDisplay.IntegrationSortOrder?.Count > 0
+                ? IntegrationDisplay.IntegrationSortOrder
+                : IntegrationDisplayState.DefaultSortOrder,
+            IntegrationSettings.HiddenTiles);
+
+    public List<string> SwitchedOffVisibleKeys() => IntegrationTileCatalog
+        .KeysWithMasterOff(VisibleKeys(), IntegrationSettings, WeatherSettings);
+
+    public int SwitchedOffVisibleCount => SwitchedOffVisibleKeys().Count;
+
+    public bool CanTidySwitchedOff => SwitchedOffVisibleCount >= 2;
+
+    public string TidySwitchedOffLabel => $"Hide the {SwitchedOffVisibleCount} that are off";
+
+    /// <summary>
+    /// Tiles that cannot run in the current mode no matter what the user does. Deliberately excludes
+    /// anything the mode banner is asking them to fix, because those have a working switch.
+    /// </summary>
+    public List<string> ModeUnavailableVisibleKeys()
+    {
+        var result = new List<string>();
+        bool isVR = AppState.IsVRRunning;
+
+        foreach (var key in VisibleKeys())
+        {
+            if (!IntegrationTileCatalog.TryGet(key, out var tile)) continue;
+
+            // No gate at all means the tile is fine in both modes.
+            if (!IntegrationModeVisibility.TryGetGate(tile.MasterProperty, out var gate)) continue;
+
+            // A gate the user can switch on is one the mode banner is already asking them to fix.
+            // Hiding those would take away the fix, so only genuinely impossible tiles qualify.
+            if (gate.CanEnableIn(isVR)) continue;
+
+            result.Add(tile.Key);
+        }
+
+        return result;
+    }
+
+    public int ModeUnavailableVisibleCount => ModeUnavailableVisibleKeys().Count;
+
+    public bool CanTidyModeUnavailable => ModeUnavailableVisibleCount >= 1;
+
+    public string TidyModeUnavailableLabel =>
+        $"Hide {(AppState.IsVRRunning ? "Desktop" : "VR")}-only tiles ({ModeUnavailableVisibleCount})";
+
+    [RelayCommand]
+    private void HideTile(string key)
+    {
+        if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        if (!hidden.Add(tile.Key)) return;
+
+        CommitHidden(hidden);
+
+        if (!IntegrationSettings.TileHideHintShown)
+        {
+            IntegrationSettings.TileHideHintShown = true;
+            _integrationSettingsProvider.Save();
+        }
+
+        _toast.Show(
+            "👁 Tile hidden",
+            $"{tile.DisplayName} is hidden from this list. It's still switched on.",
+            ToastType.Info,
+            new ToastAction("Undo", () => { ShowTile(tile.Key); return Task.CompletedTask; }),
+            durationMs: 5000,
+            key: "tile-hidden");
+    }
+
+    [RelayCommand]
+    private void ShowTile(string key)
+    {
+        if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        if (!hidden.Remove(tile.Key)) return;
+
+        CommitHidden(hidden);
+        TileShown?.Invoke(this, tile.Key);
+    }
+
+    [RelayCommand]
+    private void ShowAllTiles()
+    {
+        if (IntegrationSettings.HiddenTiles.Count == 0) return;
+
+        CommitHidden(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        _toast.Show("👁 All tiles are back", "Nothing is hidden any more.", ToastType.Info,
+            durationMs: 4000, key: "tiles-shown-all");
+    }
+
+    [RelayCommand]
+    private void TidySwitchedOff()
+    {
+        var keys = SwitchedOffVisibleKeys();
+        if (keys.Count == 0) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        foreach (var key in keys) hidden.Add(key);
+
+        CommitHidden(hidden);
+        _toast.Show(
+            "👁 Tidied up",
+            $"Hid {keys.Count} switched-off {(keys.Count == 1 ? "tile" : "tiles")}. Click any name to bring it back.",
+            ToastType.Info, durationMs: 5000, key: "tiles-tidied");
+    }
+
+    [RelayCommand]
+    private void TidyModeUnavailable()
+    {
+        var keys = ModeUnavailableVisibleKeys();
+        if (keys.Count == 0) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        foreach (var key in keys) hidden.Add(key);
+
+        CommitHidden(hidden);
+        _toast.Show(
+            "👁 Tidied up",
+            $"Hid {keys.Count} {(keys.Count == 1 ? "tile" : "tiles")} that can't run in this mode.",
+            ToastType.Info, durationMs: 5000, key: "tiles-tidied");
+    }
+
+    /// <summary>Raised when a tile becomes visible again so the page can scroll it into view.</summary>
+    public event EventHandler<string>? TileShown;
+
+    /// <summary>Raised when the set of visible tiles changes so the page can rebuild its item list.</summary>
+    public event EventHandler? TileLayoutChanged;
+
+    private void CommitHidden(HashSet<string> hidden)
+    {
+        // Assigning a new collection is what raises PropertyChanged for the generated property.
+        IntegrationSettings.HiddenTiles = new ObservableCollection<string>(
+            IntegrationTileCatalog.Keys.Where(hidden.Contains));
+
+        _integrationSettingsProvider.Save();
+        RebuildHiddenChips();
+        TileLayoutChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RebuildHiddenChips()
+    {
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+
+        var ordered = (IntegrationDisplay.IntegrationSortOrder?.Count > 0
+                ? IntegrationDisplay.IntegrationSortOrder.AsEnumerable()
+                : IntegrationDisplayState.DefaultSortOrder)
+            .Where(k => hidden.Contains(k))
+            .ToList();
+
+        foreach (var key in IntegrationTileCatalog.Keys)
+            if (hidden.Contains(key) && !ordered.Contains(key, StringComparer.OrdinalIgnoreCase))
+                ordered.Add(key);
+
+        HiddenChips.Clear();
+        foreach (var key in ordered)
+        {
+            if (!IntegrationTileCatalog.TryGet(key, out var tile)) continue;
+
+            bool running = tile.IsMasterOn(IntegrationSettings, WeatherSettings);
+            HiddenChips.Add(new HiddenTileChip(
+                tile.Key,
+                tile.DisplayName,
+                running,
+                running
+                    ? $"{tile.DisplayName} is hidden by you. Still switched on. Click to show it again."
+                    : $"{tile.DisplayName} is hidden by you, and switched off. Click to show it again."));
+        }
+
+        // A follower has no tile of its own, so if every host is hidden its controls are unreachable.
+        AddOrphanedFollowerChips(hidden);
+
+        RaiseHiddenStateChanged();
+    }
+
+    private void AddOrphanedFollowerChips(HashSet<string> hidden)
+    {
+        if (!IntegrationSettings.IntgrLyrics) return;
+        if (!hidden.Contains("Spotify") || !hidden.Contains("MediaLink")) return;
+
+        HiddenChips.Add(new HiddenTileChip(
+            "Spotify",
+            "Lyrics controls",
+            true,
+            "Lyrics is on, but its controls live on the Spotify and Media link tiles. Click to show Spotify."));
+    }
+
+    public void RaiseHiddenStateChanged()
+    {
+        OnPropertyChanged(nameof(HasHiddenTiles));
+        OnPropertyChanged(nameof(HiddenSummary));
+        OnPropertyChanged(nameof(HiddenChipsVisible));
+        OnPropertyChanged(nameof(ShowAllActionVisible));
+        OnPropertyChanged(nameof(TidySwitchedOffVisible));
+        OnPropertyChanged(nameof(TidyModeUnavailableVisible));
+        OnPropertyChanged(nameof(CanShowAll));
+        OnPropertyChanged(nameof(EverythingHidden));
+        OnPropertyChanged(nameof(SwitchedOffVisibleCount));
+        OnPropertyChanged(nameof(CanTidySwitchedOff));
+        OnPropertyChanged(nameof(TidySwitchedOffLabel));
+        OnPropertyChanged(nameof(ModeUnavailableVisibleCount));
+        OnPropertyChanged(nameof(CanTidyModeUnavailable));
+        OnPropertyChanged(nameof(TidyModeUnavailableLabel));
+    }
 }
+
+/// <summary>A chip in the "hidden" strip. Projected from settings, never bound to them directly.</summary>
+public sealed record HiddenTileChip(string Key, string DisplayName, bool IsRunning, string ToolTip);

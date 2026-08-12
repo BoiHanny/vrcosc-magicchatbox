@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -16,9 +16,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Monitors network interface throughput and generates formatted speed/utilization strings for the chatbox.
-/// </summary>
 public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 {
     private readonly IAppState _appState;
@@ -144,10 +141,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             return $"{speedMbps:N2} {ConvertToSuperScriptIfNeeded("Mbps")}";
     }
 
-    /// <summary>
-    /// Determines the active network interface using priority-based selection.
-    /// No traffic measurement delay — instant selection.
-    /// </summary>
     private Task<NetworkInterface> GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
     {
         var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
@@ -162,12 +155,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return Task.FromResult(networkInterfaces.FirstOrDefault());
     }
 
-    /// <summary>
-    /// Assigns a priority to network interfaces based on their type.
-    /// Higher priority for Ethernet, then Wireless, then others.
-    /// </summary>
-    /// <param name="ni">NetworkInterface.</param>
-    /// <returns>Integer priority.</returns>
     private int GetInterfacePriority(NetworkInterface ni)
     {
         return ni.NetworkInterfaceType switch
@@ -178,15 +165,9 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         };
     }
 
-    /// <summary>
-    /// Retrieves total bytes sent and received, including only IPv4 statistics.
-    /// </summary>
-    /// <param name="ni">NetworkInterface.</param>
-    /// <returns>TotalBytes struct containing BytesReceived and BytesSent.</returns>
     private TotalBytes GetTotalBytes(NetworkInterface ni)
     {
         var ipv4Stats = ni.GetIPv4Statistics();
-        // Removed IPv6 statistics to avoid duplication
         return new TotalBytes
         {
             BytesReceived = ipv4Stats.BytesReceived,
@@ -194,10 +175,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         };
     }
 
-    /// <summary>
-    /// Asynchronously initializes network statistics.
-    /// Ensures that initialization is thread-safe and does not block the UI thread.
-    /// </summary>
     private async Task InitializeNetworkStatsAsync()
     {
         if (!_consentService.IsApproved(PrivacyHook.NetworkStats))
@@ -288,7 +265,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
     {
         try
         {
-            // Hot-path consent guard — cheap bool read; revocation race-safety.
             if (!_consentService.IsApproved(PrivacyHook.NetworkStats))
                 return;
 
@@ -405,9 +381,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return true;
     }
 
-    /// <summary>
-    /// Disposes the timer, cancels any pending async initialization, and unregisters property-change handlers.
-    /// </summary>
     public void Dispose()
     {
         StopModule();
@@ -417,9 +390,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         _integrationSettings.PropertyChanged -= PropertyChangedHandler;
     }
 
-    /// <summary>
-    /// Builds the network stats string from enabled metrics for display in the chatbox.
-    /// </summary>
     public string GenerateDescription()
     {
         const int maxLineWidth = 25;

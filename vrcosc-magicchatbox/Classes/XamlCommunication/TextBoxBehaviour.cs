@@ -5,11 +5,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes
 {
-    /// <summary>
-    /// Attached behaviour that intercepts Enter and Escape key presses inside a
-    /// <see cref="TextBox"/> and commits or cancels a <see cref="StatusItem"/> inline edit.
-    /// Attach via <c>local:TextBoxBehaviour.HandleEnterKey="True"</c>.
-    /// </summary>
     public static class TextBoxBehaviour
     {
         public static bool GetHandleEnterKey(DependencyObject obj)

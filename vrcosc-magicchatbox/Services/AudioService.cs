@@ -1,4 +1,4 @@
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,9 +15,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Manages audio device enumeration and TikTok TTS voice loading.
-/// </summary>
 public sealed class AudioService : IAudioService
 {
     private readonly TtsAudioDisplayState _ttsAudio;

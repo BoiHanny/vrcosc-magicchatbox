@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using OpenAI.Chat;
 using OpenAI.Moderations;
 using System;
@@ -12,10 +12,6 @@ using vrcosc_magicchatbox.Core.Toast;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Wraps <see cref="OpenAIModule.OpenAIClient"/> chat and moderation endpoints
-/// using the official OpenAI .NET SDK (client-per-model pattern).
-/// </summary>
 public sealed class OpenAiChatService : IOpenAiChatService
 {
     private readonly OpenAIModule _openAi;
@@ -31,10 +27,6 @@ public sealed class OpenAiChatService : IOpenAiChatService
 
     public bool CanUseOpenAi => _openAi.IsInitialized && _consent.IsApproved(PrivacyHook.InternetAccess);
 
-    /// <summary>
-    /// Surfaces the same permission message other modules show when Internet Access
-    /// consent is denied, so a null result doesn't read as a broken OpenAI response.
-    /// </summary>
     private static void NotifyConsentDenied()
     {
         App.Services?.GetService<IToastService>()?.Show(

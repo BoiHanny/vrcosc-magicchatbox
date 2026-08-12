@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.ComponentModel;
@@ -15,10 +15,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for Discord Voice integration options.
-/// Handles OAuth connect/disconnect, exposes settings, and provides live output preview.
-/// </summary>
 public partial class DiscordSectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _moduleHost;
@@ -31,7 +27,6 @@ public partial class DiscordSectionViewModel : ObservableObject
     public IntegrationSettings IntegrationSettings { get; }
     public IModuleHost Modules => _moduleHost.Value;
 
-    /// <summary>Direct access to Discord settings for XAML binding (Rich Presence toggle, etc.).</summary>
     public DiscordSettings? DiscordModuleSettings => _moduleHost.Value.Discord?.Settings;
 
     [ObservableProperty] private bool _hasSavedToken;
@@ -43,11 +38,9 @@ public partial class DiscordSectionViewModel : ObservableObject
     [ObservableProperty] private string? _selectedPresetName;
     [ObservableProperty] private string? _selectedRpPresetName;
 
-    /// <summary>Template preset names for UI combo box.</summary>
     public string[] PresetNames { get; } = DiscordSettings.TemplatePresets
         .Select(p => p.Name).ToArray();
 
-    /// <summary>Rich Presence preset names for RP combo box.</summary>
     public string[] RpPresetNames { get; } = DiscordSettings.RichPresencePresets
         .Select(p => p.Name).ToArray();
 
@@ -235,10 +228,6 @@ public partial class DiscordSectionViewModel : ObservableObject
         return available;
     }
 
-    /// <summary>
-    /// Called by ModuleBootstrapper after all modules are created.
-    /// If AutoConnectOnStartup is enabled and we have a saved token, start the module.
-    /// </summary>
     public async Task TryAutoConnectAsync()
     {
         var discord = _moduleHost.Value.Discord;

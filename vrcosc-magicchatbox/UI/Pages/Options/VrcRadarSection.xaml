@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.VrcRadarSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -29,7 +29,6 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!--  Section Header  -->
         <Grid Grid.Row="0">
             <ToggleButton
                 Width="Auto"
@@ -44,7 +43,6 @@
                 TextOptions.TextRenderingMode="ClearType" />
         </Grid>
 
-        <!--  Collapsible Content  -->
         <Grid
             Grid.Row="1"
             Height="Auto"
@@ -52,7 +50,6 @@
             Visibility="{Binding AppSettings.Settings_VrcRadar, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <StackPanel>
 
-                <!--  Pre-release banner  -->
                 <Border
                     Margin="0,0,0,10"
                     BorderBrush="#735A41"
@@ -88,7 +85,6 @@
                     </TextBlock>
                 </Border>
 
-                <!--  Live status bar  -->
                 <Border
                     Margin="0,0,0,8"
                     Padding="8,5"
@@ -153,7 +149,6 @@
                     </Grid>
                 </Border>
 
-                <!--  DISPLAY MODE  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Display Mode" />
                 <ComboBox
                     Width="200"
@@ -164,19 +159,16 @@
                     SelectedItem="{Binding RadarSettings.DisplayMode, Mode=TwoWay}" />
                 <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="AlwaysShow: permanently shows world info. TransientOnly: only shows during events. EventOverlay: shows world info, overlays events." />
 
-                <!--  WORLD INFO TOGGLES  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="World Info" />
                 <CheckBox IsChecked="{Binding RadarSettings.ShowInstanceType, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Show instance type (Private/Group/Public)</CheckBox>
                 <CheckBox IsChecked="{Binding RadarSettings.ShowRegion, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Show server region</CheckBox>
 
-                <!--  EVENTS  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Events" />
                 <CheckBox IsChecked="{Binding RadarSettings.AnnounceJoins, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Announce player joins</CheckBox>
                 <CheckBox IsChecked="{Binding RadarSettings.AnnounceLeaves, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Announce player leaves</CheckBox>
                 <CheckBox IsChecked="{Binding RadarSettings.AnnounceScreenshots, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Announce screenshots</CheckBox>
                 <CheckBox IsChecked="{Binding RadarSettings.ShowWorldDownload, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Show world loading progress</CheckBox>
 
-                <!--  SESSION DETECTION  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Session Detection" />
                 <CheckBox IsChecked="{Binding RadarSettings.UseWindowDetection, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Use VRChat window detection (requires Window Activity permission)</CheckBox>
                 <TextBlock
@@ -234,7 +226,6 @@
                     Style="{StaticResource OptionHelpTextStyle}"
                     Text="If no new log activity (and no VRChat process when window detection is on) for this duration, the session ends automatically." />
 
-                <!--  ENCOUNTER DETECTION  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Encounter Tracking" />
                 <CheckBox IsChecked="{Binding RadarSettings.DetectSeenAgain, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Detect players seen in consecutive rooms</CheckBox>
                 <CheckBox
@@ -263,7 +254,6 @@
                         Text="{Binding RadarSettings.SeenAgainWindowMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <!--  Encounter table (session-scoped)  -->
                 <StackPanel
                     Margin="0,6,0,2"
                     Orientation="Horizontal"
@@ -342,7 +332,6 @@
                     </DataGrid>
                 </Border>
 
-                <!--  SESSION STATS  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Session Stats" />
                 <Border
                     Margin="0,0,0,4"
@@ -364,7 +353,6 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  Row 0: stat labels  -->
                         <StackPanel
                             Grid.Row="0"
                             Grid.Column="0"
@@ -463,7 +451,6 @@
                     </TextBlock>
                 </StackPanel>
 
-                <!--  NOTIFICATIONS  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Notifications" />
 
                 <CheckBox IsChecked="{Binding RadarSettings.ShowSeenAgainNotification, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Notify when a player follows you to another world</CheckBox>
@@ -500,7 +487,6 @@
                     </TextBlock>
                 </StackPanel>
 
-                <!--  TEMPLATES  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Templates" />
                 <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Placeholders: {master} {world} {count} {peak} {peak_session} {session_time} {app_session} {offline} {type} {region} {owner} {user} {size} {speed} {worlds} {players}  ·  Use \n for new line" />
                 <Grid Margin="0,3,0,0">
@@ -659,7 +645,6 @@
                         Text="{Binding RadarSettings.TemplateAvatarBlocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
-                <!--  Live preview  -->
                 <Border
                     Margin="0,6,0,0"
                     Padding="6,4"
@@ -683,7 +668,6 @@
                     </StackPanel>
                 </Border>
 
-                <!--  MASTER ICON  -->
                 <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                     <TextBlock
                         VerticalAlignment="Center"
@@ -697,7 +681,6 @@
                         Text="{Binding RadarSettings.MasterIcon, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <!--  OSC TRIGGERS  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="OSC Triggers" />
                 <CheckBox IsChecked="{Binding RadarSettings.SendCameraFlashOsc, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">Camera flash on screenshot</CheckBox>
                 <StackPanel
@@ -716,10 +699,8 @@
                         Text="{Binding RadarSettings.OscCameraFlashParam, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <!--  Spacing  -->
                 <Border Height="10" />
 
-                <!--  Performance / Limits  -->
                 <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Performance" />
                 <StackPanel Margin="0,4,0,4" Orientation="Horizontal">
                     <TextBlock

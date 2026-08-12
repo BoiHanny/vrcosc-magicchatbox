@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -6,10 +6,6 @@ using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Holds user-specific settings for the Pulsoid module.
-/// Persisted to PulsoidModuleSettings.json via ISettingsProvider&lt;PulsoidModuleSettings&gt;.
-/// </summary>
 public partial class PulsoidModuleSettings : VersionedSettings
 {
     [ObservableProperty]

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -8,12 +8,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc;
 
-/// <summary>
-/// Assembles the final OSC message from <see cref="IOscProvider"/> instances.
-/// Replaces the hardcoded Add* methods in OSCController.BuildOSC().
-/// Uses <see cref="ModuleFaultTracker"/> to skip providers that have failed
-/// repeatedly, preventing cascading failures.
-/// </summary>
 public sealed class OscOutputBuilder
 {
     private const string DefaultSeparator = " ┆ ";
@@ -39,11 +33,6 @@ public sealed class OscOutputBuilder
         _faultTracker = faultTracker;
     }
 
-    /// <summary>
-    /// Builds the OSC message by iterating providers in the user's sort order.
-    /// If the combined message exceeds the 144-char limit, lowest-priority
-    /// segments are dropped until the message fits (graceful degradation).
-    /// </summary>
     public OscBuildResult Build(bool allowExternalRefresh = true)
     {
         string separator = GetSeparator();
@@ -66,9 +55,6 @@ public sealed class OscOutputBuilder
 
         void TryAddProvider(IOscProvider provider)
         {
-            // Enablement must be checked first: IsFaulted can hand out a
-            // one-shot probe token, which must only be consumed when TryBuild
-            // will actually run and resolve it via RecordSuccess/RecordFailure.
             if (!provider.IsEnabledForCurrentMode(isVR))
                 return;
 
@@ -113,8 +99,6 @@ public sealed class OscOutputBuilder
             TryAddProvider(provider);
         }
 
-        // Then any providers not in the sort order (safety net).
-        // Log each unknown SortKey once so registry drift is visible without spamming logs.
         foreach (var provider in _providers)
         {
             if (usedKeys.Contains(provider.SortKey))
@@ -136,7 +120,6 @@ public sealed class OscOutputBuilder
             if (message.Length <= OscBuildContext.MaxOscLength)
                 break;
 
-            // Find the lowest-priority segment (highest Priority number)
             int worstIdx = 0;
             for (int i = 1; i < collected.Count; i++)
             {
@@ -152,10 +135,6 @@ public sealed class OscOutputBuilder
             ? AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix)
             : string.Empty;
 
-        // Hard safety net: even with pathological prefix/suffix/separator sizes,
-        // we must never exceed the OSC chatbox limit. Trim loop above is the
-        // normal path; this guard catches edge cases (e.g. prefix+suffix alone
-        // > MaxOscLength) so a malformed user template can't corrupt the wire.
         finalMessage = ClampToOscLimit(finalMessage);
 
         return new OscBuildResult
@@ -184,21 +163,11 @@ public sealed class OscOutputBuilder
         return NormalizeSeparator(_appSettings.OscMessageSeparator);
     }
 
-    /// <summary>
-    /// Returns the user-configured separator, falling back to the default when
-    /// the value is null, empty, or whitespace-only.
-    /// </summary>
     internal static string NormalizeSeparator(string? configured)
     {
         return string.IsNullOrWhiteSpace(configured) ? DefaultSeparator : configured;
     }
 
-    /// <summary>
-    /// Expands user-typed escape sequences to real newlines. Only the C-style
-    /// backslash-n escape is honoured; literal "/n" is intentionally preserved
-    /// because it appears verbatim in templates (e.g. URLs, dates).
-    /// Real '\n' characters in the input pass through unchanged.
-    /// </summary>
     internal static string ExpandNewlines(string? value)
     {
         if (string.IsNullOrEmpty(value))
@@ -206,18 +175,12 @@ public sealed class OscOutputBuilder
         return value.Replace("\\n", "\n");
     }
 
-    /// <summary>
-    /// Hard upper-bound guard. Truncates the final OSC message if anything
-    /// (huge prefix/suffix, exotic separator, future bugs) lets it exceed
-    /// the chatbox limit. Respects UTF-16 surrogate pairs.
-    /// </summary>
     internal static string ClampToOscLimit(string message)
     {
         if (string.IsNullOrEmpty(message) || message.Length <= Constants.OscMaxMessageLength)
             return message ?? string.Empty;
 
         int cut = Constants.OscMaxMessageLength;
-        // Don't split a surrogate pair across the boundary.
         if (cut > 0 && char.IsHighSurrogate(message[cut - 1]))
             cut--;
 

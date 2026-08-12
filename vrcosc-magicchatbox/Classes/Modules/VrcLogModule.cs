@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,12 +18,6 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// Reads VRChat's output_log.txt in real-time to extract world info,
-/// player join/leave events, instance metadata, download progress,
-/// encounter tracking, and session statistics.
-/// Uses FileShare.ReadWrite to avoid interfering with VRChat's logging.
-/// </summary>
 public partial class VrcLogModule : ObservableObject, IModule
 {
     private static readonly string VrcLogDir = Path.Combine(
@@ -64,22 +58,17 @@ public partial class VrcLogModule : ObservableObject, IModule
     private string _currentLogFile = string.Empty;
     private long _lastPosition;
 
-    // Bootstrap mode: suppress join/leave toasts until room fully loaded
     private bool _inBootstrapMode;
     private DateTime _lastBootstrapJoin = DateTime.MinValue;
 
-    // Priority-based transient message system (higher priority wins)
     private string _transientMessage = string.Empty;
     private DateTime _transientExpiry = DateTime.MinValue;
     private int _transientPriority;
 
-    // Crasher debounce: one warning per room entry
     private bool _avatarBlockedWarnedThisRoom;
 
-    // OSC pulse reentrancy: sequence tokens per parameter path
     private readonly Dictionary<string, int> _pulseSequence = new();
 
-    // Session-lifetime analytics (only from live events, not backfill)
     private readonly HashSet<string> _allPlayersSeen = new();
     private int _sessionWorldsVisited;
     private int _sessionTotalJoins;
@@ -88,15 +77,12 @@ public partial class VrcLogModule : ObservableObject, IModule
     private int _peakPlayerCount;
     private DateTime _worldJoinedAt = DateTime.MinValue;
 
-    /// <summary>When the user joined the current world (UTC-ish local time).</summary>
     public DateTimeOffset? WorldJoinedAt => _worldJoinedAt > DateTime.MinValue
         ? new DateTimeOffset(_worldJoinedAt, TimeZoneInfo.Local.GetUtcOffset(_worldJoinedAt))
         : null;
 
-    // Instance key for session continuity (full "wrld_xxx:nnnnn~..." join token)
     private string _currentInstanceKey = string.Empty;
 
-    // App-level session tracking (survives app restarts via local file)
     private static readonly string SessionFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "Vrcosc-MagicChatbox", "vrcosc_session.json");
@@ -110,28 +96,20 @@ public partial class VrcLogModule : ObservableObject, IModule
 
     private readonly Dictionary<string, string> _userIdToName = new(StringComparer.OrdinalIgnoreCase);
 
-    // Pending owner ID to resolve from subsequent player joins
     private string _pendingOwnerUserId = string.Empty;
 
-    // "Seen again" encounter tracking: userId → (lastRoomName, lastSeenTime)
     private readonly Dictionary<string, (string Room, DateTime Time)> _previousRoomPresence = new();
     private readonly HashSet<string> _usersInPreviousRoom = new();
     private string _previousWorldName = string.Empty;
 
-    // Per-session encounter table (cleared on session end)
     private readonly Dictionary<string, EncounterRecord> _encounterRecords = new();
     private System.Collections.ObjectModel.ObservableCollection<EncounterRecord>? _sessionEncounters;
 
-    /// <summary>Bindable encounter table for the UI DataGrid.</summary>
     public System.Collections.ObjectModel.ObservableCollection<EncounterRecord> SessionEncounters
         => _sessionEncounters ??= new();
 
     private ICollectionView? _filteredEncountersView;
 
-    /// <summary>
-    /// Filtered view of <see cref="SessionEncounters"/> that respects <c>MinEncounterCount</c>.
-    /// Bind DataGrid to this for automatic threshold filtering.
-    /// </summary>
     public ICollectionView FilteredEncountersView
     {
         get
@@ -146,25 +124,17 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>Refreshes the encounter table filter after MinEncounterCount changes.</summary>
     public void RefreshEncounterFilter() => _filteredEncountersView?.Refresh();
 
     private DateTime _lastLogActivity = DateTime.UtcNow;
     private DateTime _lastVrchatProcessSeen = DateTime.UtcNow;
 
-    /// <summary>Whether VRChat.exe is currently running (process-based, not foreground).</summary>
     [ObservableProperty] private bool _isVrchatProcessRunning;
 
-    /// <summary>Peak player count across all worlds this session.</summary>
     [ObservableProperty] private int _peakPlayerCountThisSession;
 
-    // Loop iteration counter for throttled checks
     private int _loopCounter;
 
-    /// <summary>
-    /// Fired when world, player count, or instance info changes.
-    /// Consumers (e.g. DiscordModule Rich Presence) subscribe in ModuleBootstrapper.
-    /// </summary>
     public event Action? OnVrcWorldStateChanged;
 
     public VrcLogSettings Settings => _settingsProvider.Value;
@@ -172,10 +142,8 @@ public partial class VrcLogModule : ObservableObject, IModule
     public bool IsEnabled { get; set; } = true;
     bool IModule.IsRunning => _isRunning;
 
-    /// <summary>Bindable running state for UI (public, raises PropertyChanged).</summary>
     public bool IsRadarRunning => _isRunning;
 
-    /// <summary>Live preview of current chatbox output for the template editor.</summary>
     public string CurrentOutputPreview
     {
         get
@@ -256,7 +224,6 @@ public partial class VrcLogModule : ObservableObject, IModule
 
     public Task StopAsync(CancellationToken ct = default)
     {
-        // Save session state before resetting so it survives app restarts
         SaveSessionState();
 
         _isRunning = false;
@@ -280,10 +247,6 @@ public partial class VrcLogModule : ObservableObject, IModule
     }
 
 
-    /// <summary>
-    /// Called when IntegrationSettings or IAppState properties change.
-    /// Starts or stops the module based on current toggle state.
-    /// </summary>
     public void PropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is "IntgrVrcRadar" or "IntgrVrcRadar_VR" or "IntgrVrcRadar_DESKTOP" or "IsVRRunning")
@@ -301,9 +264,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Returns true if the module should be running based on integration toggles and VR mode.
-    /// </summary>
     public bool ShouldBeRunning()
     {
         if (!_consentService.IsApproved(PrivacyHook.VrcLogReader))
@@ -315,10 +275,6 @@ public partial class VrcLogModule : ObservableObject, IModule
     }
 
 
-    /// <summary>
-    /// Returns the current chatbox text, respecting DisplayMode and transient priority.
-    /// Thread-safe: reads under lock.
-    /// </summary>
     public string? GetOutputString()
     {
         lock (_stateLock)
@@ -397,14 +353,8 @@ public partial class VrcLogModule : ObservableObject, IModule
         else
             text = text.Replace("{owner}", string.Empty);
 
-        // Clean up any leftover empty separators from unused placeholders
-        text = Regex.Replace(text, @"\s*\|\s*\|\s*", " | ");  // collapse "| |" and "| … |"
-        text = Regex.Replace(text, @"(\s*\|\s*)+$", "");       // trailing pipes
-        text = Regex.Replace(text, @"^\s*\|\s*", "");           // leading pipes
-        text = Regex.Replace(text, @"\s{2,}", " ");             // collapse double spaces
-        text = text.Trim();
+        text = Regex.Replace(text, @"\s*\|\s*\|\s*", " | ");        text = Regex.Replace(text, @"(\s*\|\s*)+$", "");        text = Regex.Replace(text, @"^\s*\|\s*", "");        text = Regex.Replace(text, @"\s{2,}", " ");        text = text.Trim();
 
-        // Support \n and /n in templates
         text = text.Replace("\\n", "\n").Replace("/n", "\n");
 
         return text;
@@ -438,14 +388,12 @@ public partial class VrcLogModule : ObservableObject, IModule
                     _lastPosition = BackfillState(latestFile);
                     Logging.WriteInfo($"VrcRadar: Attached to {Path.GetFileName(latestFile)}, backfilled to pos {_lastPosition}");
 
-                    // Discard stale session: if log file hasn't been written to within the timeout, the backfilled world is from an old session
                     if (CurrentWorldName != "Not in a world")
                     {
                         var fileAge = DateTime.UtcNow - new FileInfo(latestFile).LastWriteTimeUtc;
                         var timeout = TimeSpan.FromMinutes(Math.Clamp(Settings.SessionTimeoutMinutes, 5, 90));
                         bool isStale = fileAge > timeout;
 
-                        // Also check if VRChat process is currently running (quick sync check on first attach)
                         if (!isStale && Settings.UseWindowDetection)
                         {
                             try
@@ -463,7 +411,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                                     _lastVrchatProcessSeen = DateTime.UtcNow;
                                 }
                             }
-                            catch { /* Process enumeration can fail */ }
+                            catch { }
                         }
 
                         if (isStale)
@@ -473,14 +421,12 @@ public partial class VrcLogModule : ObservableObject, IModule
                         }
                     }
 
-                    // Resume session only on first attach (app startup), not on log rotation
                     if (isFirstAttach && !string.IsNullOrEmpty(_currentInstanceKey))
                         TryResumeSession();
                 }
 
                 using var fs = new FileStream(_currentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
-                // Handle file truncation (shouldn't happen, but be safe)
                 if (fs.Length < _lastPosition) _lastPosition = 0;
 
                 fs.Seek(_lastPosition, SeekOrigin.Begin);
@@ -501,7 +447,6 @@ public partial class VrcLogModule : ObservableObject, IModule
                 if (hadNewLines)
                     _lastLogActivity = DateTime.UtcNow;
 
-                // Check bootstrap mode exit: if no new joins for 3 seconds
                 lock (_stateLock)
                 {
                     if (_inBootstrapMode && (DateTime.Now - _lastBootstrapJoin).TotalSeconds > 3)
@@ -531,7 +476,6 @@ public partial class VrcLogModule : ObservableObject, IModule
                 SaveSessionState();
             }
 
-            // VRChat process detection (every ~2.5 seconds = every 5 loop iterations)
             if (Settings.UseWindowDetection && _loopCounter % 5 == 0)
             {
                 try
@@ -546,7 +490,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                     if (running != IsVrchatProcessRunning)
                         _dispatcher.BeginInvoke(() => IsVrchatProcessRunning = running);
                 }
-                catch { /* Process enumeration can fail transiently */ }
+                catch { }
             }
 
             CheckSessionTimeout();
@@ -556,11 +500,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Scans the log file to reconstruct current room state only.
-    /// Session stats, encounter tracking, and transient messages are NOT populated.
-    /// Uses progressive scan: tries last 2 MB first, then entire file if needed.
-    /// </summary>
     private long BackfillState(string filePath)
     {
         try
@@ -585,8 +524,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                 {
                     fs.Seek(startPos, SeekOrigin.Begin);
                     using var reader = new StreamReader(fs);
-                    if (startPos > 0) reader.ReadLine(); // skip partial line
-
+                    if (startPos > 0) reader.ReadLine();
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
@@ -615,8 +553,6 @@ public partial class VrcLogModule : ObservableObject, IModule
                 {
                     int replayStart = lastRoomIdx >= 0 ? lastRoomIdx : 0;
 
-                    // Include the "Joining wrld_" line that precedes "Entering Room"
-                    // — it carries instance type, region, and owner metadata
                     if (lastRoomIdx > 0)
                     {
                         for (int i = lastRoomIdx - 1; i >= Math.Max(0, lastRoomIdx - 10); i--)
@@ -633,7 +569,6 @@ public partial class VrcLogModule : ObservableObject, IModule
                         for (int i = replayStart; i < lines.Count; i++)
                             ParseLogLine(lines[i], isBackfill: true);
 
-                        // All historical players counted — exit bootstrap mode
                         _inBootstrapMode = false;
                     }
                     Logging.WriteInfo($"VrcRadar: Backfill scanned {window / 1024}KB, replayed {lines.Count - replayStart} lines, {_currentRoomPlayers.Count} players in room");
@@ -682,7 +617,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             _pendingOwnerUserId = string.Empty;
             _peakPlayerCount = 0;
 
-            // Use actual log timestamp for world join time (critical for backfill accuracy)
             var logTime = ParseLogTimestamp(line);
             _worldJoinedAt = logTime > DateTime.MinValue ? logTime : DateTime.Now;
 
@@ -711,7 +645,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             return;
         }
 
-        // Ignore room-exit lines; VRChat handles transitions natively.
         if (line.Contains("[Behaviour] OnLeftRoom"))
         {
             return;
@@ -875,7 +808,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             return;
         }
 
-        // Debounced per room; this stays as a notification only and does not pulse OSC.
         if (line.Contains("AssetBundleSizeTooLarge"))
         {
             if (_avatarBlockedWarnedThisRoom) return;
@@ -887,29 +819,12 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Parses instance type and region from "Joining wrld_..." lines.
-    /// Examples:
-    ///   Joining wrld_xxx:99597~private(usr_xxx)~region(eu)
-    ///   Joining wrld_xxx:99597~group(grp_xxx)~groupAccessType(public)~region(usw)
-    ///   Joining wrld_xxx:99597~region(us)
-    /// </summary>
     private void ParseJoiningLine(string line)
     {
-        // Capture full instance key for session continuity
         var keyMatch = JoiningRegex.Match(line);
         if (keyMatch.Success)
             _currentInstanceKey = keyMatch.Groups[1].Value;
 
-        // Instance type — VRChat log format:
-        //   ~private(usr_xxx)          → Invite / Invite+
-        //   ~friends(usr_xxx)          → Friends / Friends+
-        //   ~hidden(usr_xxx)           → Friends+
-        //   ~group(grp_xxx)~groupAccessType(public) → Group Public
-        //   ~group(grp_xxx)~groupAccessType(plus)   → Group+
-        //   ~group(grp_xxx)~groupAccessType(members) → Group
-        //   ~group(grp_xxx)            → Group
-        //   (no access tag)            → Public
         string type = "Public";
         string ownerUserId = string.Empty;
 
@@ -936,7 +851,6 @@ public partial class VrcLogModule : ObservableObject, IModule
                 type = "Group+";
             else
                 type = "Group";
-            // Groups use grp_xxx, not usr_xxx — store for potential future lookup
             ownerUserId = ExtractIdFromTag(line, "~group(");
         }
 
@@ -962,7 +876,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         });
     }
 
-    /// <summary>Extracts the ID inside a tag like ~private(usr_xxx) or ~group(grp_xxx).</summary>
     private static string ExtractIdFromTag(string line, string tagPrefix)
     {
         int start = line.IndexOf(tagPrefix);
@@ -972,10 +885,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         return end > start ? line[start..end] : string.Empty;
     }
 
-    /// <summary>
-    /// Extracts username and user ID from log lines like:
-    /// "[Behaviour] OnPlayerJoined BoiHanny (usr_d4666bd2-e13b-4544-9666-56fd70749200)"
-    /// </summary>
     private static (string Name, string UserId) ExtractPlayerInfo(string line, string keyword)
     {
         int start = line.IndexOf(keyword) + keyword.Length;
@@ -999,7 +908,6 @@ public partial class VrcLogModule : ObservableObject, IModule
     }
 
 
-    /// <summary>Priority levels for transient messages. Higher number = higher priority.</summary>
     private static class TransientPriority
     {
         public const int SessionStats = 1;
@@ -1010,17 +918,12 @@ public partial class VrcLogModule : ObservableObject, IModule
         public const int AvatarBlocked = 6;
     }
 
-    /// <summary>
-    /// Sets a transient message only if its priority >= current active transient,
-    /// or the current transient has expired.
-    /// </summary>
     private void SetTransient(string message, int seconds, int priority)
     {
         bool currentExpired = DateTime.Now >= _transientExpiry;
         if (!currentExpired && priority < _transientPriority)
             return;
 
-        // Support \n and /n in transient templates
         _transientMessage = message.Replace("\\n", "\n").Replace("/n", "\n");
         _transientExpiry = DateTime.Now.AddSeconds(seconds);
         _transientPriority = priority;
@@ -1051,14 +954,10 @@ public partial class VrcLogModule : ObservableObject, IModule
                 }
                 _oscSender.SendOscParam(address, false);
             }
-            catch { /* OSC send failures are non-fatal */ }
+            catch { }
         });
     }
 
-    /// <summary>
-    /// Evicts encounter history entries older than 2× the seen-again window.
-    /// Called on each room change to prevent unbounded growth.
-    /// </summary>
     private void EvictStaleEncounters()
     {
         var cutoff = DateTime.Now - TimeSpan.FromMinutes(Settings.SeenAgainWindowMinutes * 2);
@@ -1090,13 +989,10 @@ public partial class VrcLogModule : ObservableObject, IModule
         var timeout = TimeSpan.FromMinutes(Math.Clamp(Settings.SessionTimeoutMinutes, 5, 90));
         var logStale = (DateTime.UtcNow - _lastLogActivity) > timeout;
 
-        // If window detection is enabled, require BOTH signals to be stale
         if (Settings.UseWindowDetection)
         {
             var processStale = (DateTime.UtcNow - _lastVrchatProcessSeen) > timeout;
 
-            // Quick exit: if VRChat process hasn't been seen for > 30 seconds and
-            // no new log activity, end the session early (don't wait full timeout)
             var processGone = (DateTime.UtcNow - _lastVrchatProcessSeen) > TimeSpan.FromSeconds(30);
             var logQuiet = (DateTime.UtcNow - _lastLogActivity) > TimeSpan.FromSeconds(30);
             if (processGone && logQuiet && !IsVrchatProcessRunning)
@@ -1208,17 +1104,12 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Generates a VRChat launch URL from the current instance key.
-    /// Returns null if not in a world or instance is private.
-    /// </summary>
     public string? GetCurrentJoinUrl()
     {
         if (string.IsNullOrEmpty(_currentInstanceKey)) return null;
 
         if (!IsPublicInstance()) return null;
 
-        // Instance key format: wrld_xxx:nnnnn~type(...)~region(xx)
         var parts = _currentInstanceKey.Split(':');
         if (parts.Length < 2) return null;
 
@@ -1229,7 +1120,6 @@ public partial class VrcLogModule : ObservableObject, IModule
 
     private bool IsPublicInstance()
     {
-        // Public instances don't have privacy markers in the instance key
         return !string.IsNullOrEmpty(_currentInstanceKey) &&
                !_currentInstanceKey.Contains("~private(") &&
                !_currentInstanceKey.Contains("~friends(") &&
@@ -1284,10 +1174,6 @@ public partial class VrcLogModule : ObservableObject, IModule
     }
 
 
-    /// <summary>
-    /// Extracts timestamp from VRChat log lines formatted as "yyyy.MM.dd HH:mm:ss ...".
-    /// Returns DateTime.MinValue if parsing fails.
-    /// </summary>
     private static DateTime ParseLogTimestamp(string line)
     {
         if (line.Length < 19) return DateTime.MinValue;
@@ -1298,10 +1184,6 @@ public partial class VrcLogModule : ObservableObject, IModule
     }
 
 
-    /// <summary>
-    /// Persisted session state — written periodically and on shutdown.
-    /// Keyed by instance key so only the exact same VRChat instance resumes.
-    /// </summary>
     private sealed class PersistedSession
     {
         public string InstanceKey { get; set; } = string.Empty;
@@ -1313,10 +1195,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         public string LogFileName { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// Called once at startup after backfill. If the persisted session matches
-    /// the current instance key and the log file is recent, resumes timing.
-    /// </summary>
     private void TryResumeSession()
     {
         try
@@ -1338,8 +1216,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             if (!string.IsNullOrEmpty(saved.LogFileName) &&
                 saved.LogFileName != currentLogName)
             {
-                // Different log file — VRChat may have restarted
-                // Only resume if the saved LastActiveAt is within 10 minutes
                 if ((DateTimeOffset.UtcNow - saved.LastActiveAt).TotalMinutes > 10)
                 {
                     Logging.WriteInfo("VrcRadar: Session stale (log file changed, >10min ago) — starting fresh.");
@@ -1361,10 +1237,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>
-    /// Saves session state to disk. Called periodically (every 30s) and on stop.
-    /// Thread-safe: snapshots under lock, writes outside it.
-    /// </summary>
     internal void SaveSessionState()
     {
         PersistedSession snapshot;
@@ -1402,7 +1274,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>Formats a TimeSpan as a compact duration string (e.g. "4m", "1h23m", "2h").</summary>
     private static string FormatDuration(TimeSpan ts)
     {
         if (ts.TotalSeconds < 60) return $"{(int)ts.TotalSeconds}s";

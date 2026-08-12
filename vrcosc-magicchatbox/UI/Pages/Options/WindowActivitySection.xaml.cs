@@ -1,10 +1,9 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for the active window / application activity settings section.</summary>
 public partial class WindowActivitySection : UserControl
 {
     public WindowActivitySection()

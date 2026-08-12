@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -273,7 +273,6 @@ public sealed class SpotifyApiClient : ISpotifyApiClient
 
     private static string BuildFailureMessage(HttpStatusCode statusCode, string fallbackMessage, string reason)
     {
-        // Spotify 403 commonly returns a "reason" field. Surface known codes to the user.
         if (statusCode == HttpStatusCode.Forbidden && !string.IsNullOrWhiteSpace(reason))
         {
             string? friendly = reason.ToUpperInvariant() switch

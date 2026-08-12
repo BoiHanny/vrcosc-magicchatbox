@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,19 +14,8 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.Core.Configuration;
 
-/// <summary>
-/// One-time migration helpers that run on app startup.
-/// Type 1: Copies property values from the legacy settings.xml into per-module JSON files.
-///         Uses field-level merge with _migratedAt tracking to be safe for both fresh
-///         installs and users already on the Refactor branch.
-/// Type 2: Renames data files that use .xml extension but actually contain JSON.
-/// </summary>
 public static class SettingsMigrationService
 {
-    /// <summary>
-    /// Run all migrations. Call once on app startup, BEFORE any settings provider
-    /// is resolved from DI (i.e., before JsonSettingsProvider constructors run).
-    /// </summary>
     public static void RunAll(string dataPath)
     {
         try
@@ -77,20 +66,11 @@ public static class SettingsMigrationService
         MigrateModule<NetworkStatsSettings>(root, NetworkStatsMigrationMap(), dataPath);
         MigrateModule<TrackerBatterySettings>(root, TrackerBatteryMigrationMap(), dataPath);
 
-        // Back up settings.xml so the old version can still boot from it
         BackupXml(xmlPath);
 
         Logging.WriteInfo("XML→JSON settings migration pass complete.");
     }
 
-    /// <summary>
-    /// Field-level merge strategy:
-    ///   • If the JSON file already has _migratedAt set → migration already done, skip.
-    ///   • Otherwise (file doesn't exist OR exists without _migratedAt):
-    ///     load/create a T, then for each map entry only apply the XML value if the
-    ///     current JSON value is still the type default (preserves intentional user edits).
-    ///   • Sets _migratedAt = UtcNow and writes to disk if any values were merged.
-    /// </summary>
     private static void MigrateModule<T>(
         XmlNode root, List<MigrationEntry> map, string dataPath) where T : class, new()
     {
@@ -219,10 +199,6 @@ public static class SettingsMigrationService
         return valNode?.InnerText;
     }
 
-    /// <summary>
-    /// Returns true when the value is the type's default (unmodified by user).
-    /// Handles collections (empty = default), nullable types, and value types.
-    /// </summary>
     private static bool IsDefaultValue(object current, object defaultVal)
     {
         if (current == null && defaultVal == null) return true;
@@ -285,7 +261,6 @@ public static class SettingsMigrationService
         if (targetType.IsEnum)
             return Enum.TryParse(targetType, value, ignoreCase: true, out var e) ? e : null;
 
-        // ObservableCollection<TrackerDevice> — value is JSON-serialized in old DataController
         if (targetType == typeof(ObservableCollection<TrackerDevice>))
         {
             try
@@ -669,8 +644,7 @@ public static class SettingsMigrationService
             string newPath = Path.Combine(dataPath, newName);
 
             if (!File.Exists(oldPath)) continue;
-            if (File.Exists(newPath)) continue; // Already migrated
-
+            if (File.Exists(newPath)) continue;
             try
             {
                 File.Copy(oldPath, newPath);

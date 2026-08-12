@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -11,12 +11,10 @@ using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.UI.Pages
 {
-    /// <summary>Code-behind for the status page, handling inline editing, favorite toggling, groups, sorting, and selection mode.</summary>
     public partial class StatusPage : UserControl
     {
         private StatusPageViewModel VM => (StatusPageViewModel)DataContext;
 
-        // Debounce for popup close→toggle reopen issue
         private DateTime _groupPopupClosedAt;
         private DateTime _movePopupClosedAt;
 
@@ -148,8 +146,6 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private void StatusItemCheckBox_Click(object sender, RoutedEventArgs e)
         {
-            // The TwoWay binding on IsChecked already toggled IsSelected.
-            // We only need to sync the SelectedItems collection here.
             if (sender is CheckBox cb && cb.Tag is StatusItem item)
             {
                 if (item.IsSelected && !VM.SelectedItems.Contains(item))
@@ -162,7 +158,6 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void StatusItemRow_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (!VM.IsSelectionMode) return;
-            // Don't toggle if the click was on a button or checkbox
             if (e.OriginalSource is System.Windows.Controls.Primitives.ButtonBase
                 || e.OriginalSource is CheckBox)
                 return;

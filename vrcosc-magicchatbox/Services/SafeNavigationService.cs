@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -6,9 +6,6 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Opens URLs and folders safely, validating schemes and domain allowlists before launching.
-/// </summary>
 public sealed class SafeNavigationService : INavigationService
 {
     private static readonly string[] DefaultAllowedSchemes = { "https" };
@@ -67,9 +64,6 @@ public sealed class SafeNavigationService : INavigationService
                 return false;
             }
 
-            // Use ArgumentList so the runtime applies correct Windows command-line
-            // escaping, avoiding quote-injection issues when fullPath contains spaces.
-            // Explorer accepts "/select," and the path as two distinct tokens.
             var psi = new ProcessStartInfo
             {
                 FileName = "explorer.exe",

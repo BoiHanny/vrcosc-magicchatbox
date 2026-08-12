@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
@@ -13,11 +13,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels
 {
-    /// <summary>
-    /// Page-specific ViewModel for the Options page.
-    /// Owns only the cross-cutting setting-toggle broadcast.
-    /// All section-specific logic is delegated to section ViewModels.
-    /// </summary>
     public partial class OptionsPageViewModel : ObservableObject
     {
         private readonly ChatStatusDisplayState _chatStatus;
@@ -34,6 +29,8 @@ namespace vrcosc_magicchatbox.ViewModels
         public DiscordSectionViewModel DiscordSection { get; }
         public SpotifySectionViewModel SpotifySection { get; }
         public TrackerBatterySectionViewModel TrackerBatterySection { get; }
+        public VrPerformanceSectionViewModel VrPerformanceSection { get; }
+        public LyricsSectionViewModel LyricsSection { get; }
         public PulsoidSectionViewModel PulsoidSection { get; }
         public OpenAISectionViewModel OpenAISection { get; }
         public TtsSectionViewModel TtsSection { get; }
@@ -49,10 +46,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public INavigationService Navigation { get; }
 
-        /// <summary>
-        /// Initializes the options page ViewModel, receiving all section ViewModels
-        /// and shared services via dependency injection.
-        /// </summary>
         public OptionsPageViewModel(
             ChatStatusDisplayState chatStatus,
             Lazy<OSCController> osc,
@@ -68,6 +61,8 @@ namespace vrcosc_magicchatbox.ViewModels
             DiscordSectionViewModel discordSection,
             SpotifySectionViewModel spotifySection,
             TrackerBatterySectionViewModel trackerBatterySection,
+            VrPerformanceSectionViewModel vrPerformanceSection,
+            LyricsSectionViewModel lyricsSection,
             PulsoidSectionViewModel pulsoidSection,
             OpenAISectionViewModel openAISection,
             TtsSectionViewModel ttsSection,
@@ -96,6 +91,8 @@ namespace vrcosc_magicchatbox.ViewModels
             DiscordSection = discordSection;
             SpotifySection = spotifySection;
             TrackerBatterySection = trackerBatterySection;
+            VrPerformanceSection = vrPerformanceSection;
+            LyricsSection = lyricsSection;
             PulsoidSection = pulsoidSection;
             OpenAISection = openAISection;
             TtsSection = ttsSection;
@@ -110,9 +107,6 @@ namespace vrcosc_magicchatbox.ViewModels
             VrcRadarSection = vrcRadarSection;
         }
 
-        /// <summary>
-        /// Called when any settings toggle changes. Rebuilds OSC and saves settings.
-        /// </summary>
         public void OnSettingToggled()
         {
             if (!_chatStatus.ScanPause)
@@ -120,10 +114,8 @@ namespace vrcosc_magicchatbox.ViewModels
             _integrationSettingsProvider.Save();
         }
 
-        /// <summary>Raised when ActivateSetting opens a section and the view should scroll to it.</summary>
         public event Action<string>? ScrollToSectionRequested;
 
-        /// <summary>Request the Options page to scroll to the named setting section.</summary>
         public void RequestScrollToSection(string settingName)
             => ScrollToSectionRequested?.Invoke(settingName);
 

@@ -1,9 +1,8 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
 namespace vrcosc_magicchatbox.UI.Pages.Options;
 
-/// <summary>Code-behind for the MediaLink settings section.</summary>
 public partial class MediaLinkSection : UserControl
 {
     public MediaLinkSection()
@@ -11,7 +10,6 @@ public partial class MediaLinkSection : UserControl
         InitializeComponent();
     }
 
-    // MouseUp doesn't support Command binding in WPF
     private void LearnMoreAboutSpotifybtn_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (DataContext is MediaLinkSectionViewModel vm)

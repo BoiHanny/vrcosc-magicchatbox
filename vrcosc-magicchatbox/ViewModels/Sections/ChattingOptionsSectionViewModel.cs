@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -7,9 +7,6 @@ using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Section ViewModel for chatting options.
-/// </summary>
 public partial class ChattingOptionsSectionViewModel : ObservableObject
 {
     private readonly Lazy<IModuleHost> _modules;

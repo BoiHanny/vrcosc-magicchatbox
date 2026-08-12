@@ -1,25 +1,25 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
+using vrcosc_magicchatbox.Classes.Modules;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
-/// <summary>
-/// Runtime display state for the Integrations page.
-/// Owns all opacity indicators, integration display strings,
-/// and the IntegrationSortOrder collection.
-/// Written by OSCController, ScanLoopService, TrackerBatteryModule, WeatherService.
-/// </summary>
 public partial class IntegrationDisplayState : ObservableObject
 {
     public static readonly IReadOnlyList<string> DefaultSortOrder = new[]
     {
         "Status", "Window", "Twitch", "TikTokLive", "Discord", "Spotify", "VrcRadar", "HeartRate", "Component",
-        "TrackerBattery", "Network", "Weather", "Time", "Soundpad",
-        "MediaLink"
+        "VrPerformance", "TrackerBattery", "Network", "Weather", "Time", "Soundpad",
+        "MediaLink", "Lyrics"
     };
+
+    public static readonly IReadOnlyList<string> FollowerKeys = new[] { "Lyrics" };
+
+    public static bool IsFollower(string key)
+        => FollowerKeys.Any(follower => string.Equals(follower, key, StringComparison.OrdinalIgnoreCase));
 
     private ObservableCollection<string> _integrationSortOrder = new(DefaultSortOrder);
     public ObservableCollection<string> IntegrationSortOrder
@@ -91,10 +91,27 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _spotifyOpacity = "1";
     [ObservableProperty] private string _heartRateOpacity = "1";
     [ObservableProperty] private string _trackerBatteryOpacity = "1";
+    [ObservableProperty] private string _vrPerformanceOpacity = "1";
+    [ObservableProperty] private string _lyricsOpacity = "1";
     [ObservableProperty] private string _componentStatOpacity = "1";
     [ObservableProperty] private string _networkStatsOpacity = "1";
     [ObservableProperty] private string _soundpadOpacity = "1";
     [ObservableProperty] private string _mediaLinkOpacity = "1";
+
+    /// <summary>
+    /// The UiKeys of the integrations whose text is in the line VRChat is actually receiving right
+    /// now. Not the same question as "is this switched on": an integration can be on and contribute
+    /// nothing, be excluded by its desktop/VR routing, or be trimmed to fit the 144 characters, and
+    /// in all three cases nothing of it is reaching the chatbox.
+    /// </summary>
+    [ObservableProperty] private IReadOnlyCollection<string> _liveOutputKeys = Array.Empty<string>();
+
+    /// <summary>
+    /// The UiKeys dropped from this build to fit the 144 characters. They are switched on, they
+    /// produced text, and it did not make it - which is worth saying out loud rather than leaving as
+    /// a slightly faded tile.
+    /// </summary>
+    [ObservableProperty] private IReadOnlyCollection<string> _trimmedOutputKeys = Array.Empty<string>();
 
     [ObservableProperty] private string _currentTime = string.Empty;
     [ObservableProperty] private string _weatherLastSyncDisplay = "Last sync: Never";
@@ -102,17 +119,30 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _trackerBatteryLastScanDisplay = "Last scan: Never";
     [ObservableProperty] private string _trackerBatteryPreview = string.Empty;
     [ObservableProperty] private string _componentStatCombined = string.Empty;
-    [ObservableProperty] private DateTime _componentStatsLastUpdate = DateTime.Now;
     [ObservableProperty] private bool _componentStatsRunning;
+
+    // Null until a reading actually lands. It used to default to DateTime.Now, so the tile showed the
+    // time the app started as though it were the time the stats last refreshed.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ComponentStatsStatusText))]
+    private DateTime? _componentStatsLastUpdate;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ComponentStatsStatusText))]
+    private ComponentStatsPhase _componentStatsPhase = ComponentStatsPhase.Off;
+
+    public string ComponentStatsStatusText
+        => ComponentStatsStatus.Describe(ComponentStatsPhase, ComponentStatsLastUpdate);
+
+    [ObservableProperty] private string _vrPerformanceCombined = string.Empty;
+    [ObservableProperty] private bool _vrPerformanceRunning;
+    [ObservableProperty] private string _vrPerformanceStatus = "Not started";
 
     [ObservableProperty] private string _playingSongTitle = string.Empty;
     [ObservableProperty] private bool _spotifyActive;
     [ObservableProperty] private bool _spotifyPaused;
     [ObservableProperty] private DateTime _spotifyLastChangeUtc = DateTime.UtcNow;
 
-    /// <summary>
-    /// Dictionary-style opacity setter used by OSCController.
-    /// </summary>
     public void SetOpacity(string controlName, string opacity)
     {
         switch (controlName)
@@ -135,9 +165,6 @@ public partial class IntegrationDisplayState : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Resets all opacity values to fully visible.
-    /// </summary>
     public void ResetAllOpacity()
     {
         StatusOpacity = "1";

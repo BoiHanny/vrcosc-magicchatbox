@@ -1,4 +1,4 @@
-using MagicChatboxAPI.Events;
+﻿using MagicChatboxAPI.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +21,7 @@ namespace MagicChatboxAPI.Services
     {
         #region Constants and Fields
 
-        // External API endpoint for checking a user's ban status.
         private const string CheckApiEndpoint = "https://api.magicchatbox.com/moderation/checkIfClientIsAllowed";
-        // External API endpoint for acknowledging a ban.
         private const string AcknowledgeBanEndpoint = "https://api.magicchatbox.com/moderation/acknowledgeBan";
 
         private readonly HttpClient _httpClient;
@@ -32,7 +30,6 @@ namespace MagicChatboxAPI.Services
         private readonly object _monitorLock = new();
 
         private List<string> _allUserIds;
-        // Cache tracking each user's current allowed state.
         private readonly Dictionary<string, bool> _userAllowedCache = new();
 
         #endregion
@@ -98,16 +95,12 @@ namespace MagicChatboxAPI.Services
 
         #region Private Methods
 
-        /// <summary>
-        /// Scans the VRChat OSC folder once, collecting all user IDs.
-        /// </summary>
         private List<string> ScanAllVrChatUserIds()
         {
             var userIds = new List<string>();
 
             try
             {
-                // Base path to VRChat's OSC user folders.
                 var basePath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     "AppData", "LocalLow", "VRChat", "VRChat", "OSC");
@@ -146,11 +139,6 @@ namespace MagicChatboxAPI.Services
             return userIds.Distinct().ToList();
         }
 
-        /// <summary>
-        /// Timer callback: checks the ban status of all known user IDs via API.
-        /// When a user transitions from allowed to banned, it calls the acknowledge-ban endpoint,
-        /// then fires the BanDetected event with the user ID and ban reason.
-        /// </summary>
         private async Task UserMonitorCallback()
         {
             if (_allUserIds == null || !_allUserIds.Any())
@@ -175,21 +163,18 @@ namespace MagicChatboxAPI.Services
                             _userAllowedCache[userId] = isCurrentlyAllowed;
                         }
 
-                        // Call the acknowledge-ban endpoint.
                         bool acknowledged = await AcknowledgeBanAsync(userId);
                         if (!acknowledged)
                         {
                             System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] Failed to acknowledge ban for user {userId}.");
                         }
 
-                        // Fire the BanDetected event with the ban reason.
                         BanDetected?.Invoke(this, new BanDetectedEventArgs(userId, reason));
 
                         return;
                     }
                     else
                     {
-                        // Update the cache in any case.
                         lock (_userAllowedCache)
                         {
                             _userAllowedCache[userId] = isCurrentlyAllowed;
@@ -203,12 +188,6 @@ namespace MagicChatboxAPI.Services
             }
         }
 
-        /// <summary>
-        /// Calls the external API for a single user to determine if they are banned,
-        /// and retrieves the ban reason if applicable.
-        /// Returns a tuple where the first value indicates whether the user is allowed
-        /// (true means allowed, false means banned), and the second value contains the ban reason.
-        /// </summary>
         private async Task<(bool isAllowed, string reason)> CheckSingleUserWithReasonAsync(string userId)
         {
             var payload = new { userId };
@@ -220,7 +199,6 @@ namespace MagicChatboxAPI.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"[AllowedForUsingService] API returned {response.StatusCode}: {errorContent}");
-                    // In case of error, treat user as allowed for safety.
                     return (true, string.Empty);
                 }
 
@@ -231,8 +209,6 @@ namespace MagicChatboxAPI.Services
                     return (true, string.Empty);
                 }
 
-                // If "isBanned" is true in the API response, the user is banned (i.e. not allowed).
-                // We assume that the API returns a 'reason' when a user is banned.
                 bool isAllowed = !apiResponse.isBanned;
                 string reason = apiResponse.isBanned ? apiResponse.reason : string.Empty;
                 return (isAllowed, reason);
@@ -244,9 +220,6 @@ namespace MagicChatboxAPI.Services
             }
         }
 
-        /// <summary>
-        /// Calls the external acknowledge-ban API endpoint to mark the ban as acknowledged.
-        /// </summary>
         private async Task<bool> AcknowledgeBanAsync(string userId)
         {
             var payload = new { userId };
@@ -272,14 +245,9 @@ namespace MagicChatboxAPI.Services
 
         #region Internal Model
 
-        /// <summary>
-        /// Internal class that maps the JSON structure from the external API.
-        /// Adjust properties to match the actual API response.
-        /// </summary>
         private class ApiResponse
         {
             public bool isBanned { get; set; }
-            // The reason provided by the API when a user is banned.
             public string reason { get; set; }
         }
 

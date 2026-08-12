@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -13,9 +13,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
-    /// <summary>
-    /// Interaction logic for ApplicationError.xaml
-    /// </summary>
     public partial class ApplicationError : Window
     {
         public AppUpdateState UpdateState { get; }
