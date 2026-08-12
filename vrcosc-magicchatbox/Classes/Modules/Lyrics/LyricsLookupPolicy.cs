@@ -39,13 +39,13 @@ public static class LyricsLookupPolicy
         {
             if (query.Duration > MaxTrackLength)
             {
-                reason = $"Too long to be a song ({query.Duration.TotalMinutes:F0} min) — not searching";
+                reason = $"Too long to be a song ({query.Duration.TotalMinutes:F0} min), not searching";
                 return false;
             }
 
             if (query.Duration < MinTrackLength)
             {
-                reason = "Too short to be a song — not searching";
+                reason = "Too short to be a song, not searching";
                 return false;
             }
         }
@@ -56,7 +56,7 @@ public static class LyricsLookupPolicy
         {
             if (haystack.Contains(marker, StringComparison.Ordinal))
             {
-                reason = "This looks like spoken word, not music — not searching";
+                reason = "This looks like spoken word rather than music, so not searching";
                 return false;
             }
         }
