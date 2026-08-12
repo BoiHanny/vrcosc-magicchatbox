@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -29,7 +30,10 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 ? _integrationDisplay.IntegrationSortOrder
                 : IntegrationDisplayState.DefaultSortOrder;
 
-            TempOrder = IntegrationDisplayState.NormalizeSortOrder(sourceOrder);
+            TempOrder = new ObservableCollection<string>(
+                IntegrationDisplayState.NormalizeSortOrder(sourceOrder)
+                    .Where(key => !IntegrationDisplayState.IsFollower(key)));
+
             DataContext = this;
         }
 
@@ -58,6 +62,9 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             TempOrder.Clear();
             foreach (var key in IntegrationDisplayState.DefaultSortOrder)
             {
+                if (IntegrationDisplayState.IsFollower(key))
+                    continue;
+
                 TempOrder.Add(key);
             }
         }
