@@ -190,7 +190,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         {
             case TimelineDecision.Accept:
                 sessionInfo.FullTime = snapshot.Full;
-                sessionInfo.CurrentTime = snapshot.Current;
+                sessionInfo.SetPositionFromSample(snapshot.Current, args.LastUpdatedTime.UtcDateTime);
                 sessionInfo.TimePeekEnabled = true;
                 sessionInfo.MarkTimelineFresh();
                 return true;
