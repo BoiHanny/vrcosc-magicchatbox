@@ -80,6 +80,19 @@ public static class ServiceRegistration
         services.AddSingleton(typeof(ISettingsProvider<>), typeof(JsonSettingsProvider<>));
 
         services.AddSingleton<IntegrationDisplayState>();
+        services.AddSingleton<LyricsDisplayState>();
+        services.AddSingleton<Services.Lyrics.LyricsResolver>(sp => new Services.Lyrics.LyricsResolver(
+            new Services.Lyrics.ILyricsProvider[]
+            {
+                new Services.Lyrics.LocalFileLyricsProvider(
+                    () => sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>().Value.UseLocalFiles
+                        ? sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>().Value.LocalLyricsFolder
+                        : string.Empty),
+                new Services.Lyrics.LrcLibLyricsProvider(
+                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>(),
+                    sp.GetRequiredService<IAppInfoService>().GetApplicationVersion()),
+            },
+            () => sp.GetRequiredService<IPrivacyConsentService>().IsApproved(PrivacyHook.InternetAccess)));
         services.AddSingleton<AppUpdateState>();
         services.AddSingleton<ChatStatusDisplayState>();
         services.AddSingleton<OscDisplayState>();
@@ -157,6 +170,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
             sp.GetRequiredService<SpotifyDisplayState>(),
+            sp.GetRequiredService<LyricsDisplayState>(),
             sp.GetRequiredService<TrackerDisplayState>(),
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IMenuNavigationService>(),
@@ -211,6 +225,11 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<TrackerBatterySettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>()));
+        services.AddSingleton<LyricsSectionViewModel>(sp => new LyricsSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<LyricsDisplayState>()));
         services.AddSingleton<VrPerformanceSectionViewModel>(sp => new VrPerformanceSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
@@ -296,6 +315,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<SpotifySectionViewModel>(),
             sp.GetRequiredService<TrackerBatterySectionViewModel>(),
             sp.GetRequiredService<VrPerformanceSectionViewModel>(),
+            sp.GetRequiredService<LyricsSectionViewModel>(),
             sp.GetRequiredService<PulsoidSectionViewModel>(),
             sp.GetRequiredService<OpenAISectionViewModel>(),
             sp.GetRequiredService<TtsSectionViewModel>(),
@@ -580,6 +600,10 @@ public static class ServiceRegistration
         services.AddSingleton<IOscProvider>(sp => new VrPerformanceOscProvider(
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>()));
+        services.AddSingleton<IOscProvider>(sp => new LyricsOscProvider(
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>(),
+            sp.GetRequiredService<LyricsDisplayState>()));
         services.AddSingleton<IOscProvider, ComponentStatsOscProvider>();
         services.AddSingleton<IOscProvider>(sp => new NetworkStatsOscProvider(
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
@@ -597,7 +621,9 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
         services.AddSingleton<IOscProvider>(sp => new SpotifyOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
-            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
+            sp.GetRequiredService<SpotifyDisplayState>()));
         services.AddSingleton<IOscProvider>(sp => new VrcLogOscProvider(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
@@ -612,6 +638,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<MediaLinkDisplayState>(),
             sp.GetRequiredService<SpotifyDisplayState>(),
+            sp.GetRequiredService<LyricsDisplayState>(),
             new Lazy<IMediaLinkService>(() => App.ApplicationMediaController)));
 
         services.AddSingleton<OscOutputBuilder>(sp => new OscOutputBuilder(

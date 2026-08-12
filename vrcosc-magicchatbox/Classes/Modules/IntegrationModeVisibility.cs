@@ -103,6 +103,11 @@ public static class IntegrationModeVisibility
             s => s.IntgrVrPerformance,
             _ => true, null,
             _ => false, null),
+
+        new(nameof(IntegrationSettings.IntgrLyrics), "Lyrics",
+            s => s.IntgrLyrics,
+            s => s.IntgrLyrics_VR, s => s.IntgrLyrics_VR = true,
+            s => s.IntgrLyrics_DESKTOP, s => s.IntgrLyrics_DESKTOP = true),
     };
 
     private static readonly Dictionary<string, IntegrationModeGate> GatesByMaster =

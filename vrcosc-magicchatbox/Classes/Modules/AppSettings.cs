@@ -81,6 +81,7 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_VrcRadar = false;
     [ObservableProperty] private bool _settings_TrackerBattery = false;
     [ObservableProperty] private bool _settings_VrPerformance = false;
+    [ObservableProperty] private bool _settings_Lyrics = false;
 
     [ObservableProperty] private bool _settingsDev = false;
     [ObservableProperty] private bool _avatarSyncExecute = true;

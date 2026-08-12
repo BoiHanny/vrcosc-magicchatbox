@@ -55,6 +55,7 @@ public partial class OptionsPage : UserControl
             ["Settings_EggDev"] = OptionsWrapper_EggDev,
             ["Settings_TrackerBattery"] = OptionsWrapper_TrackerBattery,
             ["Settings_VrPerformance"] = OptionsWrapper_VrPerformance,
+            ["Settings_Lyrics"] = OptionsWrapper_Lyrics,
             ["Settings_Privacy"] = OptionsWrapper_Privacy,
             ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity,
         };
