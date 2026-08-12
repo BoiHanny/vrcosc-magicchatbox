@@ -283,7 +283,13 @@ namespace vrcosc_magicchatbox
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
                 loadingWindow.SetTopmostFromAnyThread(true);
 
+                // Shown, but not yet visible. The window has to be on screen for WPF to lay it out at
+                // all, and that first layout is the slowest part of starting up - several seconds
+                // during which it would otherwise sit there assembling itself in front of the user
+                // while the splash is still up saying it is loading. At zero opacity it does all of
+                // that work unseen and is faded in below, once there is something worth looking at.
                 Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
+                mainWindow.Opacity = 0;
                 mainWindow.Show();
                 Logging.WriteInfo("[Startup] MainWindow shown.");
                 ShutdownMode = ShutdownMode.OnLastWindowClose;
@@ -314,18 +320,21 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
 
-                loadingWindow.CloseFromAnyThread();
-                Logging.WriteInfo("[Startup] Splash closed.");
-
                 if (mainWindow.WindowState == WindowState.Minimized)
                     mainWindow.WindowState = WindowState.Normal;
+
+                // The overlay goes first so the fade reveals the finished interface rather than a
+                // loading screen dissolving into another one.
+                mainWindow.HideStartupOverlay();
+                mainWindow.FadeInAfterStartup();
+
+                loadingWindow.CloseFromAnyThread();
+                Logging.WriteInfo("[Startup] Splash closed.");
 
                 mainWindow.Activate();
                 mainWindow.Focus();
                 if (vm.AppSettingsInstance.StartInBackground)
                     mainWindow.Hide();
-
-                mainWindow.HideStartupOverlay();
 
                 Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
                 Logging.WriteInfo("[Startup] Startup-complete signal fired.");
