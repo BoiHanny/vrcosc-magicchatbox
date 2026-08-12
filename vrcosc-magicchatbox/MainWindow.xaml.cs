@@ -451,6 +451,34 @@ namespace vrcosc_magicchatbox
             OverlayProgressBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, anim);
         }
 
+        /// <summary>
+        /// Brings the window up from the zero opacity it was shown at, then hands the property back
+        /// to its binding so the user's own window opacity setting takes over again. Clearing the
+        /// local value matters: leaving one behind would pin the window at full opacity forever and
+        /// quietly break that setting.
+        /// </summary>
+        public void FadeInAfterStartup()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(FadeInAfterStartup);
+                return;
+            }
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            fadeIn.Completed += (_, _) =>
+            {
+                BeginAnimation(OpacityProperty, null);
+                ClearValue(OpacityProperty);
+            };
+
+            BeginAnimation(OpacityProperty, fadeIn);
+        }
+
         public void HideStartupOverlay()
         {
             if (!Dispatcher.CheckAccess())

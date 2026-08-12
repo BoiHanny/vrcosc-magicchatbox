@@ -304,18 +304,78 @@
                                 FontSize="12"
                                 Foreground="#6A5F94"
                                 Text="Made with ♥ by" />
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontFamily="Comfortaa Light"
-                                FontSize="16"
-                                Text="BoiHanny">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
-                                        <GradientStop Offset="0" Color="#9ED4DE" />
-                                        <GradientStop Offset="1" Color="#C0AAF0" />
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
-                            </TextBlock>
+                            <!--  The holo treatment the Lyrics chip wears: the same four-stop ramp, drifting
+                                  under the letters, with a sheen that crosses them. It is the last thing
+                                  to arrive on the splash, so it gets to be the flourish.  -->
+                            <Grid ClipToBounds="True">
+                                <TextBlock
+                                    x:Name="BylineName"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="16"
+                                    Text="BoiHanny">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#3FE0D2" />
+                                            <GradientStop Offset="0.35" Color="#6E9BFF" />
+                                            <GradientStop Offset="0.65" Color="#B96BFF" />
+                                            <GradientStop Offset="1" Color="#FF6FC7" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="12"
+                                            Opacity="0.55"
+                                            RenderingBias="Performance"
+                                            ShadowDepth="0"
+                                            Color="#A97BFF" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+
+                                <Border
+                                    x:Name="BylineSheen"
+                                    Width="26"
+                                    HorizontalAlignment="Left"
+                                    IsHitTestVisible="False">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#00FFFFFF" />
+                                            <GradientStop Offset="0.5" Color="#7AFFFFFF" />
+                                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.LayoutTransform>
+                                        <SkewTransform AngleX="-20" />
+                                    </Border.LayoutTransform>
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="-40" />
+                                    </Border.RenderTransform>
+                                </Border>
+
+                                <!--  Only the sheen element is animated. A gradient brush drifting under
+                                      the letters looks better still, but WPF freezes brushes it decides
+                                      are static and then throws the moment one is animated - the same
+                                      trap the Lyrics chip's sheen had to be built around.  -->
+                                <Grid.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation
+                                                    BeginTime="0:0:1.2"
+                                                    Storyboard.TargetName="BylineSheen"
+                                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                    From="-40"
+                                                    To="115"
+                                                    Duration="0:0:1.2">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <SineEase EasingMode="EaseInOut" />
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Grid.Triggers>
+                            </Grid>
                         </StackPanel>
 
                         <Button
