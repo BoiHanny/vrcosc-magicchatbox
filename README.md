@@ -22,7 +22,7 @@ your GPU temperature, your stream — all in one line, all customisable, all opt
 [![Download](https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white "Download")](https://github.com/BoiHanny/vrcosc-magicchatbox/releases)
 [![Documentation](https://custom-icon-badges.herokuapp.com/badge/-Documentation-6E9BFF?style=for-the-badge&logo=book&logoColor=white "Documentation")](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki)
 [![Discord](https://custom-icon-badges.herokuapp.com/badge/-Get%20Support-B96BFF?style=for-the-badge&logo=comment-discussion&logoColor=white "Support")](https://discord.gg/magicchatbox)
-[![VirusTotal](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/01533802fb696b6dd746b05367fd97a5d9280e6f24cd13fa3032a784a774a290/detection)
+[![VirusTotal](https://custom-icon-badges.herokuapp.com/badge/-Scan%20at%20VirusTotal-blue?style=for-the-badge&logo=virustotal&logoColor=white "virustotal")](https://www.virustotal.com/gui/file/9fbe32c6dc0f9a04e17ef780bdbe14a4034541fd377ceaf5aed1ace9e9c2909c/detection)
 
 </div>
 
