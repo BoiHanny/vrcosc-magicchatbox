@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules.SpeechToText;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Messaging;
 using vrcosc_magicchatbox.Core.State;
@@ -32,7 +33,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private List<RecordingDeviceInfo> availableDevices;
 
         [ObservableProperty]
-        private IntelliGPTModel speechToTextModel = IntelliGPTModel.whisper1;
+        private IntelliGPTModel speechToTextModel = SpeechToTextModels.Recommended;
 
         [ObservableProperty]
         private bool isNoiseGateOpen = false;
@@ -61,11 +62,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         private bool translateToCustomLanguage = false;
 
+        /// <summary>
+        /// Comes from code, not from the settings file, so updating the app updates the list. Ordered
+        /// deliberately rather than by enum value: new models take the next free number at the end to
+        /// keep saved selections stable, which would otherwise bury the recommended one at the bottom.
+        /// </summary>
         [JsonIgnore]
-        public IEnumerable<IntelliGPTModel> AvailableSTTModels =>
-            Enum.GetValues(typeof(IntelliGPTModel))
-                .Cast<IntelliGPTModel>()
-                .Where(m => WhisperModule.GetModelType(m) == "STT");
+        public IEnumerable<IntelliGPTModel> AvailableSTTModels => SpeechToTextModels.Ordered;
 
         private WhisperModuleSettings()
         {
@@ -177,6 +180,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     if (settings != null)
                     {
                         settings.RefreshSpeechToTextLanguages();
+
+                        // A saved model that is no longer offered would fail every transcription with
+                        // an error from the API rather than anything the user could act on.
+                        settings.SpeechToTextModel = SpeechToTextModels.Resolve(settings.SpeechToTextModel);
                         return settings;
                     }
                     else
