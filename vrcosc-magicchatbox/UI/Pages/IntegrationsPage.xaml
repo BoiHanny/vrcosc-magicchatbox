@@ -116,20 +116,22 @@
             Background="Transparent"
             BorderThickness="0"
             RenderOptions.BitmapScalingMode="NearestNeighbor"
+            HorizontalContentAlignment="Stretch"
             ScrollViewer.CanContentScroll="False"
-            ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="0" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListBoxItem">
                                 <Border
-                                    Width="{Binding ActualWidth, ElementName=IntegrationsList}"
-                                    Padding="10,0,19,0"
+                                    Padding="3,0,3,0"
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}">
-                                    <ContentPresenter />
+                                    <ContentPresenter HorizontalAlignment="Stretch" />
                                 </Border>
                             </ControlTemplate>
                         </Setter.Value>
@@ -161,11 +163,11 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Width="35"
-                            Margin="5"
+                            Margin="4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Effect="{StaticResource ImageShadowEffect}"
+                            RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/PersonalMsg_ico.png" />
                         <StackPanel
                             Grid.Column="1"
@@ -268,12 +270,9 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Width="45"
-                            Margin="1"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/WindowActivity_ico.png" />
                         <StackPanel
                             Grid.Column="1"
@@ -389,12 +388,9 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Width="35"
-                            Margin="5"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="Linear"
+                            RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/HeartRate_ico.png" />
                         <StackPanel
                             Grid.Column="1"
@@ -502,11 +498,11 @@
                                         <Grid>
                                             <Border
                                                 x:Name="discountBadgeSheenClip"
+                                                Panel.ZIndex="2"
                                                 ClipToBounds="True"
                                                 CornerRadius="5"
                                                 IsHitTestVisible="False"
-                                                Opacity="0"
-                                                Panel.ZIndex="2">
+                                                Opacity="0">
                                                 <Border
                                                     x:Name="discountBadgeSheen"
                                                     Width="18"
@@ -528,10 +524,10 @@
                                             </Border>
 
                                             <Border
+                                                Panel.ZIndex="3"
                                                 BorderThickness="1"
                                                 CornerRadius="5"
                                                 IsHitTestVisible="False"
-                                                Panel.ZIndex="3"
                                                 SnapsToDevicePixels="True">
                                                 <Border.BorderBrush>
                                                     <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
@@ -758,12 +754,9 @@
                             </Grid.ColumnDefinitions>
                             <Image
                                 Grid.Column="0"
-                                Width="38"
-                                Margin="3"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
+                                Margin="4"
                                 Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/VR_bat_ico.png" />
                             <StackPanel
                                 Grid.Column="1"
@@ -982,12 +975,9 @@
                             </Grid.ColumnDefinitions>
                             <Image
                                 Grid.Column="0"
-                                Width="38"
-                                Margin="3"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
+                                Margin="4"
                                 Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/vr-performance.png" />
                             <StackPanel
                                 Grid.Column="1"
@@ -1180,12 +1170,9 @@
                             </Grid.ColumnDefinitions>
                             <Image
                                 Grid.Column="0"
-                                Width="35"
-                                Margin="5"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
+                                Margin="4"
                                 Effect="{StaticResource ImageShadowEffect}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/ComponentStats_ico.png" />
                             <StackPanel
                                 Grid.Column="1"
@@ -1302,12 +1289,11 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Width="35"
-                            Margin="5"
+                            Margin="4"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Effect="{StaticResource ImageShadowEffect}"
-                            RenderOptions.BitmapScalingMode="Fant"
+                            RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/NetworkStats_ico.png" />
                         <StackPanel
                             Grid.Column="1"
@@ -1410,10 +1396,7 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Width="46"
-                            Margin="0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/SystemTime_ico.png" />
@@ -1520,8 +1503,6 @@
                         <Image
                             Grid.Column="0"
                             Margin="4"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
                             Effect="{StaticResource ImageShadowEffect}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/Weather_ico.png" />
@@ -1635,9 +1616,7 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Margin="2"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/Twitch_ico.png" />
@@ -1797,9 +1776,7 @@
 
                         <Image
                             Grid.Column="0"
-                            Margin="6"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/TikTok_ico.png" />
@@ -1956,9 +1933,7 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Margin="2"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/Discord_ico.png" />
@@ -2109,9 +2084,7 @@
                         </Grid.ColumnDefinitions>
                         <Image
                             Grid.Column="0"
-                            Margin="2"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
+                            Margin="4"
                             Effect="{StaticResource ImageShadowEffect}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/VRCRadar_ico.png" />
@@ -2386,11 +2359,9 @@
                             </Grid.ColumnDefinitions>
                             <Image
                                 Grid.Column="0"
-                                Width="35"
-                                Margin="5"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
+                                Margin="4"
                                 Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/Soundpad.png" />
                             <StackPanel
                                 Grid.Column="1"
@@ -2506,11 +2477,9 @@
                             </Grid.ColumnDefinitions>
                             <Image
                                 Grid.Column="0"
-                                Width="35"
-                                Margin="5"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
+                                Margin="4"
                                 Effect="{StaticResource ImageShadowEffect}"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/spotify_ico.png" />
                             <StackPanel
                                 Grid.Column="1"
@@ -2832,10 +2801,7 @@
                             </Grid.ColumnDefinitions>
                             <Image
                                 Grid.Column="0"
-                                Width="35"
-                                Margin="5"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
+                                Margin="4"
                                 Effect="{StaticResource ImageShadowEffect}"
                                 RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="/Img/Icons/MediaLink_ico.png" />
