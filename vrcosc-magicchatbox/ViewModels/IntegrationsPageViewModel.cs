@@ -74,6 +74,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         IntegrationDisplayState integrationDisplay,
         MediaLinkDisplayState mediaLinkDisplay,
         SpotifyDisplayState spotifyDisplay,
+        LyricsDisplayState lyricsDisplay,
         TrackerDisplayState tracker,
         IAppState appState,
         IMenuNavigationService menuNav,
@@ -93,6 +94,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         IntegrationSettings = integrationSettingsProvider.Value;
         MediaLinkDisplay = mediaLinkDisplay;
         SpotifyDisplay = spotifyDisplay;
+        LyricsDisplay = lyricsDisplay;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         SpotifySettings = spotifySettingsProvider.Value;
         WeatherSettings = weatherSettingsProvider.Value;
@@ -130,6 +132,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrSoundpad),           (PrivacyHook.SoundpadBridge,   () => IntegrationSettings.IntgrSoundpad,            () => IntegrationSettings.IntgrSoundpad = false) },
             { nameof(IntegrationSettings.IntgrVrcRadar),           (PrivacyHook.VrcLogReader,     () => IntegrationSettings.IntgrVrcRadar,            () => IntegrationSettings.IntgrVrcRadar = false) },
             { nameof(IntegrationSettings.IntgrVrPerformance),      (PrivacyHook.VrPerformance,    () => IntegrationSettings.IntgrVrPerformance,       () => IntegrationSettings.IntgrVrPerformance = false) },
+            { nameof(IntegrationSettings.IntgrLyrics),             (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrLyrics,              () => IntegrationSettings.IntgrLyrics = false) },
         };
 
         _faultResetMap = new Dictionary<string, (string SortKey, Func<bool> GetValue)>
@@ -146,6 +149,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrComponentStats),     ("Component",      () => IntegrationSettings.IntgrComponentStats) },
             { nameof(IntegrationSettings.IntgrTrackerBattery),     ("TrackerBattery", () => IntegrationSettings.IntgrTrackerBattery) },
             { nameof(IntegrationSettings.IntgrVrPerformance),      ("VrPerformance",  () => IntegrationSettings.IntgrVrPerformance) },
+            { nameof(IntegrationSettings.IntgrLyrics),             ("Lyrics",         () => IntegrationSettings.IntgrLyrics) },
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  ("Network",        () => IntegrationSettings.IntgrNetworkStatistics) },
             { nameof(IntegrationSettings.IntgrWeather_VR),         ("Weather",        () => IntegrationSettings.IntgrWeather_VR) },
             { nameof(IntegrationSettings.IntgrWeather_DESKTOP),    ("Weather",        () => IntegrationSettings.IntgrWeather_DESKTOP) },
@@ -162,6 +166,8 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public bool IsVRRunning => AppState.IsVRRunning;
 
     public Classes.Modules.Vr.VrPerformanceSettings VrPerformanceSettings { get; }
+
+    public LyricsDisplayState LyricsDisplay { get; }
 
     public IReadOnlyList<Classes.Modules.Vr.VrPerformanceDisplayMode> VrPerformanceDisplayModes { get; } =
         (Classes.Modules.Vr.VrPerformanceDisplayMode[])Enum.GetValues(typeof(Classes.Modules.Vr.VrPerformanceDisplayMode));

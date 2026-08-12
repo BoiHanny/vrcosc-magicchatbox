@@ -1083,6 +1083,141 @@
             </Style>
 
 
+            <Style x:Key="GlowyToggleButtonLyrics" TargetType="{x:Type ToggleButton}">
+                <Setter Property="Background" Value="#332F44" />
+                <Setter Property="Foreground" Value="#9C9BC4" />
+                <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ToggleButton}">
+                            <Grid>
+                                <Border
+                                    x:Name="buttonBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="4"
+                                    SnapsToDevicePixels="True" />
+
+                                <Border
+                                    x:Name="holoFill"
+                                    CornerRadius="4"
+                                    Opacity="0"
+                                    SnapsToDevicePixels="True">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#3FE0D2" />
+                                            <GradientStop Offset="0.35" Color="#6E9BFF" />
+                                            <GradientStop Offset="0.65" Color="#B96BFF" />
+                                            <GradientStop Offset="1" Color="#FF6FC7" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+
+                                <Border
+                                    x:Name="sheenClip"
+                                    ClipToBounds="True"
+                                    CornerRadius="4"
+                                    IsHitTestVisible="False"
+                                    Opacity="0">
+                                    <Border
+                                        x:Name="sheen"
+                                        Width="16"
+                                        HorizontalAlignment="Left">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Offset="0" Color="#00FFFFFF" />
+                                                <GradientStop Offset="0.5" Color="#A6FFFFFF" />
+                                                <GradientStop Offset="1" Color="#00FFFFFF" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Border.LayoutTransform>
+                                            <SkewTransform AngleX="-20" />
+                                        </Border.LayoutTransform>
+                                        <Border.RenderTransform>
+                                            <TranslateTransform X="-24" />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                </Border>
+
+                                <Border
+                                    x:Name="holoEdge"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    IsHitTestVisible="False"
+                                    Opacity="0.55"
+                                    SnapsToDevicePixels="True">
+                                    <Border.BorderBrush>
+                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#5FE6D8" />
+                                            <GradientStop Offset="0.5" Color="#A97BFF" />
+                                            <GradientStop Offset="1" Color="#FF8AD2" />
+                                        </LinearGradientBrush>
+                                    </Border.BorderBrush>
+                                </Border>
+
+                                <TextBlock
+                                    x:Name="buttonText"
+                                    Margin="0,2,0,0"
+                                    Padding="6,4"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground}"
+                                    Text="{TemplateBinding Content}" />
+                            </Grid>
+
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="buttonBorder" Property="Background" Value="#3D3852" />
+                                    <Setter TargetName="holoEdge" Property="Opacity" Value="1" />
+                                </Trigger>
+
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="holoFill" Property="Opacity" Value="1" />
+                                    <Setter TargetName="holoEdge" Property="Opacity" Value="1" />
+                                    <Setter TargetName="buttonText" Property="Foreground" Value="#1B1030" />
+                                    <Setter TargetName="buttonBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect
+                                                BlurRadius="11"
+                                                RenderingBias="Performance"
+                                                ShadowDepth="0"
+                                                Color="#8FD6FF" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard FillBehavior="Stop">
+                                                <DoubleAnimation
+                                                    Storyboard.TargetName="sheenClip"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    From="0"
+                                                    To="1"
+                                                    Duration="0:0:0.15" />
+                                                <DoubleAnimation
+                                                    BeginTime="0:0:0.15"
+                                                    Storyboard.TargetName="sheen"
+                                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                    From="-24"
+                                                    To="90"
+                                                    Duration="0:0:0.7" />
+                                                <DoubleAnimation
+                                                    BeginTime="0:0:0.7"
+                                                    Storyboard.TargetName="sheenClip"
+                                                    Storyboard.TargetProperty="Opacity"
+                                                    To="0"
+                                                    Duration="0:0:0.2" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style x:Key="GlowyToggleButtonMediaLink" TargetType="{x:Type ToggleButton}">
                 <Setter Property="Background" Value="#240F53" />
                 <Setter Property="Foreground" Value="#D0D0D0" />
