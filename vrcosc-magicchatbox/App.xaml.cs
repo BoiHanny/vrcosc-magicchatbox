@@ -1,4 +1,4 @@
-﻿using MagicChatboxAPI.Services;
+using MagicChatboxAPI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Common;
@@ -106,10 +106,10 @@ namespace vrcosc_magicchatbox
             StartUp? loadingWindow = null;
             try
             {
-                loadingWindow = new StartUp(startupCancellation.Cancel);
+                ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+                loadingWindow = StartUp.CreateOnOwnThread(startupCancellation.Cancel);
                 loadingWindow.UpdateProgress("Opening startup window...", 1, "Configuring services...");
-                loadingWindow.Show();
-                loadingWindow.Activate();
                 await PumpStartupUiAsync();
                 LogStartupPhase("Splash window shown.");
                 startupCancellation.Token.ThrowIfCancellationRequested();
@@ -197,21 +197,25 @@ namespace vrcosc_magicchatbox
                                 case "-update":
                                     loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
                                     await Task.Run(() => updater.UpdateApplication());
+                                    loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-updateadmin":
                                     loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
                                     await Task.Run(() => updater.UpdateApplication(true));
+                                    loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-rollback":
                                     loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
                                     await Task.Run(() => updater.RollbackApplication(loadingWindow));
+                                    loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-rollbackadmin":
                                     loadingWindow.UpdateProgress("Rollback with admin powers engaged.", 55);
                                     await Task.Run(() => updater.RollbackApplication(loadingWindow, true));
+                                    loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-clearbackup":
@@ -219,7 +223,7 @@ namespace vrcosc_magicchatbox
                                     await Task.Run(() => updater.ClearBackUp());
                                     break;
                                 default:
-                                    loadingWindow.Close();
+                                    loadingWindow.CloseFromAnyThread();
                                     LogStartupPhase($"Invalid command line argument '{arg}'.");
                                     Logging.WriteException(new Exception($"Invalid command line argument '{arg}'"), MSGBox: true, exitapp: true);
                                     return;
@@ -237,7 +241,8 @@ namespace vrcosc_magicchatbox
                     if (appSettingsProvider.Value.AcceptedTosVersion != Core.Constants.TosVersion)
                     {
                         var wizard = new TosAndPrivacyWizard(consentService, appSettingsProvider);
-                        DialogWindowHelper.PrepareModal(wizard, loadingWindow);
+                        DialogWindowHelper.PrepareModal(wizard);
+                        wizard.Topmost = true;
                         tosJustAccepted = wizard.ShowDialog() == true;
                     }
                 }
@@ -250,7 +255,8 @@ namespace vrcosc_magicchatbox
                     if (pendingHooks.Count > 0)
                     {
                         var dialog = new PrivacyConsentDialog(consentService, pendingHooks);
-                        DialogWindowHelper.PrepareModal(dialog, loadingWindow);
+                        DialogWindowHelper.PrepareModal(dialog);
+                        dialog.Topmost = true;
                         dialog.ShowDialog();
                     }
                 }
@@ -274,10 +280,11 @@ namespace vrcosc_magicchatbox
                 Logging.WriteInfo("MainWindow instance created.");
 
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
-                loadingWindow.Topmost = true;
+                loadingWindow.SetTopmostFromAnyThread(true);
                 Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
                 mainWindow.Show();
                 Logging.WriteInfo("[Startup] MainWindow shown.");
+                ShutdownMode = ShutdownMode.OnLastWindowClose;
 
                 mainWindow.UpdateOverlayProgress("Connecting data bindings...", 30, "Wiring up modules...");
 
@@ -305,7 +312,7 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
 
-                loadingWindow.Close();
+                loadingWindow.CloseFromAnyThread();
                 Logging.WriteInfo("[Startup] Splash closed.");
 
                 if (mainWindow.WindowState == WindowState.Minimized)
@@ -366,7 +373,7 @@ namespace vrcosc_magicchatbox
                 LogStartupPhase("Startup cancelled by user.");
                 try
                 {
-                    loadingWindow?.Close();
+                    loadingWindow?.CloseFromAnyThread();
                 }
                 catch { }
 
@@ -383,7 +390,7 @@ namespace vrcosc_magicchatbox
 
                 try
                 {
-                    loadingWindow?.Close();
+                    loadingWindow?.CloseFromAnyThread();
                 }
                 catch { }
 

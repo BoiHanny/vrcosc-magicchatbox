@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 
 namespace vrcosc_magicchatbox
 {
@@ -20,10 +24,163 @@ namespace vrcosc_magicchatbox
         private double _currentProgress;
         private int _cancelStarted;
 
+        private const double BylineStartBlur = 5.0;
+        private const double BylineMaxOpacity = 1.0;
+        private const double BylineFullyRevealedAt = 75.0;
+
+        private const double DriftShare = 0.28;
+        private const double DriftSeconds = 6.0;
+        private const double SettleMs = 200;
+
+        private static readonly TimeSpan SplashCreationTimeout = TimeSpan.FromSeconds(15);
+
+        private const int DwmWindowCornerPreference = 33;
+        private const int DwmCornerRound = 2;
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+        private readonly BlurEffect _bylineBlur = new()
+        {
+            Radius = BylineStartBlur,
+            RenderingBias = RenderingBias.Performance
+        };
+
         public StartUp(Action? cancelRequested = null)
         {
             _cancelRequested = cancelRequested;
             InitializeComponent();
+
+            BylineText.Effect = _bylineBlur;
+
+            try
+            {
+                VersionText.Text = new Services.AppInfoService().GetApplicationVersion();
+            }
+            catch (Exception)
+            {
+                VersionText.Text = string.Empty;
+            }
+        }
+
+        public static StartUp CreateOnOwnThread(Action? cancelRequested = null)
+        {
+            StartUp? created = null;
+            Exception? failure = null;
+
+            using var ready = new ManualResetEventSlim(false);
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    created = new StartUp(cancelRequested);
+                    created.Show();
+                    created.Activate();
+                }
+                catch (Exception ex)
+                {
+                    failure = ex;
+                    created = null;
+                }
+                finally
+                {
+                    ready.Set();
+                }
+
+                if (failure == null)
+                    System.Windows.Threading.Dispatcher.Run();
+            })
+            {
+                IsBackground = true,
+                Name = "MagicChatbox Splash"
+            };
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+
+            if (!ready.Wait(SplashCreationTimeout))
+                throw new TimeoutException("The startup window did not open in time.");
+
+            if (failure != null)
+                throw failure;
+
+            return created!;
+        }
+
+        public void SetTopmostFromAnyThread(bool value)
+        {
+            InvokeOnSplashThread(() => Topmost = value);
+        }
+
+        public void CloseFromAnyThread()
+        {
+            var dispatcher = Dispatcher;
+
+            InvokeOnSplashThread(Close);
+
+            try
+            {
+                if (!dispatcher.HasShutdownStarted && !dispatcher.HasShutdownFinished)
+                    dispatcher.InvokeShutdown();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void InvokeOnSplashThread(Action action)
+        {
+            var dispatcher = Dispatcher;
+
+            if (dispatcher.HasShutdownStarted || dispatcher.HasShutdownFinished)
+                return;
+
+            try
+            {
+                if (dispatcher.CheckAccess())
+                    action();
+                else
+                    dispatcher.Invoke(action);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            try
+            {
+                IntPtr handle = new WindowInteropHelper(this).Handle;
+                int preference = DwmCornerRound;
+                DwmSetWindowAttribute(handle, DwmWindowCornerPreference, ref preference, sizeof(int));
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void RevealByline(double progressPercent)
+        {
+            double fraction = Math.Clamp(progressPercent / BylineFullyRevealedAt, 0d, 1d);
+            double eased = fraction * fraction;
+
+            BylineText.BeginAnimation(
+                OpacityProperty,
+                new DoubleAnimation(eased * BylineMaxOpacity, TimeSpan.FromMilliseconds(350))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                });
+
+            _bylineBlur.BeginAnimation(
+                BlurEffect.RadiusProperty,
+                new DoubleAnimation((1d - fraction) * BylineStartBlur, TimeSpan.FromMilliseconds(350))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                });
         }
 
         public void UpdateProgress(string message, double value, string? nextHint = null)
@@ -55,19 +212,35 @@ namespace vrcosc_magicchatbox
             NextStepText.Text = _nextMessage;
 
             AnimateProgress(value);
+            RevealByline(value);
         }
 
         private void AnimateProgress(double targetValue)
         {
-            var animation = new DoubleAnimation
+            double settleTo = Math.Max(targetValue, ProgressBar.Value);
+            double drift = Math.Max(settleTo, Math.Min(settleTo + (100d - settleTo) * DriftShare, 99d));
+
+            var settleAt = TimeSpan.FromMilliseconds(SettleMs);
+            var driftAt = settleAt + TimeSpan.FromSeconds(DriftSeconds);
+
+            var animation = new DoubleAnimationUsingKeyFrames
             {
-                From = _currentProgress,
-                To = targetValue,
-                Duration = TimeSpan.FromMilliseconds(350),
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                FillBehavior = FillBehavior.HoldEnd,
+                Duration = driftAt
             };
-            _currentProgress = targetValue;
-            ProgressBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, animation);
+
+            animation.KeyFrames.Add(new EasingDoubleKeyFrame(
+                settleTo,
+                KeyTime.FromTimeSpan(settleAt),
+                new QuadraticEase { EasingMode = EasingMode.EaseOut }));
+
+            animation.KeyFrames.Add(new EasingDoubleKeyFrame(
+                drift,
+                KeyTime.FromTimeSpan(driftAt),
+                new QuadraticEase { EasingMode = EasingMode.EaseOut }));
+
+            _currentProgress = settleTo;
+            ProgressBar.BeginAnimation(RangeBase.ValueProperty, animation);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -94,15 +267,32 @@ namespace vrcosc_magicchatbox
                     Environment.Exit(0);
             });
 
-            Application.Current.Shutdown();
+            var app = Application.Current;
+            app?.Dispatcher.BeginInvoke(new Action(() => app.Shutdown()));
         }
 
         private void DraggableGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton != MouseButton.Left)
+                return;
+
+            if (IsOverButton(e.OriginalSource as DependencyObject))
+                return;
+
+            DragMove();
+        }
+
+        private static bool IsOverButton(DependencyObject? source)
+        {
+            while (source != null)
             {
-                DragMove();
+                if (source is System.Windows.Controls.Primitives.ButtonBase)
+                    return true;
+
+                source = System.Windows.Media.VisualTreeHelper.GetParent(source);
             }
+
+            return false;
         }
     }
 }
