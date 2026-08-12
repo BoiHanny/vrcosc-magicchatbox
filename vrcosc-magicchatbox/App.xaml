@@ -1583,6 +1583,46 @@
 
 
 
+            <!--  Control deck + scrollbar tokens. The accent ramp means exactly one thing across the app:
+                  "this is on". Only the master switch wears it, so it never competes with the status rail.  -->
+            <SolidColorBrush x:Key="DeckSurfaceBrush" Color="#FF2C2148" />
+            <SolidColorBrush x:Key="DeckSurfaceHoverBrush" Color="#FF3A2D5A" />
+            <SolidColorBrush x:Key="DeckSurfacePressedBrush" Color="#FF221A3C" />
+            <SolidColorBrush x:Key="DeckEdgeBrush" Color="#FF4A3C72" />
+            <SolidColorBrush x:Key="DeckEdgeHoverBrush" Color="#FFA97BFF" />
+            <SolidColorBrush x:Key="DeckTextBrush" Color="#FFC6B9E8" />
+            <SolidColorBrush x:Key="DeckTextMutedBrush" Color="#FF9689B8" />
+            <SolidColorBrush x:Key="DeckTextOnBrush" Color="#FF17102E" />
+
+            <SolidColorBrush x:Key="RouteOnBrush" Color="#FFB9A6EE" />
+            <SolidColorBrush x:Key="RouteOnEdgeBrush" Color="#FFD3C4FF" />
+            <SolidColorBrush x:Key="FeatureOnFillBrush" Color="#3DB96BFF" />
+            <SolidColorBrush x:Key="FeatureOnEdgeBrush" Color="#FFB96BFF" />
+            <SolidColorBrush x:Key="FeatureOnTextBrush" Color="#FFEFE4FF" />
+
+            <!--  Off track is LIGHTER than the tile, not darker. A dark track measured 1.37:1 against the
+                  tile surface, which made the app's primary control the least visible thing in its row.  -->
+            <SolidColorBrush x:Key="SwitchTrackOffBrush" Color="#FF584B8C" />
+            <SolidColorBrush x:Key="SwitchEdgeOffBrush" Color="#FF7A6BB5" />
+            <SolidColorBrush x:Key="SwitchThumbOffBrush" Color="#FFE3DCF5" />
+            <SolidColorBrush x:Key="SwitchThumbOnBrush" Color="#FFFDFBFF" />
+            <SolidColorBrush x:Key="SwitchEdgeOnBrush" Color="#FFCBB0FF" />
+            <LinearGradientBrush x:Key="AccentRampBrush" StartPoint="0,1" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#FF3FE0D2" />
+                <GradientStop Offset="0.35" Color="#FF6E9BFF" />
+                <GradientStop Offset="0.65" Color="#FFB96BFF" />
+                <GradientStop Offset="1" Color="#FFFF6FC7" />
+            </LinearGradientBrush>
+
+            <SolidColorBrush x:Key="ScrollThumbBrush" Color="#59B2A2E0" />
+            <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#A6C3B2F2" />
+            <SolidColorBrush x:Key="ScrollTrackHoverBrush" Color="#1AFFFFFF" />
+            <LinearGradientBrush x:Key="AccentRampVerticalBrush" StartPoint="0,1" EndPoint="0,0">
+                <GradientStop Offset="0" Color="#FF3FE0D2" />
+                <GradientStop Offset="0.5" Color="#FF6E9BFF" />
+                <GradientStop Offset="1" Color="#FFB96BFF" />
+            </LinearGradientBrush>
+
             <Style x:Key="Switch" TargetType="{x:Type CheckBox}">
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
@@ -1666,33 +1706,25 @@
                 </Setter>
             </Style>
             <Style x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
+                <Setter Property="Padding" Value="2,6" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Thumb}">
                             <Grid x:Name="Grid">
+                                <!--  Full-width invisible hit area: the visible hairline is far too thin to grab.  -->
                                 <Rectangle
-                                    Width="Auto"
-                                    Height="Auto"
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Stretch"
                                     Fill="Transparent" />
                                 <Border
                                     x:Name="Rectangle1"
-                                    Width="Auto"
-                                    Height="Auto"
-                                    Margin="0,5"
+                                    Margin="{TemplateBinding Padding}"
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Stretch"
                                     Background="{TemplateBinding Background}"
-                                    CornerRadius="5"
+                                    CornerRadius="3"
                                     Cursor="Hand" />
                             </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="Tag" Value="Horizontal">
-                                    <Setter TargetName="Rectangle1" Property="Width" Value="Auto" />
-                                    <Setter TargetName="Rectangle1" Property="Height" Value="7" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
@@ -1723,16 +1755,16 @@
 
             <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
                 <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
-                <Setter Property="Foreground" Value="{StaticResource Button.Static.Background3}" />
+                <Setter Property="Foreground" Value="{StaticResource ScrollThumbBrush}" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Width" Value="8" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ScrollBar}">
-                            <Grid
-                                x:Name="GridRoot"
-                                Width="8"
-                                Background="{TemplateBinding Background}">
+                            <!--  Layout width stays 8 so nothing in the app reflows; the bar is thinner
+                                  visually, not structurally. Width lives on the setter only, so the
+                                  horizontal orientation trigger can actually override it.  -->
+                            <Grid x:Name="GridRoot" Background="{TemplateBinding Background}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="0.00001*" />
                                 </Grid.RowDefinitions>
@@ -1764,11 +1796,15 @@
                                 </Track>
                             </Grid>
                             <ControlTemplate.Triggers>
-                                <Trigger SourceName="Thumb" Property="IsMouseOver" Value="true">
-                                    <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource ButtonSelectBrush}" />
+                                <!--  The whole rail reacts, not just the 4px thumb.  -->
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="GridRoot" Property="Background" Value="{StaticResource ScrollTrackHoverBrush}" />
+                                    <Setter TargetName="Thumb" Property="Background" Value="{StaticResource ScrollThumbHoverBrush}" />
+                                    <Setter TargetName="Thumb" Property="Padding" Value="1,6" />
                                 </Trigger>
                                 <Trigger SourceName="Thumb" Property="IsDragging" Value="true">
-                                    <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource DarkBrush}" />
+                                    <Setter TargetName="Thumb" Property="Background" Value="{StaticResource AccentRampVerticalBrush}" />
+                                    <Setter TargetName="Thumb" Property="Padding" Value="1,6" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="false">
                                     <Setter TargetName="Thumb" Property="Visibility" Value="Collapsed" />
@@ -1786,7 +1822,6 @@
                                     </Setter>
                                     <Setter Property="Width" Value="Auto" />
                                     <Setter Property="Height" Value="8" />
-                                    <Setter TargetName="Thumb" Property="Tag" Value="Horizontal" />
                                     <Setter TargetName="PageDown" Property="Command" Value="ScrollBar.PageLeftCommand" />
                                     <Setter TargetName="PageUp" Property="Command" Value="ScrollBar.PageRightCommand" />
                                 </Trigger>
