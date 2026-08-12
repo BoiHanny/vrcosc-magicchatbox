@@ -332,39 +332,51 @@
                                     </TextBlock.Effect>
                                 </TextBlock>
 
-                                <!--  A second copy of the letters, white, pulsing over the coloured ones.
-                                      The sheen the Lyrics chip uses is a rectangle sweeping across, which
-                                      works there because it crosses a filled chip - over bare text on a
-                                      dark ground the same rectangle is just a pale block sliding past the
-                                      name. Shining the glyphs themselves keeps the hologram and loses the
-                                      block, and animating an element's own opacity avoids the frozen
-                                      brush problem entirely.  -->
+                                <!--  A white copy of the letters, revealed through a narrow band that
+                                      travels across it. The band is an opacity mask on the text itself,
+                                      so the shine exists only where there are glyphs - the Lyrics chip
+                                      gets away with sweeping a plain rectangle because it crosses a
+                                      filled chip, but over bare text that same rectangle is just a pale
+                                      block sliding past the name.  -->
                                 <TextBlock
                                     x:Name="BylineShine"
                                     VerticalAlignment="Center"
                                     FontFamily="Comfortaa Light"
                                     FontSize="16"
-                                    Foreground="#FFFFFF"
+                                    Foreground="#FFFFFFFF"
                                     IsHitTestVisible="False"
-                                    Opacity="0"
-                                    Text="BoiHanny" />
+                                    Text="BoiHanny">
+                                    <TextBlock.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop x:Name="ShineLead" Offset="-0.5" Color="#00FFFFFF" />
+                                            <GradientStop x:Name="ShinePeak" Offset="-0.32" Color="#FFFFFFFF" />
+                                            <GradientStop x:Name="ShineTail" Offset="-0.14" Color="#00FFFFFF" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.OpacityMask>
+                                </TextBlock>
 
                                 <Grid.Triggers>
                                     <EventTrigger RoutedEvent="Loaded">
                                         <BeginStoryboard>
                                             <Storyboard RepeatBehavior="Forever">
-                                                <DoubleAnimation
-                                                    AutoReverse="True"
-                                                    BeginTime="0:0:0.8"
-                                                    Storyboard.TargetName="BylineShine"
-                                                    Storyboard.TargetProperty="Opacity"
-                                                    From="0"
-                                                    To="0.5"
-                                                    Duration="0:0:1.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <SineEase EasingMode="EaseInOut" />
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
+                                                <!--  Held at the far side after each pass so the name is
+                                                      its own colours most of the time and the shine reads
+                                                      as an occasional glint rather than a strobe.  -->
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShineLead" Storyboard.TargetProperty="Offset">
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.5" />
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.0" />
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:2.9" Value="1.0" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShinePeak" Storyboard.TargetProperty="Offset">
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.32" />
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.18" />
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:2.9" Value="1.18" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShineTail" Storyboard.TargetProperty="Offset">
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.14" />
+                                                    <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.36" />
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:2.9" Value="1.36" />
+                                                </DoubleAnimationUsingKeyFrames>
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </EventTrigger>
