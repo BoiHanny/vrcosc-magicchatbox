@@ -410,7 +410,6 @@
                                     Text="Send to VRChat" />
                                 <CheckBox
                                     Name="MasterSwitch"
-                                    Width="62"
                                     Margin="0,5,0,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
@@ -599,40 +598,62 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
+                    <!--  A section label, not a title: it names the panel below it and then gets out of
+                          the way. Letter spacing does the work the old 16px glow was doing.  -->
                     <TextBlock
                         Grid.Column="0"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="16"
-                        Foreground="White"
+                        FontFamily="Bahnschrift SemiLight"
+                        FontSize="11"
+                        Foreground="{StaticResource DeckTextBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Text="Preview">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Opacity="1"
-                                ShadowDepth="0"
-                                Color="{StaticResource GradientDeepPurpleColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                    <TextBlock
+                        Text="P R E V I E W" />
+
+                    <!--  Stays quiet until the line actually starts running out of room, then warms up
+                          and finally goes red. A counter you only notice when it matters.  -->
+                    <Border
                         Grid.Column="0"
+                        Height="18"
                         Margin="0,0,10,0"
+                        Padding="7,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="12"
-                        Foreground="{StaticResource TextSecondaryBrush}"
-                        Text="{Binding OscDisplay.OscMsgCountUI}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Opacity="1"
-                                ShadowDepth="0"
-                                Color="{StaticResource GradientDeepPurpleColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
+                        CornerRadius="5"
+                        SnapsToDevicePixels="True">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#26FFFFFF" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding OscDisplay.Fill}" Value="Tight">
+                                        <Setter Property="Background" Value="#3FFFC46B" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding OscDisplay.Fill}" Value="Full">
+                                        <Setter Property="Background" Value="#59FF6F8A" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontFamily="Bahnschrift SemiLight"
+                            FontSize="10"
+                            Text="{Binding OscDisplay.OscMsgCountUI}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding OscDisplay.Fill}" Value="Tight">
+                                            <Setter Property="Foreground" Value="#FFFFD79A" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding OscDisplay.Fill}" Value="Full">
+                                            <Setter Property="Foreground" Value="#FFFFC2CD" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
                     <StackPanel Grid.Row="2" VerticalAlignment="Top">
 
                         <StackPanel
@@ -640,238 +661,153 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
                             Orientation="Vertical">
-                            <Border CornerRadius="0,0,15,15" Visibility="{Binding Modules.Afk.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                        <GradientStop Color="#FF2E1565" />
-                                        <GradientStop Offset="1" Color="#FF523E64" />
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                                <Border.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="5"
-                                        Direction="-23"
-                                        RenderingBias="Performance"
-                                        ShadowDepth="0"
-                                        Color="DarkBlue" />
-                                </Border.Effect>
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="auto" />
-                                    </Grid.RowDefinitions>
-                                    <Grid Grid.Column="0">
-                                        <StackPanel
-                                            Margin="5,3,0,3"
-                                            HorizontalAlignment="Center"
-                                            Orientation="Horizontal">
+                            <!--  AFK state, in the deck language the integration tiles use: one card, a
+                                  status dot and pill rather than a label reading "Away from keyboard:
+                                  Inactive", and the countdown on its own line where it can be read at a
+                                  glance. The whole card warms up when you are actually away.  -->
+                            <Border
+                                Padding="11,9"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True"
+                                Visibility="{Binding Modules.Afk.Settings.EnableAfkDetection, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#FF2C2148" />
+                                        <Setter Property="BorderBrush" Value="{StaticResource DeckEdgeBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                <Setter Property="Background" Value="#FF352755" />
+                                                <Setter Property="BorderBrush" Value="#FF6FD9A6" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Bahnschrift SemiLight"
+                                            FontSize="10"
+                                            Foreground="{StaticResource DeckTextMutedBrush}"
+                                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                            Text="AWAY FROM KEYBOARD" />
+
+                                        <Border
+                                            Grid.Column="1"
+                                            Height="18"
+                                            Padding="7,0"
+                                            VerticalAlignment="Center"
+                                            CornerRadius="5"
+                                            SnapsToDevicePixels="True">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#26FFFFFF" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                            <Setter Property="Background" Value="#446FD9A6" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                                Text="Away from keyboard:">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="#B49AD1" />
-                                                        <Setter Property="Text" Value="Inactive" />
-                                                        <Setter Property="Opacity" Value="0.7" />
-                                                        <Setter Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect
-                                                                    BlurRadius="5"
-                                                                    Direction="315"
-                                                                    Opacity="1"
-                                                                    ShadowDepth="0"
-                                                                    Color="Black" />
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                                <Setter Property="Foreground" Value="#7DD9AA" />
-                                                                <Setter Property="Text" Value="Active" />
-                                                                <Setter Property="Opacity" Value="0.9" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                                <TextBlock.Effect>
-                                                    <DropShadowEffect
-                                                        BlurRadius="5"
-                                                        Direction="315"
-                                                        Opacity="1"
-                                                        ShadowDepth="0"
-                                                        Color="Black" />
-                                                </TextBlock.Effect>
-                                            </TextBlock>
-                                            <TextBlock
-                                                Padding="5,0,0,0"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
+                                                FontFamily="Bahnschrift SemiLight"
+                                                FontSize="10"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="#D38D9C" />
-                                                        <Setter Property="Text" Value="Inactive" />
-                                                        <Setter Property="Opacity" Value="0.7" />
-                                                        <Setter Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect
-                                                                    BlurRadius="5"
-                                                                    Direction="315"
-                                                                    Opacity="1"
-                                                                    ShadowDepth="0"
-                                                                    Color="Black" />
-                                                            </Setter.Value>
-                                                        </Setter>
+                                                        <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+                                                        <Setter Property="Text" Value="AT KEYBOARD" />
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                                <Setter Property="Foreground" Value="#7DF8AA" />
-                                                                <Setter Property="Text" Value="Active" />
-                                                                <Setter Property="Opacity" Value="1" />
+                                                                <Setter Property="Foreground" Value="#FFCFF6E4" />
+                                                                <Setter Property="Text" Value="AWAY" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
-
-                                        </StackPanel>
-                                        <Grid.Style>
-                                            <Style TargetType="Grid">
-                                                <Setter Property="Background" Value="#391E72" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                        <Setter Property="Background" Value="#562EAD" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Grid.Style>
+                                        </Border>
                                     </Grid>
-                                    <Grid Grid.Row="1">
+
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
                                         <StackPanel
-                                            Margin="0,5,0,5"
-                                            HorizontalAlignment="Center"
+                                            Grid.Column="0"
                                             VerticalAlignment="Center"
-                                            Orientation="Horizontal">
-                                            <StackPanel
+                                            Orientation="Horizontal"
+                                            Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                            <TextBlock
                                                 VerticalAlignment="Center"
-                                                Orientation="Horizontal"
-                                                Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBlock
-                                                    Padding="0,0,1,0"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="12"
-                                                    FontWeight="SemiBold"
-                                                    RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="#B49AD1" />
-                                                            <Setter Property="Text" Value="Will be AFK in:" />
-                                                            <Setter Property="Opacity" Value="0.7" />
-                                                            <Setter Property="Effect">
-                                                                <Setter.Value>
-                                                                    <DropShadowEffect
-                                                                        BlurRadius="5"
-                                                                        Direction="315"
-                                                                        Opacity="1"
-                                                                        ShadowDepth="0"
-                                                                        Color="Black" />
-                                                                </Setter.Value>
-                                                            </Setter>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                                    <Setter Property="Text" Value="You are AFK for:" />
-                                                                    <Setter Property="Opacity" Value="0.9" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                    <TextBlock.Effect>
-                                                        <DropShadowEffect
-                                                            BlurRadius="5"
-                                                            Direction="315"
-                                                            Opacity="1"
-                                                            ShadowDepth="0"
-                                                            Color="Black" />
-                                                    </TextBlock.Effect>
-                                                </TextBlock>
-                                                <TextBlock
-                                                    Padding="3,0,5,0"
-                                                    VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
-                                                    FontSize="12"
-                                                    FontWeight="SemiBold"
-                                                    RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="#BEBED3" />
-                                                            <Setter Property="Text" Value="{Binding Modules.Afk.RemainingTimeUntilAFK}" />
-                                                            <Setter Property="Opacity" Value="0.7" />
-                                                            <Setter Property="Effect">
-                                                                <Setter.Value>
-                                                                    <DropShadowEffect
-                                                                        BlurRadius="5"
-                                                                        Direction="315"
-                                                                        Opacity="1"
-                                                                        ShadowDepth="0"
-                                                                        Color="Black" />
-                                                                </Setter.Value>
-                                                            </Setter>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
-                                                                    <Setter Property="Text" Value="{Binding Modules.Afk.TimeCurrentlyAFK}" />
-                                                                    <Setter Property="Opacity" Value="0.9" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                    <TextBlock.Effect>
-                                                        <DropShadowEffect
-                                                            BlurRadius="5"
-                                                            Direction="315"
-                                                            Opacity="1"
-                                                            ShadowDepth="0"
-                                                            Color="Black" />
-                                                    </TextBlock.Effect>
-                                                </TextBlock>
-                                            </StackPanel>
-
-                                            <StackPanel
+                                                FontFamily="Albert Sans Thin"
+                                                FontSize="12"
+                                                Foreground="{StaticResource DeckTextMutedBrush}"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Away in" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                                <Setter Property="Text" Value="Away for" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock
+                                                Padding="6,0,0,0"
                                                 VerticalAlignment="Center"
-                                                Orientation="Horizontal"
-                                                Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                                <TextBlock
-                                                    Padding="5,0"
-                                                    FontSize="12"
-                                                    Foreground="#B49AD1"
-                                                    Text="Paused, VR active" />
-                                            </StackPanel>
-
-
-                                            <CheckBox
-                                                Width="50"
-                                                Height="18"
-                                                Margin="0,0,0,0"
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Center"
-                                                Command="{Binding Integrations.ManualBuildOscCommand}"
-                                                Content="AFK now"
-                                                IsChecked="{Binding Modules.Afk.Settings.OverrideAfk}"
-                                                Style="{DynamicResource GlowyToggleButton}"
-                                                Visibility="{Binding Modules.Afk.OverrideButtonVisible, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                                FontFamily="Comfortaa Light"
+                                                FontSize="13"
+                                                RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#FFE7E2F5" />
+                                                        <Setter Property="Text" Value="{Binding Modules.Afk.RemainingTimeUntilAFK}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
+                                                                <Setter Property="Foreground" Value="#FF9BEFC9" />
+                                                                <Setter Property="Text" Value="{Binding Modules.Afk.TimeCurrentlyAFK}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </StackPanel>
 
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Albert Sans Thin"
+                                            FontSize="12"
+                                            Foreground="{StaticResource DeckTextMutedBrush}"
+                                            Text="Paused while you are in VR"
+                                            Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
+                                        <ToggleButton
+                                            Grid.Column="1"
+                                            MinWidth="66"
+                                            Margin="0"
+                                            Command="{Binding Integrations.ManualBuildOscCommand}"
+                                            Content="AFK NOW"
+                                            IsChecked="{Binding Modules.Afk.Settings.OverrideAfk}"
+                                            Style="{StaticResource FeatureChip}"
+                                            ToolTip="Mark yourself away right now, without waiting for the countdown."
+                                            Visibility="{Binding Modules.Afk.OverrideButtonVisible, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>
-
-
-                                </Grid>
+                                </StackPanel>
                             </Border>
                             <Button
                                 x:Name="ReorderIntegrationsButton"
@@ -1071,71 +1007,50 @@
 
                     </StackPanel>
 
-                    <Grid
+                    <!--  The line as VRChat will receive it. One text layer, not two: the second copy
+                          underneath existed only to cast a white glow, and it cost a full extra text
+                          render of every rebuild while making the words muddier, not brighter.  -->
+                    <Border
                         Grid.Row="1"
                         Height="157"
-                        Margin="5,0,6,0"
-                        VerticalAlignment="Top">
-                        <Border Background="{StaticResource TextSubtleBrush}">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="5"
-                                    Direction="-23"
-                                    RenderingBias="Performance"
-                                    ShadowDepth="0"
-                                    Color="DarkBlue" />
-                            </Border.Effect>
-                        </Border>
-                        <TextBox
-                            Margin="8,8,8,5"
-                            VerticalAlignment="Top"
-                            HorizontalContentAlignment="Center"
-                            d:Text="This song is paused 💖💬⏸🎵"
-                            AllowDrop="False"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Focusable="False"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="14"
-                            Foreground="#7E7498"
-                            IsHitTestVisible="False"
-                            IsReadOnly="True"
-                            IsTabStop="False"
-                            MaxLength="144"
-                            Text="{Binding OscDisplay.OscToSent}"
-                            TextAlignment="Center"
-                            TextWrapping="Wrap">
-                            <TextBox.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="13"
-                                    Opacity="0.8"
-                                    ShadowDepth="0"
-                                    Color="white" />
-                            </TextBox.Effect>
-                        </TextBox>
-                        <TextBox
-                            Margin="8,8,8,5"
-                            VerticalAlignment="Top"
-                            HorizontalContentAlignment="Center"
-                            d:Text="This song is paused 💖💬⏸🎵"
-                            AllowDrop="False"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Focusable="False"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="14"
-                            Foreground="#FFDFDDE2"
-                            IsHitTestVisible="False"
-                            IsReadOnly="True"
-                            IsTabStop="False"
-                            MaxLength="144"
-                            Text="{Binding OscDisplay.OscToSent}"
-                            TextAlignment="Center"
-                            TextWrapping="Wrap" />
+                        Margin="8,0,9,0"
+                        Padding="11,10"
+                        VerticalAlignment="Top"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        SnapsToDevicePixels="True">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FF302548" />
+                                <GradientStop Offset="1" Color="#FF261D3B" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <TextBlock
+                                VerticalAlignment="Top"
+                                d:Text="This song is paused 💖💬⏸🎵"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="14"
+                                Foreground="#FFE7E2F5"
+                                LineHeight="19"
+                                Text="{Binding OscDisplay.OscToSent}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Visibility="{Binding OscDisplay.HasPreview, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-
-
-                    </Grid>
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="12"
+                                Foreground="{StaticResource DeckTextMutedBrush}"
+                                Text="Nothing to send yet"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Visibility="{Binding OscDisplay.HasPreview, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                        </Grid>
+                    </Border>
                     <Grid
                         Grid.Row="2"
                         Height="auto"
