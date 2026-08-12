@@ -85,35 +85,10 @@
                     DataContext="{Binding Chatting}"
                     Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
 
-                <Grid Margin="-10,0,0,0" Visibility="{Binding OscDisplay.CharLimit}">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Offset="1" Color="{StaticResource SurfaceCardColor}" />
-                            <GradientStop Offset="0" Color="#FF41375C" />
-                        </LinearGradientBrush>
-                    </Grid.Background>
-                    <StackPanel
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor">
-                        <TextBlock
-                            Grid.Column="0"
-                            Margin="0,3,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="16"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Some integrations can't be showed because a limit on characters">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="10"
-                                    Opacity="1"
-                                    ShadowDepth="0"
-                                    Color="{StaticResource GradientDeepPurpleColor}" />
-                            </TextBlock.Effect>
-                        </TextBlock>
-                    </StackPanel>
-                </Grid>
+                <!--  The full-width "Some integrations can't be showed because a limit on characters"
+                      bar used to sit here. It covered the page, was sized like a headline, and never
+                      said which integration it meant. The Integrations page now names them in the
+                      same small strip that reports mode visibility.  -->
 
 
 

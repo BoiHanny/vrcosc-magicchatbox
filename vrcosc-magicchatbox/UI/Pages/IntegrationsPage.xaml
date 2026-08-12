@@ -81,33 +81,63 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border
-            Grid.Row="0"
-            Margin="10,5,19,0"
-            Padding="10,7"
-            HorizontalAlignment="Stretch"
-            d:Visibility="Visible"
-            Background="#332B1B4A"
-            BorderBrush="#9B7FD9"
-            BorderThickness="1"
-            CornerRadius="5"
-            Visibility="{Binding HasModeVisibilityWarning, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock
-                    Margin="0,0,7,0"
-                    VerticalAlignment="Center"
-                    FontSize="14"
-                    Text="👁" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    d:Text="Enabled but not shown in VR mode: Network Statistics."
-                    FontFamily="Comfortaa Light"
-                    FontSize="12"
-                    Foreground="#D9CCF5"
-                    Text="{Binding ModeVisibilityWarning, UpdateSourceTrigger=PropertyChanged}"
-                    TextWrapping="Wrap" />
-            </StackPanel>
-        </Border>
+        <!--  Two reasons an integration you switched on is not in the chatbox: its mode switch, or no
+              room left in the line. They were reported in two different places and two different
+              sizes - one a bordered slab here, one a full-width bar on the main window that never
+              said which integration it meant. Same strip now, one line each, sized like the chips on
+              the tiles rather than like a dialog.  -->
+        <StackPanel Grid.Row="0" Margin="12,4,19,2">
+            <Border
+                Padding="8,3"
+                HorizontalAlignment="Left"
+                Background="#26FFFFFF"
+                CornerRadius="5"
+                SnapsToDevicePixels="True"
+                Visibility="{Binding HasModeVisibilityWarning, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,0,6,0"
+                        VerticalAlignment="Center"
+                        FontSize="10"
+                        Text="👁" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        d:Text="Enabled but not shown in VR mode: Network Statistics."
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="{StaticResource DeckTextBrush}"
+                        Text="{Binding ModeVisibilityWarning, UpdateSourceTrigger=PropertyChanged}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTip="{Binding ModeVisibilityWarning}" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Margin="0,3,0,0"
+                Padding="8,3"
+                HorizontalAlignment="Left"
+                Background="#3FFFC46B"
+                CornerRadius="5"
+                SnapsToDevicePixels="True"
+                Visibility="{Binding HasTrimmedWarning, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,0,6,0"
+                        VerticalAlignment="Center"
+                        FontSize="10"
+                        Text="✂" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        d:Text="No room in the 144 characters for Discord and Weather."
+                        FontFamily="Albert Sans Thin"
+                        FontSize="11"
+                        Foreground="#FFFFD79A"
+                        Text="{Binding TrimmedWarning, UpdateSourceTrigger=PropertyChanged}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTip="{Binding TrimmedWarning}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
 
         <ListBox
             x:Name="IntegrationsList"

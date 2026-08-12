@@ -347,6 +347,24 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public bool HasModeVisibilityWarning => ModeVisibilityWarning != null;
 
+    /// <summary>
+    /// Names what got dropped for space. Fading the tile said something was wrong without saying what
+    /// or why, and the old banner for this lived on the main window and said neither.
+    /// </summary>
+    public string? TrimmedWarning
+    {
+        get
+        {
+            var trimmed = IntegrationDisplay.TrimmedOutputKeys;
+            if (trimmed == null || trimmed.Count == 0)
+                return null;
+
+            return $"No room in the 144 characters for {OscProviderNames.DescribeList(trimmed)}.";
+        }
+    }
+
+    public bool HasTrimmedWarning => TrimmedWarning != null;
+
     private void OnAppStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(IAppState.IsVRRunning) || e.PropertyName == nameof(ViewModel.IsVRRunning))
@@ -366,6 +384,10 @@ public partial class IntegrationsPageViewModel : ObservableObject
                 break;
             case nameof(IntegrationDisplayState.NetworkStatsOpacity):
                 OnPropertyChanged(nameof(NetworkStats_Opacity));
+                break;
+            case nameof(IntegrationDisplayState.TrimmedOutputKeys):
+                OnPropertyChanged(nameof(TrimmedWarning));
+                OnPropertyChanged(nameof(HasTrimmedWarning));
                 break;
         }
     }
