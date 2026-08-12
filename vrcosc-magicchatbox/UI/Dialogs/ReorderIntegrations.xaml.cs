@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -13,7 +14,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 {
     public partial class ReorderIntegrations : Window
     {
-        public ObservableCollection<string> TempOrder { get; }
+        public ObservableCollection<ReorderRow> TempOrder { get; }
+        private readonly HashSet<string> _hiddenKeys;
         private readonly IntegrationDisplayState _integrationDisplay;
         private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
         private Point _dragStartPoint;
@@ -30,12 +32,21 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 ? _integrationDisplay.IntegrationSortOrder
                 : IntegrationDisplayState.DefaultSortOrder;
 
-            TempOrder = new ObservableCollection<string>(
+            _hiddenKeys = IntegrationTileCatalog.ResolveHidden(
+                integrationSettingsProvider.Value?.HiddenTiles);
+
+            TempOrder = new ObservableCollection<ReorderRow>(
                 IntegrationDisplayState.NormalizeSortOrder(sourceOrder)
-                    .Where(key => !IntegrationDisplayState.IsFollower(key)));
+                    .Where(key => !IntegrationDisplayState.IsFollower(key))
+                    .Select(CreateRow));
 
             DataContext = this;
         }
+
+        private ReorderRow CreateRow(string key) => new(
+            key,
+            IntegrationTileCatalog.DisplayNameFor(key),
+            _hiddenKeys.Contains(key));
 
         private void MoveUp_Click(object sender, RoutedEventArgs e)
         {
@@ -65,7 +76,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 if (IntegrationDisplayState.IsFollower(key))
                     continue;
 
-                TempOrder.Add(key);
+                TempOrder.Add(CreateRow(key));
             }
         }
 
@@ -80,7 +91,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void OrderList_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton != MouseButtonState.Pressed || OrderList.SelectedItem is not string selectedItem)
+            if (e.LeftButton != MouseButtonState.Pressed || OrderList.SelectedItem is not ReorderRow selectedItem)
                 return;
 
             Point currentPosition = e.GetPosition(null);
@@ -95,12 +106,12 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void OrderList_Drop(object sender, DragEventArgs e)
         {
-            if (!e.Data.GetDataPresent(typeof(string)))
+            if (!e.Data.GetDataPresent(typeof(ReorderRow)))
                 return;
 
-            var droppedItem = (string)e.Data.GetData(typeof(string));
+            var droppedItem = (ReorderRow)e.Data.GetData(typeof(ReorderRow));
             var targetItem = e.OriginalSource is DependencyObject source
-                ? FindAncestor<ListBoxItem>(source)?.DataContext as string
+                ? FindAncestor<ListBoxItem>(source)?.DataContext as ReorderRow
                 : null;
 
             int oldIndex = TempOrder.IndexOf(droppedItem);
@@ -130,7 +141,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            _integrationDisplay.IntegrationSortOrder = IntegrationDisplayState.NormalizeSortOrder(TempOrder);
+            _integrationDisplay.IntegrationSortOrder =
+                IntegrationDisplayState.NormalizeSortOrder(TempOrder.Select(row => row.Key));
 
             if (Owner is MainWindow mainWindow)
             {
@@ -151,5 +163,35 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         {
             Close();
         }
+    }
+
+    /// <summary>
+    /// One row in the reorder list. Carries the friendly name and whether the tile is currently hidden
+    /// on the Integrations page, so the dialog stops silently disagreeing with what the user sees there.
+    /// </summary>
+    public sealed class ReorderRow
+    {
+        public ReorderRow(string key, string displayName, bool isHidden)
+        {
+            Key = key;
+            DisplayName = displayName;
+            IsHidden = isHidden;
+        }
+
+        public string Key { get; }
+
+        public string DisplayName { get; }
+
+        public bool IsHidden { get; }
+
+        public string Label => IsHidden ? $"{DisplayName}  (hidden)" : DisplayName;
+
+        public double RowOpacity => IsHidden ? 0.45 : 1.0;
+
+        public string RowToolTip => IsHidden
+            ? $"{DisplayName} is hidden on the Integrations page. Its position here is still saved."
+            : DisplayName;
+
+        public override string ToString() => Key;
     }
 }
