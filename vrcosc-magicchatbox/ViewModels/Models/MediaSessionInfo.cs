@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Media;
 using vrcosc_magicchatbox.ViewModels.State;
 using Windows.Media.Control;
 using static WindowsMediaController.MediaManager;
@@ -368,13 +369,15 @@ namespace vrcosc_magicchatbox.ViewModels.Models
                 }
                 return _CurrentTime;
             }
-            set
-            {
-                _CurrentTime = value;
-                _lastUpdateTime = DateTime.UtcNow;
-                NotifyPropertyChanged(nameof(CurrentTime));
-                NotifyPropertyChanged(nameof(TimePosition));
-            }
+            set => SetPositionFromSample(value, DateTime.UtcNow);
+        }
+
+        public void SetPositionFromSample(TimeSpan position, DateTime sampledAtUtc)
+        {
+            _CurrentTime = position;
+            _lastUpdateTime = MediaTimelinePolicy.ResolveAnchor(sampledAtUtc, DateTime.UtcNow);
+            NotifyPropertyChanged(nameof(CurrentTime));
+            NotifyPropertyChanged(nameof(TimePosition));
         }
 
         public MediaSessionInfo(MediaLinkSettings mediaLinkSettings, MediaLinkDisplayState mediaLink)

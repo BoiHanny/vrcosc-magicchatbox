@@ -50,6 +50,22 @@ public static class MediaTimelinePolicy
 
     public static readonly TimeSpan NoTimelineSettleWindow = TimeSpan.FromSeconds(10);
 
+    public static readonly TimeSpan MaxAnchorBacklog = TimeSpan.FromMinutes(5);
+
+    public static DateTime ResolveAnchor(DateTime sampledAtUtc, DateTime nowUtc)
+    {
+        if (sampledAtUtc == default)
+            return nowUtc;
+
+        if (sampledAtUtc > nowUtc)
+            return nowUtc;
+
+        if (nowUtc - sampledAtUtc > MaxAnchorBacklog)
+            return nowUtc;
+
+        return sampledAtUtc;
+    }
+
     public static TimelineSnapshot Normalize(TimeSpan startTime, TimeSpan endTime, TimeSpan position)
     {
         TimeSpan full = endTime - startTime;
