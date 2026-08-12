@@ -30,47 +30,118 @@ your GPU temperature, your stream — all in one line, all customisable, all opt
 
 ## 🪄 What it looks like in-game
 
-VRChat gives you **144 characters**. MagicChatBox fills them with whatever you want, and quietly
-drops the least important parts when you run out of room.
+VRChat gives you a **144-character** chatbox above your head. You pick which integrations fill it,
+and MagicChatBox assembles them into one line.
+
+Here is the same chatbox with four different setups — **the toggles on the left, what VRChat shows
+on the right:**
+
+<br>
+
+**🎵 &nbsp;Music Display&nbsp; + &nbsp;Lyrics**
 
 ```text
-▶ Ado — Show  ♥        ♪ 世界中の誰よりきっと
+▶ Ado — Show ♥        ♪ 世界中の誰よりきっと
+```
 
-👑 🌎 The Great Pug | 👥 24/40 | friends+ US-West     ♥ 82 bpm     21:41 CEST  🌧 14°C
+<sub>The track you're playing, and the lyric line as it's sung.</sub>
 
-🖥️ CPU 34% ¦ GPU 62°C ¦ RAM 41%      ↓ 842 Mbps      🔋 HMD 62% · L 41% · R 88%
+<br>
 
+**📡 &nbsp;VRChat Radar&nbsp; + &nbsp;Heart Rate&nbsp; + &nbsp;Time&nbsp; + &nbsp;Weather**
+
+```text
+👑 🌎 The Great Pug | 👥 24/40 | friends+ US-West     ♥ 82 bpm     21:41 CEST 🌧 14°C
+```
+
+<sub>Where you are, how full it is, your pulse, and your local time and weather.</sub>
+
+<br>
+
+**🖥️ &nbsp;Component Stats&nbsp; + &nbsp;Network&nbsp; + &nbsp;Tracker Battery**
+
+```text
+CPU 34% ¦ GPU 62°C ¦ RAM 41%      ↓ 842 Mbps      🔋 HMD 62% · L 41% · R 88%
+```
+
+<sub>Your rig at a glance — and a warning before a tracker dies mid-session.</sub>
+
+<br>
+
+**💭 &nbsp;Personal Status&nbsp; + &nbsp;Window Activity&nbsp; + &nbsp;Soundpad**
+
+```text
 💭 back in 5       On desktop ⁱⁿ Blender       🎶 'airhorn.mp3'
 ```
 
-Every line above is built from integrations you switch on individually — and each one has
-**separate VR and Desktop toggles**, so your chatbox can say one thing at your desk and
-something else in the headset.
+<sub>Your own message, what you're busy with, and the sound you just played.</sub>
+
+<br>
+
+> [!TIP]
+> **Mix and match freely.** Every integration is an independent toggle, and each one has
+> **separate VR and Desktop switches** — so your chatbox can show your specs at your desk and your
+> heart rate in the headset, automatically.
+
+**Run out of room?** MagicChatBox doesn't cut your text off mid-word. It drops the least important
+pieces first — the queue, then the volume, then the device — and keeps the things you actually
+care about, like the song title.
 
 ---
 
 ## ⚙️ How it works
 
+**New to this? It's four steps, and MagicChatBox does three of them.**
+
+<table>
+<tr>
+<td width="42"><b>1</b></td>
+<td><b>It watches things on your PC.</b><br>
+Your music player, your heart rate monitor, your GPU sensors, VRChat's own log file — whichever ones you switch on.</td>
+</tr>
+<tr>
+<td><b>2</b></td>
+<td><b>It builds one line of text.</b><br>
+Everything enabled gets combined, in the order you choose, trimmed to fit VRChat's 144-character limit.</td>
+</tr>
+<tr>
+<td><b>3</b></td>
+<td><b>It sends that line to VRChat over OSC.</b><br>
+OSC is just a simple messaging system that VRChat already supports — you only have to switch it on once, in VRChat's settings.</td>
+</tr>
+<tr>
+<td><b>4</b></td>
+<td><b>You do this part:</b> <a href="https://youtu.be/o1BdsEYfXqE?si=yn22oVxmPgmWriDm&t=130">turn OSC on in VRChat</a>. That's it — the chatbox above your head starts filling in.</td>
+</tr>
+</table>
+
 ```mermaid
 flowchart LR
-    S["🎵 Spotify · Windows media"] --> M
-    P["🩵 Pulsoid heart rate"] --> M
+    S["🎵 Your music"] --> M
+    P["🩵 Your heart rate"] --> M
     L["📡 VRChat log"] --> M
-    H["🖥️ Hardware sensors"] --> M
+    H["🖥️ PC sensors"] --> M
     T["🟣 Twitch · TikTok · Discord"] --> M
 
-    M["✨ MagicChatBox<br/>builds one 144-char line"]
+    M["✨ MagicChatBox<br/>builds one 144-character line"]
 
-    M -->|OSC| V["💬 VRChat chatbox"]
-    M -->|avatar parameters| A["🧍 Your avatar reacts"]
+    M -->|"sends over OSC"| V["💬 The chatbox above your head"]
+    M -->|"sends numbers"| A["🧍 Your avatar reacts"]
 
     style M fill:#512BD4,stroke:#B96BFF,color:#ffffff
     style V fill:#2A1650,stroke:#6E9BFF,color:#ffffff
     style A fill:#2A1650,stroke:#FF6FC7,color:#ffffff
 ```
 
-Your heart rate can drive a blush. Your music can drive a colour. Anything MagicChatBox knows,
-your avatar can react to over OSC.
+### 🧍 The second arrow: your avatar can react
+
+The same connection can send **numbers** to your avatar instead of text. If your avatar is set up
+for it, your heart rate can drive a blush that deepens as your pulse rises, or a heart that beats
+in time with the real thing.
+
+You don't need this to use MagicChatBox — the chatbox works on its own. But if you build avatars,
+it's there. See the [Heart Rate guide](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/%F0%9F%A9%B5-Heart-Rate)
+for the full list of values you can hook up.
 
 ***
 <img width="1746" height="286" alt="image" src="https://github.com/user-attachments/assets/a6bf3973-41d3-4502-9ec3-14636e0b4722" />
@@ -174,19 +245,65 @@ Every name below links to a full guide covering all of its settings.
 
 ## 🔐 Your data stays yours
 
-MagicChatBox asks permission before it reads anything, **one capability at a time** — and if you say
-no, the integration switches itself off instead of running anyway.
+MagicChatBox never quietly starts reading things. To show your GPU temperature it has to read your
+sensors; to show your music it has to read what Windows is playing. **So it asks first — and it asks
+for one specific thing at a time, not blanket access.**
+
+### How the permission prompt works
+
+<table>
+<tr>
+<td width="42"><b>1</b></td>
+<td>You switch on an integration — say <b>Component Stats</b>.</td>
+</tr>
+<tr>
+<td><b>2</b></td>
+<td>MagicChatBox asks for the one permission it needs, by name: <b>🖥️ Hardware Monitor</b>. Not "access to your computer" — just that.</td>
+</tr>
+<tr>
+<td><b>3</b></td>
+<td><b>Approve</b> and the integration starts. <b>Decline</b> and it switches itself back off, rather than running half-broken or asking again every launch.</td>
+</tr>
+<tr>
+<td><b>4</b></td>
+<td>Changed your mind? <b>Options → Privacy</b> lists every permission you've granted, and revoking one stops whatever depends on it.</td>
+</tr>
+</table>
+
+### What each permission covers
+
+| Permission | Used by |
+| :------------ | :------------ |
+| 🖥️ **Hardware Monitor** | Component Stats |
+| 📋 **Window Activity** | Window Activity |
+| 🎵 **Media Session** | Music Display |
+| 💤 **AFK Sensor** | Personal Status |
+| 🎮 **VR Tracker Battery** | Tracker Battery |
+| 🎯 **VR Performance** | VR Performance |
+| 📶 **Network Statistics** | Network Statistics |
+| 🔊 **Soundpad Bridge** | Soundpad |
+| 📡 **VRChat Log Reader** | VRChat Radar |
+| 🌐 **Internet Access** | Spotify · Twitch · TikTok · Heart Rate · Lyrics · Weather |
+
+### Most of it never leaves your PC
 
 <div align="center">
 
-| 🏠 Stays on your PC | 🌐 Uses the network |
+| 🏠 Stays local | 🌐 Uses the network |
 | :------------ | :------------ |
 | Hardware sensors · Window titles · VRChat log<br>Media state · VR device batteries · Soundpad | Spotify · Twitch · TikTok<br>Pulsoid · Lyrics · Weather |
 
 </div>
 
-Each networked integration only ever contacts **its own** service. Nothing is pooled, and nothing is
-sent anywhere else.
+Only 🌐 **Internet Access** involves the network at all — and each integration that has it only ever
+contacts **its own** service. Spotify talks to Spotify; Lyrics talks to LRCLIB. Nothing is pooled,
+and nothing is sent anywhere else.
+
+> [!NOTE]
+> Two are worth a moment's thought before you enable them in a public instance. **Window Activity**
+> reads window titles, which often contain document names or video titles — so it has per-app privacy
+> settings and content filters. **VRChat Radar** reads who joins and leaves your instance; it stays on
+> your PC, but it is other people's presence.
 
 **[Read the full permissions breakdown →](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Privacy-and-Permissions)**
 
