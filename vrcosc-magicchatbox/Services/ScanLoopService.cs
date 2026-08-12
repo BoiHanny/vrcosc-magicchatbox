@@ -20,6 +20,11 @@ public sealed class ScanLoopService : IDisposable
     private static readonly TimeSpan WindowActivityMinInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan VrCheckTimeout = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan HardwareStatsTimeout = TimeSpan.FromSeconds(5);
+
+    // Opening the sensor library is a one-off that measured ~14.6s on a two-GPU machine. Holding the
+    // first tick to the steady-state watchdog tripped it three times and disabled the integration
+    // before it had ever produced a reading.
+    private static readonly TimeSpan HardwareStatsFirstRunTimeout = TimeSpan.FromSeconds(45);
     private readonly IAppState _appState;
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly IntegrationDisplayState _integrationDisplay;
@@ -38,6 +43,8 @@ public sealed class ScanLoopService : IDisposable
     private DateTime _lastVrCheckUtc = DateTime.MinValue;
     private DateTime _lastWindowActivityUtc = DateTime.MinValue;
     private int _windowActivityInFlight;
+    private int _componentStatsInFlight;
+    private bool _componentStatsPrimed;
     private string? _lastFormattedCurrentTime;
     private bool _isProcessing;
     private bool _disposed;
@@ -223,13 +230,26 @@ public sealed class ScanLoopService : IDisposable
                 tasks.Add(_faultTracker.RunGuardedAsync("WindowActivity", UpdateFocusedWindowAsync));
             }
 
-            if (_integrationSettings.IntgrComponentStats && IsComponentStatsDue())
+            if (_integrationSettings.IntgrComponentStats)
             {
+                // The in-flight guard is the point. A hardware read that outruns the tick interval used
+                // to start a second one on top of it, and the sensor service is not built for concurrent
+                // reads: the reads pile up, each one slower than the last, until every one of them blows
+                // the 5s timeout and the guard disables the integration for two minutes.
+                if (IsComponentStatsDue()
+                    && Interlocked.CompareExchange(ref _componentStatsInFlight, 1, 0) == 0)
+                {
+                    tasks.Add(RunComponentStatsAsync());
+                }
+            }
+            else if (_statsModule.IsValueCreated && _integrationDisplay.ComponentStatsRunning)
+            {
+                // Turning the integration off stops the tick, so nothing was left to run the module's own
+                // stop path: it kept reporting itself as running and held the sensor service open.
                 tasks.Add(_faultTracker.RunGuardedAsync(
-                    "HardwareStats",
-                    () => Task.Run(() => _statsModule.Value.TickAndUpdate()),
+                    "HardwareStatsStop",
+                    () => Task.Run(() => _statsModule.Value.StopAndClear()),
                     HardwareStatsTimeout));
-                _lastComponentStatsUpdateUtc = DateTime.UtcNow;
             }
 
             if (_integrationSettings.IntgrScanWindowTime)
@@ -267,6 +287,26 @@ public sealed class ScanLoopService : IDisposable
         {
             _lastFormattedCurrentTime = formatted;
             _integrationDisplay.CurrentTime = formatted;
+        }
+    }
+
+    private async Task RunComponentStatsAsync()
+    {
+        try
+        {
+            await _faultTracker.RunGuardedAsync(
+                "HardwareStats",
+                () => Task.Run(() => _statsModule.Value.TickAndUpdate()),
+                _componentStatsPrimed ? HardwareStatsTimeout : HardwareStatsFirstRunTimeout)
+                .ConfigureAwait(false);
+
+            _componentStatsPrimed = true;
+        }
+        finally
+        {
+            // Stamped on completion, not on dispatch, so a slow read cannot be immediately re-queued.
+            _lastComponentStatsUpdateUtc = DateTime.UtcNow;
+            Interlocked.Exchange(ref _componentStatsInFlight, 0);
         }
     }
 
