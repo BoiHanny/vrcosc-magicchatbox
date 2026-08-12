@@ -36,13 +36,14 @@ public sealed class OscBuildResultPresenter
 
         if (result.ExceededLimit)
         {
-            _oscDisplay.CharLimit = "Visible";
+            _integrationDisplay.TrimmedOutputKeys = result.TrimmedProviders;
+
             foreach (var key in result.TrimmedProviders)
                 _integrationDisplay.SetOpacity(key, "0.5");
         }
         else
         {
-            _oscDisplay.CharLimit = "Hidden";
+            _integrationDisplay.TrimmedOutputKeys = NothingLive;
         }
 
         if (result.Length > OscBuildContext.MaxOscLength)

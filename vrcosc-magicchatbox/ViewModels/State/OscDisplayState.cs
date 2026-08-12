@@ -15,7 +15,6 @@ public partial class OscDisplayState : ObservableObject
     private int _oscMsgCount;
 
     [ObservableProperty] private string _oscMsgCountUI = string.Empty;
-    [ObservableProperty] private string _charLimit = "Hidden";
 
     /// <summary>Drives the counter chip beside the preview. See <see cref="OscPreviewFillLevel"/>.</summary>
     public OscPreviewFill Fill => OscPreviewFillLevel.Classify(OscMsgCount);

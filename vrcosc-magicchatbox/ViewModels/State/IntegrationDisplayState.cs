@@ -106,6 +106,13 @@ public partial class IntegrationDisplayState : ObservableObject
     /// </summary>
     [ObservableProperty] private IReadOnlyCollection<string> _liveOutputKeys = Array.Empty<string>();
 
+    /// <summary>
+    /// The UiKeys dropped from this build to fit the 144 characters. They are switched on, they
+    /// produced text, and it did not make it - which is worth saying out loud rather than leaving as
+    /// a slightly faded tile.
+    /// </summary>
+    [ObservableProperty] private IReadOnlyCollection<string> _trimmedOutputKeys = Array.Empty<string>();
+
     [ObservableProperty] private string _currentTime = string.Empty;
     [ObservableProperty] private string _weatherLastSyncDisplay = "Last sync: Never";
     [ObservableProperty] private string _trackerBatteryDeviceSummary = "0/0 connected";
