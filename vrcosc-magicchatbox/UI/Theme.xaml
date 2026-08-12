@@ -805,14 +805,52 @@
         </Style.Triggers>
     </Style>
 
-    <Style
-        x:Key="HiddenTileChipButton"
-        BasedOn="{StaticResource CustomizePillButton}"
-        TargetType="Button">
-        <Setter Property="Content" Value="" />
-        <Setter Property="Padding" Value="7,2" />
+    <!--  A hidden tile reads as a small, quiet object you can pick back up: soft gradient, hairline
+          edge, and an accent edge on hover so it clearly invites a click.  -->
+    <Style x:Key="HiddenTileChipButton" TargetType="Button">
+        <Setter Property="Foreground" Value="#D6C9F2" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="10" />
-        <Setter Property="Margin" Value="0,2,4,2" />
+        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="Padding" Value="8,3" />
+        <Setter Property="Margin" Value="0,2,5,2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="chip"
+                        Padding="{TemplateBinding Padding}"
+                        BorderBrush="#4A3C72"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        SnapsToDevicePixels="True">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FF362B59" />
+                                <GradientStop Offset="1" Color="#FF2A2146" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="chip" Property="BorderBrush" Value="#A97BFF" />
+                            <Setter TargetName="chip" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Offset="0" Color="#FF453770" />
+                                        <GradientStop Offset="1" Color="#FF362B59" />
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="chip" Property="BorderBrush" Value="#3FE0D2" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="HiddenStripToggle" TargetType="ToggleButton">
