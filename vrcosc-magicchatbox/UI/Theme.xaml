@@ -787,4 +787,63 @@
         </Setter>
     </Style>
 
+    <!--  The quieter sibling of CustomizePillButton: same height and corner radius so tile rows do not
+          change height, but dimmer so it never competes with Customize. Content must be overridden
+          because the base style hardcodes "Customize ›".  -->
+    <Style
+        x:Key="HideTilePillButton"
+        BasedOn="{StaticResource CustomizePillButton}"
+        TargetType="Button">
+        <Setter Property="Content" Value="👁" />
+        <Setter Property="Padding" Value="6,3" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Opacity" Value="0.5" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="1" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="HiddenTileChipButton"
+        BasedOn="{StaticResource CustomizePillButton}"
+        TargetType="Button">
+        <Setter Property="Content" Value="" />
+        <Setter Property="Padding" Value="7,2" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Margin" Value="0,2,4,2" />
+    </Style>
+
+    <Style
+        x:Key="HiddenTileActionButton"
+        TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="Margin" Value="4,2,0,2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="linkBorder"
+                        Padding="{TemplateBinding Padding}"
+                        Background="Transparent"
+                        CornerRadius="9">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="linkBorder" Property="Background" Value="#33FFFFFF" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

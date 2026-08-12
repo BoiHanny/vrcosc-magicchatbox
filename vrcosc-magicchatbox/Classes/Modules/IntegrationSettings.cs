@@ -78,6 +78,15 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty]
     private ObservableCollection<string> _savedSortOrder = new(IntegrationDisplayState.DefaultSortOrder);
 
+    // Tiles the user has hidden from the Integrations page. Purely visual: nothing here starts or stops an
+    // integration. Stored verbatim so an unrecognised key from another build survives a round trip;
+    // IntegrationTileCatalog.ResolveHidden filters at the point of use.
+    [ObservableProperty]
+    [property: JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
+    private ObservableCollection<string> _hiddenTiles = new();
+
+    [ObservableProperty] private bool _tileHideHintShown = false;
+
     [JsonIgnore]
     [ObservableProperty] private bool _intgrScanForce = true;
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -158,6 +159,18 @@ public partial class IntegrationsPageViewModel : ObservableObject
         };
 
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
+
+        // Weather is the one tile whose master switch lives on a different settings object, so its chip
+        // dot and the tidy count would go stale without watching it too.
+        WeatherSettings.PropertyChanged += OnWeatherSettingsChangedForTiles;
+
+        RebuildHiddenChips();
+    }
+
+    private void OnWeatherSettingsChangedForTiles(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(WeatherSettings.ShowWeatherInTime))
+            HandleMasterChangedWhileHidden(e.PropertyName);
     }
 
     private readonly Dictionary<string, (PrivacyHook Hook, Func<bool> GetValue, Action Revert)> _guardMap;
@@ -214,6 +227,34 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
+
+        HandleMasterChangedWhileHidden(e.PropertyName);
+    }
+
+    /// <summary>
+    /// An integration can be switched on from its Options section rather than its tile. Without this, the
+    /// user gets a success message and no tile, with no clue that they hid it months ago.
+    /// </summary>
+    private void HandleMasterChangedWhileHidden(string propertyName)
+    {
+        if (!IntegrationTileCatalog.TryKeyForMasterProperty(propertyName, out var key)) return;
+        if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+        bool nowOn = tile.IsMasterOn(IntegrationSettings, WeatherSettings);
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+
+        if (nowOn && hidden.Contains(tile.Key))
+        {
+            ShowTile(tile.Key);
+            _toast.Show(
+                "👁 Tile shown again",
+                $"{tile.DisplayName} was hidden, so it's back on the list now that you've switched it on.",
+                ToastType.Info, durationMs: 5000, key: "tile-auto-shown");
+            return;
+        }
+
+        // Chips carry an on/off dot and the tidy pill carries a live count; both go stale without this.
+        RebuildHiddenChips();
     }
 
     private void HandleModeVisibility(string propertyName)
@@ -503,4 +544,230 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
+
+    // ---------------------------------------------------------------------------------------------
+    // Hiding tiles. Purely visual: every path here writes HiddenTiles and nothing else, so a hidden
+    // integration keeps running and keeps writing to the chatbox exactly as before.
+    // ---------------------------------------------------------------------------------------------
+
+    public ObservableCollection<HiddenTileChip> HiddenChips { get; } = new();
+
+    public bool HasHiddenTiles => HiddenChips.Count > 0;
+
+    public string HiddenHeader => HiddenChips.Count == 1
+        ? "You hid 1 tile · it's still running"
+        : $"You hid {HiddenChips.Count} tiles · they're still running";
+
+    public bool CanShowAll => HiddenChips.Count >= 2;
+
+    public bool EverythingHidden => HiddenChips.Count >= IntegrationTileCatalog.Keys.Count;
+
+    private List<string> VisibleKeys() => IntegrationTileCatalog
+        .VisibleKeysInOrder(
+            IntegrationDisplay.IntegrationSortOrder?.Count > 0
+                ? IntegrationDisplay.IntegrationSortOrder
+                : IntegrationDisplayState.DefaultSortOrder,
+            IntegrationSettings.HiddenTiles);
+
+    public List<string> SwitchedOffVisibleKeys() => IntegrationTileCatalog
+        .KeysWithMasterOff(VisibleKeys(), IntegrationSettings, WeatherSettings);
+
+    public int SwitchedOffVisibleCount => SwitchedOffVisibleKeys().Count;
+
+    public bool CanTidySwitchedOff => SwitchedOffVisibleCount >= 2;
+
+    public string TidySwitchedOffLabel => $"Hide the {SwitchedOffVisibleCount} that are off";
+
+    /// <summary>
+    /// Tiles that cannot run in the current mode no matter what the user does. Deliberately excludes
+    /// anything the mode banner is asking them to fix, because those have a working switch.
+    /// </summary>
+    public List<string> ModeUnavailableVisibleKeys()
+    {
+        var result = new List<string>();
+        bool isVR = AppState.IsVRRunning;
+
+        foreach (var key in VisibleKeys())
+        {
+            if (!IntegrationTileCatalog.TryGet(key, out var tile)) continue;
+
+            // No gate at all means the tile is fine in both modes.
+            if (!IntegrationModeVisibility.TryGetGate(tile.MasterProperty, out var gate)) continue;
+
+            // A gate the user can switch on is one the mode banner is already asking them to fix.
+            // Hiding those would take away the fix, so only genuinely impossible tiles qualify.
+            if (gate.CanEnableIn(isVR)) continue;
+
+            result.Add(tile.Key);
+        }
+
+        return result;
+    }
+
+    public int ModeUnavailableVisibleCount => ModeUnavailableVisibleKeys().Count;
+
+    public bool CanTidyModeUnavailable => ModeUnavailableVisibleCount >= 1;
+
+    public string TidyModeUnavailableLabel =>
+        $"Hide {(AppState.IsVRRunning ? "Desktop" : "VR")}-only tiles ({ModeUnavailableVisibleCount})";
+
+    [RelayCommand]
+    private void HideTile(string key)
+    {
+        if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        if (!hidden.Add(tile.Key)) return;
+
+        CommitHidden(hidden);
+
+        if (!IntegrationSettings.TileHideHintShown)
+        {
+            IntegrationSettings.TileHideHintShown = true;
+            _integrationSettingsProvider.Save();
+        }
+
+        _toast.Show(
+            "👁 Tile hidden",
+            $"{tile.DisplayName} is hidden from this list. It's still switched on.",
+            ToastType.Info,
+            new ToastAction("Undo", () => { ShowTile(tile.Key); return Task.CompletedTask; }),
+            durationMs: 5000,
+            key: "tile-hidden");
+    }
+
+    [RelayCommand]
+    private void ShowTile(string key)
+    {
+        if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        if (!hidden.Remove(tile.Key)) return;
+
+        CommitHidden(hidden);
+        TileShown?.Invoke(this, tile.Key);
+    }
+
+    [RelayCommand]
+    private void ShowAllTiles()
+    {
+        if (IntegrationSettings.HiddenTiles.Count == 0) return;
+
+        CommitHidden(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        _toast.Show("👁 All tiles are back", "Nothing is hidden any more.", ToastType.Info,
+            durationMs: 4000, key: "tiles-shown-all");
+    }
+
+    [RelayCommand]
+    private void TidySwitchedOff()
+    {
+        var keys = SwitchedOffVisibleKeys();
+        if (keys.Count == 0) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        foreach (var key in keys) hidden.Add(key);
+
+        CommitHidden(hidden);
+        _toast.Show(
+            "👁 Tidied up",
+            $"Hid {keys.Count} switched-off {(keys.Count == 1 ? "tile" : "tiles")}. Click any name to bring it back.",
+            ToastType.Info, durationMs: 5000, key: "tiles-tidied");
+    }
+
+    [RelayCommand]
+    private void TidyModeUnavailable()
+    {
+        var keys = ModeUnavailableVisibleKeys();
+        if (keys.Count == 0) return;
+
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+        foreach (var key in keys) hidden.Add(key);
+
+        CommitHidden(hidden);
+        _toast.Show(
+            "👁 Tidied up",
+            $"Hid {keys.Count} {(keys.Count == 1 ? "tile" : "tiles")} that can't run in this mode.",
+            ToastType.Info, durationMs: 5000, key: "tiles-tidied");
+    }
+
+    /// <summary>Raised when a tile becomes visible again so the page can scroll it into view.</summary>
+    public event EventHandler<string>? TileShown;
+
+    /// <summary>Raised when the set of visible tiles changes so the page can rebuild its item list.</summary>
+    public event EventHandler? TileLayoutChanged;
+
+    private void CommitHidden(HashSet<string> hidden)
+    {
+        // Assigning a new collection is what raises PropertyChanged for the generated property.
+        IntegrationSettings.HiddenTiles = new ObservableCollection<string>(
+            IntegrationTileCatalog.Keys.Where(hidden.Contains));
+
+        _integrationSettingsProvider.Save();
+        RebuildHiddenChips();
+        TileLayoutChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RebuildHiddenChips()
+    {
+        var hidden = IntegrationTileCatalog.ResolveHidden(IntegrationSettings.HiddenTiles);
+
+        var ordered = (IntegrationDisplay.IntegrationSortOrder?.Count > 0
+                ? IntegrationDisplay.IntegrationSortOrder.AsEnumerable()
+                : IntegrationDisplayState.DefaultSortOrder)
+            .Where(k => hidden.Contains(k))
+            .ToList();
+
+        foreach (var key in IntegrationTileCatalog.Keys)
+            if (hidden.Contains(key) && !ordered.Contains(key, StringComparer.OrdinalIgnoreCase))
+                ordered.Add(key);
+
+        HiddenChips.Clear();
+        foreach (var key in ordered)
+        {
+            if (!IntegrationTileCatalog.TryGet(key, out var tile)) continue;
+
+            bool running = tile.IsMasterOn(IntegrationSettings, WeatherSettings);
+            HiddenChips.Add(new HiddenTileChip(
+                tile.Key,
+                tile.DisplayName,
+                running,
+                running
+                    ? $"{tile.DisplayName} — hidden by you. Still switched on. Click to show it again."
+                    : $"{tile.DisplayName} — hidden by you, and switched off. Click to show it again."));
+        }
+
+        // A follower has no tile of its own, so if every host is hidden its controls are unreachable.
+        AddOrphanedFollowerChips(hidden);
+
+        RaiseHiddenStateChanged();
+    }
+
+    private void AddOrphanedFollowerChips(HashSet<string> hidden)
+    {
+        if (!IntegrationSettings.IntgrLyrics) return;
+        if (!hidden.Contains("Spotify") || !hidden.Contains("MediaLink")) return;
+
+        HiddenChips.Add(new HiddenTileChip(
+            "Spotify",
+            "Lyrics controls",
+            true,
+            "Lyrics is on, but its controls live on the Spotify and Media link tiles. Click to show Spotify."));
+    }
+
+    public void RaiseHiddenStateChanged()
+    {
+        OnPropertyChanged(nameof(HasHiddenTiles));
+        OnPropertyChanged(nameof(HiddenHeader));
+        OnPropertyChanged(nameof(CanShowAll));
+        OnPropertyChanged(nameof(EverythingHidden));
+        OnPropertyChanged(nameof(SwitchedOffVisibleCount));
+        OnPropertyChanged(nameof(CanTidySwitchedOff));
+        OnPropertyChanged(nameof(TidySwitchedOffLabel));
+        OnPropertyChanged(nameof(ModeUnavailableVisibleCount));
+        OnPropertyChanged(nameof(CanTidyModeUnavailable));
+        OnPropertyChanged(nameof(TidyModeUnavailableLabel));
+    }
 }
+
+/// <summary>A chip in the "hidden" strip. Projected from settings, never bound to them directly.</summary>
+public sealed record HiddenTileChip(string Key, string DisplayName, bool IsRunning, string ToolTip);
