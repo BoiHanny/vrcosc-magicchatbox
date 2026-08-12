@@ -54,6 +54,10 @@ namespace vrcosc_magicchatbox.ViewModels
         public IntegrationsPageViewModel Integrations => _integrations.Value;
         private readonly Lazy<OptionsPageViewModel> _options;
         public OptionsPageViewModel Options => _options.Value;
+        private readonly Lazy<StatusSetSwitcherViewModel> _statusSets;
+        public StatusSetSwitcherViewModel StatusSets => _statusSets.Value;
+        private readonly Lazy<AfkStyleViewModel> _afkStyles;
+        public AfkStyleViewModel AfkStyles => _afkStyles.Value;
 
         public ViewModel(
             AppUpdateState updateState,
@@ -77,7 +81,9 @@ namespace vrcosc_magicchatbox.ViewModels
             Lazy<ChattingPageViewModel> chatting,
             Lazy<StatusPageViewModel> status,
             Lazy<IntegrationsPageViewModel> integrations,
-            Lazy<OptionsPageViewModel> options)
+            Lazy<OptionsPageViewModel> options,
+            Lazy<StatusSetSwitcherViewModel> statusSets,
+            Lazy<AfkStyleViewModel> afkStyles)
         {
             UpdateState = updateState;
             OscDisplay = oscDisplay;
@@ -103,6 +109,8 @@ namespace vrcosc_magicchatbox.ViewModels
             _status = status;
             _integrations = integrations;
             _options = options;
+            _statusSets = statusSets;
+            _afkStyles = afkStyles;
 
             UpdateState.AppVersion = new Models.Version(appInfoService.GetApplicationVersion());
 

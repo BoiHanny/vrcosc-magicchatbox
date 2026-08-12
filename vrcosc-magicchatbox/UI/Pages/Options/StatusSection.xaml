@@ -284,70 +284,270 @@
 
                         <CheckBox
                             Margin="4,5,4,4"
-                            IsChecked="{Binding Afk.Settings.ShowPrefixIcon, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Show prefix icon
-                        </CheckBox>
-
-                        <CheckBox
-                            Margin="4,5,4,4"
-                            IsChecked="{Binding Afk.Settings.ShowAFKTime, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Show how long you are AFK
-                        </CheckBox>
-                        <CheckBox
-                            Margin="4,5,4,4"
                             IsChecked="{Binding Afk.Settings.UseSmallLettersForDuration, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            Visibility="{Binding Afk.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            Style="{DynamicResource SettingsCheckbox}">
                             Use small letters for duration suffix
                         </CheckBox>
+
+                        <!--  ====================================================================
+                              AFK STYLES. A style is a whole way of saying you are away - prefix,
+                              wording, whether the clock shows - saved under a name and switchable
+                              from the side panel. What used to be four loose fields here is now
+                              one of these, so nothing was lost, it just got a name.
+                              ====================================================================  -->
                         <TextBlock
-                            Padding="4,5,9,0"
-                            VerticalAlignment="Center"
+                            Padding="4,15,9,0"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="19"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Text="AFK styles" />
+
+                        <TextBlock
+                            Padding="4,0,9,8"
+                            FontFamily="Albert Sans Thin"
+                            FontSize="13"
+                            FontStyle="Italic"
+                            Foreground="{StaticResource TextLabelBrush}"
+                            Opacity="0.5"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Build as many as you like and switch between them from the side panel. Use \n for a new line."
+                            TextWrapping="Wrap" />
+
+                        <StackPanel Margin="4,0,4,6" Orientation="Horizontal">
+                            <ComboBox
+                                Width="190"
+                                Height="26"
+                                VerticalContentAlignment="Center"
+                                DisplayMemberPath="Name"
+                                IsSynchronizedWithCurrentItem="False"
+                                ItemsSource="{Binding AfkStyles.Styles}"
+                                SelectedItem="{Binding AfkStyles.SelectedStyle, Mode=TwoWay}"
+                                Style="{StaticResource FlatComboBoxStyle}" />
+
+                            <Button
+                                Height="26"
+                                Margin="6,0,0,0"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.AddStyleCommand}"
+                                Content="Duplicate"
+                                Style="{DynamicResource Status_Button_style}"
+                                ToolTip="Start a new style from the one you have selected" />
+
+                            <Button
+                                Height="26"
+                                Margin="6,0,0,0"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.DeleteStyleCommand}"
+                                Content="Delete"
+                                Style="{DynamicResource Status_Button_style}"
+                                ToolTip="Delete this style. The ones that ship with MagicChatbox cannot be deleted." />
+                        </StackPanel>
+
+                        <Grid Margin="4,4,4,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="0,0,10,6"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="14"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="Name" />
+                            <TextBox
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="0,0,0,6"
+                                Padding="5,3"
+                                VerticalContentAlignment="Center"
+                                FontSize="14"
+                                Text="{Binding AfkStyles.SelectedStyle.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <CheckBox
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Margin="0,0,10,6"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding AfkStyles.SelectedStyle.ShowPrefix, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}">
+                                Prefix
+                            </CheckBox>
+                            <TextBox
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Margin="0,0,0,6"
+                                Padding="5,3"
+                                VerticalContentAlignment="Center"
+                                FontSize="14"
+                                IsEnabled="{Binding AfkStyles.SelectedStyle.ShowPrefix}"
+                                Text="{Binding AfkStyles.SelectedStyle.Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <CheckBox
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Margin="0,0,10,6"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding AfkStyles.SelectedStyle.ShowTime, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                ToolTip="Show how long you have been away">
+                                With clock
+                            </CheckBox>
+                            <TextBox
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Margin="0,0,0,6"
+                                Padding="5,3"
+                                VerticalContentAlignment="Center"
+                                FontSize="14"
+                                IsEnabled="{Binding AfkStyles.SelectedStyle.ShowTime}"
+                                Text="{Binding AfkStyles.SelectedStyle.MessageWithTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                ToolTip="The duration is added straight after this text, so end it with a space." />
+
+                            <TextBlock
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Margin="0,0,10,6"
+                                VerticalAlignment="Center"
+                                FontFamily="Albert Sans Thin"
+                                FontSize="14"
+                                Foreground="{StaticResource TextLabelBrush}"
+                                Text="No clock" />
+                            <TextBox
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                Margin="0,0,0,6"
+                                Padding="5,3"
+                                VerticalContentAlignment="Center"
+                                FontSize="14"
+                                Text="{Binding AfkStyles.SelectedStyle.MessageWithoutTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                ToolTip="Used when the clock is off, and whenever there is no duration to show yet." />
+                        </Grid>
+
+                        <!--  Same Render() the chatbox line comes from, so this cannot drift from reality.  -->
+                        <Border
+                            Margin="4,6,4,0"
+                            Padding="10,8"
+                            Background="{StaticResource AccentDeepPurpleBrush}"
+                            CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="15"
+                                    Foreground="White"
+                                    Text="{Binding AfkStyles.PreviewLine}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="{Binding AfkStyles.PreviewCost}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!--  ====================================================================
+                              THE COMPOSER. Fancy text is the whole appeal of an AFK line and there
+                              is no way to type it on a keyboard, so the app types it for you and
+                              drops it straight into the field rather than sending you to a website
+                              and back through the clipboard.
+                              ====================================================================  -->
+                        <TextBlock
+                            Padding="4,16,9,0"
                             FontFamily="Albert Sans Thin"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
-                            Text="AFK style" />
-                        <StackPanel Margin="4,0,0,0" Orientation="Horizontal">
-
-                            <TextBox
-                                Width="auto"
-                                Margin="0,3,0,0"
-                                Padding="5,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalContentAlignment="Center"
-                                FontSize="15"
-                                Text="{Binding Afk.Settings.AfkPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                Visibility="{Binding Afk.Settings.ShowPrefixIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBox
-                                Width="auto"
-                                Margin="5,3,0,0"
-                                Padding="5,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalContentAlignment="Center"
-                                FontSize="15"
-                                Text="{Binding Afk.Settings.AfkMessageForTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                Visibility="{Binding Afk.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBox
-                                Width="auto"
-                                Margin="4,3,0,0"
-                                Padding="5,0,5,0"
-                                HorizontalAlignment="Left"
-                                VerticalContentAlignment="Center"
-                                FontSize="15"
-                                Text="{Binding Afk.Settings.AfkMessageWithoutTimeStamp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                Visibility="{Binding Afk.Settings.ShowAFKTime, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
+                            Text="Make fancy text" />
                         <TextBlock
-                            Margin="4,2,0,0"
+                            Padding="4,0,9,6"
                             FontFamily="Albert Sans Thin"
-                            FontSize="10"
+                            FontSize="12"
                             FontStyle="Italic"
                             Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.4"
+                            Opacity="0.5"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Use \n for new line" />
+                            Text="Type normally, pick a look, then drop it into one of the fields above. Letters with no fancy version are left alone."
+                            TextWrapping="Wrap" />
+
+                        <StackPanel Margin="4,0,4,0" Orientation="Horizontal">
+                            <TextBox
+                                Width="220"
+                                Padding="5,3"
+                                VerticalContentAlignment="Center"
+                                FontSize="14"
+                                Text="{Binding AfkStyles.ComposerInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox
+                                Width="130"
+                                Height="26"
+                                Margin="6,0,0,0"
+                                VerticalContentAlignment="Center"
+                                ItemsSource="{Binding AfkStyles.TextStyles}"
+                                SelectedItem="{Binding AfkStyles.ComposerStyle, Mode=TwoWay}"
+                                Style="{StaticResource FlatComboBoxStyle}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <Border
+                            Margin="4,6,4,0"
+                            Padding="10,8"
+                            Background="{StaticResource SurfaceButtonDarkBrush}"
+                            CornerRadius="6">
+                            <StackPanel>
+                                <TextBlock
+                                    FontFamily="Comfortaa Light"
+                                    FontSize="15"
+                                    Foreground="White"
+                                    Text="{Binding AfkStyles.ComposerOutput}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontFamily="Albert Sans Thin"
+                                    FontSize="11"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="{Binding AfkStyles.ComposerCost}" />
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Margin="4,6,4,0" Orientation="Horizontal">
+                            <Button
+                                Height="26"
+                                Margin="0,0,6,0"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.ApplyComposerToCommand}"
+                                CommandParameter="WithTime"
+                                Content="Use for with clock"
+                                Style="{DynamicResource Status_Button_style}" />
+                            <Button
+                                Height="26"
+                                Margin="0,0,6,0"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.ApplyComposerToCommand}"
+                                CommandParameter="WithoutTime"
+                                Content="Use for no clock"
+                                Style="{DynamicResource Status_Button_style}" />
+                            <Button
+                                Height="26"
+                                Padding="10,0"
+                                Command="{Binding AfkStyles.ApplyComposerToCommand}"
+                                CommandParameter="Prefix"
+                                Content="Use as prefix"
+                                Style="{DynamicResource Status_Button_style}" />
+                        </StackPanel>
                         <StackPanel Visibility="{Binding AppState.BussyBoysMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                             <TextBlock

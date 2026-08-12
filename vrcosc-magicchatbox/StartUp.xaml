@@ -265,7 +265,7 @@
                                 FontFamily="Albert Sans Thin"
                                 FontSize="12"
                                 Foreground="#6A5F94"
-                                Text="made with ♥ by" />
+                                Text="Made with ♥ by" />
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontFamily="Comfortaa Light"
