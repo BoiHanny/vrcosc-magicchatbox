@@ -282,6 +282,7 @@ namespace vrcosc_magicchatbox
 
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
                 loadingWindow.SetTopmostFromAnyThread(true);
+
                 Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
                 mainWindow.Show();
                 Logging.WriteInfo("[Startup] MainWindow shown.");

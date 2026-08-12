@@ -67,7 +67,7 @@
                     Grid.Row="1"
                     d:Visibility="Collapsed"
                     DataContext="{Binding Status}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=1}" />
 
 
                 <pages:OptionsPage
@@ -75,7 +75,7 @@
                     Grid.Row="1"
                     d:Visibility="Collapsed"
                     DataContext="{Binding Options}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}" />
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
 
 
                 <pages:ChattingPage
@@ -83,7 +83,7 @@
                     Grid.Row="1"
                     d:Visibility="Visible"
                     DataContext="{Binding Chatting}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
 
                 <Grid Margin="-10,0,0,0" Visibility="{Binding OscDisplay.CharLimit}">
                     <Grid.Background>
@@ -213,7 +213,7 @@
                             VerticalAlignment="Top"
                             Background="{StaticResource ButtonHighlightBrush}"
                             IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" />
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=0}" />
                     </Grid>
                     <Grid
                         Grid.Column="2"
@@ -238,7 +238,7 @@
                             VerticalAlignment="Top"
                             Background="{StaticResource ButtonHighlightBrush}"
                             IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=1}" />
                     </Grid>
                     <Grid
                         Grid.Column="3"
@@ -263,7 +263,7 @@
                             VerticalAlignment="Top"
                             Background="{StaticResource ButtonHighlightBrush}"
                             IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
                     </Grid>
                     <Grid
                         Grid.Column="4"
@@ -288,7 +288,7 @@
                             VerticalAlignment="Top"
                             Background="{StaticResource ButtonHighlightBrush}"
                             IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}" />
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
                     </Grid>
 
                     <!--  Discord, GitHub and the wiki, moved out of the preview header where they were
@@ -1064,7 +1064,7 @@
                             Margin="0,2"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}">
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
@@ -1084,7 +1084,7 @@
                             Margin="0,2"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}">
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontFamily="Albert Sans Thin"
@@ -1104,7 +1104,7 @@
                                 Margin="0,5"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal"
-                                Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                                Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}">
                                 <TextBlock
                                     Margin="0,0,5,0"
                                     VerticalAlignment="Center"
@@ -1140,7 +1140,7 @@
                                 Margin="0,0,0,0"
                                 HorizontalAlignment="Right"
                                 Orientation="Horizontal"
-                                Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}">
+                                Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}">
                                 <TextBlock
                                     Width="69"
                                     Margin="0,0,0,3"
@@ -1242,7 +1242,7 @@
                     Grid.Row="1"
                     d:Visibility="Collapsed"
                     DataContext="{Binding Integrations}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" />
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=0}" />
             </Grid>
         </Border>
 

@@ -23,7 +23,7 @@
                             Background="#241748"
                             CornerRadius="3"
                             SnapsToDevicePixels="True">
-                            <Grid>
+                            <Grid ClipToBounds="True">
                                 <Border x:Name="PART_Track" />
                                 <Border
                                     x:Name="PART_Indicator"
@@ -44,8 +44,46 @@
                                             Color="#9E82DD" />
                                     </Border.Effect>
                                 </Border>
+
+                                <!--  Progress only moves when a step reports in, and the longest step by
+                                      far is the first real layout of the main window - several seconds
+                                      during which the bar sat perfectly still and the whole thing read as
+                                      hung. This sweep never stops. The splash owns its own UI thread, so
+                                      it keeps animating while the main one is busy laying out, which is
+                                      exactly when reassurance is needed.  -->
+                                <Border
+                                    x:Name="shimmer"
+                                    Width="120"
+                                    HorizontalAlignment="Left"
+                                    IsHitTestVisible="False">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#00FFFFFF" />
+                                            <GradientStop Offset="0.5" Color="#4DFFFFFF" />
+                                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="-120" />
+                                    </Border.RenderTransform>
+                                </Border>
                             </Grid>
                         </Border>
+
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="shimmer"
+                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                            From="-120"
+                                            To="620"
+                                            Duration="0:0:1.6" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
