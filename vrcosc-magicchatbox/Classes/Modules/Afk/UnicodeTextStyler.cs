@@ -62,7 +62,14 @@ public static class UnicodeTextStyler
         ['h'] = "ʜ", ['i'] = "ɪ", ['j'] = "ᴊ", ['k'] = "ᴋ", ['l'] = "ʟ", ['m'] = "ᴍ", ['n'] = "ɴ",
         ['o'] = "ᴏ", ['p'] = "ᴘ", ['r'] = "ʀ", ['s'] = "ꜱ", ['t'] = "ᴛ", ['u'] = "ᴜ", ['v'] = "ᴠ",
         ['w'] = "ᴡ", ['y'] = "ʏ", ['z'] = "ᴢ",
-        // 'q' and 'x' have no small capital forms.
+
+        // Unicode's actual small capital Q (U+A7AF) is recent enough that plenty of fonts have no
+        // glyph for it, and a missing glyph in VRChat is a blank box. The o-with-ogonek stand-in is
+        // what every small caps generator uses for exactly this reason: it reads as a small q and
+        // it is in essentially every font already.
+        ['q'] = "ǫ",
+
+        // 'x' is left alone. It has no small capital, and it already looks the part at this size.
     };
 
     public static string Apply(string? text, AfkTextStyle style)

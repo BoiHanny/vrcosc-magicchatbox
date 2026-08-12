@@ -98,8 +98,8 @@ public static class AfkStylePresets
             Name = "Back soon",
             IsBuiltIn = true,
             Prefix = "🚪",
-            MessageWithTime = "ᵇᵃᶜᵏ ˢᵒᵒⁿ, ᵍᵒⁿᵉ ",
-            MessageWithoutTime = "ᵇᵃᶜᵏ ˢᵒᵒⁿ",
+            MessageWithTime = "ᵇᵃᶜᵏ soon, ᵍᵒⁿᵉ ",
+            MessageWithoutTime = "ᵇᵃᶜᵏ soon",
         },
         new()
         {
@@ -109,6 +109,111 @@ public static class AfkStylePresets
             Prefix = "🌙",
             MessageWithTime = "ᶻᶻᶻ ᶠᵒʳ ",
             MessageWithoutTime = "ᶻᶻᶻ",
+        },
+        // The playful ones all follow the shape the original default set: the sentence rides high and
+        // small in superscript and the one word that carries the joke drops back to full size. Your
+        // eye lands on that word first and reads the rest only if it cares, which is the whole trick
+        // behind "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ".
+        new()
+        {
+            Id = "builtin-grass",
+            Name = "Touching grass",
+            IsBuiltIn = true,
+            Prefix = "🌱",
+            MessageWithTime = "ᵗᵒᵘᶜʰⁱⁿᵍ grass ᶠᵒʳ ",
+            MessageWithoutTime = "ᵗᵒᵘᶜʰⁱⁿᵍ grass ʳⁱᵍʰᵗ ⁿᵒʷ",
+        },
+        new()
+        {
+            Id = "builtin-gym",
+            Name = "At the gym",
+            IsBuiltIn = true,
+            Prefix = "🏋️",
+            MessageWithTime = "ᵃᵗ ᵗʰᵉ GYM ᶠᵒʳ ",
+            MessageWithoutTime = "ᵃᵗ ᵗʰᵉ GYM ʳⁱᵍʰᵗ ⁿᵒʷ",
+        },
+        new()
+        {
+            Id = "builtin-food",
+            Name = "Raiding the fridge",
+            IsBuiltIn = true,
+            Prefix = "🍜",
+            MessageWithTime = "ʳᵃⁱᵈⁱⁿᵍ ᵗʰᵉ fridge ᶠᵒʳ ",
+            MessageWithoutTime = "ʳᵃⁱᵈⁱⁿᵍ ᵗʰᵉ fridge",
+        },
+        new()
+        {
+            Id = "builtin-coffee",
+            Name = "Coffee run",
+            IsBuiltIn = true,
+            Prefix = "☕",
+            MessageWithTime = "coffee ʳᵘⁿ, ᵇᵃᶜᵏ ⁱⁿ ",
+            MessageWithoutTime = "coffee ʳᵘⁿ",
+        },
+        new()
+        {
+            Id = "builtin-shower",
+            Name = "In the shower",
+            IsBuiltIn = true,
+            Prefix = "🚿",
+            MessageWithTime = "ⁱⁿ ᵗʰᵉ shower ᶠᵒʳ ",
+            MessageWithoutTime = "ⁱⁿ ᵗʰᵉ shower",
+        },
+        new()
+        {
+            Id = "builtin-cat",
+            Name = "The cat won",
+            IsBuiltIn = true,
+            Prefix = "🐈",
+            MessageWithTime = "ᵗʰᵉ cat ʷᵒⁿ, ᵍᵒⁿᵉ ",
+            MessageWithoutTime = "ᵗʰᵉ cat ʷᵒⁿ",
+        },
+        new()
+        {
+            // Pairing this one with the clock is the entire joke: it gets funnier the longer you are
+            // gone, and it writes itself.
+            Id = "builtin-oneminute",
+            Name = "One minute",
+            IsBuiltIn = true,
+            Prefix = "⏳",
+            MessageWithTime = "ᵒⁿᵉ ᵐⁱⁿᵘᵗᵉ ᵗᵘʳⁿᵉᵈ ⁱⁿᵗᵒ ",
+            MessageWithoutTime = "ᵍⁱᵛᵉ ᵐᵉ ᵒⁿᵉ minute",
+        },
+        new()
+        {
+            Id = "builtin-onemore",
+            Name = "One more game",
+            IsBuiltIn = true,
+            Prefix = "🎮",
+            MessageWithTime = "\"ᵒⁿᵉ ᵐᵒʳᵉ game\" ᶠᵒʳ ",
+            MessageWithoutTime = "ᵒⁿᵉ ᵐᵒʳᵉ game, ᵖʳᵒᵐⁱˢᵉ",
+        },
+        new()
+        {
+            Id = "builtin-deceased",
+            Name = "Deceased",
+            IsBuiltIn = true,
+            Prefix = "💀",
+            MessageWithTime = "ᵈᵉᶜᵉᵃˢᵉᵈ ᶠᵒʳ ",
+            MessageWithoutTime = "ᵗᵉᵐᵖᵒʳᵃʳⁱˡʸ deceased",
+        },
+        new()
+        {
+            Id = "builtin-phone",
+            Name = "On the phone",
+            IsBuiltIn = true,
+            Prefix = "📞",
+            MessageWithTime = "ᵒⁿ ᵗʰᵉ phone ᶠᵒʳ ",
+            MessageWithoutTime = "ᵒⁿ ᵗʰᵉ phone",
+        },
+        new()
+        {
+            Id = "builtin-staring",
+            Name = "Staring at a wall",
+            IsBuiltIn = true,
+            Prefix = "🧍",
+            MessageWithTime = "ˢᵗᵃʳⁱⁿᵍ ᵃᵗ ᵃ wall ᶠᵒʳ ",
+            MessageWithoutTime = "ˢᵗᵃʳⁱⁿᵍ ᵃᵗ ᵃ wall",
         },
     };
 }
